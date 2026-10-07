@@ -1,0 +1,58 @@
+name: Weekly newsletter
+
+# The weekly Index summary (scripts/newsletter.ts), Fridays 21:00 UTC: this
+# week's One Piece card movers per market, the cards TCGplayer listed this week,
+# and the sponsored slot when one is booked (lib/newsletter-sponsor.ts). One
+# edition per ISO week, stamped per subscriber after a successful send, so a
+# manual re-run resumes rather than double-sends.
+#
+# OFF until the repository secrets RESEND_API_KEY and EMAIL_FROM exist (OP
+# Compare's own Resend account, never RiftCompare's, never on Vercel): the gate
+# then skips the job and the run is green. A refused key fails the run red.
+on:
+  schedule:
+    - cron: "0 21 * * 5"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: email
+  cancel-in-progress: false
+
+jobs:
+  newsletter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+      EMAIL_LINK_SECRET: ${{ secrets.EMAIL_LINK_SECRET }}
+      EMAIL_REPLY_TO: ${{ vars.EMAIL_REPLY_TO }}
+      NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL || 'https://opcompare.app' }}
+    steps:
+      - name: Skip unless email and the database are configured
+        id: gate
+        run: |
+          if [ -z "$DATABASE_URL" ] || [ -z "$RESEND_API_KEY" ] || [ -z "$EMAIL_FROM" ]; then
+            echo "Email is not configured (DATABASE_URL, RESEND_API_KEY and EMAIL_FROM are all needed): nothing to send."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.run == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.run == 'true'
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+        if: steps.gate.outputs.run == 'true'
+      - run: npx prisma generate
+        if: steps.gate.outputs.run == 'true'
+      - name: Send this week's edition
+        if: steps.gate.outputs.run == 'true'
+        run: npx tsx scripts/newsletter.ts

@@ -1,0 +1,25 @@
+name: Search Console
+
+# Daily: (re)submit the sitemap to Google Search Console and report indexing,
+# clicks and top queries in the run summary (scripts/gsc-report.ts). No-op until
+# the GSC_SA_KEY secret is set. GSC_PROPERTY / SITE_URL default to the
+# opcompare.app Domain property; set the variables only to override them.
+on:
+  schedule:
+    - cron: "25 7 * * *"
+  workflow_dispatch:
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GSC_SA_KEY: ${{ secrets.GSC_SA_KEY }}
+      GSC_PROPERTY: ${{ vars.GSC_PROPERTY || 'sc-domain:opcompare.app' }}
+      SITE_URL: ${{ vars.SITE_URL || 'https://opcompare.app' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npx --yes tsx scripts/gsc-report.ts

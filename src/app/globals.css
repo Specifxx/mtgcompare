@@ -1,0 +1,819 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  /* ── Palette: DARK (the default) ────────────────────────────────────────
+     RGB triplets, not hexes, because tailwind.config.ts wraps each one as
+     `rgb(var(--c-x) / <alpha-value>)` so opacity modifiers keep working.
+     These are the exact values the config used to hard-code, so dark mode
+     renders pixel-identically. The light set is further down under
+     `:root[data-theme="light"]`; src/lib/theme-shared.ts explains the switch
+     and tests/theme.test.ts pins that both sets define every variable. */
+  --c-ink-950: 10 12 16;
+  --c-ink-900: 14 17 22;
+  --c-ink-850: 19 23 31;
+  --c-ink-800: 25 30 40;
+  --c-ink-700: 37 43 56;
+  --c-ink-600: 51 59 77;
+  --c-brand-400: 255 107 107;
+  --c-slate-100: 241 245 249;
+  --c-slate-200: 226 232 240;
+  --c-slate-300: 203 213 225;
+  --c-slate-400: 148 163 184;
+  --c-slate-500: 133 147 166;
+  --c-slate-600: 118 130 143;
+  --c-slate-700: 51 65 85;
+  --c-slate-800: 30 41 59;
+  --c-slate-900: 15 23 42;
+  --c-accent: 238 241 245;
+  --c-gold: 202 168 90;
+  --c-up: 63 185 80;
+  --c-down: 240 80 110;
+  --c-white: 255 255 255;
+  /* Chromatic text shades: Tailwind's stock hexes, so dark is pixel-identical. */
+  --c-rose-200: 254 205 211;
+  --c-rose-300: 253 164 175;
+  --c-rose-400: 251 113 133;
+  --c-red-300: 252 165 165;
+  --c-red-400: 248 113 113;
+  --c-emerald-300: 110 231 183;
+  --c-emerald-400: 52 211 153;
+  --c-amber-100: 254 243 199;
+  --c-amber-200: 253 230 138;
+  --c-amber-300: 252 211 77;
+  --c-sky-200: 186 230 253;
+  --c-sky-300: 125 211 252;
+  --c-sky-400: 56 189 248;
+  --c-lime-200: 217 249 157;
+  --c-lime-300: 190 242 100;
+  --c-purple-300: 216 180 254;
+  --c-blue-300: 147 197 253;
+  --page-bg: #0b0e14;
+  --page-fg: #e8eaee;
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.02), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 1px 0 rgba(255, 255, 255, 0.03), 0 4px 12px rgba(0, 0, 0, 0.45);
+  /* The scrolled header's drop (NavbarShell SCROLLED, tailwind `shadow-header`). */
+  --shadow-header: 0 8px 30px rgba(0, 0, 0, 0.35);
+  --scroll-track: #0f131c;
+  --scroll-thumb: #2c3650;
+  --scroll-thumb-hover: #3a4564;
+  /* Reserved width for the persistent desktop SideNav (components/SideNav.tsx),
+     0 by default so every element that pads/positions against it (the header,
+     main, the footer ad zone, the footer itself, CinematicHero's full-bleed
+     breakout) is a no-op below the breakpoint where SideNav actually renders.
+     Read via `var(--sidenav-w)` rather than a Tailwind `lg:` prefix on each
+     consumer so ALL of them share exactly one breakpoint decision —
+     SideNav.tsx's own `hidden lg:flex` and the media query below must always
+     agree, or the panel either overlaps un-padded content or leaves a dead
+     gap. tests/sidenav.test.ts pins both against the same "1024px" value.
+
+     ONE WIDTH, ONE BREAKPOINT, since 2026-09-21. There used to be two rail
+     modes — a 4rem icon strip and a 17rem list — chosen by a `data-sidenav`
+     attribute stamped before first paint from a cookie, with a chevron and a
+     `[` shortcut to flip between them. That whole mechanism is gone
+     ("the collapsible option is actually, there's no point — have the default
+     as uncollapsed"), and with it the boot script, the cookie, the
+     `.sidenav-expanded`/`.sidenav-collapsed` display toggles and the flyouts
+     the icon mode needed. The rail is simply the list now. */
+  --sidenav-w: 0px;
+  /* Height of the native AdMob banner inside the Capacitor shell — see the
+     native-app rule further down. 0 on the web, where there is no banner. */
+  --native-banner-h: 0px;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --sidenav-w: 17rem;
+  }
+}
+
+/* ── Palette: LIGHT ──────────────────────────────────────────────────────
+   Opt-in via the header toggle (ThemeToggle.tsx), stamped on <html> before
+   first paint by THEME_BOOT_SCRIPT. Same variables, inverted lightness:
+   `text-white` becomes near-black ink, `bg-ink-900` a white card, and the
+   slate text ramp darkens so that every shade the dark theme guarantees at
+   4.5:1 still clears it on the light surfaces (pinned in tests/theme.test.ts).
+   brand-400 (the link colour) and the gain/loss reds and greens darken for
+   the same reason; brand-500/600 fills and the bg-black overlays don't move.
+   Since 2026-09-23 the rose/red/emerald/amber/sky/lime/purple/blue TEXT shades
+   darken too (their fills stay Tailwind stock): the stock pastels measured
+   1.02-2.8:1 here (/sealed 'Sold out' rose-300 1.44:1, the Riftle hint
+   amber-100 1.02:1). The values below are 5.5-9.6:1 on white (rose-400 6.29,
+   red-400 6.47, emerald-400 5.48, sky-400 5.93, amber-300 7.09) and at least
+   4.54:1 on each family's own 15-20% tint. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --c-ink-950: 244 246 248;
+  --c-ink-900: 255 255 255;
+  --c-ink-850: 238 241 245;
+  --c-ink-800: 226 230 236;
+  --c-ink-700: 207 213 222;
+  --c-ink-600: 180 188 200;
+  --c-brand-400: 176 22 30;
+  --c-slate-100: 15 23 42;
+  --c-slate-200: 30 41 59;
+  --c-slate-300: 51 65 85;
+  --c-slate-400: 71 85 105;
+  --c-slate-500: 85 98 122;
+  --c-slate-600: 95 107 128;
+  --c-slate-700: 148 163 184;
+  --c-slate-800: 203 213 225;
+  --c-slate-900: 226 232 240;
+  --c-accent: 11 15 20;
+  --c-gold: 122 95 20;
+  --c-up: 22 101 52;
+  --c-down: 190 18 60;
+  --c-white: 11 15 20;
+  --c-rose-200: 136 19 55;
+  --c-rose-300: 159 18 57;
+  --c-rose-400: 190 18 60;
+  --c-red-300: 153 27 27;
+  --c-red-400: 185 28 28;
+  --c-emerald-300: 6 95 70;
+  --c-emerald-400: 4 120 87;
+  --c-amber-100: 120 53 15;
+  --c-amber-200: 146 64 14;
+  --c-amber-300: 146 64 14;
+  --c-sky-200: 7 89 133;
+  --c-sky-300: 7 89 133;
+  --c-sky-400: 3 105 161;
+  --c-lime-200: 63 98 18;
+  --c-lime-300: 63 98 18;
+  --c-purple-300: 107 33 168;
+  --c-blue-300: 30 64 175;
+  --page-bg: #f4f6f8;
+  --page-fg: #0b0f14;
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.1);
+  --shadow-glow: 0 4px 12px rgba(16, 24, 40, 0.12);
+  /* A soft 12px lift, not the dark theme's 30px black drop: that one measured a
+     grey band ~45px deep under the header on the #f4f6f8 page (202 → 237). */
+  --shadow-header: 0 4px 12px rgba(16, 24, 40, 0.08);
+  --scroll-track: #eef1f5;
+  --scroll-thumb: #cfd5de;
+  --scroll-thumb-hover: #b4bcc8;
+}
+
+html,
+body {
+  background-color: var(--page-bg);
+  color: var(--page-fg);
+}
+
+/* Guard against horizontal overflow on mobile: if any element ever exceeds the
+   viewport width (a long flex child, an oversized table, a wide grid), clip it
+   instead of opening a sideways scroll into dead space. `overflow-x: clip` is used
+   deliberately over `hidden` — it neither creates a scroll container nor forces the
+   other axis to `auto`, so the sticky navbar keeps working. */
+html {
+  overflow-x: clip;
+  /* Smooth in-page jumps for anchor navs (e.g. the /market section nav). The
+     reduced-motion block below forces this back to `auto`. */
+  scroll-behavior: smooth;
+}
+
+/* html's clip is PROPAGATED to the viewport, where it acts like `hidden`: the
+   document keeps its scrollable overflow, and Chrome for Android still sizes the
+   layout viewport from it, so one overflowing element zoomed the whole site out
+   (measured 2026-09-23: /movers@390 innerWidth 693). body's own clip stops the
+   overflow at body's box before it reaches the viewport. body's value is not
+   propagated, because html's overflow is no longer `visible`. `clip`, not
+   `hidden`, so there is no scroll container and the sticky header and sidebars
+   keep working. A SAFETY NET ONLY: the per-component overflow fixes still land,
+   and scripts/mobile-check.ts still sees overflow through body.scrollWidth. */
+body {
+  overflow-x: clip;
+}
+
+body {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* Terminal numerals everywhere: lining, tabular figures by default so any digit
+     that ISN'T wrapped in .num still aligns like a trading desk, not a flyer. */
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+/* …but not in running prose. Inter's "tnum" also swaps U+002D for a tabular-width
+   hyphen (7px → 10px at 15px), so compound words read 'near- mint' and
+   'pre -orders'. Paragraphs, quotes, captions, FAQ summaries, labels, dt, the
+   prose lists inside <article> and nav link lists keep lining figures with
+   proportional spacing. Plain li / dd / td / th keep the inherited tnum on
+   purpose, because some hold unmarked numeric columns (BestBasket.tsx unit
+   prices, games/shared.tsx leaderboard scores). :where() has zero specificity,
+   and .num / tabular-nums set font-variant-numeric, so they still get tabular
+   digits. */
+:where(p, blockquote, figcaption, summary, label, dt, article li, nav li) {
+  font-feature-settings: "lnum" 1;
+}
+
+/* Headings: Fraunces — a sharp, high-contrast, slightly flared serif chosen as a
+   free look-alike for Beaufort for LoL's bold titling character (the genuine
+   Beaufort file is Riot's proprietary, licensed font — there is no legitimate
+   third-party source for it). Heavy weight + tight tracking for a bold, sharp
+   display voice; h1 goes to the heaviest cut for maximum presence. */
+h1, h2, h3 {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+h1 {
+  font-weight: 900;
+}
+
+/* HOMEPAGE ONLY — swaps the flared serif above for a heavy neutral grotesque,
+   the bold square sans of the One Piece Card Game's own product typography
+   (RiftCompare matches the Riftbound wordmark lockup the same way). Scoped to the `.rb-display-sans` wrapper applied in
+   src/app/page.tsx, so the rest of the site keeps the Fraunces titling voice.
+   The face itself (--font-riftbound / Archivo, RiftCompare's variable name kept
+   so the two sites' CSS stays one diff) is imported by that same file.
+
+   Deliberately does NOT force text-transform: uppercase. The reference lockup is
+   a single short word; this page's h1 is a full sentence ("One Piece Card
+   Game Card Prices"), and setting a string that long in
+   tracked-out caps hurts legibility badly — the same reason .rb-eyebrow below is
+   opt-in for short labels rather than applied to headings wholesale. Use
+   .rb-eyebrow where you want the tracked all-caps treatment. */
+.rb-display-sans h1,
+.rb-display-sans h2,
+.rb-display-sans h3 {
+  font-family: var(--font-riftbound), var(--font-sans), system-ui, sans-serif;
+  /* Tighter than the serif's -0.01em: a heavy grotesque at display sizes needs
+     more negative tracking to read as one solid mass rather than loose letters. */
+  letter-spacing: -0.025em;
+}
+
+/* The homepage's tracked eyebrows ('Trending', 'Recently viewed') follow its sans
+   titling voice too. Everywhere else .rb-eyebrow keeps the Fraunces serif.
+   (2026-09-23: 'TRENDING' was the one serif label in the sans hero, beside the
+   sans 'SHOPPING FROM'.) Specificity (0,2,0) beats .rb-eyebrow below, and only
+   the face changes: tracking, caps, size and colour stay. */
+.rb-display-sans .rb-eyebrow {
+  font-family: var(--font-riftbound), var(--font-sans), system-ui, sans-serif;
+}
+
+/* "Eyebrow" micro-heading — the tracked, uppercase treatment the official site
+   uses for section labels and callouts. Opt-in via class rather than applied to
+   h1-h3 by default: real headings here (card names, article titles) are often
+   long, and forcing long strings into tracked-out all-caps hurts legibility —
+   this is for short labels only ("NEW SET", "PRICE MOVERS", etc). */
+.rb-eyebrow {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+/* Accessible, brand-consistent keyboard focus ring on every interactive element.
+   Uses :focus-visible so it only shows for keyboard/AT users, never on mouse click. */
+:focus-visible {
+  outline: 2px solid rgb(var(--c-brand-400));
+  outline-offset: 2px;
+}
+
+/* Skip rendering off-screen card tiles so a long infinite-scroll grid stays smooth
+   (the browser only lays out / paints tiles near the viewport). */
+.cv-auto {
+  content-visibility: auto;
+  /* 360, not 340: the 375px audit measured real tile content at 348px, and an
+     intrinsic size shorter than the real one is a layout shift the moment the
+     tile scrolls into view — on a grid of 60, repeatedly. */
+  contain-intrinsic-size: auto 360px;
+}
+
+/* Thin custom scrollbar to match the dark marketplace aesthetic */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--scroll-track);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover);
+}
+/* Firefox has no ::-webkit-scrollbar-* support — this is its own two-value
+   API (thumb, then track), same theme-aware variables as the rule above so
+   the two engines never disagree. */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+}
+
+/* OP Compare: the brand fill is Straw Hat red, not RiftCompare's bright green,
+   and red takes WHITE ink in both themes (white on #d92b33 is 4.8:1, near-black
+   about 4.4:1). Markup copied from RiftCompare writes `bg-brand-500
+   text-ink-950` for a filled brand chip or the current page cell; this rule is
+   what keeps that markup verbatim and still readable; `text-white` on the red
+   fill (whose themed value is near-black in light) is held white the same
+   way. .btn-primary sets white
+   itself (below). See DECISIONS.md, "Wave-2 design tokens". */
+.bg-brand-500.text-ink-950,
+.bg-brand-500.text-white {
+  color: #ffffff;
+}
+
+/* Light theme: dark ink on bright fills. `text-ink-950` is the palette's
+   near-black, which the light theme inverts to near-white — right for text on
+   a page, wrong for the one place it is used on purpose: dark ink sitting ON
+   a bright fill (the green primary button, a solid gold badge). Those fills
+   stay bright in both themes, so their ink must stay dark. Pinned by
+   tests/theme.test.ts. bg-accent is deliberately NOT here: accent inverts to
+   near-black in light mode, and its ink inverting with it keeps .btn-accent
+   readable as a dark button. */
+:root[data-theme="light"] .bg-gold.text-ink-950,
+:root[data-theme="light"] .bg-gold\/85.text-ink-950 {
+  color: #0a0c10;
+}
+/* Solid gold and bright-green FILLS keep their dark-theme colour: the light
+   palette darkens `gold` and `brand-400` for text legibility, but a badge or
+   button filled with them carries dark ink and needs the bright version. The
+   translucent tints (bg-gold/10 etc.) are separate classes and correctly use
+   the darker gold. */
+:root[data-theme="light"] .bg-gold {
+  background-color: #caa85a;
+}
+:root[data-theme="light"] .bg-gold\/85 {
+  background-color: rgb(202 168 90 / 0.85);
+}
+:root[data-theme="light"] .bg-brand-400 {
+  background-color: #ff6b6b;
+}
+
+/* Data-coloured text: domain, rarity, condition and grader chips. The hex is
+   passed as --data-ink instead of `color` so the theme can reach it. Raw in dark
+   (pixel-identical); mixed 50% toward black in light, where the dark-tuned hexes
+   read 1.3-3.4:1 (Order #cbd5e1 1.37:1, Showcase #f5a524 1.82:1). After the mix
+   the worst case is Order at ~5.0:1 and the rest 5.6-8.6:1. UNLAYERED on purpose:
+   it has to follow @tailwind utilities to beat a `text-white` on the same element
+   (MyCollection's condition select). Where color-mix is unsupported, the light
+   value is invalid at computed-value time and the text inherits the themed
+   parent colour, which is readable. */
+.data-ink {
+  color: var(--data-ink);
+}
+:root[data-theme="light"] .data-ink {
+  color: color-mix(in srgb, var(--data-ink) 50%, #000);
+}
+
+@layer components {
+  .container-app {
+    @apply mx-auto w-full max-w-[1400px] px-4 sm:px-6;
+  }
+  /* min-h-11 = 44px, the Apple HIG / Google mobile-usability tap-target floor.
+     px-4 py-2 at 14px text laid out at 37px tall, which the 375px audit flagged
+     on every page that renders a .btn (scripts/mobile-check.ts). Setting the
+     floor on the base class fixes every variant at once and can't drift. */
+  .btn {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-fast active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 aria-busy:pointer-events-none aria-busy:opacity-70;
+  }
+  /* Primary action: flat, solid Straw Hat red — the one accent. No gradient/glow. */
+  /* WHITE ink on the red, the one class that differs from RiftCompare (whose
+     green takes dark ink). White on #d92b33 measures 4.8:1, near-black about
+     4.4:1, and the hover DARKENS to brand-600 (#b11f27, 6.6:1) — a lighter red
+     would lose the white text's contrast. Fixed #ffffff, not `text-white`:
+     the themed white is near-black in the light palette. */
+  .btn-primary {
+    @apply btn bg-brand-500 text-[#ffffff] hover:bg-brand-600;
+  }
+  .btn-ghost {
+    @apply btn border border-ink-700 bg-ink-850 text-slate-200 hover:border-ink-600 hover:bg-ink-800;
+  }
+  /* eBay's own action (2026-09-26, "Pushing eBay clicks" in DECISIONS.md). eBay
+     is the site's main affiliate partner, so its buy buttons wear eBay blue
+     instead of the one green every other retailer shares. Position is never
+     touched: a comparison stays cheapest-first, this only changes the colour.
+     Fixed hexes in both themes — eBay blue takes white ink by eBay's brand rule,
+     and the themed `text-white` is near-black in light (tests/theme.test.ts). */
+  .btn-ebay {
+    @apply btn bg-[#0064d2] text-[#ffffff] hover:bg-[#0079e6];
+  }
+  /* The quiet version, for an eBay row inside a list whose other rows are
+     ghost buttons: the same weight as its neighbours, only the colour differs,
+     so a dearer paid row is never the one filled button in a neutral list.
+     sky-300 is palette-backed (darker in light), so it reads in both themes. */
+  .btn-ebay-ghost {
+    @apply btn border border-[#0064d2]/60 bg-[#0064d2]/10 text-sky-300 hover:border-[#0064d2] hover:bg-[#0064d2]/20;
+  }
+  /* Secondary "bright" action: flat near-white panel button with dark ink text. */
+  .btn-accent {
+    @apply btn bg-accent text-ink-950 hover:bg-white;
+  }
+  /* min-h-11: same 44px tap-target floor as .btn. A text input is a tap target
+     too, and the 375px audit measured this one at 42px. */
+  .input {
+    @apply w-full min-h-11 rounded-md border border-ink-700 bg-ink-950 px-3 py-2 text-base text-slate-100 placeholder:text-slate-500 outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 sm:text-sm;
+  }
+  /* Square icon-only controls (nav icons, close buttons). Below `sm` they take
+     the full 44px tap target; from `sm` up — where a pointer is likely — they
+     keep the tighter 36px so the navbar doesn't grow on desktop. */
+  .tap-icon {
+    @apply grid h-11 w-11 place-items-center sm:h-9 sm:w-9;
+  }
+  /* ── Navigation text links ────────────────────────────────────────────────
+     The gap .btn / .input / .tap-icon left behind: a plain text link. A 12px
+     link in a footer column is a 15px hit area, and 47 of the footer's 48 links
+     measured exactly that. Google asks for 48×48 with 8px between targets;
+     Lighthouse flags anything under 48.
+
+     EVERY size rule here is behind `(pointer: coarse)`, and that is the design:
+     a mouse does not need a 48px target, and scoping it to touch makes the
+     desktop footer a guaranteed pixel-for-pixel no-op rather than something to
+     eyeball. (A first attempt applied padding at all widths on the theory that
+     it matched the `space-y-2` it replaced. It did for the mobile list — and
+     added 4px per row to the desktop grid, which used `space-y-1`. Screenshots
+     caught it; the rule is now simply not present on a fine pointer.)
+
+     Real box height, not a pseudo-element overlay: an ::after does not change
+     what a browser — or Lighthouse, or the 375px audit — measures, and overlays
+     on a tight list would silently overlap each other, which is worse than a
+     small target.
+
+     Type size is deliberately untouched: the whole point is to expand the hit
+     area, not to make the footer shout. */
+  /* 24px is WCAG 2.2 AA's target-size minimum and applies at EVERY pointer type —
+     the 48px floor below is touch-only, so on a desktop audit these 12px footer
+     links measured ~16px tall and failed. */
+  .tap-link {
+    @apply inline-flex min-h-6 min-w-6 items-center;
+  }
+  /* Same floor for a control that is a text link in a chrome row (country
+     switcher, "Privacy settings") rather than a .btn. */
+  .tap-link-block {
+    @apply tap-link w-full;
+  }
+}
+
+/* ── The 48px floor, on touch only ──────────────────────────────────────────
+   The codebase already declared its tap targets: .btn, .input, .tap-icon and a
+   scattering of direct `min-h-11` usages all set the 44px Apple-HIG floor. That
+   clears Google's mobile-usability report but not Lighthouse, which fails
+   anything under 48 — and 537 of the 606 controls still flagged after the link
+   work were sitting at exactly 44.
+
+   So rather than hunt them one by one, the existing declaration IS the hook:
+   anything the site has already called a tap target gets 48px when the pointer
+   is coarse. A phone gains 4px of hit area per control; a mouse sees no change
+   at all, so desktop density is untouched.
+
+   In `utilities` on purpose — Tailwind's own `.min-h-11` lives in that layer, so
+   a rule in `components` would lose to it regardless of specificity. */
+@layer utilities {
+  /* Corner-anchored clear of the native AdMob banner and the device's safe
+     area, wherever either applies — both are 0 where they don't, so this
+     collapses to a plain 1rem inset on desktop web. Used by the three corner
+     nudges, FeedbackWidget's FAB and ui/Toast instead of a hard-coded bottom-4.
+     KEPT ITS NAME after the bottom tab bar was deleted: five components anchor
+     off it, the native banner still needs exactly this reservation, and a
+     rename across all of them would be churn for no behaviour. What it no
+     longer carries is --bottombar-h (gone — nothing reserves that space any
+     more) or --chrome-lift (gone with the bar whose position it corrected). */
+  /* The shared corner for every bottom-left nudge (PremiumSlideIn,
+     AnnualSwitchNudge; SignupPromoPopup until its removal on 2026-09-30). It clears the phone tab bar's space
+     below lg and, since 2026-09-21, clears the DESKTOP RAIL from lg up:
+     those cards are `left-4`, which from 1024px put them on top of the
+     sidebar ("for any sliders (sign up and premium), it should be shifted to
+     the right so it doesn't overlap with the sidebar").
+
+     Done HERE rather than as an `lg:left-…` on each card, and that is the
+     point: tests/signup-inline.test.ts pins both to one identical
+     corner string precisely so a fix applied to one of them cannot leave the
+     other behind — which is exactly what the first attempt at this did.
+     `--sidenav-w` is 0 below lg, so the override is a no-op there and the
+     `left-4` in the shared string still decides. */
+  .above-bottombar {
+    bottom: calc(var(--native-banner-h) + env(safe-area-inset-bottom, 0px) + 1rem);
+  }
+  /* SCOPED TO THE LEFT-ANCHORED NUDGES, via the `left-4` they all carry. The
+     first version of this put `left` on `.above-bottombar` itself, which also
+     caught FeedbackWidget — that one is `right-4`, and giving a right-anchored
+     fixed element a `left` too stretched it across the whole viewport
+     (measured: 1136px wide instead of 114px). Matching on `.left-4` is what
+     makes "left-anchored" expressible in CSS at all, and the two nudges are
+     pinned to that exact class string by tests/signup-inline.test.ts, so the
+     set this applies to cannot quietly drift. */
+  /* The card page's sticky buy bar (CardMobileBuy, 2026-09-26) sits on the
+     native-banner line; while it shows, the corner launchers lift above it. */
+  .buybar {
+    bottom: calc(var(--native-banner-h) + env(safe-area-inset-bottom, 0px));
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  }
+  @media (max-width: 1023px) {
+    body[data-oc-buybar] .above-bottombar {
+      bottom: calc(var(--native-banner-h) + env(safe-area-inset-bottom, 0px) + 4.75rem);
+    }
+  }
+  .above-bottombar.left-4 {
+    left: calc(var(--sidenav-w) + 1rem);
+  }
+  /* A nudge that was ALREADY showing yields to any Dialog or nav menu opened after
+     it. z-[70] (Z.nudge) outranks z-overlay (60), which QuickView, SealedQuickView
+     and CommandLauncher use, and the nudges only check the flag before they
+     appear. useModalFlag (ui/Dialog.tsx) sets data-oc-dialog on <body> while any
+     modal is open and deletes it on close, so the nudge comes back untouched.
+     visibility:hidden also takes its ✕ out of the tab order, which keeps the
+     dialog's focus trap clean. `.left-4` matches exactly the three nudges
+     (FeedbackWidget is right-4; Toast is inset-x-0). Pairs with the nudges'
+     own Escape guard. (2026-09-23: at 390×844 the nudge hid ~56% of QuickView,
+     including its price list and 'View full page'.) */
+  body[data-oc-dialog] .above-bottombar.left-4 {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  @media (pointer: coarse) {
+    .tap-link,
+    .tap-link-block,
+    .btn,
+    .input,
+    .min-h-11,
+    .pg-a,
+    .pg-sb {
+      min-height: 48px;
+    }
+    /* Short labels ("Sets", "Terms") were clearing 48px tall but measuring
+       39–41px wide, which fails the same audit on the other axis.
+       Deliberately NOT centred: the text stays left-aligned and the extra width
+       extends right into empty column space, so a short link in a left-aligned
+       footer column grows its hit area without shifting off the column's edge.
+       For any link already wider than 48px the box hugs its text — a no-op. */
+    .tap-link,
+    .tap-link-block {
+      min-width: 48px;
+    }
+    /* A list of 48px rows carries its own rhythm. Leaving the list's `space-y-*`
+       on top of it would stack 48 + 8 and double the column height for nothing,
+       so the gap is dropped exactly where the rows grow — and kept everywhere
+       else, which is why the desktop grid is untouched.
+       `!important` because Tailwind's `.space-y-2 > :not([hidden]) ~
+       :not([hidden])` outranks any sane selector written here. */
+    .tap-list > * + * {
+      margin-top: 0 !important;
+    }
+    /* Square icon controls need the width too, or a 48px-tall 44px-wide button
+       is still a Lighthouse failure — and looks wrong. */
+    .tap-icon {
+      height: 48px;
+      width: 48px;
+    }
+  }
+
+  /* iOS Safari zooms the page when a field under 16px is focused, and does not
+     zoom back out. .input is 16px on phones via text-base, but many fields bypass
+     or override it: text-sm / text-xs, an inherited label text-sm, and .input's
+     own sm:text-sm on a landscape phone wider than 640px. Backstop: every
+     text-entry field is 16px on PHONES in either orientation, meaning a coarse
+     pointer and either narrower than sm or no taller than 500px (a landscape
+     phone). Tablets from sm keep .input's deliberate 14px, and mouse layouts are
+     untouched. Fields already set larger (the hero search's sm:text-lg = 18px)
+     are excluded by the class test rather than shrunk. !important for the same
+     reason as .tap-list: Tailwind's text-sm/text-xs utilities outrank any sane
+     selector written here. (2026-09-23: the footer newsletter input on every
+     page was 14px, the gallery search 12px, the /trade value inputs 11px.) */
+  @media (pointer: coarse) and (max-width: 639.98px), (pointer: coarse) and (max-height: 500px) {
+    :is(input:not([type=checkbox],[type=radio],[type=range]), select, textarea):not([class*="text-lg"],[class*="text-xl"],[class*="text-2xl"],[class*="text-3xl"]) {
+      font-size: 16px !important;
+    }
+  }
+
+  /* In-page anchor landing offset that clears the sticky header. Below xl the
+     header is two rows, about 125px (the logo row plus Navbar's full-width search
+     row), so 9rem = 144px. From 1280px it is one row of about 65px, so 6rem. Put
+     it on the element that CARRIES the id. Do NOT also add html
+     scroll-padding-top: scroll-padding and scroll-margin add together.
+     (2026-09-23: scroll-mt-24 left a guide's h2 at top 96 under a 125px header.) */
+  .scroll-mt-header {
+    scroll-margin-top: 9rem;
+  }
+  @media (min-width: 1280px) {
+    .scroll-mt-header {
+      scroll-margin-top: 6rem;
+    }
+  }
+}
+
+@layer components {
+  /* Flat terminal panel: hairline border, square-ish corners, quiet elevation. */
+  .card-surface {
+    @apply rounded-lg border border-ink-800 bg-ink-900 shadow-card transition-colors duration-150;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded px-2.5 py-0.5 text-xs font-medium;
+  }
+  /* Tabular numerals for prices/tickers — the terminal voice. */
+  .num {
+    @apply font-mono tabular-nums tracking-tight;
+  }
+
+  /* /price-guide table (components/price-guide/PriceGuideTable.tsx). Short
+     class names, because each one is written into the HTML AND again into the
+     inline RSC payload on 100 rows: the long utility strings alone put the
+     clean page at ~786 KB against the brief's ≤450 KB budget (2026-10-02).
+     Column visibility: pg-sm from sm, pg-md from md, pg-x2 from 2xl. */
+  .pg-sm, .pg-md, .pg-x2 { @apply hidden; }
+  .pg-sm { @apply sm:table-cell; }
+  .pg-md { @apply md:table-cell; }
+  .pg-x2 { @apply 2xl:table-cell; }
+  .pg-t > tbody > tr { @apply transition-colors hover:bg-ink-800/50; }
+  .pg-t > tbody > tr > td { @apply px-3 py-1.5; }
+  .pg-t > tbody > tr > td.pg-c1 { @apply pl-3 pr-2 sm:pl-4; }
+  .pg-t > tbody > tr > td.pg-p { @apply pl-2 pr-3 text-right; }
+  .pg-t > tbody > tr > td.pg-n { @apply text-right text-xs font-semibold; }
+  .pg-t > tbody > tr > td.pg-s { @apply pl-2 pr-3 text-right text-slate-300 sm:pr-4; }
+  .pg-a {
+    @apply flex min-h-11 min-w-0 items-center gap-2.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60;
+  }
+  .pg-i { @apply h-[39px] w-7 shrink-0 rounded-sm bg-ink-800 object-cover; }
+  .pg-b { @apply min-w-0 flex-1; }
+  .pg-nm { @apply block truncate font-semibold text-slate-100; }
+  .pg-a:hover .pg-nm { @apply text-brand-400 underline; }
+  .pg-sub { @apply flex min-w-0 items-center gap-1.5 text-xs text-slate-500; }
+  .pg-pc { @apply block text-[11px] font-semibold md:hidden; }
+  /* The TCGplayer / eBay buttons (2026-10-02): two short lines, fixed width. */
+  .pg-t > tbody > tr > td.pg-g { @apply px-1 text-right sm:px-2; }
+  .pg-btn { @apply w-full flex-col gap-0 px-1 py-1 text-[11px] leading-tight; }
+  .pg-sb {
+    @apply inline-flex min-h-11 items-center gap-1 rounded uppercase tracking-wide transition-colors hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 sm:[@media(pointer:fine)]:min-h-0 sm:[@media(pointer:fine)]:py-1;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Native app (Capacitor) adjustments
+   `capacitor-native` / `has-native-banner` are added to <html> by NativeShell
+   when the site is running inside the iOS/Android shell.
+   --------------------------------------------------------------------------- */
+
+/* The native AdMob banner's height, folded into --native-banner-h so the body
+   padding below and the bottom bar's own position (bottom-[var(--native-banner-h)])
+   stack rather than fight — the tab bar sits ABOVE the banner, not under it. */
+html.capacitor-native.has-native-banner {
+  --native-banner-h: 64px;
+}
+
+/* Reserve space at the bottom for the native AdMob banner (the Capacitor
+   shell) and the device's safe area, so neither ever covers the footer or the
+   last row of content. Both are 0 on desktop web, so this is a no-op there.
+   The mobile bottom tab bar used to be reserved here too and is gone. */
+body {
+  padding-bottom: calc(var(--native-banner-h) + env(safe-area-inset-bottom, 0px));
+}
+
+/* OP Compare: the card page's phone buy bar (CardStickyBuyBar) is showing —
+   room under the footer so the bar never covers its last lines. */
+@media (max-width: 1023.98px) {
+  body[data-oc-buybar] {
+    padding-bottom: 4.5rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Homepage motion & flair
+   All decorative. Every effect anchors to a visible end-state so content is
+   never hidden when JS/scroll-timelines are unavailable, and the block at the
+   bottom disables it all under prefers-reduced-motion.
+   --------------------------------------------------------------------------- */
+
+/* REMOVED (P0 motion pass, 2026-09-16): .hero-dots, .brand-shimmer and
+   .cta-shine. All three were already tombstones/no-op containers with zero
+   className consumers left in src/ (`grep -rn 'hero-dots\|brand-shimmer\|
+   cta-shine' src` found only this file) — dead weight carried forward from
+   earlier flat-terminal-look passes, not live decoration. */
+
+/* REMOVED 2026-09-28: .premium-shimmer, the gold sheen on the phone header's
+   "✦ Premium" link (2026-09-10 brief). The header now carries a plain
+   "Pricing" link — upgrade prompts moved to where a free account hits a limit
+   (DECISIONS.md, "Free limits: charge for what people use every week"). Its
+   keyframes went from tailwind.config.ts with it. */
+
+/* Reveal-on-scroll. Classes are toggled by the <Reveal> client component via
+   IntersectionObserver (works in every browser). The hidden state lives only on
+   the `.reveal-init` / `.reveal-stagger` classes, which JS adds at runtime — so
+   server HTML and no-JS visitors render fully visible. */
+/* Durations were 0.7s (block) / 0.6s (stagger children) with delays fanning out
+   to 545ms — over a second before a big grid's last child finished appearing.
+   Combined with Reveal's old rootMargin (which only started the fade once
+   content was already a little inside the viewport), a fast scroll/fling would
+   outrun the animation and the section would read as a blank/dim flash rather
+   than a smooth reveal. Reveal now pre-triggers ~200px early (see Reveal.tsx);
+   shortening these too means the whole cascade resolves well inside that
+   lead-in instead of continuing to animate after the content is already on
+   screen. */
+.reveal-init {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) var(--reveal-delay, 0ms),
+    transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.reveal-init.reveal-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Staggered variant: the wrapper stays put; its direct children cascade in. */
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.35s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: opacity, transform;
+}
+.reveal-stagger.reveal-in > * {
+  opacity: 1;
+  transform: none;
+}
+.reveal-stagger.reveal-in > *:nth-child(1) { transition-delay: 0ms; }
+.reveal-stagger.reveal-in > *:nth-child(2) { transition-delay: 30ms; }
+.reveal-stagger.reveal-in > *:nth-child(3) { transition-delay: 60ms; }
+.reveal-stagger.reveal-in > *:nth-child(4) { transition-delay: 90ms; }
+.reveal-stagger.reveal-in > *:nth-child(5) { transition-delay: 120ms; }
+.reveal-stagger.reveal-in > *:nth-child(6) { transition-delay: 150ms; }
+.reveal-stagger.reveal-in > *:nth-child(7) { transition-delay: 180ms; }
+.reveal-stagger.reveal-in > *:nth-child(8) { transition-delay: 210ms; }
+.reveal-stagger.reveal-in > *:nth-child(9) { transition-delay: 240ms; }
+.reveal-stagger.reveal-in > *:nth-child(10) { transition-delay: 270ms; }
+.reveal-stagger.reveal-in > *:nth-child(n + 11) { transition-delay: 300ms; }
+
+/* REMOVED (P0 motion pass, 2026-09-16): .parallax-art, .parallax-aurora and
+   .hero-vignette. They read --px/--py/--sy, written by the useParallax hook
+   that ALSO shipped in this commit's removal — CinematicHero's own comments
+   already noted none of the three had a live consumer ("none of globals.css's
+   three parallax/vignette classes are referenced by any component anymore").
+   Deleting the CSS half finally matches what the markup had been for a while. */
+
+/* Cinematic full-screen nav: staggered entrance for the category panels, tied to
+   the `.cine-open` state so it replays each time the overlay opens. Delay per item
+   is injected via --cine-delay. */
+.cine-item {
+  opacity: 0;
+  transform: translateY(14px);
+  /* 0.32s / the brand ease-out — src/lib/motion-tokens.ts's DURATION.slow and
+     EASING.out, matched by hand since this file can't import a TS module. */
+  transition: opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1), transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--cine-delay, 0ms);
+}
+.cine-open .cine-item { opacity: 1; transform: none; }
+
+/* REMOVED: .animate-float / .animate-float-mirror (rc-float, rc-float-mirror).
+   Their only consumer was the hero's floating chase-card showcase, which was
+   replaced by vertical affiliate rails and then, on 2026-08-16, by nothing at
+   all — the hero now has empty margins on purpose (see CinematicHero). Both
+   occupants of those slots are gone, so these keyframes have no route back.
+   Tailwind's own `float` keyframe +
+   animation were deleted from tailwind.config.ts in the same change: that
+   config generated a SECOND, different `.animate-float` (4px/4s) which this
+   rule shadowed at 14px/7s, so removing only this half would have left the
+   class name alive with silently different motion.
+
+   The rule that used to live here sat ABOVE the reduced-motion block below on
+   purpose — that block neutralises every animation with !important, so anything
+   animated must be declared before it. Keep that ordering for whatever lands
+   here next. */
+
+/* A returning paid member (the ad-free hint, stamped on <html> before first
+   paint by lib/ad-free-boot.ts): the site's own ad placements are hidden from
+   the first byte instead of showing until /api/me answers. Each placement also
+   renders nothing once React knows the viewer is ad-free. */
+:root[data-adfree] [data-ad-placement] {
+  display: none !important;
+}
+
+/* ── The `motion-safe:` convention (P0 motion pass, 2026-09-16) ──────────────
+   Every hidden/entering state introduced from here on is written with a
+   `motion-safe:` prefix — e.g. `motion-safe:opacity-0 motion-safe:translate-y-2`
+   — never a bare `opacity-0`. That means a reduced-motion visitor's FIRST
+   render already has the class variant resolve to nothing, so there is no
+   hidden frame to flash past; the @media block below, which forcibly zeroes
+   every animation/transition duration, is the belt for anything that slips
+   through (JS-driven state, a missed prefix), and motion-safe: is the braces.
+   src/lib/motion.ts's usePresence() is the JS half of the same contract: under
+   reduced motion it sets `entered` true (and unmounts) immediately rather than
+   waiting out a transition that will never visibly run. */
+
+/* Respect users who prefer less motion: neutralise every animation/transition. */
+@media (prefers-reduced-motion: reduce) {
+  .cine-item { opacity: 1 !important; transform: none !important; transition: none !important; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    /* Delays too, not just durations: the staggered hero fade-ins
+       (`animate-fade-in [animation-delay:…]`, fill `both`) otherwise sat at
+       opacity 0 for up to 360ms, the LCP h1 included (measured 2026-09-23). */
+    animation-delay: 0s !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* nextjs-toploader's progress bar is pure motion with no informational
+     content once it's gone — nothing here is lost by hiding it outright. */
+  #nprogress { display: none !important; }
+}

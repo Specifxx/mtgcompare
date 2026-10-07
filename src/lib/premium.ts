@@ -1,0 +1,56 @@
+// Who is entitled to what. Entitlement is a DATE (User.premiumUntil) and a tier
+// (User.premiumTier, from the Stripe Price) — reading it never calls Stripe.
+// The webhook, the daily reconcile and the admin grant/revoke routes
+// (lib/admin-billing.ts, admin session only, audited) are the only writers.
+// They only ever extend the date (lib/stripe-entitlement.ts,
+// extendedPremiumUntil), except an explicit admin revoke.
+import { prisma } from "./db";
+import { TIER_RANK, isTier, type Tier } from "./plans";
+import { customerIdOf, entitledUntilFromSubscription, extendedPremiumUntil, isOurSubscription, tierOfSubscription, userIdFromSubscription } from "./stripe-entitlement";
+
+export interface EntitlementFields {
+  isAdmin: boolean;
+  premiumUntil: Date | null;
+  premiumTier: string;
+}
+
+/** The tier a user has RIGHT NOW, or null. Admins are Premium. */
+export function tierOf(user: EntitlementFields | null | undefined, now = Date.now()): Tier | null {
+  if (!user) return null;
+  if (user.isAdmin) return "premium";
+  if (!user.premiumUntil || user.premiumUntil.getTime() <= now) return null;
+  return isTier(user.premiumTier) ? user.premiumTier : "premium";
+}
+
+/** Does the user have at least `min` (Plus by default)? */
+export function isPremium(user: EntitlementFields | null | undefined, min: Tier = "plus", now = Date.now()): boolean {
+  const t = tierOf(user, now);
+  return t != null && TIER_RANK[t] >= TIER_RANK[min];
+}
+
+/**
+ * Write what a Stripe subscription entitles, extend-only. Returns what it did,
+ * for logs. Ignores subscriptions that are not OP Compare's and statuses that
+ * earn nothing (past_due, canceled, unpaid, incomplete).
+ */
+export async function stampFromSubscription(sub: unknown, hintUserId?: string | null): Promise<"stamped" | "unchanged" | "not-ours" | "not-entitled" | "no-user"> {
+  if (!isOurSubscription(sub)) return "not-ours";
+  const until = entitledUntilFromSubscription(sub);
+  if (!until) return "not-entitled";
+  const customerId = customerIdOf(sub);
+  const userId = userIdFromSubscription(sub) ?? hintUserId ?? null;
+  const user =
+    (userId ? await prisma.user.findUnique({ where: { id: userId }, select: { id: true, premiumUntil: true, premiumTier: true, stripeCustomerId: true } }) : null) ??
+    (customerId ? await prisma.user.findFirst({ where: { stripeCustomerId: customerId }, select: { id: true, premiumUntil: true, premiumTier: true, stripeCustomerId: true } }) : null);
+  if (!user) return "no-user";
+  const tier = tierOfSubscription(sub);
+  const next = extendedPremiumUntil(user.premiumUntil, until);
+  const linkCustomer = Boolean(customerId && !user.stripeCustomerId);
+  const tierChange = user.premiumTier !== tier;
+  if (!next && !linkCustomer && !tierChange) return "unchanged";
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { ...(next ? { premiumUntil: next } : {}), ...(linkCustomer ? { stripeCustomerId: customerId } : {}), ...(tierChange ? { premiumTier: tier } : {}) },
+  });
+  return "stamped";
+}

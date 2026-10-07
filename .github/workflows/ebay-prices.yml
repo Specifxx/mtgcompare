@@ -1,0 +1,107 @@
+name: eBay prices
+
+# The twice-daily eBay pass (scripts/ebay.ts): searches OP Compare's OWN eBay
+# application's Browse API for the (product, market) pairs that are due, and
+# writes each pair's row as soon as its search completes.
+#   05:37 UTC — done by ~06:20, before the 07:07 import aggregates, records history
+#               and revalidates with the fresh eBay rows
+#   17:37 UTC — the same before the 19:07 import
+# Each run spends at most min(EBAY_MAX_CALLS, liveRemaining − EBAY_QUOTA_RESERVE).
+#
+# OFF until the repository secrets EBAY_CLIENT_ID and EBAY_CLIENT_SECRET hold OP
+# Compare's own App ID and Cert ID (never RiftCompare's, never on Vercel): the
+# gate job then skips the eBay job and the run is green. Set but refused
+# by eBay → the run fails red after zero Browse calls; searches failing without
+# a 429 (an outage, a keyset not approved for Browse) stop the run after 10 in
+# a row and fail it red (lib/ebay-plan.ts FailureBreaker).
+#
+# The `ebay` job shares the import's concurrency group, so the two never
+# overlap. A GitHub group holds one running and ONE pending run, and a newly
+# queued run cancels the pending one: never dispatch this within 07:00–08:10 or
+# 19:00–20:10 UTC, or it can cancel an import waiting behind it (docs/SETUP.md).
+# The `gate` job is outside the group, so an unconfigured run never enters it.
+on:
+  schedule:
+    - cron: "37 5 * * *"
+    - cron: "37 17 * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "EBAY_FORCE=1: re-search every eligible pair (tick after a matching change). Never dispatch 07:00–08:10 or 19:00–20:10 UTC."
+        type: boolean
+        default: false
+      only_market:
+        description: "One of US UK AU EU CA SG (blank = all)"
+        type: string
+        required: false
+      max_calls:
+        description: "Lower the run's budget to N calls (smoke test: 50). Can never raise it."
+        type: string
+        required: false
+
+# Never pushes: the store import owns the data branch.
+permissions:
+  contents: read
+
+jobs:
+  # Decides whether there is anything to do. It holds no concurrency group, so
+  # while eBay is off (no secrets) a scheduled run never enters the import's
+  # group and can never cancel an import waiting there.
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+    steps:
+      - name: Skip unless eBay and the database are configured
+        id: gate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
+          EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
+        run: |
+          if [ -z "$DATABASE_URL" ] || [ -z "$EBAY_CLIENT_ID" ] || [ -z "$EBAY_CLIENT_SECRET" ]; then
+            echo "eBay not configured (or no DATABASE_URL) — skipping (0 calls)."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+          exit 0
+
+  ebay:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    # The import's group, so the two never overlap (see the header).
+    concurrency:
+      group: import-prices
+      cancel-in-progress: false
+    # No secret at job level: npm ci's install scripts never see one. Each step
+    # gets only what it needs.
+    env:
+      EBAY_QUOTA_RESERVE: ${{ vars.EBAY_QUOTA_RESERVE }}
+      EBAY_MAX_CALLS: ${{ vars.EBAY_MAX_CALLS }}
+      EBAY_MIN_VALUE_CENTS: ${{ vars.EBAY_MIN_VALUE_CENTS }}
+      EBAY_REFRESH: ${{ github.event_name != 'push' }}
+      EBAY_FORCE: ${{ inputs.force && '1' || '' }}
+      EBAY_ONLY_MARKET: ${{ inputs.only_market }}
+      EBAY_DISPATCH_CAP: ${{ inputs.max_calls }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      # The same additive sync as import-prices.yml (no --accept-data-loss).
+      - name: Sync schema
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: bash scripts/db-push-safe.sh && npx prisma generate
+      - name: eBay pass
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
+          EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
+          EBAY_AFFILIATE_CAMPAIGN: ${{ secrets.EBAY_AFFILIATE_CAMPAIGN }}
+        run: npx tsx scripts/ebay.ts

@@ -1,0 +1,68 @@
+[
+ {
+  "id": 34543,
+  "name": "Piece Néfertari Vivi Op05-086 Promo",
+  "slug": "piece-nefertari-vivi-op05-086-promo",
+  "type": "simple",
+  "permalink": "https://collectstoys.com/product/piece-nefertari-vivi-op05-086-promo/",
+  "is_in_stock": true,
+  "is_purchasable": true,
+  "prices": {
+   "price": "99",
+   "regular_price": "99",
+   "sale_price": "99",
+   "price_range": null,
+   "currency_code": "EUR",
+   "currency_symbol": "€",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": " ",
+   "currency_prefix": "",
+   "currency_suffix": " €"
+  }
+ },
+ {
+  "id": 34392,
+  "name": "Zoro-Juurou Op05-067 Promo",
+  "slug": "zoro-juurou-op05-067-promo",
+  "type": "simple",
+  "permalink": "https://collectstoys.com/product/zoro-juurou-op05-067-promo/",
+  "is_in_stock": true,
+  "is_purchasable": true,
+  "prices": {
+   "price": "1599",
+   "regular_price": "1599",
+   "sale_price": "1599",
+   "price_range": null,
+   "currency_code": "EUR",
+   "currency_symbol": "€",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": " ",
+   "currency_prefix": "",
+   "currency_suffix": " €"
+  }
+ },
+ {
+  "id": 18583,
+  "name": "Ulti op05-043 V2 The Best V1",
+  "slug": "ulti-op05-043-v2-prb01-the-best",
+  "type": "simple",
+  "permalink": "https://collectstoys.com/product/ulti-op05-043-v2-prb01-the-best/",
+  "is_in_stock": true,
+  "is_purchasable": true,
+  "prices": {
+   "price": "1499",
+   "regular_price": "1499",
+   "sale_price": "1499",
+   "price_range": null,
+   "currency_code": "EUR",
+   "currency_symbol": "€",
+   "currency_minor_unit": 2,
+   "currency_decimal_separator": ",",
+   "currency_thousand_separator": " ",
+   "currency_prefix": "",
+   "currency_suffix": " €"
+  }
+ }
+]

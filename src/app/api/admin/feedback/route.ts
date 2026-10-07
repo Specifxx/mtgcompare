@@ -1,0 +1,23 @@
+import { NextResponse } from "next/server";
+import { adminJsonBody, adminLog, requireAdminApi } from "@/lib/admin";
+import { moderateFeedback } from "@/lib/admin-inbox";
+import { FEEDBACK_ACTIONS, isIn } from "@/lib/inbox-rules";
+
+export const dynamic = "force-dynamic";
+
+// {id, action: approve | hide | spam | reopen | delete}. Approve needs the
+// author's consent (moderateFeedback refuses otherwise).
+export async function POST(req: Request) {
+  const gate = await requireAdminApi(req, { mutation: true });
+  if (gate instanceof NextResponse) return gate;
+  const body = await adminJsonBody(req);
+  if (body instanceof NextResponse) return body;
+  const id = typeof body?.id === "string" && body.id.length <= 64 ? body.id : null;
+  const action = body?.action;
+  if (!id) return NextResponse.json({ error: "Bad id" }, { status: 400 });
+  if (!isIn(FEEDBACK_ACTIONS, action)) return NextResponse.json({ error: "Bad action" }, { status: 400 });
+  const r = await moderateFeedback(id, action);
+  if (!r.ok) return NextResponse.json({ error: r.error }, { status: r.status });
+  adminLog(gate, "feedback", { id, action, before: r.before ?? null, after: r.after ?? null });
+  return NextResponse.json({ ok: true });
+}

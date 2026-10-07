@@ -1,0 +1,61 @@
+name: Email outbox
+
+# The hourly outbox (scripts/email-hourly.ts), at minute 23 to stay clear of the
+# :00 / :07 / :37 slots the import and eBay passes use:
+#   - the one-time welcome email to accounts 5 minutes to 72 hours old
+#   - the first-watch confirmation for new anonymous alert addresses
+#   - the newsletter welcome for new subscribers
+# Nothing is sent from a web request; a signup writes a row and this run sends.
+#
+# OFF until the repository secrets RESEND_API_KEY and EMAIL_FROM exist (OP
+# Compare's own Resend account, never RiftCompare's, never on Vercel): the gate
+# then skips the job and the run is green. A key that is set but refused by the
+# provider fails the run red (and flips the site's email promises back off).
+# Its own concurrency group: it never touches the import's.
+on:
+  schedule:
+    - cron: "23 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: email
+  cancel-in-progress: false
+
+jobs:
+  outbox:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+      EMAIL_LINK_SECRET: ${{ secrets.EMAIL_LINK_SECRET }}
+      EMAIL_REPLY_TO: ${{ vars.EMAIL_REPLY_TO }}
+      NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL || 'https://opcompare.app' }}
+    steps:
+      - name: Skip unless email and the database are configured
+        id: gate
+        run: |
+          if [ -z "$DATABASE_URL" ] || [ -z "$RESEND_API_KEY" ] || [ -z "$EMAIL_FROM" ]; then
+            echo "Email is not configured (DATABASE_URL, RESEND_API_KEY and EMAIL_FROM are all needed): nothing to send."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.run == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.run == 'true'
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+        if: steps.gate.outputs.run == 'true'
+      - run: npx prisma generate
+        if: steps.gate.outputs.run == 'true'
+      - name: Send the due emails
+        if: steps.gate.outputs.run == 'true'
+        run: npx tsx scripts/email-hourly.ts

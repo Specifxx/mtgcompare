@@ -1,0 +1,30 @@
+name: Inbox audit
+
+# Read-only census of the OPEN admin inbox (wrong-price reports, store
+# suggestions, feedback, messages) printed to the run log, for triage from a
+# session that has no database access. Email addresses are masked to their
+# domain by scripts/audit-inbox.ts. Run it by hand; it never writes.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - name: Skip when the database is not configured
+        run: |
+          if [ -z "$DATABASE_URL" ]; then echo "DATABASE_URL secret is not set."; exit 1; fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run audit:inbox

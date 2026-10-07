@@ -1,0 +1,247 @@
+[
+ {
+  "id": 149,
+  "name": "30th",
+  "slug": "30th",
+  "parent": 0,
+  "count": 8
+ },
+ {
+  "id": 98,
+  "name": "Accessoires",
+  "slug": "accessoires",
+  "parent": 0,
+  "count": 61
+ },
+ {
+  "id": 147,
+  "name": "Autres scellés",
+  "slug": "autres-scelles",
+  "parent": 88,
+  "count": 2
+ },
+ {
+  "id": 108,
+  "name": "Beyblade",
+  "slug": "beyblade",
+  "parent": 0,
+  "count": 16
+ },
+ {
+  "id": 76,
+  "name": "Bloc EX",
+  "slug": "blocex",
+  "parent": 69,
+  "count": 370
+ },
+ {
+  "id": 68,
+  "name": "Cartes",
+  "slug": "cartes",
+  "parent": 0,
+  "count": 5637
+ },
+ {
+  "id": 74,
+  "name": "Cartes Gradées",
+  "slug": "cartesgradees",
+  "parent": 69,
+  "count": 71
+ },
+ {
+  "id": 77,
+  "name": "Diamant Et Perle",
+  "slug": "diamantetperle",
+  "parent": 69,
+  "count": 254
+ },
+ {
+  "id": 73,
+  "name": "Dragon Ball",
+  "slug": "dragonball",
+  "parent": 68,
+  "count": 404
+ },
+ {
+  "id": 85,
+  "name": "Écarlate Et Violet",
+  "slug": "ecarlateetviolet",
+  "parent": 69,
+  "count": 771
+ },
+ {
+  "id": 84,
+  "name": "Épée Et Bouclier",
+  "slug": "epeeetbouclier",
+  "parent": 69,
+  "count": 695
+ },
+ {
+  "id": 111,
+  "name": "Goodies",
+  "slug": "goodies",
+  "parent": 0,
+  "count": 56
+ },
+ {
+  "id": 79,
+  "name": "HeartGold SoulSilver",
+  "slug": "heartgoldsoulsilver",
+  "parent": 69,
+  "count": 110
+ },
+ {
+  "id": 101,
+  "name": "Jumbo",
+  "slug": "jumbo",
+  "parent": 69,
+  "count": 21
+ },
+ {
+  "id": 80,
+  "name": "l&rsquo;Appel Des Légendes",
+  "slug": "appeldeslegendes",
+  "parent": 69,
+  "count": 10
+ },
+ {
+  "id": 91,
+  "name": "Magic",
+  "slug": "magic-scelles",
+  "parent": 88,
+  "count": 10
+ },
+ {
+  "id": 71,
+  "name": "Magic",
+  "slug": "magic",
+  "parent": 68,
+  "count": 323
+ },
+ {
+  "id": 86,
+  "name": "Méga-Évolution",
+  "slug": "megaevolution",
+  "parent": 69,
+  "count": 145
+ },
+ {
+  "id": 121,
+  "name": "Naruto Mythos",
+  "slug": "naruto-mythos",
+  "parent": 88,
+  "count": 3
+ },
+ {
+  "id": 148,
+  "name": "Naruto Mythos",
+  "slug": "naruto-mythos-cartes",
+  "parent": 68,
+  "count": 37
+ },
+ {
+  "id": 81,
+  "name": "Noir Et Blanc",
+  "slug": "noiretblanc",
+  "parent": 69,
+  "count": 137
+ },
+ {
+  "id": 95,
+  "name": "One Piece",
+  "slug": "onepiece",
+  "parent": 68,
+  "count": 192
+ },
+ {
+  "id": 96,
+  "name": "One Piece",
+  "slug": "onepiece-scelles",
+  "parent": 88,
+  "count": 9
+ },
+ {
+  "id": 78,
+  "name": "Platine",
+  "slug": "platine",
+  "parent": 69,
+  "count": 82
+ },
+ {
+  "id": 69,
+  "name": "Pokémon",
+  "slug": "pokemon",
+  "parent": 68,
+  "count": 3905
+ },
+ {
+  "id": 89,
+  "name": "Pokémon",
+  "slug": "pokemon-scelles",
+  "parent": 88,
+  "count": 18
+ },
+ {
+  "id": 145,
+  "name": "Promo",
+  "slug": "promo-pokemon",
+  "parent": 69,
+  "count": 310
+ },
+ {
+  "id": 135,
+  "name": "Promo",
+  "slug": "promo",
+  "parent": 95,
+  "count": 29
+ },
+ {
+  "id": 88,
+  "name": "Scellés",
+  "slug": "scelles",
+  "parent": 0,
+  "count": 72
+ },
+ {
+  "id": 83,
+  "name": "Soleil Et Lune",
+  "slug": "soleiletlune",
+  "parent": 69,
+  "count": 301
+ },
+ {
+  "id": 87,
+  "name": "Topps / Stickers / Autres",
+  "slug": "toppsstickersautres",
+  "parent": 69,
+  "count": 177
+ },
+ {
+  "id": 75,
+  "name": "Wizards",
+  "slug": "wizards",
+  "parent": 69,
+  "count": 666
+ },
+ {
+  "id": 82,
+  "name": "XY",
+  "slug": "xy",
+  "parent": 69,
+  "count": 169
+ },
+ {
+  "id": 92,
+  "name": "Yu-Gi-Oh!",
+  "slug": "yugioh-scelles",
+  "parent": 88,
+  "count": 29
+ },
+ {
+  "id": 70,
+  "name": "Yu-Gi-Oh!",
+  "slug": "yugioh",
+  "parent": 68,
+  "count": 779
+ }
+]

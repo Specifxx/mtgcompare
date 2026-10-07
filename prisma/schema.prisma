@@ -1,0 +1,603 @@
+// OP Compare — One Piece Card Game prices.
+//
+// ONE database (a Neon project of its own; DATABASE_URL). Nothing here is
+// shared with RiftCompare: the Riftbound databases are never read or written.
+//
+// The catalogue is TCGplayer's, mirrored daily by TCGCSV (category 68 = One
+// Piece Card Game). A Card is ONE PRINTING — TCGplayer's own product — so the
+// base OP01-120 Shanks, its Parallel and its Manga art are three rows that share
+// a `number`. Ids are TCGplayer product/group ids, stable for life.
+//
+// EGRESS: every page reads through the self-cached loaders in src/lib/data.ts
+// (unstable_cache, tag "prices", purged by the import). Read the rules at the
+// top of src/lib/db.ts before adding a query to a request path.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Set {
+  id          Int       @id // TCGplayer groupId
+  slug        String    @unique
+  code        String // "OP01", "ST-01", "EB-01", "OP-PR"
+  name        String // "Romance Dawn"
+  tcgName     String    @default("") // TCGplayer's own group name: "ST-01: Starter Deck 1 Straw Hat Crew"
+  kind        String // booster | extra | premium | starter | promo | event | collection
+  releasedOn  DateTime?
+  cardCount   Int       @default(0)
+  sealedCount Int       @default(0)
+  updatedAt   DateTime  @updatedAt
+  cards       Card[]
+  sealed      Sealed[]
+}
+
+model Card {
+  id           Int      @id // TCGplayer productId — one printing
+  slug         String   @unique
+  name         String // display name, variant suffixes removed: "Monkey.D.Luffy"
+  tcgName      String // TCGplayer's own product name
+  number       String? // "OP01-003"; null only for DON!! cards
+  setId        Int
+  set          Set      @relation(fields: [setId], references: [id])
+  rarity       String? // L C UC R SR SEC PR TR DON!!
+  variant      String? // "Parallel", "Manga · Alternate Art", "SP", "Reprint"… null = standard print
+  printing     String // standard | alt | manga | sp | treasure | reprint | promo | foil | don
+  colors       String[]
+  cardType     String? // Leader | Character | Event | Stage | DON!!
+  cost         Int?
+  power        Int?
+  counter      Int?
+  life         Int?
+  attribute    String?
+  subtypes     String[]
+  effect       String?
+  finish       String? // TCGplayer price subtype: Normal | Foil
+  hasImage     Boolean  @default(true)
+  tcgplayerUrl String
+
+  // TCGplayer's market price (USD cents) — a REFERENCE, never a listing.
+  marketUsd Int?
+  // Cheapest OPEN listing per market, in that market's currency (cents) — any
+  // source, TCGplayer and eBay included — and how many real stores (`store:`
+  // rows only) have one. Written by the import from Offer rows.
+  lowUS     Int?
+  lowAU     Int?
+  lowUK     Int?
+  lowSG     Int?
+  lowCA     Int?
+  lowEU     Int?
+  storesUS  Int      @default(0)
+  storesAU  Int      @default(0)
+  storesUK  Int      @default(0)
+  storesSG  Int      @default(0)
+  storesCA  Int      @default(0)
+  storesEU  Int      @default(0)
+  // TCGplayer market price change against ~7 and ~30 days ago, percent.
+  change7d  Float?
+  change30d Float?
+  // Highest market price in the last 90 days (USD cents) — "best value" movers.
+  high90Usd Int?
+  firstSeen DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Popularity signals (RiftCompare parity). searchCount counts picks from the
+  // search box, viewCount any open (page or QuickView). One UPDATE per counted
+  // view — the DECISIONS exception to "no per-request writes".
+  searchCount  Int       @default(0)
+  viewCount    Int       @default(0)
+  lastViewedAt DateTime?
+
+  priceAlerts PriceAlert[]
+  collection  CollectionCard[]
+
+  @@index([setId])
+  @@index([number])
+  @@index([marketUsd])
+}
+
+model Sealed {
+  id           Int       @id // TCGplayer productId
+  slug         String    @unique
+  name         String
+  setId        Int?
+  set          Set?      @relation(fields: [setId], references: [id])
+  kind         String // Booster Box | Booster Case | Booster Pack | Starter Deck | …
+  packCount    Int?
+  imageUrl     String?
+  tcgplayerUrl String
+  releasedOn   DateTime?
+  presale      Boolean   @default(false)
+  marketUsd    Int?
+  lowUS        Int?
+  lowAU        Int?
+  lowUK        Int?
+  lowSG        Int?
+  lowCA        Int?
+  lowEU        Int?
+  storesUS     Int       @default(0)
+  storesAU     Int       @default(0)
+  storesUK     Int       @default(0)
+  storesSG     Int       @default(0)
+  storesCA     Int       @default(0)
+  storesEU     Int       @default(0)
+  change7d     Float?
+  firstSeen    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  sealedWatches SealedWatch[]
+
+  @@index([setId])
+}
+
+// One store's (or TCGplayer's) offer for one product in one market. Card and
+// sealed ids are both TCGplayer product ids, so one table serves both.
+model Offer {
+  id            String   @id @default(cuid())
+  productId     Int
+  source        String // "tcgplayer" | "store:<key>" | "ebay" | "ebay_us" (CA rows derived from the US eBay search)
+  market        String // US AU UK SG CA EU
+  priceCents    Int // in `currency` (eBay: the ITEM price, postage separate)
+  currency      String
+  url           String
+  inStock       Boolean
+  condition     String?
+  title         String? // the store's own listing title, kept for audits
+  shippingCents Int? // eBay only: first shipping option in `currency`; null = unknown / at checkout
+  updatedAt     DateTime
+
+  @@unique([productId, source, market])
+  @@index([market, productId])
+  @@index([source])
+}
+
+// One row per (product, market) the eBay pass (scripts/ebay.ts) has searched.
+// Drives "due": a pair with no row has never been searched. Written only after
+// a COMPLETED search, so a run cut short leaves the pairs it missed due.
+model EbayCheck {
+  productId Int
+  market    String
+  checkedAt DateTime
+  matched   Boolean
+
+  @@id([productId, market])
+  @@index([checkedAt])
+}
+
+model ImportRun {
+  id         Int       @id @default(autoincrement())
+  kind       String // "full" | "catalog" | "stores" | "ebay"
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  ok         Boolean   @default(false)
+  summary    Json?
+}
+
+// ── Accounts and Premium (ported from RiftCompare) ──────────────────────────
+// Sign-in is Google / Discord OAuth only, with a signed JWT cookie (no session
+// table). Entitlement is a date: premiumUntil, extended (never shortened) by
+// the Stripe webhook and the daily reconcile, and premiumTier from the Price.
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  displayName      String
+  avatarUrl        String?
+  emailVerified    DateTime?
+  googleId         String?
+  discordId        String?
+  isAdmin          Boolean   @default(false)
+  premiumUntil     DateTime?
+  premiumTier      String    @default("premium")
+  stripeCustomerId String?
+  createdAt        DateTime  @default(now())
+  lastLoginAt      DateTime?
+
+  // Wave 2 (RiftCompare parity).
+  lastActiveAt       DateTime?
+  activeDays         Int       @default(0)
+  preferredCountry   String?
+  signupSource       String?
+  collectionShareId  String?   @unique
+  basketPrefs        Json? // { minCondition: "nm"|"lp"|"any", region?: string, trackedOnly?: boolean }
+  welcomeEmailSentAt DateTime?
+
+  priceAlerts   PriceAlert[]
+  sealedWatches SealedWatch[]
+  deckWatches   DeckWatch[]
+  notifications Notification[]
+  collection    CollectionCard[]
+
+  @@index([googleId])
+  @@index([discordId])
+  @@index([stripeCustomerId])
+}
+
+// Small key/value settings the import writes and the site reads. "historyRef":
+// the `data`-branch commit holding the current price history (lib/history.ts).
+model Meta {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+// ── Inbox (admin port from RiftCompare) ─────────────────────────────────────
+// What visitors send: wrong-price reports, store suggestions, feedback and
+// contact messages, read in /admin/inbox. Written only through src/lib/inbox.ts.
+// No IP address is stored anywhere, and no row has a foreign key to User, so
+// deleting an account never cascades through the inbox.
+model PriceReport {
+  id              String   @id @default(cuid())
+  productId       Int // TCGplayer id: Card.id or Sealed.id
+  kind            String // "card" | "sealed"
+  source          String // Offer.source, e.g. "store:foo" | "tcgplayer"
+  market          String
+  storeName       String // from stores.ts sourceLabel(source), never from the request
+  shownPriceCents Int? // Offer.priceCents read server-side; null if the offer is gone
+  currency        String?
+  listingTitle    String? // Offer.title snapshot, for tests/match.test.ts
+  listingUrl      String?
+  issue           String // REPORT_ISSUES (lib/inbox-rules.ts)
+  claimedCents    Int?
+  note            String?
+  userId          String?
+  page            String?
+  status          String   @default("NEW") // NEW | CONFIRMED | REJECTED | FIXED
+  createdAt       DateTime @default(now())
+
+  @@index([status, createdAt])
+  @@index([source, createdAt])
+  @@index([productId])
+}
+
+model StoreSuggestion {
+  id        String   @id @default(cuid())
+  storeName String
+  storeUrl  String // https://<bare host>
+  country   String // a MARKETS code or "OTHER"
+  note      String?
+  userId    String?
+  status    String   @default("pending") // pending | added | rejected
+  createdAt DateTime @default(now())
+
+  @@index([status, createdAt])
+  @@index([storeUrl])
+}
+
+model Feedback {
+  id            String    @id @default(cuid())
+  userId        String?
+  rating        Int? // 1–5
+  message       String // may be "" when only a rating was given
+  displayName   String? // stored only with consentPublic
+  consentPublic Boolean   @default(false)
+  page          String?
+  email         String? // optional reply address; never public
+  source        String    @default("page") // page | widget
+  status        String    @default("NEW") // NEW | APPROVED | HIDDEN | SPAM
+  publishedAt   DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([createdAt])
+  @@index([status, publishedAt])
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String // the visitor typed it so the owner can reply by hand
+  subject   String?
+  category  String   @default("OTHER") // PAYMENT | ACCOUNT | PRICE_OR_STORE | OTHER
+  message   String
+  userId    String?
+  status    String   @default("NEW") // NEW | DONE
+  createdAt DateTime @default(now())
+
+  @@index([status, createdAt])
+}
+
+// ── Beacons (ported from RiftCompare) ───────────────────────────────────────
+// RETIRED (owner's call, 2026-10-05): outbound shop clicks are no longer
+// recorded (OutboundBeacon, /api/click and /admin/clicks are gone: each click was
+// a database write and cost network credits). The model and its rows stay only
+// so the schema push never has to drop a table; nothing reads or writes it.
+// Drop it by hand when the old rows are no longer wanted.
+model ClickEvent {
+  id        String   @id @default(cuid())
+  retailer  String // data-retailer: "store:<key>", "tcgplayer", "ebay", "ebay_search", "buy_list" …
+  page      String // data-page, or the first path segment: "card", "sealed", "price-guide", "footer" …
+  slug      String? // card / sealed slug when the click came from its page
+  country   String // US AU UK CA SG EU
+  userId    String?
+  entry     String? // first-touch bucket ("search", "social", "direct" …)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([retailer, createdAt])
+}
+
+// One row per click on a Plus/Premium call to action (PlanButton, the Pricing
+// links, the slide-in → /api/premium/click), read only by /admin/premium.
+// `surface` is validated against lib/nudge-surface.ts before it is written.
+model PremiumClick {
+  id        String   @id @default(cuid())
+  surface   String // "nav:header", "gate:buy-list", "nudge:slidein", "checkout" …
+  tier      String? // the tier the surface was selling: plus | premium
+  source    String   @default("click") // "click" | "checkout"
+  userId    String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId])
+}
+
+// ── Wave 2: watchlist, alerts, collection, decks, support, eBay panels ──────
+// Ported from RiftCompare (prisma/schema.prisma) with OP's ids: Card.id and
+// Sealed.id are TCGplayer product ids (Int), User.id a cuid, default market US.
+// Additive only. Public price history stays in files (src/lib/history*.ts):
+// never add a history or snapshot table here.
+
+// One watched card in one market. userId is NULLABLE so an anonymous (email
+// only) watch can be enabled later; a signed-in watch carries the account
+// email. Email is never sent unless isEmailEnabled(); with email off, the
+// alert run writes an in-app Notification and stamps lastFlaggedAt instead.
+model PriceAlert {
+  id                 String    @id @default(cuid())
+  email              String // lowercased; account email for signed-in watches
+  userId             String?
+  cardId             Int
+  market             String    @default("US") // US AU UK SG CA EU
+  lastPriceCents     Int?
+  lowestEmailedCents Int?
+  targetCents        Int?
+  targetEmailedCents Int?
+  startPriceCents    Int?
+  unsubToken         String
+  createdAt          DateTime  @default(now())
+  lastNotifiedAt     DateTime? // set ONLY when an email was actually sent
+  lastFlaggedAt      DateTime? // set when an in-app Notification was written (email off)
+  confirmSentAt      DateTime? // outbox stamp for the anonymous confirmation
+  soldOutAt          DateTime?
+  soldOutRuns        Int?
+  dropAnchorCents    Int?
+  pendingLowCents    Int?
+  snoozedUntil       DateTime?
+  card               Card      @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user               User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([email, cardId, market])
+  @@index([cardId])
+  @@index([email])
+  @@index([unsubToken])
+  @@index([userId])
+}
+
+// An address that asked for no more alert email (one-click unsubscribe-all).
+model AlertMute {
+  email   String   @id
+  mutedAt DateTime @default(now())
+  source  String?
+}
+
+// A watched sealed product (Plus). RiftCompare keys these by groupKey; OP has
+// one Sealed row per product, so it is Sealed.id.
+model SealedWatch {
+  id               String    @id @default(cuid())
+  userId           String
+  email            String
+  market           String    @default("US")
+  sealedId         Int
+  targetCents      Int?
+  lastPriceCents   Int?
+  lastInStock      Boolean?
+  soldOutAt        DateTime?
+  lastEmailedCents Int?
+  lastNotifiedAt   DateTime?
+  lastFlaggedAt    DateTime?
+  lastAtRrp        Boolean?
+  snoozedUntil     DateTime?
+  createdAt        DateTime  @default(now())
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sealed           Sealed    @relation(fields: [sealedId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sealedId, market])
+  @@index([userId])
+  @@index([email])
+}
+
+// A saved deck list whose delivered basket total is re-checked (Premium).
+model DeckWatch {
+  id               String    @id @default(cuid())
+  userId           String
+  market           String    @default("US")
+  name             String
+  listText         String
+  region           String?
+  trackedOnly      Boolean?
+  targetCents      Int?
+  minCondition     String?
+  lastTotalCents   Int?
+  lastCheckedAt    DateTime?
+  lastEmailedCents Int?
+  lastNotifiedAt   DateTime?
+  lastFlaggedAt    DateTime?
+  snoozedUntil     DateTime?
+  createdAt        DateTime  @default(now())
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// In-app notifications (the bell). Written only through notify() in
+// src/lib/notifications.ts.
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String
+  href      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+}
+
+// The portfolio / binder: one row per (card printing, condition, foil).
+model CollectionCard {
+  id               String   @id @default(cuid())
+  userId           String
+  cardId           Int
+  condition        String   @default("NM")
+  isFoil           Boolean  @default(false)
+  quantity         Int      @default(1)
+  costBasisCents   Int?
+  costBasisIsTotal Boolean  @default(false)
+  note             String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  card             Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, cardId, condition, isFoil])
+  @@index([userId])
+  @@index([cardId])
+}
+
+// Small named counters (support ticket numbers and the like).
+model Counter {
+  key   String @id
+  value Int
+}
+
+model NewsletterSubscriber {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  market         String    @default("US")
+  source         String?
+  createdAt      DateTime  @default(now())
+  unsubToken     String?   @unique
+  lastEditionKey String?
+  welcomeSentAt  DateTime?
+}
+
+// "Tell me when this set (or this card) is out." setSlug is Set.slug ("op-15");
+// scope is "set" or a Card.id as a string.
+model SetReleaseAlert {
+  id                String    @id @default(cuid())
+  email             String
+  setSlug           String
+  scope             String    @default("set")
+  market            String    @default("US")
+  source            String?
+  unsubToken        String
+  createdAt         DateTime  @default(now())
+  confirmSentAt     DateTime?
+  singlesNotifiedAt DateTime?
+  restockNotifiedAt DateTime?
+
+  @@unique([email, setSlug, scope])
+  @@index([setSlug])
+  @@index([unsubToken])
+}
+
+// A deck list published to the deck library (/decks/leader/[leaderSlug]).
+model PublishedDeck {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  userId          String?
+  authorName      String?
+  title           String
+  description     String?
+  leaderCardId    Int
+  leaderName      String
+  leaderSlug      String // name + number
+  colors          String // "Red,Green"
+  list            String
+  lines           Json
+  cardIds         Int[]
+  cardCount       Int
+  publishedTotals Json
+  source          String   @default("user")
+  status          String   @default("live")
+  createdAt       DateTime @default(now())
+
+  @@index([status, createdAt])
+  @@index([leaderSlug])
+  @@index([userId, createdAt])
+}
+
+// A frozen, shareable Rising Cards view (/rising/s/[token]).
+model RisingSnapshot {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  scope     String
+  title     String
+  data      Json
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+  number    Int      @unique
+  userId    String?
+  email     String
+  name      String
+  category  String   @default("OTHER")
+  subject   String
+  message   String
+  status    String   @default("OPEN")
+  adminNote String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([userId])
+}
+
+// The card page's eBay listings panel. Written ONLY by scripts/ebay.ts after a
+// COMPLETED search; pages read it through data.ts loaders. Never ranked against
+// stores, never in alerts or baskets.
+model EbayListing {
+  id            String   @id @default(cuid())
+  productId     Int
+  market        String
+  rank          Int
+  priceCents    Int
+  shippingCents Int?
+  currency      String
+  url           String
+  title         String
+  imageUrl      String?
+  updatedAt     DateTime
+
+  @@unique([productId, market, rank])
+  @@index([market, rank])
+}
+
+// Graded copies (PSA/BGS/CGC…) found by the same completed searches.
+model EbayGradedListing {
+  id            String   @id @default(cuid())
+  productId     Int
+  market        String
+  itemId        String
+  priceCents    Int
+  shippingCents Int?
+  currency      String
+  url           String
+  title         String
+  imageUrl      String?
+  grader        String
+  grade         String
+  updatedAt     DateTime
+
+  @@unique([itemId, market])
+  @@index([productId, market])
+}

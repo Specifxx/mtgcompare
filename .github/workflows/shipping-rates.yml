@@ -1,0 +1,108 @@
+name: Shipping rates probe
+
+# Re-measures what each tracked store's OWN checkout charges for postage, so
+# the snapshot Best Basket and the deck price watch price delivery from
+# (src/lib/shipping-rates.json) can be refreshed (RiftCompare's workflow, for
+# OP Compare's stores).
+#
+# Why it exists: on RiftCompare an Adelaide customer was shown $2 postage in
+# Best Basket for a store that charges $20 — the figure was a hand-typed guess.
+# scripts/probe-shipping-rates.ts builds anonymous Shopify carts (1 card, 10
+# cards, and few-card carts at 20/50/100/150 in the market currency) and asks
+# /cart/shipping_rates.json for every rate at representative addresses. It
+# never checks out, never touches the database, and writes one JSON file.
+#
+# MONTHLY, plus dispatch: the 2nd of the month at 03:17 UTC — off the hour, and
+# nowhere near the import (07:00–08:10 and 19:00–20:10 UTC) or the 08:00 UTC
+# release. About 70 requests per store, one at a time, >=700ms apart, with the
+# probe's per-store request and time caps and Retry-After backoff.
+#
+# Each market's job uploads its raw probe file; the `snapshot` job then
+# rebuilds src/lib/shipping-rates.json from every market that ran and uploads
+# the rebuilt file and the change report as a workflow artifact for review (a
+# store that newly "does not post" is worth a manual check before it drops out
+# of Best Basket). The job has contents: read only: it opens no pull request and
+# pushes nothing, so the refresh is a manual step (download the artifact, commit
+# the file with a plain subject). Until then the stores added after the last
+# snapshot stay `unmeasured`.
+#
+# max-parallel 2: Shopify throttles carts per IP (RiftCompare's first EU run hit
+# HTTP 429s on every store while the CA run was going).
+
+on:
+  schedule:
+    - cron: "17 3 2 * *"
+  workflow_dispatch:
+    inputs:
+      market:
+        description: "Market to probe (all = one job per market)"
+        type: choice
+        required: true
+        default: all
+        options: [all, AU, US, UK, CA, EU, SG]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        # A scheduled run has no inputs: every market.
+        market: ${{ (github.event_name == 'schedule' || inputs.market == 'all') && fromJSON('["AU","US","UK","CA","EU","SG"]') || fromJSON(format('["{0}"]', inputs.market)) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: Probe ${{ matrix.market }} checkouts
+        run: npx tsx scripts/probe-shipping-rates.ts --market=${{ matrix.market }} --out=shipping-${{ matrix.market }}.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shipping-${{ matrix.market }}
+          path: shipping-${{ matrix.market }}.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  snapshot:
+    needs: probe
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: shipping-*
+          path: probe
+          merge-multiple: true
+
+      - name: Rebuild the snapshot
+        run: |
+          files=$(ls probe/shipping-*.json 2>/dev/null || true)
+          if [ -z "$files" ]; then echo "No probe output — nothing to rebuild."; exit 0; fi
+          npx tsx scripts/build-shipping-rates.ts $files --summary=summary.md
+          cat summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the rebuilt snapshot for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: shipping-rates-snapshot
+          path: src/lib/shipping-rates.json
+          retention-days: 30
