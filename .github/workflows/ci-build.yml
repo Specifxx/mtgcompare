@@ -1,0 +1,135 @@
+name: CI build
+
+# A real `next build` and `next start`, then the smoke test, the status-code check and the SEO gate against the rendered HTML: on every pull request and every push to main.
+#
+# WHY. ci.yml runs typecheck, lint, the image guard and the tests but never `next build`, so build-only failures went straight to production (a route file exporting a name Next does not recognise passes tsc and is
+# rejected by the build), and a homepage that server-rendered nothing typechecked, built and looked fine in a browser, and shipped blank (the incident scripts/smoke-pages.ts was written for). With production builds
+# gated to one a week (CLAUDE.md "Deploys are gated"), most commits would otherwise meet `next build` for the first time in the Tuesday release.
+#
+# THE BUILD READS NOTHING (contract 13.5, Annex C checks 23 and 24). It runs with DATABASE_URL pointing at a closed local port and PLANE_REPO/PLANE_TOKEN pointing at a repository that does not exist: both origins are
+# unreachable, so a build that exits 0 PROVES it needs neither Neon nor the data host, and prerenders no data-backed page (a data read during `next build` throws: plane/runtime.ts guards NEXT_PHASE). The server is then
+# started with the same unreachable DATABASE_URL and a fixture data directory (PLANE_DIR: the golden tree of tests/helpers/plane-tree.ts, written by `smoke-pages.ts --write-tree`), so the smoke test also proves the
+# public pages render with Neon down.
+#
+# ── HARD RULE: NO SECRETS IN THIS FILE, EVER ─────────────────────────────────────────────────────────────────
+# It references no secret and no repository variable (tests/workflow-flag-polarity.test.ts fails if one appears): with no real address in the process it cannot reach a real database or data host even by mistake.
+# Do not "fix" a data-dependent failure by pointing this at real data: relax the expectation in scripts/smoke-pages.ts instead.
+#
+# `npm run build` is `prisma generate && next build` and nothing else: no import, no schema push, no fetch.
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ci-build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # The ceiling keeps a hung `next start`, or a prerender stuck on a connect timeout, from holding a runner for GitHub's six-hour default.
+    timeout-minutes: 30
+    env:
+      # Both origins UNREACHABLE: a closed port on the loopback and a repository that does not exist. The password and the token are placeholders, not credentials.
+      DATABASE_URL: postgresql://nobody:x@127.0.0.1:1/none
+      PLANE_REPO: nobody/none
+      PLANE_TOKEN: x
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Image guard
+        run: npx tsx scripts/check-images.ts
+
+      # `shell: bash` turns on pipefail: the default `run` shell is `bash -e {0}`, under which a failed build piped into tee would pass.
+      - name: Production build (npm run build), database and data host unreachable
+        shell: bash
+        run: npm run build 2>&1 | tee build.log
+
+      # .next/prerender-manifest.json lists what the build rendered: none of the plane-backed pages of headers.json may be in it
+      - name: The build prerendered no data-backed page
+        run: npx tsx scripts/smoke-pages.ts --check-build .
+
+      - name: Write the fixture data directory
+        run: npx tsx scripts/smoke-pages.ts --write-tree "$RUNNER_TEMP/plane"
+
+      - name: Start the production server (fixture data, database unreachable)
+        shell: bash
+        env:
+          PLANE_DIR: ${{ runner.temp }}/plane
+        run: |
+          # Backgrounded processes outlive their step; the runner reaps it at the end of the job.
+          nohup npx next start -p 3000 > server.log 2>&1 &
+          pid=$!
+          # /robots.txt is a route handler that reads no data, so a 200 means the server is up.
+          for i in $(seq 1 60); do
+            if curl -fs --max-time 5 http://localhost:3000/robots.txt >/dev/null; then
+              echo "next start answered after ~$((i * 2))s"
+              exit 0
+            fi
+            if ! kill -0 "$pid" 2>/dev/null; then
+              echo "::error::next start exited before answering"
+              cat server.log
+              exit 1
+            fi
+            sleep 2
+          done
+          echo "::error::next start did not answer within 120s"
+          cat server.log
+          exit 1
+
+      # Every structural check applies: 200, the <h1> count, the text and link floors, JSON-LD that parses, no error boundary, the fan-site notice, the sitemap. The card, set and sealed page are found on the index pages.
+      - name: Smoke the rendered pages
+        run: npx tsx scripts/smoke-pages.ts http://localhost:3000 --fixture
+
+      - name: Status codes (an unknown card, set, sealed product is a real 404)
+        run: npx tsx scripts/status-check.ts --url http://localhost:3000
+
+      # REPORT-ONLY until it has run green on main (the thresholds were written without a rendered fixture page to calibrate on): a job summary and a log, not a red check. Promote it to a gate by deleting `continue-on-error`.
+      - name: SEO gate on the fixture site (report-only for now)
+        continue-on-error: true
+        run: npx tsx scripts/seo-gate.ts --url http://localhost:3000 --max 60 2>&1 | tee seo-gate.log
+
+      - name: Crawl from the home page (report-only for now)
+        continue-on-error: true
+        run: npx tsx scripts/crawl-check.ts --url http://localhost:3000 --max 150 --out crawl-report.json 2>&1 | tee crawl.log
+
+      - name: Job summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## CI build"
+            echo "Database: unreachable (127.0.0.1:1). Data host: unreachable (nobody/none). Served from a fixture directory."
+            for f in seo-gate.log crawl.log; do
+              if [ -f "$f" ]; then echo "### $f"; echo '```'; tail -40 "$f"; echo '```'; fi
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload build, server and gate logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-build-logs
+          path: |
+            build.log
+            server.log
+            seo-gate.log
+            crawl.log
+            crawl-report.json
+          if-no-files-found: ignore
+          retention-days: 14

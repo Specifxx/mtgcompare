@@ -1,0 +1,66 @@
+name: Store health
+
+# A scraper that silently breaks (bot-blocked, a page redesign, a selector that stopped matching) keeps reporting "success" while its listings quietly go stale, and that looks identical to a genuinely quiet store until someone
+# notices weeks later. scripts/store-health.ts (WP04) checks every store against its own history with the rules of /admin/store-health and prints a report whose FIRST LINE is
+#     Store health: <N> stores, <M> alerting, <K> alerts.
+# This workflow runs it once a day, after the day's publish, and posts to the ops webhook (OPS_WEBHOOK_URL, a Discord or Slack incoming webhook; webhook only, never a bot) when M is above zero. Parity P39.
+#
+# GREEN WITHOUT ITS SECRETS: the report script no-ops without its inputs, and without OPS_WEBHOOK_URL the report stays in this log and the step summary. The script always exits 0 (a broken scraper is something to look at, not a red
+# workflow); the alert is the only side effect. The report reads the published store-run records (PLANE_REPO / DATA_REPO_TOKEN: the pointed tree is checked out when both exist) and, for the per-store history it keeps in Neon, DATABASE_URL.
+#
+# WHEN. 23:35 UTC, after phase 2 of the daily import (21:55 and the 22:25 retry), the demand overlay (22:40) and the data audit's quiet hour. Own concurrency group: it reads, it never writes.
+on:
+  schedule:
+    - cron: "35 23 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: store-health
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PLANE_REPO: ${{ vars.PLANE_REPO }}
+      PLANE_BRANCH: ${{ vars.PLANE_BRANCH }}
+      DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+    steps:
+      - name: Nothing configured
+        if: env.DATABASE_URL == '' && (env.PLANE_REPO == '' || env.DATA_REPO_TOKEN == '')
+        run: echo "Neither DATABASE_URL nor the data repository (PLANE_REPO and DATA_REPO_TOKEN) is set for Actions - there is nothing to report on (a green no-op)."
+      - uses: actions/checkout@v4
+        if: env.DATABASE_URL != '' || (env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != '')
+      - uses: actions/setup-node@v4
+        if: env.DATABASE_URL != '' || (env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != '')
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        if: env.DATABASE_URL != '' || (env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != '')
+        run: |
+          npm ci
+          npx prisma generate
+      - name: Check out the pointed commit
+        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        run: bash scripts/plane-checkout.sh .data
+      - name: Store health report
+        id: health
+        if: env.DATABASE_URL != '' || (env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != '')
+        run: |
+          set -o pipefail
+          if [ -d .data/v1 ]; then export PLANE_DIR="$PWD/.data"; fi
+          npx tsx scripts/store-health.ts | tee health.txt
+          ALERTING="$(sed -n 's/^Store health: [0-9][0-9]* stores, \([0-9][0-9]*\) alerting.*/\1/p' health.txt | head -1)"
+          echo "alerting=${ALERTING:-0}" >> "$GITHUB_OUTPUT"
+          { echo "## Store health"; echo '```'; grep -v '^::' health.txt | head -80; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Tell ops
+        if: steps.health.outputs.alerting != '' && steps.health.outputs.alerting != '0'
+        env:
+          OPS_WEBHOOK_URL: ${{ secrets.OPS_WEBHOOK_URL }}
+        run: npx tsx scripts/ops-webhook.ts --title "Store health: ${{ steps.health.outputs.alerting }} store(s) alerting" --level warn --file health.txt --tail 25 --url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

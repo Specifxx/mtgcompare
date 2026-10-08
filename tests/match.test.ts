@@ -1,631 +1,740 @@
+// The store-listing matcher of src/lib/match.ts (owner WP03), pinned against REAL Magic listings.
+//
+// WHERE THE DATA COMES FROM. tests/fixtures/titles/ is a slice of the research corpus (matcher/corpus-mtg.json: 19,993 listings of 67 stores, fetched 2026-10-07) and of the catalogue it is matched against:
+//   rows.json      the MatchRows (with label and group abbreviation, as the importer builds them) of every product a pinned listing involves, plus one product per (set, TCGplayer group) for the set vocabulary
+//   sealed.json    the sealed products whose words a pinned listing can name
+//   listings.json  250 listings, each with its store, handle, title, tags, product type, variants (title, store price, in stock, sku), the store's explicit-foil convention, the answer recorded for every
+//                  variant and, for US stores, TCGplayer's market price in cents of the (product, finish) the variant matched
+// Titles, skus, variants and prices are read from those files; what is typed in below is the expected OUTCOME in words ("sylvan anthem mh2#176 N+F sku": card, set#number, finishes, key path), so a failing row
+// reads as a sentence. The recorded answers were produced on the whole 99,000-row catalogue and are replayed on the slice (the slice was built until both agreed on every pinned listing).
+//
+// Appendix B of the stores brief is pinned row by row, with what the prototype said where this matcher says something else and why. tests/match-finish.test.ts pins the finish step.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import {
+  STORE_SET_ALIASES,
+  anyVariant,
   bestVariant,
   buildCardIndex,
-  buildDonIndex,
   buildNameIndex,
   canonSet,
   cardNumbersIn,
+  cleanTitle,
+  collapseOffers,
+  conditionLabel,
   conditionRank,
+  foreignByTags,
+  indexVocab,
+  languageOfVariant,
   matchByName,
   matchCardBySku,
   matchCardTitle,
-  matchDonTitle,
   matchSealedTitle,
   matchStoreProduct,
-  foreignByTags,
+  matchStoreVariants,
+  parseSku,
+  plausibleSealedPrice,
   plausibleSinglePrice,
+  readTitle,
+  sealedWords,
   setCodesIn,
   skuCardNumber,
-  type PrintingRef,
+  skuSetNumber,
+  titleNamesSet,
+  treatmentWords,
+  type MatchRow,
+  type OfferDraft,
   type SealedRef,
+  type StoreMatch,
   type StoreMatchIndexes,
+  type StoreMiss,
+  type StoreVariant,
 } from "../src/lib/match";
 
-// A slice of the real catalogue: OP01-120 Shanks's three printings, a release-
-// event reprint, a Premium Booster alt art and promo prints that share a number.
-const idx = buildCardIndex([
-  { id: 1, name: "Shanks", number: "OP01-120", variant: null, setCode: "OP01", setName: "Romance Dawn" },
-  { id: 2, name: "Shanks", number: "OP01-120", variant: "Parallel", setCode: "OP01", setName: "Romance Dawn" },
-  { id: 3, name: "Shanks", number: "OP01-120", variant: "Parallel · Manga · Alternate Art", setCode: "OP01", setName: "Romance Dawn" },
-  { id: 4, name: "Shanks", number: "OP01-120", variant: "Alternate Art", setCode: "PRB-01", setName: "Premium Booster -The Best-" },
-  { id: 10, name: "Curiel", number: "OP16-004", variant: null, setCode: "OP16", setName: "The Time of Battle" },
-  { id: 11, name: "Curiel", number: "OP16-004", variant: "Release Event", setCode: "OP16 RE", setName: "The Time of Battle Release Event Cards" },
-  { id: 20, name: "Franky", number: "OP01-021", variant: null, setCode: "OP01", setName: "Romance Dawn" },
-  { id: 21, name: "Franky", number: "OP01-021", variant: "Tournament Pack Vol. 2", setCode: "OP-PR", setName: "One Piece Promotion Cards" },
-  { id: 22, name: "Franky", number: "OP01-021", variant: "Tournament Pack Vol. 2 · Winner", setCode: "OP-PR", setName: "One Piece Promotion Cards" },
-  { id: 30, name: "Portgas.D.Ace", number: "OP13-119", variant: "Super Alternate Art", setCode: "OP13", setName: "Carrying On His Will" },
-  { id: 31, name: "Portgas.D.Ace", number: "OP13-119", variant: "Red Super Alternate Art", setCode: "OP13", setName: "Carrying On His Will" },
-  { id: 40, name: "Luffy", number: "OP01-024", variant: null, setCode: "OP01", setName: "Romance Dawn" },
-  { id: 41, name: "Luffy", number: "OP01-024", variant: null, setCode: "OP-DD", setName: "One Piece Demo Deck Cards" },
-  { id: 50, name: "Gecko Moria", number: "ST03-004", variant: "SP", setCode: "OP08", setName: "Two Legends" },
+// ── the fixtures ──
+interface Listing {
+  key: string; group: string; store: string; market: string; handle: string; title: string; ptype: string; tags: string[];
+  options: [string, string[]][];
+  variants: [string, string, boolean, string | null][];     // title, price, in stock, sku
+  explicitFoil: boolean;
+  expect: string[];                                          // "id.F.path" or "miss:reason", per variant
+  marketCents?: Record<string, number>;                      // "id.F" -> TCGplayer market of the finish, US stores only
+}
+const FIX = path.resolve(__dirname, "fixtures/titles");
+const read = <T,>(file: string): T => JSON.parse(fs.readFileSync(path.join(FIX, file), "utf8")) as T;
+const rows = read<MatchRow[]>("rows.json");
+const sealed = read<SealedRef[]>("sealed.json");
+const listings = read<Listing[]>("listings.json");
+const ix: StoreMatchIndexes = { cards: buildCardIndex(rows), names: buildNameIndex(rows), sealed };
+const rowById = new Map(rows.map((r) => [r.id, r]));
+const sealedById = new Map(sealed.map((s) => [s.id, s]));
+
+const fmt = (a: StoreMatch | StoreMiss): string => ("id" in a ? `${a.id}.${a.finish}.${a.path}` : `miss:${a.miss}`);
+/** One answer per variant, with the convention the importer uses: the variant's own sku first, the siblings' titles beside it, the store's explicit-foil flag. */
+function answers(l: Listing, indexes: StoreMatchIndexes = ix): (StoreMatch | StoreMiss)[] {
+  return matchStoreVariants({ title: l.title, tags: l.tags, productType: l.ptype, explicitFoil: l.explicitFoil, variants: l.variants.map((v) => ({ title: v[0], sku: v[3] })) }, indexes);
+}
+/** The outcome in words: "card set#number FINISHES path" per product matched, then the distinct misses; "sealed <name>" for a sealed product. */
+function describe(l: Listing, indexes: StoreMatchIndexes = ix): string {
+  const hit = new Map<string, Set<string>>(); const miss = new Set<string>();
+  for (const a of answers(l, indexes)) {
+    if (!("id" in a)) { miss.add(`miss:${a.miss}`); continue; }
+    if (a.path === "sealed") { hit.set(`sealed ${sealedById.get(a.id)!.name}`, new Set()); continue; }
+    const r = rowById.get(a.id)!;
+    const k = `${r.names[0]} ${r.sc}#${r.nkey}|${a.path}`;
+    (hit.get(k) ?? hit.set(k, new Set()).get(k)!).add(a.finish);
+  }
+  const out = [...hit].sort().map(([k, f]) => { const [what, via] = k.split("|"); return f.size ? `${what} ${[...f].sort().reverse().join("+")} ${via}` : what!; });
+  return [...out, ...[...miss].sort()].join(" ; ");
+}
+/** A pinned listing by store and the start of its title (cleaned alike on both sides); it must be unique. */
+function pin(store: string, start: string): Listing {
+  const want = cleanTitle(start);
+  const hits = listings.filter((l) => l.store === store && cleanTitle(l.title).startsWith(want));
+  const exact = hits.filter((l) => cleanTitle(l.title) === want);
+  const one = exact.length === 1 ? exact : hits;
+  assert.equal(one.length, 1, `${store} "${start}" must name exactly one pinned listing, found ${one.length}`);
+  return one[0]!;
+}
+interface Row { store: string; title: string; want: string; why?: string }
+/** A table of "this real title is this outcome", one test per row, and the table must be the whole group of the fixture. */
+function table(group: string, rowsOf: Row[]): void {
+  test(`${group}: the table is the whole pinned group`, () => {
+    const pinned = rowsOf.map((r) => pin(r.store, r.title).key).sort();
+    const inGroup = listings.filter((l) => l.group === group).map((l) => l.key).sort();
+    assert.deepEqual(pinned.filter((k) => !inGroup.includes(k)), [], "rows outside the group (a listing is pinned in its first group only)");
+    assert.deepEqual(inGroup.filter((k) => !pinned.includes(k)), [], "listings of the group without a row");
+    assert.equal(new Set(pinned).size, pinned.length, "one row per listing");
+  });
+  for (const r of rowsOf) test(`${group}: ${r.store} "${r.title}" -> ${r.want}`, () => assert.equal(describe(pin(r.store, r.title)), r.want, r.why));
+}
+
+// ── the fixtures themselves ──
+test("the fixture is the slice it says it is: 250 listings in 11 groups, every one with an answer per variant", () => {
+  assert.equal(listings.length, 250);
+  const groups = new Map<string, number>();
+  for (const l of listings) groups.set(l.group, (groups.get(l.group) ?? 0) + 1);
+  assert.deepEqual(Object.fromEntries([...groups].sort()), { "appendix-b": 48, aliases: 9, conditions: 3, dupes: 2, finish: 16, gates: 7, rejects: 13, sample: 102, "sealed": 8, "sku-dialects": 23, "title-keys": 19 });
+  for (const l of listings) assert.equal(l.expect.length, l.variants.length, l.key);
+  assert.equal(new Set(listings.map((l) => l.key)).size, listings.length, "a listing is one store handle");
+  assert.ok(rows.length > 2000 && sealed.length > 300);
+  assert.ok(rows.some((r) => r.cls !== 0), "the slice keeps tokens, art cards and oversized products so that the index has something to leave out");
+});
+
+test("every recorded answer is replayed exactly, variant by variant (all 250 listings)", () => {
+  const bad: string[] = [];
+  for (const l of listings) {
+    const got = answers(l).map(fmt);
+    l.expect.forEach((want, i) => { if (got[i] !== want) bad.push(`${l.key} [${l.variants[i]![0]}] want ${want} got ${got[i]}`); });
+  }
+  assert.deepEqual(bad, []);
+});
+
+test("a match is always a product that sells the finish it names, and never an etched product as a plain finish", () => {
+  let n = 0;
+  for (const l of listings) for (const a of answers(l)) {
+    if (!("id" in a) || a.path === "sealed") continue;
+    n++;
+    const r = rowById.get(a.id);
+    assert.ok(r, `${l.key}: product ${a.id} is in the catalogue`);
+    if (a.finish === "N") assert.ok(r.hasN && !r.etched, `${l.key}: ${a.id} sells a non-foil`);
+    else assert.ok(r.hasF, `${l.key}: ${a.id} sells a foil`);
+  }
+  assert.ok(n > 600, `${n} single matches checked`);
+});
+
+test("every miss reason that occurs is one of the documented ones, and each is written in the module's header", () => {
+  const DOCUMENTED = ["language-option", "language-tag", "language-title", "language-sku", "graded-lot-proxy", "not-a-single", "accessory", "art-card-token-oversize", "nokey", "sku-key-not-in-catalogue", "title-key-not-in-catalogue",
+    "num-setname-not-in-catalogue", "name-setname-not-in-catalogue", "sku-numbers-disagree", "sku-title-disagree", "name-mismatch", "set-conflict", "treatment-not-in-product", "treatment-differs", "unknown-label", "finish-unknown",
+    "finish-conflict", "finish-not-offered", "ambiguous", "sealed-no-product", "sealed-ambiguous"];
+  const source = fs.readFileSync(path.resolve(__dirname, "../src/lib/match.ts"), "utf8");
+  const header = source.slice(source.indexOf("MISS REASONS"), source.indexOf("import {"));
+  for (const reason of DOCUMENTED) assert.ok(header.includes(reason), `${reason} is in the header`);
+  const seen = new Set<string>();
+  for (const l of listings) for (const a of answers(l)) if ("miss" in a) seen.add(a.miss);
+  assert.deepEqual([...seen].filter((m) => !DOCUMENTED.includes(m)), []);
+  assert.ok(seen.size >= 18, `${seen.size} different reasons occur in the fixture`);
+});
+
+// ── Appendix B of the stores brief: 48 real listings, pinned ──
+// `why` says what the prototype (v2) answered where this matcher answers differently.
+table("appendix-b", [
+  { store: "goodgames", title: "Sylvan Anthem [Modern Horizons 2]", want: "sylvan anthem mh2#176 N+F sku" },
+  { store: "gatheringpointgames", title: "Nissa, Leyline Tamer (Borderless) [Reality Fracture Commander]", want: "nissa leyline tamer frc#2 N+F sku", why: "TCGplayer calls the group Commander: Reality Fracture; the store's label is the catalogue's name in another order" },
+  { store: "boutiquelapioche", title: "Merfolk of the Pearl Trident (4ED-086) - common", want: "merfolk of the pearl trident 4ed#86 N sku" },
+  { store: "cgrealm", title: "Soul's Attendant (ROE-044) - Rise of the Eldrazi", want: "souls attendant roe#44 N+F sku" },
+  { store: "timetwister", title: "Kyoshi Island Plaza - Avatar: The Last Airbender (Uncommon) [TLA-184]", want: "kyoshi island plaza tla#184 N sku" },
+  { store: "spellroo", title: "An Offer You Can't Refuse (FIC - 267) - Commander: FINAL FANTASY - Uncommon - Normal", want: "an offer you cant refuse fic#267 N sku" },
+  { store: "livingrealms", title: "Bard, King of Dale (144)", want: "bard king of dale hob#144 N+F sku" },
+  { store: "impactleague", title: "Gandalf, Shadow's Foe (99)", want: "gandalf shadows foe hoc#99 N sku", why: "the number decides: this is the Extended Art product, although the title says nothing of it" },
+  { store: "facetoface", title: "Legion Leadership // Legion Stronghold [255] [Modern Horizons 3] [Non-Foil]", want: "legion leadership mh3#255 N sku" },
+  { store: "cardboardanddie", title: "Artifact Mutation [INV - 231]", want: "artifact mutation inv#231 F set-number" },
+  { store: "mysterymtg", title: "Terror of the Peaks [OTJ - 149]", want: "terror of the peaks otj#149 N set-number" },
+  { store: "carddynasty", title: "Biorhythm (231) (9ED)", want: "biorhythm 9ed#231 N set-number" },
+  { store: "gametime", title: "The Unbeatable Squirrel Girl (193) [Marvel Super Heroes]", want: "the unbeatable squirrel girl msh#193 N+F set-number" },
+  { store: "manamarket", title: "Exotic Orchard (Extended Art) - Doctor Who", want: "exotic orchard who#493 N sku" },
+  { store: "mightycoolgames", title: "Tiger-Seal (Borderless) [Avatar: The Last Airbender]", want: "tiger seal tla#318 N+F sku" },
+  { store: "brints", title: "Chaos Emerald - Lotus Petal (7033) (SLD-7033) - Secret Lair Drop Series Foil", want: "lotus petal sld#7033 F sku", why: "prototype: name-mismatch. A Secret Lair names its art ('Chaos Emerald - ') before the card; the SKU and the number name the Lotus Petal" },
+  { store: "shopponistore", title: "Affluente Magmatico - Commander: I Segreti di Strixhaven (Common) [SOC-387]", want: "miss:name-mismatch" },
+  { store: "duelspoint", title: "Qui Giù nella Valle - Lo Hobbit (Rare) [HOB-124]", want: "miss:name-mismatch" },
+  { store: "reefsidegames", title: "Mind Stone (DCI) (WPN-001) - Wizards Play Network 2021 Foil", want: "miss:name-mismatch" },
+  { store: "hideoutsg", title: "Esper Sentinel (Sketch) [Modern Horizons 2]", want: "miss:treatment-not-in-product" },
+  { store: "mightymeeple", title: "Teleportation Circle [Dungeons & Dragons: Adventures in the Forgotten Realms]", want: "teleportation circle afr#39 N+F sku", why: "prototype: treatment-not-in-product (the store's label for Adventures in the Forgotten Realms was unknown); STORE_SET_ALIASES" },
+  { store: "blackrosehobbies", title: "Giant Octopus (9ED-0S4) - 9th Edition", want: "miss:unknown-label", why: "prototype: treatment-differs. Both skip: '0S4' is a collector number nothing in the catalogue has" },
+  { store: "obsidiangames", title: "Nicol Bolas, Dragon-God (Promo Pack) [War of the Spark Promos]", want: "nicol bolas dragon god pwar#207p N+F name-set", why: "prototype: treatment-differs. The product's own name says 'Promo Pack'; the SKU's extra segments say it too" },
+  { store: "nordiclegends", title: "Bolg's Company - The Hobbit: Extras (Rare) [XHOB-211]", want: "miss:language-option" },
+  { store: "magicianscircle", title: "Assault Griffin - Magic 2011 (Common) [6]", want: "miss:language-option" },
+  { store: "lotuspetalgaming", title: "Phyrexian Mite (011) // Samurai Double-sided Token (11 // 2) (Phyrexia: All Will Be One)", want: "miss:art-card-token-oversize", why: "prototype: language-title/tag. A double-sided token either way" },
+  { store: "hideoutsg", title: "Demonic Tutor (Japanese Alternate Art) [Strixhaven: Mystical Archive]", want: "miss:language-title" },
+  { store: "teamcardgame", title: "Secrets of Strixhaven Bundle", want: "sealed Secrets of Strixhaven - Bundle", why: "prototype: not-a-single. The sealed list answers it" },
+  { store: "flukeandbox", title: "Magic Secrets of Strixhaven - Commander Deck: Lorehold Spirit", want: "sealed Secrets of Strixhaven Commander Deck - Lorehold Spirit", why: "prototype: not-a-single" },
+  { store: "totalcards", title: "Magic The Gathering - Avatar the Last Airbender - Jumpstart Booster Pack", want: "sealed Avatar: The Last Airbender - Jumpstart Booster Pack", why: "prototype: not-a-single" },
+  { store: "mythicstore", title: "Angel // Myr Double-Sided Token [Reality Fracture Commander Tokens]", want: "miss:art-card-token-oversize" },
+  { store: "hairytarantula", title: "A Mysterious Creature Token [Murders at Karlov Manor Tokens]", want: "miss:art-card-token-oversize" },
+  { store: "cardbot", title: "2025 Magic The Gathering Secret Lair Drop #1757 Vandalblast Marvel'S Deadpool-Foil PSA 9", want: "miss:graded-lot-proxy" },
+  { store: "blackrosehobbies", title: "Nim Replica (MRD-220) - Mirrodin", want: "nim replica mrd#220 N sku", why: "prototype: graded/lot/proxy. 'Replica' is in the card's own name; sealed, proxy and token words are judged on what is left of the title" },
+  { store: "mightycoolgames", title: "Soul Shatter [Zendikar Rising]", want: "soul shatter znr#127 N+F sku", why: "prototype: ambiguous (one product, two finishes). Per variant it is two offers" },
+  { store: "fusiongamingonline", title: "Godless Shrine [Edge of Eternities]", want: "miss:ambiguous" },
+  { store: "eternalmagic", title: "Anger (Rainbow Foil) [Secret Lair Drop Series]", want: "anger sld#1637 F sku", why: "prototype: ambiguous. The SKU says RAINBOW and the title says Rainbow Foil" },
+  { store: "eternalmagic", title: "Comeuppance (Borderless) [Marvel's Spider-Man: Eternal-Legal]", want: "miss:set-conflict" },
+  { store: "mysterymtg", title: "Sensei's Divining Top (Future Sight) [MB2 - 231]", want: "miss:set-conflict" },
+  { store: "hideoutsg", title: "Allosaurus Shepherd (Foil Etched) [Double Masters 2022]", want: "allosaurus shepherd 2x2#457 F sku", why: "prototype: finish-not-offered. The etched finish is the etched product, and the product that sells it is the one at #457" },
+  { store: "ggmorley", title: "Blaster Hulk (Extended Art) (Ripple Foil) [Modern Horizons 3 Commander]", want: "blaster hulk m3c#55 F sku", why: "prototype: finish-not-offered. A foil pattern is foil, and the product that sells it is the Ripple Foil one" },
+  { store: "mythicstore", title: "Samut, Tyrant of Naktamun [Reality Fracture Promos]", want: "miss:sku-key-not-in-catalogue" },
+  { store: "cardxcards", title: "Gwenom, Remorseless [Marvel's Spider-Man Promos]", want: "miss:sku-key-not-in-catalogue" },
+  { store: "collectorstorecards", title: "MTG - Modern Horizons 3 - Creative Energy [ENG]", want: "miss:name-setname-not-in-catalogue" },
+  { store: "jetcards", title: "Magic the Gathering - Foundations - Starter Collection", want: "miss:name-setname-not-in-catalogue" },
+  { store: "cherry", title: "FOIL Caves of Koilos 244 /281 - Rare Dominaria United", want: "caves of koilos dmu#244 F set-number", why: "prototype: nokey. A number and a set name are a key" },
+  { store: "greendoorcollectibles", title: "Nature's Lore-Dominaria Remastered-U-Normal", want: "miss:nokey" },
+  { store: "trinketmage", title: "Blur of Heroism - Commander: Marvel Super Heroes: Extras (Uncommon) [XMSC-585]", want: "blur of heroism msc#585 N+F sku ; miss:language-option", why: "prototype: nokey. TCGplayer's 'Extras' groups are X + the set code; the German variant is skipped, the English ones kept" },
 ]);
-const id = (t: string) => {
-  const r = matchCardTitle(t, idx);
-  return "id" in r ? r.id : r.miss;
-};
 
-test("card numbers are normalised", () => {
-  assert.deepEqual(cardNumbersIn("Shanks [OP-01-120] SEC"), ["OP01-120"]);
-  assert.deepEqual(cardNumbersIn("Uta (p-011)"), ["P-011"]);
-  assert.deepEqual(cardNumbersIn("One Piece OP-13 Booster Box"), []);
-});
-
-test("the printing words decide which Shanks", () => {
-  assert.equal(id("Shanks - OP01-120 - SEC"), 1);
-  assert.equal(id("Shanks (Parallel) OP01-120"), 2);
-  assert.equal(id("[ALTERNATE ART] Shanks (OP01-120) SEC"), 2);
-  assert.equal(id("Shanks (Parallel) (Manga) (Alternate Art) OP01-120"), 3);
-  assert.equal(id("Shanks OP01-120 Alternate Art PRB-01 The Best"), 4);
-});
-
-test("event prints need their stamp in the title", () => {
-  assert.equal(id("Curiel OP16-004 Common"), 10);
-  assert.equal(id("Curiel (Release Event) OP16-004"), 11);
-});
-
-test("the most specific promo wins when it is unique", () => {
-  assert.equal(id("Franky OP01-021"), 20);
-  assert.equal(id("Franky - OP01-021 - Tournament Pack Vol. 2"), 21);
-  assert.equal(id("Franky - OP01-021 - Tournament Pack Vol. 2 [Winner]"), 22);
-});
-
-test("leftover words in a printing token are required", () => {
-  assert.equal(id("Portgas.D.Ace OP13-119 Super Alternate Art"), 30);
-  assert.equal(id("Portgas.D.Ace OP13-119 Red Super Alternate Art"), 31);
-});
-
-test("with no other signal, the number's home set wins", () => {
-  assert.equal(id("Luffy OP01-024 Super Rare"), 40);
-});
-
-test("Special Card means SP", () => {
-  assert.equal(id("One Piece - Two Legends - Gecko Moria (Special Card) - ST03-004"), 50);
-});
-
-test("a title naming a stamp, promo or reprint the printing lacks is skipped", () => {
-  const ix = buildCardIndex([
-    { id: 60, name: "Koala", number: "OP13-081", variant: null, setCode: "OP13", setName: "Carrying On His Will" },
-    { id: 61, name: "Silvers Rayleigh", number: "OP14-108", variant: null, setCode: "OP14", setName: "The Azure Sea's Seven" },
-    { id: 62, name: "Silvers Rayleigh", number: "OP14-108", variant: "Dash Pack", setCode: "OP14", setName: "The Azure Sea's Seven" },
-    { id: 63, name: "Boa Marigold", number: "OP07-052", variant: null, setCode: "OP07", setName: "500 Years in the Future" },
-    { id: 64, name: "Baby 5", number: "OP04-032", variant: null, setCode: "OP04", setName: "Kingdoms of Intrigue" },
-    { id: 65, name: "Brannew", number: "OP03-089", variant: null, setCode: "OP03", setName: "Pillars of Strength" },
-    { id: 66, name: "Vinsmoke Judge", number: "OP11-044", variant: null, setCode: "OP11", setName: "A Fist of Divine Speed" },
-    { id: 67, name: "Alvida", number: "OP15-003", variant: null, setCode: "OP15", setName: "Adventure on Kami's Island" },
-    { id: 68, name: "Concelot", number: "OP08-024", variant: null, setCode: "OP08", setName: "Two Legends" },
-    { id: 69, name: "Concelot", number: "OP08-024", variant: "Pre-Release", setCode: "OP08 PRE", setName: "Two Legends Pre-Release Cards" },
-    { id: 70, name: "Adio", number: "P-078", variant: null, setCode: "PRB-02", setName: "Premium Booster -The Best- Vol. 2" },
-    { id: 74, name: "Uta", number: "ST08-002", variant: null, setCode: "ST-08", setName: "Starter Deck 8: Monkey.D.Luffy" },
-    { id: 71, name: "Sabo", number: "ST13-007", variant: null, setCode: "ST-13", setName: "Ultra Deck: The Three Brothers" },
-    { id: 72, name: "Sabo", number: "ST13-007", variant: "Reprint", setCode: "PRB-02", setName: "Premium Booster -The Best- Vol. 2" },
-    { id: 73, name: "Sabo", number: "ST13-007", variant: "Pirate Foil", setCode: "PRB-02", setName: "Premium Booster -The Best- Vol. 2" },
-  ]);
-  const m = (t: string) => {
-    const r = matchCardTitle(t, ix);
-    return "id" in r ? r.id : r.miss;
-  };
-  // Real titles whose printing TCGplayer doesn't list: once priced as the plain card.
-  assert.equal(m("Koala (3rd Anniversary Stamp) - C - OP13-081"), "no-printing");
-  assert.equal(m("Silvers Rayleigh (OP14-108) (V.2) - Unnumbered Promos (Rare) [UP-OP14-108]"), "no-printing");
-  assert.equal(m("Boa Marigold [OP07 PRE - OP07-052 - Common] - 500 Years in the Future Pre-Release Cards"), "no-printing");
-  assert.equal(m("Baby 5 (OP04-032) (V.2) PRB01 Uncommon Near Mint Englisch"), "no-printing");
-  assert.equal(m("Brannew (OP03-089) (V.2) - The Best (Rare) [OP03-089]"), "no-printing");
-  // Still matched: the word is the card's own name, its set, its tag or a P- promo.
-  assert.equal(m("Vinsmoke Judge [OP11 - OP11-044]"), 66);
-  assert.equal(m("Alvida (OP15-003) (V.1) - Adventure on Kami’s Island (Rare) [OP15-003]"), 67);
-  assert.equal(m("Concelot [Two Legends Pre-Release Cards] OP08-024"), 69);
-  assert.equal(m("Concelot OP08-024"), 68);
-  assert.equal(m("Adio (P-078) (Promo)"), 70);
-  assert.equal(m("Uta - ST08-002 - Starter Deck 8: Monkey.D.Luffy Promo"), 74);
-  assert.equal(m("Uta (ST08-002) - Unnumbered Promos"), "no-printing");
-  // A Premium Booster title with no printing words is the booster's reprint.
-  assert.equal(m("One Piece - Premium Booster 02 - Sabo (Common) - ST13-007"), 72);
-  assert.equal(m("Sabo (ST13-007) [PRB02 Foil]"), 72);
-  assert.equal(m("Sabo - ST13-007 (Pirate Foil) [Premium Booster -The Best- Vol. 2]"), 73);
-  assert.equal(m("Sabo ST13-007"), 71);
-});
-
-test("the set a title names decides, and a stray plain print is not a guess", () => {
-  const ix = buildCardIndex([
-    { id: 80, name: "Roronoa Zoro", number: "OP06-118", variant: null, setCode: "OP06", setName: "Wings of the Captain" },
-    { id: 81, name: "Roronoa Zoro", number: "OP06-118", variant: "Alternate Art", setCode: "OP06", setName: "Wings of the Captain" },
-    { id: 82, name: "Roronoa Zoro", number: "OP06-118", variant: "Alternate Art · Manga", setCode: "OP06", setName: "Wings of the Captain" },
-    { id: 83, name: "Roronoa Zoro", number: "OP06-118", variant: "Manga", setCode: "PRB-01", setName: "Premium Booster -The Best-" },
-    { id: 84, name: "Roronoa Zoro", number: "OP06-118", variant: "Reprint", setCode: "PRB-02", setName: "Premium Booster -The Best- Vol. 2" },
-    { id: 85, name: "Van Augur", number: "OP09-083", variant: null, setCode: "OP09", setName: "Emperors in the New World" },
-    { id: 86, name: "Van Augur", number: "OP09-083", variant: "Reprint", setCode: "ST-27", setName: "Starter Deck 27: BLACK Marshall.D.Teach" },
-    { id: 87, name: "Charlotte Praline", number: "OP03-111", variant: null, setCode: "OP03", setName: "Pillars of Strength" },
-    { id: 88, name: "Charlotte Praline", number: "OP03-111", variant: "Pre-Release", setCode: "OP03 PRE", setName: "Pillars of Strength Pre-Release Cards" },
-    { id: 89, name: "Braham", number: "OP15-110", variant: null, setCode: "OP15", setName: "Adventure on Kami's Island" },
-    { id: 90, name: "Monkey.D.Luffy", number: "P-001", variant: null, setCode: "OP-DD", setName: "One Piece Demo Deck Cards" },
-    { id: 91, name: "Monkey.D.Luffy", number: "P-001", variant: "Promotion Pack 2022", setCode: "OP-PR", setName: "One Piece Promotion Cards" },
-    { id: 92, name: "Monkey.D.Luffy", number: "P-001", variant: "Premium Card Collection -BANDAI CARD GAMES Fest. 23-24 Edition-", setCode: "OP-PR", setName: "One Piece Promotion Cards" },
-    { id: 93, name: "Sabo", number: "OP13-120", variant: null, setCode: "OP13", setName: "Carrying On His Will" },
-    { id: 94, name: "Sabo", number: "OP13-120", variant: "Super Alternate Art", setCode: "OP13", setName: "Carrying On His Will" },
-    { id: 95, name: "Sabo", number: "OP13-120", variant: "Red Super Alternate Art", setCode: "OP13", setName: "Carrying On His Will" },
-    { id: 96, name: "Monkey.D.Luffy", number: "OP17-079", variant: "Alternate Art", setCode: "OP17", setName: "The World's Strongest Warriors" },
-    { id: 97, name: "Monkey.D.Luffy", number: "OP17-079", variant: "Super Leader Alternate Art", setCode: "OP17", setName: "The World's Strongest Warriors" },
-  ]);
-  const m = (t: string) => {
-    const r = matchCardTitle(t, ix);
-    return "id" in r ? r.id : r.miss;
-  };
-  // A store's "Manga" is the original set's Manga unless the title says The Best.
-  assert.equal(m("Roronoa Zoro (OP06-118) - Wings of the Captain (Manga Rare) [OP06-118]"), 82);
-  assert.equal(m("Roronoa Zoro OP06-118 Manga Alt Art"), 82);
-  assert.equal(m("Roronoa Zoro - OP06-118 - Secret Rare (Manga) - The Best"), 83);
-  // A set code for another printing of the number: that printing or nothing.
-  assert.equal(m("Van Augur (OP09-083) - Starter Deck: Black Marshall.D.Teach (Rare) [ST-27-OP09-083]"), 86);
-  assert.equal(m("Van Augur (OP09-083) - Emperors in the New World (Rare)"), 85);
-  // Event stamps written as set-code suffixes.
-  assert.equal(m("Charlotte Praline [OP03 PRE - OP03-111]"), 88);
-  assert.equal(m("Braham [OP15 RE - OP15-110]"), "no-printing");
-  // Every promo P-001 is tagged; the untagged title is not the Demo Deck card.
-  assert.equal(m("Monkey.D.Luffy (P-001)"), "ambiguous");
-  assert.equal(m("Monkey.D.Luffy (Promotion Pack 2022) (P-001)"), 91);
-  assert.equal(m("Monkey.D.Luffy (P-001) One Piece Demo Deck Cards"), 90);
-  // "Red" and "Leader" count only as part of the printing's phrase.
-  assert.equal(m("Sabo - OP13-120 - Red Leader (Super Alternate Art)"), 94);
-  assert.equal(m("Sabo OP13-120 Red Super Alternate Art"), 95);
-  assert.equal(m("Monkey.D.Luffy - OP17-079 - Leader (Alternate Art)"), 96);
-  assert.equal(m("Monkey.D.Luffy (Super Leader Alternate Art) (OP17-079)"), 97);
-  // Other graders' slabs.
-  assert.equal(m("2024 Monkey.D.Luffy #P-001 Card Games Fest TAG 9"), "not-single");
-});
-
-test("never matched: foreign, graded, playsets, wrong names, unknown printings", () => {
-  assert.equal(id("Shanks OP01-120 (Japanese)"), "foreign");
-  assert.equal(id("Shanks (OP01-120) (V.1) - The Best (Non-English) (Secret Rare) [OP01-120]"), "foreign");
-  assert.equal(id("PSA 10 Shanks OP01-120 Parallel"), "not-single");
-  assert.equal(id("Playset (4) 4x Shanks OP01-120"), "not-single");
-  assert.equal(id("Kaido OP01-120"), "name");
-  assert.equal(id("Shanks OP01-120 Jolly Roger Foil"), "no-printing");
-  assert.equal(id("Shanks OP01-120 / Shanks OP01-121"), "many-numbers");
-});
-
-test("the TCGplayer-name path", () => {
-  const n = buildNameIndex([
-    { id: 7, tcgName: "Arlong (Alternate Art)", setNames: ["A Fist of Divine Speed", "A Fist of Divine Speed"] },
-    { id: 8, tcgName: "Monet", setNames: ["Legacy of the Master Release Event Cards", "Legacy of the Master Release Event Cards"] },
-    { id: 9, tcgName: "DON!! Card (Alternate Art)", setNames: ["Kingdoms of Intrigue", "Kingdoms of Intrigue"] },
-    { id: 10, tcgName: "DON!! Card (Alternate Art)", setNames: ["Kingdoms of Intrigue", "Kingdoms of Intrigue"] },
-  ]);
-  assert.equal(matchByName("Arlong (Alternate Art) [A Fist of Divine Speed]", n), 7);
-  assert.equal(matchByName("Monet - Legacy of the Master Release Event Cards Foil", n), 8);
-  assert.equal(matchByName("DON!! Card (Alternate Art) [Kingdoms of Intrigue]", n), null);
-  assert.equal(matchByName("Arlong (Alternate Art) [A Fist of Divine Speed] (Japanese)", n), null);
-});
-
-const sealed: SealedRef[] = [
-  { id: 100, name: "Carrying On His Will Booster Box", kind: "Booster Box", setCode: "OP13", setName: "Carrying On His Will" },
-  { id: 101, name: "Carrying On His Will Booster Pack", kind: "Booster Pack", setCode: "OP13", setName: "Carrying On His Will" },
-  { id: 102, name: "Romance Dawn - Booster Box (Wave 1 - Blue)", kind: "Booster Box", setCode: "OP01", setName: "Romance Dawn" },
-  { id: 103, name: "Romance Dawn - Booster Box (Wave 2 - White)", kind: "Booster Box", setCode: "OP01", setName: "Romance Dawn" },
-  { id: 104, name: "Starter Deck 36: YELLOW Eustass\"Captain\"Kid", kind: "Starter Deck", setCode: "ST-36", setName: "Starter Deck 36: YELLOW Eustass\"Captain\"Kid" },
-  { id: 105, name: "Carrying On His Will Booster Box Case", kind: "Booster Case", setCode: "OP13", setName: "Carrying On His Will" },
-];
-const sid = (t: string) => {
-  const r = matchSealedTitle(t, sealed);
-  return "id" in r ? r.id : r.miss;
-};
-
-test("sealed titles", () => {
-  assert.deepEqual(setCodesIn("[OP-13] Box"), ["OP13"]);
-  assert.equal(sid("One Piece Card Game: Booster Box – Carrying On His Will [OP-13]"), 100);
-  assert.equal(sid("One Piece OP13 Display (24 Packs) EN"), 100);
-  assert.equal(sid("One Piece Card Game [OP-13] Carrying On His Will Booster Pack"), 101);
-  assert.equal(sid("One Piece Romance Dawn Booster Box"), "ambiguous");
-  assert.equal(sid("One Piece Romance Dawn Booster Box Wave 2"), 103);
-  assert.equal(sid("One Piece Starter Deck ST36 - Eustass Captain Kid"), 104);
-  assert.equal(sid("One Piece OP-13 Booster Box (Japanese)"), "foreign");
-  assert.equal(sid("Koala (Alternate Art) [Premium Booster -The Best-]"), "no-kind");
-  assert.equal(sid("One Piece OP-13 Booster Box - Empty"), "not-sealed");
-  // Cases: only when the title says "box case" or similar; accessories never.
-  assert.equal(sid("One Piece Card Game OP-13 Booster Box Case (12 Boxes)"), 105);
-  assert.equal(sid("One Piece OP13 Booster Box (Case Fresh)"), 100);
-  assert.equal(sid("Alaris Design: Premium Acrylic Case for One Piece Card Game Booster Boxes (OP-13 onwards)"), "not-sealed");
-  assert.equal(sid("One Piece OP-13 Booster Box with Magnetic Case"), "not-sealed");
-  assert.equal(sid("One Piece OP-13 Booster Box Protector Case"), "not-sealed");
-  assert.equal(sid("Super Pre-Release Starter Deck 36: Yellow Eustass Captain Kid ST-36"), "no-product");
-  // A Dash Pack single is not a booster pack.
-  assert.equal(sid("Nami (Dash Pack) [Adventure on Kami's Island]"), "no-kind");
-});
-
-test("conditions and variants", () => {
-  assert.equal(conditionRank("Near Mint"), 0);
-  assert.equal(conditionRank("Lightly Played"), 1);
-  assert.equal(conditionRank("Moderately Played"), 2);
-  assert.equal(conditionRank("Heavily Played"), 3);
-  assert.equal(conditionRank("Damaged"), 4);
-  assert.deepEqual(
-    bestVariant([
-      { title: "Lightly Played", price: "8.00", available: true },
-      { title: "Near Mint", price: "10.00", available: true },
-      { title: "Near Mint Japanese", price: "2.00", available: true },
-      { title: "Near Mint", price: "9.00", available: false },
-    ]),
-    { priceCents: 1000, condition: "NM" },
-  );
-  assert.equal(bestVariant([{ title: "Near Mint", price: "9.00", available: false }]), null);
-});
-
-test("prices far from market are treated as mismatches", () => {
-  assert.equal(plausibleSinglePrice(1000, 10000), false);
-  assert.equal(plausibleSinglePrice(9000, 10000), true);
-  assert.equal(plausibleSinglePrice(50000, 1000), false);
-  assert.equal(plausibleSinglePrice(25, 10), true);
-});
-
-// ── A real catalogue slice (TCGplayer, 2026-10-03) and real store titles ─────
-// Every printing of each number below, exactly as the import indexes it, so
-// "exactly one printing fits" is tested against the real competition.
-const REAL: PrintingRef[] = [
-  { id: 643731, name: "Shanks", number: "OP12-007", variant: null, setCode: "OP12", setName: "Legacy of the Master", setTcgName: "Legacy of the Master" },
-  { id: 649293, name: "Shanks", number: "OP12-007", variant: "Release Event", setCode: "OP12 RE", setName: "Legacy of the Master Release Event Cards", setTcgName: "Legacy of the Master Release Event Cards" },
-  { id: 707116, name: "Charlotte Chiffon", number: "OP17-105", variant: null, setCode: "OP17", setName: "The World's Strongest Warriors", setTcgName: "The World's Strongest Warriors" },
-  { id: 712733, name: "Charlotte Chiffon", number: "OP17-105", variant: "Release Event", setCode: "OP17 RE", setName: "The World's Strongest Warriors Release Event Cards", setTcgName: "The World's Strongest Warriors Release Event Cards" },
-  { id: 685382, name: "Rebecca", number: "OP15-039", variant: null, setCode: "OP15-EB04", setName: "Adventure on Kami's Island", setTcgName: "Adventure on Kami's Island" },
-  { id: 685383, name: "Rebecca", number: "OP15-039", variant: "Alternate Art", setCode: "OP15-EB04", setName: "Adventure on Kami's Island", setTcgName: "Adventure on Kami's Island" },
-  { id: 719666, name: "Rebecca", number: "OP15-039", variant: "Flame-Flame Fruit Coliseum", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 500116, name: "Sogeking", number: "OP03-122", variant: "Alternate Art", setCode: "OP03", setName: "Pillars of Strength", setTcgName: "Pillars of Strength" },
-  { id: 500118, name: "Sogeking", number: "OP03-122", variant: "Alternate Art · Manga", setCode: "OP03", setName: "Pillars of Strength", setTcgName: "Pillars of Strength" },
-  { id: 501997, name: "Sogeking", number: "OP03-122", variant: null, setCode: "OP03", setName: "Pillars of Strength", setTcgName: "Pillars of Strength" },
-  { id: 587710, name: "Sogeking", number: "OP03-122", variant: "Manga", setCode: "PRB-01", setName: "Premium Booster -The Best-", setTcgName: "Premium Booster -The Best-" },
-  { id: 615564, name: "Monkey.D.Luffy", number: "ST21-001", variant: null, setCode: "ST-21", setName: "Starter Deck 21: EX Gear 5", setTcgName: "ST-21: Starter Deck 21 EX Gear 5" },
-  { id: 615565, name: "Monkey.D.Luffy", number: "ST21-001", variant: "Parallel", setCode: "ST-21", setName: "Starter Deck 21: EX Gear 5", setTcgName: "ST-21: Starter Deck 21 EX Gear 5" },
-  { id: 656655, name: "Monkey.D.Luffy", number: "ST21-001", variant: "Luffy Deck", setCode: "LT-01", setName: "Learn Together Deck Set", setTcgName: "Learn Together Deck Set" },
-  { id: 706313, name: "Monkey.D.Luffy", number: "ST21-001", variant: null, setCode: "ST-31", setName: "Starter Deck 31: RED Monkey.D.Luffy", setTcgName: "ST-31: Starter Deck 31 RED Monkey.D.Luffy" },
-  { id: 288298, name: "Blast Breath", number: "ST04-016", variant: null, setCode: "ST-04", setName: "Starter Deck 4: Animal Kingdom Pirates", setTcgName: "ST-04: Starter Deck 4 Animal Kingdom Pirates" },
-  { id: 426897, name: "Blast Breath", number: "ST04-016", variant: "Super Pre-Release", setCode: "ST-04 PRE", setName: "Starter Deck 4: Animal Kingdom Pirates (Super Pre-Release Edition)", setTcgName: "ST-04: Starter Deck 4 Animal Kingdom Pirates (Super Pre-Release Edition)" },
-  { id: 546671, name: "Blast Breath", number: "ST04-016", variant: "Premium Card Collection -Best Selection Vol. 1-", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 593589, name: "Blast Breath", number: "ST04-016", variant: "Jolly Roger Foil", setCode: "PRB-01", setName: "Premium Booster -The Best-", setTcgName: "Premium Booster -The Best-" },
-  { id: 593902, name: "Blast Breath", number: "ST04-016", variant: "Textured Foil", setCode: "PRB-01", setName: "Premium Booster -The Best-", setTcgName: "Premium Booster -The Best-" },
-  { id: 599780, name: "Blast Breath", number: "ST04-016", variant: null, setCode: "OP-RP", setName: "Revision Pack Cards", setTcgName: "Revision Pack Cards" },
-  { id: 706355, name: "Bartholomew Kuma", number: "ST35-005", variant: null, setCode: "ST-35", setName: "Starter Deck 35: RED/BLACK Sabo", setTcgName: "ST-35: Starter Deck 35 RED/BLACK Sabo" },
-  { id: 685362, name: "Brook", number: "OP15-022", variant: null, setCode: "OP15-EB04", setName: "Adventure on Kami's Island", setTcgName: "Adventure on Kami's Island" },
-  { id: 685363, name: "Brook", number: "OP15-022", variant: "Alternate Art", setCode: "OP15-EB04", setName: "Adventure on Kami's Island", setTcgName: "Adventure on Kami's Island" },
-  { id: 596924, name: "Shanks", number: "OP09-004", variant: null, setCode: "OP09", setName: "Emperors in the New World", setTcgName: "Emperors in the New World" },
-  { id: 596925, name: "Shanks", number: "OP09-004", variant: "Manga", setCode: "OP09", setName: "Emperors in the New World", setTcgName: "Emperors in the New World" },
-  { id: 596926, name: "Shanks", number: "OP09-004", variant: "Alternate Art", setCode: "OP09", setName: "Emperors in the New World", setTcgName: "Emperors in the New World" },
-  { id: 596927, name: "Shanks", number: "OP09-004", variant: "Wanted Poster", setCode: "OP09", setName: "Emperors in the New World", setTcgName: "Emperors in the New World" },
-  { id: 635477, name: "Shanks", number: "OP09-004", variant: "English Version 2nd Anniversary Set", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 646743, name: "Shanks", number: "OP09-004", variant: "Championship 25-26 Offline Regionals Season 2", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 656025, name: "Shanks", number: "OP09-004", variant: "Reprint", setCode: "PRB-02", setName: "Premium Booster -The Best- Vol. 2", setTcgName: "Premium Booster -The Best- Vol. 2" },
-  { id: 657442, name: "Shanks", number: "OP09-004", variant: "SP · Gold", setCode: "OP13", setName: "Carrying On His Will", setTcgName: "Carrying On His Will" },
-  { id: 657443, name: "Shanks", number: "OP09-004", variant: "SP · Silver", setCode: "OP13", setName: "Carrying On His Will", setTcgName: "Carrying On His Will" },
-  { id: 288235, name: "Tony Tony.Chopper", number: "ST01-006", variant: null, setCode: "ST-01", setName: "Starter Deck 1: Straw Hat Crew", setTcgName: "ST-01: Starter Deck 1 Straw Hat Crew" },
-  { id: 416671, name: "Tony Tony.Chopper", number: "ST01-006", variant: "Super Pre-Release", setCode: "ST-01 PRE", setName: "Starter Deck 1: Straw Hat Crew (Super Pre-Release Edition)", setTcgName: "ST-01: Starter Deck 1 Straw Hat Crew (Super Pre-Release Edition)" },
-  { id: 455815, name: "Tony Tony.Chopper", number: "ST01-006", variant: "Treasure Cup", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 485267, name: "Tony Tony.Chopper", number: "ST01-006", variant: "Alternate Art", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 501749, name: "Tony Tony.Chopper", number: "ST01-006", variant: "3-on-3 Cup · Winner", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 501750, name: "Tony Tony.Chopper", number: "ST01-006", variant: "3-on-3 Cup · Participant", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 504476, name: "Tony Tony.Chopper", number: "ST01-006", variant: "Premium Card Collection -ONE PIECE FILM RED Edition-", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 523819, name: "Tony Tony.Chopper", number: "ST01-006", variant: "Gift Collection 2023", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 557289, name: "Tony Tony.Chopper", number: "ST01-006", variant: "English Version 1st Anniversary Set", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 586180, name: "Tony Tony.Chopper", number: "ST01-006", variant: "Jolly Roger Foil", setCode: "PRB-01", setName: "Premium Booster -The Best-", setTcgName: "Premium Booster -The Best-" },
-  { id: 593574, name: "Tony Tony.Chopper", number: "ST01-006", variant: "Full Art", setCode: "PRB-01", setName: "Premium Booster -The Best-", setTcgName: "Premium Booster -The Best-" },
-  { id: 593575, name: "Tony Tony.Chopper", number: "ST01-006", variant: "Alternate Art", setCode: "PRB-01", setName: "Premium Booster -The Best-", setTcgName: "Premium Booster -The Best-" },
-  { id: 602800, name: "Tony Tony.Chopper", number: "ST01-006", variant: null, setCode: "OP-DD", setName: "One Piece Demo Deck Cards", setTcgName: "One Piece Demo Deck Cards" },
-  { id: 528666, name: "Satori", number: "OP05-105", variant: null, setCode: "OP05", setName: "Awakening of the New Era", setTcgName: "Awakening of the New Era" },
-  { id: 586804, name: "Satori", number: "OP05-105", variant: "Alternate Art", setCode: "PRB-01", setName: "Premium Booster -The Best-", setTcgName: "Premium Booster -The Best-" },
-  { id: 586805, name: "Satori", number: "OP05-105", variant: "Jolly Roger Foil", setCode: "PRB-01", setName: "Premium Booster -The Best-", setTcgName: "Premium Booster -The Best-" },
-  { id: 593476, name: "Satori", number: "OP05-105", variant: "Full Art", setCode: "PRB-01", setName: "Premium Booster -The Best-", setTcgName: "Premium Booster -The Best-" },
-  { id: 594332, name: "Satori", number: "OP05-105", variant: "Reprint", setCode: "PRB-01", setName: "Premium Booster -The Best-", setTcgName: "Premium Booster -The Best-" },
-  { id: 599736, name: "Satori", number: "OP05-105", variant: "Welcome Pack Vol. 1", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 545825, name: "Crocodile", number: "OP07-040", variant: null, setCode: "OP07", setName: "500 Years in the Future", setTcgName: "500 Years in the Future" },
-  { id: 552110, name: "Crocodile", number: "OP07-040", variant: "Pre-Release", setCode: "OP07 PRE", setName: "500 Years in the Future Pre-Release Cards", setTcgName: "500 Years in the Future Pre-Release Cards" },
-  { id: 588175, name: "Crocodile", number: "OP07-040", variant: "ST15 - ST20 Release Event Winner Pack", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 588176, name: "Crocodile", number: "OP07-040", variant: "ST15 - ST20 Release Event Pack", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 641222, name: "Crocodile", number: "OP07-040", variant: "Judge Pack Vol. 6", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 648089, name: "Crocodile", number: "OP07-040", variant: "Seven Warlords of the Sea Binder Set", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 656197, name: "Crocodile", number: "OP07-040", variant: "Reprint", setCode: "PRB-02", setName: "Premium Booster -The Best- Vol. 2", setTcgName: "Premium Booster -The Best- Vol. 2" },
-  { id: 656198, name: "Crocodile", number: "OP07-040", variant: "Pirate Foil", setCode: "PRB-02", setName: "Premium Booster -The Best- Vol. 2", setTcgName: "Premium Booster -The Best- Vol. 2" },
-  { id: 656200, name: "Crocodile", number: "OP07-040", variant: "Alternate Art", setCode: "PRB-02", setName: "Premium Booster -The Best- Vol. 2", setTcgName: "Premium Booster -The Best- Vol. 2" },
-  { id: 454556, name: "Okiku", number: "OP01-035", variant: null, setCode: "OP01", setName: "Romance Dawn", setTcgName: "Romance Dawn" },
-  { id: 499432, name: "Okiku", number: "OP01-035", variant: "Judge", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 503243, name: "Okiku", number: "OP01-035", variant: "Tournament Pack Vol. 4", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 503247, name: "Okiku", number: "OP01-035", variant: "Winner Pack Vol. 4", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 525308, name: "Okiku", number: "OP01-035", variant: "CS 2023 Celebration Pack", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 545922, name: "Okiku", number: "OP01-035", variant: "SP", setCode: "OP07", setName: "500 Years in the Future", setTcgName: "500 Years in the Future" },
-  { id: 564253, name: "Okiku", number: "OP01-035", variant: "Premium Card Collection -BANDAI CARD GAMES Fest. 23-24 Edition-", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 653430, name: "Roronoa Zoro", number: "PRB02-006", variant: null, setCode: "PRB-02", setName: "Premium Booster -The Best- Vol. 2", setTcgName: "Premium Booster -The Best- Vol. 2" },
-  { id: 653431, name: "Roronoa Zoro", number: "PRB02-006", variant: "Alternate Art", setCode: "PRB-02", setName: "Premium Booster -The Best- Vol. 2", setTcgName: "Premium Booster -The Best- Vol. 2" },
-  { id: 670642, name: "Roronoa Zoro", number: "PRB02-006", variant: "SP", setCode: "OP14", setName: "The Azure Sea's Seven", setTcgName: "The Azure Sea's Seven" },
-  { id: 693119, name: "Roronoa Zoro", number: "PRB02-006", variant: "Welcome Pack 2026 Vol.1", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 707252, name: "Roronoa Zoro", number: "PRB02-006", variant: "Round 1 Promo", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 482423, name: "Edward.Newgate", number: "OP02-004", variant: null, setCode: "OP02", setName: "Paramount War", setTcgName: "Paramount War" },
-  { id: 485861, name: "Edward.Newgate", number: "OP02-004", variant: "Alternate Art", setCode: "OP02", setName: "Paramount War", setTcgName: "Paramount War" },
-  { id: 514045, name: "Edward.Newgate", number: "OP02-004", variant: "Championship 2023", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 516553, name: "Edward.Newgate", number: "OP02-004", variant: "SP", setCode: "OP04", setName: "Kingdoms of Intrigue", setTcgName: "Kingdoms of Intrigue" },
-  { id: 586182, name: "Edward.Newgate", number: "OP02-004", variant: "Alternate Art", setCode: "PRB-01", setName: "Premium Booster -The Best-", setTcgName: "Premium Booster -The Best-" },
-  { id: 594317, name: "Edward.Newgate", number: "OP02-004", variant: "Reprint", setCode: "PRB-01", setName: "Premium Booster -The Best-", setTcgName: "Premium Booster -The Best-" },
-  { id: 596970, name: "Buggy", number: "OP09-042", variant: null, setCode: "OP09", setName: "Emperors in the New World", setTcgName: "Emperors in the New World" },
-  { id: 596971, name: "Buggy", number: "OP09-042", variant: "Parallel", setCode: "OP09", setName: "Emperors in the New World", setTcgName: "Emperors in the New World" },
-  { id: 633944, name: "Buggy", number: "OP09-042", variant: null, setCode: "ST-25", setName: "Starter Deck 25: BLUE Buggy", setTcgName: "ST-25: Starter Deck 25 BLUE Buggy" },
-  { id: 635470, name: "Buggy", number: "OP09-042", variant: "English Version 2nd Anniversary Set", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 615590, name: "Monkey.D.Luffy", number: "ST21-014", variant: null, setCode: "ST-21", setName: "Starter Deck 21: EX Gear 5", setTcgName: "ST-21: Starter Deck 21 EX Gear 5" },
-  { id: 615591, name: "Monkey.D.Luffy", number: "ST21-014", variant: "Parallel", setCode: "ST-21", setName: "Starter Deck 21: EX Gear 5", setTcgName: "ST-21: Starter Deck 21 EX Gear 5" },
-  { id: 656673, name: "Monkey.D.Luffy", number: "ST21-014", variant: "Luffy Deck", setCode: "LT-01", setName: "Learn Together Deck Set", setTcgName: "Learn Together Deck Set" },
-  { id: 661704, name: "Monkey.D.Luffy", number: "ST21-014", variant: "3rd Anniversary Treasure Campaign Pack", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 541637, name: "Kumacy", number: "OP06-085", variant: null, setCode: "OP06", setName: "Wings of the Captain", setTcgName: "Wings of the Captain" },
-  { id: 541744, name: "Kumacy", number: "OP06-085", variant: "Pre-Release", setCode: "OP06 PRE", setName: "Wings of the Captain Pre-Release Cards", setTcgName: "Wings of the Captain Pre-Release Cards" },
-  { id: 708072, name: "Charlotte Linlin", number: "OP17-112", variant: "Manga", setCode: "OP17", setName: "The World's Strongest Warriors", setTcgName: "The World's Strongest Warriors" },
-  { id: 711324, name: "Charlotte Linlin", number: "OP17-112", variant: "Alternate Art", setCode: "OP17", setName: "The World's Strongest Warriors", setTcgName: "The World's Strongest Warriors" },
-  { id: 711325, name: "Charlotte Linlin", number: "OP17-112", variant: null, setCode: "OP17", setName: "The World's Strongest Warriors", setTcgName: "The World's Strongest Warriors" },
-  { id: 558036, name: "Robson", number: "OP08-013", variant: null, setCode: "OP08", setName: "Two Legends", setTcgName: "Two Legends" },
-  { id: 576455, name: "Robson", number: "OP08-013", variant: "Pre-Release", setCode: "OP08 PRE", setName: "Two Legends Pre-Release Cards", setTcgName: "Two Legends Pre-Release Cards" },
-  { id: 454554, name: "Izo", number: "OP01-033", variant: null, setCode: "OP01", setName: "Romance Dawn", setTcgName: "Romance Dawn" },
-  { id: 483155, name: "Izo", number: "OP01-033", variant: "Tournament Pack Vol. 2", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 483156, name: "Izo", number: "OP01-033", variant: "Tournament Pack Vol. 2 · Winner", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 525307, name: "Izo", number: "OP01-033", variant: "CS 2023 Celebration Pack", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 564252, name: "Izo", number: "OP01-033", variant: "Premium Card Collection -BANDAI CARD GAMES Fest. 23-24 Edition-", setCode: "OP-PR", setName: "One Piece Promotion Cards", setTcgName: "One Piece Promotion Cards" },
-  { id: 586589, name: "Izo", number: "OP01-033", variant: "Jolly Roger Foil", setCode: "PRB-01", setName: "Premium Booster -The Best-", setTcgName: "Premium Booster -The Best-" },
-  { id: 593284, name: "Izo", number: "OP01-033", variant: "Full Art", setCode: "PRB-01", setName: "Premium Booster -The Best-", setTcgName: "Premium Booster -The Best-" },
-  { id: 593285, name: "Izo", number: "OP01-033", variant: "Alternate Art", setCode: "PRB-01", setName: "Premium Booster -The Best-", setTcgName: "Premium Booster -The Best-" },
-];
-const real = buildCardIndex(REAL);
-const r = (t: string) => {
-  const x = matchCardTitle(t, real);
-  return "id" in x ? x.id : x.miss;
-};
-const bySku = (t: string, ...skus: string[]) => {
-  const x = matchCardBySku(t, skus, real);
-  return "id" in x ? x.id : x.miss;
-};
-
-test("SKU numbers: one number, never a foreign SKU", () => {
-  assert.equal(skuCardNumber(["OP12-007-EN-NF-1", "OP12-007-EN-NF-2"]), "OP12-007");
-  assert.equal(skuCardNumber(["op17-105-Normal-707116"]), "OP17-105");
-  assert.equal(skuCardNumber(["OP15-EB04-OP15-039-AA-EN-FO-1"]), "OP15-039");
-  assert.equal(skuCardNumber(["ST-21-ST21-001-EN-NF-1"]), "ST21-001");
-  assert.equal(skuCardNumber(["OP12007-1234567"]), "OP12-007");
-  assert.equal(skuCardNumber(["op12-66-Normal-643805"]), "OP12-066");
-  assert.equal(skuCardNumber(["OP12-007-JP-NF-1"]), null);
-  assert.equal(skuCardNumber(["OP12-007-EN-1", "OP12-008-EN-1"]), null);
-  assert.equal(skuCardNumber(["8355828", ""]), null);
-});
-
-test("SKU numbers lend a number to a numberless title, strictly", () => {
-  assert.equal(bySku("Shanks [Legacy of the Master]", "OP12-007-EN-NF-1"), 643731);
-  assert.equal(bySku("Charlotte Chiffon", "op17-105-Normal-707116"), 707116);
-  assert.equal(bySku("Rebecca (Alternate Art) [Adventure on Kami's Island]", "OP15-EB04-OP15-039-AA-EN-FO-1"), 685383);
-  assert.equal(bySku("Sogeking (Alternate Art)", "SNG-OZC-OP03-122-SEC-NM-1"), 500116);
-  // Not the Learn Together deck's ST21-001 (its "Luffy Deck" tag is in the title by accident).
-  assert.equal(bySku("Monkey.D.Luffy [Starter Deck EX: Gear 5]", "ST-21-ST21-001-EN-NF-1"), 615564);
-  // A set the catalogue doesn't know is a printing it doesn't list.
-  assert.equal(bySku("Blast Breath [Best Selection Vol.1]", "OP-PR-ST04-016-EN-FO-1"), "unknown-set");
-  assert.equal(bySku("Bartholomew Kuma [One Piece Film: Red]", "OP-PR-ST35-005-EN-FO-1"), "unknown-set");
-  // A known set that isn't the matched printing's: the SKU's card, not this listing.
-  assert.equal(bySku("Bartholomew Kuma [Starter Deck: Blue Buggy]", "ST35-005-EN-1"), "set-mismatch");
-});
-
-test("Alternative Art, Alt. Art and SP said as a set's special", () => {
-  assert.equal(r("Brook (OP15-022) - Op15-022, Alternative Art"), 685363);
-  assert.equal(r("Shanks (OP09-004) - Alternative Art"), 596926);
-  assert.equal(r("Okiku (OP07 Special) - OP01-035 - Rare"), 545922);
-  assert.equal(r("Roronoa Zoro (PRB02-006) - The Azure Sea's Seven (Special Rare) [OP14-PRB02-006]"), 670642);
-  assert.equal(r("Edward.Newgate (OP04 Special) - OP02-004"), 516553);
-  // OP13's Shanks SP is Gold or Silver; a title that says neither stays unmatched.
-  assert.equal(typeof r("Shanks (OP09-004) - Carrying on his Will (Special Rare) [OP13-OP09-004]"), "string");
-});
-
-test("Full Art and Alternate Art share a key; the phrase decides between them", () => {
-  assert.equal(r("Tony Tony.Chopper (ST01-006) (Full Art) (ST01-006) [Premium Booster -The Best-]"), 593574);
-  assert.equal(r("Satori (Full Art) (OP05-105) [Premium Booster -The Best-]"), 593476);
-  assert.equal(r("Satori (Alternate Art) (OP05-105) [Premium Booster -The Best-]"), 586804);
-});
-
-test("the Seven Warlords Binder Set is a promo, not a binder", () => {
-  assert.equal(r("Crocodile (Seven Warlords of the Sea Binder Set) - OP07-040"), 648089);
-  assert.equal(r("Crocodile OP07-040 in a 9-pocket binder"), "not-single");
-});
-
-test("a bracketed set in its older TCGplayer name still names the set", () => {
-  assert.equal(r("Buggy (OP09-042) [Starter Deck: Blue Buggy]"), 633944);
-  assert.equal(r("Monkey.D.Luffy (014) (ST21-014) [Starter Deck EX: Gear 5] Foil"), 615590);
-});
-
-test("numbers with a rarity suffix or written as the set's short number", () => {
-  assert.deepEqual(cardNumbersIn("Kumacy - OP06-085UC - Wings of the Captain"), ["OP06-085"]);
-  assert.equal(r("Kumacy - OP06-085UC - Wings of the Captain"), 541637);
-  assert.equal(r("Charlotte Linlin (112) (Alternate Art) - The World's Strongest Warriors (OP17)"), 711324);
-  assert.deepEqual(setCodesIn("Sai [OP15 Release Event]"), ["OP15 RE"]);
-  assert.deepEqual(setCodesIn("OP-05 Pre-Release"), ["OP05 PRE"]);
-  assert.deepEqual(setCodesIn("OP09 Anniversary"), ["OP09 ANN"]);
-});
-
-test("store words for printings TCGplayer doesn't list are never the plain card", () => {
-  assert.equal(r("Robson (OP08-013) OP08P Uncommon Near Mint Englisch"), "no-printing");
-  assert.equal(r("Izo (OP01-033) (Extended Art)"), "no-printing");
-  assert.equal(r("Izo OP01-033 - OP-13 Carrying On His Will Box Topper"), "no-printing");
-  assert.equal(r("Blast Breath (-Best Selection Vol. 1-) - ST04-016 - Common"), "no-printing");
-});
-
-test("canonical set names on the name path", () => {
-  const n = buildNameIndex([
-    { id: 288272, tcgName: "Dracule Mihawk", setNames: ["Starter Deck 3: The Seven Warlords of The Sea", "ST-03: Starter Deck 3 The Seven Warlords of The Sea"] },
-    { id: 422377, tcgName: "Dracule Mihawk", setNames: ["Starter Deck 3: The Seven Warlords of The Sea (Super Pre-Release Edition)", "ST-03: Starter Deck 3 The Seven Warlords of The Sea (Super Pre-Release Edition)"] },
-    { id: 454527, tcgName: "Sai", setNames: ["Romance Dawn", "Romance Dawn"] },
-    { id: 454598, tcgName: "Dracule Mihawk", setNames: ["Romance Dawn", "Romance Dawn"] },
-    { id: 454664, tcgName: "Shanks", setNames: ["Romance Dawn", "Romance Dawn"] },
-    { id: 477316, tcgName: "Shanks", setNames: ["Starter Deck 5: Film Edition", "ST-05: Starter Deck 5 Film Edition"] },
-    { id: 486394, tcgName: "Dracule Mihawk", setNames: ["Paramount War", "Paramount War"] },
-    { id: 486644, tcgName: "Dracule Mihawk", setNames: ["Paramount War Pre-Release Cards", "Paramount War Pre-Release Cards"] },
-    { id: 503224, tcgName: "Shanks", setNames: ["Starter Deck 8: Monkey.D.Luffy", "ST-08: Starter Deck 8 Monkey.D.Luffy"] },
-    { id: 539282, tcgName: "Shanks", setNames: ["Wings of the Captain", "Wings of the Captain"] },
-    { id: 541639, tcgName: "Sai", setNames: ["Wings of the Captain", "Wings of the Captain"] },
-    { id: 541745, tcgName: "Sai", setNames: ["Wings of the Captain Pre-Release Cards", "Wings of the Captain Pre-Release Cards"] },
-    { id: 542109, tcgName: "Dracule Mihawk", setNames: ["Starter Deck 12: Zoro and Sanji", "ST-12: Starter Deck 12 Zoro and Sanji"] },
-    { id: 543611, tcgName: "Shanks", setNames: ["Ultra Deck: The Three Brothers", "ST-13: Ultra Deck The Three Brothers"] },
-    { id: 545829, tcgName: "Dracule Mihawk", setNames: ["500 Years in the Future", "500 Years in the Future"] },
-    { id: 552071, tcgName: "Dracule Mihawk", setNames: ["500 Years in the Future Pre-Release Cards", "500 Years in the Future Pre-Release Cards"] },
-    { id: 581004, tcgName: "Shanks", setNames: ["Starter Deck 16: GREEN Uta", "ST-16: Starter Deck 16 GREEN Uta"] },
-    { id: 596978, tcgName: "Dracule Mihawk", setNames: ["Emperors in the New World", "Emperors in the New World"] },
-    { id: 597025, tcgName: "Catarina Devon", setNames: ["Emperors in the New World", "Emperors in the New World"] },
-    { id: 600781, tcgName: "Catarina Devon", setNames: ["Emperors in the New World: 2nd Anniversary Tournament Cards", "Emperors in the New World: 2nd Anniversary Tournament Cards"] },
-    { id: 602807, tcgName: "Sai", setNames: ["One Piece Demo Deck Cards", "One Piece Demo Deck Cards"] },
-    { id: 617065, tcgName: "Dracule Mihawk", setNames: ["Royal Blood", "Royal Blood"] },
-    { id: 617090, tcgName: "Sai", setNames: ["Royal Blood", "Royal Blood"] },
-    { id: 620769, tcgName: "Sai", setNames: ["Royal Blood Release Event Cards", "Royal Blood Release Event Cards"] },
-    { id: 633180, tcgName: "Catarina Devon", setNames: ["Starter Deck 27: BLACK Marshall.D.Teach", "ST-27: Starter Deck 27 BLACK Marshall.D.Teach"] },
-    { id: 634282, tcgName: "Come On!! We'll Fight You!! (Reprint)", setNames: ["Starter Deck 23: RED Shanks", "ST-23: Starter Deck 23 RED Shanks"] },
-    { id: 643758, tcgName: "Dracule Mihawk", setNames: ["Legacy of the Master", "Legacy of the Master"] },
-    { id: 648094, tcgName: "Trafalgar Law (Seven Warlords of the Sea Binder Set)", setNames: ["One Piece Promotion Cards", "One Piece Promotion Cards"] },
-    { id: 656042, tcgName: "Come On!! We'll Fight You!! (Reprint)", setNames: ["Premium Booster -The Best- Vol. 2", "Premium Booster -The Best- Vol. 2"] },
-    { id: 671370, tcgName: "Shanks", setNames: ["The Azure Sea's Seven", "The Azure Sea's Seven"] },
-    { id: 685369, tcgName: "Dracule Mihawk", setNames: ["Adventure on Kami's Island", "Adventure on Kami's Island"] },
-    { id: 685389, tcgName: "Sai", setNames: ["Adventure on Kami's Island", "Adventure on Kami's Island"] },
-    { id: 686365, tcgName: "Dracule Mihawk", setNames: ["Adventure on Kami's Island Release Event Cards", "Adventure on Kami's Island Release Event Cards"] },
-    { id: 686433, tcgName: "Sai", setNames: ["Adventure on Kami's Island Release Event Cards", "Adventure on Kami's Island Release Event Cards"] },
-    { id: 695990, tcgName: "Shanks", setNames: ["The Time of Battle", "The Time of Battle"] },
-    { id: 696072, tcgName: "Dracule Mihawk", setNames: ["The Time of Battle", "The Time of Battle"] },
-    { id: 696086, tcgName: "Catarina Devon", setNames: ["The Time of Battle", "The Time of Battle"] },
-    { id: 696714, tcgName: "Shanks", setNames: ["The Time of Battle Release Event Cards", "The Time of Battle Release Event Cards"] },
-    { id: 696758, tcgName: "Dracule Mihawk", setNames: ["The Time of Battle Release Event Cards", "The Time of Battle Release Event Cards"] },
-    { id: 706325, tcgName: "Dracule Mihawk", setNames: ["Starter Deck 32: GREEN Roronoa Zoro", "ST-32: Starter Deck 32 GREEN Roronoa Zoro"] },
-  ]);
-  assert.equal(matchByName("Catarina Devon [Starter Deck: Black Marshall.D.Teach]", n), 633180);
-  assert.equal(matchByName("Dracule Mihawk [Starter Deck: Zoro and Sanji]", n), 542109);
-  assert.equal(matchByName("Sai [Adventure on Kami's Island Release Event]", n), 686433);
-  assert.equal(matchByName("Shanks [Starter Deck: GREEN Uta]", n), 581004);
-  assert.equal(matchByName("Come On!! We'll Fight You!! (Reprint) [Starter Deck: Red Shanks]", n), 634282);
-  assert.equal(matchByName("Trafalgar Law (Seven Warlords of the Sea Binder Set) [One Piece Promotion Cards]", n), 648094);
-  assert.equal(canonSet("ST-01: Starter Deck 1 Straw Hat Crew (Super Pre-Release Edition)"), canonSet("Super Pre-Release Starter Deck: Straw Hat Crew"));
-  // A canonical key that names two products is no key at all.
-  const two = buildNameIndex([
-    { id: 1, tcgName: "Nami", setNames: ["Starter Deck 1: Straw Hat Crew"] },
-    { id: 2, tcgName: "Nami", setNames: ["ST-01: Starter Deck Straw Hat Crew Cards"] },
-  ]);
-  assert.equal(matchByName("Nami [Starter Deck: Straw Hat Crew]", two), null);
-});
-
-const DONS = buildDonIndex([
-  { id: 456059, tcgName: "DON!! Card (Manga) (Alternate Art)", setCode: "OP01", setName: "Romance Dawn" },
-  { id: 456320, tcgName: "DON!! Card // One Piece Film RED Promo", setCode: "OP01", setName: "Romance Dawn" },
-  { id: 482273, tcgName: "DON!! Card (Manga)", setCode: "OP02", setName: "Paramount War" },
-  { id: 517476, tcgName: "DON!! Card (Alternate Art)", setCode: "OP04", setName: "Kingdoms of Intrigue" },
-  { id: 517477, tcgName: "DON!! Card (Color) (Special DON!! Card Pack)", setCode: "OP04", setName: "Kingdoms of Intrigue" },
-  { id: 517478, tcgName: "DON!! Card (Black & White) (Special DON!! Card Pack)", setCode: "OP04", setName: "Kingdoms of Intrigue" },
-  { id: 549342, tcgName: "DON!! Card", setCode: "OP02", setName: "Paramount War" },
-  { id: 586188, tcgName: "DON!! Card (Sakazuki) (Gold)", setCode: "PRB-01", setName: "Premium Booster -The Best-" },
-  { id: 586886, tcgName: "DON!! Card (Perona) (Gold)", setCode: "PRB-01", setName: "Premium Booster -The Best-" },
-  { id: 587706, tcgName: "DON!! Card (Luffy) (Gold)", setCode: "PRB-01", setName: "Premium Booster -The Best-" },
-  { id: 593814, tcgName: "DON!! Card (Luffy)", setCode: "PRB-01", setName: "Premium Booster -The Best-" },
-  { id: 593817, tcgName: "DON!! Card (Perona)", setCode: "PRB-01", setName: "Premium Booster -The Best-" },
-  { id: 593824, tcgName: "DON!! Card (Sakazuki)", setCode: "PRB-01", setName: "Premium Booster -The Best-" },
-  { id: 655118, tcgName: "DON!! Card (GEAR5 Luffy) (Gold)", setCode: "PRB-02", setName: "Premium Booster -The Best- Vol. 2" },
-  { id: 655119, tcgName: "DON!! Card (GEAR5 Luffy)", setCode: "PRB-02", setName: "Premium Booster -The Best- Vol. 2" },
-  { id: 655126, tcgName: "DON!! Card (Teach) (Gold)", setCode: "PRB-02", setName: "Premium Booster -The Best- Vol. 2" },
-  { id: 655128, tcgName: "DON!! Card (Teach)", setCode: "PRB-02", setName: "Premium Booster -The Best- Vol. 2" },
-  { id: 655895, tcgName: "DON!! Card (Gear 4 Luffy)", setCode: "PRB-02", setName: "Premium Booster -The Best- Vol. 2" },
-  { id: 655896, tcgName: "DON!! Card (Gear 4 Luffy) (Gold)", setCode: "PRB-02", setName: "Premium Booster -The Best- Vol. 2" },
+// ── the SKU dialects ──
+table("sku-dialects", [
+  { store: "trinketmage", title: "Alien Symbiosis - Commander: Marvel Super Heroes: Extras (Uncommon) [XMSC-791]", want: "alien symbiosis msc#791 N+F sku ; miss:language-option" },
+  { store: "trextcg", title: "Leonardo, Leader in Blue - Teenage Mutant Ninja Turtles: Extras", want: "leonardo leader in blue tmt#196 F sku" },
+  { store: "manamarket", title: "Solemn Simulacrum (Extended Art) (Surge Foil) (Foil) - Doctor Who", want: "solemn simulacrum who#1071 F sku" },
+  { store: "manamarket", title: "Sol Ring - Doctor Who", want: "sol ring who#245 N sku" },
+  { store: "bardsandcards", title: "Teysa, Orzhov Scion (Retro) (Serialized) [Ravnica Remastered]", want: "teysa orzhov scion rvr#386z F name-set" },
+  { store: "hideoutsg", title: "Shadowborn Apostle (688) (Borderless) [Secret Lair Drop Promos]", want: "shadowborn apostle sld#688 F sku" },
+  { store: "obsidiangames", title: "Scalding Tarn (Borderless) [Tarkir: Dragonstorm Special Guests]", want: "scalding tarn spg#112 N+F sku" },
+  { store: "mightycoolgames", title: "Overseer of the Damned [Archenemy: Nicol Bolas]", want: "overseer of the damned e01#36 N sku" },
+  { store: "mightycoolgames", title: "Gift of Strength [Ravnica Allegiance]", want: "gift of strength rna#127 N+F sku" },
+  { store: "elementalarcade", title: "Rampaging Baloths [Commander: Edge of Eternities]", want: "rampaging baloths eoc#104 N sku" },
+  { store: "cryptmtg", title: "Aberrant (Surge Foil) [Warhammer 40,000]", want: "aberrant 40k#86 F sku ; miss:language-option" },
+  { store: "ggmorley", title: "Azlask, the Swelling Scourge (Borderless) (Ripple Foil)", want: "azlask the swelling scourge m3c#136 F name-set" },
+  { store: "cgrealm", title: "Counterspell (TMP-057) - Tempest", want: "counterspell tmp#57 N sku" },
+  { store: "mistymountain", title: "{C} Counterspell [Tempest][TMP 057]", want: "counterspell tmp#57 N sku" },
+  { store: "mistymountain", title: "{C} Arcane Signet (0056) [ECC 056]", want: "arcane signet ecc#56 N sku" },
+  { store: "bardsandcards", title: "Black Lotus [Unlimited Edition]", want: "black lotus 2ed#233 N sku" },
+  { store: "bardsandcards", title: "Black Lotus [Beta Edition]", want: "miss:finish-not-offered" },
+  { store: "bardsandcards", title: "Sol Ring [Alpha Edition]", want: "sol ring lea#269 N sku" },
+  { store: "rhysticnostalgiagaming", title: "Lightning Bolt [Double Masters 2022]", want: "lightning bolt 2x2#117 N+F sku" },
+  { store: "stompinggrounds", title: "The One Ring (Borderless Alternate Art) [The Lord of the Rings: Tales of Middle-Earth]", want: "the one ring ltr#451 N+F sku" },
+  { store: "manyrealms", title: "The One Ring (LTR-246) - The Lord of the Rings: Tales of Middle-earth", want: "the one ring ltr#246 N sku" },
+  { store: "spellroo", title: "Starting Town (FIN - 289) - FINAL FANTASY - Rare - Normal", want: "starting town fin#289 N+F sku" },
+  { store: "spellroo", title: "Hex Magic (MSH - 133) - Marvel Super Heroes - Uncommon - Normal", want: "hex magic msh#133 N+F sku" },
 ]);
-const don = (t: string) => {
-  const x = matchDonTitle(t, DONS);
-  return "id" in x ? x.id : x.miss;
-};
 
-test("DON!! cards: the set, every word of the printing, nothing it lacks, one fit", () => {
-  assert.equal(don("DON!! Card (Teach) (Gold) [PRB-02]"), 655126);
-  assert.equal(don("DON!! Card (Teach) [PRB-02]"), 655128);
-  assert.equal(don("DON!! Card (Sakazuki) [Premium Booster -The Best-]"), 593824);
-  assert.equal(don("DON!! Card (Perona) - Premium Booster -The Best-"), 593817);
-  assert.equal(don("DON!! Card (Black & White) (Special DON!! Card Pack) [OP04]"), 517478);
-  assert.equal(don("DON!! Card (Special DON!! Card Pack) (Color) [Kingdoms of Intrigue]"), 517477);
-  // Romance Dawn has no plain alternate-art DON!!: not the Film RED promo.
-  assert.equal(don("DON!! Card (Alternate Art) - Romance Dawn"), "no-printing");
-  // "Vol. 2" names PRB-02, which has no plain Luffy: not PRB-01's.
-  assert.equal(don("DON!! Card (Luffy) - Premium Booster -The Best- Vol. 2"), "no-printing");
-  // A store's own version numbers are never readable; no set, no match.
-  assert.equal(don("Don!! (PRB Perona) (V.2) PRB01 DON!! Near Mint Englisch"), "no-printing");
-  assert.equal(don("DON!! Card (Teach) (Gold)"), "no-set");
+// ── keys read from the title: SET-NUM, number + set name, name + set ──
+table("title-keys", [
+  { store: "clubhousecards", title: "Thranduil the Strategist (Extended Art) - #106 HOC", want: "thranduil the strategist hoc#106 N set-number" },
+  { store: "comicsbeyond", title: "Adventures in the Forgotten Realms 245/281 Greataxe (Foil)", want: "greataxe afr#245 F set-number" },
+  { store: "collectorsmith", title: "Rook Turret 69/309 (FINAL FANTASY)  - Foil", want: "rook turret fin#69 F set-number" },
+  { store: "chonkycollectibles", title: "Leonardo, Cutting Edge [Foil] - MTG Teenage Mutant Ninja Turtles R 15", want: "leonardo cutting edge tmt#15 F set-number" },
+  { store: "cherry", title: "Lotus Bloom 270/289 - Rare Time Spiral Remastered", want: "lotus bloom tsr#270 N set-number" },
+  { store: "cherry", title: "Foil Forest 301/302 - Kamigawa Neon Dynasty", want: "forest neo#301 F set-number" },
+  { store: "cherry", title: "Galaxy Foil Forest No 495 - Common Unfinity", want: "forest unf#495 F set-number" },
+  { store: "kapescaping", title: "Swamp (283) - Full Art [BRO - 283]", want: "swamp bro#283 F set-number" },
+  { store: "cryptmtg", title: "Abeyance (Janosch Kuhn) [World Championship Decks 1997]", want: "abeyance wc97#jk1 N name-set ; miss:language-option" },
+  { store: "gatorscardden", title: "Snap 66 - Dominaria Remastered", want: "snap dmr#66 N set-number" },
+  { store: "mysterymtg", title: "Hazezon Tamar [LEG]", want: "hazezon tamar leg#230 N name-set" },
+  { store: "cardboardanddie", title: "Forest - Clear Pack (Beard, Jr.) [APAC - 11]", want: "forest palp#11 N set-number", why: "APAC is TCGplayer's abbreviation of the group; Scryfall's code is PALP" },
+  { store: "cardboardanddie", title: "Rin and Seri, Inseparable (1508) [SLD - 1508]", want: "rin and seri inseparable sld#1508 F set-number" },
+  { store: "cardboardanddie", title: "Natural Order (JP Alternate Art) (Foil Etched) [STA - 117]", want: "natural order sta#117 F set-number" },
+  { store: "battlebearkl", title: "Transmogrifying Wand XCMM-981 Rare Near Mint Englisch", want: "transmogrifying wand cmm#981 N set-number" },
+  { store: "facetoface", title: "Case of the Locked Hothouse [155] [Murders at Karlov Manor] [Non-Foil]", want: "case of the locked hothouse mkm#155 N sku", why: "a card whose name starts with the sealed word 'Case'" },
+  { store: "facetoface", title: "Impact Tremors [44] [Enchanting Tale Showcase]", want: "miss:unknown-label", why: "'Enchanting Tale' is a word the vocabulary has no key for and the product's name does not state" },
+  { store: "eternalmagic", title: "Spider-Man 2099 [Marvel's Spider-Man]", want: "spider man 2099 spm#150 N+F sku", why: "a card whose own name ends in a number is not a title with a number" },
+  { store: "151collectables", title: "Michelangelo, Weirdness to 11", want: "michelangelo weirdness to 11 tmt#121 N name-set" },
+]);
+
+// ── what is skipped, and why ──
+table("rejects", [
+  { store: "zatugames", title: "Magic: The Gathering - JAPANESE - Phyrexia All Will Be One - Set Booster Pack", want: "miss:language-tag" },
+  { store: "mistymountain", title: "{B}[NEO 298] Swamp (298) - JP Full Art [Kamigawa Neon Dynasty]", want: "miss:language-sku", why: "NEO-298-JA: the sku says Japanese" },
+  { store: "hairytarantula", title: "Abomination [Fourth Edition (Foreign Black Border)]", want: "miss:language-sku" },
+  { store: "cardbot", title: "2025 Magic The Gathering Secret Lair Drop #2084 Dr. Eggman Sonic The Hedgehog-Foil PSA 8", want: "miss:graded-lot-proxy" },
+  { store: "mythicstore", title: "Theorist's Proxy [Reality Fracture Promos]", want: "miss:sku-key-not-in-catalogue", why: "'Proxy' is part of the card's name: it reaches the key and the key is not in the catalogue" },
+  { store: "moxboardinghouse", title: "Rookie Playmat (Deck on the Right)", want: "miss:accessory" },
+  { store: "goblingaming", title: "100 Standard Card Sleeves - Light Green", want: "miss:accessory" },
+  { store: "manamarketeu", title: "Bastion Protector - Commander: Marvel Super Heroes: Extras (Rare) [XMSC-296]", want: "bastion protector msc#296 N sku ; miss:language-option", why: "'Protector' is the card's name, not a card protector" },
+  { store: "paradoxtcg", title: "Natural Order (Foil Etched) [Strixhaven: School of Mages Mystical Archive]", want: "miss:unknown-label" },
+  { store: "bardsandcards", title: "Sol Ring (408) (Elven) [The Lord of the Rings: Tales of Middle-Earth Commander]", want: "miss:unknown-label" },
+  { store: "cardcosmos", title: "Magic: The Gathering - Der Hobbit Play Booster Box - DE", want: "miss:not-a-single" },
+  { store: "stompinggrounds", title: "Rhys the Redeemed [Mystery Booster]", want: "miss:not-a-single", why: "the catalogue has no 'Mystery Booster' set, so 'Booster' is read as a sealed word" },
+  { store: "gametime", title: "Prompto Argentum (Borderless) (Surge Foil) (532) [Final Fantasy]", want: "prompto argentum fin#532 F set-number ; miss:finish-conflict", why: "the title says Surge Foil and the Non Foil variants say the opposite: skipped, the foil variants match" },
+]);
+
+// ── store labels of sets the catalogue's vocabulary does not carry ──
+table("aliases", [
+  { store: "millenniumcomics", title: "Legolas's Quick Reflexes (Borderless) [The Lord of the Rings: Tales of Middle-Earth Commander]", want: "legolass quick reflexes ltc#493 N+F sku" },
+  { store: "mistymountain", title: "{C} Deadly Dispute [Dungeons & Dragons: Adventures in the Forgotten Realms][AFR 094]", want: "deadly dispute afr#94 N+F sku" },
+  { store: "grognardgames", title: "Lotleth Troll [Guilds of Ravnica Guild Kit]", want: "lotleth troll gk1#67 N sku" },
+  { store: "grognardgames", title: "Simic Sky Swallower [Ravnica Allegiance Guild Kit]", want: "simic sky swallower gk2#124 N sku" },
+  { store: "brints", title: "Rest in Peace (Borderless) (MAR-006) - Marvel Eternal-Legal", want: "rest in peace mar#6 N sku" },
+  { store: "bardsandcards", title: "Savannah [International Collectors' Edition]", want: "savannah cei#281 N sku", why: "not Collector's Edition (CED), whose name is part of this one" },
+  { store: "facetoface", title: "Arcane Signet [360] [Streets of New Capenna: Commander] [Non-Foil]", want: "arcane signet ncc#360 N sku" },
+  { store: "cgrealm", title: "Mind Stone (WTH-) - Weatherlight", want: "mind stone wth#153 N name-set" },
+  { store: "obsidiangames", title: "Enduring Courage (Japan Showcase Fracture Foil) [Duskmourn: House of Horror]", want: "enduring courage dsk#402 F sku", why: "'Japan Showcase' is a frame treatment of English cards, not a language" },
+]);
+
+// ── the keys that disagree with each other, or with the catalogue ──
+table("gates", [
+  { store: "hairytarantula", title: "1997 World Championships Ad [World Championship Decks 1997]", want: "miss:sku-title-disagree", why: "the title's leading number reads as a collector number (1997) and the sku's is 0" },
+  { store: "mysterymtg", title: "Spike Feeder [FNM - 84]", want: "miss:title-key-not-in-catalogue" },
+  { store: "hairytarantula", title: "1996 Bertrand Lestree Biography Card [World Championship Decks]", want: "miss:name-setname-not-in-catalogue" },
+  { store: "collectorsmith", title: "Gwen Stacy // Ghost-Spider 209 (Marvel's Spider-Man)  - Showcase", want: "miss:treatment-differs", why: "number 209 is not a Showcase product: the number decides and the title states a treatment the product lacks" },
+  { store: "gatorscardden", title: "Plains (Phyrexian) - Full Art (Oil Slick Raised Foil) 365 - Phyrexia: All Will Be One", want: "miss:treatment-differs" },
+  { store: "gametime", title: "Urza's Saga (MH2-259) [The List]", want: "miss:set-conflict", why: "MH2-259 is a card of Modern Horizons 2; the title says it is The List's copy" },
+  { store: "trinketmage", title: "Ultron, Machine Overlord - Commander: Marvel Super Heroes: Extras (Rare) [XMSC-460]", want: "miss:language-option ; miss:sku-numbers-disagree", why: "the German variant's sku names another number (#507): the product's skus do not agree, so none is trusted" },
+]);
+
+// ── sealed products ──
+table("sealed", [
+  { store: "jetcards", title: "Magic The Gathering - Aetherdrift - Commander Deck - Living Energy", want: "sealed Aetherdrift Commander Deck - Living Energy" },
+  { store: "games401", title: "MTG - Tarkir: Dragonstorm - Play Booster Box", want: "sealed Tarkir: Dragonstorm - Play Booster Display", why: "a Play Booster Box is TCGplayer's Play Booster Display" },
+  { store: "totalcards", title: "Magic The Gathering - Universes Beyond - Assassin's Creed - Beyond Booster Box (24 Packs)", want: "sealed Universes Beyond: Assassin's Creed - Beyond Booster Display" },
+  { store: "moxboardinghouse", title: "Marvel Super Heroes Play Boosters", want: "sealed Marvel Super Heroes - Play Booster Pack" },
+  { store: "cardcosmos", title: "Magic: The Gathering - Duskmourn: House of Horror Nightmare - Bundle - EN", want: "sealed Duskmourn: House of Horror - Nightmare Bundle" },
+  { store: "moxboardinghouse", title: "The Hobbit Scene Box - Crack the Plates", want: "sealed The Hobbit Scene Box - Crack the Plates" },
+  { store: "games401", title: "MTG - Dominaria Remastered - English Collector Booster Pack", want: "sealed Dominaria Remastered - Collector Booster Pack" },
+  { store: "bunkscardcorner", title: "Magic Marvel Super Heroes Play Booster", want: "sealed Marvel Super Heroes - Play Booster Pack" },
+]);
+
+// ── languages ──
+test("a variant in another language is skipped, a title or sku in another language is skipped, and a product that sells both keeps its English variants", () => {
+  const l = pin("trinketmage", "Blur of Heroism - Commander: Marvel Super Heroes: Extras (Uncommon) [XMSC-585]");
+  assert.deepEqual(l.variants.map((v) => v[0]), ["English / Near Mint / Foil Normal", "German / Near Mint / Foil Normal", "English / Near Mint / Normal"]);
+  assert.deepEqual(answers(l).map(fmt), ["697120.F.sku", "miss:language-option", "697120.N.sku"]);
+  // the same product's German variant carries its own sku, which names the same number: it is still the German card
+  assert.equal(describe(pin("cryptmtg", "Abeyance (Janosch Kuhn)")), "abeyance wc97#jk1 N name-set ; miss:language-option");
+  assert.equal(describe(pin("hideoutsg", "Demonic Tutor (Japanese Alternate Art)")), "miss:language-title");
+  assert.equal(describe(pin("shopponistore", "Affluente Magmatico")), "miss:name-mismatch", "an Italian card name is not the English name");
 });
 
-test("a store product runs every path in order and says which one missed", () => {
-  const ix: StoreMatchIndexes = {
-    cards: real,
-    names: buildNameIndex([{ id: 581004, tcgName: "Shanks", setNames: ["Starter Deck 16: GREEN Uta"] }]),
-    dons: DONS,
-    sealed: [
-      ...sealed,
-      { id: 106, name: "Adventure on Kami's Island Booster Pack", kind: "Booster Pack", setCode: "OP15-EB04", setName: "Adventure on Kami's Island" },
-    ],
-  };
-  const m = (t: string, ...skus: string[]) => {
-    const x = matchStoreProduct(t, skus, ix);
-    return "id" in x ? `${x.path}:${x.id}` : x.miss;
-  };
-  assert.equal(m("Shanks (OP12-007) [Legacy of the Master]"), "number:643731");
-  assert.equal(m("Shanks [Starter Deck: GREEN Uta]"), "name:581004");
-  assert.equal(m("DON!! Card (Teach) [PRB-02]"), "don:655128");
-  assert.equal(m("Shanks [Legacy of the Master]", "OP12-007-EN-NF-1"), "sku:643731");
-  assert.equal(m("One Piece OP13 Display (24 Packs) EN"), "sealed:100");
-  assert.equal(m("Nami (Dash Pack) [Adventure on Kami's Island]"), "name-unmatched");
-  assert.equal(m("DON!! Card (Alternate Art) - Romance Dawn"), "don-no-printing");
-  assert.equal(m("Blast Breath [Best Selection Vol.1]", "OP-PR-ST04-016-EN-FO-1"), "sku-unknown-set");
-  assert.equal(m("One Piece Romance Dawn Booster Box"), "sealed-ambiguous");
-  assert.equal(m("Shanks OP01-120 (Japanese)"), "foreign");
+test("languageOfVariant reads English and foreign words, in several languages, one slash-separated option at a time", () => {
+  const cases: [string, "en" | "other" | null][] = [
+    ["English / Near Mint / Foil Normal", "en"], ["Inglese / Near Mint / Regolare", "en"], ["German / Near Mint / Normal", "other"], ["Italian / Excellent / Normal", "other"], ["Near Mint French", "other"],
+    ["Near Mint", null], ["Default Title", null], ["Near Mint Foil", null], ["Japanese", "other"], ["Simplified Chinese / NM", "other"], ["Near Mint / Español", "other"],
+  ];
+  for (const [text, want] of cases) assert.equal(languageOfVariant(text), want, text);
 });
 
-test("a bare \"Name [Set]\" title never takes a card whose SKUs name another number (wrong-price report: Rhystic Nostalgia Gaming, OP16-015 vs OP16-052)", () => {
-  const luffy = (id: number, number: string) => ({ id, name: "Monkey.D.Luffy", number, variant: null, setCode: "OP16", setName: "The Time of Battle" });
-  const ix: StoreMatchIndexes = {
-    cards: buildCardIndex([luffy(693419, "OP16-015"), luffy(693420, "OP16-052"), luffy(693421, "OP16-095")]),
-    // The plain name is the one unique key; the other printings carry "(052)" in TCGplayer's name.
-    names: buildNameIndex([
-      { id: 693419, tcgName: "Monkey.D.Luffy", setNames: ["The Time of Battle"] },
-      { id: 693420, tcgName: "Monkey.D.Luffy (052)", setNames: ["The Time of Battle"] },
-    ]),
-    dons: [],
-    sealed: [],
-  };
-  const m = (t: string, ...skus: string[]) => {
-    const x = matchStoreProduct(t, skus, ix);
-    return "id" in x ? `${x.path}:${x.id}` : x.miss;
-  };
-  // Five products at one store, one title (rhysticnostalgiagaming.com.au, handles -1 .. -4):
-  assert.equal(m("Monkey.D.Luffy [The Time of Battle]", "OP16-015-EN-FO-1", "OP16-015-EN-FO-2"), "name:693419");
-  assert.equal(m("Monkey.D.Luffy [The Time of Battle]", "OP16-052-EN-NF-1", "OP16-052-EN-NF-2"), "sku:693420");
-  assert.equal(m("Monkey.D.Luffy [The Time of Battle]", "OP16-095-EN-FO-1"), "sku:693421");
-  // A SKU number the catalogue doesn't list is a miss, never the card the name index knows.
-  assert.notEqual(m("Monkey.D.Luffy [The Time of Battle]", "OP16-999-EN-NF-1"), "name:693419");
-  // No SKU at all: the name path still answers (the import then refuses duplicated titles).
-  assert.equal(m("Monkey.D.Luffy [The Time of Battle]"), "name:693419");
-});
-
-test("a store's own language tag marks a foreign card even when the title says nothing (wrong-price report: The Card Spot, OP16-118)", () => {
-  // thecardspot.com.au/products/op16-118-portgas-d-ace-one-piece-tcg-1: tags ["Japanese"], body "Language: Japanese"
-  assert.equal(foreignByTags(["Japanese"]), true);
-  assert.equal(foreignByTags("Japanese, Singles"), true);
-  assert.equal(foreignByTags(["English"]), false);
-  assert.equal(foreignByTags(["English", "Japanese"]), true, "a mixed listing is not safe to price");
-  assert.equal(foreignByTags([], "Japanese"), true);
+test("foreignByTags: a store's own language tag marks a foreign product; a list that also names English is not safe to price on the tag", () => {
+  const z = pin("zatugames", "Magic: The Gathering - JAPANESE - Phyrexia");
+  assert.equal(foreignByTags(z.tags, z.ptype), true);
+  assert.equal(foreignByTags("Magic, English, German"), true, "a comma-separated string is read like a list");
+  assert.equal(foreignByTags(["English", "Foil"]), false);
+  assert.equal(foreignByTags([], "Japanese"), true, "the product type counts");
   assert.equal(foreignByTags(undefined), false);
-  assert.equal(foreignByTags(["Alternate Art", "OP16"]), false);
-  const ix: StoreMatchIndexes = { cards: buildCardIndex([{ id: 694932, name: "Portgas.D.Ace", number: "OP16-118", variant: null, setCode: "OP16", setName: "The Time of Battle" }]), names: buildNameIndex([]), dons: [], sealed: [] };
-  const title = "OP16-118 Portgas D.Ace - One Piece TCG";
-  const hit = matchStoreProduct(title, [], ix);
-  assert.ok("id" in hit && hit.id === 694932, "without the tag the title alone matches");
-  assert.deepEqual(matchStoreProduct(title, [], ix, { tags: ["Japanese"] }), { miss: "foreign" });
-  assert.ok("id" in matchStoreProduct(title, [], ix, { tags: ["English"] }));
+  // a foreign tag does not reject a variant that states English itself
+  const input = { title: "Terror of the Peaks [OTJ - 149]", skus: ["7826802"], tags: ["Japanese"], variantTitle: "Near Mint / English / Normal", explicitFoil: true };
+  assert.equal(fmt(matchStoreProduct(input, ix)), "544402.N.set-number");
+  assert.equal(fmt(matchStoreProduct({ ...input, variantTitle: "Near Mint / Normal" }, ix)), "miss:language-tag");
 });
 
-test("every path answers to the SKU number: a title number and a SKU number that disagree is no match", () => {
-  const luffy = (id: number, number: string) => ({ id, name: "Monkey.D.Luffy", number, variant: null, setCode: "OP16", setName: "The Time of Battle" });
-  const ix: StoreMatchIndexes = { cards: buildCardIndex([luffy(1, "OP16-015"), luffy(2, "OP16-052")]), names: buildNameIndex([]), dons: [], sealed: [] };
-  const r = (t: string, ...skus: string[]) => { const x = matchStoreProduct(t, skus, ix); return "id" in x ? x.id : x.miss; };
-  assert.equal(r("Monkey.D.Luffy (OP16-015) [The Time of Battle]", "OP16-015-EN-NF-1"), 1);
-  assert.equal(r("Monkey.D.Luffy (OP16-015) [The Time of Battle]", "OP16-052-EN-NF-1"), "sku-number-mismatch");
-  assert.equal(r("Monkey.D.Luffy (OP16-015) [The Time of Battle]", "OP16-015-EN-NF-1", "OP16-052-EN-NF-2"), 1, "SKUs that disagree among themselves give no number to compare");
+// ── cleaning a title ──
+test("cleanTitle: entities, zero-width characters, rarity marks, 'No 495', 'Surge-Foil' and the bracket form of a set code", () => {
+  const zw = String.fromCharCode(0x2063);
+  const cases: [string, string][] = [
+    ["Galaxy Foil Forest No 495 - Common Unfinity", "Galaxy Foil Forest (495) - Common Unfinity"],
+    ["{C} Counterspell [Tempest][TMP 057]", "Counterspell [Tempest][TMP - 057]"],
+    ["{R} Braids, Arisen Nightmare [Dominaria United][DMU 084]", "Braids, Arisen Nightmare [Dominaria United][DMU - 084]"],
+    ["Merfolk of the Pearl Trident (4ED-086) - common", "Merfolk of the Pearl Trident (4ED-086)"],
+    ["Solemn Simulacrum (Extended Art) (Surge-Foil)", "Solemn Simulacrum (Extended Art) (Surge foil)"],
+    [`Assault Griffin${zw} - Magic 2011${zw} (Common)${zw} [6]`, "Assault Griffin - Magic 2011 [6]"],
+    ["Soul&#39;s Attendant (ROE-044) - Rise of the Eldrazi", "Soul's Attendant (ROE-044) - Rise of the Eldrazi"],
+    ["Bolg&rsquo;s Company &amp; Co", "Bolg's Company & Co"],
+    ["An Offer You Can't Refuse (FIC - 267) - Commander: FINAL FANTASY - Uncommon - Normal", "An Offer You Can't Refuse (FIC - 267) - Commander: FINAL FANTASY - Normal"],
+    ["Counterspell (Common) [TMP 057]", "Counterspell [TMP - 057]"],
+  ];
+  for (const [raw, want] of cases) assert.equal(cleanTitle(raw), want, raw);
+  for (const l of listings.slice(0, 80)) assert.equal(cleanTitle(cleanTitle(l.title)), cleanTitle(l.title), `${l.key}: cleaning twice changes nothing`);
 });
 
-test("the import skips a bare title that a store shares between products, whatever path matched the twin", () => {
-  const src = fs.readFileSync(path.resolve(__dirname, "../src/lib/import.ts"), "utf8");
-  assert.match(src, /for \(const \{ p \} of matched\) sameTitle\.set\(/);
-  assert.match(src, /name-duplicate-title/);
-  assert.match(src, /tags: p\.tags, productType: p\.product_type/);
+// ── structured SKUs ──
+test("parseSku reads each store dialect to (set code, number, language, finish, extra segments) and refuses what is not one", () => {
+  const known = indexVocab(ix.cards).code;
+  const p = (s: string | null) => parseSku(s, known);
+  assert.deepEqual(p("MH2-176-EN-NF-1"), { code: "mh2", num: "176", lang: "en", fin: "nonfoil", extra: [], dialect: "binderpos" });
+  assert.deepEqual(p("FRC-2-EN-FO-1"), { code: "frc", num: "2", lang: "en", fin: "foil", extra: [], dialect: "binderpos" });
+  assert.deepEqual(p("M3C-55-RIPPLE-EN-FO-1"), { code: "m3c", num: "55", lang: "en", fin: "foil", extra: ["RIPPLE"], dialect: "binderpos" }, "extra segments name the treatment of a twin");
+  assert.deepEqual(p("PWAR-207-PROMO-PACK-EN-NF-1")?.extra, ["PROMO", "PACK"]);
+  assert.equal(p("NEO-298-JA-NF-1")?.lang, "ja");
+  assert.deepEqual(p("MTG-4ED-086-KYYUT0AJAC-1"), { code: "4ed", num: "86", lang: "en", fin: null, extra: [], dialect: "mtg" }, "the number loses its zeros: the key is nkey");
+  assert.deepEqual(p("MTG-WPN-001-F-HPTWDQUPGQ-1"), { code: "wpn", num: "1", lang: "en", fin: "foil", extra: [], dialect: "mtg" });
+  assert.deepEqual(p("cc-hob-bardkingofdale-144-nm-f"), { code: "hob", num: "144", lang: "en", fin: "foil", extra: [], dialect: "cc" });
+  assert.equal(p("cc-hoc-gandalfshadowsfoe-99-nm-nf")?.fin, "nonfoil");
+  assert.deepEqual(p("SIN-MTG-MH3-255-ENG-NM-NF"), { code: "mh3", num: "255", lang: "en", fin: "nonfoil", extra: [], dialect: "face-to-face" });
+  assert.deepEqual(p("MTG-EN-TLA-318-NO-1"), { code: "tla", num: "318", lang: "en", fin: "nonfoil", extra: [], dialect: "mtg-lang" });
+  assert.equal(p("MTG-EN-ZNR-127-FO-1")?.fin, "foil");
+  assert.deepEqual(p("TLA184-22122123"), { code: "tla", num: "184", lang: "en", fin: null, extra: [], dialect: "glued" });
+  assert.equal(p("FIC267Normal")?.fin, "nonfoil");
+  assert.equal(p("FIN289Foil")?.fin, "foil");
+  assert.deepEqual([p("XHOB211-110664442")?.code, p("XMSC585-89375014")?.code], ["hob", "msc"], "TCGplayer's Extras groups are X + the set code");
+  for (const junk of ["799012", "None", "", "MTG-SOS-Bundle", "WTCD36310000", "SJ077303", "8807892", "MTG-9ED-0S4-TOBRGB52DK-1", "Z0MTGEdgeEt-0Godless Shrine [Edge of Eternities]"]) assert.equal(p(junk), null, junk);
+  assert.equal(p(null), null);
+  assert.equal(parseSku("MTG-ZZZ-12-1", () => null), null, "MTG-SET-NUM needs a set code the catalogue knows");
+});
+
+test("skuSetNumber and skuCardNumber: the one (set, number) every sku of a product agrees on", () => {
+  assert.deepEqual(skuSetNumber(["MH2-176-EN-NF-1", "MH2-176-EN-FO-1"]), { sc: "mh2", nkey: "176" });
+  assert.equal(skuSetNumber(["XMSC460-89857147", "XMSC507-91448216"]), null, "two numbers");
+  assert.equal(skuSetNumber(["NEO-298-JA-NF-1"]), null, "a foreign sku");
+  assert.equal(skuSetNumber([null, "None", "799012"]), null);
+  assert.equal(skuCardNumber(["cc-hob-bardkingofdale-144-nm-f"]), "144");
+});
+
+test("a store's own sku comes first: a sibling's German sku does not reject the English variant, two numbers do", () => {
+  const input = (own: string, other: string) => ({ title: "Blur of Heroism - Commander: Marvel Super Heroes: Extras (Uncommon) [XMSC-585]", skus: [own, other], variantTitle: "English / Near Mint / Normal", explicitFoil: true });
+  assert.equal(fmt(matchStoreProduct(input("XMSC585-89375014", "XMSC585-93744115"), ix)), "697120.N.sku");
+  assert.equal(fmt(matchStoreProduct(input("XMSC585-89375014", "XMSC586-93744115"), ix)), "miss:sku-numbers-disagree");
+  assert.equal(fmt(matchStoreProduct(input("MH2-176-DE-NF-1", "XMSC585-93744115"), ix)), "miss:language-sku", "the variant's own sku says German");
+});
+
+// ── the title: what it states, apart from the card ──
+test("treatmentWords: the closed vocabulary, longest phrase first; what it cannot read is left over, finish words and version marks are not treatments", () => {
+  const tw = (t: string) => { const w = treatmentWords(t); return [[...w.keys].sort(), w.left]; };
+  assert.deepEqual(tw("Extended Art Ripple Foil"), [["extended", "ripple"], []]);
+  assert.deepEqual(tw("Borderless"), [["borderless"], []]);
+  assert.deepEqual(tw("Showcase Fracture Foil"), [["fracture", "showcase"], []]);
+  assert.deepEqual(tw("Japan Showcase Fracture Foil"), [["fracture", "jp"], []], "Japan Showcase is the frame, not a language");
+  assert.deepEqual(tw("Retro Frame Serialized"), [["retro", "serial"], []]);
+  assert.deepEqual(tw("Promo Pack"), [["promopack"], []]);
+  assert.deepEqual(tw("Non-Foil Borderless"), [["borderless"], []]);
+  assert.deepEqual(tw("Version 2"), [[], []]);
+  assert.deepEqual(tw("Elven"), [[], ["elven"]]);
+  assert.deepEqual(tw("Dwarvish Borderless"), [["borderless"], ["dwarvish"]]);
+});
+
+test("readTitle: the set, the number and the name of a real title, in each of the title dialects", () => {
+  const v = indexVocab(ix.cards);
+  const r = (t: string, lead = false) => { const x = readTitle(cleanTitle(t), v, lead)!; return { name: x.name, code: x.code, num: x.num, codes: [...x.codes].sort(), fin: x.fin }; };
+  assert.deepEqual(r("Terror of the Peaks [OTJ - 149]"), { name: "Terror of the Peaks", code: "otj", num: "149", codes: [], fin: null });
+  assert.deepEqual(r("Biorhythm (231) (9ED)"), { name: "Biorhythm", code: null, num: "231", codes: ["9ed"], fin: null });
+  assert.deepEqual(r("Rook Turret 69/309 (FINAL FANTASY)  - Foil"), { name: "Rook Turret", code: null, num: "69", codes: ["fic", "fin"], fin: "foil" });
+  const afr = r("Adventures in the Forgotten Realms 245/281 Greataxe (Foil)");
+  assert.deepEqual([afr.name, afr.num, afr.fin, afr.codes.includes("afr")], ["Greataxe", "245", "foil", true], "the name of the set is every set that has borne it (its Commander deck, its Promo Pack group); the number and the card pick one");
+  assert.deepEqual(r("Snap 66 - Dominaria Remastered"), { name: "Snap", code: null, num: "66", codes: ["dmr"], fin: null });
+  assert.deepEqual(r("Hazezon Tamar [LEG]"), { name: "Hazezon Tamar", code: null, num: null, codes: ["leg"], fin: null });
+  assert.deepEqual(r("Thranduil the Strategist (Extended Art) - #106 HOC"), { name: "Thranduil the Strategist", code: "hoc", num: "106", codes: ["hoc"], fin: null });
+  assert.deepEqual(r("Transmogrifying Wand XCMM-981 Rare Near Mint Englisch"), { name: "Transmogrifying Wand", code: "cmm", num: "981", codes: [], fin: null });
+  assert.deepEqual(r("Spider-Man 2099 [Marvel's Spider-Man]"), { name: "Spider-Man 2099", code: null, num: null, codes: ["spm"], fin: null });
+  // a second reading that takes leading treatment words off the name
+  assert.equal(readTitle("Showcase Clown Car", v, true)?.name, "Clown Car");
+  assert.equal(readTitle("Terror of the Peaks", v, true), null, "no leading treatment word: no second reading");
+});
+
+test("cardNumbersIn and setCodesIn read the places a number and a code stand, and nothing else", () => {
+  const nums: [string, string[]][] = [
+    ["Terror of the Peaks [OTJ - 149]", ["149"]], ["Merfolk of the Pearl Trident (4ED-086) - common", ["86"]], ["Caves of Koilos 244 /281 - Rare Dominaria United", ["244"]], ["Thranduil the Strategist (Extended Art) - #106 HOC", ["106"]],
+    ["Biorhythm (231) (9ED)", ["231"]], ["Bard, King of Dale (144)", ["144"]], ["Case of the Locked Hothouse [155] [Murders at Karlov Manor] [Non-Foil]", ["155"]], ["Magic Secrets of Strixhaven - Commander Deck: Lorehold Spirit", []],
+    ["Adventures in the Forgotten Realms 245/281 Greataxe (Foil)", ["245"]],
+  ];
+  for (const [t, want] of nums) assert.deepEqual(cardNumbersIn(t), want, t);
+  const codes: [string, string[]][] = [
+    ["Terror of the Peaks [OTJ - 149]", ["OTJ"]], ["Merfolk of the Pearl Trident (4ED-086) - common", ["4ED"]], ["Biorhythm (231) (9ED)", ["9ED"]], ["Hazezon Tamar [LEG]", ["LEG"]], ["Sylvan Anthem [Modern Horizons 2]", []],
+    ["Counterspell (NM) [TMP 057]", ["TMP"]], ["Arcane Signet (0056) [ECC 056]", ["ECC"]],
+  ];
+  for (const [t, want] of codes) assert.deepEqual(setCodesIn(t), want, t);
+});
+
+test("canonSet, titleNamesSet and the set vocabulary: a set by name or by code, a store's spelling, a Commander set named either way round", () => {
+  assert.equal(canonSet("Magic: The Gathering - Foundations"), "foundations");
+  assert.equal(canonSet("The Lord of the Rings: Tales of Middle-earth"), "lord of the rings tales of middle earth");
+  assert.equal(canonSet("MTG Dominaria United"), "dominaria united");
+  assert.equal(titleNamesSet("Sylvan Anthem [Modern Horizons 2]", "mh2", "Modern Horizons 2"), true);
+  assert.equal(titleNamesSet("Terror of the Peaks [OTJ - 149]", "otj", "Outlaws of Thunder Junction"), true, "by code");
+  assert.equal(titleNamesSet("Terror of the Peaks [OTJ - 149]", "mh2", "Modern Horizons 2"), false);
+  assert.equal(titleNamesSet("Arcane Signet Streets of New Capenna Commander", "ncc", "Commander: Streets of New Capenna"), true);
+  assert.equal(titleNamesSet("Nothing to see", "ncc", null), false);
+  const v = indexVocab(ix.cards);
+  assert.deepEqual([v.code("mh2"), v.code("MH2"), v.code("xmsc"), v.code("zzz"), v.code("apac")], ["mh2", "mh2", "msc", null, "apac"]);
+  assert.deepEqual([...v.setName("Streets of New Capenna: Commander")], ["ncc"]);
+  assert.deepEqual([...v.setName("Gatecrash Prerelease Promos")], ["pgtc"]);
+  assert.deepEqual([...v.setName("Tarkir: Dragonstorm Special Guests")], ["spg"], "TCGplayer keeps a set's guests in one Special Guests group");
+  assert.deepEqual([...v.setName("Nonsense Set")], []);
+  assert.equal(v.isName("sylvan anthem"), true);
+  assert.equal(v.isName("modern horizons 2"), false);
+});
+
+test("STORE_SET_ALIASES: each store spelling is folded, names a code the catalogue has, and is backed by a pinned real title", () => {
+  const v = indexVocab(ix.cards);
+  const pinned = listings.filter((l) => ["aliases", "appendix-b", "sku-dialects", "finish"].includes(l.group));
+  for (const [label, code] of Object.entries(STORE_SET_ALIASES)) {
+    assert.ok(v.code(code), `${label}: ${code} is a set of the catalogue`);
+    assert.deepEqual([...v.setName(label)], [code], `${label} resolves`);
+    const l = pinned.find((x) => cleanTitle(x.title).toLowerCase().replace(/[^a-z0-9]+/g, " ").includes(label));
+    assert.ok(l, `${label}: a pinned listing carries this spelling`);
+    const sc = answers(l).filter((a): a is StoreMatch => "id" in a).map((a) => rowById.get(a.id)!.sc);
+    assert.ok(sc.length > 0 && sc.every((s) => s === code), `${label}: the listing "${l.title}" matches a product of ${code}`);
+  }
+  assert.equal(Object.keys(STORE_SET_ALIASES).length, 8);
+});
+
+// ── the index ──
+test("the index leaves out what is not a card (tokens, art cards, oversized) and knows nothing without rows", () => {
+  const sylvan = rowById.get(239693)!;
+  const token: MatchRow = { ...sylvan, id: 999000001, cls: 1 };
+  const art: MatchRow = { ...sylvan, id: 999000002, cls: 2, nkey: "999" };
+  const only = buildCardIndex([token, art]);
+  const ask = (cards: StoreMatchIndexes["cards"], sku: string) => matchStoreProduct({ title: "Sylvan Anthem [Modern Horizons 2]", skus: [sku], variantTitle: "Near Mint" }, { cards, names: new Map(), sealed: [] });
+  assert.deepEqual(ask(only, "MH2-176-EN-NF-1"), { miss: "sku-key-not-in-catalogue" }, "a token at the key is no candidate");
+  assert.deepEqual(ask(only, "MH2-999-EN-NF-1"), { miss: "sku-key-not-in-catalogue" });
+  assert.deepEqual(ask(buildCardIndex([token, sylvan]), "MH2-176-EN-NF-1"), { id: 239693, finish: "N", path: "sku" });
+  assert.deepEqual(ask(buildCardIndex([]), "MH2-176-EN-NF-1"), { miss: "sku-key-not-in-catalogue" });
+  assert.deepEqual(ask(new Map(), "MH2-176-EN-NF-1"), { miss: "sku-key-not-in-catalogue" }, "an index not built by buildCardIndex is an empty one, not a crash");
+});
+
+test("a store product with no title, a null sku, tags as a string and a missing product type is answered, not thrown at", () => {
+  assert.deepEqual(matchStoreProduct({ title: "", skus: [] }, ix), { miss: "nokey" });
+  assert.deepEqual(matchStoreProduct({ title: "Sylvan Anthem [Modern Horizons 2]", skus: [null, undefined, ""] }, ix), { miss: "finish-unknown" }, "no variant, no sku and no convention: the finish is not stated");
+  const m = matchStoreProduct({ title: "Terror of the Peaks [OTJ - 149]", skus: [undefined], tags: "Creature, Magic, Mythic", productType: null, variantTitle: "Near Mint / English / Normal", explicitFoil: true }, ix);
+  assert.deepEqual(m, { id: 544402, finish: "N", path: "set-number" });
+});
+
+// ── a listing that is the same card under another key is one product ──
+test("the same card keyed by sku, by SET-NUM and by number + set name is the same product", () => {
+  const sku = matchStoreProduct({ title: "Counterspell", skus: ["TMP-057-EN-NF-1"], variantTitle: "Near Mint", explicitFoil: true }, ix);
+  const num = matchStoreProduct({ title: "Counterspell [TMP - 057]", skus: [], variantTitle: "Near Mint / Normal" }, ix);
+  const nameSet = matchStoreProduct({ title: "Counterspell [Tempest]", skus: [], variantTitle: "Near Mint / Normal" }, ix);
+  assert.deepEqual([sku, num, nameSet].map(fmt), ["5503.N.sku", "5503.N.set-number", "5503.N.name-set"]);
+});
+
+test("a name alone is never a key, and a title with a set but a different card at that key is a name-mismatch", () => {
+  assert.deepEqual(matchStoreProduct({ title: "Counterspell", skus: [], variantTitle: "Near Mint / Normal" }, ix), { miss: "nokey" });
+  assert.deepEqual(matchStoreProduct({ title: "Lightning Bolt [TMP - 057]", skus: [], variantTitle: "Near Mint / Normal" }, ix), { miss: "name-mismatch" });
+  assert.deepEqual(matchStoreProduct({ title: "Counterspell [Modern Horizons 2]", skus: [], variantTitle: "Near Mint / Normal" }, ix), { miss: "name-setname-not-in-catalogue" });
+  assert.deepEqual(matchStoreProduct({ title: "Counterspell [TMP - 057]", skus: ["MH2-176-EN-NF-1"], variantTitle: "Near Mint" }, ix), { miss: "sku-title-disagree" });
+});
+
+test("matchStoreVariants is matchStoreProduct per variant with the siblings' skus and titles filled in", () => {
+  const l = pin("spellroo", "Starting Town (FIN - 289)");
+  const viaProduct = l.variants.map((v, i) => matchStoreProduct({
+    title: l.title, skus: [v[3], ...l.variants.filter((_, j) => j !== i).map((o) => o[3])], tags: l.tags, productType: l.ptype, variantTitle: v[0], explicitFoil: l.explicitFoil, siblingTitles: l.variants.filter((_, j) => j !== i).map((o) => o[0]),
+  }, ix));
+  assert.deepEqual(answers(l), viaProduct);
+  assert.deepEqual(answers(l).map(fmt), ["631607.F.sku", "631607.N.sku"]);
+});
+
+// ── a listing read as free text (the eBay path) ──
+test("matchCardTitle: store titles read as free text give the product the store path gives, or nothing", () => {
+  let agree = 0; const bad: string[] = [];
+  for (const l of listings) {
+    const ids = new Set(l.expect.filter((e) => /^\d+\./.test(e) && !e.endsWith(".sealed")).map((e) => e.split(".")[0]));
+    if (ids.size !== 1) continue;
+    const r = matchCardTitle(l.title, ix.cards);
+    if (!("id" in r)) continue;
+    if (String(r.id) === [...ids][0]) agree++; else bad.push(`${l.key}: title ${r.id}, store ${[...ids][0]}`);
+  }
+  assert.deepEqual(bad, []);
+  assert.ok(agree > 100, `${agree} titles resolve the same way by both paths`);
+});
+
+test("matchCardTitle on titles written in a seller's style from catalogue rows: card, set and number, the finish when it is stated", () => {
+  // no eBay call is made anywhere: these are the card names, set codes and numbers of rows in rows.json, arranged the way sellers write them
+  const t = (title: string) => { const r = matchCardTitle(title, ix.cards); return "id" in r ? `${r.id}.${r.finish ?? "?"}` : `miss:${r.miss}`; };
+  assert.equal(t("MTG Terror of the Peaks OTJ 149 Outlaws of Thunder Junction Near Mint"), "544402.?");
+  assert.equal(t("Magic the Gathering Lightning Bolt 2X2 117 Double Masters 2022 Foil NM"), "276484.F");
+  assert.equal(t("Magic the Gathering Lightning Bolt 2X2 117 Double Masters 2022 Non-Foil NM"), "276484.N");
+  assert.equal(t("Allosaurus Shepherd 2X2 457 Foil Etched Double Masters 2022"), "276342.F", "the etched product");
+  assert.equal(t("FOIL Caves of Koilos 244 /281 - Rare Dominaria United"), "282783.F");
+  assert.equal(t("International Collectors' Edition Savannah"), "97302.?", "not Collector's Edition, whose name is a part of this one");
+  assert.equal(t("Sylvan Anthem [Modern Horizons 2]"), "miss:ambiguous", "two products of the set share the card's name and the title gives no number");
+  assert.equal(t("Sylvan Anthem MH2 176"), "239693.?", "a bare set code and number");
+  assert.equal(t("Sylvan Anthem MH2 176/303 Modern Horizons 2 Foil"), "239693.F");
+  assert.equal(t("Sylvan Anthem MH2 2024"), "miss:name-mismatch", "a year after a set code is read as a number and finds no such card");
+  assert.equal(t("PSA 9 Sylvan Anthem MH2 176"), "miss:graded-lot-proxy");
+  assert.equal(t("Sylvan Anthem NM Magic the Gathering"), "miss:nokey");
+  assert.equal(t("Marvel Super Heroes Play Booster Box MSH"), "miss:not-a-single");
+  assert.equal(t("Wrong Name MH2 176"), "miss:name-mismatch");
+});
+
+test("matchCardBySku: a numberless title is placed by the (set, number) of its skus, strictly", () => {
+  const ask = (title: string, skus: (string | null)[]) => { const r = matchCardBySku(title, skus, ix.cards); return "id" in r ? r.id : r.miss; };
+  assert.equal(ask("Bard, King of Dale (144)", ["cc-hob-bardkingofdale-144-nm-f"]), 707036);
+  assert.equal(ask("Gandalf, Shadow's Foe (99)", ["cc-hoc-gandalfshadowsfoe-99-nm-nf"]), 709000);
+  assert.equal(ask("Soul Shatter [Zendikar Rising]", ["MTG-EN-ZNR-127-NO-1"]), 221926);
+  assert.equal(ask("Bard, King of Dale (144)", [null]), "no-sku-number");
+  assert.equal(ask("Black Lotus [Unlimited Edition]", ["LEA-233-EN-NF-1"]), "sku-key-not-in-catalogue");
+  assert.equal(ask("Esper Sentinel (Sketch) [Modern Horizons 2]", ["MH2-328-EN-NF-1"]), "treatment-not-in-product");
+  assert.equal(ask("Playmat [Modern Horizons 2]", ["MH2-176-EN-NF-1"]), "accessory");
+  assert.equal(ask("Sylvan Anthem [Modern Horizons 2]", ["MH2-176-DE-NF-1"]), "language-sku");
+});
+
+test("matchByName (the TCGplayer-name path): name, set and treatments must all agree, and an etched title is left to the others", () => {
+  assert.equal(matchByName("Sylvan Anthem [Modern Horizons 2]", ix.names), 239693);
+  assert.equal(matchByName("Exotic Orchard (Extended Art) - Doctor Who", ix.names), 519347);
+  assert.equal(matchByName("Soul Shatter [Zendikar Rising]", ix.names), 221926);
+  assert.equal(matchByName("Tiger-Seal (Borderless) [Avatar: The Last Airbender]", ix.names), null, "the product has more treatments than the title states");
+  assert.equal(matchByName("Hazezon Tamar [LEG]", ix.names), null, "a set code is not a set name");
+  assert.equal(matchByName("Allosaurus Shepherd (Foil Etched) [Double Masters 2022]", ix.names), null, "the name index cannot tell an etched product from its plain twin");
+  assert.equal(matchByName("Magic Secrets of Strixhaven - Commander Deck: Lorehold Spirit", ix.names), null);
+  assert.equal(matchByName("Sylvan Anthem", ix.names), null);
+});
+
+// ── sealed products ──
+test("sealed titles are answered by the words that tell products apart, and never across kinds or languages", () => {
+  const w = (t: string) => sealedWords(t).join(" ");
+  assert.equal(w("Magic The Gathering - Universes Beyond - Assassin's Creed - Beyond Booster Box (24 Packs)"), w("Universes Beyond: Assassin's Creed - Beyond Booster Display"), "'Display' is TCGplayer's word for a box, the pack count is noise");
+  assert.equal(w("Marvel Super Heroes Play Boosters"), w("Marvel Super Heroes - Play Booster Pack"));
+  assert.notEqual(w("Marvel Super Heroes Play Booster Box"), w("Marvel Super Heroes Play Boosters"));
+  const id = (t: string) => { const r = matchSealedTitle(t, sealed); return "id" in r ? r.id : r.miss; };
+  assert.equal(id("Marvel Super Heroes Play Boosters"), 675602);
+  assert.equal(id("Marvel Super Heroes Play Booster Box"), 675603);
+  assert.equal(id("Secrets of Strixhaven Bundle"), 675561);
+  assert.equal(id("Magic The Gathering - Aetherdrift - Commander Deck - Living Energy"), 604258);
+  assert.equal(id("Magic: The Gathering - Der Hobbit Play Booster Box - DE"), "not-sealed");
+  assert.equal(id("Secrets of Strixhaven Bundle Box Empty"), "not-sealed");
+  assert.equal(id("Dominaria Remastered Bundle Playmat"), "not-sealed");
+  assert.equal(id("Phyrexia: All Will Be One Set Booster Pack Japanese"), "language-title");
+  assert.equal(id("Magic The Gathering - A Set Nobody Printed - Bundle"), "no-product");
+  assert.ok(sealed.every((x) => !rowById.has(x.id)), "a sealed product is never a card row");
+});
+
+// ── conditions and variants ──
+test("conditionRank and conditionLabel: the condition a real variant title states, none when it states none", () => {
+  const cases: [string, number, string | null][] = [
+    ["Near Mint", 0, "NM"], ["Near Mint Foil", 0, "NM"], ["Lightly Played", 1, "LP"], ["Slightly Played", 1, "LP"], ["Excellent", 1, "LP"], ["Moderately Played", 2, "MP"], ["Heavily Played", 3, "HP"], ["Damaged", 4, "DMG"],
+    ["NM", 0, "NM"], ["LP", 1, "LP"], ["MP", 2, "MP"], ["HP", 3, "HP"], ["DMG", 4, "DMG"], ["Played", 2, "MP"], ["Good", 2, "MP"], ["Poor", 4, "DMG"],
+    ["English / Excellent / Normal", 1, "LP"], ["Non Foil / Slightly Played", 1, "LP"], ["Near Mint / English / Foil", 0, "NM"],
+    ["Default Title", 0, null], ["Regolare", 0, null], ["Foil", 0, null],
+  ];
+  for (const [text, rank, label] of cases) { assert.equal(conditionRank(text), rank, text); assert.equal(conditionLabel(text), label, text); }
+  assert.equal(conditionLabel(null), null);
+  assert.equal(conditionLabel(undefined), null);
+});
+
+const variantsOf = (l: Listing): StoreVariant[] => l.variants.map((v) => ({ title: v[0], price: v[1], available: v[2] }));
+test("bestVariant: the best condition in stock first, then the lowest price; another language, a graded or signed copy never", () => {
+  // Mystic Remora: Near Mint is in stock
+  assert.deepEqual(bestVariant(variantsOf(pin("mistymountain", "{C} Mystic Remora"))), { priceCents: 1150, condition: "NM" });
+  // Dark Ritual: Near Mint is out of stock, Lightly Played is the best that is not
+  const ritual = pin("cgrealm", "Dark Ritual (3ED-) - Revised Edition");
+  assert.deepEqual(variantsOf(ritual).map((v) => [v.title, v.available]), [["Near Mint", false], ["Lightly Played", true], ["Moderately Played", true], ["Heavily Played", true], ["Damaged", false]]);
+  assert.deepEqual(bestVariant(variantsOf(ritual)), { priceCents: 509, condition: "LP" });
+  // Force of Will: a signed copy in stock is not the card; Lightly Played is
+  const will = variantsOf(pin("stompinggrounds", "Force of Will [Alliances]"));
+  assert.deepEqual(bestVariant(will), { priceCents: 7050, condition: "LP" });
+  assert.equal(bestVariant(will.filter((v) => /Signed|Graded/.test(v.title))), null, "only signed and graded copies are left: nothing buyable");
+  // Alien Symbiosis: the German variant is the same price and is not the English card
+  const symbiosis = variantsOf(pin("trinketmage", "Alien Symbiosis"));
+  assert.deepEqual(bestVariant(symbiosis), { priceCents: 25, condition: "NM" });
+  assert.equal(bestVariant([]), null);
+  assert.equal(bestVariant([{ title: "Near Mint", price: "0.00", available: true }]), null, "a zero price is no price");
+});
+
+test("anyVariant: the cheapest variant of any condition, in stock or not", () => {
+  assert.equal(anyVariant(variantsOf(pin("cgrealm", "Dark Ritual (3ED-) - Revised Edition"))), 197);
+  assert.equal(anyVariant(variantsOf(pin("mistymountain", "{C} Mystic Remora"))), 737);
+  assert.equal(anyVariant([]), null);
+  assert.equal(anyVariant([{ title: "Near Mint", price: "0", available: true }]), null);
+});
+
+// ── price sanity against the market of the matched finish ──
+test("plausibleSinglePrice: a store price far from the market of the finish it was matched to is a wrong match, not a deal", () => {
+  // Force of Will (Alliances), TCGplayer market $67.01
+  assert.equal(plausibleSinglePrice(7050, 6701), true);
+  assert.equal(plausibleSinglePrice(2010, 6701), false, "under 30% of the market");
+  assert.equal(plausibleSinglePrice(2011, 6701), true);
+  assert.equal(plausibleSinglePrice(27305, 6701), false, "over 4x the market plus $5");
+  assert.equal(plausibleSinglePrice(27304, 6701), true);
+  // a cheap card has no lower bound: stores price commons at their minimum
+  assert.equal(plausibleSinglePrice(5, 100), true);
+  assert.equal(plausibleSinglePrice(901, 100), false);
+  assert.equal(plausibleSinglePrice(900, 100), true);
+  assert.equal(plausibleSinglePrice(123456, null), true, "no market, no judgement");
+});
+
+test("every US store price of the fixture sits inside the band, but the collectibles priced as what they are: those are dropped by the guard", () => {
+  const OUTSIDE: Record<string, string> = {
+    "bardsandcards/teysa-orzhov-scion-retro-serialized-ravnica-remastered": "the serialized copy: $2,500 for a market of $360",
+    "bardsandcards/liliana-vess-747-autographed-secret-lair-drop-series": "the autographed copy: $4,000 for a market of $800",
+    "bardsandcards/savannah-international-collectors-edition": "$180,934.80 for a market of $250",
+  };
+  const seenOutside = new Set<string>(); let judged = 0;
+  for (const l of listings) {
+    if (!l.marketCents) continue;
+    answers(l).forEach((a, i) => {
+      if (!("id" in a) || a.path === "sealed") return;
+      const market = l.marketCents![`${a.id}.${a.finish}`];
+      if (!market) return;
+      judged++;
+      const price = Math.round(parseFloat(l.variants[i]![1]) * 100);
+      if (plausibleSinglePrice(price, market)) return;
+      assert.ok(l.key in OUTSIDE, `${l.key} [${l.variants[i]![0]}]: $${price / 100} against a market of $${market / 100} is not in the list of explained outliers`);
+      seenOutside.add(l.key);
+    });
+  }
+  assert.deepEqual([...seenOutside].sort(), Object.keys(OUTSIDE).sort());
+  assert.ok(judged > 100, `${judged} US prices judged`);
+});
+
+test("plausibleSealedPrice: half to three times the market of the product", () => {
+  assert.equal(plausibleSealedPrice(5000, 10000), true);
+  assert.equal(plausibleSealedPrice(4999, 10000), false);
+  assert.equal(plausibleSealedPrice(30000, 10000), true);
+  assert.equal(plausibleSealedPrice(30001, 10000), false);
+  assert.equal(plausibleSealedPrice(1, null), true);
+});
+
+// ── one row per (store, product, finish) ──
+function draftsOf(l: Listing, indexes: StoreMatchIndexes = ix): OfferDraft[] {
+  const out: OfferDraft[] = [];
+  answers(l, indexes).forEach((a, i) => {
+    if (!("id" in a)) return;
+    const v = l.variants[i]!;
+    out.push({ productId: a.id, finish: a.finish, priceCents: Math.round(parseFloat(v[1]) * 100), inStock: v[2], condition: conditionLabel(v[0]), path: a.path });
+  });
+  return out;
+}
+test("collapseOffers: five conditions of one product are one row, the best condition in stock", () => {
+  const ritual = draftsOf(pin("cgrealm", "Dark Ritual (3ED-) - Revised Edition"));
+  assert.equal(ritual.length, 5);
+  const { rows: collapsed, collapsed: n } = collapseOffers(ritual);
+  assert.equal(n, 4);
+  assert.deepEqual(collapsed, [{ productId: 1381, finish: "N", priceCents: 509, inStock: true, condition: "LP", path: "name-set" }], "Near Mint is out of stock, so Lightly Played at $5.09 is the row");
+});
+
+test("collapseOffers: two store listings of one card are one row per finish; in stock first, then the lower price", () => {
+  const both = listings.filter((l) => l.group === "dupes");
+  assert.equal(both.length, 2);
+  assert.notEqual(both[0]!.handle, both[1]!.handle, "two handles of one store");
+  const drafts = both.flatMap((l) => draftsOf(l));
+  assert.deepEqual(drafts.map((d) => `${d.productId}.${d.finish} $${d.priceCents / 100} ${d.inStock ? "in stock" : "out"}`).sort(), ["641870.F $50 in stock", "641870.N $30.75 in stock", "641870.N $32.25 out"]);
+  const { rows: out, collapsed } = collapseOffers(drafts);
+  assert.equal(collapsed, 1);
+  assert.deepEqual(out.map((d) => `${d.productId}.${d.finish} $${d.priceCents / 100}`).sort(), ["641870.F $50", "641870.N $30.75"]);
+  // the order of the drafts does not change the rows
+  assert.deepEqual(collapseOffers([...drafts].reverse()).rows.map((d) => `${d.productId}.${d.finish} $${d.priceCents / 100}`).sort(), ["641870.F $50", "641870.N $30.75"]);
+});
+
+test("collapseOffers: an in-stock row beats a cheaper one that is out of stock, and equal rows keep the lower path", () => {
+  const base: OfferDraft = { productId: 641870, finish: "N", priceCents: 3075, inStock: true, condition: "NM", path: "set-number" };
+  assert.deepEqual(collapseOffers([{ ...base, priceCents: 100, inStock: false }, base]).rows, [base]);
+  assert.deepEqual(collapseOffers([{ ...base, condition: "LP", priceCents: 100 }, base]).rows, [base], "condition before price");
+  assert.deepEqual(collapseOffers([{ ...base, path: "sku" }, base]).rows, [base], "set-number sorts before sku");
+  assert.deepEqual(collapseOffers([]), { rows: [], collapsed: 0 });
+});
+
+// ── the whole pinned set, once ──
+test("the pinned listings together: how many are matched, skipped by a gate, and why (a regression net for the rules)", () => {
+  const byReason = new Map<string, number>(); let matched = 0, variants = 0;
+  for (const l of listings) for (const a of answers(l)) { variants++; if ("id" in a) matched++; else byReason.set(a.miss, (byReason.get(a.miss) ?? 0) + 1); }
+  assert.equal(variants, listings.reduce((n, l) => n + l.variants.length, 0));
+  assert.ok(matched / variants > 0.6, `${matched} of ${variants} variants matched`);
+  assert.ok((byReason.get("language-option") ?? 0) > 20);
 });

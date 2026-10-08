@@ -1,0 +1,126 @@
+name: Egress audit
+
+# WHERE DOES THE TRANSFER GO? Three readings in one weekly job, so the next claim about a burn is a number and not a theory:
+#   1. DEPLOY CADENCE (no secrets, no database): the `[deploy]` subjects of the last seven days. The gate assumes ONE a week (the scheduled release); RiftCompare's RM9 shipped 16 deploying commits in four days, ~4 a day, with every
+#      session following the rule as written, and nothing counted them until someone ran `git log` by hand. More than two in seven days (the release plus one urgent) fails this job.
+#   2. NEON (needs DATABASE_URL): scripts/audit-egress.ts samples pg_stat_statements for N minutes and compares every statement shape with its budget (QUERY_BUDGETS). A statement above its budget, a table that left Postgres
+#      coming back (public data is files, C24), a full-table scan or an estimated day above the allowance fails the job (Annex C check 16). Neon holds PRIVATE state only, so the expected transfer is members, not pages.
+#   3. THE DATA REPOSITORY (needs PLANE_REPO and DATA_REPO_TOKEN): scripts/audit-publication.ts --remote reads the pointer, status.json, the repository size and the API quota (a few KB): freshness, size, growth, hosts.
+#
+# GREEN WITHOUT ITS SECRETS: with no DATABASE_URL part 2 prints that and passes; with no data-repository secret part 3 does the same. A failed run posts to OPS_WEBHOOK_URL when that optional secret exists (scripts/ops-webhook.ts).
+#
+# WHEN. Sunday 03:00 UTC: no import (21:25-22:25), eBay pass (04:37), release (Tuesday 08:00), squash (Sunday 23:50) or alert job runs then. Weekly because the audit itself costs transfer; press "Run workflow" for an ad-hoc reading.
+# A sample taken while a publish, an eBay pass or an alert run is in flight measures that batch work, not a day's rate: the budgets that matter at a short window are rows per call, which do not depend on it.
+on:
+  schedule:
+    - cron: "0 3 * * 0"
+  workflow_dispatch:
+    inputs:
+      sample_minutes:
+        description: "Delta window in minutes (0 = cumulative counters instead)"
+        type: number
+        default: 20
+
+concurrency:
+  group: egress-audit
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  cadence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # the whole history, not the default shallow clone: seven days of commits must be there to count
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Deploy cadence
+        run: |
+          set -o pipefail
+          npx tsx scripts/audit-egress.ts --cadence | tee cadence.txt
+          { echo "## Deploy cadence (last 7 days)"; echo '```'; cat cadence.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Tell ops
+        if: failure()
+        env:
+          OPS_WEBHOOK_URL: ${{ secrets.OPS_WEBHOOK_URL }}
+        run: npx tsx scripts/ops-webhook.ts --title "Deploy cadence" --level warn --file cadence.txt --tail 12 --url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+  neon:
+    runs-on: ubuntu-latest
+    # one sample of up to ~20 minutes plus setup
+    timeout-minutes: 40
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      # Empty on a scheduled run (no inputs). The step defaults it to 20 in the shell, not here: a GitHub expression treats 0 as falsy, so `0 || 20` would silently turn a requested cumulative run into a sample.
+      SAMPLE: ${{ inputs.sample_minutes }}
+    steps:
+      - name: No database configured
+        if: env.DATABASE_URL == ''
+        run: echo "DATABASE_URL is not set for Actions - nothing to audit (a green no-op)."
+      - uses: actions/checkout@v4
+        if: env.DATABASE_URL != ''
+      - uses: actions/setup-node@v4
+        if: env.DATABASE_URL != ''
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        if: env.DATABASE_URL != ''
+        run: |
+          npm ci
+          npx prisma generate
+      - name: Audit the database against its query budgets
+        if: env.DATABASE_URL != ''
+        run: |
+          set -o pipefail
+          SAMPLE="${SAMPLE:-20}"
+          ARGS=""
+          if [ "${SAMPLE}" != "0" ]; then ARGS="--sample=${SAMPLE}"; fi
+          echo "npx tsx scripts/audit-egress.ts $ARGS"
+          npx tsx scripts/audit-egress.ts $ARGS | tee neon.txt
+          { echo "## Neon"; echo '```'; cat neon.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Tell ops
+        if: failure() && env.DATABASE_URL != ''
+        env:
+          OPS_WEBHOOK_URL: ${{ secrets.OPS_WEBHOOK_URL }}
+        run: npx tsx scripts/ops-webhook.ts --title "Neon egress audit" --level error --file neon.txt --tail 25 --url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+  data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PLANE_REPO: ${{ vars.PLANE_REPO }}
+      DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+    steps:
+      - name: No data repository configured
+        if: env.PLANE_REPO == '' || env.DATA_REPO_TOKEN == ''
+        run: echo "PLANE_REPO and DATA_REPO_TOKEN are not both set for Actions - nothing to audit (a green no-op)."
+      - uses: actions/checkout@v4
+        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+      - uses: actions/setup-node@v4
+        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        run: npm ci
+      - name: Data repository size, freshness and quota
+        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        run: |
+          set -o pipefail
+          npx tsx scripts/audit-publication.ts --remote | tee data.txt
+          { echo "## Data repository"; echo '```'; cat data.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Tell ops
+        if: failure() && env.PLANE_REPO != ''
+        env:
+          OPS_WEBHOOK_URL: ${{ secrets.OPS_WEBHOOK_URL }}
+        run: npx tsx scripts/ops-webhook.ts --title "Data repository audit" --level error --file data.txt --tail 25 --url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

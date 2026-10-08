@@ -1,0 +1,63 @@
+name: SEO gate (deployment)
+
+# Runs the live-site gates against a Vercel deployment as soon as it is READY: the smoke test of the rendered pages, the status-code check (an unknown card, set or sealed product is a real 404) and the SEO gate over the
+# sitemap. None of them can run in ci.yml (database-free and network-free) and ci-build.yml tests a build served from a fixture; this one looks at the real deployment with the real published data.
+#
+# TRIGGER. Vercel's own `deployment_status` event, the same GitHub Deployments API contract the wait-for-preview actions read: `deployment_status.environment_url` is the URL, `target_url` the fallback for older integrations.
+# No Vercel token and no secret: the only input is the URL the event carries. Production is built once a week (the Tuesday release), so this runs about once a week; it costs no extra build.
+#
+# WHY IT ALSO RUNS ON PRODUCTION. `claude/*` branches get no preview (vercel.json), so without Production in the filter this gate would silently never run: losing a check quietly is worse than not having it. On Production a
+# failure means "production regressed", which is what it was worth anyway.
+#
+# GATING. The smoke test and the status check are blocking. The SEO gate (about 60 sampled URLs per run) is REPORT-ONLY (`continue-on-error`) until it has run clean against real data a few times: its thresholds (150 words, a unique
+# title and description per page, a sane price band) were written before a real MTG page existed to calibrate them. Promote it by deleting `continue-on-error`.
+on:
+  deployment_status:
+
+permissions:
+  contents: read
+  deployments: read
+
+concurrency:
+  group: seo-preview-gate-${{ github.event.deployment.sha }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    if: >
+      github.event.deployment_status.state == 'success' &&
+      (github.event.deployment.environment == 'Preview' ||
+       github.event.deployment.environment == 'Production')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Resolve the deployment URL
+        id: target
+        run: |
+          URL="${{ github.event.deployment_status.environment_url }}"
+          if [ -z "$URL" ]; then URL="${{ github.event.deployment_status.target_url }}"; fi
+          if [ -z "$URL" ]; then
+            echo "::error::no environment_url or target_url on this deployment_status event - nothing to test."
+            exit 1
+          fi
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "${{ github.event.deployment.environment }} URL: $URL"
+      - name: Smoke the rendered pages
+        run: npx tsx scripts/smoke-pages.ts "${{ steps.target.outputs.url }}"
+      - name: Status codes
+        run: npx tsx scripts/status-check.ts --url "${{ steps.target.outputs.url }}"
+      - name: SEO gate over the sitemap (report-only for now)
+        continue-on-error: true
+        run: npx tsx scripts/seo-gate.ts --url "${{ steps.target.outputs.url }}" --max 60 2>&1 | tee seo-gate.log
+      - name: Job summary
+        if: always()
+        run: |
+          { echo "## SEO gate (deployment)"; if [ -f seo-gate.log ]; then echo '```'; tail -50 seo-gate.log; echo '```'; fi; } >> "$GITHUB_STEP_SUMMARY"

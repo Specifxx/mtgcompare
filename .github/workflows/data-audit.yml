@@ -1,0 +1,91 @@
+name: Data audit
+
+# THE DATA-INTEGRITY AUDIT of what is actually published (parity P03, addendum 9). Public data is files in a private repository, so RiftCompare's database audit (identity, duplicates, price consistency, freshness) runs here over a
+# CHECKOUT of the pointed commit, with the same validator the publisher ran and five independent readers:
+#   check-plane-tree.ts       the validator, every family against FILE_BUDGETS, the browse index load, the numbers the contract quotes
+#   audit-publication.ts      sizes, the manifest hashed file by file, the history index, the pointer and status.json: freshness (amber at 26 h, red at 36 h), the watchdog's heartbeat
+#   audit-catalogue.ts        identity C1, C3, C14; the vocabulary; the denormalised copies C9; the class rules C11; the join rules C8; the slug seed; AND, against the previous publish, that no id was deleted and no slug changed
+#   check-card-consistency.ts one price, six copies: px against the set boards, the browse index, the typeahead table, the home tiles, the movers and the store aggregates
+#   audit-history.ts          every tracked unit's series ends on the price day at today's market; the tail follows the cut; the weekly closes sit on Sundays
+# It READS the data repository and writes nothing (contents: read; no script here pushes), so it is outside the `data-publish` concurrency group and can neither delay nor be delayed by a publish.
+#
+# GREEN WITHOUT ITS SECRETS: with PLANE_REPO or DATA_REPO_TOKEN missing, every step prints that and passes. A failing audit posts to OPS_WEBHOOK_URL when that optional secret exists.
+#
+# WHEN. 00:20 UTC, an hour after the last scheduled publish retry (22:25) and after the demand overlay (22:40): the tree it reads is the day's final one. The cost is a depth-1 clone of the pointed commit (about 70 MB); no Neon byte is read.
+on:
+  schedule:
+    - cron: "20 0 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: data-audit
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PLANE_REPO: ${{ vars.PLANE_REPO }}
+      PLANE_BRANCH: ${{ vars.PLANE_BRANCH }}
+      DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+    steps:
+      - name: No data repository configured
+        if: env.PLANE_REPO == '' || env.DATA_REPO_TOKEN == ''
+        run: echo "PLANE_REPO and DATA_REPO_TOKEN are not both set for Actions - nothing to audit (a green no-op)."
+      - uses: actions/checkout@v4
+        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+      - uses: actions/setup-node@v4
+        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        run: npm ci
+      - name: Check out the pointed commit
+        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        run: bash scripts/plane-checkout.sh .data
+      # The publish BEFORE this one, for the write-once rules across two trees. The branch is squashed weekly, so the previous commit may be gone: then the comparison is skipped and said so.
+      - name: Check out the previous publish
+        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        run: |
+          PREV="$(node -e 'const p=require("./.data/latest.json");console.log(p.prev||"")')"
+          rm -rf .data-prev
+          if [ -z "$PREV" ]; then echo "The pointer has no previous publish: the write-once comparison is skipped."; exit 0; fi
+          AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$DATA_REPO_TOKEN" | base64 -w0)"
+          echo "::add-mask::$AUTH"
+          mkdir -p .data-prev && cd .data-prev && git init -q
+          if git -c "http.https://github.com/.extraheader=$AUTH" fetch -q --depth 1 "https://github.com/$PLANE_REPO.git" "$PREV" && git checkout -q FETCH_HEAD; then
+            echo "Previous publish $PREV checked out."
+          else
+            cd .. && rm -rf .data-prev
+            echo "::notice::the previous publish ($PREV) is no longer in the repository (the weekly squash): the write-once comparison is skipped."
+          fi
+      - name: Run the audits
+        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        run: |
+          set -uo pipefail
+          # the audits run inside a pipeline (so they stream into audit.txt), where a variable would die with the subshell: the verdict travels in a file
+          echo 0 > rc.txt
+          run() { echo; echo "=== $* ==="; "$@" || echo 1 > rc.txt; }
+          PREV_ARGS=""
+          if [ -d .data-prev/v1 ]; then PREV_ARGS="--prev .data-prev/v1"; fi
+          {
+            run npx tsx scripts/contract-checks/check-plane-tree.ts .data/v1
+            run npx tsx scripts/audit-publication.ts --dir .data
+            run npx tsx scripts/audit-publication.ts --remote
+            run npx tsx scripts/audit-catalogue.ts --dir .data $PREV_ARGS
+            run npx tsx scripts/check-card-consistency.ts --dir .data
+            run npx tsx scripts/audit-history.ts --dir .data
+          } 2>&1 | tee audit.txt
+          { echo "## Data audit"; echo '```'; grep -v '^::' audit.txt | tail -250; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit "$(cat rc.txt)"
+      - name: Tell ops
+        if: failure() && env.PLANE_REPO != ''
+        env:
+          OPS_WEBHOOK_URL: ${{ secrets.OPS_WEBHOOK_URL }}
+        run: npx tsx scripts/ops-webhook.ts --title "Data audit failed" --level error --file audit.txt --tail 30 --url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

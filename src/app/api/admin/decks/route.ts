@@ -2,14 +2,14 @@ import { NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { adminLog, readJsonBody, requireAdminApi } from "@/lib/admin";
 import { setDeckStatus } from "@/lib/admin-decks";
-import { PUBLISHED_DECKS_TAG, checkPublishText } from "@/lib/published-decks";
+import { PUBLISHED_DECKS_TAG, checkPublishText, commanderDeckPath } from "@/lib/published-decks";
 import { publishDeck } from "@/lib/published-decks-server";
 
 export const dynamic = "force-dynamic";
 
 // Admin-only deck import and moderation (/admin/decks; RiftCompare's
 // /api/admin/decks). POST + same-origin + JSON, logged with adminLog.
-//   { "decks": [{ "title": "…", "list": "1xOP01-001\n4x…", "author": "Player, Event", "description": "…" }] }
+//   { "decks": [{ "title": "…", "list": "Commander\n1 Atraxa, Praetors' Voice (CMM) 8\n\nDeck\n1 Sol Ring (C21) 263\n…", "author": "Player, Event", "description": "…", "format": "commander" }] }
 // Each item goes through the same resolution and checks as a player's publish.
 //   { "action": "hide" | "show", "id": "…" } moderates a deck.
 const MAX_BYTES = 256 * 1024;
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     revalidateTag(PUBLISHED_DECKS_TAG);
     revalidatePath("/decks");
     revalidatePath(`/decks/${row.slug}`);
-    revalidatePath(`/decks/leader/${row.leaderSlug}`);
+    revalidatePath(commanderDeckPath(row.commanderSlug));
     return NextResponse.json({ ok: true });
   }
 
@@ -50,9 +50,10 @@ export async function POST(req: Request) {
       userId: null,
       authorName: typeof it.author === "string" ? it.author.trim().slice(0, 80) || null : null,
       source: "import",
+      format: typeof it.format === "string" ? it.format : null,
     }).catch(() => ({ ok: false as const, error: "Import failed." }));
     results.push(res.ok ? { title: text.title, ok: true, slug: res.slug } : { title: text.title, ok: false, error: res.error });
-    if (res.ok) revalidatePath(`/decks/leader/${res.leaderSlug}`);
+    if (res.ok) revalidatePath(commanderDeckPath(res.commanderSlug));
   }
   adminLog(gate, "deck.import", { items: items.length, imported: results.filter((r) => r.ok).length });
   revalidateTag(PUBLISHED_DECKS_TAG);

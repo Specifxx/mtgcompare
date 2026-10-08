@@ -1,11 +1,10 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "./db";
 import { COUNTRIES, currencyOf, type Country } from "./country";
-import { DECK_LINE_CAP, indexCards, mergeLines, parseDeckList, resolveDeck, type CardIndex, type ResolvableCard } from "./deck";
-import { clampQty } from "./basket-request";
-import { optimizeBasket, type BasketCard, type BasketPlan } from "./basket";
-import { basketCardName, loadStoreListings, type BasketListingReader } from "./basket-server";
-import { basketStoresFor, postageOptionsFrom } from "./shipping";
+import { unitOfUid } from "./constants";
+import { DECK_LINE_CAP, QTY_CAP, parseDeckList, type DeckLine } from "./deck";
+import { deckCardName, listingTuples, liveOfferReader, loaderData, resolveDeckLines, type DeckData, type DeckRow, type OfferReader } from "./deck-price";
+import type { BasketCard, BasketPlan } from "./basket";
 import { isPremium, tierOf, type EntitlementFields } from "./premium";
 import { isAdminEmail, adminEmails } from "./admin-emails";
 import { deckWatchLimit, DECK_WATCH_LIMIT } from "./tier-limits";
@@ -20,16 +19,19 @@ import type { BasketListingTuple } from "./data";
 export { friendlyTargetCents, clampDeckTargetCents, canWatchPricedResult, DECK_TARGET_MIN_CENTS, DECK_TARGET_MAX_CENTS } from "./deck-watch-pure";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DECK PRICE WATCH — Premium (RiftCompare's lib/deck-watch.ts, for OP Compare).
+// DECK PRICE WATCH — Premium.
 // ─────────────────────────────────────────────────────────────────────────────
 // A member saves a list (the text /deck and Best Basket take) with, optionally,
 // a delivered-price target. After every price import the alert run
 // (scripts/alerts.ts, the collection-alerts track) calls runDeckWatches, which
 // prices each list EXACTLY as Best Basket would — the same resolver
-// (lib/deck.ts), the same in-stock store listings and condition floor
-// (lib/basket-server.ts), the same optimiser (lib/basket.ts) and the same
-// measured postage for the delivery the member saved (lib/shipping.ts) — and
-// stores the delivered total. Then:
+// (lib/deck-price.ts over the published data: a set and number, a finish, the
+// cheapest printing when the line names none), the same in-stock store
+// listings and condition floor (lib/basket-server.ts), the same optimiser
+// (lib/basket.ts) and the same measured postage for the delivery the member
+// saved (lib/shipping.ts) — and stores the delivered total. A basket item is a
+// UNIT, (productId, finish): a Foil copy and a Normal copy of one card are two
+// lines with two prices. Then:
 //   • deck_target  the total is at or under the target, and that is news: we
 //                  have never alerted on this watch, or the total is at least
 //                  DECK_TARGET_REFIRE_PCT under the total we last alerted on,
@@ -54,8 +56,10 @@ export { friendlyTargetCents, clampDeckTargetCents, canWatchPricedResult, DECK_T
 // Snoozed watches advance their baseline without an alert.
 //
 // EGRESS: the run is script-side (GitHub Actions). It reads at most
-// DECK_WATCH_READ_CAP rows, only for entitled owners, and one bounded listing
-// read per chunk of ≤ 40 card ids per watch. Pages never call it.
+// DECK_WATCH_READ_CAP rows, only for entitled owners, and the published files of
+// the cards on each list (the offer buckets, read through lib/offer-read.ts: the
+// same files the site serves, from the checkout of the pointed commit when
+// PLANE_DIR names it). Neon is opened for the watch rows only. Pages never call it.
 
 /** After a target fires, it fires again only this % further down. */
 export const DECK_TARGET_REFIRE_PCT = 5;
@@ -68,7 +72,7 @@ export const DECK_WATCH_READ_CAP = 2000;
 /** Longest saved list, in characters (the Best Basket request cap). */
 export const DECK_WATCH_TEXT_MAX = 20_000;
 export const DECK_WATCH_NAME_MAX = 80;
-/** An alert watermark older than this is forgotten (RiftCompare's 30 days). */
+/** An alert watermark older than this is forgotten (30 days). */
 export const WATERMARK_TTL_MS = 30 * 86_400_000;
 
 // ── The pure rules ───────────────────────────────────────────────────────────
@@ -122,49 +126,22 @@ const isSupportedMarket = (m: string): m is Country => Object.prototype.hasOwnPr
 
 // ── Pricing one list, the Best Basket way ────────────────────────────────────
 
-/** The card fields resolution and naming need. */
-export interface DeckWatchCard extends ResolvableCard {
-  slug: string;
-  setCode: string;
-}
-
 /**
- * Where a run reads its cards and listings from. The page side uses the cached
- * data.ts loaders (dataDeckSource); the alert run, a GitHub Actions script with
- * no Next cache, uses dbDeckSource(prisma) — the same reads, uncached.
+ * Where a run reads its cards and listings from. The default (loaderDeckSource) is the published data through the loaders; an Actions job points PLANE_DIR at its
+ * checkout and the SAME code reads it. Tests pass fixtures.
  */
 export interface DeckSource {
-  index: () => Promise<CardIndex<DeckWatchCard>>;
-  listings: BasketListingReader;
+  /** The resolver /deck and Best Basket use: parsed lines to resolved rows, repeated lines merged. */
+  resolve: (lines: DeckLine[]) => Promise<DeckRow[]>;
+  /** In-stock listings of units: [uid, source, priceCents, condition index, url] (Best Basket's BasketListingTuple), `uid` = productId * 2 + finish. */
+  listings: (country: Country, uids: number[]) => Promise<BasketListingTuple[]>;
 }
 
-/** The script-side source: one select-limited card read per run, one bounded listing read per chunk. */
-export function dbDeckSource(db: Pick<typeof prisma, "card" | "offer" | "set">): DeckSource {
-  let idx: Promise<CardIndex<DeckWatchCard>> | null = null;
+export function loaderDeckSource(o: { data?: DeckData; offers?: OfferReader } = {}): DeckSource {
+  const data = o.data ?? loaderData, offers = o.offers ?? liveOfferReader();
   return {
-    index: () =>
-      (idx ??= (async () => {
-        const [cards, sets] = await Promise.all([
-          db.card.findMany({ select: { id: true, slug: true, name: true, number: true, printing: true, variant: true, cardType: true, setId: true } }),
-          db.set.findMany({ select: { id: true, code: true } }),
-        ]);
-        const code = new Map(sets.map((s) => [s.id, s.code]));
-        return indexCards(cards.map((c) => ({ ...c, setCode: code.get(c.setId) ?? "" })));
-      })()),
-    listings: async (country, ids) => {
-      const rows = await db.offer.findMany({
-        where: {
-          market: country,
-          productId: { in: ids },
-          inStock: true,
-          updatedAt: { gt: new Date(Date.now() - 72 * 3_600_000) },
-          OR: [{ source: { startsWith: "store:" } }, { source: "tcgplayer" }],
-        },
-        select: { productId: true, source: true, priceCents: true, condition: true, url: true },
-        take: ids.length * 120,
-      });
-      return rows.map((r): BasketListingTuple => [r.productId, r.source, r.priceCents, r.condition, r.url]);
-    },
+    resolve: async (lines) => (await resolveDeckLines(lines, data, { options: false })).rows,
+    listings: async (country, uids) => listingTuples(await offers(uids.map(unitOfUid), country)),
   };
 }
 
@@ -187,26 +164,27 @@ export async function priceDeckList(
 ): Promise<DeckPricing | null> {
   const lines = parseDeckList(opts.listText).slice(0, DECK_LINE_CAP);
   if (!lines.length) return null;
-  const idx = await source.index();
-  const resolved = mergeLines(resolveDeck(lines, idx));
+  const rows = await source.resolve(lines);
   const wanted = new Map<string, number>();
-  const info = new Map<string, DeckWatchCard>();
+  const info = new Map<string, DeckRow & { card: NonNullable<DeckRow["card"]> }>();
   let unmatchedLines = 0;
-  for (const r of resolved) {
+  for (const r of rows) {
     if (!r.card) {
       unmatchedLines++;
       continue;
     }
-    const id = String(r.card.id);
-    wanted.set(id, clampQty((wanted.get(id) ?? 0) + r.line.qty));
-    info.set(id, r.card);
+    const uid = String(r.card.id * 2 + (r.finish === "F" ? 1 : 0));
+    wanted.set(uid, Math.min(QTY_CAP, (wanted.get(uid) ?? 0) + r.line.qty));
+    info.set(uid, r as DeckRow & { card: NonNullable<DeckRow["card"]> });
   }
   if (!wanted.size) return null;
+  // The postage snapshot, the store registry and the optimiser are heavy and the routes and the pure rules above never need them: loaded when a run prices a list.
+  const [{ basketStoresFor, postageOptionsFrom }, { optimizeBasket }, { loadStoreListings }] = await Promise.all([import("./shipping"), import("./basket"), import("./basket-server")]);
   const stores = basketStoresFor(opts.market, postageOptionsFrom(opts.market, opts.region, opts.trackedOnly ? "1" : null));
   const listings = await loadStoreListings([...wanted.keys()], opts.market, Object.keys(stores), opts.minCondition ?? "any", source.listings);
-  const cards: BasketCard[] = [...wanted].map(([cardId, qty]) => {
-    const c = info.get(cardId)!;
-    return { cardId, name: basketCardName(c), slug: c.slug, setCode: c.setCode, collectorNumber: c.number ?? "", qty, listings: listings.get(cardId) ?? [] };
+  const cards: BasketCard[] = [...wanted].map(([uid, qty]) => {
+    const r = info.get(uid)!;
+    return { cardId: uid, name: deckCardName(r.card, r.finish), slug: r.card.slug, setCode: r.card.setCode, collectorNumber: r.card.number ?? "", qty, listings: listings.get(uid) ?? [] };
   });
   const plan = optimizeBasket(cards, stores);
   const requestedCopies = [...wanted.values()].reduce((n, q) => n + q, 0);
@@ -238,7 +216,7 @@ export interface DeckWatchItem {
   checkedAt: Date;
 }
 
-export type DeckWatchDb = Pick<typeof prisma, "card" | "offer" | "set" | "$transaction"> & {
+export type DeckWatchDb = Pick<typeof prisma, "$transaction"> & {
   deckWatch: Pick<typeof prisma.deckWatch, "findMany" | "update">;
 };
 
@@ -280,7 +258,7 @@ export function deckAlertTitle(item: Pick<DeckWatchItem, "kind" | "name" | "tota
 
 export async function runDeckWatches(deps: DeckWatchRunDeps): Promise<DeckWatchRunSummary> {
   const db = deps.db ?? (prisma as unknown as DeckWatchDb);
-  const source = deps.source ?? dbDeckSource(db);
+  const source = deps.source ?? loaderDeckSource();
   const now = deps.now ?? new Date();
   const summary: DeckWatchRunSummary = {
     watches: 0, lapsed: 0, legacyMarket: 0, priced: 0, unpriced: 0, incomplete: 0, targets: 0, drops: 0,

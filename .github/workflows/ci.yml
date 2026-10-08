@@ -1,7 +1,7 @@
 name: CI
 
-# Typecheck, lint and the unit tests on every pull request and every push to
-# main. Database-free and network-free: nothing here needs a secret.
+# Typecheck, lint, the image guard and the unit tests on every pull request and every push to main. Database-free and network-free: nothing here needs a secret.
+# The build, the smoke test of the rendered pages and the SEO gate are ci-build.yml (a real `next build` with the database and the data host UNREACHABLE).
 on:
   pull_request:
   push:
@@ -25,4 +25,7 @@ jobs:
         run: npx prisma generate
       - run: npm run typecheck
       - run: npm run lint
+      # public/ images under 150 KB, an alt on every <img>, no Scryfall host in the image optimiser (scripts/check-images.ts)
+      - name: Image guard
+        run: npx tsx scripts/check-images.ts
       - run: npm test

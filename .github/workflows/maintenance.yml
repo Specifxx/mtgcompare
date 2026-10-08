@@ -1,0 +1,205 @@
+name: Maintenance
+
+# NAMED, MANUAL, REVIEWED tasks (parity P06). RiftCompare's maintenance.yml grew to 6,173 lines of one-off steps and reached GitHub's 512,000-byte limit, after which every task in it was undispatchable (tests/workflow-flag-polarity.test.ts
+# now fails a workflow within 60 KB of the limit). This one keeps a HANDFUL of tasks that are worth keeping, and a finished one-off is deleted from the file (git history keeps it), not left behind as "LEGACY".
+#
+#   schema-push        `prisma db push` of this ref's schema at DATABASE_URL, then prisma/sql/post-push.sql (scripts/db-push-safe.sh). The weekly release does not push a schema (a build reads no database), so a model change lands here.
+#   migrate-database   project-to-project move of the ONE Neon database (private tables only: accounts, billing, watches, alerts, collection, notifications, inbox, counters, ledger, eBay tables, clicks): pg_dump of DATABASE_URL,
+#                      pg_restore into TARGET_DATABASE_URL, row counts of EVERY table compared (enumerated from the source, never hand-listed), then this ref's schema pushed at the target. Public data is files and moves nothing.
+#   audit-egress       scripts/audit-egress.ts against DATABASE_URL: cumulative counters (finds pathological shapes) or a delta sample.
+#   data-status        scripts/audit-publication.ts --remote: the pointer, status.json, the repository size and the API quota of the data repository.
+#   slug-seed          scripts/slug-seed.ts over the pointed tree, uploaded as an artifact (data/slug-seed.json is committed to main by a person, in a commit whose subject has no deploy marker).
+#
+# Every task is a green no-op without its secrets and says what is missing. The group below means two tasks never run at once.
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: "Task to run"
+        type: choice
+        required: true
+        options:
+          - schema-push
+          - migrate-database
+          - audit-egress
+          - data-status
+          - slug-seed
+      overwrite_target:
+        description: "migrate-database: restore over a TARGET that already holds rows (it is wiped by --clean)"
+        type: boolean
+        default: false
+      sample_minutes:
+        description: "audit-egress: delta window in minutes (0 = cumulative counters)"
+        type: number
+        default: 0
+
+concurrency:
+  group: maintenance
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+
+      - name: Push the schema of this ref
+        if: inputs.task == 'schema-push'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "${DATABASE_URL:-}" ]; then echo "DATABASE_URL is not set for Actions - nothing to push to (a green no-op)."; exit 0; fi
+          # Neon's pooled host (PgBouncer) cannot introspect a schema: push over the direct endpoint.
+          DATABASE_URL="${DATABASE_URL/-pooler/}" bash scripts/db-push-safe.sh
+
+      - name: Migrate the database to a new Neon project
+        # Built from the lessons RiftCompare paid for. pg_restore --clean recreates every object FROM THE DUMP, so a restore installs the SOURCE project's schema, which is OLDER than this ref's the moment a schema change
+        # landed after the source last received a push: on 2026-08-20 a restore dropped a column a push had just added, and deployed code selected a column that no longer existed. The step therefore ENDS by pushing this
+        # ref's schema at the target, over its DIRECT endpoint (over Neon's pooler `prisma db push` introspects an empty schema and aborts with P1014), and a failed push fails the job loudly.
+        if: inputs.task == 'migrate-database'
+        env:
+          SOURCE_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          TARGET_DATABASE_URL: ${{ secrets.TARGET_DATABASE_URL }}
+        run: |
+          set -uo pipefail
+          if [ -z "${SOURCE_DATABASE_URL:-}" ] || [ -z "${TARGET_DATABASE_URL:-}" ]; then
+            echo "DATABASE_URL (the source) and TARGET_DATABASE_URL (the new project) must both be Actions secrets for this task - nothing was touched (a green no-op)."
+            exit 0
+          fi
+          if [ "$SOURCE_DATABASE_URL" = "$TARGET_DATABASE_URL" ]; then
+            echo "::error::SOURCE and TARGET resolve to the SAME database. Aborting before doing anything."
+            exit 1
+          fi
+
+          echo "== Installing PostgreSQL client tools from PGDG (matching Neon's server version) =="
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -sSf -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          sudo sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(. /etc/os-release && echo $VERSION_CODENAME)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+          export PATH="/usr/lib/postgresql/17/bin:$PATH"
+          pg_dump --version
+
+          echo "== Can the source be reached at all? =="
+          if ! psql "$SOURCE_DATABASE_URL" -tAc "SELECT 1" >/dev/null 2>&1; then
+            echo "::error::the SOURCE project is unreachable (its transfer allowance may be spent). The target has NOT been touched."
+            exit 1
+          fi
+
+          echo "== What the TARGET holds BEFORE we restore =="
+          TARGET_ROWS=0
+          for T in 'public."User"' 'public."PriceAlert"' 'public."CollectionCard"'; do
+            N=$(psql "$TARGET_DATABASE_URL" -tAc "SELECT COUNT(*) FROM $T" 2>/dev/null | tr -d ' \n') || true
+            case "$N" in ''|*[!0-9]*) N=0;; esac
+            echo "  target $T: $N"
+            TARGET_ROWS=$((TARGET_ROWS + N))
+          done
+          if [ "$TARGET_ROWS" -gt 0 ] && [ "${{ inputs.overwrite_target }}" != "true" ]; then
+            echo "::error::the TARGET already holds member rows and --clean would wipe them. Re-run with overwrite_target = true if that is intended. Nothing was touched."
+            exit 1
+          fi
+
+          echo "== Dumping the source (schema + data, one lean COPY pass: Neon bills the pre-compression bytes) =="
+          if ! pg_dump "$SOURCE_DATABASE_URL" --no-owner --no-acl --format=custom -f main.dump; then
+            echo "::error::pg_dump FAILED against the SOURCE. The target has NOT been touched; a partial dump is never restored."
+            exit 1
+          fi
+          echo "Dump size: $(du -h main.dump | cut -f1)"
+          # captured, not piped into grep -q: grep -q exits at the first match and pg_restore -l then dies on a broken pipe
+          DUMP_TOC=$(pg_restore -l main.dump)
+          for T in User PriceAlert CollectionCard; do
+            if ! grep -qE "TABLE DATA public ${T} " <<<"$DUMP_TOC"; then
+              echo "::error::the dump has no data section for table $T - it is incomplete. The target has NOT been touched."
+              exit 1
+            fi
+          done
+
+          echo "== Restoring into the target =="
+          set +e
+          pg_restore --no-owner --no-acl --clean --if-exists -d "$TARGET_DATABASE_URL" main.dump > restore.log 2>&1
+          RC=$?
+          set -e
+          echo "pg_restore exit code: $RC (non-zero is often only ownership or extension warnings on managed Postgres; the row counts below are the real verification)"
+          tail -20 restore.log
+
+          echo "== Verifying row counts of EVERY table (enumerated from the source) =="
+          sleep 3
+          set +e
+          TABLES=$(psql "$SOURCE_DATABASE_URL" -tAc "SELECT quote_ident(tablename) FROM pg_tables WHERE schemaname='public' ORDER BY tablename")
+          if [ -z "$TABLES" ]; then
+            echo "::error::could not enumerate source tables - refusing to report an unverified migration as verified."
+            exit 1
+          fi
+          MISMATCH=0
+          for T in $(printf 'public.%s\n' $TABLES); do
+            SRC=$(psql "$SOURCE_DATABASE_URL" -tAc "SELECT COUNT(*) FROM $T" 2>&1)
+            DST=$(psql "$TARGET_DATABASE_URL" -tAc "SELECT COUNT(*) FROM $T" 2>&1)
+            case "$SRC" in ''|*[!0-9]*) echo "$T source query FAILED: $SRC"; MISMATCH=1; continue;; esac
+            case "$DST" in ''|*[!0-9]*) echo "$T target query FAILED: $DST"; MISMATCH=1; continue;; esac
+            if [ "$SRC" = "$DST" ]; then echo "$T: source=$SRC target=$DST ok"; else echo "$T: source=$SRC target=$DST MISMATCH"; MISMATCH=1; fi
+          done
+          set -e
+          if [ "$MISMATCH" = "1" ]; then
+            echo "::error::Row-count mismatch on at least one table - do NOT switch DATABASE_URL to the target yet."
+            exit 1
+          fi
+          echo "All tables match."
+
+          echo "== Re-aligning the TARGET schema to this ref =="
+          DIRECT_TARGET_URL="${TARGET_DATABASE_URL/-pooler/}"
+          if ! DATABASE_URL="$DIRECT_TARGET_URL" bash scripts/db-push-safe.sh; then
+            echo "::error::schema push against the target FAILED. The data is copied, but its schema may be older than the deployed code. Do NOT deploy until this succeeds."
+            exit 1
+          fi
+          echo "Target schema now matches this ref. NEXT: set DATABASE_URL to the target in Vercel AND in the Actions secrets, run this task once more just before the switch so writes made meanwhile are included, then redeploy (the weekly release, or Run workflow)."
+
+      - name: Egress audit
+        if: inputs.task == 'audit-egress'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SAMPLE: ${{ inputs.sample_minutes }}
+        run: |
+          set -o pipefail
+          ARGS=""
+          if [ -n "${SAMPLE:-}" ] && [ "${SAMPLE}" != "0" ]; then ARGS="--sample=${SAMPLE}"; fi
+          npx tsx scripts/audit-egress.ts $ARGS | tee egress.txt
+          { echo "## Egress audit"; echo '```'; cat egress.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Data repository status
+        if: inputs.task == 'data-status'
+        env:
+          PLANE_REPO: ${{ vars.PLANE_REPO }}
+          PLANE_BRANCH: ${{ vars.PLANE_BRANCH }}
+          DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+        run: |
+          set -o pipefail
+          npx tsx scripts/audit-publication.ts --remote | tee data.txt
+          { echo "## Data repository"; echo '```'; cat data.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Regenerate the slug seed
+        if: inputs.task == 'slug-seed'
+        env:
+          PLANE_REPO: ${{ vars.PLANE_REPO }}
+          PLANE_BRANCH: ${{ vars.PLANE_BRANCH }}
+          DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+        run: |
+          if [ -z "${PLANE_REPO:-}" ] || [ -z "${DATA_REPO_TOKEN:-}" ]; then echo "PLANE_REPO and DATA_REPO_TOKEN are not both set for Actions - nothing to read (a green no-op)."; exit 0; fi
+          bash scripts/plane-checkout.sh .data
+          npx tsx scripts/slug-seed.ts .data
+      - name: Upload the slug seed
+        if: inputs.task == 'slug-seed' && hashFiles('data/slug-seed.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: slug-seed
+          path: data/slug-seed.json
+          retention-days: 14

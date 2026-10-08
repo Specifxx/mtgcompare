@@ -14,14 +14,14 @@
 //
 // THE GATES run before the finish step and never guess: the card NAME the title states must be one of the product's names (translated names, typo'd numbers, store typos); a SET the title names must be the product's set;
 // the TREATMENT words (borderless, showcase, surge foil, ...) of a number- or SKU-keyed title must be a subset of the product's treatments (the number decides, stores often drop the treatment), those of a
-// name-keyed title must be exactly the ones the product's NAME states (MatchRow.label; TCGplayer names are what stores copy; `treat` also holds what Scryfall implies, which a title may add but not omit-and-match twice);
+// name-keyed title must be exactly the ones the product's NAME states (MatchRow.label; TCGplayer names are what stores copy; `treat` also holds what Scryfall implies, which a title may state but need not);
 // a bracket the vocabulary cannot read (an unknown set label, an unknown art word the product's own name does not carry) is a skip.
 //
 // THE FINISH is part of the key and is decided PER VARIANT, in this order: the variant's own words ("Near Mint Foil", "Foil / Near Mint", "English / Foil Normal") and SKU suffix (-NF / -F, Normal / Foil, -nm-f), which
 // must agree; then the title ("Foil", "Non-Foil", "Foil Etched", a foil pattern such as "Surge Foil"); and only for a store that prints Foil on every foil product (explicitFoil) or a product whose OTHER variants carry
 // foil words, an unmarked variant is non-foil. A Foil TAG never decides (40 of 67 stores tag more than 30% of their products Foil). TCGplayer models a finish two ways, one product with Normal and Foil rows or a
 // separate foil-only product ("Surge Foil", "Foil Etched"); the finish picks the product that sells it, and when two products sell the foil the title cannot tell apart (a plain foil and a "Surge Foil" at one number,
-// or a "Borderless" title beside a "Borderless · Surge Foil" product) the listing is skipped.
+// or a "Borderless" title beside a "Borderless · Surge Foil" product, or a numberless title whose SKU number is the Surge Foil's while another product states exactly what the title says) the foil is skipped.
 //
 // CALLING CONVENTION. matchStoreProduct decides ONE VARIANT: pass the product's title, tags and type, the variant's title and option values, `skus` with the variant's OWN sku first (the other variants' skus may follow;
 // they must agree on one (set, number)), and `siblingTitles` (the other variants' titles) so that an unmarked variant beside marked ones reads as non-foil. A product with Normal and Foil variants therefore yields TWO
@@ -377,7 +377,7 @@ function setNameForms(t: string): string[] {
   for (const x of [...out]) { if (/ commander$/.test(x)) add(`commander ${x.slice(0, -10)}`); if (/ prerelease promos$/.test(x)) add(x.replace(/ prerelease promos$/, " promos")); }
   return [...out];
 }
-export interface Vocab { code(raw: string): string | null; setName(text: string): Set<string> }
+export interface Vocab { code(raw: string): string | null; setName(text: string): Set<string>; /** is this folded text the name of a card in the index? */ isName(folded: string): boolean }
 function vocabOf(m: IndexMeta): Vocab {
   const code = (raw: string): string | null => {
     const c = raw.toLowerCase();
@@ -397,7 +397,7 @@ function vocabOf(m: IndexMeta): Vocab {
     if (sg && m.setCodes.has(canonSet(sg[1]!))) return new Set(m.setCodes.get("special guests") ?? []);
     return new Set();
   };
-  return { code, setName };
+  return { code, setName, isName: (folded) => m.names.has(folded) };
 }
 /** The set vocabulary of an index: a code (or a store's spelling of one) to a Scryfall code, a set name to its codes. */
 export const indexVocab = (idx: CardIndex): Vocab => vocabOf(metaOf(idx));
@@ -470,7 +470,7 @@ export function readTitle(clean: string, v: Vocab, stripLead: boolean): TitleRea
     const preSet = pre ? v.setName(pre[1]!) : new Set<string>();
     if (pre && preSet.size) { for (const c of preSet) r.codes.add(c); r.setTexts.push(pre[1]!); r.num = nkey(pre[2]!); name = pre[3]!; }
   }
-  if (!r.num) {
+  if (!r.num && !v.isName(fold(name))) {                                           // a card whose own name carries a number ("Spider-Man 2099", "1996 World Champion") keeps it
     let m = /^0*(\d{2,4})\s+(.+)$/.exec(name);                                   // "0109 Project Deathlok Soldier"
     if (m) { r.num = nkey(m[1]!); name = m[2]!; }
     else { m = /^(.+?)\s+0*(\d{1,4}[a-z]?)(?:\s*\/\s*\d+)?$/.exec(name); if (m) { r.num = nkey(m[2]!); name = m[1]!; } }      // "Abjure 31", "Vampire Nocturnus 118/249"
@@ -597,6 +597,9 @@ function resolveReading(r: TitleReading, key: { code: string; num: string } | nu
   } else {
     cands = cands.filter((e) => isSubset(stated, visibleKeys(e.treat)));
     if (!cands.length) return { miss: "treatment-not-in-product" };
+    // a title with no number of its own, whose SKU number points at a foil sold under a pattern name the title leaves out ("Surge Foil"), while another product of that card and set states exactly what the title says:
+    // the SKU number is then the store's merge of the two ("Gleaming Splendor (Borderless)" with SKU #275, the surge foil, at the prices of #239) and the foil cannot be placed
+    if (path === "sku" && !r.num) rivalFoil = cands.some((e) => foilRival(e, stated) && e.names.some((n) => (m.byNameSet.get(`${n}|${e.sc ?? e.abbr}`) ?? []).some((q) => q !== e && statesTreatments(q, stated))));
   }
   return { cands, path, keyed, reading: r, treat, rivalFoil };
 }
@@ -776,7 +779,9 @@ export function matchCardBySku(title: string, skus: (string | null | undefined)[
 /** Does the title name this set, by code ("MH3", "2XM") or by name ("Modern Horizons 3")? The same test matchCardTitle uses; exported for lib/ebay-match.ts. */
 export function titleNamesSet(title: string, setCode: string | null | undefined, setName: string | null | undefined): boolean {
   const flat = ` ${fold(title)} `;
-  for (const name of new Set([fold(setName ?? ""), canonSet(setName ?? ""), canonSet((setName ?? "").replace(SET_PREFIX, ""))])) if (name.length >= 6 && flat.includes(` ${name} `)) return true;
+  const names = new Set([fold(setName ?? ""), canonSet(setName ?? ""), canonSet((setName ?? "").replace(SET_PREFIX, ""))]);
+  for (const n of [...names]) if (n.startsWith("commander ")) names.add(`${n.slice(10)} commander`);                       // "Streets of New Capenna Commander" for TCGplayer's "Commander: Streets of New Capenna"
+  for (const name of names) if (name.length >= 6 && flat.includes(` ${name} `)) return true;
   const code = (setCode ?? "").toUpperCase();
   if (!code) return false;
   if (setCodesIn(title).includes(code)) return true;
@@ -798,9 +803,16 @@ export function matchCardTitle(title: string, idx: CardIndex): { id: number; fin
   for (const c of setCodesIn(clean)) { const k = v.code(c); if (k) codes.add(k); }
   for (const w of clean.split(/[^A-Za-z0-9]+/)) if (w && w === w.toUpperCase() && (w.length >= 3 || /\d/.test(w)) && /[A-Z]/.test(w) && !NOT_A_CODE.test(w)) { const k = m.codes.has(w.toLowerCase()) ? w.toLowerCase() : null; if (k) codes.add(k); }
   let setText = "";
-  for (const [name, cs] of m.setCodes) if (name.length >= 6 && flat.includes(` ${name} `) && name.length > setText.length) { setText = name; for (const c of cs) codes.add(c); }
+  const named: (readonly [string, ReadonlySet<string>])[] = [...m.setCodes, ...Object.entries(STORE_SET_ALIASES).filter(([, c]) => m.codes.has(c)).map(([k, c]) => [k, new Set([c])] as const)];       // the longest name wins, and a store's spelling counts ("International Collectors Edition" is not "Collectors Edition")
+  let named1: ReadonlySet<string> = new Set();
+  for (const [name, cs] of named) if (name.length >= 6 && flat.includes(` ${name} `) && name.length > setText.length) { setText = name; named1 = cs; }
+  for (const c of named1) codes.add(c);
   if (!codes.size) return { miss: "nokey" };
   const nums = cardNumbersIn(clean);
+  for (const x of clean.matchAll(/(?<![A-Za-z0-9])([A-Z0-9]{2,5})\s+0*(\d{1,4}[A-Za-z\u2605]?)(?:\s*\/\s*\d{2,4})?(?![A-Za-z0-9])/g)) {      // a seller's "OTJ 149" and "MH2 176/303": the number after a set code the catalogue knows
+    const k = nkey(x[2]);
+    if (k && /[A-Z]/.test(x[1]!) && !NOT_A_CODE.test(x[1]!) && v.code(x[1]!) && !nums.includes(k)) nums.push(k);
+  }
   let cands: Entry[];
   if (nums.length) cands = [...codes].flatMap((c) => nums.flatMap((n) => lookup(m, c, n)));
   else cands = [...codes].flatMap((c) => m.bySc.get(c) ?? []);
@@ -852,6 +864,7 @@ export function matchByName(title: string, idx: NameIndex): number | null {
   if (!mm) return null;
   const keys = new Set<TreatmentKey>(); let name = mm[1]!;
   for (const g of [...name.matchAll(/\(([^()]*)\)/g)]) { const w = treatmentWords(g[1]!); if (w.left.length) return null; for (const k of w.keys) keys.add(k); }
+  if (keys.has("etched") || finishOfText(t) === "etched") return null;                  // the name index cannot tell an etched product from its plain twin
   name = baseOf(name);
   const id = idx.get(nameKey(name, mm[2]!, keys));
   return id !== undefined && id > 0 ? id : null;

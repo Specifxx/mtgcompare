@@ -1,0 +1,63 @@
+name: DB audit
+
+# The audit of the ONE Neon database (scripts/db-audit.ts, parity P03). Neon holds private state only, so this is not RiftCompare's catalogue audit (that catalogue is files: data-audit.yml): it checks the FOOTPRINT against the
+# design's budget (under 100 MB at 10,000 members), the RETENTION sweeps (click events 90 days, eBay rows 72 hours), the eBay ledger against its cap, the launch-promo counter, the tier of every user, and the ORPHAN SWEEP: every product id
+# a user row points at (alerts, binder, sealed watches, published decks, eBay rows, view counters) exists in the published catalogue. User rows carry no foreign key to a product (2.3), so this is the only thing that notices a stray id.
+#
+# Read-only. GREEN WITHOUT ITS SECRETS: no DATABASE_URL, no audit and no failure. With PLANE_REPO and DATA_REPO_TOKEN it checks the pointed tree out for the orphan sweep; without them the sweep is skipped and says so.
+# A failed audit posts to OPS_WEBHOOK_URL when that optional secret exists.
+#
+# WHEN. Monday 03:30 UTC (the egress audit is Sunday 03:00; no publish, eBay pass or release runs then), and by hand.
+on:
+  schedule:
+    - cron: "30 3 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: db-audit
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PLANE_REPO: ${{ vars.PLANE_REPO }}
+      PLANE_BRANCH: ${{ vars.PLANE_BRANCH }}
+      DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+    steps:
+      - name: No database configured
+        if: env.DATABASE_URL == ''
+        run: echo "DATABASE_URL is not set for Actions - nothing to audit (a green no-op)."
+      - uses: actions/checkout@v4
+        if: env.DATABASE_URL != ''
+      - uses: actions/setup-node@v4
+        if: env.DATABASE_URL != ''
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        if: env.DATABASE_URL != ''
+        run: |
+          npm ci
+          npx prisma generate
+      - name: Check out the pointed commit (for the orphan sweep)
+        if: env.DATABASE_URL != '' && env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        run: bash scripts/plane-checkout.sh .data
+      - name: Audit
+        if: env.DATABASE_URL != ''
+        run: |
+          set -o pipefail
+          ARGS=""
+          if [ -d .data/v1 ]; then ARGS="--dir .data"; fi
+          npx tsx scripts/db-audit.ts $ARGS | tee db-audit.txt
+          { echo "## Database audit"; echo '```'; grep -v '^::' db-audit.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Tell ops
+        if: failure() && env.DATABASE_URL != ''
+        env:
+          OPS_WEBHOOK_URL: ${{ secrets.OPS_WEBHOOK_URL }}
+        run: npx tsx scripts/ops-webhook.ts --title "Database audit" --level error --file db-audit.txt --tail 25 --url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

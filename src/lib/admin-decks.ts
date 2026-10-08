@@ -7,7 +7,8 @@ export interface AdminDeckRow {
   id: string;
   slug: string;
   title: string;
-  leaderName: string;
+  commanderName: string;
+  format: string;
   authorName: string | null;
   source: string;
   status: string;
@@ -19,11 +20,11 @@ export async function adminDecks(): Promise<AdminDeckRow[]> {
   return prisma.publishedDeck.findMany({
     orderBy: { createdAt: "desc" },
     take: 200,
-    select: { id: true, slug: true, title: true, leaderName: true, authorName: true, source: true, status: true, createdAt: true },
+    select: { id: true, slug: true, title: true, commanderName: true, format: true, authorName: true, source: true, status: true, createdAt: true },
   });
 }
 
 /** Hide or restore one deck; null when there is no such deck. */
-export async function setDeckStatus(id: string, status: "live" | "hidden"): Promise<{ slug: string; leaderSlug: string } | null> {
-  return prisma.publishedDeck.update({ where: { id }, data: { status }, select: { slug: true, leaderSlug: true } }).catch(() => null);
+export async function setDeckStatus(id: string, status: "live" | "hidden"): Promise<{ slug: string; commanderSlug: string } | null> {
+  return prisma.publishedDeck.update({ where: { id }, data: { status }, select: { slug: true, commanderSlug: true } }).catch(() => null);
 }

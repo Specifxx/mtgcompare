@@ -1,69 +1,66 @@
 import { randomBytes } from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "./db";
-import { checkDeck, mergeLines, parseDeckList, resolveDeck, formatDeckLine, basePrinting, type CardIndex } from "./deck";
-import { deckIndex } from "./deck-price";
-import type { CardLite, Catalog } from "./data";
-import {
-  DECK_MAX_UNMATCHED,
-  DECK_MIN_CARDS,
-  deckShapeError,
-  deckSlug,
-  deckTotals,
-  leaderSlugFrom,
-  type DeckShape,
-  type MarketTotals,
-} from "./published-decks";
+import type { Format } from "./constants";
+import type { DeckReport } from "./commander-rules";
+import { parseDeckList } from "./deck";
+import { canonicalText, checkResolved, loaderData, pricedCard, resolveDeckLines, withInferredCommanders, type DeckData, type DeckRow } from "./deck-price";
+import { DEFAULT_PUBLISH_FORMAT, deckShapeError, deckSlug, deckTotals, isPublishFormat, type MarketTotals } from "./published-decks";
 
-// Server half of the deck library (RiftCompare's lib/published-decks-server.ts;
-// lib/published-decks.ts has the rules). A list resolves EXACTLY the way /deck
-// prices it — lib/deck.ts over the cached catalogue — so a published deck holds
-// the printings the builder showed. The only writes are the explicit publish
-// (/api/decks) and the admin import and hide/show (/api/admin/decks). Pages read
-// the library through the cached data.ts loaders, never through this file.
+// Server half of the deck library (lib/published-decks.ts has the rules). A list resolves EXACTLY the way /deck prices it — lib/deck-price.ts over the published
+// data — so a published deck holds the printings and finishes the builder showed. The only writes are the explicit publish (/api/decks) and the admin import
+// and hide/show (/api/admin/decks). Pages read the library through the cached data loaders (lib/data/decks.ts), never through this file.
+//
+// What is stored (PublishedDeck): the commander (and its partner) by product id and Oracle slug, the identity mask the deck is held to, the canonical list text,
+// the lines as { cardId, qty, finish? } (the deck proper: the commander slot and the main deck; a sideboard or a companion stays in the text), the total each
+// market paid for it the day it was published. A user row holds plain product ids and no foreign key (contract 2.3).
 
 export interface PreparedDeck {
-  lines: { cardId: number; qty: number }[];
+  format: Format;
+  lines: { cardId: number; qty: number; finish?: 0 | 1 }[];
   list: string;
   cardIds: number[];
   cardCount: number;
-  shape: DeckShape;
-  colors: string[];
+  commander: { cardId: number; name: string; slug: string } | null;
+  /** The second commander: a partner, a Background, a Doctor's companion; for Oathbreaker the signature spell. */
+  partner: { cardId: number; name: string } | null;
+  /** The commanders' colour identity (a WUBRG mask) the deck is held to. */
+  identity: number;
+  report: DeckReport | null;
   unmatched: string[];
   totals: MarketTotals;
 }
 
-/** Resolves a pasted list the way /deck prices it, merging repeat lines. DON!! lines are never cards. */
-export function prepareDeckWith(text: string, cat: Pick<Catalog, "byId">, idx: CardIndex<CardLite>): PreparedDeck {
-  const resolved = mergeLines(resolveDeck(parseDeckList(text), idx));
-  const matched = resolved.filter((r): r is typeof r & { card: CardLite } => r.card != null && !r.fuzzy);
-  const unmatched = resolved.filter((r) => !r.card || r.fuzzy).map((r) => r.line.raw);
-  const entries = matched.map((m) => ({ card: m.card, qty: Math.min(99, m.line.qty), leader: m.card.cardType === "Leader" }));
-  const leaders = entries.filter((e) => e.leader);
-  const check = checkDeck(entries.map((e) => ({ qty: e.qty, number: e.card.number, isLeader: e.leader })));
-  const leader = leaders[0]?.card;
+const inDeck = (r: DeckRow): boolean => r.line.zone === "main" || r.line.zone === "commander";
+
+/** Resolves a pasted list the way /deck prices it, merging repeat lines, and judges it against the format. A format that leads with a commander and has none in the commander slot reads it from the sideboard. */
+export async function prepareDeckWith(text: string, data: DeckData, opts: { format?: Format } = {}): Promise<PreparedDeck> {
+  const format = opts.format ?? DEFAULT_PUBLISH_FORMAT;
+  const resolved = await resolveDeckLines(parseDeckList(text), data, { options: false });
+  const rows = withInferredCommanders(resolved.rows, format);
+  const matched = rows.filter((r): r is DeckRow & { card: NonNullable<DeckRow["card"]> } => r.card != null);
+  const unmatched = rows.filter((r) => !r.card).map((r) => r.line.raw);
+  const report = await checkResolved(rows, format, data).catch(() => null);
+  const deck = matched.filter(inDeck).sort((a, b) => Number(b.line.zone === "commander") - Number(a.line.zone === "commander"));
+  const leaders = deck.filter((r) => r.line.zone === "commander");
+  const lead = leaders[0], mate = leaders[1];
+  const lines = deck.map((r) => ({ cardId: r.card.id, qty: r.line.qty, ...(r.finish === "F" ? { finish: 1 as const } : {}) }));
   return {
-    lines: entries.map((e) => ({ cardId: e.card.id, qty: e.qty })),
-    list: entries
-      .sort((a, b) => Number(b.leader) - Number(a.leader))
-      .map((e) => {
-        const base = e.card.number ? basePrinting(idx.byNumber.get(e.card.number) ?? [e.card]) : e.card;
-        return formatDeckLine(e.qty, e.card, e.card.id !== base?.id);
-      })
-      .join("\n"),
-    cardIds: entries.map((e) => e.card.id),
-    cardCount: entries.reduce((n, e) => n + e.qty, 0),
-    shape: { leaders: leaders.map((l) => ({ id: l.card.id, name: l.card.name, number: l.card.number })), mainCards: check.mainCards, overLimit: check.overLimit },
-    colors: leader?.colors ?? [],
+    format,
+    lines,
+    list: await canonicalText(rows, data),
+    cardIds: [...new Set(lines.map((l) => l.cardId))],
+    cardCount: lines.reduce((n, l) => n + l.qty, 0),
+    commander: lead ? { cardId: lead.card.id, name: lead.card.name, slug: lead.oracle?.slug ?? "" } : null,
+    partner: mate ? { cardId: mate.card.id, name: mate.card.name } : null,
+    identity: report?.identity ?? 0,
+    report,
     unmatched,
-    totals: deckTotals(entries.map((e) => ({ qty: e.qty, card: cat.byId.get(e.card.id) ?? e.card }))),
+    totals: deckTotals(deck.map((r) => ({ qty: r.line.qty, card: pricedCard(r.card) }))),
   };
 }
 
-export async function prepareDeck(text: string): Promise<PreparedDeck> {
-  const { cat, idx } = await deckIndex();
-  return prepareDeckWith(text, cat, idx);
-}
+export const prepareDeck = (text: string, format?: Format): Promise<PreparedDeck> => prepareDeckWith(text, loaderData, { format });
 
 export type PublishInput = {
   title: string;
@@ -72,27 +69,32 @@ export type PublishInput = {
   userId: string | null;
   authorName: string | null;
   source: "user" | "import";
+  /** A commander-style format key; absent means Commander. */
+  format?: string | null;
 };
 
-export type PublishResult = { ok: true; slug: string; leaderSlug: string } | { ok: false; error: string };
+export type PublishResult = { ok: true; slug: string; commanderSlug: string } | { ok: false; error: string };
 
 /** The checks a deck must pass to be published (pure, for tests and the route). */
 export function publishError(deck: PreparedDeck): string | null {
-  if (deck.unmatched.length > DECK_MAX_UNMATCHED) return `${deck.unmatched.length} lines didn't match a card — fix them in the deck builder first.`;
-  if (deck.cardCount < DECK_MIN_CARDS && !deck.shape.leaders.length) return `A published deck needs its Leader and 50 cards (this list has ${deck.cardCount}).`;
-  return deckShapeError(deck.shape);
+  const shape = deckShapeError({ format: deck.format, report: deck.report, unmatched: deck.unmatched.length });
+  if (shape) return shape;
+  if (!deck.commander) return "A published deck needs its commander: add a Commander section to the list.";
+  if (!deck.commander.slug) return "We couldn't read the commander's card data right now — please try again in a minute.";
+  return null;
 }
 
-export async function publishDeck(input: PublishInput, db: Pick<typeof prisma, "publishedDeck"> = prisma): Promise<PublishResult> {
-  const deck = await prepareDeck(input.text);
+export async function publishDeck(input: PublishInput, db: Pick<typeof prisma, "publishedDeck"> = prisma, data: DeckData = loaderData): Promise<PublishResult> {
+  const asked = input.format ?? DEFAULT_PUBLISH_FORMAT;
+  if (!isPublishFormat(asked)) return { ok: false, error: deckShapeError({ format: null, report: null, unmatched: 0 })! };
+  const deck = await prepareDeckWith(input.text, data, { format: asked });
   const err = publishError(deck);
   if (err) return { ok: false, error: err };
-  const leader = deck.shape.leaders[0]!;
+  const lead = deck.commander!;
   if (input.userId) {
     const dup = await db.publishedDeck.findFirst({ where: { userId: input.userId, list: deck.list }, select: { slug: true } });
     if (dup) return { ok: false, error: "You've already published this exact list." };
   }
-  const leaderSlug = leaderSlugFrom(leader.name, leader.number);
   const slug = deckSlug(input.title, randomBytes(4).toString("hex"));
   await db.publishedDeck.create({
     data: {
@@ -101,19 +103,22 @@ export async function publishDeck(input: PublishInput, db: Pick<typeof prisma, "
       authorName: input.authorName,
       title: input.title,
       description: input.description,
-      leaderCardId: leader.id,
-      leaderName: leader.name,
-      leaderSlug,
-      colors: deck.colors.join(","),
+      format: deck.format,
+      commanderCardId: lead.cardId,
+      commanderName: lead.name,
+      commanderSlug: lead.slug,
+      partnerCardId: deck.partner?.cardId ?? null,
+      partnerName: deck.partner?.name ?? null,
+      identity: deck.identity,
       list: deck.list,
-      lines: deck.lines,
+      lines: deck.lines as Prisma.InputJsonValue,
       cardIds: deck.cardIds,
       cardCount: deck.cardCount,
       publishedTotals: deck.totals as Prisma.InputJsonValue,
       source: input.source,
     },
   });
-  return { ok: true, slug, leaderSlug };
+  return { ok: true, slug, commanderSlug: lead.slug };
 }
 
 /** Publishes in the last 24 hours by this account (the daily cap is counted in the database). */
