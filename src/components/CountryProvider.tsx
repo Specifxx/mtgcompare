@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState, useTransition } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { COUNTRIES, COUNTRY_COOKIE, normalizeCountry, type Country } from "@/lib/country";
 import { REGION_HOME_PATH } from "@/lib/seo";
@@ -15,7 +15,7 @@ import { trackEvent } from "@/lib/analytics";
 // (per page, allowed); setCountry() refreshes them.
 //
 // Not ported: RiftCompare's GBP→EUR display toggle for the UK market and the
-// signed-in User.preferredCountry sync (OP Compare's /api/me carries no
+// signed-in User.preferredCountry sync (MTG Compare's /api/me carries no
 // market yet).
 const REGION_HOME_PATHS = new Set(Object.values(REGION_HOME_PATH));
 
@@ -136,4 +136,19 @@ export function useCountry(): Ctx {
 /** The context, or null outside the provider. */
 export function useCountryMaybe(): Ctx | null {
   return useContext(CountryContext);
+}
+
+/**
+ * Pins the market for everything inside it. A region home (/au, /uk, /ca, /sg, /eu) is one market's page: its hero, its Today's Top
+ * Deals and its eBay chase strip must quote THAT market even for a visitor whose stored market is another or who has none yet (the
+ * provider above resolves the visitor's own market and, for a stored one, sends them to their own region home). Switching market is
+ * still the visitor's call: setCountry is the provider's. Outside a provider it renders its children unchanged.
+ */
+export function CountryLock({ country, children }: { country: Country; children: React.ReactNode }) {
+  const parent = useContext(CountryContext);
+  const value = useMemo<Ctx | null>(
+    () => (parent ? { ...parent, country, currency: COUNTRIES[country].currency } : null),
+    [parent, country],
+  );
+  return value ? <CountryContext.Provider value={value}>{children}</CountryContext.Provider> : <>{children}</>;
 }

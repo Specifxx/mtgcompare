@@ -1,17 +1,19 @@
-// Google Search Console: submit the sitemap and report indexing. Run daily by
-// .github/workflows/search-console.yml.
+// Google Search Console: submit the sitemap index AND each of its child sitemaps, and report indexing. Run daily by
+// .github/workflows/search-console.yml. The children are submitted one by one on purpose: Search Console reports coverage per submitted sitemap, so
+// "cards-0.xml" against "sets-0.xml" shows where indexing stands (contract 4.5, parity P01).
 //
 //   GSC_SA_KEY   — service-account JSON key (RiftCompare's works: add its
-//                  client_email as a Full user on the OP Compare property)
-//   GSC_PROPERTY — "sc-domain:opcompare.app" (Domain property; the workflow's
-//                  default) or "https://opcompare.app/" (URL-prefix property)
-//   SITE_URL     — https://opcompare.app (the workflow's default)
+//                  client_email as a Full user on the MTG Compare property)
+//   GSC_PROPERTY — "sc-domain:mtgcompare.app" (Domain property; the workflow's
+//                  default) or "https://mtgcompare.app/" (URL-prefix property)
+//   SITE_URL     — https://mtgcompare.app (the workflow's default)
 //
 // Submitting a sitemap needs the account to have Full or Owner permission on the
 // property; the report itself needs only read access.
 import crypto from "node:crypto";
 import fs from "node:fs";
 
+const UA = "MTGCompare-build/0.1 (+https://github.com/Specifxx/mtgcompare)";
 const b64 = (b: string | Buffer) => Buffer.from(b).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const day = (n: number) => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10);
 const out: string[] = [];
@@ -48,12 +50,22 @@ async function main() {
   const sa = JSON.parse(key);
   const at = await token(sa);
   const api = `https://searchconsole.googleapis.com/webmasters/v3/sites/${encodeURIComponent(property)}`;
-  const auth = { Authorization: `Bearer ${at}` };
+  const auth = { Authorization: `Bearer ${at}`, "User-Agent": UA };
 
   const sitemap = `${site}/sitemap.xml`;
   const put = await fetch(`${api}/sitemaps/${encodeURIComponent(sitemap)}`, { method: "PUT", headers: auth });
   say(`## Search Console — ${property}`);
   say(`Sitemap submit ${sitemap}: HTTP ${put.status}${put.status === 403 ? " (the service account needs Full permission on the property)" : ""}`);
+  // the children of the index, one request each with a pause (about ten files)
+  if (put.ok) {
+    const index = await fetch(sitemap, { headers: { "User-Agent": UA } }).then((r) => (r.ok ? r.text() : "")).catch(() => "");
+    for (const m of index.matchAll(/<sitemap>\s*<loc>\s*(.*?)\s*<\/loc>/g)) {
+      const child = m[1]!.replace(/&amp;/g, "&");
+      const r = await fetch(`${api}/sitemaps/${encodeURIComponent(child)}`, { method: "PUT", headers: auth });
+      say(`Sitemap submit ${child}: HTTP ${r.status}`);
+      await new Promise((res) => setTimeout(res, 500));
+    }
+  }
 
   const maps = (await (await fetch(`${api}/sitemaps`, { headers: auth })).json()) as { sitemap?: { path: string; lastDownloaded?: string; errors?: string; warnings?: string; contents?: { submitted?: string; indexed?: string }[] }[] };
   for (const m of maps.sitemap ?? []) {

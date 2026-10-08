@@ -1,19 +1,16 @@
 import { AUTHOR, POSTS, postHref } from "@/lib/blog";
-import { getCatalog } from "@/lib/data";
+import { getDataRef } from "@/lib/data";
+import { publicDataHeaders } from "@/lib/data/plane/headers";
+import { postTitle } from "@/lib/seo";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
 // JSON Feed 1.1 of the blog (https://jsonfeed.org/version/1.1), beside the RSS
-// feed.xml: the same posts, titles from the same cached catalogue.
-export const revalidate = 21600;
+// feed.xml: the same posts, titles dated by the published data's pointer.
+// force-dynamic under the CDN header of headers.json (contract 12.7).
+export const dynamic = "force-dynamic";
 
 export async function GET() {
-  let titles = new Map<string, string>();
-  try {
-    const cat = await getCatalog();
-    titles = new Map(POSTS.map((p) => [p.slug, p.title({ cat })]));
-  } catch {
-    /* no database yet: fall back to slugs */
-  }
+  const pricesAt = (await getDataRef().catch(() => null))?.publishedAt;
   const feed = {
     version: "https://jsonfeed.org/version/1.1",
     title: `${SITE_NAME} blog`,
@@ -27,7 +24,7 @@ export async function GET() {
       return {
         id: url,
         url,
-        title: titles.get(p.slug) ?? p.slug,
+        title: postTitle(p, pricesAt),
         summary: p.description,
         content_text: p.description,
         image: `${url}/opengraph-image`,
@@ -36,5 +33,5 @@ export async function GET() {
       };
     }),
   };
-  return new Response(JSON.stringify(feed), { headers: { "Content-Type": "application/feed+json; charset=utf-8" } });
+  return new Response(JSON.stringify(feed), { headers: publicDataHeaders({ "content-type": "application/feed+json; charset=utf-8" }) });
 }

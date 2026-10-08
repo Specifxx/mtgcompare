@@ -6,10 +6,10 @@ import { GA_ENABLED } from "./ga";
 // ported in wave 2 (2026-10-03). The single place a UI handler fires an event,
 // so call sites never hand-roll `window.gtag?.(...)`.
 //
-// OP Compare sends custom events to GA4 ONLY (src/lib/ga.ts, its own property):
+// MTG Compare sends custom events to GA4 ONLY (src/lib/ga.ts, its own property):
 // no NEXT_PUBLIC_GA_ID → no gtag on the page → this is a no-op. RiftCompare also
 // mirrors most events to Vercel Analytics, which bills custom events against a
-// monthly quota; OP Compare's page views still reach Vercel through <Analytics />,
+// monthly quota; MTG Compare's page views still reach Vercel through <Analytics />,
 // but no custom event does, so there is no quota for a high-volume event to burn.
 //
 // Params may be `undefined` (present only at call sites that have the data) —

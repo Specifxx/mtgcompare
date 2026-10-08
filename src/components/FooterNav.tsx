@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FOOTER_GROUPS, type NavGroupLink } from "./nav-groups";
 import { FooterSiteMapDetails } from "./HomeFooterToggle";
+import { TierBadge } from "./TierBadge";
 
 // A link that leaves the site (currently just Discord) can't go through
 // next/link's client-side router the way an internal path can — it needs a
@@ -18,6 +19,7 @@ function FooterLink({ l, className }: { l: NavGroupLink; className: string }) {
   return (
     <Link href={l.href} className={className}>
       {l.label}
+      {l.plan ? <TierBadge tier={l.plan} className="ml-1.5 align-middle" /> : null}
     </Link>
   );
 }

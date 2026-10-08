@@ -4,7 +4,9 @@
 //   * an unstable_cache callback runs under fetchCache "force-no-store": a nested loader's own cache is bypassed (Rift's burn of 2026-09-11) AND a nested fetch() bypasses the Data Cache (critique DP-06: the same pinned URL fetched inside the
 //     callback under four keys hit the origin four times, outside it once). So the callback must be PURE CPU over data resolved BEFORE the closure.
 //   * a cache key that carries a tier, a viewer or a user splits the cache per tier and, worse, tempts a loader to cache a cut ranking (critique DP-08).
-export function stripNonCode(src: string): string { return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`\\])\/\/.*$/gm, "$1"); }
+import { stripComments } from "./ratchet";
+// string-aware (tests/helpers/ratchet.ts): the regex version it replaced let a `"*/*"` header open a block comment that hid the following lines of a file from every rule
+export const stripNonCode = stripComments;
 /** The text between the parentheses of every `unstable_cache(` call (brace/paren matched; strings and comments skipped). */
 export function cacheCalls(src: string): { args: string; line: number }[] {
   const out: { args: string; line: number }[] = [];

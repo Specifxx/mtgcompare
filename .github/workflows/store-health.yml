@@ -63,4 +63,5 @@ jobs:
         if: steps.health.outputs.alerting != '' && steps.health.outputs.alerting != '0'
         env:
           OPS_WEBHOOK_URL: ${{ secrets.OPS_WEBHOOK_URL }}
-        run: npx tsx scripts/ops-webhook.ts --title "Store health: ${{ steps.health.outputs.alerting }} store(s) alerting" --level warn --file health.txt --tail 25 --url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        run: |
+          npx tsx scripts/ops-webhook.ts --title "Store health: ${{ steps.health.outputs.alerting }} store(s) alerting" --level warn --file health.txt --tail 25 --url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

@@ -2,8 +2,8 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "./db";
 import { COUNTRIES, currencyOf, type Country } from "./country";
 import { unitOfUid } from "./constants";
-import { DECK_LINE_CAP, QTY_CAP, parseDeckList, type DeckLine } from "./deck";
-import { deckCardName, listingTuples, liveOfferReader, loaderData, resolveDeckLines, type DeckData, type DeckRow, type OfferReader } from "./deck-price";
+import { DECK_LINE_CAP, parseDeckList, type DeckLine } from "./deck";
+import { basketUnits, deckCardName, listingTuples, liveOfferReader, loaderData, resolveDeckLines, type DeckData, type DeckRow, type OfferReader } from "./deck-price";
 import type { BasketCard, BasketPlan } from "./basket";
 import { isPremium, tierOf, type EntitlementFields } from "./premium";
 import { isAdminEmail, adminEmails } from "./admin-emails";
@@ -164,19 +164,8 @@ export async function priceDeckList(
 ): Promise<DeckPricing | null> {
   const lines = parseDeckList(opts.listText).slice(0, DECK_LINE_CAP);
   if (!lines.length) return null;
-  const rows = await source.resolve(lines);
-  const wanted = new Map<string, number>();
-  const info = new Map<string, DeckRow & { card: NonNullable<DeckRow["card"]> }>();
-  let unmatchedLines = 0;
-  for (const r of rows) {
-    if (!r.card) {
-      unmatchedLines++;
-      continue;
-    }
-    const uid = String(r.card.id * 2 + (r.finish === "F" ? 1 : 0));
-    wanted.set(uid, Math.min(QTY_CAP, (wanted.get(uid) ?? 0) + r.line.qty));
-    info.set(uid, r as DeckRow & { card: NonNullable<DeckRow["card"]> });
-  }
+  const { wanted, info, unmatched } = basketUnits(await source.resolve(lines));
+  const unmatchedLines = unmatched.length;
   if (!wanted.size) return null;
   // The postage snapshot, the store registry and the optimiser are heavy and the routes and the pure rules above never need them: loaded when a run prices a list.
   const [{ basketStoresFor, postageOptionsFrom }, { optimizeBasket }, { loadStoreListings }] = await Promise.all([import("./shipping"), import("./basket"), import("./basket-server")]);

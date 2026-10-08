@@ -3,23 +3,26 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { CardSearch } from "@/components/CardSearch";
 import { CardTile } from "@/components/CardTile";
+import { tileOfHome } from "@/components/home/home-data";
 import { POSTS } from "@/lib/blog";
-import { getCatalog, getPopular } from "@/lib/data";
+import { getHomeBoard, getSets } from "@/lib/data";
+import { postTitle } from "@/lib/seo";
 import { releasedSets } from "@/lib/selectors";
 
 // RiftCompare's 404: the number, the heading, the hero search, the way-back
 // buttons, then cards people are looking at, the sets and a few guides — all
-// from the cached src/lib/data.ts loaders (OP Compare's egress rule; RiftCompare
+// from the published-file loaders of src/lib/data (the egress rule; RiftCompare
 // queries Prisma here). Any loader error simply drops its section.
 export const metadata: Metadata = {
-  title: { absolute: "Page not found — OP Compare" },
-  description: "We couldn't find that page. Search the One Piece Card Game database for live prices across stores in six markets.",
+  title: { absolute: "Page not found — MTG Compare" },
+  description: "We couldn't find that page. Search the Magic: The Gathering database for live prices across stores in six markets.",
   robots: { index: false, follow: false },
 };
 
 export default async function NotFound() {
-  const [cat, popular] = await Promise.all([getCatalog().catch(() => null), getPopular(6).catch(() => null)]);
-  const sets = cat ? releasedSets(cat.sets, ["booster", "extra"]) : [];
+  const [board, allSets] = await Promise.all([getHomeBoard().catch(() => null), getSets().catch(() => [])]);
+  const popular = (board?.popular ?? []).slice(0, 6).map(tileOfHome);
+  const sets = releasedSets(allSets).slice(0, 12);
   const guides = [...POSTS].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
   return (
     <div className="mx-auto max-w-3xl py-10">
@@ -27,13 +30,13 @@ export default async function NotFound() {
         <p className="num text-6xl font-extrabold text-brand-400">404</p>
         <h1 className="mt-3 text-2xl font-extrabold text-white">This page doesn&apos;t exist</h1>
         <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-slate-400">
-          The card or page you were after may have moved, or may never have existed. Search the database below — every One Piece Card Game card is
+          The card or page you were after may have moved, or may never have existed. Search the database below — every Magic card is
           in there, with live prices from stores in six markets.
         </p>
       </div>
       <div className="mx-auto mt-6 max-w-xl">
         <Suspense fallback={<div className="input h-12" />}>
-          <CardSearch size="lg" placeholder="Search any One Piece card…" />
+          <CardSearch size="lg" placeholder="Search any Magic card…" />
         </Suspense>
       </div>
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
@@ -50,14 +53,12 @@ export default async function NotFound() {
           Guides &amp; news
         </Link>
       </div>
-      {cat && popular && popular.cards.length > 0 && (
+      {popular.length > 0 && (
         <section className="mt-10">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
-            {popular.kind === "popular" ? "Cards people are looking at" : "Chase cards from the newest set"}
-          </h2>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Cards Commander players love</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {popular.cards.map((c) => (
-              <CardTile key={c.id} card={c} setCode={cat.setById.get(c.setId)?.code ?? ""} />
+            {popular.map((t) => (
+              <CardTile key={t.card.id} card={t.card} setCode={t.setCode} />
             ))}
           </div>
         </section>
@@ -74,14 +75,14 @@ export default async function NotFound() {
           </div>
         </section>
       )}
-      {cat && guides.length > 0 && (
+      {guides.length > 0 && (
         <section className="mt-10">
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">Or start with a guide</h2>
           <ul className="space-y-2">
             {guides.map((g) => (
               <li key={g.slug}>
                 <Link href={`/blog/${g.slug}`} className="text-sm font-semibold text-brand-400 hover:underline">
-                  {g.title({ cat })}
+                  {postTitle(g, board?.at)}
                 </Link>
               </li>
             ))}

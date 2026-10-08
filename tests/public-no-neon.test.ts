@@ -6,12 +6,12 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { appRoutes, closure, routeOf } from "./helpers/import-graph";
+import { NEON_LOADERS, appRoutes, closure, routeOf } from "./helpers/import-graph";
 import { ratchet, summary } from "./helpers/ratchet";
 
 const ROOT = process.env.TEST_ROOT ?? path.resolve(__dirname, "..");
-/** Loaders that read Neon. A public page must not call them from a server component. */
-export const NEON_LOADERS = ["getEbayPanel", "getEbayPicks", "getChaseStrip", "getChaseBanner", "getDecksUsingCard", "getApprovedReviews", "getLaunchPromo", "getLibraryDecks", "getPublishedDeck", "getTopDemand", "getRisingSnapshot", "getCommanderDecks", "recordCardView", "getCurrentUser"];
+// the list lives in the import-graph helper: tests/indexability-fail-open.test.ts needs it too (a Neon-backed panel may swallow its error and degrade; a published-data read may not)
+export { NEON_LOADERS };
 /** Public routes that are ALLOWED a bounded Neon read: user-published decks (the list is one cached entry, refreshed at most hourly and purged on publish). */
 const ALLOWED: { prefix: RegExp; loaders: string[] }[] = [{ prefix: /^\/decks(\/|$)/, loaders: ["getLibraryDecks", "getPublishedDeck"] }, { prefix: /^\/commanders\/[^/]+$/, loaders: ["getLibraryDecks"] }, { prefix: /^\/sitemaps?(\/|$)|^\/sitemap\.xml/, loaders: ["getLibraryDecks"] }];
 /** Member, account, admin, token and API routes: their business is Neon. */

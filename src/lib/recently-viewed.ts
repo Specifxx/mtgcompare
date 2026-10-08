@@ -7,16 +7,16 @@
 // dropdown's empty state, the card page's rail and the watchlist page.
 import { useSyncExternalStore } from "react";
 
-export const RECENT_CARDS_KEY = "op:recent-cards";
-export const RECENT_SEARCHES_KEY = "op:recent-searches";
-const EVENT = "op:recent";
+export const RECENT_CARDS_KEY = "mc:recent-cards";
+export const RECENT_SEARCHES_KEY = "mc:recent-searches";
+const EVENT = "mc:recent";
 export const MAX_RECENT_CARDS = 12;
 export const MAX_RECENT_SEARCHES = 5;
 
 export interface RecentCard {
   slug: string;
   name: string;
-  /** "Parallel", "Manga" … or null for the standard print. */
+  /** "Borderless", "Showcase" … or null for the standard print. */
   variant: string | null;
   setCode: string;
   number: string | null;

@@ -8,6 +8,8 @@ import path from "node:path";
 
 const ROOT = path.resolve(__dirname, "..");
 const read = (p: string) => fs.readFileSync(path.join(ROOT, p), "utf8");
+// the hosts nobody may configure: the .com is a live, unrelated "MTG Compare UK" site; the others are the obvious alternatives to the .app placeholder
+const FOREIGN = /mtgcompare\.(com|net|io|vercel\.app)\b/;
 
 test("SITE_URL defaults to https://mtgcompare.app", async () => {
   delete process.env.NEXT_PUBLIC_SITE_URL;
@@ -24,7 +26,16 @@ test("every workflow that needs the site URL falls back to mtgcompare.app", () =
 });
 
 test("no other production host is named", () => {
-  for (const f of ["src/lib/site.ts", ".env.example", "scripts/gsc-report.ts", "next.config.js", "docs/SETUP.md", "docs/CHROME-SETUP-PROMPT.md"]) {
-    assert.doesNotMatch(read(f), /mtgcompare\.(com|net|io|vercel\.app)\b/, f);
-  }
+  // The code, the config and every workflow: not one occurrence. (.env.example is the owner's file and may not exist yet.)
+  const files = ["src/lib/site.ts", ".env.example", "scripts/gsc-report.ts", "next.config.js", "vercel.json", "docs/SETUP.md", ...fs.readdirSync(path.join(ROOT, ".github/workflows")).map((f) => `.github/workflows/${f}`)];
+  for (const f of files) if (fs.existsSync(path.join(ROOT, f))) assert.doesNotMatch(read(f), FOREIGN, f);
+});
+
+test("the setup prompt names those hosts only in the two sentences that need them, and never as the value of a site URL", () => {
+  // docs/CHROME-SETUP-PROMPT.md legitimately says (1) that the FIRST deployment answers on Vercel's own address while no domain is chosen, and (2) that mtgcompare.com is an unrelated live site ("MTG Compare UK"),
+  // which is the reason the owner must check a domain name before buying it. Everything else that names a foreign host is a defect, and NO line may hand one to a site-URL setting.
+  const doc = read("docs/CHROME-SETUP-PROMPT.md");
+  const stripped = doc.replace(/`https:\/\/mtgcompare\.vercel\.app`/g, "").replace(/there is an existing 'MTG Compare UK' site at\s+mtgcompare\.com/g, "");
+  assert.doesNotMatch(stripped, FOREIGN, "a foreign host outside the two documented sentences");
+  for (const line of doc.split("\n")) if (FOREIGN.test(line)) assert.doesNotMatch(line, /(NEXT_PUBLIC_SITE_URL|\bSITE_URL|GSC_PROPERTY)\s*[=:]/, `a site URL setting points at a foreign host: ${line.trim()}`);
 });

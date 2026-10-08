@@ -45,18 +45,23 @@ const MUST_FIND: [query: string, href: string][] = [
   // asserting otherwise would force a fake destination into the index.
   ["set", "/sets"],
   ["sets", "/sets"],
-  // OP Compare: Leaders and colours stand where RiftCompare has champions and domains.
-  ["leader", "/leaders"],
-  ["leaders", "/leaders"],
+  // MTG Compare: Commanders and colours stand where RiftCompare has champions and domains.
+  ["commander", "/commanders"],
+  ["commanders", "/commanders"],
+  ["edh", "/commanders"],
   ["faq", "/support"],
   ["search", "/browse"],
-  ["romance dawn", "/sets"],
+  ["modern horizons", "/sets"],
+  ["preorder", "/preorders"],
+  ["embed", "/embed"],
+  ["creators", "/creators"],
+  ["borderless", "/cards"],
   ["movers", "/movers"],
   ["colour", "/colors"],
   ["color", "/colors"],
   ["keyword", "/keywords"],
   ["glossary", "/keywords"],
-  // No games on OP Compare (the owner: "drop the games") and no /learn yet.
+  // No games on MTG Compare (the owner: "drop the games") and no /learn yet.
   ["expected value", "/tools/box-ev"],
   ["bulk pricer", "/deck"],
   ["binder", "/portfolio"],
@@ -158,7 +163,7 @@ test("the phone Explore overlay's one input searches BOTH features and the card/
 
   // (2) now fixed: the same box queries the database and renders both kinds of
   // hit. /api/search is the existing navbar-dropdown route and returns
-  // OP Compare's route answers { hits: [{ kind: "card" | "sealed", … }] }, which
+  // MTG Compare's route answers { hits: [{ kind: "card" | "sealed", … }] }, which
   // the overlay splits — a second consumer, not a second query.
   assert.match(src, /\/api\/search\?q=/, "the overlay must query the card/sealed search route");
   assert.match(src, /cardHits/, "card matches must be rendered");

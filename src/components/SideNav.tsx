@@ -11,6 +11,7 @@ import { useCountry } from "./CountryProvider";
 import { useMe } from "@/lib/use-me";
 import { COUNTRIES } from "@/lib/country";
 import { PremiumNavLink } from "./PremiumNavLink";
+import { TierBadge } from "./TierBadge";
 
 // The persistent desktop navigation rail: the full left edge of the page from
 // `lg` up, carrying the brand, one search affordance, every link in
@@ -46,7 +47,7 @@ import { PremiumNavLink } from "./PremiumNavLink";
 // Only the DEVIATIONS from "every group open" are remembered — so a group
 // added to NAV_GROUPS tomorrow starts open for everyone, exactly as it would
 // if this component had no memory at all.
-const STORAGE_KEY = "op:sidenav:collapsed-groups";
+const STORAGE_KEY = "mc:sidenav:collapsed-groups";
 
 // WHICH GROUP IS OPEN ON A FIRST VISIT (2026-09-21, owner: "lets have the
 // default on the left prices is expanded whilst everything else is rolled
@@ -83,7 +84,7 @@ function matchesLink(pathname: string | null, link: { href: string; external?: b
   );
 }
 
-// OP Compare: only the MOST SPECIFIC match is active. /cards/all, /market/records,
+// MTG Compare: only the MOST SPECIFIC match is active. /cards/all, /market/records,
 // /portfolio/sets and /stores/suggest each sit under another rail link, and
 // RiftCompare's plain prefix test lit both up at once.
 const ALL_LINKS = NAV_GROUPS.flatMap((g) => g.links);
@@ -219,16 +220,16 @@ export function SideNav() {
           there), so the alignment matters from 1280; below that it's harmless. */}
       <Link
         href="/"
-        aria-label="OP Compare home"
+        aria-label="MTG Compare home"
         className="flex h-[calc(4rem+1px)] shrink-0 items-center gap-2.5 border-b border-ink-800 px-3 transition-colors hover:bg-ink-800/60"
       >
         <BrandLogo />
         <span className="min-w-0">
           <span className="block truncate text-sm font-extrabold tracking-tight text-white">
-            OP<span className="text-brand-400">Compare</span>
+            MTG<span className="text-brand-400">Compare</span>
           </span>
           {/* The visitor's own market — the context every price on the site is
-              quoted in, and the one piece of state worth showing permanently. */}
+              quoted in, and the single piece of state worth showing permanently. */}
           <span className="block truncate text-[11px] text-slate-500">{COUNTRIES[country].label}</span>
         </span>
       </Link>
@@ -389,6 +390,7 @@ export function SideNav() {
                         ) : (
                           <Link href={link.href} className={className} aria-current={active ? "page" : undefined}>
                             {link.label}
+                            {link.plan ? <TierBadge tier={link.plan} className="ml-1.5 align-middle" /> : null}
                           </Link>
                         )}
                       </li>

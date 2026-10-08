@@ -8,7 +8,9 @@ import { FooterAds } from "@/components/AffiliateAds";
 import { CountryProvider } from "@/components/CountryProvider";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { GAPageViewTracker } from "@/components/GAPageViewTracker";
+import { ConsentDefaults } from "@/components/ConsentDefaults";
 import { ConsentGatedAnalytics } from "@/components/ConsentGatedAnalytics";
+import { OutboundBeacon } from "@/components/OutboundBeacon";
 import { Footer } from "@/components/Footer";
 import { Navbar } from "@/components/Navbar";
 import QuickViewProvider from "@/components/QuickViewProvider";
@@ -52,7 +54,7 @@ const LaunchPromoPopup = dynamic(() => import("@/components/LaunchPromoPopup").t
 const PremiumSlideIn = dynamic(() => import("@/components/PremiumSlideIn").then((m) => m.PremiumSlideIn), { ssr: false });
 const AnnualSwitchNudge = dynamic(() => import("@/components/AnnualSwitchNudge").then((m) => m.AnnualSwitchNudge), { ssr: false });
 // The feedback launcher: never auto-opens, works signed out, hides over the
-// hero and the footer ad zone (#op-hero, #op-ad-zone).
+// hero and the footer ad zone (#mc-hero, #mc-ad-zone).
 const FeedbackWidget = dynamic(() => import("@/components/FeedbackWidget").then((m) => m.FeedbackWidget), { ssr: false });
 
 const fraunces = Fraunces({
@@ -66,7 +68,7 @@ const fraunces = Fraunces({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `One Piece Card Prices — Compare Every Store | ${SITE_NAME}`,
+    default: `Magic: The Gathering Card Prices — Compare Every Store | ${SITE_NAME}`,
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
@@ -87,14 +89,15 @@ export const metadata: Metadata = {
   },
 };
 
-// Brand chrome colour for the browser UI / installed-PWA theme: the light
-// palette's page colour (THEME_COLOR.light), since light is OP Compare's
-// default (DECISIONS "Light theme is the default"). ThemeToggle re-stamps the
-// meta for a dark-theme visitor.
-export const viewport: Viewport = { themeColor: "#f4f6f8" };
+// Brand chrome colour for the browser UI / installed-PWA theme: the dark
+// palette's page colour (THEME_COLOR.dark), since dark is MTG Compare's
+// default (as on RiftCompare). ThemeToggle re-stamps the meta for a
+// light-theme visitor.
+export const viewport: Viewport = { themeColor: "#0c0b14" };
 
 // RiftCompare's site-wide Organization node (its layout.tsx orgJsonLd), with
-// OP Compare's facts: the entity and the six markets it serves, no per-locale URLs.
+// MTG Compare's facts: the entity and the six markets it serves, no per-locale URLs.
+// No sameAs until a real profile URL exists (only the owner's Discord invite, when set).
 const orgJsonLd = {
   "@context": "https://schema.org",
   "@graph": [
@@ -102,11 +105,11 @@ const orgJsonLd = {
       "@type": "Organization",
       "@id": `${SITE_URL}/#org`,
       name: SITE_NAME,
-      alternateName: ["OPCompare", "OP Compare App"],
+      alternateName: ["MTGCompare", "MTG Compare App"],
       url: SITE_URL,
       logo: `${SITE_URL}/icon-512.png`,
       ...(DISCORD_URL ? { sameAs: [DISCORD_URL] } : {}),
-      knowsAbout: ["One Piece Card Game", "One Piece Card Game price comparison", "Trading card game prices", "Sealed trading card products"],
+      knowsAbout: ["Magic: The Gathering", "Magic: The Gathering card price comparison", "Trading card game prices", "Sealed trading card products"],
       areaServed: ["United States", "Australia", "United Kingdom", "Singapore", "Canada", "European Union"].map((name) => ({ "@type": "Country", name })),
       contactPoint: { "@type": "ContactPoint", contactType: "customer support", email: CONTACT_EMAIL, availableLanguage: "English" },
     },
@@ -121,11 +124,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // market on the client (cookie, then /api/geo). Pages that price
   // server-side call getCountry() themselves.
   return (
-    <html lang="en" data-theme="light" className={`${inter.variable} ${jetbrainsMono.variable} ${fraunces.variable}`} suppressHydrationWarning>
+    <html lang="en" data-theme="dark" className={`${inter.variable} ${jetbrainsMono.variable} ${fraunces.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: AD_FREE_BOOT_SCRIPT }} />
-        {/* GA4 + Consent Mode defaults, before anything else measures. */}
+        {/* Consent Mode v2 defaults first, then GA4: nothing measures before the defaults are set. */}
+        <ConsentDefaults />
         <GoogleAnalytics />
       </head>
       <body className="min-h-screen bg-ink-950">
@@ -137,10 +141,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Skip to main content
         </a>
-        {/* Route-change progress bar: the dark brand-400 red, 2px, no spinner.
+        {/* Route-change progress bar: the dark brand-400 amethyst, 2px, no spinner.
             zIndex 200 matches the skip link — it wins over every overlay. */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
-        <NextTopLoader color="#ff6b6b" height={2} showSpinner={false} shadow={false} zIndex={200} />
+        <NextTopLoader color="#c394f4" height={2} showSpinner={false} shadow={false} zIndex={200} />
         {/* The Plus/Premium dialog and its account state (RiftCompare's
             PremiumProvider + PremiumDialogProvider). checkoutOpen is an
             environment read (is Stripe configured?), not a session read: who
@@ -181,7 +185,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </QuickViewProvider>
           {/* The ad zone needs the same rail reservation as <main>. It reads the
               market from CountryProvider, so it sits inside it. */}
-          <div id="op-ad-zone" className="pl-[var(--sidenav-w)]">
+          <div id="mc-ad-zone" className="pl-[var(--sidenav-w)]">
             <FooterAds />
           </div>
           {/* Email-only price alerts: renders nothing unless email is on AND
@@ -202,6 +206,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             ConsentGatedAnalytics); GA4 with explicit page views. */}
         <ConsentGatedAnalytics />
         <GAPageViewTracker />
+        {/* The outbound click log (contract 10.32): one listener, POST /api/click, written in the half-hour batch; renders nothing. */}
+        <OutboundBeacon />
       </body>
     </html>
   );

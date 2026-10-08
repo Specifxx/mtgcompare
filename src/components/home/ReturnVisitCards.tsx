@@ -7,7 +7,7 @@ import { CardsIcon } from "@/components/icons/HomeIcons";
 
 // RiftCompare's ReturnVisitCards: three card-surface tiles that give a visitor
 // a reason to come back. RiftCompare's pack simulator and Riftle tiles are
-// games, which OP Compare drops (owner: "drop the games"), so the three are
+// games, which MTG Compare drops (owner: "drop the games"), so the three are
 // the watchlist, Box EV and the deck pricer.
 export function ReturnVisitCards({ newestSetCode }: { newestSetCode?: string }) {
   return (
@@ -37,7 +37,7 @@ export function ReturnVisitCards({ newestSetCode }: { newestSetCode?: string }) 
         <div className="min-w-0 flex-1">
           <h2 className="text-lg font-extrabold text-white">Is a booster box worth it?</h2>
           <p className="mt-0.5 text-sm text-slate-400">
-            Box EV weighs {newestSetCode ? `an ${newestSetCode}` : "a booster"} box&apos;s price against what you&apos;d expect to pull, at live card prices.
+            Box EV weighs {newestSetCode ? `a ${newestSetCode}` : "a booster"} box&apos;s price against what you&apos;d expect to pull, at live card prices.
           </p>
         </div>
         <span className="btn-primary shrink-0 text-sm">Check →</span>

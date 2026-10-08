@@ -37,3 +37,5 @@ export function appRoutes(root: string): string[] {
   return walk(dir).filter((f) => /\/(page|route|layout|opengraph-image|sitemap|robots|manifest)\.(ts|tsx)$/.test(f.split(path.sep).join("/")));
 }
 export const routeOf = (root: string, file: string): string => "/" + path.relative(path.join(root, "src/app"), path.dirname(file)).split(path.sep).filter((s) => !/^\(.*\)$/.test(s)).join("/");
+/** Loaders that read Neon. A public page must not call them from a server component. */
+export const NEON_LOADERS = ["getEbayPanel", "getEbayPicks", "getChaseStrip", "getChaseBanner", "getDecksUsingCard", "getApprovedReviews", "getLaunchPromo", "getLibraryDecks", "getPublishedDeck", "getTopDemand", "getRisingSnapshot", "getCommanderDecks", "recordCardView", "getCurrentUser"];

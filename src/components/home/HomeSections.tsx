@@ -9,41 +9,34 @@ import { PartnersStrip } from "./PartnersStrip";
 import { PopularCardsCarousel } from "./PopularCardsCarousel";
 import { ReturnVisitCards } from "./ReturnVisitCards";
 import type { HomeData } from "./home-data";
-import { COLORS, COLOR_KEYS } from "@/lib/constants";
+import { COLORS, COLOR_GROUPS, COLOR_PAGES } from "@/lib/constants";
 import { ldJson } from "@/lib/jsonld";
 import { SITE_URL } from "@/lib/site";
 
-// RiftCompare's HomeSections, in its order: (EbayPicks — the catalogue
-// track's, slotted in through `ebayPicks`), the popular-cards carousel, the
-// return-visit tiles, How it works, "Explore the database" (sets, then
-// colours), the next-set line, reviews (only once there are enough), the
-// account strip or welcome-back band, and the partners strip, plus the
-// ItemList JSON-LD for the carousel's lists.
+// RiftCompare's HomeSections, in its order: (the eBay chase strip now sits under the hero, on the page itself), the popular-cards
+// carousel, the return-visit tiles, How it works, "Explore the database" (sets, then colours), the next-set line, reviews (only once
+// there are enough), the account strip or welcome-back band, and the partners strip, plus the ItemList JSON-LD for the carousel's lists.
 const NEW_DAYS = 45;
-const SET_TILES = 12;
 
-export function HomeSections({ data, storeCount, ebayPicks = null }: { data: HomeData; storeCount: number; ebayPicks?: React.ReactNode }) {
-  const { cat } = data;
+/** The seven colour pages with the colour dot and the line that says what the colour does; counts would need the whole browse index, which the home page never loads. */
+const COLOUR_TILES = COLOR_PAGES.map((slug) => {
+  const wubrg = Object.values(COLORS).find((c) => c.slug === slug);
+  const group = slug === "colorless" || slug === "multicolor" ? COLOR_GROUPS[slug] : null;
+  return { slug, label: wubrg?.label ?? group?.label ?? slug, hex: wubrg?.hex ?? group?.hex ?? "#a8a8b0", tagline: wubrg?.tagline ?? group?.tagline ?? "" };
+});
+
+export function HomeSections({ data, storeCount }: { data: HomeData; storeCount: number }) {
   const storeWord = storeCount === 1 ? "store" : "stores";
   const now = Date.parse(data.renderedAt);
   const today = data.renderedAt.slice(0, 10);
   const newCutoff = new Date(now - NEW_DAYS * 86_400_000).toISOString().slice(0, 10);
-  const sets = cat.sets
-    .filter((s) => (s.kind === "booster" || s.kind === "extra") && s.releasedOn)
-    .sort((a, b) => (b.releasedOn ?? "").localeCompare(a.releasedOn ?? ""))
-    // Two rows of six on a desktop: the newest boosters, upcoming ones first.
-    // Every older set is one click away ("Every set, starter deck and promo").
-    .slice(0, SET_TILES);
-  const colorCounts = Object.fromEntries(COLOR_KEYS.map((k) => [k, 0])) as Record<string, number>;
-  for (const c of cat.cards) for (const k of c.colors) if (k in colorCounts) colorCounts[k]++;
+  const totalCards = data.stats.totalCards;
 
   return (
     <>
-      {ebayPicks}
       <PopularCardsCarousel
         popular={data.popular}
-        popularKind={data.popularKind}
-        chaseSetName={data.chaseSetName}
+        chase={data.chase}
         movers={data.biggestMovers}
         recentlyUpdated={data.recentlyUpdated}
         storeCount={storeCount}
@@ -52,12 +45,12 @@ export function HomeSections({ data, storeCount, ebayPicks = null }: { data: Hom
       <Reveal stagger className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:[&>*:last-child]:col-span-2 min-[1440px]:grid-cols-3 min-[1440px]:[&>*:last-child]:col-span-1">
         <ReturnVisitCards newestSetCode={data.newestSetCode} />
       </Reveal>
-      <HowItWorks totalCards={cat.cards.length} />
+      <HowItWorks totalCards={totalCards} />
       <section>
         <h2 className="mb-4 text-xl font-extrabold text-white">Explore the database</h2>
         <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">By set</div>
         <Reveal stagger className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
-          {sets.map((s) => {
+          {data.sets.map((s) => {
             const upcoming = (s.releasedOn ?? "") > today;
             const isNew = !upcoming && (s.releasedOn ?? "") >= newCutoff;
             return (
@@ -77,30 +70,28 @@ export function HomeSections({ data, storeCount, ebayPicks = null }: { data: Hom
           })}
         </Reveal>
         <div className="mb-2 mt-6 text-xs font-semibold uppercase tracking-wide text-slate-500">Browse by colour</div>
-        <Reveal stagger className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
-          {COLOR_KEYS.map((k) => (
+        <Reveal stagger className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-7">
+          {COLOUR_TILES.map((c) => (
             <Link
-              key={k}
-              href={`/colors/${COLORS[k].slug}`}
+              key={c.slug}
+              href={`/colors/${c.slug}`}
               className="card-surface flex flex-col gap-1 p-4 transition-colors duration-200 hover:border-brand-500 hover:bg-ink-800"
             >
               <span className="flex items-center gap-2 text-lg font-bold text-white">
-                <span className="h-3 w-3 rounded-full" style={{ backgroundColor: COLORS[k].hex }} aria-hidden />
-                {k}
+                <span className="h-3 w-3 rounded-full" style={{ backgroundColor: c.hex }} aria-hidden />
+                {c.label}
               </span>
-              <span className="text-xs text-slate-400">
-                {COLORS[k].tagline} · <span className="num">{colorCounts[k].toLocaleString("en-US")}</span> printings
-              </span>
+              <span className="text-xs text-slate-400">{c.tagline}</span>
             </Link>
           ))}
         </Reveal>
         <p className="mt-3 text-sm">
           <Link href="/sets" className="font-semibold text-brand-300 underline-offset-2 hover:underline">
-            Every set, starter deck and promo →
+            Every set, Commander deck and Secret Lair →
           </Link>
           <span className="mx-2 text-slate-600">·</span>
-          <Link href="/leaders" className="font-semibold text-brand-300 underline-offset-2 hover:underline">
-            Every Leader, priced →
+          <Link href="/commanders" className="font-semibold text-brand-300 underline-offset-2 hover:underline">
+            Every Commander, priced →
           </Link>
         </p>
       </section>
@@ -121,7 +112,7 @@ export function HomeSections({ data, storeCount, ebayPicks = null }: { data: Hom
               ? {
                   "@context": "https://schema.org",
                   "@type": "ItemList",
-                  name: data.popularKind === "popular" ? "Most popular One Piece cards" : `${data.chaseSetName ?? "Newest set"} chase cards`,
+                  name: "Most popular Magic: The Gathering cards",
                   itemListElement: data.popular.map((t, i) => ({ "@type": "ListItem", position: i + 1, name: t.card.name, url: `${SITE_URL}/card/${t.card.slug}` })),
                 }
               : null,
@@ -129,7 +120,7 @@ export function HomeSections({ data, storeCount, ebayPicks = null }: { data: Hom
               ? {
                   "@context": "https://schema.org",
                   "@type": "ItemList",
-                  name: "Recently updated One Piece card prices",
+                  name: "Recently updated Magic: The Gathering card prices",
                   itemListElement: data.recentlyUpdated.map((t, i) => ({ "@type": "ListItem", position: i + 1, name: t.card.name, url: `${SITE_URL}/card/${t.card.slug}` })),
                 }
               : null,

@@ -117,7 +117,7 @@ test("layout.tsx mounts SideNav and reserves its width for main, the footer ad z
   // controls touching x=0 at 390, and the rail's 17rem with no gutter from
   // 1024. The old /\bpx-/ check could not see it because no literal px-
   // was on the line.
-  // OP Compare's <footer> lives in components/Footer.tsx, so its reservation
+  // MTG Compare's <footer> lives in components/Footer.tsx, so its reservation
   // is counted there.
   const footer = read("src/components/Footer.tsx");
   const plMatches = [...layout.matchAll(/^.*pl-\[var\(--sidenav-w\)\].*$/gm), ...footer.matchAll(/^.*pl-\[var\(--sidenav-w\)\].*$/gm)];
@@ -137,7 +137,7 @@ test("FooterAds reserves the same width — SideNav is fixed and spans the full 
 
 test("CinematicHero's full-bleed breakout compensates for --sidenav-w, not a bare -translate-x-1/2", () => {
   const src = read("src/components/home/CinematicHero.tsx");
-  const classLine = /<ParallaxRoot\s+id="op-hero"\s+className="([^"]*)"/.exec(src)?.[1] ?? "";
+  const classLine = /<ParallaxRoot\s+id="mc-hero"\s+className="([^"]*)"/.exec(src)?.[1] ?? "";
   assert.ok(classLine, "expected to find ParallaxRoot's className");
   // Scoped to the actual className (not the whole file — the doc comment right
   // above it explains the fix by NAMING the old, now-removed pattern, which
@@ -244,7 +244,7 @@ test("the rail owns the brand, the search and the whole index; the header owns t
   const nav = codeOnly(read("src/components/Navbar.tsx"));
 
   // Rail-only.
-  assert.match(rail, /aria-label="OP Compare home"/, "the rail carries the brand");
+  assert.match(rail, /aria-label="MTG Compare home"/, "the rail carries the brand");
   assert.match(nav, /className="tap-link min-w-11 shrink-0 gap-2 lg:hidden"/, "…and the header hides its copy from lg");
   // TWO SEARCHES, ONE EACH, and the split is the point (2026-09-21): the rail
   // searches FEATURES ("where is the thing that does X"), the header searches
@@ -263,7 +263,7 @@ test("the rail owns the brand, the search and the whole index; the header owns t
   assert.doesNotMatch(rail, /"\/login"|"\/profile"/, "the rail must not duplicate it");
 
   // Deliberately BOTH: Premium, asked for on each surface separately.
-  // OP Compare: the header's Pricing goes through HeaderPricingLink (a
+  // MTG Compare: the header's Pricing goes through HeaderPricingLink (a
   // PremiumNavLink hidden for members).
   assert.match(nav, /<HeaderPricingLink className="[^"]*\blg:block\b/);
   assert.match(rail, /href="\/premium"/);
@@ -320,7 +320,7 @@ test("every group in the rail is reachable and nothing in NAV_GROUPS was lost to
   const rail = read("src/components/SideNav.tsx");
   assert.match(rail, /NAV_GROUPS\.map/);
   assert.match(rail, /group\.links\.map/, "…down to the leaves, not just the group headers");
-  // OP Compare drops RiftCompare's Games, For stores and Miscellaneous groups.
+  // MTG Compare drops RiftCompare's Games, For stores and Miscellaneous groups.
   assert.ok(NAV_GROUPS.length >= 7, `expected the full grouped index, found ${NAV_GROUPS.length} groups`);
   // External links still branch — the contract every NAV_GROUPS renderer follows.
   assert.match(rail, /link\.external \?/, "external links must open in a new tab, never through next/link");

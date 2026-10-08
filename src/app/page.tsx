@@ -15,14 +15,17 @@ import { homeMetadata } from "@/lib/home-metadata";
 import { faqPage, ldJson, webApplication, webPage } from "@/lib/jsonld";
 
 // The homepage — RiftCompare's app/page.tsx, section for section: the
-// cinematic hero, the editorial band, Today's Top Deals, the price-guide
-// callout, HomeSections and the About + FAQ card, with WebPage /
-// WebApplication / FAQPage JSON-LD.
+// cinematic hero, then the eBay chase strip IMMEDIATELY under it (owner
+// requirement, REQUIREMENTS 5: it used to follow the editorial band), the
+// editorial band, Today's Top Deals, the price-guide callout, HomeSections and
+// the About + FAQ card, with WebPage / WebApplication / FAQPage JSON-LD.
 //
-// STATIC: no cookie or header read. One cached HTML (ISR, hourly) carries every
-// market's figures and the client localises to the visitor's market
-// (CountryProvider). Archivo is loaded here only, for the homepage's display
-// face (`.rb-display-sans`, globals.css).
+// force-dynamic over the published files (contract 12.7): no cookie or header
+// read, so the HTML is the same for every market and the CDN header of
+// headers.json holds it for five minutes; the client localises to the
+// visitor's market (CountryProvider). Never prerendered at build, never ISR.
+// Archivo is loaded here only, for the homepage's display face
+// (`.rb-display-sans`, globals.css).
 const archivo = Archivo({
   subsets: ["latin"],
   weight: ["600", "700", "800", "900"],
@@ -30,7 +33,7 @@ const archivo = Archivo({
   display: "swap",
 });
 
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 export function generateMetadata(): Promise<Metadata> {
   return homeMetadata();
@@ -49,23 +52,23 @@ export default async function HomePage() {
         updatedAt={data.stats.updatedAt}
         renderedAt={data.renderedAt}
       />
-      <EditorialHub cat={data.cat} updatedAt={data.stats.updatedAt} renderedAt={data.renderedAt} />
       <EbayChase page="home" heading="Chase cards on eBay right now" />
+      <EditorialHub updatedAt={data.stats.updatedAt} renderedAt={data.renderedAt} />
       <HomeTopDeals dealsByCountry={data.dealsByCountry} />
       <PriceGuideCallout totalCards={data.stats.totalCards} />
       <HomeSections data={data} storeCount={storeCount} />
       <section className="card-surface p-6">
         <h2 className="text-xl font-extrabold text-white">
-          One Piece card prices in the US, Australia, the UK, Singapore, Canada and the EU — all in one place
+          Magic: The Gathering card prices in the US, Australia, the UK, Singapore, Canada and the EU — all in one place
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-slate-400">
-          OP Compare is a free, independent price comparison site for the One Piece Card Game. We track live prices for One Piece cards across
-          local stores in the US, Australia, the UK, Singapore, Canada and the EU, plus TCGplayer, so you can buy One Piece cards for less —
-          whether you&apos;re chasing singles for a deck or sealed booster boxes.
+          MTG Compare is a free, independent price comparison site for Magic: The Gathering. We track live prices for Magic singles and
+          sealed products across local stores in the US, Australia, the UK, Singapore, Canada and the EU, plus TCGplayer, so you can buy
+          Magic cards for less — whether you&apos;re chasing singles for a Commander deck or sealed boosters and bundles.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-slate-400">
-          Store prices come from each store&apos;s own listings, imported twice a day and matched to the exact printing, and each card&apos;s
-          comparison lists them cheapest first by item price —{" "}
+          Store prices come from each store&apos;s own listings, imported once a day and matched to the exact printing — nonfoil, foil,
+          etched, borderless, showcase — and each card&apos;s comparison lists them cheapest first by item price —{" "}
           <Link href="/methodology" className="text-brand-300 underline-offset-2 hover:underline">
             how prices are collected
           </Link>{" "}
@@ -73,10 +76,10 @@ export default async function HomePage() {
           <Link href="/stores" className="text-brand-300 underline-offset-2 hover:underline">
             which stores we track
           </Link>{" "}
-          each have a page of their own. OP Compare is paid for by affiliate commission (the eBay Partner Network and TCGplayer) and Plus and
+          each have a page of their own. MTG Compare is paid for by affiliate commission (the eBay Partner Network and TCGplayer) and Plus and
           Premium subscriptions, and none of them can buy a store a better place in a comparison. More on{" "}
           <Link href="/about" className="text-brand-300 underline-offset-2 hover:underline">
-            who runs OP Compare
+            who runs MTG Compare
           </Link>{" "}
           and in our{" "}
           <Link href="/editorial-policy" className="text-brand-300 underline-offset-2 hover:underline">
@@ -93,7 +96,8 @@ export default async function HomePage() {
           <Link href="/tools/deal-finder" className="text-brand-300 underline-offset-2 hover:underline">
             Deal Finder
           </Link>{" "}
-          lists the cards selling below TCGplayer&apos;s market price in your market right now.
+          lists the cards selling below TCGplayer&apos;s market price in your market right now (a free account sees the top three; Plus and
+          Premium see them all).
         </p>
         <div className="mt-5 divide-y divide-ink-800 border-t border-ink-800">
           {faqs.map((f) => (
@@ -114,25 +118,25 @@ export default async function HomePage() {
         dangerouslySetInnerHTML={{
           __html: ldJson(
             webPage({
-              name: "OP Compare — One Piece Card Game Price Comparison",
+              name: "MTG Compare — Magic: The Gathering Price Comparison",
               href: "/",
               description:
-                "One Piece Card Game prices compared across stores in the US, UK, Australia, Canada, Singapore and the EU — cheapest first by item price, in your own currency.",
+                "Magic: The Gathering card prices compared across stores in the US, UK, Australia, Canada, Singapore and the EU — cheapest first by item price, in your own currency.",
             }),
             webApplication({
               id: "#app",
-              name: "OP Compare — One Piece Card Game price comparison",
+              name: "MTG Compare — Magic: The Gathering price comparison",
               href: "/",
               applicationCategory: "ShoppingApplication",
               description:
-                "Compare One Piece Card Game prices across stores in six markets: live prices for every One Piece single card and sealed product, cheapest first by item price.",
+                "Compare Magic: The Gathering prices across stores in six markets: live prices for every Magic single card and sealed product, cheapest first by item price.",
               featureList: [
-                "Compare live One Piece single-card prices across stores in the US, Australia, the UK, Singapore, Canada and the EU, plus TCGplayer",
-                "Every printing priced separately: standard, Parallel, Manga, SP, Treasure Rare and promo",
-                "Sealed product price comparison: booster boxes, packs, starter decks and collections",
+                "Compare live Magic single-card prices across stores in the US, Australia, the UK, Singapore, Canada and the EU, plus TCGplayer",
+                "Every printing priced separately: nonfoil, foil, etched, borderless, showcase, extended art, serialized and promo",
+                "Sealed product price comparison: booster boxes, booster packs, Commander decks, bundles and Secret Lair drops",
                 "Deck Builder & Pricer: price a whole decklist at the cheapest in-stock store price",
                 "Prices in local currency: USD, AUD, GBP, SGD, CAD and EUR",
-                "Price history charts for every card",
+                "Price history charts for every tracked card",
               ],
             }),
             faqPage(faqs),

@@ -1,9 +1,9 @@
 // The store-listing matcher of src/lib/match.ts (owner WP03), pinned against REAL Magic listings.
 //
-// WHERE THE DATA COMES FROM. tests/fixtures/titles/ is a slice of the research corpus (matcher/corpus-mtg.json: 19,993 listings of 67 stores, fetched 2026-10-07) and of the catalogue it is matched against:
+// WHERE THE DATA COMES FROM. tests/fixtures/titles/ is a slice of the research corpus (matcher/corpus-mtg.json: 19,993 listings of 102 stores, page 1 of each, fetched 2026-10-07) and of the catalogue it is matched against:
 //   rows.json      the MatchRows (with label and group abbreviation, as the importer builds them) of every product a pinned listing involves, plus one product per (set, TCGplayer group) for the set vocabulary
 //   sealed.json    the sealed products whose words a pinned listing can name
-//   listings.json  250 listings, each with its store, handle, title, tags, product type, variants (title, store price, in stock, sku), the store's explicit-foil convention, the answer recorded for every
+//   listings.json  252 listings, each with its store, handle, title, tags, product type, variants (title, store price, in stock, sku), the store's explicit-foil convention, the answer recorded for every
 //                  variant and, for US stores, TCGplayer's market price in cents of the (product, finish) the variant matched
 // Titles, skus, variants and prices are read from those files; what is typed in below is the expected OUTCOME in words ("sylvan anthem mh2#176 N+F sku": card, set#number, finishes, key path), so a failing row
 // reads as a sentence. The recorded answers were produced on the whole 99,000-row catalogue and are replayed on the slice (the slice was built until both agreed on every pinned listing).
@@ -112,18 +112,18 @@ function table(group: string, rowsOf: Row[]): void {
 }
 
 // ── the fixtures themselves ──
-test("the fixture is the slice it says it is: 250 listings in 11 groups, every one with an answer per variant", () => {
-  assert.equal(listings.length, 250);
+test("the fixture is the slice it says it is: 252 listings in 11 groups, every one with an answer per variant", () => {
+  assert.equal(listings.length, 252);
   const groups = new Map<string, number>();
   for (const l of listings) groups.set(l.group, (groups.get(l.group) ?? 0) + 1);
-  assert.deepEqual(Object.fromEntries([...groups].sort()), { "appendix-b": 48, aliases: 9, conditions: 3, dupes: 2, finish: 16, gates: 7, rejects: 13, sample: 102, "sealed": 8, "sku-dialects": 23, "title-keys": 19 });
+  assert.deepEqual(Object.fromEntries([...groups].sort()), { "appendix-b": 48, aliases: 9, conditions: 3, dupes: 2, finish: 16, gates: 7, rejects: 15, sample: 102, "sealed": 8, "sku-dialects": 23, "title-keys": 19 });
   for (const l of listings) assert.equal(l.expect.length, l.variants.length, l.key);
   assert.equal(new Set(listings.map((l) => l.key)).size, listings.length, "a listing is one store handle");
   assert.ok(rows.length > 2000 && sealed.length > 300);
   assert.ok(rows.some((r) => r.cls !== 0), "the slice keeps tokens, art cards and oversized products so that the index has something to leave out");
 });
 
-test("every recorded answer is replayed exactly, variant by variant (all 250 listings)", () => {
+test("every recorded answer is replayed exactly, variant by variant (all 252 listings)", () => {
   const bad: string[] = [];
   for (const l of listings) {
     const got = answers(l).map(fmt);
@@ -276,6 +276,8 @@ table("rejects", [
   { store: "cardcosmos", title: "Magic: The Gathering - Der Hobbit Play Booster Box - DE", want: "miss:not-a-single" },
   { store: "stompinggrounds", title: "Rhys the Redeemed [Mystery Booster]", want: "miss:not-a-single", why: "the catalogue has no 'Mystery Booster' set, so 'Booster' is read as a sealed word" },
   { store: "gametime", title: "Prompto Argentum (Borderless) (Surge Foil) (532) [Final Fantasy]", want: "prompto argentum fin#532 F set-number ; miss:finish-conflict", why: "the title says Surge Foil and the Non Foil variants say the opposite: skipped, the foil variants match" },
+  { store: "mysterymtg", title: "Deification (Halo Foil) [MAT - 187]", want: "deification mat#187 F set-number", why: "MAT is the code of March of the Machine: The Aftermath, not a mat: a set code with its number is taken out of the title before the accessory words are looked for" },
+  { store: "reefsidegames", title: "Rebuild the City (Showcase) (MAT-093) - March of the Machine: The Aftermath: (Showcase)", want: "rebuild the city mat#93 N sku", why: "the same code, written (MAT-093); the sibling listing with a trailing Foil is the same product's foil" },
 ]);
 
 // ── store labels of sets the catalogue's vocabulary does not carry ──
@@ -329,6 +331,7 @@ test("languageOfVariant reads English and foreign words, in several languages, o
   const cases: [string, "en" | "other" | null][] = [
     ["English / Near Mint / Foil Normal", "en"], ["Inglese / Near Mint / Regolare", "en"], ["German / Near Mint / Normal", "other"], ["Italian / Excellent / Normal", "other"], ["Near Mint French", "other"],
     ["Near Mint", null], ["Default Title", null], ["Near Mint Foil", null], ["Japanese", "other"], ["Simplified Chinese / NM", "other"], ["Near Mint / Español", "other"],
+    ["Near Mint / Phyrexian", "other"], ["Hebrew / Near Mint", "other"], ["Latin", "other"], ["English / Phyrexian", "other"],
   ];
   for (const [text, want] of cases) assert.equal(languageOfVariant(text), want, text);
 });
@@ -497,6 +500,21 @@ test("the index leaves out what is not a card (tokens, art cards, oversized) and
   assert.deepEqual(ask(buildCardIndex([token, sylvan]), "MH2-176-EN-NF-1"), { id: 239693, finish: "N", path: "sku" });
   assert.deepEqual(ask(buildCardIndex([]), "MH2-176-EN-NF-1"), { miss: "sku-key-not-in-catalogue" });
   assert.deepEqual(ask(new Map(), "MH2-176-EN-NF-1"), { miss: "sku-key-not-in-catalogue" }, "an index not built by buildCardIndex is an empty one, not a crash");
+});
+
+test("a card whose own name is a grading word is a card; the same word beside the name is a slab", () => {
+  // real catalogue rows (TCGCSV 2026-10-07): Admiral Beckett Brass of Ixalan and Slab Hammer of Battle for Zendikar; no corpus listing carries these names, so they are written in the dialect of a pinned store ([SET - NUM])
+  const base = { groupId: 0, setNames: [] as string[], treat: [] as MatchRow["treat"], hasN: true, hasF: true, etched: false, rootId: null, cls: 0 };
+  const own = buildCardIndex([
+    { ...base, id: 142029, groupId: 2043, names: ["admiral beckett brass"], sc: "xln", setNames: ["ixalan"], nkey: "217", label: null },
+    { ...base, id: 105680, groupId: 1645, names: ["slab hammer"], sc: "bfz", setNames: ["battle for zendikar"], nkey: "227", label: null },
+  ]);
+  const ask = (title: string) => fmt(matchStoreProduct({ title, skus: [], variantTitle: "Near Mint / English / Normal" }, { cards: own, names: new Map(), sealed: [] }));
+  assert.equal(ask("Admiral Beckett Brass [XLN - 217]"), "142029.N.set-number");
+  assert.equal(ask("Slab Hammer [BFZ - 227]"), "105680.N.set-number");
+  assert.equal(ask("Slab Hammer PSA 9 [BFZ - 227]"), "miss:graded-lot-proxy");
+  assert.equal(ask("Admiral Beckett Brass (BGS 9.5) [XLN - 217]"), "miss:graded-lot-proxy");
+  assert.equal(ask("Admiral Beckett Brass Playset [XLN - 217]"), "miss:graded-lot-proxy");
 });
 
 test("a store product with no title, a null sku, tags as a string and a missing product type is answered, not thrown at", () => {

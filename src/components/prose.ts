@@ -1,9 +1,9 @@
 // RiftCompare's article and static-page typography, as class strings for a
 // container whose children are plain HTML elements. RiftCompare writes these
-// classes onto each element (components/Markdown.tsx, app/about/page.tsx); OP
-// Compare's blog and static pages render ordinary <p>/<h2>/<ul> children, so
-// the same values are applied through arbitrary child variants. Replaces OP's
-// old `.prose-op` class (wave 2, 2026-10-03). Literal strings: Tailwind only
+// classes onto each element (components/Markdown.tsx, app/about/page.tsx); the
+// blog and static pages here render ordinary <p>/<h2>/<ul> children, so the
+// same values are applied through arbitrary child variants. Replaces the
+// baseline's old prose class (wave 2). Literal strings: Tailwind only
 // generates the classes it can see verbatim in source.
 
 /** A blog article body: RiftCompare's Markdown.tsx element classes. */

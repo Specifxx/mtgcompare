@@ -8,7 +8,7 @@ import PlanButton from "./PlanButton";
 // (RiftCompare's DiscoveryTip): signed-in non-members only, never a popup or an
 // overlay. The button opens the Plan dialog on the lowest tier that has the
 // feature; the line hides for members at or above that tier. A dismissal is
-// remembered in this browser (localStorage "oc_tip:<id>").
+// remembered in this browser (localStorage "mc_tip:<id>").
 export function DiscoveryTip({
   id,
   surface,
@@ -27,7 +27,7 @@ export function DiscoveryTip({
 }) {
   const { me, loaded } = useMe();
   const [dismissed, setDismissed] = useState(true); // assume dismissed until read: no flash
-  const key = `oc_tip:${id}`;
+  const key = `mc_tip:${id}`;
   useEffect(() => {
     try {
       setDismissed(localStorage.getItem(key) === "1");

@@ -1,12 +1,14 @@
 name: IndexNow submit
 
-# Daily: submit every sitemap URL to IndexNow so Bing and Yandex recrawl
-# (scripts/indexnow-submit.ts). Google does not take IndexNow — it reads the
-# sitemap via Search Console (search-console.yml). No-op until the INDEXNOW_KEY
-# variable (or secret) is set. SITE_URL defaults to https://opcompare.app.
+# Daily, after the data publish (the import runs 21:25 to about 22:40 UTC): submit
+# the sitemap's hub and release URLs to IndexNow so Bing and Yandex recrawl
+# (scripts/indexnow-submit.ts follows the sectioned sitemap index). It follows the
+# daily publish, not the weekly release. Google does not take IndexNow — it reads
+# the sitemap via Search Console (search-console.yml). No-op until the INDEXNOW_KEY
+# variable (or secret) is set. SITE_URL defaults to https://mtgcompare.app.
 on:
   schedule:
-    - cron: "10 8 * * *"
+    - cron: "15 23 * * *"
   workflow_dispatch:
 
 jobs:
@@ -14,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      SITE_URL: ${{ vars.SITE_URL || 'https://opcompare.app' }}
+      SITE_URL: ${{ vars.SITE_URL || 'https://mtgcompare.app' }}
       INDEXNOW_KEY: ${{ vars.INDEXNOW_KEY || secrets.INDEXNOW_KEY }}
     steps:
       - uses: actions/checkout@v4

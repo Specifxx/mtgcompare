@@ -1,7 +1,8 @@
 import Script from "next/script";
-import { CONSENT_REGIONS, GA_ENABLED, GA_MEASUREMENT_ID } from "@/lib/ga";
+import { GA_ENABLED, GA_MEASUREMENT_ID } from "@/lib/ga";
 
-// gtag.js with Consent Mode defaults set before `config`. Page views are sent
+// gtag.js, configured after the Consent Mode defaults (ConsentDefaults, rendered
+// just before this in <head>: lib/ga.ts consentDefaultsScript). Page views are sent
 // by GAPageViewTracker on every route (first load included), as on
 // RiftCompare: `config` carries send_page_view:false, so GA4's own
 // history-change detection never double-counts a client navigation. Outbound buy clicks are
@@ -13,16 +14,14 @@ import { CONSENT_REGIONS, GA_ENABLED, GA_MEASUREMENT_ID } from "@/lib/ga";
 export function GoogleAnalytics() {
   if (!GA_ENABLED) return null;
   const init = `
-window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}window.gtag=gtag;
-gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',region:${JSON.stringify(CONSENT_REGIONS)},wait_for_update:500});
-gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'granted'});
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}window.gtag=window.gtag||gtag;
 gtag('js',new Date());if(location.pathname.indexOf('/admin')===0){window['ga-disable-${GA_MEASUREMENT_ID}']=true;}gtag('config','${GA_MEASUREMENT_ID}',{send_page_view:false});
 document.addEventListener('click',function(e){var a=e.target&&e.target.closest&&e.target.closest('a[data-retailer]');if(!a)return;
 gtag('event','buy_click',{retailer:a.getAttribute('data-retailer'),page_type:a.getAttribute('data-page')||location.pathname.split('/')[1]||'home',card:a.getAttribute('data-card')||undefined,surface:a.getAttribute('data-surface')||undefined,link_url:a.href,transport_type:'beacon'});},true);`;
   return (
     <>
-      {/* Inline and first (rendered in <head>), so gtag() and the consent
-          defaults exist before React hydrates and GAPageViewTracker queues the
+      {/* Inline and early (rendered in <head>, after the consent defaults), so gtag()
+          exists before React hydrates and GAPageViewTracker queues the
           first page_view behind `config`. The library itself loads after. */}
       <script id="ga-init" dangerouslySetInnerHTML={{ __html: init }} />
       <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} strategy="afterInteractive" />

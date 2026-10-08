@@ -10,6 +10,7 @@ import { searchNav } from "./nav-search";
 import { CountrySwitcher } from "./CountrySwitcher";
 import { BrandLogo } from "./BrandLogo";
 import { NavIcon } from "./NavIcon";
+import { TierBadge } from "./TierBadge";
 import { useScrollLock, useModalFlag, useEscapeLayer } from "./ui/Dialog";
 
 // How many database matches the overlay shows before deferring to /browse.
@@ -40,7 +41,7 @@ interface SealedHit {
   productType: string;
 }
 
-// OP Compare's /api/search answers `{ hits: [{ kind: "card"|"sealed", slug,
+// MTG Compare's /api/search answers `{ hits: [{ kind: "card"|"sealed", slug,
 // name, number, set }] }` (the header CardSearch's shape), so the two lists
 // are split out of one array here.
 interface SearchHit {
@@ -75,6 +76,7 @@ function FeatureLink({ l, pathname, onClick }: { l: NavGroupLink; pathname: stri
   return (
     <Link href={l.href} onClick={onClick} aria-current={active ? "page" : undefined} className={className}>
       <span className="font-medium">{l.label}</span>
+      {l.plan ? <TierBadge tier={l.plan} /> : null}
     </Link>
   );
 }
@@ -317,7 +319,7 @@ export function CinematicNavMenu() {
               <Link href="/" onClick={close} className="flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-brand-400">
                 <BrandLogo />
                 <span className="font-display text-lg font-extrabold text-white">
-                  OP<span className="text-brand-400">Compare</span>
+                  MTG<span className="text-brand-400">Compare</span>
                 </span>
               </Link>
               {/* The market switcher, below 360px only: under that the header
@@ -350,7 +352,7 @@ export function CinematicNavMenu() {
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 placeholder="Search cards, sealed, features…"
-                aria-label="Search OP Compare cards, sealed products and features"
+                aria-label="Search MTG Compare cards, sealed products and features"
                 className="input w-full"
                 type="search"
               />

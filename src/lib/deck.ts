@@ -164,7 +164,7 @@ function blockGaps(rows: string[]): number {
 }
 
 export function parseDeckList(text: string, opts: { keepMaybe?: boolean } = {}): DeckLine[] {
-  const rows = text.replace(/^﻿/, "").replace(/ /g, " ").split(/\r?\n/);
+  const rows = text.replace(/^\uFEFF/, "").replace(/\u00A0/g, " ").split(/\r?\n/);
   const headed = rows.some((r) => { const z = zoneHeaderOf(r); return z !== null && z !== "neutral" && !/^\s*\d/.test(r); });
   // No headers and exactly one blank line between two blocks: MTGO's export, the second block is the sideboard. More blocks are just spacing.
   const twoBlocks = !headed && blockGaps(rows) === 1;
@@ -330,6 +330,11 @@ export function mergeLines<R extends ResolvedLine<{ id: number }>>(rows: R[]): R
     } else {
       const prev = out[i]!;
       prev.line.qty = Math.min(QTY_CAP, prev.line.qty + r.line.qty);
+      // a request that could not be met stays on the merged row: "*E*" asked for an etched product the printing does not have, whichever line said it
+      prev.setMissed = prev.setMissed || r.setMissed;
+      prev.etchedMissed = prev.etchedMissed || r.etchedMissed;
+      prev.ambiguous = prev.ambiguous || r.ambiguous;
+      prev.finishAdjusted = prev.finishAdjusted || r.finishAdjusted;
     }
   }
   return out;

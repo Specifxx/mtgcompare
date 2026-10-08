@@ -13,7 +13,7 @@ import { CARD_FLAGS, CONDITIONS, PRICE_MASK, fold, finishLabel, nkey, tcgplayerU
 import { MARKETS, type Country } from "./country";
 import { canonicalQuery, getBrowseIndex, getCardLookup, getCardsByIds, getOracleBySlug, resolveBySetNumber, resolveOracles, type CardLite, type OracleDetail, type OracleMini } from "./data";
 import { planeSource } from "./data/plane/runtime";
-import { checkDeck, copyLimitFromText, entryKey, inferCommanders, isBasicLand, isCommanderFormat, type DeckEntry, type DeckReport, type DeckZone, DECK_FORMATS } from "./commander-rules";
+import { checkDeck, copyLimitFromText, entryKey, inferCommanders, inferredNote, isBasicLand, isCommanderFormat, type DeckEntry, type DeckReport, type DeckZone, DECK_FORMATS } from "./commander-rules";
 import {
   DECK_LINE_CAP,
   QTY_CAP,
@@ -121,9 +121,20 @@ export async function resolveDeckLines(input: readonly DeckLine[], data: DeckDat
   const bySn = pairs.length ? await data.bySetNumber(pairs) : new Map<string, CardLite[]>();
   const snHit = (l: DeckLine): CardLite[] | undefined => (l.set && l.number ? bySn.get(pairKey(l.set, l.number)) : undefined);
 
-  // 2. oracle facts for every name that must be found by name
+  // 2. oracle facts for every name that must be found by name. A card whose NAME ends in a parenthesis ("Hazmat Suit (Used)", "Erase (Not the Urza's Legacy One)")
+  //    reads like a set code to the parser: a line that names a set and finds no card by its bare name is asked again with the parenthesis put back.
   const byName = lines.filter((l) => !(l.productId && pinned.has(l.productId)) && l.name);
   const oracles = byName.length ? await data.oracles([...new Set(byName.map((l) => fold(l.name)))]) : new Map<string, OracleMini>();
+  const withParen = (l: DeckLine): string => fold(`${l.name} (${l.set})`);
+  const retry = byName.filter((l) => l.set && !oracles.has(fold(l.name)));
+  if (retry.length) for (const [k, v] of await data.oracles([...new Set(retry.map(withParen))])) oracles.set(k, v);
+  // the oracle a line names, and whether the "set" it carried was really the end of the name
+  const oracleOf = (l: DeckLine): { oracle: OracleMini | null; inName: boolean } => {
+    const plain = l.name ? oracles.get(fold(l.name)) : undefined;
+    if (plain) return { oracle: plain, inName: false };
+    const paren = l.set && l.name ? oracles.get(withParen(l)) : undefined;
+    return paren ? { oracle: paren, inName: true } : { oracle: null, inName: false };
+  };
   const printingsMemo = new Map<string, Promise<{ cards: CardLite[]; cheapId: number | null; total: number }>>();
   const printingsOf = (no: number, sc?: string): ReturnType<DeckData["printings"]> => {
     const k = `${no}|${sc ?? ""}`;
@@ -145,13 +156,14 @@ export async function resolveDeckLines(input: readonly DeckLine[], data: DeckDat
       const pick = pickFromSetNumber(hit, l.etched === true);
       if (pick && nameAgrees(l, pick.card)) return { ...NONE, card: pick.card, how: "setnumber", ambiguous: pick.ambiguous, etchedMissed: pick.etchedMissed, options: await optionsOf(pick.card) };
     }
-    const oracle = l.name ? (oracles.get(fold(l.name)) ?? null) : null;
+    const { oracle, inName } = oracleOf(l);
     if (!oracle) return NONE;
-    const inSet = l.set ? await printingsOf(oracle.no, l.set) : null;
+    const set = inName ? undefined : l.set;
+    const inSet = set ? await printingsOf(oracle.no, set) : null;
     const whole = await printingsOf(oracle.no);
     const found = !!inSet && inSet.cards.length > 0;
     const pool = found ? inSet!.cards : whole.cards;
-    const missedSet = !!l.set && (!found || !!l.number);
+    const missedSet = !!set && (!found || !!l.number);
     let card: CardLite | undefined, etchedMissed = false;
     if (l.etched) {
       card = [...pool].filter(isEtchedCard).sort((a, b) => (a.marketUsd ?? Infinity) - (b.marketUsd ?? Infinity) || a.id - b.id)[0];
@@ -203,7 +215,8 @@ export function entriesOf(rows: readonly DeckRow[]): DeckEntry[] {
     const key = `${entryKey(r.oracle, r.card.name)}|${r.line.zone}`;
     const prev = out.get(key);
     if (prev) prev.qty += r.line.qty;
-    else out.set(key, { key: entryKey(r.oracle, r.card.name), name: r.card.name, qty: r.line.qty, zone: r.line.zone, oracle: r.oracle, rarity: r.card.rarity });
+    // The rarity of a printing counts only where the list names the printing: a bare name is priced at the cheapest one, which says nothing about the card.
+    else out.set(key, { key: entryKey(r.oracle, r.card.name), name: r.card.name, qty: r.line.qty, zone: r.line.zone, oracle: r.oracle, rarity: r.how === "name" ? null : r.card.rarity });
   }
   return [...out.values()];
 }
@@ -215,7 +228,7 @@ export const guessFormat = (rows: readonly { line: { zone: DeckZone } }[]): Form
  * Judges a resolved deck against a format. Reads the oracle text of the cards the verdict depends on (the commanders: partner abilities; the cards over the copy
  * limit: "A deck can have any number of cards named ..."), at most DETAIL_CAP of them, then runs the pure check of lib/commander-rules.ts.
  */
-export async function checkResolved(rows: readonly DeckRow[], format: Format, data: DeckData = loaderData): Promise<DeckReport> {
+export async function checkResolved(rows: readonly DeckRow[], format: Format, data: DeckData = loaderData, opts: { inferred?: readonly string[] } = {}): Promise<DeckReport> {
   const entries = entriesOf(rows);
   const rules = DECK_FORMATS[format];
   const total = new Map<string, number>();
@@ -231,12 +244,17 @@ export async function checkResolved(rows: readonly DeckRow[], format: Format, da
     const d = bySlug(e);
     return d ? { ...e, oracle: { ...e.oracle!, oracleText: d.oracleText, keywords: d.keywords }, copyLimit: copyLimitFromText(d.oracleText) } : e;
   });
-  return checkDeck(format, enriched);
+  const report = checkDeck(format, enriched);
+  // the commanders were moved out of the sideboard before this check: say so, as checkDeck does when it moves them itself
+  return opts.inferred?.length ? { ...report, issues: [...report.issues, inferredNote(opts.inferred)] } : report;
 }
+
+/** The names of the cards a Commander-style format would read from the sideboard as its commander(s); empty when there is a commander already or none can lead. */
+export const inferredCommanders = (rows: readonly DeckRow[], format: Format): string[] => inferCommanders(format, entriesOf(rows)).inferred;
 
 /** MTGO and Moxfield text exports file the commander in the sideboard: for a Commander-style format with nothing in the commander slot, the card (or the legal pair) that can lead the deck moves there. */
 export function withInferredCommanders<R extends DeckRow>(rows: readonly R[], format: Format): R[] {
-  const { inferred } = inferCommanders(format, entriesOf(rows));
+  const inferred = inferredCommanders(rows, format);
   if (!inferred.length) return [...rows];
   const names = new Set(inferred);
   return rows.map((r) => (r.card && r.line.zone === "side" && names.has(r.card.name) ? { ...r, line: { ...r.line, zone: "commander" as const } } : r));
@@ -338,6 +356,28 @@ export function basketOffers<T extends { market: string; inStock: boolean; sourc
   return offers.filter((o) => o.market === market && o.inStock && isBasketSource(o.source));
 }
 
+/** A resolved row that found a card. */
+export type MatchedRow = DeckRow & { card: CardLite };
+
+/**
+ * The units a resolved list buys, for Best Basket's pasted list and the deck watch: one entry per (product, finish) with its copies summed (capped at QTY_CAP),
+ * keyed by `uid` = productId * 2 + finish as a string, the key BasketCard.cardId and the listing tuples carry. Every zone but the maybeboard (the parser drops it)
+ * is bought: a sideboard is part of the list. Lines that matched no card come back apart so the caller can say so.
+ */
+export function basketUnits(rows: readonly DeckRow[]): { wanted: Map<string, number>; info: Map<string, MatchedRow>; unmatched: DeckRow[] } {
+  const wanted = new Map<string, number>(), info = new Map<string, MatchedRow>(), unmatched: DeckRow[] = [];
+  for (const r of rows) {
+    if (!r.card) {
+      unmatched.push(r);
+      continue;
+    }
+    const uid = String(r.card.id * 2 + (r.finish === "F" ? 1 : 0));
+    wanted.set(uid, Math.min(QTY_CAP, (wanted.get(uid) ?? 0) + r.line.qty));
+    if (!info.has(uid)) info.set(uid, r as MatchedRow);
+  }
+  return { wanted, info, unmatched };
+}
+
 /** The live offers of units: the contract's one reader (offer-read.ts) over the site's pinned source, or the injected one. */
 export type OfferReader = (units: readonly { id: number; finish: Finish }[], market: Country) => Promise<LiveOffer[]>;
 export const liveOfferReader = (o: { registry?: StoreRegistry } = {}): OfferReader => async (units, market) => {
@@ -375,7 +415,8 @@ export async function priceDeck(
   const parsed = parseDeckList(text);
   const resolved = await resolveDeckLines(parsed, data);
   const asked = opts.format === undefined ? guessFormat(resolved.rows) : opts.format;
-  const rows = asked && isCommanderFormat(asked) ? withInferredCommanders(resolved.rows, asked) : resolved.rows;
+  const inferred = asked && isCommanderFormat(asked) ? inferredCommanders(resolved.rows, asked) : [];
+  const rows = inferred.length ? withInferredCommanders(resolved.rows, asked!) : resolved.rows;
   const matched = rows.filter((r): r is DeckRow & { card: CardLite } => r.card != null);
   const unmatchedRows = rows.filter((r) => !r.card);
 
@@ -433,7 +474,7 @@ export async function priceDeck(
 
   const nameOf = new Map(matched.map((m) => [keyOf(m), deckCardName(m.card, m.finish)]));
   const format = asked;
-  const check = format ? await checkResolved(rows, format, data).catch(() => null) : null;
+  const check = format ? await checkResolved(rows, format, data, { inferred }).catch(() => null) : null;
   const priced = lines.map((l) => ({ qty: l.qty, low: l.card.low }));
   return {
     market,

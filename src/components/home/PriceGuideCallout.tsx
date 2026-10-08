@@ -12,11 +12,11 @@ export function PriceGuideCallout({ totalCards }: { totalCards?: number }) {
       >
         <div className="min-w-0">
           <h2 id="price-guide-callout-h" className="text-lg font-extrabold text-white sm:text-xl">
-            One Piece price guide
+            Magic price guide
           </h2>
           <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-400">
             {totalCards ? `All ${totalCards.toLocaleString("en-US")} cards` : "Every card"} in one table, with the cheapest in-stock price in your market,
-            the 7-day change and how many stores have it. Filter by set, rarity, colour and printing.
+            the 7-day change and how many stores have it. Filter by set, rarity, colour and treatment.
           </p>
         </div>
         <span className="btn-ghost shrink-0 self-start group-hover:border-brand-500 sm:self-center">Open the price guide →</span>

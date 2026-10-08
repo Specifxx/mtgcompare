@@ -8,7 +8,7 @@
 // TCGplayer models a finish two ways, one product with Normal and Foil rows, or a separate foil-only product ("Surge Foil", "Foil Etched"); the finish picks the product that sells it, and when two products
 // sell the foil that the title cannot tell apart, the listing is skipped.
 //
-// The fixtures are those of tests/match.test.ts (tests/fixtures/titles/: real listings of 67 stores, the catalogue rows they involve); a case that is not a listing as the store has it says so (a variant title
+// The fixtures are those of tests/match.test.ts (tests/fixtures/titles/: real listings of 102 stores, the catalogue rows they involve); a case that is not a listing as the store has it says so (a variant title
 // or a sku swapped for another real one of the same product, to see which of the two decides).
 import { test } from "node:test";
 import assert from "node:assert/strict";

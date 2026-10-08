@@ -13,7 +13,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
   useEffect(() => {
     if (!isChunkError) return;
     try {
-      const KEY = "oc_chunk_reload_at";
+      const KEY = "mc_chunk_reload_at";
       const last = Number(sessionStorage.getItem(KEY) || "0");
       if (Date.now() - last > 10_000) {
         sessionStorage.setItem(KEY, String(Date.now()));
@@ -40,7 +40,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
           <div style={{ marginTop: 24, display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <button
               onClick={() => reset()}
-              style={{ background: "#d92b33", color: "#ffffff", border: 0, borderRadius: 10, padding: "10px 18px", fontWeight: 700, cursor: "pointer" }}
+              style={{ background: "#9140da", color: "#ffffff", border: 0, borderRadius: 10, padding: "10px 18px", fontWeight: 700, cursor: "pointer" }}
             >
               Try again
             </button>

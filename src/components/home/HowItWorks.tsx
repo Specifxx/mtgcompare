@@ -3,20 +3,20 @@ import { Reveal } from "@/components/Reveal";
 import { SearchIcon, ScaleIcon, CartIcon, PlayIcon } from "@/components/icons/HomeIcons";
 
 // RiftCompare's HowItWorks: four numbered steps (sm:2 lg:4), the store-list
-// link and the trust line. Step 4's links are One Piece's: the deck pricer,
-// Leaders and the keyword glossary (no games).
+// link and the trust line. Step 4's links are Magic's: the deck pricer,
+// Commanders and the keyword glossary (no games).
 const STEPS = [
   {
     n: 1,
     Icon: SearchIcon,
     title: "Search or browse",
-    body: "Look up any One Piece card by name, or browse the whole database by set, colour and Leader.",
+    body: "Look up any Magic card by name, or browse the whole database by set, colour and Commander.",
   },
   {
     n: 2,
     Icon: ScaleIcon,
     title: "Compare every store",
-    body: "See the latest prices from every store we track in your market side by side, read twice a day — ranked by price, with TCGplayer's market price as a reference, plus eBay.",
+    body: "See the latest prices from every store we track in your market side by side, read once a day — ranked by price, with TCGplayer's market price as a reference, plus eBay.",
   },
   {
     n: 3,
@@ -28,10 +28,10 @@ const STEPS = [
     n: 4,
     Icon: PlayIcon,
     title: "Then go and play",
-    body: "Price a deck, pick a Leader, or look up a keyword. The prices are the means, not the point.",
+    body: "Price a deck, pick a Commander, or look up a keyword. The prices are the means, not the point.",
     links: [
       { href: "/deck", label: "Deck pricer" },
-      { href: "/leaders", label: "Leaders" },
+      { href: "/commanders", label: "Commanders" },
       { href: "/keywords", label: "Keywords" },
     ],
   },
@@ -42,10 +42,10 @@ export function HowItWorks({ totalCards }: { totalCards: number }) {
     <section aria-labelledby="how-it-works-heading">
       <div className="mb-4">
         <h2 id="how-it-works-heading" className="text-xl font-extrabold text-white">
-          How OP Compare works
+          How MTG Compare works
         </h2>
         <p className="mt-0.5 text-sm text-slate-400">
-          Find the cheapest place to buy any of {totalCards.toLocaleString("en-US")} One Piece cards — then get back to the game. Always free.
+          Find the cheapest place to buy any of {totalCards.toLocaleString("en-US")} Magic cards — then get back to the game. Always free.
         </p>
       </div>
       <Reveal stagger className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -87,13 +87,13 @@ export function HowItWorks({ totalCards }: { totalCards: number }) {
         </Link>
       </div>
       <p className="mt-3 text-xs text-slate-500">
-        Store prices imported twice a day ·{" "}
+        Prices refreshed once a day ·{" "}
         <Link href="/methodology" className="underline-offset-2 hover:text-slate-300 hover:underline">
           See our methodology
         </Link>{" "}
         ·{" "}
         <Link href="/about" className="underline-offset-2 hover:text-slate-300 hover:underline">
-          About OP Compare
+          About MTG Compare
         </Link>{" "}
         ·{" "}
         <Link href="/editorial-policy" className="underline-offset-2 hover:text-slate-300 hover:underline">

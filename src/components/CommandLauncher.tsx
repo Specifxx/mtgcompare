@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { NAV_GROUPS } from "./nav-groups";
 import { searchNav } from "./nav-search";
 import { NavIcon } from "./NavIcon";
+import { TierBadge } from "./TierBadge";
 import { Dialog } from "./ui/Dialog";
 
 // A global "command launcher": one searchable, full-screen overlay listing every
@@ -72,7 +73,7 @@ export function CommandLauncherProvider({ children }: { children: ReactNode }) {
           every keystroke. Scroll lock/focus-trap/Escape now live on Dialog —
           this provider keeps only the global ⌘K toggle above, which must work
           even while the overlay is closed. */}
-      <Dialog open={isOpen} onClose={close} size="3xl" placement="top" z="overlay" label="Explore OP Compare">
+      <Dialog open={isOpen} onClose={close} size="3xl" placement="top" z="overlay" label="Explore MTG Compare">
         <LauncherOverlay onClose={close} />
       </Dialog>
     </Ctx.Provider>
@@ -153,7 +154,7 @@ function LauncherOverlay({ onClose }: { onClose: () => void }) {
             // it with zero visible focus state. Same ring treatment
             // CinematicNavMenu already uses for its own bare links.
             className="w-full rounded bg-transparent text-base text-slate-100 placeholder:text-slate-500 outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
-            aria-label="Search OP Compare features"
+            aria-label="Search MTG Compare features"
             role="combobox"
             aria-expanded
             aria-controls="launcher-results"
@@ -181,7 +182,10 @@ function LauncherOverlay({ onClose }: { onClose: () => void }) {
                   }`;
                   const inner = (
                     <>
-                      <span className="min-w-0 flex-1 truncate">{l.label}</span>
+                      <span className="min-w-0 flex-1 truncate">
+                        {l.label}
+                        {l.plan ? <TierBadge tier={l.plan} className="ml-1.5 align-middle" /> : null}
+                      </span>
                       <span className="shrink-0 text-[11px] uppercase tracking-wide text-slate-500">{l.group}</span>
                     </>
                   );
@@ -227,7 +231,12 @@ function LauncherOverlay({ onClose }: { onClose: () => void }) {
                   <ul className="space-y-0.5">
                     {g.links.map((l) => {
                       const groupedClassName = "flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-slate-200 transition-colors hover:bg-ink-800 hover:text-white";
-                      const inner = l.label;
+                      const inner = (
+                        <>
+                          {l.label}
+                          {l.plan ? <TierBadge tier={l.plan} /> : null}
+                        </>
+                      );
                       return (
                         <li key={l.href}>
                           {l.external ? (

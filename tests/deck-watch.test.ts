@@ -1,4 +1,4 @@
-import test from "node:test";
+import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -12,30 +12,39 @@ import {
   friendlyTargetCents,
   isDeckMaterialDrop,
   listDeckWatches,
+  loaderDeckSource,
   priceDeckList,
   shouldEmailDeckDrop,
   shouldEmailDeckTarget,
   updateDeckWatch,
   type DeckWatchRouteDb,
 } from "../src/lib/deck-watch";
+import { parseDeckList } from "../src/lib/deck";
 import { DECK_WATCH_LIMIT, deckWatchLimit } from "../src/lib/tier-limits";
-import { DAY, NOW, deckHarness, deckRow, fixtureSource, free, lapsed, plus, premium, type StoreRow } from "./helpers/deck-watch-harness";
+import { BIRDS, COUNTERSPELL, DAY, LIST_TEXT, NOW, deckHarness, deckRow, fixtureSource, free, lapsed, lowRows, plus, premium, realLowCents, servePlane, uidOf, type StoreRow } from "./helpers/deck-watch-harness";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DECK PRICE WATCH (RiftCompare's tests/deck-watch.test.ts and the deck half of
-// tests/watch-routes.test.ts, for OP Compare). Email is off until configured:
-// an alert is an in-app notification (lastFlaggedAt) unless the run is told
-// email is on, and then it is sent (lastNotifiedAt). Both move the watermark.
+// DECK PRICE WATCH (Premium; the deck half of RiftCompare's watch tests for MTG
+// Compare). Email is off until configured: an alert is an in-app notification
+// (lastFlaggedAt) unless the run is told email is on, and then it is sent
+// (lastNotifiedAt). Both move the watermark.
+//
+// A watch prices a list the way Best Basket does and a basket line is a UNIT,
+// (productId, finish): the list below is two Birds of Paradise (7th Edition 231)
+// and three Counterspell (Modern Horizons 2 267), real products of Annex A,
+// resolved by the real resolver over the 57-product published tree, with
+// listing rows at those products' own TCGplayer lows (tests/helpers).
 // ─────────────────────────────────────────────────────────────────────────────
+
+const stop = servePlane();
+after(stop);
 
 const hoursAgo = (h: number) => new Date(NOW.getTime() - h * 3_600_000);
-// Alpha 3 × $10 and Beta 1 × $20, both at Danireon.
-const LISTINGS: StoreRow[] = [
-  { cardId: 101, source: "store:danireon", priceCents: 1000, condition: "NM" },
-  { cardId: 102, source: "store:danireon", priceCents: 2000, condition: "NM" },
-];
+const LISTINGS: StoreRow[] = lowRows();
+const BIRDS_N = uidOf(BIRDS), COUNTER_N = uidOf(COUNTERSPELL), COUNTER_F = uidOf(COUNTERSPELL, "Foil");
+const ask = (listText: string) => ({ listText, market: "US" as const, region: null, trackedOnly: null });
 async function total(listings = LISTINGS): Promise<number> {
-  const p = await priceDeckList(fixtureSource(listings), { listText: "3xOP01-016\n1xOP01-024", market: "US", region: null, trackedOnly: null });
+  const p = await priceDeckList(fixtureSource(listings), ask(LIST_TEXT));
   return p!.plan.totalCents;
 }
 
@@ -67,30 +76,59 @@ test("the numbers, the friendly default target and the pure rules", () => {
   assert.equal(shouldEmailDeckDrop({ totalCents: 9_000, targetCents: null, lastTotalCents: null, lastEmailedCents: null, lastNotifiedAt: null, now: NOW }), false, "first run: nothing to compare");
 });
 
+test("the fixture rows are the real TCGplayer lows of the list's products (Birds of Paradise 7ED 231 $17.49, Counterspell MH2 267 $1.99)", () => {
+  assert.deepEqual(LISTINGS.map((r) => [r.uid, r.priceCents]), [[BIRDS_N, 1749], [COUNTER_N, 199]]);
+  assert.equal(realLowCents(COUNTERSPELL, "Foil"), 187);
+});
+
 test("priceDeckList prices the list the Best Basket way: the same resolver, the cached listings, the plan's delivered total", async () => {
   const src = fixtureSource(LISTINGS);
-  const p = await priceDeckList(src, { listText: "Leader\n3xOP01-016\n1 Beta\n2 Nobody At All\nDON!! x10", market: "US", region: null, trackedOnly: null });
+  const p = await priceDeckList(src, ask("Deck\n2 Birds of Paradise (7ED) 231\n1 Counterspell (MH2) 267\n2 Nobody At All\nTotal: 3 cards\n// a comment"));
   assert.ok(p);
-  assert.equal(p.requestedCopies, 4);
-  assert.equal(p.unmatchedLines, 1, "an unmatched line is reported, never priced; DON!! and headers are not lines");
-  assert.equal(p.plan.coveredCopies, 4);
+  assert.equal(p.requestedCopies, 3);
+  assert.equal(p.unmatchedLines, 1, "an unmatched line is reported, never priced; headers, totals and comments are not lines");
+  assert.equal(p.plan.coveredCopies, 3);
   assert.equal(p.complete, true);
-  assert.equal(p.plan.itemsCents, 5000);
-  assert.equal(p.plan.totalCents, 5000 + p.plan.shippingCents + p.plan.topUpCents);
-  assert.deepEqual(src.reads, [[101, 102]], "one listing read for the list");
-  assert.equal(await priceDeckList(src, { listText: "2 Nobody At All", market: "US", region: null, trackedOnly: null }), null, "nothing resolved: not priced");
+  assert.equal(p.plan.itemsCents, 2 * 1749 + 199);
+  assert.equal(p.plan.totalCents, p.plan.itemsCents + p.plan.shippingCents + p.plan.topUpCents);
+  assert.deepEqual(src.reads, [[BIRDS_N, COUNTER_N]], "one listing read for the list, by unit");
+  assert.equal(await priceDeckList(src, ask("2 Nobody At All")), null, "nothing resolved: not priced");
+});
+
+test("a basket line is a UNIT: Foil and Normal copies of one card are two lines with two prices, and a Normal listing never fills a Foil copy", async () => {
+  const both: StoreRow[] = [...LISTINGS, { uid: COUNTER_F, source: "tcgplayer", priceCents: realLowCents(COUNTERSPELL, "Foil")!, condition: 0 }];
+  const src = fixtureSource(both);
+  const p = await priceDeckList(src, ask("1 Counterspell (MH2) 267\n1 Counterspell (MH2) 267 *F*"));
+  assert.ok(p);
+  assert.deepEqual(src.reads, [[COUNTER_N, COUNTER_F]], "two units, one read");
+  assert.equal(p.plan.coveredCopies, 2);
+  assert.equal(p.plan.itemsCents, 199 + 187, "each copy at its own finish's low");
+  const normalOnly = await priceDeckList(fixtureSource(LISTINGS), ask("1 Counterspell (MH2) 267\n1 Counterspell (MH2) 267 *F*"));
+  assert.equal(normalOnly!.plan.coveredCopies, 1, "the Foil copy has no listing of its own");
+  assert.equal(normalOnly!.complete, false);
+  assert.equal(normalOnly!.requestedCopies, 2);
+  const merged = await priceDeckList(fixtureSource(LISTINGS), ask("2 Counterspell (MH2) 267\n1 Counterspell (MH2) 267"));
+  assert.equal(merged!.requestedCopies, 3, "repeated lines of one unit are summed");
+});
+
+test("the default source reads the published files: the resolver over the plane and TCGplayer's own low as the listing (no database, no Neon)", async () => {
+  const src = loaderDeckSource();
+  const rows = await src.resolve(parseDeckList("1 Counterspell (MH2) 267 *F*\n1 Birds of Paradise (7ED) 231"));
+  assert.deepEqual(rows.map((r) => [r.card?.id, r.finish]), [[COUNTERSPELL, "F"], [BIRDS, "N"]]);
+  const tuples = await src.listings("US", [COUNTER_F, BIRDS_N]);
+  assert.deepEqual(tuples.map((t) => [t[0], t[1], t[2]]).sort((a, b) => Number(a[0]) - Number(b[0])), [[BIRDS_N, "tcgplayer", 1749], [COUNTER_F, "tcgplayer", 187]]);
 });
 
 test("email off: a target met is an in-app notification (lastFlaggedAt), once, linking back to the plan; quiet until a further 5%", async () => {
   const t = await total();
-  const h = deckHarness([deckRow("w1", premium, { targetCents: t, name: "Luffy aggro" })], LISTINGS);
+  const h = deckHarness([deckRow("w1", premium, { targetCents: t, name: "Birds and Counterspell" })], LISTINGS);
   const s = await h.run();
   assert.equal(s.targets, 1);
   assert.equal(s.notified, 1);
   assert.equal(s.emails, 0);
   assert.equal(h.sent.length, 0, "nothing is sent while email is off");
   assert.equal(h.notified[0]!.type, "deck_watch");
-  assert.match(h.notified[0]!.title, /^Luffy aggro is under your target: US\$\d+\.\d\d delivered$/);
+  assert.match(h.notified[0]!.title, /^Birds and Counterspell is under your target: US\$\d+\.\d\d delivered$/);
   assert.equal(h.notified[0]!.href, "/tools/best-basket?watch=w1");
   const w = h.writeFor("w1")!;
   assert.equal(w.lastTotalCents, t);
@@ -109,7 +147,8 @@ test("email on: the alert is sent and stamps lastNotifiedAt; a failed send holds
   assert.equal(h.sent[0]!.to, "w1@example.com");
   assert.equal(h.sent[0]!.item.kind, "deck_target");
   assert.equal(h.sent[0]!.item.storeCount, 1);
-  assert.equal(h.sent[0]!.item.stores[0]!.name, "Danireon Cards & Games");
+  assert.equal(h.sent[0]!.item.stores[0]!.name, "TCGplayer");
+  assert.equal(h.sent[0]!.item.requestedCopies, 5);
   assert.deepEqual(h.writeFor("w1")!.lastNotifiedAt, NOW);
   const failing = deckHarness([deckRow("w1", premium, { targetCents: t, lastTotalCents: t + 500 })], LISTINGS, { emailEnabled: true, sendOk: false });
   const s2 = await failing.run();
@@ -118,7 +157,7 @@ test("email on: the alert is sent and stamps lastNotifiedAt; a failed send holds
   assert.equal(failing.writeFor("w1")!.lastEmailedCents, undefined);
 });
 
-test("with no target, a material drop alerts; a sub-5% move is stored but silent", async () => {
+test("with no target, a material drop alerts; a sub-5% move is stored but silent; the whole list moving in an import is what the run sees", async () => {
   const t = await total();
   const quiet = deckHarness([deckRow("w1", premium, { lastTotalCents: Math.round(t * 1.03) })], LISTINGS);
   assert.equal((await quiet.run()).drops, 0);
@@ -127,6 +166,12 @@ test("with no target, a material drop alerts; a sub-5% move is stored but silent
   const loud = deckHarness([deckRow("w1", premium, { lastTotalCents: Math.round(t * 1.2) })], LISTINGS);
   assert.equal((await loud.run()).drops, 1);
   assert.match(loud.notified[0]!.title, /is now US\$\d+\.\d\d delivered$/);
+  // a later import: every low 15% down against the total the watch last saw
+  const cheaper = lowRows(0.85), after = await total(cheaper);
+  assert.ok(after < t);
+  const next = deckHarness([deckRow("w1", premium, { lastTotalCents: t })], cheaper);
+  assert.equal((await next.run()).drops, 1);
+  assert.equal(next.writeFor("w1")!.lastTotalCents, after);
 });
 
 test("snoozed: no alert, baseline advances; lapsed and Plus owners are skipped untouched; a failed read aborts unwritten", async () => {
@@ -140,6 +185,7 @@ test("snoozed: no alert, baseline advances; lapsed and Plus owners are skipped u
   assert.equal((await gone.run()).lapsed, 3);
   assert.equal(gone.writes.length, 0, "rows kept, nothing written");
   assert.equal(gone.source.reads.length, 0, "no read for an owner who is not entitled");
+  await assert.rejects(priceDeckList(fixtureSource(LISTINGS, { fail: true }), ask(LIST_TEXT)), /listing read failed/, "a failed listing read is never priced as nothing in stock");
 });
 
 test("the per-account cap: rows past DECK_WATCH_LIMIT (oldest first) are not priced; an incomplete plan never fires", async () => {
@@ -181,21 +227,22 @@ const u = (id: string, tier: typeof premium) => ({ ...tier, id, email: `${id}@ex
 test("routes: Premium to create or edit (402 otherwise); snooze and stop are any owner's; only the owner's rows; 409 at the limit", async () => {
   const { db, rows } = deckDb();
   for (const who of [free, plus, lapsed]) {
-    const res = await createDeckWatch(db, u("x", who), { name: "d", listText: "3xOP01-016" }, "US");
+    const res = await createDeckWatch(db, u("x", who), { name: "d", listText: "3 Counterspell (MH2) 267" }, "US");
     assert.equal(res.status, 402);
     assert.equal(res.body.code, "tier_required");
   }
-  const created = await createDeckWatch(db, u("owner", premium), { name: " Luffy aggro ", listText: "3xOP01-016\n1xOP01-024", targetCents: 18_000, region: "NE", trackedOnly: true }, "US");
+  const created = await createDeckWatch(db, u("owner", premium), { name: " Burn sideboard ", listText: LIST_TEXT, targetCents: 18_000, region: "NE", trackedOnly: true }, "US");
   assert.equal(created.status, 201);
   const w = created.body.watch as Record<string, unknown>;
-  assert.equal(w.name, "Luffy aggro");
+  assert.equal(w.name, "Burn sideboard");
   assert.equal(w.targetCents, 18_000);
   assert.equal(w.region, "NE");
   assert.equal(w.market, "US");
-  const named = await createDeckWatch(db, u("owner", premium), { listText: "2 Nami\n1xOP01-024" }, "US");
-  assert.equal((named.body.watch as { name: string }).name, "Nami +1", "a name defaults to the first card");
+  const named = await createDeckWatch(db, u("owner", premium), { listText: "2 Sol Ring (C21) 263 *F*\n1 Counterspell" }, "US");
+  assert.equal((named.body.watch as { name: string }).name, "Sol Ring +1", "a name defaults to the first card");
   assert.equal((await createDeckWatch(db, u("owner", premium), { listText: "" }, "US")).status, 400);
-  assert.equal((await createDeckWatch(db, u("owner", premium), { listText: "3xOP01-016", targetCents: "lots" }, "US")).status, 400);
+  assert.equal((await createDeckWatch(db, u("owner", premium), { listText: "Sideboard\nTotal: 15 cards" }, "US")).status, 400, "headers and totals are not a list");
+  assert.equal((await createDeckWatch(db, u("owner", premium), { listText: "3 Counterspell (MH2) 267", targetCents: "lots" }, "US")).status, 400);
   rows[0]!.lastEmailedCents = 17_000;
   assert.equal((await updateDeckWatch(db, u("someone-else", premium), "d1", { targetCents: 5 }, NOW)).status, 404);
   assert.equal((await updateDeckWatch(db, u("owner", plus), "d1", { targetCents: 5000 }, NOW)).status, 402);
@@ -206,7 +253,7 @@ test("routes: Premium to create or edit (402 otherwise); snooze and stop are any
   assert.equal((await deleteDeckWatch(db, u("someone-else", premium), "d1")).status, 404);
   assert.equal((await deleteDeckWatch(db, u("owner", free), "d1")).status, 200, "a lapsed owner can stop a watch");
   const full = deckDb(Array.from({ length: DECK_WATCH_LIMIT }, (_, i) => ({ id: `x${i}`, userId: "owner" })));
-  const res = await createDeckWatch(full.db, u("owner", premium), { listText: "1xOP01-016" }, "US");
+  const res = await createDeckWatch(full.db, u("owner", premium), { listText: "1 Counterspell (MH2) 267" }, "US");
   assert.equal(res.status, 409);
   assert.equal(res.body.count, DECK_WATCH_LIMIT);
 });
@@ -217,4 +264,13 @@ test("the routes import no Prisma client; the per-user library is in CLAUDE.md's
     assert.doesNotMatch(src, /@\/lib\/db"/);
     assert.match(src, /getCurrentUser\(\)/);
   }
+});
+
+test("the watch reads the published files, never a database or a catalogue held in memory, and never eBay", () => {
+  const src = readFileSync(join(process.cwd(), "src/lib/deck-watch.ts"), "utf8").replace(/\/\/.*$/gm, "");
+  assert.doesNotMatch(src, /getCatalog\b|indexCards|deckIndex/, "no whole-catalogue read");
+  assert.doesNotMatch(src, /\bebay/i, "eBay is never in a deck plan");
+  assert.match(src, /unitOfUid/, "a basket item is a unit");
+  assert.equal((src.match(/prisma\./g) ?? []).length >= 1, true, "Neon holds the watch rows only");
+  assert.doesNotMatch(src, /prisma\.(card|offer|priceHistory|publishedDeck)\b/);
 });

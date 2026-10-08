@@ -50,12 +50,12 @@ test("the desktop card search is wide, not the old max-w-sm", () => {
   assert.match(nav, /className="input w-full max-w-xl"/, "the Suspense fallback must be the same width, or the row jumps on hydration");
 });
 
-test("the hero CinematicHero still carries the #op-hero marker", () => {
+test("the hero CinematicHero still carries the #mc-hero marker", () => {
   // No longer used by HeaderSearchSlot, but FeedbackWidget watches the same id
   // for its own "don't compete with the hero search" check.
   const code = codeOnly(read("src/components/home/CinematicHero.tsx"));
-  assert.match(code, /id="op-hero"/);
-  assert.match(codeOnly(read("src/components/FeedbackWidget.tsx")), /op-hero/, "the marker's remaining consumer");
+  assert.match(code, /id="mc-hero"/);
+  assert.match(codeOnly(read("src/components/FeedbackWidget.tsx")), /mc-hero/, "the marker's remaining consumer");
 });
 
 test("CardSearch never calls useSearchParams() — the real input must be in the server HTML", () => {

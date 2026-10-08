@@ -74,8 +74,10 @@ jobs:
           run() { echo; echo "=== $* ==="; "$@" || echo 1 > rc.txt; }
           PREV_ARGS=""
           if [ -d .data-prev/v1 ]; then PREV_ARGS="--prev .data-prev/v1"; fi
+          # the validator runs in the phase the pointer names: a catalogue-only publish (a bootstrap, or phase 2 still to land) legitimately has no store files yet
+          PHASE="$(node -e 'const p=require("./.data/latest.json");console.log(p.phase==="catalog"?"catalog":"full")')"
           {
-            run npx tsx scripts/contract-checks/check-plane-tree.ts .data/v1
+            run npx tsx scripts/contract-checks/check-plane-tree.ts .data/v1 --phase "$PHASE"
             run npx tsx scripts/audit-publication.ts --dir .data
             run npx tsx scripts/audit-publication.ts --remote
             run npx tsx scripts/audit-catalogue.ts --dir .data $PREV_ARGS

@@ -68,22 +68,22 @@ export function CinematicHero({
           <div className="animate-fade-in [animation-delay:80ms] hidden items-center justify-center gap-2 sm:flex">
             <BrandLogo className="h-8 w-8" />
             <span className="text-lg font-extrabold tracking-tight text-white">
-              OP<span className="text-brand-400">Compare</span>
+              MTG<span className="text-brand-400">Compare</span>
             </span>
           </div>
           <h1 className="animate-fade-in [animation-delay:160ms] mx-auto max-w-4xl text-2xl font-extrabold leading-[1.15] tracking-tight text-white sm:mt-4 sm:text-4xl lg:text-5xl">
-            <span className="text-brand-400">One Piece</span> Card Prices{region ? ` in ${SHORT_PLACE[region.code]}` : ""}
+            <span className="text-brand-400">MTG</span> Card Prices{region ? ` in ${SHORT_PLACE[region.code]}` : ""}
           </h1>
           <p className="animate-fade-in [animation-delay:240ms] mx-auto mt-2 max-w-2xl text-base text-slate-300 sm:mt-4">
-            <strong className="block text-base font-semibold text-white sm:text-xl">Buy One Piece cards at the best price</strong>
+            <strong className="block text-base font-semibold text-white sm:text-xl">Buy Magic: The Gathering cards at the best price</strong>
             <span className="hidden sm:inline">
-              Price check any card and find the cheapest place to buy — live One Piece Card Game prices from every {heroAdjective} store we track, plus
-              five more markets in their own currency: {otherMarkets}, updated twice a day.
+              Price check any card and find the cheapest place to buy: live Magic card prices from every {heroAdjective} store we track, plus
+              five more markets in their own currency: {otherMarkets}, updated daily.
             </span>
           </p>
           <div className="relative z-20 animate-fade-in [animation-delay:300ms] mx-auto mt-6 hidden max-w-2xl sm:block">
             <Suspense fallback={<div className="input mx-auto h-12 max-w-2xl" />}>
-              <CardSearch size="lg" placeholder="Search any One Piece card…" />
+              <CardSearch size="lg" placeholder="Search any Magic card…" />
             </Suspense>
           </div>
           <TrendingChips cards={trendingCards} />
@@ -106,7 +106,7 @@ export function CinematicHero({
 function ParallaxShell({ children }: { children: React.ReactNode }) {
   return (
     <ParallaxRoot
-      id="op-hero"
+      id="mc-hero"
       className="relative z-10 left-1/2 -mt-6 flex min-h-[30vh] w-screen translate-x-[calc(-50%-var(--sidenav-w)/2)] items-center"
     >
       {children}

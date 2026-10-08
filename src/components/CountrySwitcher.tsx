@@ -7,7 +7,7 @@ import { useCountry } from "./CountryProvider";
 
 // Market chooser (RiftCompare's CountrySwitcher): the six markets. Switching
 // re-prices the SAME page for the chosen market and persists it via cookie.
-// OP Compare does not port RiftCompare's UK GBP→EUR display toggle.
+// MTG Compare does not port RiftCompare's UK GBP→EUR display toggle.
 // `anchored`: the panel always hangs off the button's right edge. The menu
 // overlay's copy passes it; the header's copy does not (see the panel below).
 export function CountrySwitcher({ className = "", anchored = false }: { className?: string; anchored?: boolean }) {

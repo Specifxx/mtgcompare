@@ -17,14 +17,14 @@ import {
 // and stay in sync through one window event, so flipping either updates the
 // other instantly.
 //
-// State starts as "light" (the server-rendered default) and re-syncs from the DOM on mount rather than reading
+// State starts as "dark" (the server-rendered default) and re-syncs from the DOM on mount rather than reading
 // the cookie during render: the server renders no cookie, and a first client
 // render that disagreed with the server's would be a hydration mismatch. The
 // attribute itself is stamped before paint by THEME_BOOT_SCRIPT (layout.tsx),
 // so the page is never the wrong colour — only this button's icon is one
 // effect-tick behind, which no one can see.
 
-const EVENT = "oc:theme";
+const EVENT = "mc:theme";
 
 function readTheme(): ThemeMode {
   return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
@@ -37,22 +37,22 @@ export function applyTheme(mode: ThemeMode) {
 }
 
 export function ThemeToggle({ variant = "icon", className = "" }: { variant?: "icon" | "row"; className?: string }) {
-  const [mode, setMode] = useState<ThemeMode>("light");
+  const [mode, setMode] = useState<ThemeMode>("dark");
 
   useEffect(() => {
     // The cookie is the source of truth. applyTheme runs UNCONDITIONALLY, not only
     // when attribute and cookie disagree: the boot script stamps data-theme but
-    // never touches <meta name="theme-color">, so a dark visitor kept light
-    // browser chrome. Idempotent (a setAttribute plus a meta write).
+    // never touches <meta name="theme-color">, so a visitor who chose the non-default
+    // theme kept the default browser chrome. Idempotent (a setAttribute plus a meta write).
     const next = resolveThemeMode(readThemeCookie(document.cookie));
     applyTheme(next);
     setMode(next);
     const onChange = (e: Event) => setMode((e as CustomEvent<ThemeMode>).detail);
     window.addEventListener(EVENT, onChange);
     // Next 14 removes and re-inserts <meta name="theme-color"> (the layout's static,
-    // light viewport.themeColor) on every client navigation, so a one-off write is
+    // viewport.themeColor (the default theme's)) on every client navigation, so a one-off write is
     // undone by the first link click (measured 2026-09-23: /sets → /sets/origins
-    // put it back to #0b0e14). Re-stamp it whenever <head> changes.
+    // put it back to #0c0b14). Re-stamp it whenever <head> changes.
     // childList only, so our own setAttribute cannot re-trigger the observer.
     const syncMeta = () => {
       const want = THEME_COLOR[readTheme()];

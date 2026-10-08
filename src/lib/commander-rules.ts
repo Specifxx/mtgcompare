@@ -142,12 +142,13 @@ export function canPair(a: RuleOracle, b: RuleOracle): boolean {
 // ── who may lead the deck ────────────────────────────────────────────────────────────────────────────────────────────────────
 
 /** May this card be the (first) commander of a deck in this format? Commander, Duel Commander and PreDH: ORACLE_FLAGS.COMMANDER (a legendary creature, a legendary Vehicle or Spacecraft with power and toughness, or text that says so).
- *  Brawl: that, or any legendary creature or planeswalker. Oathbreaker: a planeswalker. Pauper Commander: a creature that is legal there or printed at uncommon. */
+ *  Brawl: that, or any legendary creature or planeswalker. Oathbreaker: a planeswalker. Pauper Commander: a creature that is legal there, or restricted there (Scryfall's word for a
+ *  card printed only at uncommon, which may lead but not fill the deck), or printed at uncommon or common. */
 export function commanderEligible(format: Format, o: RuleOracle, rarity?: string | null): boolean {
   const fam = DECK_FORMATS[format].family;
   if (fam === "oathbreaker") return isPlaneswalker(o);
   if (fam === "brawl") return (o.flags & ORACLE_FLAGS.COMMANDER) !== 0 || (isLegendary(o) && (isCreature(o) || isPlaneswalker(o)));
-  if (format === "paupercommander") return isCreature(o) && (legalityOf(o.legal, format) === "legal" || rarity === "U" || rarity === "C");
+  if (format === "paupercommander") { const s = legalityOf(o.legal, format); return isCreature(o) && (s === "legal" || s === "restricted" || rarity === "U" || rarity === "C"); }
   return (o.flags & ORACLE_FLAGS.COMMANDER) !== 0;
 }
 
@@ -210,6 +211,9 @@ export function inferCommanders(format: Format, entries: readonly DeckEntry[]): 
   return { entries: entries.map((e) => (moved.has(e) ? { ...e, zone: "commander" as const } : e)), inferred: pick.map((e) => e.name) };
 }
 
+/** The note that says which cards were read from the sideboard as the commander(s). */
+export const inferredNote = (names: readonly string[]): DeckIssue => ({ code: "inferred", level: "note", message: `Read ${names.join(" and ")} from the sideboard as the commander${names.length > 1 ? "s" : ""}.`, names: cap([...names]) });
+
 /** Judges a list against a format. Pure: the caller resolves the lines and passes the oracle facts. A format that leads with a commander and has none in the commander slot looks in the sideboard first (inferCommanders). */
 export function checkDeck(format: Format, input: readonly DeckEntry[], opts: { inferCommander?: boolean } = {}): DeckReport {
   const rules = DECK_FORMATS[format];
@@ -227,8 +231,9 @@ export function checkDeck(format: Format, input: readonly DeckEntry[], opts: { i
 
   // size
   if (rules.verified) {
-    if (rules.min === rules.max && counts.deck !== rules.min) err("size", `A ${label} deck is exactly ${rules.min} cards${led ? ", the commander included" : ""} (this list has ${counts.deck}).`);
-    else if (rules.max === null && counts.deck < rules.min) err("size", `A ${label} deck needs at least ${rules.min} cards in the main deck (this list has ${counts.deck}).`);
+    const a = /^[AEIOU]/i.test(label) ? "An" : "A";
+    if (rules.min === rules.max && counts.deck !== rules.min) err("size", `${a} ${label} deck is exactly ${rules.min} cards${led ? ", the commander included" : ""} (this list has ${counts.deck}).`);
+    else if (rules.max === null && counts.deck < rules.min) err("size", `${a} ${label} deck needs at least ${rules.min} cards in the main deck (this list has ${counts.deck}).`);
     if (rules.side === 0 && counts.side > 0) (led ? note : err)("side-size", `${label} has no sideboard${led ? `: the ${plural(counts.side, "card", "cards")} listed there ${counts.side === 1 ? "is" : "are"} not part of the deck` : ""}.`);
     else if (rules.side > 0 && counts.side > rules.side) err("side-size", `A sideboard holds at most ${rules.side} cards (this one has ${counts.side}).`);
   }
@@ -293,7 +298,7 @@ export function checkDeck(format: Format, input: readonly DeckEntry[], opts: { i
     const odd = entries.filter((e) => e.oracle && e.rarity && !["C", "L"].includes(e.rarity) && legalityOf(e.oracle.legal, format) === "legal" && !isBasicLand(e.oracle.typeLine)).map((e) => e.name);
     if (odd.length) note("pauper-rarity", `Legal in ${label} through a common printing; the printing in this list is not a common: ${odd.slice(0, MAX_NAMES).join(", ")}.`, odd);
   }
-  if (inferred.length) note("inferred", `Read ${inferred.join(" and ")} from the sideboard as the commander${inferred.length > 1 ? "s" : ""}.`, inferred);
+  if (inferred.length) issues.push(inferredNote(inferred));
   if (unchecked.length) note("unchecked", `${plural(unchecked.length, "card was", "cards were")} not checked (legality unknown): ${unchecked.slice(0, MAX_NAMES).join(", ")}.`, unchecked);
 
   return { format, label, ok: !issues.some((i) => i.level === "error"), issues, counts, identity, commanders: commanderNames, unchecked, verified: rules.verified };

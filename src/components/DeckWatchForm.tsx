@@ -19,7 +19,7 @@ import { DEFAULT_MIN_CONDITION, MIN_CONDITIONS, MIN_CONDITION_LABEL, MIN_CONDITI
 // rounded down to a friendly figure) and on /deck (no total yet: the target
 // starts empty and "tell me on a real drop" is the default).
 //
-// EMAIL. OP Compare sends nothing until email is configured (getEmailStatus,
+// EMAIL. MTG Compare sends nothing until email is configured (getEmailStatus,
 // CLAUDE.md "Email"): while `emailOn` is false the copy says the alert lands in
 // the member's notifications and on their watchlist, never "we email you".
 //

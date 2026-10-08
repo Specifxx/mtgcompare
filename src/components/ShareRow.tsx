@@ -6,7 +6,7 @@ import { SITE_URL } from "@/lib/site";
 
 // RiftCompare's ShareRow: X, Reddit, Facebook and WhatsApp intent links, the
 // native share sheet where the browser has one, and "Copy link". Each click
-// sends one GA `share_click` event ({ channel, source }) — OP Compare's
+// sends one GA `share_click` event ({ channel, source }) — MTG Compare's
 // custom events go to GA4 only (lib/analytics.ts).
 export interface ShareRowProps {
   url?: string;
@@ -16,7 +16,7 @@ export interface ShareRowProps {
   size?: "sm" | "md";
 }
 
-const DEFAULT_TITLE = "OP Compare — compare One Piece Card Game prices across every store";
+const DEFAULT_TITLE = "MTG Compare — compare Magic: The Gathering prices across every store";
 
 export function ShareRow({ url, title, source, className, size = "md" }: ShareRowProps) {
   const shareUrl = url ?? SITE_URL;

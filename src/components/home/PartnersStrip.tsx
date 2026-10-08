@@ -9,8 +9,8 @@ import { useCountry } from "@/components/CountryProvider";
 // disclosure line.
 export function PartnersStrip() {
   const { country } = useCountry();
-  const ebayHref = ebaySearchUrl(country, "One Piece Card Game", "partners_strip");
-  const tcgHref = affiliateUrl("https://www.tcgplayer.com/search/one-piece-card-game/product?productLineName=one-piece-card-game", "partners_strip", "/");
+  const ebayHref = ebaySearchUrl(country, "Magic The Gathering cards", "partners_strip");
+  const tcgHref = affiliateUrl("https://www.tcgplayer.com/search/magic/product?productLineName=magic", "partners_strip", "/");
   return (
     <section className="flex flex-col items-center gap-1 text-center">
       <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-slate-500">

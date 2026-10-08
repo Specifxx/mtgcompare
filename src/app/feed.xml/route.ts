@@ -1,23 +1,21 @@
 import { POSTS, postHref } from "@/lib/blog";
-import { getCatalog } from "@/lib/data";
+import { getDataRef } from "@/lib/data";
+import { publicDataHeaders } from "@/lib/data/plane/headers";
+import { postTitle } from "@/lib/seo";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
-export const revalidate = 21600;
+// The blog's RSS feed. A post title may carry the month of the data ("... (October 2026)"), so the route reads the pointer of the published data
+// for its date; it reads nothing else. force-dynamic under the CDN header of headers.json (contract 12.7), never prerendered at build.
+export const dynamic = "force-dynamic";
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 export async function GET() {
-  let titles = new Map<string, string>();
-  try {
-    const cat = await getCatalog();
-    titles = new Map(POSTS.map((p) => [p.slug, p.title({ cat })]));
-  } catch {
-    /* no database yet: fall back to slugs */
-  }
+  const pricesAt = (await getDataRef().catch(() => null))?.publishedAt;
   const items = POSTS.map((p) => {
     const url = `${SITE_URL}${postHref(p)}`;
-    return `<item><title>${esc(titles.get(p.slug) ?? p.slug)}</title><link>${url}</link><guid>${url}</guid><pubDate>${new Date(p.date).toUTCString()}</pubDate><description>${esc(p.description)}</description></item>`;
+    return `<item><title>${esc(postTitle(p, pricesAt))}</title><link>${url}</link><guid>${url}</guid><pubDate>${new Date(p.date).toUTCString()}</pubDate><description>${esc(p.description)}</description></item>`;
   }).join("");
   const xml = `<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>${esc(SITE_NAME)} blog</title><link>${SITE_URL}/blog</link><description>${esc(SITE_DESCRIPTION)}</description><language>en</language>${items}</channel></rss>`;
-  return new Response(xml, { headers: { "Content-Type": "application/rss+xml; charset=utf-8" } });
+  return new Response(xml, { headers: publicDataHeaders({ "content-type": "application/rss+xml; charset=utf-8" }) });
 }

@@ -1,6 +1,6 @@
 // src/lib/match.ts (owner WP03; the entry points and their types are FROZEN by the contract, the bodies are WP03's, specified by design/stores-brief.md section 5 and pinned by tests/match.test.ts against real titles).
 //
-// Matching a store's listing to ONE (TCGplayer product, finish) or to nothing. The rule is RiftCompare's and OP Compare's: understated, never wrong. A listing that two products fit, that names
+// Matching a store's listing to ONE (TCGplayer product, finish) or to nothing. The rule is RiftCompare's: understated, never wrong. A listing that two products fit, that names
 // a card the key does not hold, that states a treatment or a set the product lacks, or whose finish the store does not state is SKIPPED with a reason; nothing is guessed.
 //
 // THE KEY, in this order (the first that exists wins; a name alone is never a key, 83% of printings share their name):
@@ -127,6 +127,7 @@ const LANGUAGE_WORDS: ReadonlyMap<string, string> = new Map([
   ["korean", "ko"], ["coreano", "ko"], ["koreanisch", "ko"],
   ["chinese", "zh"], ["cinese", "zh"], ["chinesisch", "zh"], ["simplified", "zh"], ["traditional", "zh"],
   ["russian", "ru"], ["russo", "ru"], ["russisch", "ru"],
+  ["phyrexian", "ph"], ["hebrew", "he"], ["latin", "la"], ["greek", "grc"], ["arabic", "ar"], ["sanskrit", "sa"],      // the other languages Scryfall lists for a printing
 ]);
 const SKU_LANGUAGES: ReadonlyMap<string, string> = new Map([["EN", "en"], ["ENG", "en"], ["DE", "de"], ["GER", "de"], ["FR", "fr"], ["IT", "it"], ["ES", "es"], ["SP", "es"], ["PT", "pt"], ["JA", "ja"], ["JP", "ja"], ["JPN", "ja"], ["KO", "ko"], ["KR", "ko"], ["ZH", "zh"], ["CS", "zh"], ["CT", "zh"], ["CN", "zh"], ["RU", "ru"]]);
 /** The language a variant states: "en" (an English word and no other), "other", or null (it states none). */
@@ -662,21 +663,23 @@ function skuKeyOf(skus: readonly (string | null | undefined)[], v: Vocab): { own
   return { own, key: own ?? real[0] ?? null };
 }
 const stripPiece = (title: string, piece: string): string => (piece ? title.replace(piece, " ") : title);
+const SET_NUM_TOKEN = /(?<![A-Za-z0-9])([A-Za-z0-9]{2,6})\s*[-:#]\s*#?0*\d{1,4}[A-Za-z★]?(?![A-Za-z0-9])/g;
 
 /**
  * What the title alone rules out: another language, a graded slab, a lot or a proxy, an accessory, an art card or a token, a sealed product ("sealed": the caller may still match it from the sealed list). Sealed words,
- * "Token" and the like are judged on what is left of the title once the card's name and its set are taken out, because "Booster Tutor", "Gift of Orzhova", "Tin Street Hooligan" and "Case of the Locked Hothouse" are cards.
+ * "Token" and the like are judged on what is left of the title once the card's name and its set are taken out, because "Booster Tutor", "Gift of Orzhova", "Tin Street Hooligan", "Case of the Locked Hothouse", "Nim Replica",
+ * "Slab Hammer" and "Admiral Beckett Brass" are cards (the grading words too: 7 of the 77,751 card-and-printing titles of the catalogue carry one).
  */
 function titleRejects(title: string, m: IndexMeta, v: Vocab): StoreMiss | "sealed" | null {
   if (CJK.test(title) || FOREIGN_TITLE.test(title.replace(FOREIGN_OK, " "))) return { miss: "language-title" };
-  if (GRADED.test(title)) return { miss: "graded-lot-proxy" };
-  if (NOT_SINGLE.test(title) || ACCESSORY.test(title) || ART_TOKEN.test(title) || PROXYISH.test(title)) {
+  if (GRADED.test(title) || NOT_SINGLE.test(title) || ACCESSORY.test(title) || ART_TOKEN.test(title) || PROXYISH.test(title)) {
     const rd = readTitle(title, v, false);
     let residue = title;
     const lead = title.split(/\s+-\s+|\s*[[(]/)[0]!.trim();                       // the card's name, even when the rest of the title is a set label nobody reads
     if (m.names.has(fold(lead))) residue = stripPiece(residue, lead);
     if (rd) { if (m.names.has(fold(rd.name))) residue = stripPiece(residue, rd.name); for (const s of rd.setTexts) residue = stripPiece(residue, s); }
-    if (PROXYISH.test(residue)) return { miss: "graded-lot-proxy" };
+    residue = residue.replace(SET_NUM_TOKEN, (all, code: string) => (v.code(code) ? " " : all));            // "[MAT - 187]": MAT is March of the Machine: The Aftermath, not a mat
+    if (GRADED.test(residue) || PROXYISH.test(residue)) return { miss: "graded-lot-proxy" };
     if (ACCESSORY.test(residue)) return { miss: "accessory" };
     if (ART_TOKEN.test(residue)) return { miss: "art-card-token-oversize" };
     if (NOT_SINGLE.test(residue)) return "sealed";

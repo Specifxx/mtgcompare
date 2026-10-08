@@ -7,7 +7,7 @@ import { usePresence, DUR } from "@/lib/motion";
 // ── Shared, refcounted body-level side effects ──────────────────────────────
 // All three hooks are exported so CinematicNavMenu — the one overlay that
 // stays permanently mounted and toggles via classes instead of mount/unmount —
-// can opt into the SAME scroll lock, the SAME `ocDialog` flag and the SAME
+// can opt into the SAME scroll lock, the SAME `mcDialog` flag and the SAME
 // Escape stack (useEscapeLayer, below) every Dialog instance uses, rather than
 // keeping its own separate copies (which is how it used to work, and why the
 // phone nav menu never made the corner nudges yield the way every other
@@ -35,7 +35,7 @@ export function useScrollLock(active: boolean) {
 
 let modalFlagCount = 0;
 /**
- * Sets `document.body.dataset.ocDialog = "1"` while ANY Dialog-based overlay
+ * Sets `document.body.dataset.mcDialog = "1"` while ANY Dialog-based overlay
  * is mounted — the signal the corner nudges (PremiumSlideIn and
  * AnnualSwitchNudge, through lib/nudge-runtime.ts) check before showing
  * themselves, so a nudge never pops up over an open dialog.
@@ -43,11 +43,11 @@ let modalFlagCount = 0;
 export function useModalFlag(active: boolean) {
   useEffect(() => {
     if (!active) return;
-    if (modalFlagCount === 0) document.body.dataset.ocDialog = "1";
+    if (modalFlagCount === 0) document.body.dataset.mcDialog = "1";
     modalFlagCount++;
     return () => {
       modalFlagCount = Math.max(0, modalFlagCount - 1);
-      if (modalFlagCount === 0) delete document.body.dataset.ocDialog;
+      if (modalFlagCount === 0) delete document.body.dataset.mcDialog;
     };
   }, [active]);
 }
@@ -111,7 +111,7 @@ const Z_CLASS: Record<DialogZ, string> = {
  * the seven cases) had no focus trap and no focus restore at all.
  *
  * Owns: mount/unmount + enter/exit timing (usePresence), scroll lock, the
- * `ocDialog` flag, Escape-to-close (topmost layer only, via useEscapeLayer), a
+ * `mcDialog` flag, Escape-to-close (topmost layer only, via useEscapeLayer), a
  * Tab focus trap, and focus save/restore.
  * Does NOT own header/body/footer chrome, backdrop click semantics beyond
  * "closes", or business logic — those stay with each caller.

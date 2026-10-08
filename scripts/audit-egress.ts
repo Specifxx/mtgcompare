@@ -84,7 +84,7 @@ export function tablesOf(query: string): string[] {
 }
 /** Neon's own monitoring and the Postgres catalogs are not the application's traffic: counted and reported, never budgeted. */
 export function isPlatformNoise(q: string): boolean {
-  return /pg_stat_activity|neon_perf_counters|pg_settings|pg_database|pg_stat_replication|pg_stat_statements|pg_catalog\.|information_schema|pg_class|pg_namespace|pg_index/i.test(q);
+  return /pg_stat_activity|neon_perf_counters|pg_settings|pg_database|pg_stat_database|pg_stat_user_tables|pg_stat_replication|pg_stat_statements|pg_relation_size|pg_total_relation_size|pg_catalog\.|information_schema|pg_class|pg_namespace|pg_index/i.test(q);   // (the audit's own reads included: pg_stat_database, pg_stat_user_tables, pg_*_size)
 }
 export function budgetFor(tables: readonly string[], op: Op, budgets: readonly QueryBudget[] = QUERY_BUDGETS): QueryBudget {
   const typed = (b: QueryBudget): boolean => !b.ops || (op !== "other" && b.ops.includes(op));

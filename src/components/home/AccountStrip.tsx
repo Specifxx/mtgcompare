@@ -5,7 +5,7 @@ import { useMe } from "@/lib/use-me";
 import { trackEvent } from "@/lib/analytics";
 
 // RiftCompare's AccountStrip: the signed-out "create a free account" band.
-// Perks name only what a free account really gets on OP Compare today, and no
+// Perks name only what a free account really gets on MTG Compare today, and no
 // perk promises an email (alerts arrive in the account until email is on).
 const PERKS: [string, string][] = [
   ["Watchlist", "save cards and jump back anytime"],

@@ -20,26 +20,23 @@ type Tab = {
   deltas?: number[]; // when set, a % caption under each tile
 };
 
-// RiftCompare's PopularCardsCarousel: one SegmentedTabs strip — "Most popular",
-// "Biggest movers", "Recently updated" — each a horizontal snap-scroller of
-// card tiles. Every panel stays in the DOM (renderAllPanels) so all three lists
-// are crawlable and feed the page's ItemList JSON-LD.
+// RiftCompare's PopularCardsCarousel: one SegmentedTabs strip, each tab a horizontal snap-scroller of card tiles: "Popular", "Chase
+// cards", "Biggest movers", "Recently updated". Every panel stays in the DOM (renderAllPanels) so all lists are crawlable and feed the
+// page's ItemList JSON-LD.
 //
-// "Most popular" is real only once the search counter has data; until then the
-// first tab is the newest booster's chase cards and is labelled so — the page
-// never says "most searched" without a counter behind it.
+// "Popular" is the published EDHREC order (Scryfall's edhrec_rank: how many Commander decks play a card) and says so; no counter of ours
+// sits behind it. "Chase cards" is the catalogue's dearest printings on their market price, a different list: a Black Lotus is chased
+// by collectors, not played in every Commander deck.
 export function PopularCardsCarousel({
   popular,
-  popularKind,
-  chaseSetName,
+  chase,
   movers,
   recentlyUpdated,
   storeCount,
   storeWord,
 }: {
   popular: TileItem[];
-  popularKind: "popular" | "chase";
-  chaseSetName?: string;
+  chase: TileItem[];
   movers: ItemWithDelta[];
   recentlyUpdated: ItemWithDelta[];
   storeCount: number;
@@ -49,25 +46,28 @@ export function PopularCardsCarousel({
     ...(popular.length === 0
       ? []
       : [
-          popularKind === "popular"
-            ? {
-                key: "alltime",
-                label: "Most popular",
-                heading: "Most popular One Piece cards",
-                description: `The most-searched cards right now — compare ${storeCount} ${storeWord} for every one to find the best price.`,
-                allHref: "/browse",
-                allLabel: "View all →",
-                items: popular,
-              }
-            : {
-                key: "alltime",
-                label: "Chase cards",
-                heading: chaseSetName ? `${chaseSetName} chase cards` : "Chase cards",
-                description: `The most valuable printings from the newest booster set — compare ${storeCount} ${storeWord} for every one to find the best price.`,
-                allHref: "/browse",
-                allLabel: "View all →",
-                items: popular,
-              },
+          {
+            key: "popular",
+            label: "Popular",
+            heading: "Most popular Magic cards",
+            description: `The cards Commander players run most (EDHREC's ranking) — compare ${storeCount} ${storeWord} for every one to find the best price.`,
+            allHref: "/browse?sort=popular",
+            allLabel: "View all →",
+            items: popular,
+          },
+        ]),
+    ...(chase.length === 0
+      ? []
+      : [
+          {
+            key: "chase",
+            label: "Chase cards",
+            heading: "Chase cards",
+            description: "The most valuable printings in the database, on TCGplayer's market price — the cards collectors hunt.",
+            allHref: "/browse",
+            allLabel: "View all →",
+            items: chase,
+          },
         ]),
     ...(movers.length > 0
       ? [
@@ -75,7 +75,7 @@ export function PopularCardsCarousel({
             key: "movers",
             label: "Biggest movers",
             heading: "Biggest movers",
-            description: "One Piece cards moving the most this week, up or down, in TCGplayer's market price.",
+            description: "Magic cards moving the most this week, up or down, in TCGplayer's market price.",
             allHref: "/movers",
             allLabel: "See all movers →",
             items: movers,
@@ -89,7 +89,7 @@ export function PopularCardsCarousel({
             key: "recent",
             label: "Recently updated",
             heading: "Recently updated prices",
-            description: `${recentlyUpdated.length} One Piece cards whose price just changed — updated with every price refresh.`,
+            description: `${recentlyUpdated.length} Magic cards whose price just changed — updated with every daily price refresh.`,
             allHref: "/movers",
             allLabel: "See all movers →",
             items: recentlyUpdated,

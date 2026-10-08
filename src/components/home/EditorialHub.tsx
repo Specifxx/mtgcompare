@@ -1,15 +1,15 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { Country } from "@/lib/country";
-import type { Catalog } from "@/lib/data";
 import { POSTS } from "@/lib/blog";
 import { MARKET_READS, startHereFor, type HomePick } from "@/lib/content/featured";
+import { postTitle } from "@/lib/seo";
 import { HomeUpdatedAgo } from "./HeroStats";
 
 // RiftCompare's EditorialHub: one card-surface band of three columns — "Start
 // here" (the buying guide for the market, then evergreen explainers), "Latest
 // news" (the newest posts) and "Market updates" (movers, the Index and the
-// market reads). Two rows per column on a phone. OP Compare's posts carry no
+// market reads). Two rows per column on a phone. MTG Compare's posts carry no
 // hero image, so no column leads with one.
 const NEWS_COUNT = 3;
 const PHONE_ROWS = 2;
@@ -29,7 +29,7 @@ function shortDate(iso: string): string {
   return d.toLocaleDateString("en-AU", { day: "numeric", month: "short", ...(sameYear ? {} : { year: "numeric" }), timeZone: "UTC" });
 }
 
-export function EditorialHub({ cat, updatedAt, renderedAt, market }: { cat: Catalog; updatedAt: string | null; renderedAt: string; market?: Country }) {
+export function EditorialHub({ updatedAt, renderedAt, market }: { updatedAt: string | null; renderedAt: string; market?: Country }) {
   const bySlug = new Map(POSTS.map((p) => [p.slug, p]));
   const resolve = (picks: HomePick[], withDate: boolean): Teaser[] =>
     picks.flatMap((p) => {
@@ -38,7 +38,7 @@ export function EditorialHub({ cat, updatedAt, renderedAt, market }: { cat: Cata
       return [
         {
           href: `/blog/${post.slug}`,
-          title: post.title({ cat }),
+          title: postTitle(post, updatedAt),
           line: p.line,
           ...(withDate ? { date: { iso: post.date, label: "Updated" } } : { readMins: post.minutes }),
         },
@@ -50,7 +50,7 @@ export function EditorialHub({ cat, updatedAt, renderedAt, market }: { cat: Cata
     .sort((a, b) => b.date.localeCompare(a.date))
     .filter((p) => !startHere.some((t) => t.href === `/blog/${p.slug}`))
     .slice(0, NEWS_COUNT)
-    .map((p) => ({ href: `/blog/${p.slug}`, title: p.title({ cat }), line: p.description, date: { iso: p.date } }));
+    .map((p) => ({ href: `/blog/${p.slug}`, title: postTitle(p, updatedAt), line: p.description, date: { iso: p.date } }));
   const reads = resolve([...MARKET_READS], true).filter((t) => !news.some((n) => n.href === t.href) && !startHere.some((s) => s.href === t.href));
 
   if (!startHere.length && !news.length) return null;
@@ -78,13 +78,13 @@ export function EditorialHub({ cat, updatedAt, renderedAt, market }: { cat: Cata
         <Column title="Market updates">
           {updatedAt && (
             <p className="mt-0.5 text-[11px] leading-4 text-slate-500">
-              <span aria-hidden="true" className="text-up">●</span> Prices updated <HomeUpdatedAgo updatedAt={updatedAt} renderedAt={renderedAt} /> · store prices imported twice a day
+              <span aria-hidden="true" className="text-up">●</span> Prices updated <HomeUpdatedAgo updatedAt={updatedAt} renderedAt={renderedAt} /> · refreshed once a day
             </p>
           )}
           <ul>
             <TeaserRow t={{ href: "/movers", title: "Price movers", line: "This week's biggest risers and drops in TCGplayer's market price." }} />
             <li>
-              <RowLink href="/market" title="The OP Compare Index" line="One daily number for the value of the One Piece card market." />
+              <RowLink href="/market" title="The MTG Compare Index" line="One daily number for the value of the Magic card market." />
             </li>
             {reads.map((t, i) => (
               <TeaserRow key={t.href} t={t} phoneHidden={i >= PHONE_ROWS - 1} />

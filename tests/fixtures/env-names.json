@@ -1,9 +1,19 @@
 {
- "comment": "Generated once by the contract (Annex B prints the same rows). After C0 this file is the table: edit it directly (owner WP19, with WP21 for .env.example), keep Annex-B-style fields (kind, at, status, wp, default, where, wf, note, group). Read by tests/env-names.test.ts.",
+ "comment": "The table of contract Annex B (120 names at C0: the EBAY_MKRID_/EBAY_SITEID_ templates expanded to six markets each) plus the rows added since by their readers' requests (REQ-WP01a-2, REQ-WP01b-2, REQ-WP16-14, WP19's own workflows). After C0 this file is the table: edit it directly (owner WP19, with WP21 for .env.example), keep Annex-B-style fields (kind, at, status, wp, default, where, wf, note, group). A row is only ever added or corrected, never deleted while a reader exists. Read by tests/env-names.test.ts.",
  "patterns": [
   "EBAY_MKRID_{CC}",
   "EBAY_SITEID_{CC}"
  ],
+ "retired": {
+  "EBAY_AFFILIATE_CAMPAIGN": "NEXT_PUBLIC_EBAY_CAMPAIGN_ID (client components can only read NEXT_PUBLIC_ names; the old name fell back to Rift's campaign in the browser)",
+  "TCGPLAYER_IMPACT_LINK": "NEXT_PUBLIC_TCGPLAYER_IMPACT_LINK (its default was Rift's partner link)",
+  "HISTORY_DIR": "PLANE_DIR (price history is files in the data repository; there is no second directory for it)",
+  "HISTORY_LOCAL_DIR": "PLANE_DIR",
+  "HISTORY_RAW_BASE": "PLANE_REPO and PLANE_BRANCH (the reader is plane/runtime.ts)",
+  "HISTORY_REF": "the pointer (latest.json) names the commit; nothing pins a ref by hand",
+  "PREMIUM_DATA_KEY": "nothing: nothing paid is a file (12.3), so there is no key to encrypt one with",
+  "STRIPE_SITE": "a constant of plans.ts, not a variable"
+ },
  "names": {
   "DATABASE_URL": {
    "kind": "secret",
@@ -24,7 +34,10 @@
     "inbox-audit.yml",
     "alerts.yml",
     "db-audit.yml",
-    "demand-snapshot.yml"
+    "demand-snapshot.yml",
+    "egress-audit.yml",
+    "maintenance.yml",
+    "store-health.yml"
    ],
    "note": "the ONE Neon project (pooled URL): private tables only (accounts, billing, watches, alerts, collection, notifications, newsletter, inbox, click events, ledger and eBay data, ImportRun/Meta). Public data is NOT in it (section 12). The importer does not read it",
    "group": "Database and platform"
@@ -40,6 +53,34 @@
    ],
    "wf": [],
    "note": "DB-backed tests skip when unset (C23)",
+   "group": "Database and platform"
+  },
+  "MTG_LAB": {
+   "kind": "test",
+   "at": "local",
+   "status": "new",
+   "wp": "WP19",
+   "default": "unset",
+   "where": [
+    "tests/catalog.test.ts",
+    "tests/legalities.test.ts",
+    "tests/resolve.test.ts"
+   ],
+   "wf": [],
+   "note": "directory of the research snapshot (scryfall/, tcgcsv/, design/magic-tools/ts-check/); the corpus tests skip when unset",
+   "group": "Database and platform"
+  },
+  "TARGET_DATABASE_URL": {
+   "kind": "secret",
+   "at": "G",
+   "status": "new",
+   "wp": "WP19",
+   "default": "none: the migrate-database task is a green no-op",
+   "where": [],
+   "wf": [
+    "maintenance.yml"
+   ],
+   "note": "the NEW Neon project of the maintenance task migrate-database (pg_restore target; private tables only). Read by the workflow alone; never a Vercel variable",
    "group": "Database and platform"
   },
   "PRISMA_LOG": {
@@ -136,6 +177,71 @@
    "note": "",
    "group": "Database and platform"
   },
+  "GITHUB_ACTIONS": {
+   "kind": "platform",
+   "at": "G",
+   "status": "op",
+   "wp": "WP01b",
+   "default": "",
+   "where": [
+    "src/lib/scryfall.ts"
+   ],
+   "wf": [],
+   "note": "set by Actions: picks the build User-Agent of the Scryfall client",
+   "group": "Database and platform"
+  },
+  "CI": {
+   "kind": "platform",
+   "at": "G",
+   "status": "op",
+   "wp": "WP01b",
+   "default": "",
+   "where": [
+    "src/lib/scryfall.ts"
+   ],
+   "wf": [],
+   "note": "set by Actions and most CI hosts: picks the build User-Agent of the Scryfall client",
+   "group": "Database and platform"
+  },
+  "GITHUB_REPOSITORY": {
+   "kind": "platform",
+   "at": "G",
+   "status": "dp",
+   "wp": "WP01b",
+   "default": "",
+   "where": [
+    "scripts/data-watchdog.ts"
+   ],
+   "wf": [],
+   "note": "set by Actions: owner/name of THIS repository, for the keepalive age check",
+   "group": "Database and platform"
+  },
+  "GITHUB_TOKEN": {
+   "kind": "platform",
+   "at": "G",
+   "status": "dp",
+   "wp": "WP01b",
+   "default": "",
+   "where": [
+    "scripts/data-watchdog.ts"
+   ],
+   "wf": [],
+   "note": "the workflow's own token (contents: read of this repository), for the keepalive age check; the data repository has its own token (DATA_REPO_TOKEN)",
+   "group": "Database and platform"
+  },
+  "VERCEL": {
+   "kind": "platform",
+   "at": "V",
+   "status": "op",
+   "wp": "WP18",
+   "default": "",
+   "where": [
+    "src/lib/rate-limit.ts"
+   ],
+   "wf": [],
+   "note": "set by Vercel: the rate limiter trusts the platform's forwarded-address header only there",
+   "group": "Database and platform"
+  },
   "NEXT_PUBLIC_SITE_URL": {
    "kind": "public",
    "at": "V",
@@ -174,12 +280,12 @@
    "at": "V",
    "status": "op",
    "wp": "WP16",
-   "default": "contact@mtgcompare.app (placeholder, flagged)",
+   "default": "contact@mtgcompare.invalid (placeholder, flagged)",
    "where": [
     "src/lib/site.ts"
    ],
    "wf": [],
-   "note": "ONE contact address (requirements 1.4)",
+   "note": "ONE contact address (requirements 1.4). The default ends in .invalid on purpose: a placeholder on a real domain would deliver every mailto to whoever owns it (WP16-site-identity-and-legal-strings)",
    "group": "Site identity and links"
   },
   "NEXT_PUBLIC_DISCORD_URL": {
@@ -524,6 +630,19 @@
    "note": "scripts only, Authorization: Bearer, at least 32 characters",
    "group": "Accounts, billing, admin"
   },
+  "ADMIN_EXTRA_ORIGINS": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP21",
+   "default": "unset",
+   "where": [
+    "src/lib/admin-guard.ts"
+   ],
+   "wf": [],
+   "note": "extra origins (comma separated) an admin POST may come from in production, besides SITE_URL: a preview domain you administer from",
+   "group": "Accounts, billing, admin"
+  },
   "GOOGLE_CLIENT_ID": {
    "kind": "var",
    "at": "V",
@@ -790,11 +909,13 @@
    "status": "op",
    "wp": "WP14",
    "default": "built-in",
-   "where": [],
+   "where": [
+    "src/lib/price-alerts.ts"
+   ],
    "wf": [
     "import-prices.yml"
    ],
-   "note": "",
+   "note": "distinct addresses mailed per rolling day, free and paid runs together (price-alerts.ts alertDailyBudget)",
    "group": "Email and notifications"
   },
   "OPS_WEBHOOK_URL": {
@@ -812,7 +933,9 @@
     "data-watchdog.yml",
     "ebay-prices.yml",
     "store-health.yml",
-    "db-audit.yml"
+    "db-audit.yml",
+    "data-audit.yml",
+    "egress-audit.yml"
    ],
    "note": "Discord/Slack webhook for freshness, failure and store-health alerts (parity P39). Webhook only, no bot",
    "group": "Email and notifications"
@@ -1433,10 +1556,12 @@
    "wp": "WP01b",
    "default": "auto",
    "where": [
-    "src/lib/scryfall.ts"
+    "src/lib/scryfall.ts",
+    "scripts/import.ts",
+    "scripts/bootstrap.ts"
    ],
    "wf": [],
-   "note": "off = prices-only run keeping existing links",
+   "note": "off = prices-only run keeping existing links (the library reads it; the two entry points pass it on)",
    "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
   },
   "IMPORT_FORCE": {
@@ -1524,6 +1649,19 @@
    "note": "local response cache for offline re-runs",
    "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
   },
+  "TCGCSV_LAST_UPDATED": {
+   "kind": "var",
+   "at": "local",
+   "status": "new",
+   "wp": "WP01b",
+   "default": "unset",
+   "where": [
+    "src/lib/import.ts"
+   ],
+   "wf": [],
+   "note": "ISO stamp of the TCGCSV day, used when <TCGCSV_CACHE_DIR>/last-updated.txt is absent (offline runs, the M1 bootstrap over a research download)",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
   "SCRYFALL_CACHE_DIR": {
    "kind": "var",
    "at": "G",
@@ -1538,6 +1676,32 @@
    "note": "",
    "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
   },
+  "SCRYFALL_BACKOFF_MS": {
+   "kind": "var",
+   "at": "local",
+   "status": "new",
+   "wp": "WP01b",
+   "default": "30000",
+   "where": [
+    "src/lib/scryfall.ts"
+   ],
+   "wf": [],
+   "note": "test dial: the wait before the one retry after a Scryfall 429",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "IMPORT_CACHE_DIR": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01b",
+   "default": ".cache",
+   "where": [
+    "scripts/import.ts"
+   ],
+   "wf": [],
+   "note": "the Actions cache directory of the slim Scryfall file and the phase-1 to phase-2 match index",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
   "BOOTSTRAP_GROUPS": {
    "kind": "var",
    "at": "G",
@@ -1545,7 +1709,8 @@
    "wp": "WP01b",
    "default": "unset",
    "where": [
-    "scripts/bootstrap.ts"
+    "scripts/bootstrap.ts",
+    "scripts/import.ts"
    ],
    "wf": [],
    "note": "N = restrict the first run to the N largest and newest groups",
@@ -1581,7 +1746,12 @@
     "data-squash.yml",
     "data-watchdog.yml",
     "data-rollback.yml",
-    "data-hook.yml"
+    "data-hook.yml",
+    "data-audit.yml",
+    "db-audit.yml",
+    "egress-audit.yml",
+    "maintenance.yml",
+    "store-health.yml"
    ],
    "note": "owner/name of the PRIVATE data repository (12.4); the same value in Vercel and in Actions",
    "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
@@ -1596,7 +1766,12 @@
     "src/lib/data/plane/runtime.ts",
     "scripts/**"
    ],
-   "wf": [],
+   "wf": [
+    "data-audit.yml",
+    "db-audit.yml",
+    "maintenance.yml",
+    "store-health.yml"
+   ],
    "note": "the data branch; only the publisher writes it",
    "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
   },
@@ -1625,6 +1800,32 @@
    ],
    "wf": [],
    "note": "development, jobs and tests: a directory that holds v1/ (and optionally latest.json); no network, no token",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "PLANE_REMOTE": {
+   "kind": "var",
+   "at": "local",
+   "status": "dp",
+   "wp": "WP01b",
+   "default": "unset",
+   "where": [
+    "scripts/**"
+   ],
+   "wf": [],
+   "note": "a git remote URL or local path that REPLACES https://github.com/<PLANE_REPO>.git: a bare repository for the drills and tests; unset in production",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "PLANE_WORK_DIR": {
+   "kind": "var",
+   "at": "local",
+   "status": "dp",
+   "wp": "WP01b",
+   "default": "<os tmp>/mtgcompare-plane",
+   "where": [
+    "scripts/**"
+   ],
+   "wf": [],
+   "note": "where the clones of the data repository live",
    "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
   },
   "PLANE_LRU_MB": {
@@ -1694,7 +1895,12 @@
     "data-squash.yml",
     "data-watchdog.yml",
     "data-rollback.yml",
-    "data-hook.yml"
+    "data-hook.yml",
+    "data-audit.yml",
+    "db-audit.yml",
+    "egress-audit.yml",
+    "maintenance.yml",
+    "store-health.yml"
    ],
    "note": "fine-grained personal access token, Contents: write (and Administration: read for the size probe), on the data repository ONLY. GITHUB_TOKEN covers only the workflow's own repository. Travels in an http extraheader, never in a URL or a log",
    "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
@@ -1738,6 +1944,71 @@
    ],
    "wf": [],
    "note": "set by Next while `next build` runs: the plane refuses every fetch then (the build reads no data)",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "GIT_CONFIG_COUNT": {
+   "kind": "platform",
+   "at": "-",
+   "status": "dp",
+   "wp": "WP01b",
+   "default": "",
+   "where": [
+    "scripts/import.ts"
+   ],
+   "wf": [],
+   "note": "WRITTEN by authenticateGit() for every git child process (with GIT_CONFIG_KEY_0 and GIT_CONFIG_VALUE_0): the data-repository token travels in an http.extraheader, never in a URL or a log; read by git itself",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "GIT_CONFIG_KEY_0": {
+   "kind": "platform",
+   "at": "-",
+   "status": "dp",
+   "wp": "WP01b",
+   "default": "",
+   "where": [
+    "scripts/import.ts"
+   ],
+   "wf": [],
+   "note": "see GIT_CONFIG_COUNT",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "GIT_CONFIG_VALUE_0": {
+   "kind": "platform",
+   "at": "-",
+   "status": "dp",
+   "wp": "WP01b",
+   "default": "",
+   "where": [
+    "scripts/import.ts"
+   ],
+   "wf": [],
+   "note": "see GIT_CONFIG_COUNT",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "WORK_PACKAGES_JSON": {
+   "kind": "test",
+   "at": "local",
+   "status": "new",
+   "wp": "WP21",
+   "default": "unset",
+   "where": [
+    "scripts/gen-ownership.ts"
+   ],
+   "wf": [],
+   "note": "development tooling: path of the work-package plan scripts/gen-ownership.ts turns into docs/ownership.json (the owner map the ratchets read)",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "OWNERSHIP_WRITE_ANYWAY": {
+   "kind": "test",
+   "at": "local",
+   "status": "new",
+   "wp": "WP21",
+   "default": "unset",
+   "where": [
+    "scripts/gen-ownership.ts"
+   ],
+   "wf": [],
+   "note": "development tooling: 1 writes docs/ownership.json although the plan has problems",
    "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
   }
  }

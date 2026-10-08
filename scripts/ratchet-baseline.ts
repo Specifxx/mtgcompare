@@ -2,6 +2,8 @@
 //
 //   tsx scripts/ratchet-baseline.ts            write tests/fixtures/ratchet-baseline.json (C0: the counts the repository starts from; a package may only lower its own key)
 //   tsx scripts/ratchet-baseline.ts --check    print the counts and exit 1 when an owner's count is above its baseline key (the same rule tests/helpers/ratchet.ts applies)
+//   tsx scripts/ratchet-baseline.ts --lower    rewrite the baseline LOWERING keys only: a key falls to the owner's current count (and is dropped at zero, where "<id>/*" = 0 takes over); no key is ever raised and an owner
+//                                              that gained an offender is left to fail the test; a ratchet the baseline has never seen is recorded at its first measurement. This is what a package asks for when it reaches a lower count
 //
 // A ratchet is a test that calls ratchet(id, offenders) from tests/helpers/ratchet.ts. This script does not duplicate their scans: it runs every test file that imports that helper in a child
 // process, with the helper's `ratchet` wrapped so that the per-owner counts of each call are written out (the wrapped call still enforces nothing: it passes strict = false). The owner of a
@@ -79,6 +81,21 @@ function main(): number {
     for (const [id, owners] of Object.entries(counts)) for (const [o, n] of Object.entries(owners)) { const allowed = base[`${id}/${o}`] ?? base[`${id}/*`] ?? Infinity; if (n > allowed) up.push(`${id}: ${o} went from ${allowed} to ${n}`); }
     for (const x of up) console.error(x);
     return up.length ? 1 : 0;
+  }
+  if (process.argv.includes("--lower")) {
+    const base = fs.existsSync(BASELINE) ? (JSON.parse(fs.readFileSync(BASELINE, "utf8")) as Record<string, number>) : {};
+    const next: Record<string, number> = {}, lowered: string[] = [], added: string[] = [];
+    for (const [key, v] of Object.entries(base)) {
+      const cut = key.lastIndexOf("/"), id = key.slice(0, cut), owner = key.slice(cut + 1);
+      if (!(id in counts) || owner === "*") { next[key] = v; continue; }            // a ratchet that did not run here keeps its keys
+      const now = counts[id]![owner] ?? 0;
+      if (now === 0) { lowered.push(`${key} ${v} -> 0`); continue; }
+      next[key] = Math.min(v, now); if (next[key] !== v) lowered.push(`${key} ${v} -> ${now}`);
+    }
+    for (const [id, owners] of Object.entries(counts)) if (!(`${id}/*` in base)) { next[`${id}/*`] = 0; for (const [o, n] of Object.entries(owners)) next[`${id}/${o}`] = n; added.push(id); }
+    fs.writeFileSync(BASELINE, sortedJson(next));
+    console.log(`lowered ${lowered.length} key(s)${lowered.length ? `:\n  ${lowered.join("\n  ")}` : ""}\nrecorded ${added.length} new ratchet(s)${added.length ? `: ${added.join(", ")}` : ""}\nwrote tests/fixtures/ratchet-baseline.json (${Object.keys(next).length} keys)`);
+    return 0;
   }
   fs.writeFileSync(BASELINE, sortedJson(flat));
   console.log(`wrote tests/fixtures/ratchet-baseline.json (${Object.keys(flat).length} keys)`);

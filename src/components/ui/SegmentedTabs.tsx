@@ -170,8 +170,8 @@ export function SegmentedTabs({
                 // on bright fills" block. text-ink-950 inverted to #f4f6f8 in light,
                 // 2.91:1 on the green (2026-09-23); the fill is on a sibling span,
                 // so that block's .bg-brand-500.text-ink-950 selector never matched.
-                // OP Compare: the fill is Straw Hat red, which takes WHITE ink
-                // (DECISIONS "Wave-2 design tokens"), so the fixed ink is #ffffff.
+                // MTG Compare: the fill is the amethyst brand-500, which takes WHITE ink
+                // (5.3:1, brand spec 6.3), so the fixed ink is #ffffff.
                 className={`relative inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-xs font-bold uppercase tracking-wide transition-colors duration-fast ${
                   isActive ? "text-[#ffffff]" : "bg-ink-900 text-slate-400 hover:bg-ink-800 hover:text-white"
                 }`}

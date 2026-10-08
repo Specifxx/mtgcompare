@@ -1,6 +1,8 @@
-// Pure helpers behind the homepage's data (src/lib/data.ts, block
-// "wave2:design"): the per-market hero stats, the "recently updated" feed and
-// the popular/chase choice. No I/O here, so tests/home.test.ts pins the rules.
+// Pure helpers behind the homepage's data (the loaders are src/lib/data/home.ts
+// and data/site.ts): the per-market hero stats and the outlier guard of the
+// "recently updated" feed. No I/O here, so tests/home.test.ts pins the rules.
+// The popular and chase lists are published files (hm/home.json: Scryfall's
+// EDHREC rank, then market value; the dearest printings), not a rule of ours.
 import { MARKETS, type Country } from "./country";
 
 export interface MarketStat {
@@ -63,8 +65,8 @@ export function homeStatsFrom(
 // RiftCompare's getRecentlyUpdated: cards whose price changed between the two
 // most recent snapshots, biggest moves first. Same outlier guard: a one-step
 // swing of +300% or more, or −80% or more, is almost always a mismatched
-// listing, not a real move. OP Compare also skips cards under US$1 at either
-// end, where a few cents read as a huge percentage.
+// listing, not a real move. Cards under US$1 at either end are also skipped
+// (a few cents read as a huge percentage).
 export const RECENT_OUTLIER_SPIKE = 300;
 export const RECENT_OUTLIER_DROP = 80;
 export const RECENT_MIN_CENTS = 100;
@@ -98,17 +100,4 @@ export function recentMoves(
   }
   out.sort((x, y) => Math.abs(y.pct) - Math.abs(x.pct) || x.id - y.id);
   return out.slice(0, limit);
-}
-
-// ── Popular ──────────────────────────────────────────────────────────────────
-// "Most popular" is real only once the search counter has data (the tools
-// track's view/search beacons write Card.searchCount). Until enough cards have
-// been searched, the tab shows the newest booster's chase cards and says so —
-// never "most searched" without a counter behind it.
-export const POPULAR_MIN_CARDS = 6;
-
-export type PopularKind = "popular" | "chase";
-
-export function popularKind(searchedIds: readonly number[]): PopularKind {
-  return searchedIds.length >= POPULAR_MIN_CARDS ? "popular" : "chase";
 }

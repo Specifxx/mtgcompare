@@ -20,7 +20,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
     if (!isChunkError) return;
     // Guard against a reload loop: only auto-reload if we haven't just done so.
     try {
-      const KEY = "oc_chunk_reload_at";
+      const KEY = "mc_chunk_reload_at";
       const last = Number(sessionStorage.getItem(KEY) || "0");
       if (Date.now() - last > 10_000) {
         sessionStorage.setItem(KEY, String(Date.now()));
