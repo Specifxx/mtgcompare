@@ -80,13 +80,26 @@ with the services that are signed in.
 3. Copy the **pooled** connection string (Connect, "Pooled connection" on; it contains `-pooler` and ends in
    `?sslmode=require`). This is `DATABASE_URL`. Do not print it.
 
-### A2. GitHub: Specifxx/mtgcompare
-1. Settings, Actions, General, Workflow permissions: **Read and write permissions**, Save.
-2. Settings, Secrets and variables, Actions, **Secrets**: `DATABASE_URL` (the Neon pooled string) and `CRON_SECRET` (a new
-   random secret; keep it for A3).
-3. Settings, Secrets and variables, Actions, **Variables**: `SITE_URL` = SITE_URL (set after A3 knows the Vercel URL; come
-   back and set it) and `INDEXNOW_KEY` = `43ac93dd97a44d4894bedf52d621c57c`.
-4. Do NOT create a `main` branch now (that happens in B1).
+### A2. GitHub: the code repo Specifxx/mtgcompare, and a PRIVATE data repo
+MTG Compare keeps ALL public data (live prices, store offers, price history) as files in a **private** GitHub repository, so the
+site does not depend on the database. Neon holds only accounts, billing, alerts and ops state.
+1. Specifxx/mtgcompare, Settings, Actions, General, Workflow permissions: **Read and write permissions**, Save.
+2. Create a new **private** repository `Specifxx/mtgcompare-data`, completely empty (no README, no .gitignore, no licence). The
+   import creates its `data` branch itself. Reuse it if it exists.
+3. Create two **fine-grained personal access tokens** (github.com/settings/personal-access-tokens/new), resource owner Specifxx,
+   repository access **Only select repositories: `mtgcompare-data`**, expiration 1 year:
+   - name `mtgcompare-plane-read`, permission **Contents: Read-only**. This value is `PLANE_TOKEN` (goes to Vercel only, A3).
+   - name `mtgcompare-data-write`, permissions **Contents: Read and write** and **Administration: Read-only**. This value is
+     `DATA_REPO_TOKEN` (goes to GitHub Actions secrets only).
+   GitHub may ask me for my password, a passkey or a 2FA code when creating a token: that is a manual item (leave the tab open on
+   the token form). Never print a token. Tokens are shown once: put each straight into its field.
+4. Specifxx/mtgcompare, Settings, Secrets and variables, Actions, **Secrets**: `DATABASE_URL` (the Neon pooled string),
+   `CRON_SECRET` (a new random secret; keep it for A3), `AUTH_SECRET` (a new random secret; **the same value goes to Vercel in A3**),
+   `DATA_REPO_TOKEN`.
+5. Same page, **Variables**: `SITE_URL` = SITE_URL and `REVALIDATE_URL` = SITE_URL (both set after A3 knows the Vercel URL; come back
+   and set them), `PLANE_REPO` = `Specifxx/mtgcompare-data`, `NEXT_PUBLIC_EBAY_CAMPAIGN_ID` = `5339155912`,
+   `INDEXNOW_KEY` = `43ac93dd97a44d4894bedf52d621c57c`.
+6. Do NOT create a `main` branch now (that happens in B1).
 
 ### A3. Vercel: new project
 1. https://vercel.com/new: import **Specifxx/mtgcompare** into the **same team as RiftCompare**. Project name `mtgcompare`,
@@ -97,7 +110,9 @@ with the services that are signed in.
 3. Settings, Environment Variables, for **Production and Preview** (names exact; secrets are never copied from any other project):
    - `DATABASE_URL` = the Neon pooled string
    - `CRON_SECRET` = the same value as GitHub's
-   - `AUTH_SECRET` = a NEW random secret
+   - `AUTH_SECRET` = the same value as the GitHub secret of that name (A2.4)
+   - `PLANE_REPO` = `Specifxx/mtgcompare-data`
+   - `PLANE_TOKEN` = the read-only token from A2.3 (mark it Sensitive)
    - `NEXT_PUBLIC_SITE_URL` = SITE_URL
    - `INDEXNOW_KEY` = `43ac93dd97a44d4894bedf52d621c57c`
    - `NEXT_PUBLIC_EBAY_CAMPAIGN_ID` = `5339155912` (my existing public eBay Partner Network campaign id)
@@ -106,6 +121,7 @@ with the services that are signed in.
    - `NEXT_PUBLIC_CONTACT_EMAIL` = leave **unset** (the site shows a placeholder until I choose an address)
    - `ADMIN_EMAILS` = leave **unset** (the built-in admin is mastermisclick@gmail.com; setting it REPLACES that)
    - `ADMIN_TOKEN` = leave unset
+   - `GITHUB_DISPATCH_TOKEN` = leave unset (optional: it only enables "Run" buttons in the admin panels)
 4. Settings, Git, Production Branch: leave as is for now (B1 sets it to `main`).
 5. Is the team on a plan that allows commercial use (Pro)? Read the plan on Settings, Billing. If it is Hobby, add a manual item
    ("MTG Compare has ads, affiliate links and subscriptions: Vercel Hobby is non-commercial, move this team to Pro") with the
@@ -154,7 +170,9 @@ My decision: MTG Compare uses up to 1,000 eBay API calls a day, always **after**
    (The Marketplace Account Deletion endpoint stays Rift's: one application has one endpoint.)
 3. In GitHub Actions **Variables** set (only the names that `docs/SETUP.md` lists once it exists; set these three now):
    `EBAY_KEYSET_MODE` = `shared`, `EBAY_OBSERVE_ONLY` = `1` (for the first week the eBay job only reads the remaining quota to
-   measure Rift's usage and spends nothing; I will switch it to `0` myself), `EBAY_DAILY_CALL_BUDGET` = `1000`.
+   measure Rift's usage and spends nothing; I will switch it to `0` myself), `EBAY_DAILY_CALL_BUDGET` = `1000`. Leave
+   `EBAY_API_ENABLED` unset (it is the kill switch, default on) and leave `EBAY_VERIFICATION_TOKEN` / `EBAY_DELETION_ENDPOINT` unset
+   (the deletion endpoint stays Rift's in shared mode).
 4. If the portal asks me to accept an agreement, that is a manual item.
 
 ### A9. Affiliate property forms (manual, queue them)
@@ -175,8 +193,10 @@ If READY, read `docs/SETUP.md` fully first (its names win), then:
 default branch (Settings, General). Vercel, Settings, Git, Production Branch = `main`. Never delete the original branch.
 
 **B2. Schema and data.** GitHub, Actions: run the workflow that publishes the data (named in docs/SETUP.md, expected: **Import
-prices**) on `main` and wait for green (it can take up to ~75 minutes). It creates the data branch and the database tables. If it fails,
-copy the failing step's error text into PROBLEMS.
+prices**) on `main` and wait for green (it can take up to ~75 minutes; it publishes to the private data repo's `data` branch and
+creates the Neon tables). Then run the **data-hook** workflow once (it tells the site the new data is there). In
+`Specifxx/mtgcompare-data` confirm a `data` branch now exists. If anything fails, copy the failing step's error text into PROBLEMS
+(a 404 or "token rejected" means `PLANE_TOKEN` or `DATA_REPO_TOKEN` is wrong or missing: check the scopes in A2.3).
 
 **B3. Stripe products and webhook (test mode).** Run the **Stripe setup** workflow (branch main). Its log lists the products and
 prices (Plus and Premium, monthly and yearly). In Stripe (MTG Compare account, test mode): Developers, Webhooks, Add endpoint
@@ -185,7 +205,8 @@ prices (Plus and Premium, monthly and yearly). In Stripe (MTG Compare account, t
 `customer.subscription.updated`). Put its signing secret (`whsec_...`) into Vercel as `STRIPE_WEBHOOK_SECRET` (Production). Run
 Stripe setup again: it should report all events subscribed.
 
-**B4. First production deploy.** Run **Production deploy** (branch main) once, wait for Ready in Vercel.
+**B4. First production deploy.** Run **Production deploy** (branch main) once, wait for Ready in Vercel. After this, production
+deploys by itself **once a week (Tuesday 08:00 UTC)**; data refreshes never need a deploy.
 
 **B5. Verify the live site.** Open SITE_URL and check, reporting pass or fail for each:
 - the home page shows card counts and prices, and **a "Chase cards on eBay right now" strip directly under the hero** with an
@@ -195,18 +216,20 @@ Stripe setup again: it should report all events subscribed.
 - `/sitemap.xml` loads and its URLs start with SITE_URL; `/robots.txt` loads;
 - `/login` shows Google (and Discord) sign-in; sign in with my Google account;
 - sign in as **mastermisclick@gmail.com**: the account menu shows **Admin** and `SITE_URL/admin` loads (accounts, subscriptions,
-  inbox, store health, eBay budget, data publication status). Signed out or as another account, `/admin` is an ordinary 404;
+  inbox, store health, eBay budget, data publication status, deploy cadence, database footprint). Signed out or as another account,
+  `/admin` is an ordinary 404;
 - `/premium` shows live Plus and Premium buttons; Deal Finder, Rising Cards and Demand Finder are shown as paid features and show
   only a preview to a free account;
 - `/tools/deal-finder` shows a preview when signed out or free.
 Optional (only if I said yes in this chat): a test checkout with a 100%-off coupon, then cancel it.
 
-**B6. eBay job smoke test.** In GitHub Actions run the eBay workflow (named in docs/SETUP.md) with its smallest settings, **not**
-between 21:00 and 23:59 UTC. With `EBAY_OBSERVE_ONLY=1` it must spend zero calls; report the quota line it prints. Do not change
-`EBAY_OBSERVE_ONLY`.
+**B6. eBay job smoke test.** In GitHub Actions run the eBay workflow (**eBay prices**, `ebay-prices.yml`) with its smallest settings,
+**not** between 21:05 and 23:30 UTC (the daily import window). With `EBAY_OBSERVE_ONLY=1` it must spend zero calls; report the quota
+line it prints. Do not change `EBAY_OBSERVE_ONLY`.
 
-**B7. Weekly release.** In GitHub Actions confirm the weekly release workflow exists, report its schedule (one weekday, 08:00 UTC)
-and that it has run or is waiting for its first run.
+**B7. Weekly release and data freshness.** In GitHub Actions confirm the **Production deploy** workflow's schedule is one cron,
+Tuesday 08:00 UTC (`0 8 * * 2`), and report whether it has run. Open `SITE_URL/admin/data` and `SITE_URL/admin/deploys` as the admin
+and report the data pointer's age (it should be under 26 hours after the first import) and the next release time.
 
 ## Phase C: depends on a domain or on services I may add later (queue as manual or deferred, do not block on them)
 
