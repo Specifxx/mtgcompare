@@ -103,3 +103,4 @@ Price alerts, release alerts, the welcome email and the weekly newsletter send *
 ## Click log
 
 Outbound clicks are logged anonymously (`ClickEvent`, no user id), sampled, batched into one insert in the first minute of each half hour, and swept after 90 days. `CLICK_LOG=0` switches it off, `CLICK_SAMPLE_RATE` samples it. `/admin/clicks` reads it.
+Redeploy with live Stripe keys [deploy]
