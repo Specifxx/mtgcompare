@@ -16,6 +16,7 @@ export const cheaperAbroad: Post = {
     { q: "Are Magic cards cheaper in another country?", a: "Sometimes, for particular cards. The gap table shows today's largest differences between a market's own stores and the cheapest store in another market, after currency conversion. Postage and import tax are not in those figures and often remove the saving." },
     { q: "Do the gaps include TCGplayer?", a: "No. The cross-market comparison uses store listings only, so a gap is a real difference between stores and never a reference price converted from TCGplayer's US market." },
     { q: "How are the exchange rates chosen?", a: "Conversions use indicative exchange rates, not what your bank or card charges. Treat any saving smaller than the likely fee as no saving." },
+    { q: "Should I order Magic cards from overseas?", a: "Only when the saving on the whole order is larger than the postage, any import tax and the risk of a lost parcel. For a handful of singles it almost never is; for one expensive card or a large order it can be. Best Basket prices a whole order with each store's postage." },
   ],
   date: "2026-10-08",
   minutes: 5,

@@ -1,9 +1,15 @@
 // Store-health inputs for /admin/store-health and scripts/store-health.ts.
-// Uncached (admin-only traffic). The SQL pulls only each store's scalars out of
-// ImportRun.summary, never the ~50 KB summaries themselves: about four queries
-// and tens of KB per view. No Next-only imports, so a script may use it.
+// Uncached (admin-only traffic). The history of each store's reads comes from Neon: the SQL pulls only
+// each store's scalars out of ImportRun.summary, never the ~50 KB summaries themselves. The OFFER side
+// (how many rows a store holds, how old its newest read is) comes from the published ss/runs.json, not a
+// table: public data is files, and the page keeps its offer columns when Neon is down. No Next-only
+// imports, so a script may use it.
 import { prisma } from "./db";
+import { MARKETS } from "./country";
+import type { StoreRunsFile } from "./data/plane/formats";
+import { planeJson } from "./data/plane/runtime";
 import { groupAppearances, type OfferStat, type StoreAppearance } from "./store-health";
+import { storeById } from "./stores";
 
 export interface RunRow {
   id: number;
@@ -72,17 +78,27 @@ export async function loadAppearances(): Promise<Map<string, StoreAppearance[]>>
   );
 }
 
-/** Offer rows per store: listings, in stock, newest update. */
+/**
+ * Offer rows per store from ss/runs.json (one row per (store, market) pair the importer ever read): `offers` rows held, `inStock` of them fresh, and the time of the pair's last COMPLETED read
+ * (a failed read keeps its old time, so `newest` is what makes `stale` fire). Empty when the data host cannot be reached: the page then shows no offer columns, not an error.
+ */
+export function offerStatsOf(runs: StoreRunsFile | null): Map<string, OfferStat> {
+  const out = new Map<string, OfferStat>();
+  for (const [id, market, at, , offers, inStock] of runs?.r ?? []) {
+    const s = storeById(id);
+    if (!s || MARKETS[market] !== s.country) continue;
+    const t = new Date(at);
+    const cur = out.get(s.key);
+    out.set(s.key, { listings: (cur?.listings ?? 0) + offers, inStock: (cur?.inStock ?? 0) + inStock, newest: !cur?.newest || t > cur.newest ? t : cur.newest });
+  }
+  return out;
+}
 export async function loadOfferStats(): Promise<Map<string, OfferStat>> {
-  const where = { source: { startsWith: "store:" } };
-  const [all, open] = await Promise.all([
-    prisma.offer.groupBy({ by: ["source"], where, _count: { _all: true }, _max: { updatedAt: true } }),
-    prisma.offer.groupBy({ by: ["source"], where: { ...where, inStock: true }, _count: { _all: true } }),
-  ]);
-  const inStock = new Map(open.map((o) => [o.source, o._count._all]));
-  return new Map(
-    all.map((o) => [o.source.slice("store:".length), { listings: o._count._all, inStock: inStock.get(o.source) ?? 0, newest: o._max.updatedAt ?? null }]),
-  );
+  try {
+    return offerStatsOf(await planeJson<StoreRunsFile>("ss/runs.json", { optional: true }));
+  } catch {
+    return new Map();
+  }
 }
 
 /** The last 10 runs, with the summary reduced to a few fields in SQL. */

@@ -1,11 +1,11 @@
 import { COUNTRIES, type Country } from "../country";
 import { money, usd } from "../format";
 import { toUsdCents } from "../fx";
-import { rarityLabel } from "../constants";
+import { PRINTINGS, rarityLabel } from "../constants";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // The card page's "About" section, generated compositionally from real data
-// (RiftCompare's lib/content/card-narrative.ts, rewritten for One Piece).
+// (written for Magic: The Gathering).
 // ─────────────────────────────────────────────────────────────────────────────
 // A fixed sentence skeleton with a card's attributes slotted in is one page
 // written thousands of times. This assembles observations that exist only
@@ -13,9 +13,9 @@ import { rarityLabel } from "../constants";
 // on data conditions, never by shuffling synonyms.
 //
 // Observation families, each emitted only when the data on this render backs it:
-//   0. Identity: Leader / Character / Event / Stage / DON!!, its colours and stats
-//   1. Rules text: which keywords it prints, whether it has a [Trigger]
-//   2. Printing: Parallel / Manga / SP / Treasure Rare, and the price ratio
+//   0. Identity: its type line, colours, mana cost and stats
+//   1. Rules text: which keywords it prints, where it is legal
+//   2. Printing: Borderless / Showcase / Extended Art / ..., and the price ratio
 //      against the other printings that share its number
 //   3. Price: TCGplayer's market price against the cheapest listing per market
 //   4. Cross-market spread and stock depth
@@ -44,29 +44,33 @@ export type NarrativeInput = {
   name: string;
   variant: string | null;
   number: string | null;
-  /** Card.printing: standard | alt | manga | sp | treasure | reprint | promo | foil | don */
+  /** Card.printing: "standard" or the first treatment key (constants.ts TREATMENTS). */
   printing: string;
   setName: string;
   setCode: string;
-  /** Set.kind: booster | extra | premium | starter | promo | event | collection */
+  /** Set.kind (constants.ts SET_KINDS): expansion | core | masters | commander | ... */
   setKind: string;
   releasedOn: string | null;
   /** YYYY-MM-DD, the render day (an argument so the function stays pure). */
   today: string;
   rarity: string | null;
+  /** The primary type label ("Creature", "Artifact", "Instant"). */
   cardType: string | null;
+  /** The full printed type line ("Legendary Creature - Elf Druid"). */
+  typeLine: string | null;
+  /** Colour names in WUBRG order; [] is colourless. */
   colors: string[];
-  cost: number | null;
-  power: number | null;
-  counter: number | null;
-  life: number | null;
-  attribute: string | null;
-  subtypes: string[];
-  /** Printed keyword effects (KEYWORDS kind "keyword"), as printed: "Rush", "Blocker". */
+  manaCost: string | null;
+  manaValue: number | null;
+  /** "3/4" for a creature, null otherwise. */
+  pt: string | null;
+  loyalty: string | null;
+  /** Printed keyword abilities, as printed: "Flying", "Trample". */
   keywords: string[];
-  /** Printed timing markers (kind "timing"), as printed: "On Play", "Trigger", "Activate: Main". */
-  timings: string[];
-  hasText: boolean;
+  /** Labels of the formats the card is legal in, in display order ("Commander", "Modern"). */
+  legalIn: string[];
+  /** The Commander chip: a legal commander. */
+  commander: boolean;
   marketUsd: number | null;
   change7d: number | null;
   change30d: number | null;
@@ -120,31 +124,12 @@ function sentences(...fragments: (string | null | undefined | false)[]): string 
 // `Card.variant` is TCGplayer's own suffix ("Parallel", "Manga · Alternate Art",
 // "SP") and `printing` is our bucket for it. Prose uses the bucket, never the
 // raw suffix, so the page cannot call one printing two things.
-export type PrintingKind = "standard" | "alt" | "manga" | "sp" | "treasure" | "foil" | "reprint" | "promo" | "don";
+/** Prose names come from the closed treatment vocabulary; "standard" is the plain frame. */
+export const PRINTING_PROSE: Record<string, string> = Object.fromEntries(
+  Object.entries(PRINTINGS).map(([k, v]) => [k, k === "standard" ? "standard" : v.label.toLowerCase()]),
+);
 
-export const PRINTING_PROSE: Record<string, string> = {
-  standard: "standard",
-  alt: "Parallel (alternate-art)",
-  manga: "Manga",
-  sp: "SP",
-  treasure: "Treasure Rare",
-  foil: "special-foil",
-  reprint: "reprint",
-  promo: "promo",
-  don: "DON!!",
-};
-
-export const PRINTING_SHORT: Record<string, string> = {
-  standard: "Standard",
-  alt: "Parallel",
-  manga: "Manga",
-  sp: "SP",
-  treasure: "Treasure Rare",
-  foil: "Special foil",
-  reprint: "Reprint",
-  promo: "Promo",
-  don: "DON!!",
-};
+export const PRINTING_SHORT: Record<string, string> = Object.fromEntries(Object.entries(PRINTINGS).map(([k, v]) => [k, v.label]));
 
 export const printingProse = (printing: string): string => PRINTING_PROSE[printing] ?? "alternate";
 export const isSpecialPrinting = (printing: string): boolean => printing !== "standard";
@@ -156,13 +141,17 @@ export function colourList(colors: string[]): string {
 }
 
 const setKindProse: Record<string, string> = {
-  booster: "a main booster set",
-  extra: "an extra booster",
-  premium: "a premium booster, which reprints earlier cards",
-  starter: "a starter deck",
-  promo: "the promo series",
-  event: "an event and pre-release release",
-  collection: "a collection product",
+  expansion: "a main expansion",
+  core: "a core set",
+  masters: "a reprint set, which collects earlier cards",
+  commander: "a Commander product",
+  list: "The List, which reprints earlier cards",
+  deck: "a preconstructed deck product",
+  "secret-lair": "a Secret Lair drop",
+  promo: "a promo release",
+  "promo-pack": "a promo pack release",
+  "gold-border": "a gold-bordered collector set, not legal in sanctioned play",
+  unset: "an Un-set, which is not legal in sanctioned play",
 };
 
 // ── 0. Identity ──────────────────────────────────────────────────────────────
@@ -172,80 +161,46 @@ function identity(c: NarrativeInput): string {
   const where = `${c.setName}${c.setCode ? ` (${c.setCode})` : ""}`;
   const pk = c.printing;
   const rar = c.rarity && rarityLabel(c.rarity) !== c.cardType ? rarityLabel(c.rarity) : null;
+  const what = c.typeLine ?? c.cardType ?? "card";
+  const stats = [
+    c.manaCost ? `costs ${c.manaCost}` : null,
+    c.manaValue != null && c.manaValue > 0 ? `has mana value ${c.manaValue}` : null,
+    c.pt ? `is a ${c.pt}` : null,
+    c.loyalty ? `starts with ${c.loyalty} loyalty` : null,
+  ].filter(Boolean) as string[];
 
   // Specials open with the printing: it is what makes this page different from
-  // its siblings, and the phrase a collector types ("luffy parallel").
-  if (isSpecialPrinting(pk) && pk !== "don") {
-    const what = c.cardType ? `${colour ? `${colour} ` : ""}${c.cardType}` : "card";
+  // its siblings, and the phrase a collector types ("sol ring borderless").
+  if (isSpecialPrinting(pk)) {
     return sentences(
-      `This page covers the ${printingProse(pk)} printing of ${c.name}${num}, a ${what} from ${where}`,
-      rar && c.rarity !== "L" && c.rarity !== "PR" && `It is printed at ${rar} rarity`,
+      `This page covers the ${printingProse(pk)} printing of ${c.name}${num}, ${/^[aeiou]/i.test(what) ? "an" : "a"} ${colour && !/land/i.test(what) ? `${colour} ` : ""}${what} from ${where}`,
+      rar && c.rarity !== "L" && c.rarity !== "P" && `It is printed at ${rar} rarity`,
     );
   }
-
-  switch (c.cardType) {
-    case "Leader":
-      return sentences(
-        `${c.name}${num} is ${colour ? `a ${colour}` : "a"} Leader from ${where}`,
-        c.life != null && c.power != null
-          ? `It starts the game with ${c.power.toLocaleString("en-US")} power and ${c.life} Life`
-          : c.life != null
-            ? `It starts the game with ${c.life} Life`
-            : null,
-        c.attribute && `Its attribute is ${c.attribute}`,
-        colour && c.colors.length > 1 ? `Because it is ${colour}, the deck built around it draws on both colours` : null,
-      );
-    case "Event":
-      return sentences(
-        `${c.name}${num} is ${colour ? `a ${colour}` : "an"} Event from ${where}${c.cost != null ? `, played for ${c.cost} DON!!` : ""}`,
-        c.counter != null && `It can also be played from hand as a Counter for +${c.counter.toLocaleString("en-US")} power`,
-      );
-    case "Stage":
-      return sentences(
-        `${c.name}${num} is ${colour ? `a ${colour}` : "a"} Stage from ${where}${c.cost != null ? `, costing ${c.cost} DON!!` : ""}`,
-        "A Stage stays in play and gives an ongoing effect, and only one can be in play at a time",
-      );
-    case "DON!!":
-      return sentences(
-        `${c.name}${num} is a DON!! card from ${where}`,
-        "DON!! cards are the game's resource cards: every deck runs ten, so a different art is purely a collecting choice",
-      );
-    default: {
-      const stats = [
-        c.cost != null ? `costs ${c.cost}` : null,
-        c.power != null ? `has ${c.power.toLocaleString("en-US")} power` : null,
-        c.counter != null ? `+${c.counter.toLocaleString("en-US")} counter` : null,
-      ].filter(Boolean) as string[];
-      const sub = c.subtypes.length ? ` of the ${c.subtypes.slice(0, 2).join(" / ")} type${c.subtypes.length > 1 ? "s" : ""}` : "";
-      return sentences(
-        `${c.name}${num} is ${colour ? `a ${colour}` : "a"} ${c.cardType ?? "card"}${sub} from ${where}`,
-        stats.length ? `It ${stats.join(", ").replace(/, ([^,]*)$/, " and $1")}` : null,
-        rar && `It is printed at ${rar} rarity`,
-      );
-    }
-  }
+  return sentences(
+    `${c.name}${num} is ${/^[aeiou]/i.test(colour || what) ? "an" : "a"} ${colour && !/land/i.test(what) ? `${colour} ` : ""}${what} from ${where}`,
+    stats.length ? `It ${stats.join(", ").replace(/, ([^,]*)$/, " and $1")}` : null,
+    c.commander && "It can be your commander",
+    rar && `It is printed at ${rar} rarity`,
+  );
 }
 
-// ── 1. Rules text ────────────────────────────────────────────────────────────
+// ── 1. Rules text and legality ───────────────────────────────────────────────
 function rulesText(c: NarrativeInput): string | null {
-  if (!c.hasText && !c.keywords.length && !c.timings.length) return null;
-  const ks = c.keywords;
-  const hasTrigger = c.timings.some((k) => /^trigger$/i.test(k));
-  const timing = c.timings.filter((k) => !/^trigger$/i.test(k));
   const parts: string[] = [];
+  const ks = c.keywords;
   if (ks.length) {
-    const list = ks.slice(0, 3).map((k) => `[${k}]`);
+    const list = ks.slice(0, 3);
     parts.push(
       ks.length === 1
         ? `The one keyword in its text is ${list[0]}`
         : `Its text prints ${list.join(", ").replace(/, ([^,]*)$/, " and $1")}${ks.length > 3 ? " among others" : ""}`,
     );
   }
-  if (timing.length) {
-    const t = timing.slice(0, 2).map((k) => `[${k}]`);
-    parts.push(`its effects fire at ${t.join(" and ")}`);
+  if (c.legalIn.length) {
+    const shown = c.legalIn.slice(0, 4);
+    parts.push(`it is legal in ${shown.join(", ").replace(/, ([^,]*)$/, " and $1")}${c.legalIn.length > 4 ? ` and ${c.legalIn.length - 4} more ${plural(c.legalIn.length - 4, "format")}` : ""}`);
   }
-  if (hasTrigger) parts.push("it carries a [Trigger], so it can be a free play from your Life area when it is revealed there");
   if (!parts.length) return null;
   return sentences(...parts);
 }
@@ -255,8 +210,8 @@ function printingParagraph(c: NarrativeInput): string | null {
   const others = c.printings.filter((p) => p.marketUsd != null);
   const mine = c.marketUsd;
   if (!c.printings.length) {
-    return isSpecialPrinting(c.printing) && c.printing !== "don"
-      ? sentences(`We track no other printing of ${c.number ?? c.name}, so there is no base card here to compare its price with`)
+    return isSpecialPrinting(c.printing)
+      ? sentences(`We track no other printing of ${c.number ?? c.name} in this set, so there is no base card here to compare its price with`)
       : null;
   }
   const n = c.printings.length;

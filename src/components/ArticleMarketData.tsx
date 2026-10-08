@@ -5,7 +5,7 @@ import { int } from "@/lib/format";
 import { STORES } from "@/lib/stores";
 
 // Live per-market store counts for the where-to-buy and cheaper-abroad posts
-// (RiftCompare's ArticleMarketData): how many stores OP Compare reads in each
+// (RiftCompare's ArticleMarketData): how many stores MTG Compare reads in each
 // market and how many of their listings are in stock right now, from the same
 // cached site stats as every other page, so the post can never quote a count
 // that disagrees with /stores. Never names a store as "best": that is the price
@@ -43,7 +43,7 @@ export function ArticleMarketData({ stats }: { stats: SiteStats }) {
         </table>
       </div>
       <p className="mt-2 text-xs text-slate-500">
-        Each store is read twice a day. The full list, with where each ships, is on the{" "}
+        Each store is read once a day. The full list, with where each ships, is on the{" "}
         <Link href="/stores" className="text-brand-400 hover:underline">
           stores page
         </Link>

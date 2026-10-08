@@ -2,7 +2,7 @@ import { cardImage } from "@/lib/images";
 
 // Card art. RiftCompare's CardImage in shape: a rounded-lg, isolated box on a
 // near-black ground with the scan object-cover inside it, lazy unless it is the
-// page's priority image. OP Compare's scans are TCGplayer's 300×419 product
+// page's priority image. MTG Compare's scans are TCGplayer's 300×419 product
 // images (lib/images.ts); there is no blur placeholder or AVIF manifest.
 export function CardImage({
   id,

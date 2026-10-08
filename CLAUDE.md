@@ -1,174 +1,97 @@
 # Working in this repo
 
-OP Compare is the One Piece Card Game sister site of RiftCompare
-(`Specifxx/TCGEmpire`). Same rules where they apply; read `README.md` first and
-`DECISIONS.md` for why things are the way they are.
+MTG Compare is the Magic: The Gathering sister site of RiftCompare (`Specifxx/TCGEmpire`) and OP Compare. A purpose-built port: same rules where they apply; read `README.md` first, then `docs/CURRENT-STATE.md` (the rules and decisions still in force, each linked to its entry) before proposing something an entry already settled, and `DECISIONS.md` for why things are the way they are. Anything built for Magic is explained in `docs/magic-data-contract.md`; the brand is in `docs/BRAND.md` when present.
 
-## Deploys are gated — do not add `[deploy]` to commit subjects
+## Deploys are gated and weekly — do not add `[deploy]` to commit subjects
 
-Production builds only for a commit whose SUBJECT LINE carries `[deploy]`
-(`scripts/vercel-ignore-build.sh`); `.github/workflows/production-deploy.yml`
-lands one a day at 08:00 UTC. "Push to prod" means land it on `main` and ride the
-daily release. Add `[deploy]` only when the owner says a release is urgent, and
-say so. A commit BODY may discuss the marker; it does not deploy.
+Production builds only for a commit whose SUBJECT LINE carries `[deploy]` (`scripts/vercel-ignore-build.sh`); `.github/workflows/production-deploy.yml` lands one **a week, Tuesday 08:00 UTC** (`RELEASE_CRON` in `src/lib/release-schedule.ts`; `tests/deploy-cadence.test.ts` pins the two together). The subject only: a body that mentions the marker in prose must not deploy.
 
-## The eBay API: OP Compare's own keyset, script-side only
+A release ships CODE. **Data refreshes never need a deploy**: the daily import publishes prices, stores, history and the catalogue to the data repository and moves one pointer (nothing is purged, nothing is deployed), and a week-old deployment serves today's prices. Builds prerender no database- or data-backed page and need neither the database nor the data host (`tests/build-no-data.test.ts`, the CI build job).
 
-- It runs only from `scripts/ebay.ts`, via `.github/workflows/ebay-prices.yml`
-  (05:37 and 17:37 UTC). No page, route, Vercel cron or the store import calls
-  or imports it.
-- eBay API hosts appear only in `src/lib/ebay*.ts`; the `EBAY_CLIENT_*`
-  credentials only there and in `ebay-prices.yml` (`tests/no-ebay-api.test.ts`).
-  `scripts/ebay.ts` asks `isEbayEnabled()` and never names them.
-- Never RiftCompare's keyset (it would spend RiftCompare's quota silently), and
-  never on Vercel: the credentials are GitHub Actions secrets only.
-- eBay is off until both secrets exist (a green no-op run); keys set but
-  refused fail the run red.
-- The budget is `min(EBAY_MAX_CALLS, remaining − EBAY_QUOTA_RESERVE)` per run
-  (unknown `remaining` → daily limit minus our last-24h spend; the cap is at
-  most half the spendable day); `spendable` starts at 0 and every Browse call
-  goes through `spend()`. Searches failing without a 429 trip the breaker and
-  fail the run red; every run records `spent`, even when it throws.
-- Writes are per (product, market) pair, after a COMPLETED search only: a
-  failed, 429'd or budget-refused search touches nothing.
-- Never loosen the matcher to raise eBay matches; eBay-only rules live in
-  `src/lib/ebay-match.ts`, each with a real title in `tests/ebay-match.test.ts`.
-  No eBay price is trusted without a reference: TCGplayer's market price, or
-  for an unpriced launch product the cheapest non-eBay offer.
-- eBay rows are never re-ranked (item price, like every row), never in alerts
-  or the Buy List Planner's baskets, never counted as a store, and never
-  "delivered" without known postage. No "money back"/"buyer protection" copy.
-- The eBay listing panels (`EbayListing`: the first 8 survivors with the
-  headline pick first; `EbayGradedListing`: PSA/BGS/CGC/SGC slabs) are captured
-  by `scripts/ebay.ts` from the SAME Browse search the price pass already makes:
-  zero extra calls, written in `writePair`'s transaction after a COMPLETED search
-  only, swept at 72 h, read through `getEbayPanel` / `getEbayPicks` in
-  `src/lib/data.ts`. Those rows are display-only: never ranked into a price row,
-  never in alerts or baskets, never counted as a store, and a slab never becomes
-  an Offer or enters a comparison. Pages still never call eBay.
-- The Marketplace Account Deletion route
-  (`src/app/api/ebay/marketplace-deletion`) must stay deployed while the keyset
-  exists.
-- Changing a floor, share or interval in `src/lib/ebay-plan.ts` updates
-  `tests/ebay-plan.test.ts`, the methodology copy and DECISIONS.
-- Never dispatch *eBay prices* within 07:00–08:10 or 19:00–20:10 UTC: it shares
-  the import's concurrency group and can cancel a pending import.
+**Preview and development builds are off**: they build only for a subject carrying `[preview]`, added only when the owner asks. Environment variables are Production-only (no Preview scope); there is no preview workflow and no preview protection step.
+
+RiftCompare measured `[deploy]` on 16 commits in four days (about 4 a day) because "push to prod" was read as "deploy this change now". So, for automated sessions:
+
+- **Never** put `[deploy]` (any casing) in a commit or merge SUBJECT on your own initiative. Explaining the gate in a BODY is fine and does not deploy.
+- **"Push to prod" / "ship this" means land on `main` and ride the next weekly release.** Add `[deploy]` (or dispatch the workflow) only when the owner says the release is urgent, and say so explicitly in the summary. If it is ambiguous whether a request means "live" or "live immediately", ask.
+- No `generateStaticParams` prewarming of data-backed routes; never lower a page's `export const revalidate`; never wrap a self-caching loader in another `unstable_cache` (`tests/nested-cache.test.ts`).
+- A `NEXT_PUBLIC_*` variable is inlined at build time: changing one needs a release.
+
+## Magic data: rules that keep prices on the right card
+
+- **A price belongs to a (product, finish).** `finish` (0 Normal, 1 Foil) is part of every key: offers, units, `PriceAlert`, history `UnitKey` (`"<productId>.<0|1>"`), `EbayBest`, collection and deck lines. There is no "slot" and no persisted "headline". The headline is computed at read time, Normal first (`headlineOf`, `defaultFinish`). Never write OP's "highest market wins".
+- **Market ranks, display shows.** Sorts, range filters, indexes, `TOP`, the chase pool and value statistics use the MARKET price (`marketOnlyCents`); a unit with only a thin single listing is shown as "low only" and never ranked, tracked or indexed.
+- **Etched is a product, not a flag on a base product.** `ETCHED` is set iff the product name carries the Foil Etched token, OR it is joined through `tcgplayer_etched_id` and that Scryfall row's `finishes` contains `etched`. A base product whose Scryfall row lists `etched` is NOT etched. Reach the etched twin through `Card.rootId`.
+- **A shared TCGplayer id is one Card.** The 7th to 10th Edition pairs (`213` / `213★`) are one row: Normal unit = the non-star printing, Foil unit = the star printing (`Card.fnum`).
+- **Slugs are a function of TCGCSV text** (`slugBase`), written once, never rewritten, never swapped. The Scryfall join never changes a URL. `Set.tok` is write-once. Ligatures are transliterated (`Æther Vial` is `aether-vial`).
+- **Scryfall says what a card is; TCGCSV says what it costs.** Never store or show Scryfall prices or `purchase_uris`. A card without a join has no colours, no legality grid and no oracle text; legality `?` renders as nothing, never "not legal". No synthetic oracle rows.
+- **The user's set code is Scryfall's.** Resolve `(set, number)` through `Card(sc, nkey)`, not through the TCGplayer group; a lookup returns a list and ambiguity is shown, never guessed. The route is `/card/[slug]/[number]` (`[slug]` holds the set code there): sibling dynamic directories must share a name.
+- **Every priced single has a row; the index floor protects the sitemap.** `CATALOG_FLOOR_CENTS=1`, `INDEX_FLOOR_CENTS=50`: rows below it are `THIN` (`noindex`, no sitemap entry, present everywhere else). Cards are never deleted because a price moved; a row leaves `LISTED` through hysteresis and becomes `GONE` only after two complete days of absence. A whole group or store that vanishes is HELD, not unlisted.
+- **Tokens, art cards, oversized cards and helper cards** (`Card.cls != 0`) have no oracle, are never tracked and never count as another printing of a card.
+- **Closed vocabularies stay closed.** An unknown treatment word goes to `Card.label`, the slug and the `unknownWords` counter; it never becomes a new `treat` key by accident. Persisted lists (treatments, formats, flag bits, store ids) are append-only.
+- **A list shows one unit per card.** The headline unit by default, the named finish when a query names one. Never mix one finish's price with the other finish's store low.
+- **Premium never gates Scryfall data** (names, images, oracle text, legalities, search, set browsing). Scryfall images are hotlinked unmodified. Every Wizards-IP page stays free.
+- The numbers behind these rules and their real fixtures are in `docs/magic-data-contract.md` and `tests/fixtures/magic-products.json`.
+
+## Data lives in GitHub; Neon holds only private state
+
+**Public data** (the catalogue, prices per finish, per-store offers, price history and every precomputed public view) is published by the daily import as static, sharded, versioned JSON to a private GitHub repository and read by the loaders (`src/lib/data/**`); public pages render current prices even when Neon is down, rotated or deleted. **The importer reads nothing from Neon.** **Neon** (one project, `DATABASE_URL`, under 100 MB) holds accounts, subscriptions, watchlists, alerts, the collection, notifications, the newsletter, the inbox, click events, the launch-promo counter, `ImportRun`/`Meta`, the eBay ledger and **all eBay listing and banner data (never published to GitHub: licence)**. Every file in the data repository is readable by whoever can read that repository: never write anything private, paid or eBay-derived to it. **Nothing paid is a file**: Deal Finder, Rising Cards and Demand Finder are computed per request behind an opaque `Entitlement`; the only demand-derived files are the two preview slices (`pv/`). Format changes inside `v1` are additive only. Never push to the data branches by hand: they belong to the workflows. Connection chains resolve through `src/lib/db.ts`; never hand-roll one in a script.
+
+## The eBay API: MTG Compare's keyset mode, script-side only
+
+- It runs only from `scripts/ebay.ts`, via `.github/workflows/ebay-prices.yml`. No page, route, Vercel cron or the import calls or imports it. Pages never call eBay.
+- eBay API hosts appear only in `src/lib/ebay*.ts`; the `EBAY_CLIENT_*` credentials only there and in `ebay-prices.yml` (`tests/no-ebay-api.test.ts`). `scripts/ebay.ts` asks `isEbayEnabled()` and never names them. Never in a test or in development: fixtures and mocks only.
+- The keyset is governed by `EBAY_KEYSET_MODE` (`shared`: MTG spends `min(ledger allowance, live remaining - the RiftCompare reserve)`, Rift first, foreign spend logged and alarmed; `own`: a keyset of its own). Shared mode exists so that no spend is silent; it never means "use Rift's quota freely". Credentials are GitHub Actions secrets only, never on Vercel.
+- eBay is off until both secrets exist (a green no-op run); keys set but refused fail the run red.
+- The budget is `min(EBAY_MAX_CALLS, EBAY_DAILY_CALL_BUDGET share, remaining − EBAY_QUOTA_RESERVE)` per run; `spendable` starts at 0 and every Browse call goes through `spend()`. Searches failing without a 429 trip the breaker and fail the run red; every run records `spent`, even when it throws.
+- Writes are per (product, finish, market) after a COMPLETED search only: a failed, 429'd or budget-refused search touches nothing.
+- Never loosen the matcher to raise eBay matches; eBay-only rules live in `src/lib/ebay-match.ts`, each with a real title in `tests/ebay-match.test.ts`. No eBay price is trusted without a reference.
+- **eBay listings render in their own labelled block, never interleaved with store rows.** eBay rows are never re-ranked into a price row, never in alerts or basket planners, never counted as a store, and never "delivered" without known postage. A slab never becomes an Offer. No "money back"/"buyer protection" copy.
+- **eBay data is never written to GitHub or to any file published with the source.** It lives in Neon (`EbayBest`, `EbayListing`, `EbayGradedListing`, banners), swept on its own schedule.
+- The Marketplace Account Deletion route (`src/app/api/ebay/marketplace-deletion`) must stay deployed while the keyset exists.
+- Changing a floor, share or interval in `src/lib/ebay-plan.ts` updates `tests/ebay-plan.test.ts`, the methodology copy and DECISIONS.
+- Never dispatch *eBay prices* within 21:05–23:30 UTC: it shares the daily import's concurrency group and can cancel a pending import.
 
 ## Egress
 
-Pages and API routes read only the loaders in `src/lib/data.ts`. Never import
-`@/lib/db` from `src/app`, never add `unstable_cache` outside `src/lib/data.ts`,
-never call a loader inside an `unstable_cache` callback, and keep each cache
-entry well under 2 MB (`tests/nested-cache.test.ts`). No `generateStaticParams`
-prewarming of database-backed routes.
+Public data is not in Neon. Pages and routes read the loaders of `src/lib/data/**`, which read published files through `planeJson` (a pinned `fetch`: 30-day Data Cache entry, the sha in the URL, **no tag**). Never wrap a plane read in `unstable_cache`; never call a loader or read a file or the network inside an `unstable_cache` callback (resolve the data before the closure); an `unstable_cache` key that wraps plane data carries the data commit and never a tier. Keep every published file under 1,000,000 bytes and give every new family a row in `FILE_BUDGETS` (`tests/plane-budget.test.ts`). A route that reaches `@/lib/data` or `@/lib/db` is `force-dynamic`; ISR is for routes that read nothing; sitemaps and feeds are route handlers that set `publicDataHeaders()` (`tests/build-no-data.test.ts`, `tests/headers-allowlist.test.ts`). No `generateStaticParams` prewarming of data-backed routes. Neon holds private state only (accounts, billing, alerts, collection, notifications, inbox, counters, ops, eBay) and is read from account pages and `/api/*`, never from the root layout or a public page's server render (`tests/public-no-neon.test.ts`); the card-view counter is sampled and batched. Never add `[deploy]` to a commit subject on your own initiative.
 
-Accounts and billing are the one exception, and a narrow one: `src/lib/auth.ts`
-(`getCurrentUser`, one `select`-limited row), `src/lib/premium.ts`,
-`src/lib/accounts.ts` and the Stripe routes query per user, uncached, and only
-from account pages and `/api/*` routes — never from the root layout, which must
-not read the session (the header asks `/api/me`, and only when the `oc_auth`
-hint cookie exists). Gated rows are limited in the QUERY, never hidden with CSS.
-The wave-2 member libraries join that exception on the same terms
-(per-user or per-request, uncached, `select`-limited, called only from `/api/*`
-routes and account pages — `/watching`, `/dashboard`, `/profile`,
-`/portfolio/**`, `/c/[token]`, plus two dynamic pages that read one member's own row
-and nothing else: `/tools/best-basket` (their deck watch and remembered minimum
-condition) and `/alerts/action` (a signed action token) — never from the root
-layout or a public page; `tests/app-no-db-import.test.ts` pins the set):
+Never import `@/lib/db` from `src/app` (`tests/app-no-db-import.test.ts`). Admin pages read through uncached `src/lib/admin*.ts`; public forms write through `src/lib/inbox.ts`.
+
+Accounts and billing are the one exception, and a narrow one: `src/lib/auth.ts` (`getCurrentUser`, one `select`-limited row), `src/lib/premium.ts`, `src/lib/accounts.ts` and the Stripe routes query per user, uncached, and only from account pages and `/api/*` routes — never from the root layout, which must not read the session (the header asks `/api/me`, and only when the `mc_auth` hint cookie exists). Gated rows are limited in the QUERY, never hidden with CSS.
+The wave-2 member libraries join that exception on the same terms (per-user or per-request, uncached, `select`-limited, called only from `/api/*` routes and account pages — `/watching`, `/dashboard`, `/profile`, `/portfolio/**`, `/c/[token]`, plus two dynamic pages that read one member's own row and nothing else: `/tools/best-basket` (their deck watch and remembered minimum condition) and `/alerts/action` (a signed action token) — never from the root layout or a public page; `tests/app-no-db-import.test.ts` pins the set):
 `src/lib/{watchlist-server,collection-server,collection-share,set-owned,notifications,sealed-watch,deck-watch,published-decks-server}.ts`.
-The collection-alerts libraries do the same, for token- or per-request reads and writes only:
-`src/lib/{alert-routes,alert-subscribe,alert-mute,alert-actions,newsletter-signup}.ts`
-and `src/lib/launch-promo.ts` (called from `accounts.ts` at sign-up; the popup reads the counter
-through `/api/promo` and `getLaunchPromo()` in `data.ts`, never the table)
-(the unsubscribe and action tokens, the anonymous watch door and the newsletter signup; none imports
-the mail module). Nothing under `src/app` imports `src/lib/email.ts` or a module that sends
-(`tests/no-email-api.test.ts`): every email is sent script-side from GitHub Actions, only once
-both mail secrets exist, and pages decide what to promise from `getEmailStatus()`.
-Nothing under `src/app` imports `@/lib/db` (`tests/app-no-db-import.test.ts`).
-Admin pages read through uncached `src/lib/admin*.ts`; public forms write
-through `src/lib/inbox.ts`. Share images read only `src/lib/data.ts` loaders
-(see "Share images").
-
-## Price history lives in GitHub, not Postgres
-
-The import writes history files (`src/lib/history.ts`) that the import workflow
-commits to the `data` branch; pages read them from raw.githubusercontent.com
-pinned to the commit in `Meta.historyRef`. Never add a history table back to
-Prisma, and never push to `data` by hand — it is the workflow's.
+The collection-alerts libraries do the same, for token- or per-request reads and writes only: `src/lib/{alert-routes,alert-subscribe,alert-mute,alert-actions,newsletter-signup}.ts` and `src/lib/launch-promo.ts` (called from `accounts.ts` at sign-up; the popup reads the counter through `/api/promo` and `getLaunchPromo()`, never the table) (the unsubscribe and action tokens, the anonymous watch door and the newsletter signup; none imports the mail module). Nothing under `src/app` imports `src/lib/email.ts` or a module that sends (`tests/no-email-api.test.ts`): every email is sent script-side from GitHub Actions, only once both mail secrets exist, and pages decide what to promise from `getEmailStatus()`.
+The outbound click log is one more narrow exception, on the terms of the view counter: `src/lib/click-event.ts` writes `ClickEvent` per BATCH, called only from `POST /api/click` (never a render, never the root layout, never a public page), one multi-row insert inside the first minute of each wall-clock half hour, shared with the card-view counter, so views and clicks together wake the database at most 48 times a day; `CLICK_LOG=0` switches it off, `CLICK_SAMPLE_RATE` samples it, rows are anonymous (user id never written) and swept at 90 days. `/admin/clicks` reads it through the uncached `src/lib/admin-clicks.ts`.
+Share images read only `src/lib/data` loaders (see "Share images").
 
 ## Plus & Premium (Stripe)
 
-Entitlement is `User.premiumUntil` + `premiumTier`, written only by the webhook,
-the daily reconcile, the admin grant/revoke routes (`src/lib/admin-billing.ts`,
-admin session only, audited) and the launch promotion's single claim
-(`src/lib/launch-promo.ts`: the first 50 NEW accounts get 30 days of Premium,
-taken by one atomic capped upsert on the `Counter` row `launch-promo` in the
-same transaction as the grant, called only from `upsertOAuthUser` for the row it
-just created; `tests/launch-promo.test.ts` pins it), extend-only except an
-explicit admin revoke, and
-Stripe writes only for subscriptions whose Price or metadata says
-`site=opcompare` (`src/lib/stripe-entitlement.ts`). `past_due`
-never entitles. Prices live in `src/lib/plans.ts` and reach Stripe through
-`scripts/stripe-setup.ts` (lookup keys), never through hand-typed price ids.
-Changing a price, a tier's features or the trial policy is the owner's call.
+Entitlement is `User.premiumUntil` + `premiumTier`, written only by the webhook, the daily reconcile, the admin grant/revoke routes (`src/lib/admin-billing.ts`, admin session only, audited) and the launch promotion's single claim (`src/lib/launch-promo.ts`: the first 50 NEW accounts get 30 days of Premium, one atomic capped upsert on the `Counter` row `launch-promo` in the same transaction as the grant; `tests/launch-promo.test.ts` pins it), extend-only except an explicit admin revoke, and Stripe writes only for subscriptions whose Price or metadata says `site=mtgcompare` (`src/lib/stripe-entitlement.ts`). `scripts/audit-premium-vs-stripe.ts` is read-only on purpose. `past_due` never entitles. Prices live in `src/lib/plans.ts` and reach Stripe through `scripts/stripe-setup.ts` (lookup keys `mtgcompare_{plus,premium}_{month,year}`), never through hand-typed price ids. Stripe stays in TEST mode until the owner has clarity on taking payments for a Magic site. Changing a price, a tier's features or the trial policy is the owner's call.
+
+Deal Finder is Plus and Premium; Rising Cards and Demand Finder are Premium. Signed-out and free viewers get a bounded preview (`src/lib/premium-gates.ts` is the only place a ranking is cut: `accessFor`, `rowLimit`, `gate`). Rows are limited where they are LOADED, never hidden with CSS, and a locked preview component takes no data props. Premium sells only OUR analytics: never names, images, oracle text, legalities, search, set browsing or prices; no Scryfall-derived loader sits behind `isPremium` (`tests/premium-gates-pages.test.ts`). An admin counts as Premium. The who-sees-what table is `docs/premium-gates.md`, generated from `gateMatrix()`.
 
 ## Admin access: one helper, every page and route, fail closed
 
-An admin is `SessionUser.isAdmin` (`User.isAdmin` or `isAdminEmail`, from
-`src/lib/admin-emails.ts`: the built-in `mastermisclick@gmail.com`, which
-`ADMIN_EMAILS` REPLACES when set). Nothing else decides it. Every
-`src/app/admin/**` page calls `requireAdminPage()` first (the layout is chrome,
-not the gate) and every `src/app/api/admin/**` route calls `requireAdminApi()`
-first, both from `src/lib/admin.ts`; `tests/admin.test.ts` walks the tree and
-fails on a page or route that doesn't. Fail closed: no session, no admin flag,
-an error or a missing env var means a 404 (pages) or 401/403 (APIs), never
-the page. Mutations are POST + same-origin + JSON, and log with `adminLog`.
-`ADMIN_TOKEN` is optional, for scripts, header-only (`Authorization: Bearer`),
-at least 32 characters, and never in a URL, a query string or client props.
-`/admin` stays out of robots, the sitemap, GA and the public UI (only an
-admin's own account menu links it).
+An admin is `SessionUser.isAdmin` (`User.isAdmin` or `isAdminEmail`, from `src/lib/admin-emails.ts`: the built-in `mastermisclick@gmail.com`, which `ADMIN_EMAILS` REPLACES when set). Nothing else decides it. Every `src/app/admin/**` page calls `requireAdminPage()` first (the layout is chrome, not the gate) and every `src/app/api/admin/**` route calls `requireAdminApi()` first, both from `src/lib/admin.ts`; `tests/admin.test.ts` walks the tree and fails on a page or route that doesn't. Fail closed: no session, no admin flag, an error or a missing env var means a 404 (pages) or 401/403 (APIs), never the page. Mutations are POST + same-origin + JSON, and log with `adminLog`. `ADMIN_TOKEN` is optional, for scripts, header-only (`Authorization: Bearer`), at least 32 characters, and never in a URL, a query string or client props. `/admin` stays out of robots, the sitemap, GA and the public UI (only an admin's own account menu links it).
+
+The panels: `/admin/ebay` (budget and ledger), `/admin/data` (publication status from `status.json`, not Neon), `/admin/deploys` (last and next release), `/admin/database` (Neon footprint), `/admin/clicks`, `/admin/loyalty`, `/admin/mail`, `/admin/lookup`, plus OP's inbox, support, accounts, subscriptions and premium pages. A "Run" button dispatches a workflow only when the optional `GITHUB_DISPATCH_TOKEN` exists (`src/lib/admin-dispatch.ts`); otherwise the panel links to the workflow. The dispatch routes (`ebay-run`, `deploy-run`, `publish-run`) obey the ledger and the quiet windows.
 
 ## Share images (link thumbnails)
 
-Every `src/app/**/opengraph-image.tsx` is a thin route: it exports only
-`runtime = "nodejs"`, `revalidate = 21600`, `alt`, `size` (1200×630),
-`contentType` and `default`, and calls a loader-and-draw function in
-`src/lib/og/images.tsx` (compositions in `compose.tsx`, pure selection in
-`select.ts`). `tests/og.test.ts` pins this.
+Every `src/app/**/opengraph-image.tsx` is a thin route: it exports only `runtime = "nodejs"`, `dynamic = "force-dynamic"`, `alt`, `size` (1200×630), `contentType` and `default` and NO `revalidate` (an `export const revalidate` on a param-less route makes Next prerender it at `next build`, which would read the data host). The CDN keeps an image 6 h through `OG_CACHED` (`src/lib/og/respond.ts`), a fallback one minute. Loader-and-draw functions live in `src/lib/og/images.tsx` (compositions in `compose.tsx`, pure selection in `select.ts`); `tests/og.test.ts` pins this.
 
-- **What each shows.** `/` and every page without its own image: the price
-  guide (logo, "ONE PIECE PRICE GUIDE", card/store/market counts, five real
-  top cards with art, printing, cheapest US price, TCGplayer market, number and
-  store count or 7-day change). `/price-guide`: the same with the guide footer.
-  `/sets/[slug]`: the set's top five cards (or its release date when unpriced).
-  `/sealed/[slug]`: product art on a white plate with its price.
-  `/card/[slug]`: card art, printing and rarity chips, and per-market prices.
-  `/blog/[slug]`: the title beside three hero cards.
-- **Real data only,** from the cached `src/lib/data.ts` loaders (no Offer or
-  per-card query). Any error, empty database or unknown slug draws the
-  data-free fallback image, never a 500 and never invented numbers.
-- **Page metadata:** a page's `openGraph` replaces the root's whole object, so
-  build it with `pageOg(canonicalPath)` (keeps site name/locale/type, sets
-  `og:url`, re-adds the default image) or, beside its own
-  `opengraph-image.tsx`, `pageOgOwnImage(path)`, which has no `images` key:
-  the key alone blocks the sibling file (`src/lib/og/meta.ts`). The root layout
-  sets no `og:url`. Images send a 6 h CDN header, the fallback one minute.
-- **Safe area:** content inside x 48–1152, y 30–612; nothing essential below
-  ~575 (Reddit and X overlay the domain there); the centre square
-  (x 285–915) always holds real content.
-- **Fonts:** the bundled TTFs in `src/lib/og/fonts/` (Luckiest Guy, Archivo
-  900, Inter 600/700, JetBrains Mono 700; licences beside them), traced in by
-  `next.config.js`. TTF/OTF only, never WOFF2; no emoji or flag glyphs. Follow
-  the satori rules at the top of `compose.tsx`.
-- Render changes locally and look at every PNG before shipping; check the live
-  image in a link-preview tester before any Reddit post (Reddit freezes a
-  post's thumbnail).
+- **What each shows.** `/` and every page without its own image: "MTG PRICE GUIDE", the logo lockup, card/store/market counts and five real top cards by the cheapest US price (a card appears once, from the main set kinds, never a promo, serialized or event printing). `/price-guide`: the same with the guide footer. `/sets/[slug]`: the set's top five cards. `/sealed/[slug]`: the product on a white plate. `/card/[slug]`: the art (`imageFor(c, "og")`, a JPEG on both hosts), set, number, printing and foil word, rarity and per-market prices. `/blog/[slug]`, `/guides/[slug]`: the title beside three hero cards.
+- **Real data only,** from the `src/lib/data` loaders, never Neon (except the two user-content images: published decks and shared Rising snapshots) and never eBay. Any error, empty data or unknown slug draws the data-free fallback image, never a 500 and never invented numbers.
+- **Card art is drawn whole** (`object-fit: contain`, Scryfall's image rules: the copyright and artist line are never clipped).
+- **Page metadata:** a page's `openGraph` replaces the root's whole object, so build it with `pageOg(canonicalPath)` or, beside its own `opengraph-image.tsx`, `pageOgOwnImage(path)` (`src/lib/og/meta.ts`).
+- **Safe area:** content inside x 48–1152, y 30–612; nothing essential below ~575; the centre square (x 285–915) always holds real content.
+- **Fonts:** the bundled TTFs in `src/lib/og/fonts/` (Cinzel Black 900, Archivo 900, Inter 600/700, JetBrains Mono 700; OFL licences beside them), traced in by `next.config.js`. TTF/OTF only, never WOFF2; no emoji or flag glyphs. Follow the satori rules at the top of `compose.tsx`. The brand (Arcane Ink: amethyst and brass) is `docs/BRAND.md`.
+- Render changes locally and look at every PNG before shipping; check the live image in a link-preview tester before any Reddit post (Reddit freezes a post's thumbnail).
 
 ## Matching store listings
 
-`src/lib/match.ts` matches a listing to ONE printing or not at all. Add a real
-title to `tests/match.test.ts` for every rule you change. Never loosen a rule
-to raise the match count; an ambiguous listing is skipped, not guessed.
+`src/lib/match.ts` matches a listing to ONE (product, finish) or not at all. The set code and number a store prints are Scryfall's: resolve them through `(sc, nkey)`. Add a real title to `tests/match.test.ts` for every rule you change. Never loosen a rule to raise the match count; an ambiguous listing is skipped, not guessed. A "Foil" tag alone never decides a finish; two products at one (set, number) that both sell foil and a title with no treatment word is a skip. One row per (store, product, finish) reaches a write (`collapseOffers`). A store has a hand-assigned, never-reused id (`tests/fixtures/store-ids.json`).
 
 ## Checks
 
@@ -177,6 +100,8 @@ npx prisma generate
 npm run typecheck
 npm run lint
 npm test
+npm run check:ownership    # every file has one owner (docs/ownership.json)
+npm run decisions:index    # after adding or editing a DECISIONS entry
 ```
 
-Record non-obvious decisions in `DECISIONS.md` (newest at the bottom).
+Record non-obvious decisions in `DECISIONS.md` (newest at the bottom). If an entry changes or reverses a bullet of `docs/CURRENT-STATE.md`, update that bullet too. `docs/DECISIONS-INDEX.md` lists every entry by month.

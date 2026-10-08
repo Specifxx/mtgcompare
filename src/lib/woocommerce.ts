@@ -1,5 +1,5 @@
 // WooCommerce stores, via the WordPress Store API — ported from RiftCompare's
-// lib/woocommerce.ts (Specifxx/TCGEmpire), narrowed to One Piece. Network +
+// lib/woocommerce.ts (Specifxx/TCGEmpire), narrowed to Magic. Network +
 // parsing only; lib/match.ts decides what a title means.
 //
 // /wp-json/wc/store/v1/* is the unauthenticated read half of WooCommerce's
@@ -68,14 +68,14 @@ export function wooListing(p: WooProduct, currency: string): StoreListing | null
 const NON_SINGLE_CATEGORY =
   /sealed|scell|sellad|sigillat|versiegelt|booster|box|bundle|pre-?order|accessor|playmat|sleeve|merch|gift|case|tin|blister|display|deck|ticket|event|japan|japon|chinese|chinois|korean|graded|psa|bgs|cgc/i;
 
-/** The store's One Piece singles category ids: configured slugs, plus any "one piece" category that isn't sealed/accessories. */
-export function onePieceCategoryIds(cats: WooCategory[], configuredSlugs: string[] = []): number[] {
+/** The store's Magic singles category ids: configured slugs, plus any "magic" / "mtg" category that isn't sealed/accessories. */
+export function magicCategoryIds(cats: WooCategory[], configuredSlugs: string[] = []): number[] {
   const wanted = new Set(configuredSlugs.map((s) => s.toLowerCase()));
   const ids = new Set<number>();
   for (const c of cats) {
     const label = `${decodeEntities(c.name)} ${c.slug}`;
     if (wanted.has(c.slug.toLowerCase())) ids.add(c.id);
-    else if (/one[\s-]?piece/i.test(label) && !NON_SINGLE_CATEGORY.test(label)) ids.add(c.id);
+    else if (/magic|\bmtg\b/i.test(label) && !NON_SINGLE_CATEGORY.test(label)) ids.add(c.id);
   }
   return [...ids];
 }
@@ -102,7 +102,7 @@ export async function fetchWooStore(store: StoreInfo): Promise<StoreRead> {
     cats.push(...data);
     if (data.length < 100) break;
   }
-  const ids = onePieceCategoryIds(cats, store.collections);
+  const ids = magicCategoryIds(cats, store.collections);
   const cur = currencyOf(store.country);
   const products: StoreListing[] = [];
   const seen = new Set<string>();

@@ -19,7 +19,7 @@
 // the retired calculator was faulted for), not a market norm, and quoting it
 // next to a real listing would present an invented number as one.
 //
-// OP Compare (wave 2): copied from RiftCompare verbatim. OP Compare's
+// MTG Compare (wave 2): copied from RiftCompare verbatim. MTG Compare's
 // constants.ts has no normaliseCondition, so RiftCompare's is carried here
 // beside its one caller. Store rows already hold lib/match.ts conditionLabel
 // grades (NM, LP, MP, HP, DMG), which it reads unchanged.

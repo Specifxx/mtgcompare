@@ -30,7 +30,7 @@ export function ebayRetailer(source: string, country: Country): string {
   return source === "ebay_us" ? "ebay_us" : `ebay_${country.toLowerCase()}`;
 }
 
-/** The affiliate sub-id a row's link is re-tagged with at render (customid oc-<mkt>-<subId>-<page>-product for eBay). */
+/** The affiliate sub-id a row's link is re-tagged with at render (customid mc-<mkt>-<subId>-<page>-product for eBay). */
 export function retailerSubId(source: string): string {
   if (source === "tcgplayer") return "tcgplayer";
   if (isEbaySource(source)) return source; // "ebay" | "ebay_us"

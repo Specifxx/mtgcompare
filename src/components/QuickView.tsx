@@ -19,7 +19,7 @@ import { PriceWatchButton } from "./PriceWatchButton";
 import { PriceDropAlertCta } from "./PriceDropAlertCta";
 import { AddToCollectionButton } from "./AddToCollectionButton";
 
-// The QuickView panel (RiftCompare's QuickViewModal, adapted): art and the
+// The QuickView panel: art and the
 // "Open full page" link on the left; on the right the printing, the visitor's
 // cheapest price and store, the 7-day move, the top rows of the comparison with
 // affiliate Buy buttons, the eBay search, every market's cheapest, and the
@@ -35,21 +35,22 @@ const cache = new Map<string, { at: number; p: Promise<QuickViewPayload> }>();
 const CACHE_MAX = 60;
 const CACHE_MS = 10 * 60 * 1000;
 
-export function loadQuickView(slug: string): Promise<QuickViewPayload> {
-  const hit = cache.get(slug);
+export function loadQuickView(slug: string, finish?: "N" | "F"): Promise<QuickViewPayload> {
+  const key = finish ? `${slug}|${finish}` : slug;
+  const hit = cache.get(key);
   if (hit && Date.now() - hit.at < CACHE_MS) return hit.p;
-  const p = fetch(`/api/card/${encodeURIComponent(slug)}`)
+  const p = fetch(`/api/card/${encodeURIComponent(slug)}${finish ? `?finish=${finish === "F" ? "foil" : "nonfoil"}` : ""}`)
     .then((r) => {
       if (!r.ok) throw new Error(String(r.status));
       return r.json() as Promise<QuickViewPayload>;
     })
     .catch((e: unknown) => {
-      cache.delete(slug);
+      cache.delete(key);
       throw e;
     });
-  cache.delete(slug);
+  cache.delete(key);
   if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value as string);
-  cache.set(slug, { at: Date.now(), p });
+  cache.set(key, { at: Date.now(), p });
   return p;
 }
 
@@ -76,17 +77,18 @@ export function QuickView({
   const [data, setData] = useState<QuickViewPayload | null>(null);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [finish, setFinish] = useState<"N" | "F" | undefined>(undefined);
 
   useEffect(() => {
     let live = true;
     setFailed(false);
-    loadQuickView(slug)
+    loadQuickView(slug, finish)
       .then((d) => live && setData(d))
       .catch(() => live && setFailed(true));
     return () => {
       live = false;
     };
-  }, [slug, attempt]);
+  }, [slug, attempt, finish]);
 
   // Opening a card's QuickView counts as viewing it (RiftCompare): it joins the
   // recently viewed rail and the empty search box's list, like the card page.
@@ -121,7 +123,7 @@ export function QuickView({
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={cardImage.large(data.id)}
-                alt={`${name ?? "Card"} — One Piece Card Game`}
+                alt={`${name ?? "Card"} — Magic: The Gathering card`}
                 width={300}
                 height={419}
                 className="aspect-[300/419] w-full rounded-md bg-ink-800 object-cover"
@@ -217,6 +219,52 @@ export function QuickView({
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">7 days</p>
                   <Delta v={data.change7d} className="text-sm" />
                 </div>
+              </div>
+
+              {/* Finish tabs: Normal and Foil are separate units with separate prices. */}
+              {data.finishes.length > 1 ? (
+                <div className="mt-3 flex gap-1.5" role="tablist" aria-label="Finish">
+                  {data.finishes.map((f) => (
+                    <button
+                      key={f}
+                      type="button"
+                      role="tab"
+                      aria-selected={data.finish === f}
+                      onClick={() => setFinish(f)}
+                      className={`chip min-h-8 border text-xs ${data.finish === f ? "border-brand-400 bg-brand-400/15 text-white" : "border-ink-700 bg-ink-850 text-slate-300 hover:text-white"}`}
+                    >
+                      {f === "N" ? "Non-foil" : "Foil"}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              {/* Both buy paths, side by side, on every card: TCGplayer, and the highlighted eBay button. */}
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <a
+                  href={data.tcgHref}
+                  target="_blank"
+                  rel={outboundRel()}
+                  data-retailer="tcgplayer"
+                  data-page={PAGE}
+                  data-card={data.slug}
+                  data-surface="quickview_top"
+                  className="btn-primary min-h-10 px-3 py-1.5 text-xs"
+                >
+                  Buy on TCGplayer →
+                </a>
+                <a
+                  href={m.ebaySearch}
+                  target="_blank"
+                  rel={outboundRel()}
+                  data-retailer="ebay_search"
+                  data-page={PAGE}
+                  data-card={data.slug}
+                  data-surface="quickview_top_ebay"
+                  className="btn-ebay min-h-10 px-3 py-1.5 text-xs"
+                >
+                  {data.preRelease ? `Search ${ebay} →` : `Buy on ${ebay} →`}
+                </a>
               </div>
 
               <div className="mt-4">
@@ -384,7 +432,7 @@ export function QuickView({
                   width={520}
                   series={[
                     { label: "TCGplayer market", color: "#e9b73a", points: (data.history ?? []).map((p) => ({ x: p.day, y: p.marketUsd })) },
-                    { label: "Cheapest US listing", color: "#ff6b6b", points: (data.history ?? []).map((p) => ({ x: p.day, y: p.lowUsd })), dashed: true },
+                    { label: "Cheapest US listing", color: "#a259e6", points: (data.history ?? []).map((p) => ({ x: p.day, y: p.lowUsd })), dashed: true },
                   ]}
                   format={(v) => usd(Math.round(v))}
                   empty="Not enough price history yet — the chart draws once there are two days of prices."
@@ -393,7 +441,7 @@ export function QuickView({
 
               <p className="mt-3 text-[11px] leading-snug text-slate-500">
                 Item prices, cheapest first; postage is added at each seller&apos;s checkout. Affiliate links: as an eBay Partner Network affiliate and a
-                TCGplayer affiliate, OP Compare earns from qualifying purchases — at no extra cost to you.
+                TCGplayer affiliate, MTG Compare earns from qualifying purchases — at no extra cost to you.
               </p>
             </>
           )}

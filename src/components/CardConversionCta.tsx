@@ -7,11 +7,11 @@ import { PriceWatchButton } from "./PriceWatchButton";
 
 // The card page's next step after the price table (RiftCompare's
 // CardConversionCta): watch this price, and, for anyone without a plan, a
-// pointer to Deal Finder. OP Compare's watchlist lives in the browser and
+// pointer to Deal Finder. MTG Compare's watchlist lives in the browser and
 // sends no email yet, so the copy promises only what it does: the card joins
 // the watchlist page and Best Basket. Hidden for Plus/Premium members
 // (who have the tools already, and the heart beside the title); a returning
-// member's oc_adfree hint hides it at first paint (data-ad-placement).
+// member's mc_adfree hint hides it at first paint (data-ad-placement).
 export function CardConversionCta({ cardId, slug, name }: { cardId: number; slug: string; name: string }) {
   const { me } = useMe();
   if (me.tier) return null;

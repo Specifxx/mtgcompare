@@ -17,7 +17,7 @@ import { ADSENSE_CLIENT_ID, AD_UNITS_ENABLED } from "@/lib/adsense";
 const HOUSE_ADS = [
   { title: "This week's biggest price moves", sub: "Risers, drops and best-value buys, updated daily", cta: "See the movers", href: "/movers" },
   { title: "Is that booster box worth opening?", sub: "Run the numbers against live singles prices", cta: "Box EV calculator", href: "/tools/box-ev" },
-  { title: "The OP Compare Index", sub: "The whole One Piece market in one number", cta: "View the index", href: "/market" },
+  { title: "The MTG Compare Index", sub: "The whole Magic market in one number", cta: "View the index", href: "/market" },
   { title: "Pay less for the same cards", sub: "Best Basket finds the cheapest stores for a whole order, postage included", cta: "Open Best Basket", href: "/tools/best-basket" },
 ];
 
@@ -36,7 +36,7 @@ function HouseAd({ seed, height }: { seed: string; height: number }) {
         <span className="block truncate text-xs text-slate-400">{ad.sub}</span>
       </span>
       <span className="hidden shrink-0 rounded-lg border border-brand-500/40 bg-brand-500/10 px-3 py-1.5 text-xs font-bold text-brand-400 sm:block">{ad.cta} →</span>
-      <span className="absolute right-1 top-1 rounded bg-ink-950/70 px-1 text-[9px] font-semibold uppercase tracking-wide text-slate-500">OP Compare</span>
+      <span className="absolute right-1 top-1 rounded bg-ink-950/70 px-1 text-[9px] font-semibold uppercase tracking-wide text-slate-500">MTG Compare</span>
     </Link>
   );
 }

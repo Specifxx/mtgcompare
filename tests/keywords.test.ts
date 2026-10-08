@@ -10,7 +10,7 @@ test("slugs are unique, hyphenated and match Scryfall's token form", () => {
   assert.equal(keywordSlug("Choose a Background"), "choose-a-background");
 });
 
-test("every definition has a summary, a body and no One Piece bracket marker", () => {
+test("every definition has a summary, a body and no bracket marker", () => {
   for (const k of KEYWORDS) {
     assert.ok(k.summary.length > 20 && k.body.length >= 1 && k.markers.length >= 1, k.slug);
     assert.doesNotMatch([k.name, k.summary, ...k.body].join(" "), /\[|DON!!|Leader|One Piece/, k.slug);

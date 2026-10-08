@@ -1,3 +1,6 @@
+// The one source of the Cache-Control of plane-backed pages (contract 12.7.6): tests/headers-allowlist.test.ts reads the same file.
+const plane = require("./src/lib/data/plane/headers.json");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
@@ -10,14 +13,14 @@ const nextConfig = {
     // key is matched against the route (e.g. /card/[slug]/opengraph-image).
     outputFileTracingIncludes: { "opengraph-image": ["./src/lib/og/fonts/*.ttf"] },
   },
-  // www.opcompare.app → opcompare.app, whatever the Vercel domain settings say,
+  // www.mtgcompare.app → mtgcompare.app, whatever the Vercel domain settings say,
   // so search engines only ever see the apex host the canonical URLs name.
   async redirects() {
     return [
       {
         source: "/:path*",
-        has: [{ type: "host", value: "www.opcompare.app" }],
-        destination: "https://opcompare.app/:path*",
+        has: [{ type: "host", value: "www.mtgcompare.app" }],
+        destination: "https://mtgcompare.app/:path*",
         permanent: true,
       },
       // Wave-2 tools (RiftCompare's lineup): the Buy List Planner became Best
@@ -32,10 +35,10 @@ const nextConfig = {
       // swapping the shell for the redirect threw React error #310 in production
       // (11 of 32 crawl combinations). No session cookie means the page would
       // redirect anyway, so the page's check stays for a stale or invalid cookie.
-      { source: "/watching", missing: [{ type: "cookie", key: "oc_session" }], destination: "/login?next=/watching", permanent: false },
-      { source: "/portfolio", missing: [{ type: "cookie", key: "oc_session" }], destination: "/login?next=/portfolio", permanent: false },
-      { source: "/portfolio/sets", missing: [{ type: "cookie", key: "oc_session" }], destination: "/login?next=/portfolio/sets", permanent: false },
-      { source: "/portfolio/sets/:set", missing: [{ type: "cookie", key: "oc_session" }], destination: "/login?next=/portfolio/sets/:set", permanent: false },
+      { source: "/watching", missing: [{ type: "cookie", key: "mc_session" }], destination: "/login?next=/watching", permanent: false },
+      { source: "/portfolio", missing: [{ type: "cookie", key: "mc_session" }], destination: "/login?next=/portfolio", permanent: false },
+      { source: "/portfolio/sets", missing: [{ type: "cookie", key: "mc_session" }], destination: "/login?next=/portfolio/sets", permanent: false },
+      { source: "/portfolio/sets/:set", missing: [{ type: "cookie", key: "mc_session" }], destination: "/login?next=/portfolio/sets/:set", permanent: false },
     ];
   },
   async headers() {
@@ -54,6 +57,10 @@ const nextConfig = {
       // Share PNGs are not pages: keep them out of search results.
       { source: "/opengraph-image:suffix(.*)", headers: [{ key: "X-Robots-Tag", value: "noindex" }] },
       { source: "/:path*/opengraph-image:suffix(.*)", headers: [{ key: "X-Robots-Tag", value: "noindex" }] },
+      // Plane-backed pages: the CDN keeps the HTML five minutes and may serve it stale ten more; per-user and per-tier pages and every /api route are private.
+      // Sitemaps, feeds, llms files and image routes are route handlers and set publicDataHeaders() themselves (Next adds its own Cache-Control to metadata routes, so a header here would double).
+      ...plane.pagesPublic.map((source) => ({ source, headers: [{ key: "Cache-Control", value: plane.public }] })),
+      ...plane.pagesPrivate.map((source) => ({ source, headers: [{ key: "Cache-Control", value: plane.private }] })),
     ];
   },
 };

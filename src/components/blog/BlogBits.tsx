@@ -41,7 +41,7 @@ export function CardTable({ cards, setById, country, showMarket = true, caption 
                   </CardQuickLink>
                 </td>
                 <td className="num whitespace-nowrap text-xs text-slate-400">
-                  {setById.get(c.setId)?.code} · {c.number ?? "DON!!"}
+                  {setById.get(c.setId)?.code} · {c.number ?? "—"}
                 </td>
                 {showMarket ? <td className="num whitespace-nowrap text-right font-semibold text-accent">{money(c.marketUsd, "US")}</td> : null}
                 <td className="num whitespace-nowrap text-right text-slate-300">

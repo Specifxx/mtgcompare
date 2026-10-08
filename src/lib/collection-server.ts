@@ -1,39 +1,40 @@
-// THE BINDER, server side — every database read and write behind /portfolio,
-// /api/collection/** and /api/portfolio/** (RiftCompare's api/collection routes,
-// getPortfolio from its lib/premium.ts and the portfolio half of its
-// lib/free-limits-server.ts, ported in wave 2, 2026-10-03). Route files may
-// export only their handlers and may not import @/lib/db
-// (tests/app-no-db-import.test.ts), so the logic lives here and the routes keep
-// only the session read, the same-origin check, the rate limit and the response.
+// THE BINDER, server side: every database read and write behind /portfolio,
+// /api/collection/** and /api/portfolio/**. Route files may export only their
+// handlers and may not import @/lib/db (tests/app-no-db-import.test.ts), so the
+// logic lives here and the routes keep only the session read, the same-origin
+// check, the rate limit and the response.
 //
 // Egress (CLAUDE.md, the accounts exception): every query is scoped to ONE
-// account, select-limited and bounded — the rows carry card ids and NO card
-// join: each row is priced from the cached catalogue (getCatalog in
-// lib/data.ts), exactly as the watchlist route does. Called only from /api/*
-// routes and account pages (/portfolio/**), never from a cached loader or the
-// root layout.
+// account, select-limited and bounded. The rows carry card ids and NO card join
+// (a card is published data, not a table): each row is priced from the loaders of
+// lib/data (getCardsByIds), exactly as the watchlist route does. Called only from
+// /api/* routes and account pages (/portfolio/**), never from a cached loader or
+// the root layout.
 //
-// Card ids are numbers (Card.id, the TCGplayer productId — one printing). OP
-// has one printing per productId and TCGplayer prices the foil finish as its
-// own product, so a row's `isFoil` is not a user toggle here: it defaults from
-// the card's own finish (Card.finish === "Foil") and is kept for CSV and schema
-// parity.
+// A binder row is a UNIT: a product (Card.id, the TCGplayer productId) in a
+// finish. `isFoil` true is the Foil unit of the product (its own market price and
+// history); it is not a toggle on the price of the card. Every write goes through
+// track.ts normalizeFoil, so a product that has only one finish is stored in it,
+// and the row's `setId` is written from the published data (there is no foreign
+// key, so the per-set views filter on the column).
 import { prisma } from "./db";
-import { getCatalog, getIndexSeries, getRecentHistory, type CardLite } from "./data";
-import { MARKETS, type Country } from "./country";
+import { getCardsByIds, getIndexSeries, getRecentHistory, getSets, resolveBySetNumber, type CardLite } from "./data";
+import { fold, finishLabel, unitKey, type Finish, CARD_FLAGS, PRICE_MASK } from "./constants";
+import type { Country } from "./country";
 import { cardImage } from "./images";
-import { sourceLabel } from "./stores";
-import { matchCsvRows, parseCollectionCsv } from "./collection-csv";
-import { indexCards, parseDeckList, resolveLine } from "./deck";
+import { matchCsvRows, parseCollectionCsv, type CsvData } from "./collection-csv";
+import { parseDeckList } from "./deck";
+import { loaderData, resolveDeckLines } from "./deck-price";
+import { normalizeFoil } from "./track";
 import { isPremium, type EntitlementFields } from "./premium";
 import { addCopies, collectionRowStore } from "./collection-add";
 import { costAfterQuantityChange, investedCents, QUANTITY_CAP, unitCostCents } from "./collection-cost";
-import { CONDITION_MULTIPLIER, isConditionKey } from "./collection-conditions";
+import { CONDITION_MULTIPLIER, copyValueCents, finishOfRow, isConditionKey } from "./collection-conditions";
 import { checkFreeAllowance, freeLimitBody, FREE_LIMIT_STATUS, type Allowance, type HoldingsCounter } from "./free-limits";
 import { indexChange, METHODOLOGY_BREAKS, portfolioPerformance, scaleSeries, type PricePoint } from "./portfolio-performance";
 
 // The portfolio tracker (value history, cost-basis P&L, benchmark, CSV export) is
-// FREE for every account, as on RiftCompare (its PORTFOLIO_FREE) — flip this to
+// FREE for every account, (PORTFOLIO_FREE) — flip this to
 // false to put it back behind a paid tier. Gates read `isPremium(user) ||
 // PORTFOLIO_FREE`, so re-gating is a one-line change with no other edits. The
 // 50-card free LIMIT (lib/free-limits.ts) is separate and always enforced.
@@ -41,7 +42,7 @@ export const PORTFOLIO_FREE = true;
 
 /** Rows one GET returns: even power collections stay bounded per request (egress). */
 export const COLLECTION_TAKE = 2000;
-/** Days of history the value chart draws (RiftCompare's windowDays). */
+/** Days of history the value chart draws . */
 export const PORTFOLIO_WINDOW_DAYS = 90;
 
 export type Account = EntitlementFields & { id: string; email: string };
@@ -62,14 +63,22 @@ export interface CollectionCardInfo {
   slug: string;
   name: string;
   number: string | null;
+  /** The treatment words of the product ("Borderless", "Extended Art"), null for a plain one. */
   variant: string | null;
+  /** The first treatment key ("borderless"), "standard" for a plain product. */
   printing: string;
   rarity: string | null;
   setCode: string;
   hasImage: boolean;
   img: string | null;
-  /** Cheapest open listing per market, in that market's currency (Card.low<M>). */
-  low: Record<Country, number | null>;
+  /** Which finishes the product has a TCGplayer row for. A Foil-only product (Foil Etched, Surge Foil ...) has hasN false. */
+  hasN: boolean;
+  hasF: boolean;
+  /** What the Foil unit is called on this product: "Foil", "Foil Etched", "Surge Foil" ... */
+  foilLabel: string;
+  /** TCGplayer market price of each finish in US cents (null = no row, or low-only); the editor shows them beside the finish switch. */
+  marketN: number | null;
+  marketF: number | null;
 }
 
 export function cardInfo(card: CardLite, setCode: string): CollectionCardInfo {
@@ -84,11 +93,18 @@ export function cardInfo(card: CardLite, setCode: string): CollectionCardInfo {
     setCode,
     hasImage: card.hasImage,
     img: card.hasImage ? cardImage.thumb(card.id) : null,
-    low: card.low,
+    hasN: card.n != null,
+    hasF: card.f != null,
+    foilLabel: finishLabel(card, "F"),
+    marketN: card.n?.market ?? null,
+    marketF: card.f?.market ?? null,
   };
 }
 
-/** "Shanks (Parallel)" — the name with its printing, as every OP list shows it. */
+/** The finishes a product has, as the mask normalizeFoil reads. */
+export const maskOfCard = (c: Pick<CardLite, "n" | "f">): number => (c.n ? PRICE_MASK.HASN : 0) | (c.f ? PRICE_MASK.HASF : 0);
+
+/** "Stingcaster Mage (Borderless · Facet Foil)": the name with its treatment words, as every list shows it. */
 export const displayName = (c: { name: string; variant: string | null }) => `${c.name}${c.variant ? ` (${c.variant})` : ""}`;
 
 // ── Reads ───────────────────────────────────────────────────────────────────
@@ -117,16 +133,17 @@ export type CollectionItem = CollectionRow & { card: CollectionCardInfo };
 
 /** The editor's list: rows with their card from the catalogue; a row whose card is gone is dropped. */
 export async function collectionItems(userId: string): Promise<CollectionItem[]> {
-  const [rows, cat] = await Promise.all([collectionRows(userId), getCatalog()]);
+  const rows = await collectionRows(userId);
+  const cards = await getCardsByIds(rows.map((r) => r.cardId));
   return rows
     .map((r) => {
-      const card = cat.byId.get(r.cardId);
-      return card ? { ...r, card: cardInfo(card, cat.setById.get(card.setId)?.code ?? "") } : null;
+      const card = cards.get(r.cardId);
+      return card ? { ...r, card: cardInfo(card, card.setCode) } : null;
     })
     .filter((x): x is CollectionItem => x != null);
 }
 
-// ── The free portfolio limit (RiftCompare lib/free-limits-server.ts) ────────
+// ── The free portfolio limit ────────
 // One row per condition (5) × foil (2) per card at most; the take bounds the
 // read to that. The distinct count is COUNT(DISTINCT "cardId") in SQL, never a
 // row pull.
@@ -186,9 +203,8 @@ export interface AddBody {
 }
 
 /**
- * The POST body, validated (RiftCompare's zod schema, written out: OP carries no
- * zod). null = 400. `condition` defaults to NM and `quantity` to 1; `isFoil`
- * left out means "the card's own finish".
+ * The POST body, validated (written out: the site carries no zod). null = 400. `condition` defaults to NM and `quantity` to 1; `isFoil`
+ * left out means Normal (or the only finish the product has).
  */
 export function parseAddBody(raw: unknown): AddBody | null {
   if (!raw || typeof raw !== "object") return null;
@@ -229,7 +245,7 @@ export function parseAddBody(raw: unknown): AddBody | null {
 export async function addToCollection(account: Account, raw: unknown): Promise<RouteResult> {
   const d = parseAddBody(raw);
   if (!d) return err(400, "Invalid input");
-  const card = await prisma.card.findUnique({ where: { id: d.cardId }, select: { id: true, finish: true } });
+  const card = (await getCardsByIds([d.cardId])).get(d.cardId);
   if (!card) return err(404, "Card not found");
 
   // THE FREE PORTFOLIO LIMIT (lib/free-limits.ts): a free account keeps up to
@@ -245,8 +261,9 @@ export async function addToCollection(account: Account, raw: unknown): Promise<R
   // ADDING COPIES HAS TO KEEP THE ROW'S COST HONEST AND NEVER LOSE A COPY
   // (lib/collection-add.ts, lib/collection-cost.ts): one narrow read on the
   // unique key and one guarded increment, so two overlapping adds both count.
-  const isFoil = d.isFoil ?? card.finish === "Foil";
-  const store = collectionRowStore(prisma, { userId: account.id, cardId: card.id, condition: d.condition, isFoil }, d.note);
+  // The finish: what the owner picked, else Normal; the only finish a product has is forced (normalizeFoil).
+  const isFoil = normalizeFoil({ mask: maskOfCard(card) }, d.isFoil ?? false);
+  const store = collectionRowStore(prisma, { userId: account.id, cardId: card.id, condition: d.condition, isFoil }, d.note, card.setId);
   const res = await addCopies(store, { quantity: d.quantity, costBasisCents: d.costBasisCents, costBasisIsTotal: d.costBasisIsTotal });
   if (res.status === "full") {
     // Not "✓ Added": nothing changed, and the UI has to be able to say so.
@@ -323,7 +340,12 @@ export async function patchCollectionRow(userId: string, id: string, raw: unknow
   // Changing condition/foil could collide with an existing (user,card,cond,foil)
   // row; merge into it rather than violating the unique key.
   const nextCondition = d.condition ?? item.condition;
-  const nextFoil = d.isFoil ?? item.isFoil;
+  // A finish the product does not have is not storable: the only finish it has is forced (normalizeFoil).
+  let nextFoil = d.isFoil ?? item.isFoil;
+  if (d.isFoil != null && d.isFoil !== item.isFoil) {
+    const card = (await getCardsByIds([item.cardId])).get(item.cardId);
+    if (card) nextFoil = normalizeFoil({ mask: maskOfCard(card) }, d.isFoil);
+  }
   if (nextCondition !== item.condition || nextFoil !== item.isFoil) {
     const clash = await prisma.collectionCard.findUnique({
       where: { userId_cardId_condition_isFoil: { userId, cardId: item.cardId, condition: nextCondition, isFoil: nextFoil } },
@@ -365,7 +387,7 @@ export async function patchCollectionRow(userId: string, id: string, raw: unknow
     data: {
       ...(d.quantity != null ? { quantity: d.quantity } : {}),
       ...(d.condition ? { condition: d.condition } : {}),
-      ...(d.isFoil != null ? { isFoil: d.isFoil } : {}),
+      ...(nextFoil !== item.isFoil ? { isFoil: nextFoil } : {}),
       ...(d.costBasisCents !== undefined ? { costBasisCents: d.costBasisCents } : {}),
       ...(d.costBasisIsTotal !== undefined ? { costBasisIsTotal: d.costBasisIsTotal } : {}),
       ...(rescaled !== undefined && rescaled !== null ? { costBasisCents: rescaled } : {}),
@@ -382,12 +404,12 @@ export async function deleteCollectionRow(userId: string, id: string): Promise<R
   return count ? ok({ ok: true }) : err(404, "Not found");
 }
 
-// ── The binder: value, history, P&L (RiftCompare getPortfolio) ──────────────
+// ── The binder: value, history, P&L ──────────────
 
 export interface Holding {
   cardId: number;
   slug: string;
-  name: string; // with its printing: "Shanks (Parallel)"
+  name: string; // with its treatment: "Stingcaster Mage (Borderless · Facet Foil)"
   number: string | null;
   printing: string;
   setCode: string;
@@ -395,9 +417,13 @@ export interface Holding {
   quantity: number;
   condition: string;
   isFoil: boolean;
-  unitCents: number | null; // current lowest market price × condition multiplier
+  /** The unit the row is valued in: Foil is its own price and history. */
+  finish: Finish;
+  /** "Foil", "Foil Etched", "Surge Foil" ...; null for a Normal copy. */
+  finishLabel: string | null;
+  unitCents: number | null; // the finish's TCGplayer market price (converted) × condition multiplier; null = no market price
   valueCents: number; // unit × quantity (0 when unpriced)
-  d7pct: number | null; // the card's own 7-day price move (US market price)
+  d7pct: number | null; // the unit's own 7-day price move (US market price)
   costBasisCents: number | null; // per-copy cost (averaged when the row stores a total); null = unknown
   investedCents: number | null; // what the owner actually paid for this row; null = unknown
   plCents: number | null; // unrealised profit/loss for this row (null without cost+price)
@@ -425,33 +451,32 @@ export interface Portfolio {
   d7: number | null;
   d30: number | null;
   pnl: PnL | null; // null when no cost basis is recorded anywhere
-  // Benchmark: the OP Compare Index move over the same windows.
+  // Benchmark: the market index move over the same windows.
   index: { d7: number | null; d30: number | null } | null;
 }
 
 const condMult = (condition: string) => CONDITION_MULTIPLIER[condition] ?? 1;
+const unitKeyOfRow = (r: { cardId: number; isFoil: boolean }) => unitKey(r.cardId, finishOfRow(r.isFoil));
 
 /**
  * Value the user's collection in their market: current totals for everyone,
  * plus a daily value-over-time series from the history files (carry-forward
- * per card, weighted by owned quantity × condition; lib/portfolio-performance.ts).
+ * per unit, weighted by owned quantity × condition; lib/portfolio-performance.ts).
+ * A Foil row is valued at the Foil unit's market price, a Normal row at the Normal's.
  */
 export async function getPortfolio(userId: string, country: Country): Promise<Portfolio> {
-  const [raw, cat] = await Promise.all([
-    prisma.collectionCard.findMany({ where: { userId }, take: COLLECTION_TAKE, select: ROW_SELECT }),
-    getCatalog(),
-  ]);
-  const rows = raw.map((r) => ({ ...r, card: cat.byId.get(r.cardId) ?? null }));
+  const raw = await prisma.collectionCard.findMany({ where: { userId }, take: COLLECTION_TAKE, select: ROW_SELECT });
+  const cards = await getCardsByIds(raw.map((r) => r.cardId));
+  const rows = raw.map((r) => ({ ...r, card: cards.get(r.cardId) ?? null }));
 
-  // Defensive: a cardId the catalogue no longer has (a card TCGplayer withdrew,
-  // a restore that did not carry every row) must not 500 the whole binder —
-  // drop the row and keep going (RiftCompare's live crash, 2026-09-01).
+  // Defensive: a cardId the published data no longer has (a product withdrawn,
+  // a restore that did not carry every row) must not 500 the whole binder:
+  // drop the row and keep going (a live crash on a sister site, 2026-09-01).
   const validRows = rows.filter((r) => r.card != null) as (CollectionRow & { card: CardLite })[];
 
   const holdings: Holding[] = validRows
     .map((r) => {
-      const market = r.card.low[country];
-      const unit = market != null ? Math.round(market * condMult(r.condition)) : null;
+      const unit = copyValueCents(r.card, r.isFoil, r.condition, country);
       const valueCents = (unit ?? 0) * r.quantity;
       // NEVER `cost * quantity` BY HAND — lib/collection-cost.ts.
       const investedRow = investedCents(r);
@@ -464,11 +489,13 @@ export async function getPortfolio(userId: string, country: Country): Promise<Po
         name: displayName(r.card),
         number: r.card.number,
         printing: r.card.printing,
-        setCode: cat.setById.get(r.card.setId)?.code ?? "",
+        setCode: r.card.setCode,
         img: r.card.hasImage ? cardImage.thumb(r.card.id) : null,
         quantity: r.quantity,
         condition: r.condition,
         isFoil: r.isFoil,
+        finish: finishOfRow(r.isFoil),
+        finishLabel: r.isFoil ? finishLabel(r.card, "F") : null,
         unitCents: unit,
         valueCents,
         d7pct: null as number | null,
@@ -480,20 +507,20 @@ export async function getPortfolio(userId: string, country: Country): Promise<Po
     })
     .sort((a, b) => b.valueCents - a.valueCents);
 
-  // History for the dearest cards first (getRecentHistory caps the ids).
+  // History of the dearest units first (getRecentHistory caps the units at 500): one series per (product, finish).
   // Best-effort: a GitHub hiccup costs the chart and the d7/d30 chips, never the page.
-  const ids = [...new Set(holdings.map((h) => h.cardId))];
+  const units = [...new Map(holdings.map((h) => [unitKey(h.cardId, h.finish), { id: h.cardId, finish: h.finish }])).values()];
   const since = Date.now() - PORTFOLIO_WINDOW_DAYS * 86400_000;
-  const full = ids.length ? await getRecentHistory(ids).catch(() => new Map<number, Map<number, number>>()) : new Map<number, Map<number, number>>();
-  const byCard = new Map<number, Map<number, number>>();
-  for (const [id, m] of full) byCard.set(id, new Map([...m].filter(([t]) => t >= since)));
+  const full = units.length ? await getRecentHistory(units).catch(() => new Map<string, Map<number, number>>()) : new Map<string, Map<number, number>>();
+  const byCard = new Map<string, Map<number, number>>();
+  for (const [key, m] of full) byCard.set(key, new Map([...m].filter(([t]) => t >= since)));
 
-  // Each card's own 7-day move, break-aware like the total below.
-  const d7ByCard = new Map<number, number | null>();
-  for (const cardId of byCard.keys()) {
-    d7ByCard.set(cardId, portfolioPerformance([{ cardId, quantity: 1, multiplier: 1 }], byCard, METHODOLOGY_BREAKS).change(7));
+  // Each unit's own 7-day move, break-aware like the total below.
+  const d7ByUnit = new Map<string, number | null>();
+  for (const key of byCard.keys()) {
+    d7ByUnit.set(key, portfolioPerformance([{ cardId: key, quantity: 1, multiplier: 1 }], byCard, METHODOLOGY_BREAKS).change(7));
   }
-  for (const h of holdings) h.d7pct = d7ByCard.get(h.cardId) ?? null;
+  for (const h of holdings) h.d7pct = d7ByUnit.get(unitKey(h.cardId, h.finish)) ?? null;
 
   const costed = holdings.filter((h) => h.investedCents != null && h.unitCents != null);
   const anyCost = holdings.some((h) => h.investedCents != null);
@@ -515,7 +542,7 @@ export async function getPortfolio(userId: string, country: Country): Promise<Po
   // Like-for-like steps on the US price ratios, then anchored at today's real
   // total in the visitor's currency.
   const perf = portfolioPerformance(
-    validRows.map((r) => ({ cardId: r.cardId, quantity: r.quantity, multiplier: condMult(r.condition) })),
+    validRows.map((r) => ({ cardId: unitKeyOfRow(r), quantity: r.quantity, multiplier: condMult(r.condition) })),
     byCard,
     METHODOLOGY_BREAKS,
   );
@@ -554,13 +581,6 @@ export async function getPortfolioSummary(userId: string, market: Country): Prom
   }
 }
 
-/** Every market's price for a row, for the CSV export. */
-export function lowsFor(card: CardLite): Record<Country, number | null> {
-  const out = {} as Record<Country, number | null>;
-  for (const m of MARKETS) out[m] = card.low[m];
-  return out;
-}
-
 // ── Replacement cost (/api/portfolio/replacement) ───────────────────────────
 // Behind a button, never on the page render: the route reads every eligible
 // listing for every card held (lib/basket-server.ts loadStoreListings), a far
@@ -574,17 +594,18 @@ export async function replacementWanted(userId: string, country: Country): Promi
   skipped: number;
   empty: boolean;
 }> {
-  const [p, cat] = await Promise.all([getPortfolio(userId, country), getCatalog()]);
+  const p = await getPortfolio(userId, country);
   if (!p.holdings.length) return { wanted: [], skipped: 0, empty: true };
-  // One line per card (conditions summed): stores sell what they have, so a
-  // replacement is priced at the listed condition rather than yours.
+  // One line per card (conditions and finishes summed): stores sell what they have, so a
+  // replacement is priced at the listed condition rather than yours. The store-listing
+  // reader is per product (basket-server loadStoreListings), so a Foil copy is replaced
+  // at the product's listed price; its VALUE above is still the Foil unit's.
   const byCard = new Map<number, { cardId: number; name: string; slug: string; setCode: string; collectorNumber: string; qty: number; valueCents: number }>();
   for (const h of p.holdings) {
-    const c = cat.byId.get(h.cardId);
     const w =
       byCard.get(h.cardId) ??
       byCard
-        .set(h.cardId, { cardId: h.cardId, name: h.name, slug: h.slug, setCode: c ? (cat.setById.get(c.setId)?.code ?? "") : "", collectorNumber: c?.number ?? "", qty: 0, valueCents: 0 })
+        .set(h.cardId, { cardId: h.cardId, name: h.name, slug: h.slug, setCode: h.setCode, collectorNumber: h.number ?? "", qty: 0, valueCents: 0 })
         .get(h.cardId)!;
     w.qty += h.quantity;
     w.valueCents += h.valueCents;
@@ -594,40 +615,41 @@ export async function replacementWanted(userId: string, country: Country): Promi
 }
 
 // ── Import (/api/collection/import) ─────────────────────────────────────────
-// A pasted list ("4 Monkey.D.Luffy", "4xOP01-016", "1 OP01-120 Shanks
-// (Parallel)") through the /deck parser (lib/deck.ts), or a printing-aware CSV
-// (lib/collection-csv.ts). Free like every way of entering your own binder.
-// Both match against the CACHED catalogue (no card query), then read the
-// account's rows for the matched cards once and make one guarded write per row
-// (lib/collection-add.ts). The free limit takes every already-held card first,
-// then new cards in the order given, and reports the rest — never a silent
-// partial import, never an all-or-nothing refusal.
+// A pasted list ("4 Lightning Bolt (M11) 146", "1 Sol Ring (C21) 263 *F*") through
+// the /deck parser and resolver (lib/deck.ts, lib/deck-price.ts), or a binder CSV
+// (lib/collection-csv.ts: TCGplayer, Moxfield, Deckbox, ManaBox, our own export).
+// Free like every way of entering your own binder. Both match against the published
+// data (no card query), then read the account's rows for the matched cards once and
+// make one guarded write per row (lib/collection-add.ts). The free limit takes every
+// already-held card first, then new cards in the order given, and reports the rest:
+// never a silent partial import, never an all-or-nothing refusal.
 export const IMPORT_MAX_TEXT_CHARS = 500_000;
 const PASTE_LINE_CAP = 300;
 const LIST_CAP = 30;
 const WRITE_CONCURRENCY = 8;
 const WRITE_BUDGET_MS = 40_000;
 
-// A printing named in a pasted line's words: "Shanks (Parallel)", "Luffy manga".
-const PASTE_PRINTING: [RegExp, string][] = [
-  [/\b(parallel|alt(ernate)?\s*art|alt)\b/i, "alt"],
-  [/\bmanga\b/i, "manga"],
-  [/\bsp\b/i, "sp"],
-  [/\btreasure\b/i, "treasure"],
-  [/\breprint\b/i, "reprint"],
-];
-
 interface Want {
   cardId: number;
   qty: number;
   condition: string;
+  /** The finish asked for; null = not stated (Normal). The product's own finishes decide in the end (normalizeFoil). */
   isFoil: boolean | null;
   label: string;
 }
 
 async function writeWants(account: Account, wants: Want[]) {
-  const { finishById } = await finishes(wants.filter((w) => w.isFoil == null).map((w) => w.cardId));
-  const rows = wants.map((w) => ({ ...w, isFoil: w.isFoil ?? finishById.get(w.cardId) === "Foil" }));
+  const cards = await getCardsByIds([...new Set(wants.map((w) => w.cardId))]);
+  const gone: string[] = [];
+  const rows: (Want & { isFoil: boolean; setId: number })[] = [];
+  for (const w of wants) {
+    const card = cards.get(w.cardId);
+    if (!card) {
+      gone.push(w.label);
+      continue;
+    }
+    rows.push({ ...w, isFoil: normalizeFoil({ mask: maskOfCard(card) }, w.isFoil ?? false), setId: card.setId });
+  }
   // Merge lines that land on the same row (card, condition, foil).
   const merged = new Map<string, (typeof rows)[number]>();
   for (const r of rows) {
@@ -659,7 +681,7 @@ async function writeWants(account: Account, wants: Want[]) {
   let added = 0;
   let copies = 0;
   const full: string[] = [];
-  const failed: string[] = [];
+  const failed: string[] = [...gone];
   const landed = new Set<number>();
   const deadline = Date.now() + WRITE_BUDGET_MS;
   for (let i = 0; i < writable.length; i += WRITE_CONCURRENCY) {
@@ -671,7 +693,7 @@ async function writeWants(account: Account, wants: Want[]) {
     const results = await Promise.all(
       batch.map((m) => {
         const key = { userId: account.id, cardId: m.cardId, condition: m.condition, isFoil: m.isFoil };
-        return addCopies(collectionRowStore(prisma, key), { quantity: m.qty }, { existing: existingBy.get(rowKey(m.cardId, m.condition, m.isFoil)) ?? null }).catch(() => null);
+        return addCopies(collectionRowStore(prisma, key, undefined, m.setId), { quantity: m.qty }, { existing: existingBy.get(rowKey(m.cardId, m.condition, m.isFoil)) ?? null }).catch(() => null);
       }),
     );
     batch.forEach((m, j) => {
@@ -702,34 +724,35 @@ async function writeWants(account: Account, wants: Want[]) {
   };
 }
 
-/** Each card's TCGplayer finish (Normal | Foil), for rows whose foil flag the input did not state. */
-async function finishes(ids: number[]): Promise<{ finishById: Map<number, string | null> }> {
-  const uniq = [...new Set(ids)];
-  if (!uniq.length) return { finishById: new Map() };
-  const rows = await prisma.card.findMany({ where: { id: { in: uniq } }, select: { id: true, finish: true }, take: uniq.length });
-  return { finishById: new Map(rows.map((r) => [r.id, r.finish])) };
-}
+/** The published data the CSV matcher reads (REQ-WP10-7: resolveBySetNumber is the whole-catalogue lookup by set and number). */
+const csvData: CsvData = {
+  byIds: (ids) => getCardsByIds(ids),
+  bySetNumber: (pairs) => resolveBySetNumber(pairs),
+  setCodes: async (names) => {
+    const want = new Set(names);
+    const out = new Map<string, string>();
+    for (const s of await getSets()) for (const n of [s.name, s.tcgName]) if (want.has(fold(n)) && !out.has(fold(n))) out.set(fold(n), s.tok);
+    return out;
+  },
+};
 
 /** POST /api/collection/import { text }. */
 export async function importCollection(account: Account, text: string): Promise<RouteResult> {
   if (text.length > IMPORT_MAX_TEXT_CHARS) {
     return err(413, "That file is over 500 KB. Split it into two and import them one after the other.");
   }
-  const cat = await getCatalog();
   const csv = parseCollectionCsv(text);
   if (csv) {
     if (!csv.rows.length) {
       return err(400, "No lines could be imported from that file.", { skippedCount: csv.skippedCount, skipped: csv.skipped.slice(0, LIST_CAP) });
     }
-    const catalogue = cat.cards.map((c) => ({
-      id: c.id, number: c.number, printing: c.printing, setCode: cat.setById.get(c.setId)?.code ?? "", setName: cat.setById.get(c.setId)?.name ?? "",
-    }));
-    const { matched, unmatched } = matchCsvRows(csv.rows, catalogue);
-    const label = (m: (typeof matched)[number]) => m.copy.name ?? displayName(cat.byId.get(m.card.id) ?? { name: m.copy.number ?? `#${m.card.id}`, variant: null });
+    const { matched, unmatched } = await matchCsvRows(csv.rows, csvData);
+    const label = (m: (typeof matched)[number]) => m.copy.name ?? `${m.card.name} (${m.card.setCode}) ${m.card.number ?? ""}`.trim();
     const res = await writeWants(
       account,
-      matched.map((m) => ({ cardId: m.card.id, qty: m.copy.qty, condition: m.copy.condition, isFoil: m.copy.isFoil, label: label(m) })),
+      matched.map((m) => ({ cardId: m.card.id, qty: m.copy.qty, condition: m.copy.condition, isFoil: m.isFoil, label: label(m) })),
     );
+    const warnings = matched.filter((m) => m.warning).map((m) => `${label(m)}: ${m.warning}`);
     return ok({
       ok: true,
       format: "csv",
@@ -741,40 +764,42 @@ export async function importCollection(account: Account, text: string): Promise<
         .slice(0, LIST_CAP)
         .map((s) => ({ line: s.line, reason: s.reason, text: s.text })),
       conditionDefaulted: csv.conditionDefaulted,
+      warningCount: warnings.length,
+      warnings: warnings.slice(0, LIST_CAP),
     });
   }
 
-  // A pasted list: chunks through the /deck parser (it reads 120 lines a call).
+  // A pasted list: chunks through the /deck parser and resolver (it prices up to DECK_LINE_CAP lines a call).
   const rawLines = text.split(/\r?\n/).filter((l) => l.trim()).slice(0, PASTE_LINE_CAP);
   const lines = [];
   for (let i = 0; i < rawLines.length; i += 100) lines.push(...parseDeckList(rawLines.slice(i, i + 100).join("\n")));
-  if (!lines.length) return err(400, "Paste a list like “4 OP01-003 Monkey.D.Luffy” or “1 OP01-120 Shanks (Parallel)”.");
-  const idx = indexCards(cat.cards);
+  if (!lines.length) return err(400, "Paste a list like “4 Lightning Bolt (M11) 146” or “1 Sol Ring (C21) 263 *F*”.");
   const wants: Want[] = [];
   const unmatched: string[] = [];
-  for (const l of lines) {
-    const r = resolveLine(l, idx);
-    if (!r.card) {
-      unmatched.push(l.raw);
-      continue;
+  for (let i = 0; i < lines.length; i += 100) {
+    const { rows } = await resolveDeckLines(lines.slice(i, i + 100), loaderData, { options: false });
+    for (const r of rows) {
+      if (!r.card) {
+        unmatched.push(r.line.raw);
+        continue;
+      }
+      // A binder holds what the owner owns, so a guess would silently misvalue it. A bare name (the cheap printing of a card
+      // that has dozens), a set with no number, and several ordinary products sharing a set and number are skipped and reported,
+      // like an ambiguous store listing (CLAUDE.md "Matching store listings"). A pinned product (#id) or a set and number is exact.
+      if (r.how === "name") {
+        unmatched.push(`${r.line.raw} (add the set and number)`);
+        continue;
+      }
+      if (r.how === "set") {
+        unmatched.push(`${r.line.raw} (add the collector number)`);
+        continue;
+      }
+      if (r.ambiguous) {
+        unmatched.push(`${r.line.raw} (several products share that set and number: add the TCGplayer id as #12345)`);
+        continue;
+      }
+      wants.push({ cardId: r.card.id, qty: r.line.qty, condition: "NM", isFoil: r.finish === "F", label: r.line.raw.slice(0, 80) });
     }
-    // A bare name shared by several cards ("Monkey.D.Luffy" is dozens) is not a
-    // card: /deck guesses and flags it, but a binder holds what the owner owns,
-    // so a guess would silently misvalue it. Skipped and reported, like an
-    // ambiguous store listing (CLAUDE.md "Matching store listings").
-    if (r.how === "name" && r.ambiguous) {
-      unmatched.push(`${l.raw} (add the card number)`);
-      continue;
-    }
-    const base = r.card;
-    let card = base;
-    // "1 OP01-120 Shanks (Parallel)": a printing named in the words picks it.
-    if (r.how !== "pinned" && !l.parallel) {
-      const named = PASTE_PRINTING.find(([re]) => re.test(l.name))?.[1];
-      const pick = named ? r.options.filter((c) => c.printing === named && (!base.number || c.number === base.number)).sort((a, b) => a.id - b.id)[0] : undefined;
-      if (pick) card = pick;
-    }
-    wants.push({ cardId: card.id, qty: l.qty, condition: "NM", isFoil: null, label: l.raw.slice(0, 80) });
   }
   const res = await writeWants(account, wants);
   return ok({ ok: true, ...res, unmatched: [...new Set(unmatched)].slice(0, LIST_CAP) });
@@ -782,21 +807,20 @@ export async function importCollection(account: Account, text: string): Promise<
 
 // ── Export (/api/portfolio/export) ──────────────────────────────────────────
 export async function exportRows(userId: string, country: Country) {
-  const [rows, cat] = await Promise.all([collectionRows(userId), getCatalog()]);
+  const rows = await collectionRows(userId);
+  const cards = await getCardsByIds(rows.map((r) => r.cardId));
   const out = [];
   for (const r of rows) {
-    const c = cat.byId.get(r.cardId);
+    const c = cards.get(r.cardId);
     if (!c) continue;
-    const market = c.low[country];
     out.push({
       name: c.name,
-      setCode: cat.setById.get(c.setId)?.code ?? "",
+      setCode: c.setCode,
       number: c.number,
-      printing: c.printing,
+      finish: r.isFoil ? (c.flags & CARD_FLAGS.ETCHED ? ("Etched" as const) : ("Foil" as const)) : ("" as const),
       condition: r.condition,
-      isFoil: r.isFoil,
       quantity: r.quantity,
-      unitCents: market != null ? Math.round(market * condMult(r.condition)) : null,
+      unitCents: copyValueCents(c, r.isFoil, r.condition, country),
       costBasisCents: unitCostCents(r),
       note: r.note,
       tcgplayerId: c.id,

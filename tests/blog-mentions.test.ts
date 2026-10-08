@@ -13,13 +13,13 @@ function CardLink(_: { c: unknown }) {
 
 test("collects cards from props and links, in order of first mention", () => {
   const tree = [
-    h("p", null, "Intro ", h(CardLink, { c: card(1, "luffy") }), " and ", h("a", { href: "/card/zoro" }, "Zoro")),
-    h(Fragment, null, h(Table, { cards: [card(2, "nami"), card(1, "luffy")] })),
-    h("div", null, h("a", { href: "/sealed/op01-booster-box" }, "box"), h("a", { href: "/sets/op01" }, "set"), h("a", { href: "https://example.com/card/x" }, "x")),
+    h("p", null, "Intro ", h(CardLink, { c: card(1, "lightning-bolt") }), " and ", h("a", { href: "/card/sol-ring" }, "Sol Ring")),
+    h(Fragment, null, h(Table, { cards: [card(2, "counterspell"), card(1, "lightning-bolt")] })),
+    h("div", null, h("a", { href: "/sealed/mh3-collector-booster-box" }, "box"), h("a", { href: "/sets/modern-horizons-3" }, "set"), h("a", { href: "https://example.com/card/x" }, "x")),
   ];
   const m = collectMentions(tree);
-  assert.deepEqual(m.cards, ["luffy", "zoro", "nami"]);
-  assert.deepEqual(m.sealed, ["op01-booster-box"]);
+  assert.deepEqual(m.cards, ["lightning-bolt", "sol-ring", "counterspell"]);
+  assert.deepEqual(m.sealed, ["mh3-collector-booster-box"]);
 });
 
 test("ignores plain text, nulls and lookalike objects", () => {
@@ -32,9 +32,9 @@ test("finds links nested in a table's rows prop (SimpleTable rows = cells of mar
     return null;
   }
   const rows = [
-    [h("a", { key: "n", href: "/sealed/op09-booster-box" }, "OP09"), "US$100"],
-    [h("a", { key: "n", href: "/sealed/op01-booster-box" }, "OP01"), "US$900"],
+    [h("a", { key: "n", href: "/sealed/otj-play-booster-box" }, "OTJ"), "US$100"],
+    [h("a", { key: "n", href: "/sealed/mh3-collector-booster-box" }, "MH3"), "US$900"],
   ];
-  const m = collectMentions([h("p", null, h("a", { href: "/sealed/op01-booster-box" }, "OP01")), h(SimpleTable, { rows })]);
-  assert.deepEqual(m.sealed, ["op01-booster-box", "op09-booster-box"]);
+  const m = collectMentions([h("p", null, h("a", { href: "/sealed/mh3-collector-booster-box" }, "MH3")), h(SimpleTable, { rows })]);
+  assert.deepEqual(m.sealed, ["mh3-collector-booster-box", "otj-play-booster-box"]);
 });

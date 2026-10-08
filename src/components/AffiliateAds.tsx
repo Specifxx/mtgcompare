@@ -39,10 +39,10 @@ export function FooterAds() {
   if (BANNER_FREE.some((r) => pathname === r || pathname.startsWith(`${r}/`))) return null;
   return (
     <div className="container-app flex flex-col items-center gap-3 pb-6 pt-10" data-ad-placement="footer">
-      <AdBox href={ebaySearchUrl(country, "One Piece Card Game", "footer-ad")} retailer="ebay_search" tone="border-[#e53238]/30 bg-[#e53238]/[0.04] hover:border-[#e53238]/60">
+      <AdBox href={ebaySearchUrl(country, "Magic The Gathering cards", "footer-ad")} retailer="ebay_search" tone="border-[#e53238]/30 bg-[#e53238]/[0.04] hover:border-[#e53238]/60">
         <EbayWordmark />
         <span className="text-left">
-          <span className="block text-sm font-bold text-white">Shop One Piece cards on {ebayLabel(country)}</span>
+          <span className="block text-sm font-bold text-white">Shop Magic cards on {ebayLabel(country)}</span>
           <span className="block text-xs text-slate-400">Singles, graded slabs and sealed from sellers worldwide</span>
         </span>
         <span className="rounded bg-[#0064d2] px-2.5 py-1 text-xs font-bold text-[#ffffff]">Search eBay →</span>
@@ -52,13 +52,13 @@ export function FooterAds() {
           TCG<span className="text-sky-400">player</span>
         </span>
         <span className="text-left">
-          <span className="block text-sm font-bold text-white">Shop One Piece singles &amp; sealed</span>
-          <span className="block text-xs text-slate-400">The biggest US marketplace for the One Piece Card Game</span>
+          <span className="block text-sm font-bold text-white">Shop Magic singles &amp; sealed</span>
+          <span className="block text-xs text-slate-400">The biggest US marketplace for Magic: The Gathering</span>
         </span>
         <span className="rounded bg-sky-500 px-2.5 py-1 text-xs font-bold text-[#04121c]">Shop now →</span>
       </AdBox>
       <p className="max-w-2xl text-center text-[11px] leading-snug text-slate-500">
-        Affiliate links: as an eBay Partner Network affiliate and a TCGplayer affiliate, OP Compare earns from qualifying purchases — at no extra cost to you.
+        Affiliate links: as an eBay Partner Network affiliate and a TCGplayer affiliate, MTG Compare earns from qualifying purchases — at no extra cost to you.
       </p>
     </div>
   );

@@ -1,5 +1,5 @@
 // The card page's <title>, meta description and FAQ, as pure functions
-// (RiftCompare's lib/card-seo.ts and buildFaqs, for One Piece). Extracted from
+// (card title, description and FAQ for Magic). Extracted from
 // the route so the 60-character title guard, the single highest-volume SEO
 // invariant on ~7,000 card pages, is tested (tests/card-seo.test.ts).
 //
@@ -10,7 +10,7 @@ import { money, usd } from "./format";
 import type { Country } from "./country";
 import { COUNTRIES } from "./country";
 
-export const SUFFIX = " | OP Compare";
+export const SUFFIX = " | MTG Compare";
 /** Google truncates around here; the title is set with `absolute`, suffix included. */
 export const TITLE_MAX = 60;
 export const titleFits = (t: string): boolean => `${t}${SUFFIX}`.length <= TITLE_MAX;
@@ -29,8 +29,8 @@ export interface CardTitleInput {
 /**
  * The title, chosen from a longest-first ladder. What the ladder is willing to
  * lose, in order: the set name, then the set code, then the variant's long
- * form ("Manga · Alternate Art" becomes "Manga"), then the word "Price". NEVER
- * the card number or the printing word: a Parallel and its standard print share
+ * form ("Borderless · Etched" becomes "Borderless"), then the word "Price". NEVER
+ * the card number or the printing word: a Borderless and its standard print share
  * a name and a number, and the printing is the only thing separating their
  * titles. Uniqueness outranks length, so when nothing fits the shortest rung
  * ships (never the last one written).
@@ -39,7 +39,7 @@ export function cardTitle(c: CardTitleInput): string {
   const num = c.number ? ` ${c.number}` : "";
   const word = c.hasPrice ? "Price" : "Card";
   const vari = c.variant ? ` (${c.variant})` : "";
-  const P = c.printing !== "standard" && c.printing !== "don" ? PRINTING_SHORT[c.printing] ?? c.variant ?? "" : "";
+  const P = c.printing !== "standard" ? PRINTING_SHORT[c.printing] ?? c.variant ?? "" : "";
   const printed = P ? ` ${P}` : "";
   const candidates = [
     `${c.name}${vari}${num} ${word} — ${c.setName}`,
@@ -75,11 +75,11 @@ export interface CardDescriptionInput {
 export function cardMetaDescription(c: CardDescriptionInput): string {
   const colour = colourList(c.colors);
   const stat = [colour, c.cardType, c.rarity ? rarityLabel(c.rarity) : null].filter(Boolean).join(" ");
-  const special = c.printing !== "standard" && c.printing !== "don";
+  const special = c.printing !== "standard";
   const ident = c.number ? `${c.number}, ` : "";
   const head = special
     ? `${c.displayName}: the ${printingProse(c.printing)} printing of a ${stat.toLowerCase() || "card"} (${ident}${c.setName}).`
-    : `${c.displayName}: ${stat || "One Piece Card Game card"} (${ident}${c.setName}).`;
+    : `${c.displayName}: ${stat || "Magic: The Gathering card"} (${ident}${c.setName}).`;
   const price =
     c.marketUsd != null
       ? `TCGplayer market price ${usd(c.marketUsd)}${c.lowUsCents != null ? `, cheapest US listing ${usd(c.lowUsCents)}` : ""}. Live prices compared across stores in the US, Australia, the UK, Singapore, Canada and the EU.`
@@ -123,7 +123,7 @@ export interface FaqContext {
  */
 export function buildCardFaqs(c: FaqContext): { q: string; a: string }[] {
   const co = COUNTRIES[c.country];
-  const special = c.printing !== "standard" && c.printing !== "don";
+  const special = c.printing !== "standard";
   const num = c.number ? ` (${c.number})` : "";
   const faqs: { q: string; a: string }[] = [
     {
@@ -142,17 +142,17 @@ export function buildCardFaqs(c: FaqContext): { q: string; a: string }[] {
     { q: `How much is ${c.name} in other currencies?`, a: c.currencyAnswer ? `${c.currencyAnswer}. Each is a real listing in the currency its seller bills in.` : "" },
     {
       q: `What set is ${c.name} from?`,
-      a: `${c.name} is card ${c.number ?? "without a number"} from ${c.setName} (${c.setCode}) in the One Piece Card Game.${c.rarity || c.cardType ? ` It is a ${[c.rarity ? rarityLabel(c.rarity).toLowerCase() : null, c.colors.length ? colourList(c.colors) : null, c.cardType?.toLowerCase()].filter(Boolean).join(" ")}.` : ""}`,
+      a: `${c.name} is card ${c.number ?? "without a number"} from ${c.setName} (${c.setCode}) in Magic: The Gathering.${c.rarity || c.cardType ? ` It is a ${[c.rarity ? rarityLabel(c.rarity).toLowerCase() : null, c.colors.length ? colourList(c.colors) : null, c.cardType?.toLowerCase()].filter(Boolean).join(" ")}.` : ""}`,
     },
     {
       q: `Where can I buy ${c.name}?`,
-      a: `Compare every store selling ${c.name} across the US, Australia, the UK, Singapore, Canada and the EU on this page, then buy from whichever seller offers the lowest total including postage. OP Compare links straight through to each store.`,
+      a: `Compare every store selling ${c.name} across the US, Australia, the UK, Singapore, Canada and the EU on this page, then buy from whichever seller offers the lowest total including postage. MTG Compare links straight through to each store.`,
     },
   ];
   if (c.printingCount > 0) {
     faqs.push({
       q: `Are there other printings of ${c.name}?`,
-      a: `Yes. OP Compare tracks ${c.printingCount} other ${c.printingCount === 1 ? "printing" : "printings"} of ${c.number ?? c.name} (Parallel, Manga, SP, Treasure Rare, reprint or promo versions), each a distinct TCGplayer product trading at its own price. They are listed further down this page.`,
+      a: `Yes. MTG Compare tracks ${c.printingCount} other ${c.printingCount === 1 ? "printing" : "printings"} of ${c.number ?? c.name} (borderless, showcase, extended-art, reprint or promo versions), each a distinct TCGplayer product trading at its own price. They are listed further down this page.`,
     });
   }
   if (special) {

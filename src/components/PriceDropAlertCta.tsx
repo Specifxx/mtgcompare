@@ -20,7 +20,7 @@ import { FreeLimitPanel } from "./FreeLimitPanel";
 // completes it on return, with ?next= bringing the visitor back here.
 //
 // THE COPY FOLLOWS getEmailStatus() (`emailOn`). Until a mailer is configured
-// OP Compare sends no email, so nothing here promises one: a drop is flagged
+// MTG Compare sends no email, so nothing here promises one: a drop is flagged
 // on the watchlist and the dashboard, and there is no email-only door
 // (RiftCompare's "or email me" opens its PriceAlertModal). With email on, the
 // wording is RiftCompare's and the email door appears.

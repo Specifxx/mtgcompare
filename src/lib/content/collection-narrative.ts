@@ -2,9 +2,8 @@ import { money as fmtMoney } from "@/lib/format";
 import { MARKETS, type Country } from "@/lib/country";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Editorial intros for the COLLECTION pages: character hubs, type/rarity/printing
-// facets, colour pages, set pages, keyword pages (RiftCompare's
-// collection-narrative.ts, rewritten for One Piece).
+// Editorial intros for the COLLECTION pages: card hubs, type/rarity/treatment
+// facets, colour pages, set pages, keyword pages.
 // ─────────────────────────────────────────────────────────────────────────────
 // The audit found these were the site's thinnest indexable surface after the
 // empty card pages — character hubs sampled at a median of 164 unique editorial
@@ -30,7 +29,7 @@ export type CollectionKind = "character" | "type" | "rarity" | "printing" | "col
 
 export type CollectionInput = {
   kind: CollectionKind;
-  /** Display label: "Monkey.D.Luffy", "Leader", "Manga", "Red", "Romance Dawn", "Rush". */
+  /** Display label: "Sol Ring", "Creature", "Borderless", "Red", "Modern Horizons 3", "Flying". */
   label: string;
   /** The currency the prices below are in, and the market they belong to. */
   currency: string;
@@ -47,14 +46,14 @@ const money = (cents: number, currency: string) => fmtMoney(cents, CUR_TO_MARKET
 const plural = (n: number, one: string, many = `${one}s`) => (n === 1 ? one : many);
 
 // How the collection is referred to in prose. Kept explicit rather than
-// templated off `kind`, because "the Red colour" and "Manga printings" are
+// templated off `kind`, because "the Red colour" and "Borderless printings" are
 // different grammatical shapes and a generic phrasing reads like a mail merge.
 function noun(kind: CollectionKind, label: string): { subject: string; member: string } {
   switch (kind) {
     case "character":
       return { subject: `${label}'s card pool`, member: `${label} card` };
     case "type":
-      return { subject: `One Piece ${label.toLowerCase()} cards`, member: `${label.toLowerCase()} card` };
+      return { subject: `${label.toLowerCase()} cards`, member: `${label.toLowerCase()} card` };
     case "rarity":
       return { subject: `the ${label} rarity tier`, member: `${label.toLowerCase()} card` };
     case "printing":
@@ -95,7 +94,7 @@ export function buildCollectionNarrative(c: CollectionInput): string[] {
       ? ` all from ${c.setCodes[0]}`
       : "";
   out.push(
-    `OP Compare tracks ${total} ${plural(total, member)} in ${subject}${setBit}, ` +
+    `MTG Compare lists ${total} ${plural(total, member)} in ${subject}${setBit}, ` +
       (priced.length === total
         ? `and every one of them currently has a live price.`
         : priced.length === 0
@@ -167,7 +166,7 @@ export function buildCollectionNarrative(c: CollectionInput): string[] {
       // honest answer for most sets, not a gap to leave blank.
       if (Math.abs(vs) >= 20) {
         out.push(
-          `Against the ${money(c.siteMedianCents, c.currency)} median across every priced One Piece card we track, ` +
+          `Against the ${money(c.siteMedianCents, c.currency)} median across every priced Magic card we track, ` +
             `${subject} sits ${Math.abs(vs)}% ${vs > 0 ? "above" : "below"} the market — ` +
             (vs > 0
               ? `a premium group, and one worth checking postage on before buying card by card.`
@@ -176,7 +175,7 @@ export function buildCollectionNarrative(c: CollectionInput): string[] {
       } else {
         out.push(
           `That ${money(median, c.currency)} median is close to the ${money(c.siteMedianCents, c.currency)} median across every ` +
-            `priced One Piece card we track — ${subject} prices roughly in line with the rest of the game, no unusual premium or discount either way.`,
+            `priced Magic card we track — ${subject} prices roughly in line with the rest of the game, no unusual premium or discount either way.`,
         );
       }
     }
@@ -190,9 +189,9 @@ export function buildCollectionNarrative(c: CollectionInput): string[] {
   // ── 3. Notable members, named ──────────────────────────────────────────────
   const byPrice = [...priced].sort((a, b) => b.priceCents - a.priceCents);
   // DEDUPE BY NAME. A collection routinely holds several printings of one card —
-  // a base, an alternate art, a Manga — and they cluster at the top of the
-  // price sort, so the raw top 3 read "Luffy at $195.73, Zoro at $190.47,
-  // Luffy at $188.86". Naming the same card twice reads as a bug and wastes
+  // a base, a Borderless, a Showcase — and they cluster at the top of the
+  // price sort, so the raw top 3 read "Sol Ring at $195.73, Mana Crypt at $190.47,
+  // Sol Ring at $188.86". Naming the same card twice reads as a bug and wastes
   // one of only three slots that exist to tell a reader something new. The
   // dearest printing of each distinct card wins, which is also the one a "cards
   // to know" line should be quoting.
@@ -214,13 +213,13 @@ export function buildCollectionNarrative(c: CollectionInput): string[] {
 
   // ── 4. What a buyer should actually do with this ───────────────────────────
   const buyerAdvice: Record<CollectionKind, string> = {
-    character: `Every printing of a ${c.label} card is a separate product with its own price: a standard print, a Parallel and a Manga of the same card rarely track each other. The prices below are each printing's cheapest in-stock listing in a single market, and every card's own page compares the six markets we cover, so building around ${c.label} usually means checking which market each individual card is cheapest in rather than buying the whole list from one shop.`,
-    type: `${c.label} cards are bought for play far more often than for collection, which means condition matters less than price: a lightly played copy plays identically behind a sleeve. Postage regularly outweighs the card on anything at the cheap end, so price the whole list as one order in Best Basket rather than card by card.`,
+    character: `Every printing of a ${c.label} card is a separate product with its own price, and each has a Normal and a Foil price of its own: a plain print, a Borderless one and a Foil Etched one of the same card rarely track each other. The prices below are each printing's cheapest in-stock listing in a single market, and every card's own page compares the six markets we cover, so building around ${c.label} usually means checking which market each individual card is cheapest in rather than buying the whole list from one shop.`,
+    type: `${c.label} cards are bought for play far more often than for collection, which means condition matters less than price: a lightly played copy plays identically in a sleeve. Postage regularly outweighs the card on anything at the cheap end, so price the whole list as one order in Best Basket rather than card by card.`,
     rarity: `Rarity sets the pull rate, not the price. Plenty of ${c.label.toLowerCase()} cards here trade below cards a tier under them, because demand comes from whether a card is played, not from what is printed on it. The prices below are what stores actually charge today.`,
-    printing: `${c.label} printings are collector products: mechanically identical to the base card, priced entirely on scarcity and looks. If you want the card to play with, the base printing is on each card's own page and is almost always cheaper. If you want this one, the price below is its cheapest in-stock listing, and the card's own page compares every store that has it.`,
-    colour: `Colour decides which Leaders a card can go under, which is why ${c.label} prices move with the ${c.label} decks that are winning rather than with the rest of the set. Cards below are priced from each card's cheapest in-stock listing in a single market; each card's own page compares all six markets we cover.`,
+    printing: `${c.label} printings are collector versions: the same card to play with, priced on scarcity and looks. If you want the card to play with, the plain printing is on each card's own page and is almost always cheaper. If you want this one, the price below is its cheapest in-stock listing, and the card's own page compares every store that has it.`,
+    colour: `Colour decides which decks a card can go in, which is why ${c.label} prices move with the ${c.label} decks that are winning rather than with the rest of the set. Cards below are priced from each card's cheapest in-stock listing in a single market; each card's own page compares all six markets we cover.`,
     set: `Buying a set card by card and buying sealed are different questions — the Box EV calculator answers the second, and the prices below answer the first. The calculator values each card at TCGplayer's US market price, converted, rather than the cheapest listing shown here, so its per-card figures will differ.`,
-    keyword: `Cards sharing a keyword tend to be bought together, because they are what a deck built around that mechanic actually needs. Prices below are the cheapest live listing for each, so a whole shopping list can be costed in one pass rather than card by card.`,
+    keyword: `Cards sharing a keyword tend to be bought together, because they are what a deck built around that ability actually needs. Prices below are the cheapest live listing for each, so a whole shopping list can be costed in one pass rather than card by card.`,
   };
   out.push(buyerAdvice[c.kind]);
 

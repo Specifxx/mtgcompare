@@ -61,25 +61,25 @@ export interface EbayConfig {
   observeOnly: boolean;             // EBAY_OBSERVE_ONLY: quota reads only (default ON until the owner turns it off after a week)
   quotaReserve: number;             // EBAY_QUOTA_RESERVE: own mode: never spent; shared mode: Rift's own untouchable reserve
   maxCalls: number | null;          // EBAY_MAX_CALLS: per-run cap
-  slices: { banner: number; singles: number; sealed: number; buffer: number };   // EBAY_SLICE_BANNER / _SINGLES / _SEALED / _BUFFER, fractions summing to 1
+  slices: { banner: number; singles: number; sealed: number; buffer: number };   // fractions summing to 1
   minValueCents: number;            // EBAY_MIN_VALUE_CENTS: no call below this (singles)
-  tierAMinCents: number;            // EBAY_TIER_A_MIN_CENTS
-  tierAShare: number;               // EBAY_TIER_A_SHARE: tier A's share of the singles slice
-  bIntervalHours: number;           // EBAY_B_INTERVAL_HOURS: allowed 48 to 96
-  retryRate: number;                // EBAY_RETRY_RATE: share of name searches whose first query returns nothing and is retried
-  sealedMinCents: number;           // EBAY_SEALED_MIN_CENTS: boxes, cases, displays
-  sealedDeckMinCents: number;       // EBAY_SEALED_DECK_MIN_CENTS: commander decks, bundles, Secret Lair
-  sealedIntervalHours: number;      // EBAY_SEALED_INTERVAL_HOURS
-  bannerUsNames: number;            // EBAY_BANNER_US_NAMES: pool names searched every 6 h in the US
-  bannerOtherNames: number;         // EBAY_BANNER_OTHER_NAMES: pool names searched daily in each of UK, AU, EU
-  bannerUsIntervalHours: number;    // EBAY_BANNER_US_INTERVAL_HOURS
+  tierAMinCents: number;            //
+  tierAShare: number;               // tier A's share of the singles slice
+  bIntervalHours: number;           // allowed 48 to 96
+  retryRate: number;                // share of name searches whose first query returns nothing and is retried
+  sealedMinCents: number;           // boxes, cases, displays
+  sealedDeckMinCents: number;       // commander decks, bundles, Secret Lair
+  sealedIntervalHours: number;      //
+  bannerUsNames: number;            // pool names searched every 6 h in the US
+  bannerOtherNames: number;         // pool names searched daily in each of UK, AU, EU
+  bannerUsIntervalHours: number;    //
   bannerOtherIntervalHours: number;
   hysteresis: number;               // a name changes tier only when its rank is this much beyond the cut line
-  riftOwnReserve: number;           // EBAY_RIFT_OWN_RESERVE: Rift keeps this untouched
-  riftMargin: number;               // EBAY_RIFT_MARGIN
-  riftBoost: number;                // EBAY_RIFT_RESERVE_BOOST: raise by hand for a Rift launch window
-  riftDailyPlan: number;            // EBAY_RIFT_DAILY_PLAN: Rift's planned calls a day
-  otherSiblings: number;            // EBAY_OTHER_SIBLINGS: the other sibling site's planned calls a day (Pokemon)
+  riftOwnReserve: number;           // Rift keeps this untouched
+  riftMargin: number;               //
+  riftBoost: number;                // raise by hand for a Rift launch window
+  riftDailyPlan: number;            // Rift's planned calls a day
+  otherSiblings: number;            // the other sibling site's planned calls a day (Pokemon)
 }
 export const DEFAULT_EBAY_CONFIG: EbayConfig = {
   apiEnabled: true, dailyBudget: 1000, keysetMode: "shared", observeOnly: true, quotaReserve: 600, maxCalls: null,
@@ -89,8 +89,12 @@ export const DEFAULT_EBAY_CONFIG: EbayConfig = {
   bannerUsNames: 24, bannerOtherNames: 11, bannerUsIntervalHours: 6, bannerOtherIntervalHours: 24, hysteresis: 0.15,
   riftOwnReserve: 600, riftMargin: 300, riftBoost: 0, riftDailyPlan: 3000, otherSiblings: 60,
 };
-/** Parse the environment into a config; a value outside its allowed range is ignored (the default stays) and named in `problems`. */
-export function ebayConfigFromEnv(env: Record<string, string | undefined> = process.env): { cfg: EbayConfig; problems: string[] } {
+/**
+ * The configuration from the environment. Only the dials the owner turns are variables (tests/env-names.test.ts lists every name): the kill switch, the daily budget, the keyset mode,
+ * observe-only, the Rift reserve, the per-run cap and the singles floor. Every other dial (slices, tier shares, intervals, the banner pool sizes, Rift's job table) is a constant here, pinned by
+ * tests/ebay-plan.test.ts: changing one is a code change with its arithmetic, not a variable. A value outside its allowed range is ignored (the default stays) and named in `problems`.
+ */
+export function ebayConfigFromEnv(env: Record<string, string | undefined> = process.env, overrides: Partial<EbayConfig> = {}): { cfg: EbayConfig; problems: string[] } {
   const d = DEFAULT_EBAY_CONFIG;
   const problems: string[] = [];
   const int = (name: string, dflt: number, min: number, max: number): number => {
@@ -99,43 +103,19 @@ export function ebayConfigFromEnv(env: Record<string, string | undefined> = proc
     if (n < min || n > max) { problems.push(`${name}=${n} is outside ${min}..${max} - using ${dflt}`); return dflt; }
     return n;
   };
-  const frac = (name: string, dflt: number): number => {
-    const n = envNum(env[name]);
-    if (n == null) return dflt;
-    if (n < 0 || n > 1) { problems.push(`${name}=${n} is outside 0..1 - using ${dflt}`); return dflt; }
-    return n;
-  };
   const mode = (env.EBAY_KEYSET_MODE ?? "").trim().toLowerCase();
   if (mode && mode !== "shared" && mode !== "own") problems.push(`EBAY_KEYSET_MODE=${JSON.stringify(env.EBAY_KEYSET_MODE)} is not shared or own - using shared`);
-  let slices = { banner: frac("EBAY_SLICE_BANNER", d.slices.banner), singles: frac("EBAY_SLICE_SINGLES", d.slices.singles), sealed: frac("EBAY_SLICE_SEALED", d.slices.sealed), buffer: frac("EBAY_SLICE_BUFFER", d.slices.buffer) };
-  if (Math.abs(slices.banner + slices.singles + slices.sealed + slices.buffer - 1) > 1e-6) { problems.push("EBAY_SLICE_* do not sum to 1 - using the defaults"); slices = { ...d.slices }; }
   const maxCalls = envInt(env.EBAY_MAX_CALLS);
   const cfg: EbayConfig = {
+    ...d,
     apiEnabled: env.EBAY_API_ENABLED == null || env.EBAY_API_ENABLED.trim() === "" ? d.apiEnabled : envBool(env.EBAY_API_ENABLED, d.apiEnabled),
     dailyBudget: int("EBAY_DAILY_CALL_BUDGET", d.dailyBudget, 0, 5000),
     keysetMode: mode === "own" ? "own" : "shared",
     observeOnly: envBool(env.EBAY_OBSERVE_ONLY, d.observeOnly),
     quotaReserve: int("EBAY_QUOTA_RESERVE", d.quotaReserve, 0, 5000),
     maxCalls: maxCalls != null && maxCalls > 0 ? maxCalls : null,
-    slices,
     minValueCents: int("EBAY_MIN_VALUE_CENTS", d.minValueCents, 100, 1_000_000),
-    tierAMinCents: int("EBAY_TIER_A_MIN_CENTS", d.tierAMinCents, 100, 10_000_000),
-    tierAShare: frac("EBAY_TIER_A_SHARE", d.tierAShare),
-    bIntervalHours: int("EBAY_B_INTERVAL_HOURS", d.bIntervalHours, 48, 96),
-    retryRate: frac("EBAY_RETRY_RATE", d.retryRate),
-    sealedMinCents: int("EBAY_SEALED_MIN_CENTS", d.sealedMinCents, 100, 10_000_000),
-    sealedDeckMinCents: int("EBAY_SEALED_DECK_MIN_CENTS", d.sealedDeckMinCents, 100, 10_000_000),
-    sealedIntervalHours: int("EBAY_SEALED_INTERVAL_HOURS", d.sealedIntervalHours, 24, 168),
-    bannerUsNames: int("EBAY_BANNER_US_NAMES", d.bannerUsNames, 0, 64),
-    bannerOtherNames: int("EBAY_BANNER_OTHER_NAMES", d.bannerOtherNames, 0, 64),
-    bannerUsIntervalHours: int("EBAY_BANNER_US_INTERVAL_HOURS", d.bannerUsIntervalHours, 1, 48),
-    bannerOtherIntervalHours: int("EBAY_BANNER_OTHER_INTERVAL_HOURS", d.bannerOtherIntervalHours, 6, 96),
-    hysteresis: frac("EBAY_HYSTERESIS", d.hysteresis),
-    riftOwnReserve: int("EBAY_RIFT_OWN_RESERVE", d.riftOwnReserve, 0, 5000),
-    riftMargin: int("EBAY_RIFT_MARGIN", d.riftMargin, 0, 5000),
-    riftBoost: int("EBAY_RIFT_RESERVE_BOOST", d.riftBoost, 0, 5000),
-    riftDailyPlan: int("EBAY_RIFT_DAILY_PLAN", d.riftDailyPlan, 0, 5000),
-    otherSiblings: int("EBAY_OTHER_SIBLINGS", d.otherSiblings, 0, 5000),
+    ...overrides,
   };
   return { cfg, problems };
 }
@@ -150,9 +130,9 @@ export const DUE_GRACE_HOURS = 3;
 export const BANNER_ONLY_RUN_CAP = 60;                    // a banner-only run (3 a day) never plans past this
 export const singleCost = (cfg: Pick<EbayConfig, "retryRate">): number => SINGLE_CALL_COST_BASE + cfg.retryRate;
 
-/** The sealed kinds the eBay pass searches: boxes, cases and displays, commander decks, bundles and Secret Lair drops (the kinds matchSealedTitle can recognise; loose packs are not searched). */
-export const SEARCHED_SEALED_KINDS = new Set(["Booster Box", "Booster Case", "Display", "Display Case", "Case", "Box", "Commander Deck", "Bundle", "Secret Lair", "Collector Booster Box", "Starter Kit", "Prerelease Pack"]);
-const DECK_LIKE = new Set(["Commander Deck", "Bundle", "Secret Lair", "Starter Kit", "Prerelease Pack"]);
+/** The sealed kinds the eBay pass searches (constants.ts SEALED_KINDS): boxes and cases at one floor, commander decks, bundles, Secret Lair drops and collections at a lower one. Loose packs, tins and prerelease packs are not searched. */
+export const SEARCHED_SEALED_KINDS = new Set(["Booster Box", "Case", "Commander Deck", "Bundle", "Secret Lair Drop", "Collection & Gift"]);
+const DECK_LIKE = new Set(["Commander Deck", "Bundle", "Secret Lair Drop", "Collection & Gift"]);
 
 // ── popularity and score ─────────────────────────────────────────────────────
 

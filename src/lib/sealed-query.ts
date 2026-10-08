@@ -98,8 +98,8 @@ export function filterSealed(rows: SealedLite[], q: SealedQuery, ctx: SealedCtx)
   const kinds = new Set(q.kinds);
   const sets = new Set(q.sets);
   return rows.filter((s) => {
-    // Tournament promo packs are hidden unless asked for, or their kind is picked.
-    if (s.kind === "Promo Pack" && !q.lair && !kinds.has("Promo Pack")) return false;
+    // Secret Lair drops are hidden unless asked for, or their kind is picked.
+    if (s.kind === "Secret Lair Drop" && !q.lair && !kinds.has("Secret Lair Drop")) return false;
     if (kinds.size && !kinds.has(s.kind)) return false;
     if (sets.size) {
       const slug = ctx.setSlugOf(s.setId);

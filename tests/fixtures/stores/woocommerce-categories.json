@@ -147,20 +147,6 @@
   "count": 137
  },
  {
-  "id": 95,
-  "name": "One Piece",
-  "slug": "onepiece",
-  "parent": 68,
-  "count": 192
- },
- {
-  "id": 96,
-  "name": "One Piece",
-  "slug": "onepiece-scelles",
-  "parent": 88,
-  "count": 9
- },
- {
   "id": 78,
   "name": "Platine",
   "slug": "platine",
@@ -187,13 +173,6 @@
   "slug": "promo-pokemon",
   "parent": 69,
   "count": 310
- },
- {
-  "id": 135,
-  "name": "Promo",
-  "slug": "promo",
-  "parent": 95,
-  "count": 29
  },
  {
   "id": 88,

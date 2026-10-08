@@ -35,7 +35,7 @@ export function useQuickView(): Ctx | null {
   return useContext(QuickViewContext);
 }
 
-const STATE_KEY = "ocQuickView";
+const STATE_KEY = "mcQuickView";
 const cardPath = (slug: string) => `/card/${slug}`;
 
 interface Shown extends QuickViewOpen {

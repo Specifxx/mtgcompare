@@ -36,7 +36,7 @@ export function TcgplayerBanner({ country, page, card, className = "" }: { count
           TCG<span className="text-sky-400">player</span>
         </span>
         <span className="min-w-0 text-left">
-          <span className="block truncate text-[13px] font-semibold text-slate-100">Shop One Piece singles &amp; sealed</span>
+          <span className="block truncate text-[13px] font-semibold text-slate-100">Shop Magic singles &amp; sealed</span>
           <span className="block truncate text-[11px] text-slate-400">{tagline(country)}</span>
         </span>
         <span className="shrink-0 rounded-md bg-sky-500/15 px-2.5 py-1 text-[11px] font-bold text-sky-300">Shop now →</span>

@@ -11,6 +11,7 @@
 import { affiliateUrl, cardEbayQuery, ebaySearchUrl } from "./affiliate";
 import { compareBoardRows, ebayRetailer, postageLine, retailerSubId } from "./board";
 import { COUNTRIES, MARKETS, type Country } from "./country";
+import { availableFinishes, finishLabel, tcgplayerUrl, type Finish } from "./constants";
 import type { CardDetail, HistoryPoint, OfferRow } from "./data";
 import { isEbaySource, sourceLabel } from "./stores";
 
@@ -97,6 +98,10 @@ export interface QuickViewPayload {
   change7d: number | null;
   /** Affiliate-tagged TCGplayer product page. */
   tcgHref: string;
+  /** The unit this payload prices (rows, TCGplayer link, market) and the finishes the product has. */
+  finish: Finish;
+  finishLabel: string;
+  finishes: Finish[];
   markets: Record<Country, QuickViewMarket>;
   /** The last QUICKVIEW_HISTORY_DAYS of the card's US price history (the card page's chart series). */
   history: HistoryPoint[];
@@ -125,12 +130,14 @@ export function quickViewPayload(
   today: string = new Date().toISOString().slice(0, 10),
   history: HistoryPoint[] = [],
   graded: { market: string; grader: string; grade: string; priceCents: number; currency: string; url: string }[] = [],
+  finish: Finish = c.headFinish,
 ): QuickViewPayload {
   const loc = `/card/${c.slug}`;
-  const query = cardEbayQuery(c);
+  const query = cardEbayQuery({ ...c, foil: finish === "F" });
+  const offers = c.offers.filter((o) => o.finish === finish);
   const markets = {} as Record<Country, QuickViewMarket>;
   for (const m of MARKETS) {
-    const open = marketRows(c.offers, m);
+    const open = marketRows(offers, m);
     markets[m] = {
       count: open.length,
       ebayRow: open.some((o) => isEbaySource(o.source)),
@@ -155,15 +162,18 @@ export function quickViewPayload(
     hasImage: c.hasImage,
     set: { code: c.set.code, name: c.set.name, slug: c.set.slug, releasedOn: c.set.releasedOn },
     preRelease: isPreRelease(c.set.releasedOn, today),
-    marketUsd: c.marketUsd,
-    change7d: c.change7d,
-    tcgHref: affiliateUrl(c.tcgplayerUrl, "tcgplayer", loc),
+    marketUsd: (finish === "N" ? c.n : c.f)?.market ?? (c.headFinish === finish ? c.marketUsd : null),
+    change7d: c.headFinish === finish ? c.change7d : (c.units.find((u) => u.finish === finish)?.change7d ?? null),
+    tcgHref: affiliateUrl(tcgplayerUrl(c.id, finish), "tcgplayer", loc),
+    finish,
+    finishLabel: finishLabel(c, finish),
+    finishes: availableFinishes(c.mask),
     markets,
     history: quickViewHistory(history, today),
   };
 }
 
-/** "Monkey.D.Luffy (Parallel) OP01-024" — the name a buy surface prints. */
+/** "Sol Ring (Borderless) 270" — the name a buy surface prints. */
 export function cardDisplayName(c: { name: string; variant: string | null; number: string | null }): string {
   return `${c.name}${c.variant ? ` (${c.variant})` : ""}${c.number ? ` ${c.number}` : ""}`;
 }

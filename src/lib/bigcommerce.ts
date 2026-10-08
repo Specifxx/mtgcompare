@@ -7,7 +7,7 @@
 // ?limit=100&page=N (Stencil's own page-size option; a theme that ignores it
 // serves its default 40), the way a shopper browses it: one
 // `<article class="card">` per product with its title, its price ("22.00$ AUD")
-// and either an "Add to Cart" or an "Out of stock" button. Grand J Games' ~5,000
+// and either an "Add to Cart" or an "Out of stock" button. A store's ~5,000
 // singles are ~50 requests.
 //
 // robots.txt on these stores disallows the faceted URLs (?_bc_fsnf=1), sort

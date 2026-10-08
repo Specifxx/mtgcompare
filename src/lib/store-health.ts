@@ -7,6 +7,7 @@
 // (IMPORT_ONLY_STORES / IMPORT_ONLY_COUNTRY) or a catalogue-only run simply
 // contributes nothing for the stores it did not read. Every threshold below is
 // exported and pinned by a test.
+import { STALE_HOURS } from "./constants";
 import { platformOf, type StoreInfo, type StorePlatform } from "./stores";
 
 export interface StoreAppearance {
@@ -29,7 +30,7 @@ export interface OfferStat {
   newest: Date | null;
 }
 
-export type HealthAlertKind = "no-listings" | "stale" | "failing" | "last-read-failed" | "listings-dropped" | "match-rate-drop" | "implausible-prices" | "empty-read" | "currency-skip";
+export type HealthAlertKind = "no-listings" | "stale" | "failing" | "last-read-failed" | "listings-dropped" | "match-rate-drop" | "implausible-prices" | "empty-read" | "currency-skip" | "not-admitted";
 
 export interface StoreHealth {
   key: string;
@@ -49,8 +50,8 @@ export interface StoreHealth {
 export const MAX_APPEARANCES = 14;
 /** Hours after which a store's newest Offer row raises `stale`, well before… */
 export const STALE_ALERT_HOURS = 30;
-/** …the import drops it from the lows (mirrors STALE_HOURS in lib/import.ts). */
-export const STALE_HOURS = 72;
+/** …the import drops it from the lows (the one constant of constants.ts that aggregate() uses). */
+export { STALE_HOURS };
 /**
  * Consecutive failed appearances that raise `failing`. A single failed latest
  * read raises the milder `last-read-failed` instead, so a store the /admin
@@ -105,7 +106,8 @@ export function storeAlerts(history: StoreAppearance[], offers: OfferStat, now =
   } else if (latest.failed) {
     alerts.push({ kind: "last-read-failed", text: `The latest read failed${latest.note ? ` (${latest.note})` : ""} (once; a second failure in a row raises “failing”)` });
   }
-  if (latest.skipped) alerts.push({ kind: "currency-skip", text: `Skipped: ${latest.skipped}` });
+  // An unverified store that did not pass admission (10.26: at least 20 matched in-stock listings) is not broken, it is not published yet.
+  if (latest.skipped) alerts.push({ kind: /^not admitted/.test(latest.skipped) ? "not-admitted" : "currency-skip", text: `Skipped: ${latest.skipped}` });
   if (latest.products === 0 && !latest.failed && !latest.skipped) {
     alerts.push({ kind: "empty-read", text: `Read 0 products without an error (robots.txt now blocks it, or its collections/feed are gone)${latest.note ? `: ${latest.note}` : ""}` });
   }
@@ -130,7 +132,7 @@ export function storeAlerts(history: StoreAppearance[], offers: OfferStat, now =
   return alerts;
 }
 
-export function computeStoreHealth(stores: StoreInfo[], history: Map<string, StoreAppearance[]>, offers: Map<string, OfferStat>, now = new Date()): StoreHealth[] {
+export function computeStoreHealth(stores: readonly StoreInfo[], history: Map<string, StoreAppearance[]>, offers: Map<string, OfferStat>, now = new Date()): StoreHealth[] {
   return stores.map((s) => {
     const h = (history.get(s.key) ?? []).slice(0, MAX_APPEARANCES);
     const o = offers.get(s.key) ?? EMPTY_OFFERS;
@@ -153,7 +155,7 @@ export function computeStoreHealth(stores: StoreInfo[], history: Map<string, Sto
 }
 
 /** Alerts that are worth a look but not yet a broken scraper (amber, not red). */
-export const MILD_ALERTS: readonly HealthAlertKind[] = ["last-read-failed"];
+export const MILD_ALERTS: readonly HealthAlertKind[] = ["last-read-failed", "not-admitted"];
 export const isMildAlert = (k: HealthAlertKind) => MILD_ALERTS.includes(k);
 
 /** Group flat per-store rows (newest first) into each store's appearances, ≤ MAX_APPEARANCES. */

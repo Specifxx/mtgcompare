@@ -2,34 +2,34 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import CardQuickLink from "@/components/CardQuickLink";
 import { Breadcrumbs, Faq, InShort, JsonLd, SectionHeader } from "@/components/ui";
-import { COLORS, COLOR_KEYS } from "@/lib/constants";
+import { COLORS, COLOR_GROUPS, COLOR_KEYS, MAIN_SET_KINDS } from "@/lib/constants";
 import { COUNTRY_LIST } from "@/lib/country";
-import { getCatalog } from "@/lib/data";
-import { PRINTING_FACETS, RARITY_FACETS, TYPE_FACETS } from "@/lib/facets";
+import { getCardPage, getCatalogStats, getFacetCounts, getSets, isIndexableTreatment } from "@/lib/data";
+import { RARITY_FACETS, TREATMENT_FACETS, TYPE_FACETS } from "@/lib/facets";
 import { int, money } from "@/lib/format";
 import { faqLd } from "@/lib/jsonld";
 import { pageOg } from "@/lib/og/meta";
 import { STORES } from "@/lib/stores";
 
-// /singles — the "One Piece singles" search intent (RiftCompare's /singles):
-// market-neutral, linked into every way of finding a card, with real counts
-// from the cached catalogue.
+// /singles — the "Magic singles" search intent (RiftCompare's /singles): market-neutral, linked into every way of finding a card, with real counts
+// from the catalogue loaders (no card list is read here).
+export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "Buy One Piece Card Singles — Compare Prices in Six Markets",
+  title: "Buy Magic: The Gathering Singles — Compare Prices in Six Markets",
   description:
-    "The cheapest place to buy One Piece Card Game singles: live prices from stores in the US, Australia, the UK, Singapore, Canada and the EU, plus TCGplayer, refreshed twice a day.",
+    "The cheapest place to buy Magic: The Gathering singles: live prices from stores in the US, Australia, the UK, Singapore, Canada and the EU, plus TCGplayer, refreshed twice a day.",
   alternates: { canonical: "/singles" },
   openGraph: pageOg("/singles"),
 };
 
 const FAQS = [
   {
-    q: "What are One Piece singles?",
-    a: "Single cards from the One Piece Card Game, bought one at a time instead of in booster packs or boxes. Singles get you exactly the Leader and cards a deck needs, in the printing you want, without opening packs.",
+    q: "What are Magic singles?",
+    a: "Single cards from Magic: The Gathering, bought one at a time instead of in booster packs or boxes. Singles get you exactly the cards a deck needs, in the printing you want, without opening packs.",
   },
   {
-    q: "Where can I buy One Piece singles?",
-    a: "OP Compare reads the One Piece listings of stores in six markets twice a day and matches each one to its exact printing. Open any card to see every store's price, cheapest first, and go straight to the store you choose.",
+    q: "Where can I buy Magic singles?",
+    a: "MTG Compare reads the Magic listings of stores in six markets and matches each one to its exact printing. Open any card to see every store's price, cheapest first, and go straight to the store you choose.",
   },
   {
     q: "How do I price a whole deck of singles?",
@@ -37,27 +37,27 @@ const FAQS = [
   },
   {
     q: "Why does the same card have several prices?",
-    a: "One card number can have several printings — the standard print, a Parallel, a Manga or SP version, reprints — and each is a different single with its own price. OP Compare prices each printing separately.",
+    a: "One card can have many printings: a standard print, a borderless or showcase version, a foil etching, reprints in other sets. Each is a different single with its own price, and MTG Compare prices each printing and each finish separately.",
   },
 ];
 
 export default async function SinglesPage() {
-  const cat = await getCatalog();
-  const singles = cat.cards.filter((c) => c.printing !== "don");
-  const topNow = [...singles].filter((c) => c.marketUsd != null).sort((a, b) => (b.marketUsd ?? 0) - (a.marketUsd ?? 0)).slice(0, 8);
-  const sets = [...cat.sets].filter((s) => s.kind === "booster" || s.kind === "extra").sort((a, b) => (b.releasedOn ?? "").localeCompare(a.releasedOn ?? "")).slice(0, 8);
+  const today = new Date().toISOString().slice(0, 10);
+  const [stats, counts, sets, top] = await Promise.all([getCatalogStats(), getFacetCounts(), getSets(), getCardPage({ sort: "value", page: 1, per: 24 })]);
+  const topNow = top.items.filter((c) => c.marketUsd != null).slice(0, 8);
+  const newest = sets.filter((s) => (MAIN_SET_KINDS as readonly string[]).includes(s.kind) && s.releasedOn != null && s.releasedOn <= today).sort((a, b) => (b.releasedOn ?? "").localeCompare(a.releasedOn ?? "")).slice(0, 8);
   return (
     <div>
       <JsonLd data={faqLd(FAQS)} />
       <Breadcrumbs trail={[{ name: "Singles" }]} />
-      <h1 className="text-2xl font-extrabold text-white sm:text-4xl">One Piece singles, compared</h1>
+      <h1 className="text-2xl font-extrabold text-white sm:text-4xl">Magic singles, compared</h1>
       <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-slate-300">
-        {int(singles.length)} One Piece Card Game printings, each priced at the cheapest in-stock listing among {int(STORES.length)} stores in six
+        {int(stats.cards)} Magic: The Gathering printings, each priced at the cheapest in-stock listing among {int(STORES.length)} stores in six
         markets, plus TCGplayer in the US. Find a card by name in the{" "}
         <Link href="/browse" className="text-brand-400 hover:underline">
           card database
         </Link>
-        , or start from a set, a colour, a rarity or a printing below.
+        , or start from a set, a colour, a rarity or a treatment below.
       </p>
       <div className="mt-6">
         <InShort>
@@ -70,13 +70,13 @@ export default async function SinglesPage() {
       </div>
 
       <section className="mt-8">
-        <SectionHeader title="In stock, by market" />
+        <SectionHeader title="Priced, by market" />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {COUNTRY_LIST.map((c) => (
             <div key={c.code} className="card-surface p-4">
               <p className="text-sm font-semibold text-white">{c.label}</p>
-              <p className="num mt-1 text-xl font-bold text-accent">{int(singles.filter((x) => x.low[c.code] != null).length)}</p>
-              <p className="text-xs text-slate-400">printings in stock · {STORES.filter((s) => s.country === c.code).length + (c.code === "US" ? 1 : 0)} sources</p>
+              <p className="num mt-1 text-xl font-bold text-accent">{int(stats.pricedByMarket[c.code])}</p>
+              <p className="text-xs text-slate-400">printings priced · {STORES.filter((s) => s.country === c.code).length + (c.code === "US" ? 1 : 0)} sources</p>
             </div>
           ))}
         </div>
@@ -91,9 +91,9 @@ export default async function SinglesPage() {
                 <span className="num mr-2 text-slate-500">{i + 1}</span>
                 <CardQuickLink slug={c.slug} className="font-semibold text-white hover:text-brand-400">
                   {c.name}
-                  {c.variant ? ` (${c.variant})` : ""}
+                  {c.label ? ` (${c.label})` : ""}
                 </CardQuickLink>{" "}
-                <span className="text-xs text-slate-400">{c.number}</span>
+                <span className="text-xs text-slate-400">{c.setCode} {c.number}</span>
               </span>
               <span className="num shrink-0 text-sm font-semibold text-slate-200">{money(c.marketUsd, "US")}</span>
             </li>
@@ -102,9 +102,9 @@ export default async function SinglesPage() {
       </section>
 
       <div className="mt-8 grid gap-6 md:grid-cols-2">
-        <LinkBlock title="Newest sets" links={[...sets.map((s) => ({ href: `/sets/${s.slug}`, label: `${s.code} ${s.name}` })), { href: "/sets", label: "Every set →" }]} />
-        <LinkBlock title="By colour" links={[...COLOR_KEYS.map((k) => ({ href: `/colors/${COLORS[k].slug}`, label: k })), { href: "/leaders", label: "Leaders →" }]} />
-        <LinkBlock title="By printing" links={PRINTING_FACETS.map((f) => ({ href: `/cards/printing/${f.slug}`, label: f.label }))} />
+        <LinkBlock title="Newest sets" links={[...newest.map((x) => ({ href: `/sets/${x.slug}`, label: `${x.code} ${x.name}` })), { href: "/sets", label: "Every set →" }]} />
+        <LinkBlock title="By colour" links={[...COLOR_KEYS.map((k) => ({ href: `/colors/${COLORS[k].slug}`, label: COLORS[k].label })), { href: `/colors/${COLOR_GROUPS.colorless.slug}`, label: COLOR_GROUPS.colorless.label }, { href: `/colors/${COLOR_GROUPS.multicolor.slug}`, label: COLOR_GROUPS.multicolor.label }, { href: "/commanders", label: "Commanders →" }]} />
+        <LinkBlock title="By treatment" links={TREATMENT_FACETS.filter((f) => isIndexableTreatment(counts.treat[f.key] ?? 0)).map((f) => ({ href: `/cards/treatment/${f.slug}`, label: f.label }))} />
         <LinkBlock title="By rarity and type" links={[...RARITY_FACETS.map((f) => ({ href: `/cards/rarity/${f.slug}`, label: f.label })), ...TYPE_FACETS.map((f) => ({ href: `/cards/type/${f.slug}`, label: f.label }))]} />
       </div>
 

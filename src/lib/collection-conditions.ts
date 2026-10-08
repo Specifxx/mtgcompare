@@ -1,9 +1,11 @@
-// The card grading scale a binder entry is recorded in, and what each grade is
-// worth against a Near Mint price — RiftCompare's CONDITIONS / CONDITION_KEYS /
-// CONDITION_MULTIPLIER (its lib/constants.ts), ported for the portfolio in wave 2
-// (2026-10-03). OP Compare's own constants.ts carries the One Piece vocabulary
-// (colours, rarities, printings); conditions are a collection concept, so they
-// live beside the collection code. Client-safe: no server imports.
+// The card grading scale a binder entry is recorded in, what each grade is worth
+// against a Near Mint price, and what a binder entry is worth in its finish (a Foil
+// copy is valued at the Foil unit's market price, a Normal copy at the Normal
+// unit's). Conditions and finishes are collection concepts, so they live beside
+// the collection code. Client-safe: no server imports.
+import type { Country } from "./country";
+import type { Finish } from "./constants";
+import { usdCentsToCountry } from "./fx";
 
 export interface ConditionInfo {
   key: string;
@@ -51,4 +53,28 @@ export function normaliseCondition(raw: string | null | undefined): keyof typeof
   if (/heav(ily)?\s*play|\bhp\b/.test(t)) return "HP";
   if (/damaged|\bdmg\b|\bdamage\b/.test(t)) return "DMG";
   return null;
+}
+
+/** The quotes of a product's two finishes (data CardLite satisfies it); null = no row of that finish. */
+export interface FinishQuotes {
+  n: { market: number | null; low: number | null } | null;
+  f: { market: number | null; low: number | null } | null;
+}
+
+/** The finish a binder row is held in. */
+export const finishOfRow = (isFoil: boolean): Finish => (isFoil ? "F" : "N");
+
+/**
+ * A product's TCGplayer MARKET price in US cents for one finish. Market only: a unit with a single thin listing and no market
+ * ("low only") has no value to put in a total, so it is unpriced here rather than valued at an asking price (track.ts marketOnlyCents).
+ */
+export function finishMarketCents(card: FinishQuotes, isFoil: boolean): number | null {
+  const q = isFoil ? card.f : card.n;
+  return q?.market != null && q.market > 0 ? q.market : null;
+}
+
+/** One copy's value in the visitor's currency: the finish's US market price converted, times the condition multiplier. null = unpriced. */
+export function copyValueCents(card: FinishQuotes, isFoil: boolean, condition: string, country: Country): number | null {
+  const usd = finishMarketCents(card, isFoil);
+  return usd == null ? null : Math.round(usdCentsToCountry(usd, country) * (CONDITION_MULTIPLIER[condition] ?? 1));
 }

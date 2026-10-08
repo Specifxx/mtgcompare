@@ -3,33 +3,33 @@ import assert from "node:assert/strict";
 import { buildCardFaqs, cardMetaDescription, cardTitle, TITLE_MAX } from "../src/lib/card-seo";
 
 const t = (over: Partial<Parameters<typeof cardTitle>[0]> = {}) =>
-  cardTitle({ name: "Monkey.D.Luffy", variant: null, number: "OP01-003", setName: "Romance Dawn", setCode: "OP01", printing: "standard", hasPrice: true, ...over });
+  cardTitle({ name: "Lightning Bolt", variant: null, number: "141", setName: "Magic 2011", setCode: "M11", printing: "standard", hasPrice: true, ...over });
 
 test("a short card keeps the set name and is within 60", () => {
-  const s = t({ name: "Nami", number: "OP01-016" });
-  assert.match(s, /Nami OP01-016 Price/);
+  const s = t({ name: "Sol Ring", number: "270" });
+  assert.match(s, /Sol Ring 270 Price/);
   assert.ok(s.length <= TITLE_MAX, s);
 });
 
 test("the set name is dropped first, the number and printing word never", () => {
-  const s = t({ name: "Monkey.D.Luffy", variant: "Manga · Alternate Art", number: "OP05-119", printing: "manga", setName: "Awakening of the New Era" });
+  const s = t({ name: "The One Ring", variant: "Borderless · Serial Numbered", number: "0246", printing: "borderless", setName: "Universes Beyond: The Lord of the Rings: Tales of Middle-earth" });
   assert.ok(s.length <= TITLE_MAX, `${s} (${s.length})`);
-  assert.match(s, /OP05-119/);
-  assert.match(s, /Manga/);
-  assert.doesNotMatch(s, /Awakening/);
+  assert.match(s, /0246/);
+  assert.match(s, /Borderless/);
+  assert.doesNotMatch(s, /Universes Beyond/);
 });
 
-test("titles of a Parallel and its standard print differ", () => {
-  const a = t({ name: "Marshall.D.Teach", number: "OP09-081", variant: "Parallel", printing: "alt", setName: "Emperors in the New World" });
-  const b = t({ name: "Marshall.D.Teach", number: "OP09-081", variant: null, printing: "standard", setName: "Emperors in the New World" });
+test("titles of a Borderless and its standard print differ", () => {
+  const a = t({ name: "Sol Ring", number: "270", variant: "Borderless", printing: "borderless", setName: "Commander Masters" });
+  const b = t({ name: "Sol Ring", number: "270", variant: null, printing: "standard", setName: "Commander Masters" });
   assert.notEqual(a, b);
-  assert.match(a, /Parallel/);
+  assert.match(a, /Borderless/);
 });
 
 test("when nothing fits the shortest rung ships", () => {
-  const s = t({ name: "Charlotte Linlin Mother Carmel Big Mom Pirates Captain", variant: "Manga · Alternate Art", number: "OP03-099", printing: "manga" });
-  assert.match(s, /OP03-099/);
-  assert.ok(!s.includes("Alternate Art"));
+  const s = t({ name: "Sakashima the Impostor Reflecting Pool of the Ancients", variant: "Borderless · Extended Art", number: "0399", printing: "borderless" });
+  assert.match(s, /0399/);
+  assert.ok(!s.includes("Extended Art"));
 });
 
 test("an unpriced card advertises the card, not a price", () => {
@@ -38,17 +38,17 @@ test("an unpriced card advertises the card, not a price", () => {
 
 test("the description carries the printing, text and price", () => {
   const d = cardMetaDescription({
-    displayName: "Monkey.D.Luffy (Parallel) OP01-003", number: "OP01-003", setName: "Romance Dawn", setCode: "OP01", printing: "alt", rarity: "L", cardType: "Leader",
-    colors: ["Red"], textBit: "[Activate: Main] Give 1 rested DON!!.", marketUsd: 12000, lowUsCents: 11000,
+    displayName: "Sol Ring (Borderless) 270", number: "270", setName: "Commander Masters", setCode: "CMM", printing: "borderless", rarity: "U", cardType: "Artifact",
+    colors: [], textBit: "{T}: Add {C}{C}.", marketUsd: 12000, lowUsCents: 11000,
   });
-  assert.match(d, /Parallel \(alternate-art\) printing/);
+  assert.match(d, /borderless printing/);
   assert.match(d, /US\$120/);
-  assert.match(d, /DON!!/);
+  assert.match(d, /Add \{C\}/);
 });
 
 const faqBase = {
-  name: "Nami", displayName: "Nami (Parallel) OP01-016", number: "OP01-016", setName: "Romance Dawn", setCode: "OP01", rarity: "R", cardType: "Character", colors: ["Red"],
-  printing: "alt", country: "US" as const, lowest: 4500, stores: 3, printingCount: 1, marketUsd: 5000, baseMarketUsd: 300, currencyAnswer: "US$45.00 in the United States and A$80.00 in Australia", preRelease: false,
+  name: "Lightning Bolt", displayName: "Lightning Bolt (Borderless) 141", number: "141", setName: "Magic 2011", setCode: "M11", rarity: "C", cardType: "Instant", colors: ["Red"],
+  printing: "borderless", country: "US" as const, lowest: 4500, stores: 3, printingCount: 1, marketUsd: 5000, baseMarketUsd: 300, currencyAnswer: "US$45.00 in the United States and A$80.00 in Australia", preRelease: false,
 };
 
 test("FAQ: printing question only for specials, currency question only with an answer, no empty answers", () => {

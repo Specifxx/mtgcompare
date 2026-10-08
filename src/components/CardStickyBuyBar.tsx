@@ -46,8 +46,8 @@ export function CardStickyBuyBar({
   // never covers the footer's last lines (RiftCompare's data-rc-buybar).
   useEffect(() => {
     if (!show) return;
-    document.body.setAttribute("data-oc-buybar", "");
-    return () => document.body.removeAttribute("data-oc-buybar");
+    document.body.setAttribute("data-mc-buybar", "");
+    return () => document.body.removeAttribute("data-mc-buybar");
   }, [show]);
 
   useEffect(() => {

@@ -2,20 +2,16 @@
 
 import Link from "next/link";
 import { useId } from "react";
-import { KEYWORDS } from "@/lib/keywords";
+import { keywordOfName, splitKeywordText } from "@/lib/keywords";
 import { Tooltip } from "./ui/Tooltip";
 
-// Recognise a printed keyword marker ("[Rush]", "[On Play]") and link it to its
-// /keywords/[slug] page with a hover/tap definition (RiftCompare's KeywordText).
-// Built from KEYWORDS, so a marker with no keyword page is never linked: no dead
-// link and no tooltip for a page that does not exist. The text is never altered.
-const MARKER_RE = /\[([^\]]{2,40})\]/g;
-const BY_MARKER = new Map(KEYWORDS.flatMap((k) => k.markers.map((m) => [m, k] as const)));
-
+// Recognise a keyword in a card's rules text ("Flying", "first strike", "Ward {2}") and link it to its /keywords/[slug] page with a hover/tap definition
+// (RiftCompare's KeywordText). Built from KEYWORDS through splitKeywordText, so a word with no keyword page is never linked: no dead link and no tooltip for
+// a page that does not exist. The text is never altered, only wrapped.
 function KeywordChip({ name }: { name: string }) {
   const id = useId();
-  const entry = BY_MARKER.get(name.toLowerCase().replace(/\s+/g, " ").trim());
-  if (!entry) return <>{`[${name}]`}</>;
+  const entry = keywordOfName(name);
+  if (!entry) return <>{name}</>;
   return (
     <Tooltip
       id={id}
@@ -39,7 +35,7 @@ function KeywordChip({ name }: { name: string }) {
             }
           }}
         >
-          [{name}]
+          {name}
         </Link>
       )}
     </Tooltip>
@@ -47,7 +43,7 @@ function KeywordChip({ name }: { name: string }) {
 }
 
 export function KeywordText({ text, className }: { text: string; className?: string }) {
-  const parts = text.split(MARKER_RE);
+  const parts = splitKeywordText(text);
   if (parts.length === 1) return <span className={className}>{text}</span>;
   return (
     <span className={className}>

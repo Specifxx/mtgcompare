@@ -44,7 +44,7 @@ export const VIEW_RATE_WINDOW_MS = 6 * 60 * 60 * 1000;
 export const VIEW_IP_RATE_LIMIT = 300;
 export const VIEW_IP_RATE_WINDOW_MS = 60 * 60 * 1000;
 
-export const CARD_VIEWS_KEY = "oc_card_views";
+export const CARD_VIEWS_KEY = "mc_card_views";
 const STORAGE_KEY = CARD_VIEWS_KEY;
 
 type Seen = { day: string; keys: string[] };

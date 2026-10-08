@@ -12,14 +12,14 @@ test("guides are served at /guides, everything else at /blog", () => {
   assert.equal(postHref({ slug: "x", category: "blog" }), "/blog/x");
 });
 
-test("the evergreen rarities and where-to-buy posts are guides, with FAQs and unique slugs", () => {
+test("the evergreen rarities, where-to-buy and cheaper-abroad posts are guides, with FAQs and unique slugs", () => {
   const bySlug = new Map(POSTS.map((p) => [p.slug, p]));
   assert.equal(new Set(POSTS.map((p) => p.slug)).size, POSTS.length);
-  for (const s of ["one-piece-card-rarities-explained", "where-to-buy-one-piece-cards"]) {
+  for (const s of ["magic-card-rarities-explained", "where-to-buy-magic-cards", "are-magic-cards-cheaper-abroad"]) {
     assert.equal(bySlug.get(s)?.category, "guide", s);
     assert.ok((bySlug.get(s)?.faq?.length ?? 0) >= 4, s);
   }
-  assert.equal(bySlug.get("where-to-buy-one-piece-cards")?.marketData, true);
+  assert.equal(bySlug.get("where-to-buy-magic-cards")?.marketData, true);
 });
 
 test("a post's FAQ answers are plain prose with only internal links", () => {
@@ -47,6 +47,6 @@ test("related-guide links resolve to a post's real href", () => {
 test("authors are a file with unique slugs; the sitemap, feeds and llms.txt follow postHref", () => {
   assert.equal(new Set(AUTHORS.map((a) => a.slug)).size, AUTHORS.length);
   const root = path.resolve(__dirname, "..");
-  for (const f of ["src/app/sitemap.ts", "src/app/feed.xml/route.ts", "src/app/feed.json/route.ts", "src/app/llms.txt/route.ts"]) assert.match(fs.readFileSync(path.join(root, f), "utf8"), /postHref/, f);
+  for (const f of ["src/app/sitemaps/[section]/route.ts", "src/app/feed.xml/route.ts", "src/app/feed.json/route.ts", "src/app/llms.txt/route.ts"]) assert.match(fs.readFileSync(path.join(root, f), "utf8"), /postHref/, f);
   assert.match(fs.readFileSync(path.join(root, "src/app/robots.ts"), "utf8"), /news-sitemap\.xml/);
 });

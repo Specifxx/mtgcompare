@@ -3,8 +3,8 @@
  * paired with faqPage() from lib/jsonld in the page's JSON-LD array.
  *
  * WHY HUBS NEED ONE: these are the highest-intent pages on the site for the
- * questions people actually type into an answer engine — "which One Piece cards
- * are going up in price", "how many One Piece sets are there". Each already had
+ * questions people actually type into an answer engine — "which Magic cards
+ * are going up in price", "how many Magic sets are there". Each already had
  * good explanatory prose, but prose is not eligible for FAQPage markup and is
  * harder to quote verbatim. Same facts, in a shape an answer engine can lift.
  *

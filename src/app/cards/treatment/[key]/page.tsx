@@ -7,7 +7,7 @@ import { getCountry } from "@/lib/get-country";
 import { pageOg } from "@/lib/og/meta";
 
 // /cards/treatment/[key] — one printing treatment (Borderless, Showcase, Extended Art, Surge Foil, Serialized ...), from the browse engine. Replaces
-// the One Piece /cards/printing/[printing]. A treatment no listed printing carries yet (embossed, silverfoil today) is a 404, so the sitemap, which lists
+// the earlier /cards/printing/[printing]. A treatment no listed printing carries yet (embossed, silverfoil today) is a 404, so the sitemap, which lists
 // the same set through isIndexableTreatment, never names a page that does not exist. No generateStaticParams: rendered on demand.
 export const dynamic = "force-dynamic";
 type Props = { params: { key: string }; searchParams: { page?: string } };

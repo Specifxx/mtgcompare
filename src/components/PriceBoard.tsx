@@ -190,7 +190,7 @@ export function PriceBoard({
             : <>Prices are collected from public store listings and may change. </>}
           <Link href="/methodology" className="underline hover:text-slate-300">How we compare prices</Link>
         </p>
-        <p>Affiliate links: as an eBay Partner Network affiliate and a TCGplayer affiliate, OP Compare earns from qualifying purchases — at no extra cost to you.</p>
+        <p>Affiliate links: as an eBay Partner Network affiliate and a TCGplayer affiliate, MTG Compare earns from qualifying purchases — at no extra cost to you.</p>
       </div>
     </section>
 
@@ -214,7 +214,7 @@ export function PriceBoard({
             {`Search ${ebayLabel(country)} →`}
           </a>
         </div>
-        <p className="mt-1.5 text-[11px] text-slate-500">As an eBay Partner Network affiliate, OP Compare earns from qualifying purchases.</p>
+        <p className="mt-1.5 text-[11px] text-slate-500">As an eBay Partner Network affiliate, MTG Compare earns from qualifying purchases.</p>
       </div>
     )}
     </>

@@ -1,7 +1,7 @@
 // The card page's cross-links, as pure selections over the catalogue
-// (RiftCompare's "cheaper alternatives", "more of this champion" and "do more
-// with this price"). Nothing here reads a database: the page hands in the
-// cached catalogue's cards.
+// ("cheaper alternatives", "more printings of this card" and "do more with this
+// price"). Nothing here reads a database: the page hands in the cards its
+// loaders returned.
 import type { CardLite } from "./data";
 
 /**
@@ -28,27 +28,25 @@ export function cheaperAlternatives(card: CardLite, cards: CardLite[], limit = 6
     .slice(0, limit);
 }
 
-/** Other cards with the same name in OTHER sets and numbers, dearest first (the character cluster). */
+/** Printings of the same card (same name) in OTHER sets, dearest first, one tile per set. */
 export function sameCharacter(card: CardLite, cards: CardLite[], limit = 6): CardLite[] {
-  const seen = new Set<string>();
+  const seen = new Set<number>();
   return cards
-    .filter((x) => x.name === card.name && x.id !== card.id && x.number !== card.number && x.printing !== "don")
+    .filter((x) => x.name === card.name && x.id !== card.id && x.setId !== card.setId)
     .sort((a, b) => (b.marketUsd ?? 0) - (a.marketUsd ?? 0) || a.id - b.id)
     .filter((x) => {
-      // One tile per card number: the dearest printing speaks for it.
-      const key = x.number ?? String(x.id);
-      if (seen.has(key)) return false;
-      seen.add(key);
+      if (seen.has(x.setId)) return false;
+      seen.add(x.setId);
       return true;
     })
     .slice(0, limit);
 }
 
-/** How many OTHER cards share this name (the narrative's "N other cards"). */
+/** How many OTHER sets print this name (the narrative's "N other cards"). */
 export function sameNameCount(card: CardLite, cards: CardLite[]): number {
-  const nums = new Set<string>();
-  for (const x of cards) if (x.name === card.name && x.id !== card.id && x.number !== card.number && x.number) nums.add(x.number);
-  return nums.size;
+  const sets = new Set<number>();
+  for (const x of cards) if (x.name === card.name && x.id !== card.id && x.setId !== card.setId) sets.add(x.setId);
+  return sets.size;
 }
 
 export interface ToolChip {

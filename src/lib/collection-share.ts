@@ -1,8 +1,7 @@
 // Public share links for a collection (/c/<token>), plus the post text a
-// collector pastes into a trading group — the collection half of RiftCompare's
-// lib/share.ts, ported in wave 2 (2026-10-03).
+// collector pastes into a trading group.
 //
-// WHY THESE EXIST. One Piece trading happens in Discord and Facebook groups, not
+// WHY THESE EXIST. Magic trading happens in Discord, Facebook and Reddit groups, not
 // on price sites. A collection that can only be seen by signing in cannot travel
 // there, so the site is absent from the exact conversation where a trade gets
 // made. A link that opens to the cards and their value puts us in that
@@ -22,13 +21,13 @@
 //
 // Egress (CLAUDE.md, the accounts exception): one unique-key user read and one
 // select-limited, capped row read per view, no card join (cards come from the
-// cached catalogue). /c/[token] has no share image of its own: it uses the
+// published data). /c/[token] has no share image of its own: it uses the
 // root fallback (DECISIONS, "Shared binder: the root share image").
 import { randomBytes } from "node:crypto";
 import { prisma } from "./db";
-import { getCatalog } from "./data";
+import { getCardsByIds } from "./data";
 import { type Country } from "./country";
-import { CONDITION_MULTIPLIER } from "./collection-conditions";
+import { copyValueCents } from "./collection-conditions";
 import { SITE_URL } from "./site";
 import { money } from "./format";
 import { COLLECTION_TAKE, cardInfo, displayName, type CollectionCardInfo } from "./collection-server";
@@ -47,11 +46,10 @@ export function isShareToken(v: string | undefined | null): v is string {
   return typeof v === "string" && /^[A-Za-z0-9_-]{16,64}$/.test(v);
 }
 
-const condMult = (condition: string) => CONDITION_MULTIPLIER[condition] ?? 1;
-
 export type SharedHolding = {
   card: CollectionCardInfo;
   condition: string;
+  /** The finish the copy is held in: a Foil copy is the Foil unit of the product (its own price). */
   isFoil: boolean;
   quantity: number;
   /** Per-copy value in the viewing market, condition-adjusted. null = unpriced. */
@@ -115,25 +113,22 @@ export async function getSharedCollection(token: string, country: Country): Prom
   });
   if (!owner) return null;
 
-  const [rows, cat] = await Promise.all([
-    prisma.collectionCard.findMany({
-      where: { userId: owner.id },
-      take: COLLECTION_TAKE,
-      // Explicit — see the file header. No cost column, no note.
-      select: { cardId: true, condition: true, isFoil: true, quantity: true },
-    }),
-    getCatalog(),
-  ]);
+  const rows = await prisma.collectionCard.findMany({
+    where: { userId: owner.id },
+    take: COLLECTION_TAKE,
+    // Explicit — see the file header. No cost column, no note.
+    select: { cardId: true, condition: true, isFoil: true, quantity: true },
+  });
+  const cards = await getCardsByIds(rows.map((r) => r.cardId));
 
   let totalCents = 0;
   let totalCopies = 0;
   const holdings: SharedHolding[] = [];
   for (const r of rows) {
-    const c = cat.byId.get(r.cardId);
+    const c = cards.get(r.cardId);
     if (!c) continue;
-    const card = cardInfo(c, cat.setById.get(c.setId)?.code ?? "");
-    const market = card.low[country];
-    const unitCents = market != null ? Math.round(market * condMult(r.condition)) : null;
+    const card = cardInfo(c, c.setCode);
+    const unitCents = copyValueCents(c, r.isFoil, r.condition, country);
     totalCents += (unitCents ?? 0) * r.quantity;
     totalCopies += r.quantity;
     holdings.push({ card, condition: r.condition, isFoil: r.isFoil, quantity: r.quantity, unitCents });
@@ -165,15 +160,15 @@ export function collectionPostText(c: {
   totalCopies: number;
   totalCents: number;
   country: Country;
-  top: { card: { name: string; variant: string | null }; unitCents: number | null }[];
+  top: { card: { name: string; variant: string | null }; isFoil?: boolean; unitCents: number | null }[];
   url: string;
 }): string {
   const lines = [
-    `${c.ownerName}'s One Piece collection — ${c.distinctCards} card${c.distinctCards === 1 ? "" : "s"}` +
+    `${c.ownerName}'s Magic collection — ${c.distinctCards} card${c.distinctCards === 1 ? "" : "s"}` +
       `${c.totalCopies !== c.distinctCards ? ` (${c.totalCopies} copies)` : ""}, ${money(c.totalCents, c.country)} at today's prices`,
   ];
   for (const t of c.top.slice(0, 3)) {
-    lines.push(`· ${displayName(t.card)}${t.unitCents != null ? ` — ${money(t.unitCents, c.country)}` : ""}`);
+    lines.push(`· ${displayName(t.card)}${t.isFoil ? " (foil)" : ""}${t.unitCents != null ? ` — ${money(t.unitCents, c.country)}` : ""}`);
   }
   lines.push(c.url);
   return lines.join("\n");

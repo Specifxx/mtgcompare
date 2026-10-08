@@ -8,7 +8,7 @@ import { headline } from "@/lib/price";
 import CardQuickLink from "./CardQuickLink";
 
 // "Shop the cards in this post" (RiftCompare's ArticleShopStrip, made from
-// OP Compare's own data): the cards and products the post names, each with its
+// MTG Compare's own data): the cards and products the post names, each with its
 // live cheapest price in the reader's market and two ways to buy — every
 // store's price on our page (QuickView), or an affiliate eBay SEARCH on the
 // reader's own eBay. A search, so it says "Search", never "Buy": it claims no

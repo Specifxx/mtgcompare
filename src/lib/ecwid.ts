@@ -8,7 +8,7 @@
 // a store whose currency is not its market's is refused, never converted.
 //
 // Products come per category, 100 a page: { name, price (major units),
-// inStock, url, enabled }. A store's One Piece singles category id lives in
+// inStock, url, enabled }. A store's Magic singles category id lives in
 // lib/stores.ts `collections`, its store id in `ecwidStoreId`.
 import { currencyOf } from "./country";
 import { fetchText, getWithRetry, REQUEST_DELAY_MS, robotsAllows, sleep } from "./scrape";

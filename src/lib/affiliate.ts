@@ -1,41 +1,47 @@
-// Affiliate / partner identifiers and outbound-link tagging, ported from
-// RiftCompare's lib/affiliate.ts. The ids are PUBLIC by design (they appear in
-// every outbound URL) and are the owner's existing accounts, env-overridable.
+// Affiliate / partner identifiers and outbound-link tagging. The ids are PUBLIC
+// by design (they appear in every outbound URL). MTG Compare has its own: they
+// come from NEXT_PUBLIC_EBAY_CAMPAIGN_ID and NEXT_PUBLIC_TCGPLAYER_IMPACT_LINK
+// (NEXT_PUBLIC_ so client components build the same link the server does) and
+// have NO default: unset, every link renders plain, never on another site's
+// account.
 //
 // ── eBay: search links everywhere, API prices from the script side only ─────
 // Every eBay link built HERE is a SEARCH link, which costs no quota. eBay
-// listing prices come from OP Compare's own eBay application (not RiftCompare's)
+// listing prices come from MTG Compare's own eBay application
 // through the twice-daily eBay pass (scripts/ebay.ts, lib/ebay*.ts), which runs
 // only in GitHub Actions. This file never calls eBay. tests/no-ebay-api.test.ts
 // fails if an eBay API host or credential appears outside src/lib/ebay*.ts.
 //
 // ── ATTRIBUTION ──────────────────────────────────────────────────────────────
-// EPN's `customid` and Impact's `sharedid` carry `oc-<market>-<source>`, so OP
-// Compare's revenue is separable from RiftCompare's (`rc-…`) in both networks'
-// own reports, on the same accounts.
+// EPN's `customid` and Impact's `sharedid` carry `mc-<market>-<source>`, so this
+// site's revenue is separable in both networks' own reports.
 import { SITE_URL } from "./site";
 import type { Country } from "./country";
 
-export const EBAY_CAMPAIGN_ID = process.env.EBAY_AFFILIATE_CAMPAIGN || "5339155912";
-export const TCGPLAYER_IMPACT_LINK =
-  process.env.TCGPLAYER_IMPACT_LINK || "https://partner.tcgplayer.com/c/7385758/1780961/21018";
+/** Read at call time, from the inlined NEXT_PUBLIC_ names (a dynamic process.env[...] lookup is not inlined in the browser). */
+export function ebayCampaignId(): string {
+  return (process.env.NEXT_PUBLIC_EBAY_CAMPAIGN_ID || "").trim();
+}
+export function tcgplayerImpactLink(): string {
+  return (process.env.NEXT_PUBLIC_TCGPLAYER_IMPACT_LINK || "").trim();
+}
 
 interface EbayMarketIds { mkrid: string; siteid: string; customid: string; code: string }
 const EBAY_MARKETS: Record<string, EbayMarketIds> = {
-  "ebay.com.au": { mkrid: "705-53470-19255-0", siteid: "15", customid: "oc-au", code: "AU" },
-  "ebay.com": { mkrid: "711-53200-19255-0", siteid: "0", customid: "oc-us", code: "US" },
-  "ebay.co.uk": { mkrid: "710-53481-19255-0", siteid: "3", customid: "oc-uk", code: "UK" },
-  "ebay.ca": { mkrid: "706-53473-19255-0", siteid: "2", customid: "oc-ca", code: "CA" },
-  "ebay.es": { mkrid: "1185-53479-19255-0", siteid: "186", customid: "oc-eu", code: "ES" },
+  "ebay.com.au": { mkrid: "705-53470-19255-0", siteid: "15", customid: "mc-au", code: "AU" },
+  "ebay.com": { mkrid: "711-53200-19255-0", siteid: "0", customid: "mc-us", code: "US" },
+  "ebay.co.uk": { mkrid: "710-53481-19255-0", siteid: "3", customid: "mc-uk", code: "UK" },
+  "ebay.ca": { mkrid: "706-53473-19255-0", siteid: "2", customid: "mc-ca", code: "CA" },
+  "ebay.es": { mkrid: "1185-53479-19255-0", siteid: "186", customid: "mc-eu", code: "ES" },
 };
 
 // Singapore has no EPN program: ebay.com.sg links reroute to ebay.com (the same
-// inventory) and still report as oc-sg.
+// inventory) and still report as mc-sg.
 const SG_HOST = "ebay.com.sg";
 
 function ebayMarket(hostname: string): (EbayMarketIds & { realHost: string }) | null {
   const h = hostname.replace(/^www\./i, "").toLowerCase();
-  if (h === SG_HOST) return { ...EBAY_MARKETS["ebay.com"], customid: "oc-sg", realHost: "ebay.com" };
+  if (h === SG_HOST) return { ...EBAY_MARKETS["ebay.com"], customid: "mc-sg", realHost: "ebay.com" };
   if (EBAY_MARKETS[h]) return { ...EBAY_MARKETS[h], realHost: h };
   if (/(?:^|\.)ebay\./i.test(h)) return { ...EBAY_MARKETS["ebay.com"], realHost: "ebay.com" };
   return null;
@@ -50,7 +56,7 @@ export function affiliateSubId(...parts: (string | null | undefined)[]): string 
     .replace(/[^a-z0-9_-]+/g, "-")
     .replace(/-{2,}/g, "-")
     .replace(/^-|-$/g, "");
-  return s.slice(0, SUBID_MAX) || "oc";
+  return s.slice(0, SUBID_MAX) || "mc";
 }
 
 /** Tag an eBay item/search URL with our EPN campaign (an ePN smart link). */
@@ -66,13 +72,15 @@ export function ebayAffiliateUrl(url: string, source?: string): string {
     // add only what eBay can't know (campaign, sub-id). Not when rerouted — an
     // ebay.com.sg rotation means nothing on ebay.com (RiftCompare's rule).
     const preTagged = !rerouted && u.searchParams.get("mkevt") === "1" && !!u.searchParams.get("mkrid");
+    const campid = ebayCampaignId();
+    if (!campid) return u.toString();   // no campaign of our own: a plain link, never someone else's account
     u.searchParams.set("mkevt", "1");
     u.searchParams.set("mkcid", "1");
     if (!preTagged) {
       u.searchParams.set("mkrid", process.env[`EBAY_MKRID_${m.code}`] || m.mkrid);
       u.searchParams.set("siteid", process.env[`EBAY_SITEID_${m.code}`] || m.siteid);
     }
-    u.searchParams.set("campid", EBAY_CAMPAIGN_ID);
+    u.searchParams.set("campid", campid);
     u.searchParams.set("toolid", "10001");
     const shape = /\/itm\//.test(u.pathname) ? "product" : /\/sch\//.test(u.pathname) ? "search" : null;
     u.searchParams.set("customid", affiliateSubId(m.customid, source, shape));
@@ -108,20 +116,21 @@ export function ebayLabel(country: Country): string {
 }
 
 /**
- * The keywords for an eBay search, with "One Piece" in it exactly once. Without
- * it, "Luffy" or "Romance Dawn" alone floods results with manga and figures.
+ * The keywords for an eBay search, with the game named exactly once. Without it,
+ * "Sol Ring" or "Lightning Bolt" alone floods results with unrelated goods.
  * Commas are dropped (eBay reads them as OR inside parentheses).
  */
-export function onePieceEbayQuery(query: string): string {
+export function magicEbayQuery(query: string): string {
   const clean = query.replace(/,/g, " ").replace(/\s+/g, " ").trim();
-  if (!clean) return "One Piece Card Game";
-  return /\bone\s*piece\b/i.test(clean) ? clean : `One Piece ${clean}`;
+  if (!clean) return "Magic The Gathering cards";
+  return /\b(?:mtg|magic(?:\s+the\s+gathering)?)\b/i.test(clean) ? clean : `MTG ${clean}`;
 }
 
-/** A card's eBay query: name, number and the printing words sellers use. */
-export function cardEbayQuery(c: { name: string; number: string | null; variant: string | null }): string {
+/** A card's eBay query: name, collector number and the printing words sellers use (foil, borderless...). */
+export function cardEbayQuery(c: { name: string; number?: string | null; variant?: string | null; setName?: string | null; foil?: boolean }): string {
   const v = c.variant ? ` ${c.variant.replace(/·/g, " ").replace(/\s+/g, " ")}` : "";
-  return onePieceEbayQuery(`${c.name}${c.number ? ` ${c.number}` : ""}${v}`);
+  const set = c.setName ? ` ${c.setName}` : "";
+  return magicEbayQuery(`${c.name}${set}${c.number ? ` ${c.number}` : ""}${v}${c.foil ? " foil" : ""}`);
 }
 
 /** An affiliate-tagged eBay SEARCH on the visitor's own marketplace. Zero API cost. */
@@ -134,7 +143,7 @@ export function ebaySearchUrl(country: Country, query: string, source?: string):
  * Tag an outbound product link. eBay EPN → TCGplayer (Impact) → plain link.
  * `subId` is the retailer key, `loc` the page it was rendered on (path only).
  */
-export function affiliateUrl(url: string | null | undefined, subId = "opcompare", loc: string = SITE_URL): string {
+export function affiliateUrl(url: string | null | undefined, subId = "mc", loc: string = SITE_URL): string {
   if (!url) return "#";
   const page = (() => {
     try {
@@ -146,10 +155,11 @@ export function affiliateUrl(url: string | null | undefined, subId = "opcompare"
   try {
     const u = new URL(url);
     if (/(?:^|\.)ebay\./i.test(u.hostname)) return ebayAffiliateUrl(url, affiliateSubId(subId, page));
-    if (TCGPLAYER_IMPACT_LINK && /(?:^|\.)tcgplayer\.com$/i.test(u.hostname)) {
+    const impact = tcgplayerImpactLink();
+    if (impact && /(?:^|\.)tcgplayer\.com$/i.test(u.hostname)) {
       return (
-        `${TCGPLAYER_IMPACT_LINK}?u=${encodeURIComponent(url)}` +
-        `&sharedid=${encodeURIComponent(affiliateSubId("oc", subId, page))}`
+        `${impact}?u=${encodeURIComponent(url)}` +
+        `&sharedid=${encodeURIComponent(affiliateSubId("mc", subId, page))}`
       );
     }
   } catch {
@@ -167,10 +177,13 @@ export function isPaidLink(href: string | null | undefined): boolean {
   if (!href) return false;
   try {
     const u = new URL(href);
-    if (/(?:^|\.)ebay\./i.test(u.hostname)) return true;
-    if (/(?:^|\.)tcgplayer\.com$/i.test(u.hostname)) return Boolean(TCGPLAYER_IMPACT_LINK);
+    if (/(?:^|\.)ebay\./i.test(u.hostname)) return Boolean(ebayCampaignId());
+    if (/(?:^|\.)tcgplayer\.com$/i.test(u.hostname)) return Boolean(tcgplayerImpactLink());
     return false;
   } catch {
     return false;
   }
 }
+
+/** @deprecated the old name, kept until every importer is on magicEbayQuery (WP06 request in each owner's file). */
+export const onePieceEbayQuery = magicEbayQuery;

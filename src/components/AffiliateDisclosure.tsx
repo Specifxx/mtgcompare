@@ -11,9 +11,9 @@
 type Partner = "ebay" | "tcgplayer" | "both";
 
 const TEXT: Record<Partner, string> = {
-  ebay: "Affiliate link: as an eBay Partner Network affiliate, OP Compare earns from qualifying purchases — at no extra cost to you.",
-  tcgplayer: "Affiliate link: OP Compare earns a commission from qualifying TCGplayer purchases — at no extra cost to you.",
-  both: "Affiliate links: as an eBay Partner Network affiliate and a TCGplayer affiliate, OP Compare earns from qualifying purchases — at no extra cost to you.",
+  ebay: "Affiliate link: as an eBay Partner Network affiliate, MTG Compare earns from qualifying purchases — at no extra cost to you.",
+  tcgplayer: "Affiliate link: MTG Compare earns a commission from qualifying TCGplayer purchases — at no extra cost to you.",
+  both: "Affiliate links: as an eBay Partner Network affiliate and a TCGplayer affiliate, MTG Compare earns from qualifying purchases — at no extra cost to you.",
 };
 
 export function AffiliateDisclosure({ partner = "ebay", tight, className }: { partner?: Partner; tight?: boolean; className?: string }) {

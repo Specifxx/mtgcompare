@@ -1,5 +1,5 @@
 {
-  "name": "opcompare",
+  "name": "mtgcompare",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -12,6 +12,7 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "import": "tsx scripts/import.ts",
+    "import:bootstrap": "tsx scripts/bootstrap.ts",
     "import:catalog": "IMPORT_STORES=0 tsx scripts/import.ts",
     "probe:stores": "tsx scripts/probe-stores.ts",
     "icons": "tsx scripts/gen-icons.ts",
@@ -31,7 +32,8 @@
     "check:ratchets": "tsx scripts/ratchet-baseline.ts --check",
     "check:pure": "npm run check:constants && npm run check:catalog && npm run check:images && npm run check:track && npm run check:smoke && npm run check:ownership",
     "ownership:generate": "tsx scripts/gen-ownership.ts",
-    "ratchet:baseline": "tsx scripts/ratchet-baseline.ts"
+    "ratchet:baseline": "tsx scripts/ratchet-baseline.ts",
+    "decisions:index": "tsx scripts/decisions-index.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

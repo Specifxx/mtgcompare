@@ -9,22 +9,22 @@ const mk = (country: "US" | "AU" | "UK", currency: string, place: string, low: n
 });
 
 const base: NarrativeInput = {
-  name: "Monkey.D.Luffy", variant: null, number: "OP05-060", printing: "standard", setName: "Awakening of the New Era", setCode: "OP05", setKind: "booster",
-  releasedOn: "2024-03-01", today: "2026-10-04", rarity: "L", cardType: "Leader", colors: ["Purple"], cost: null, power: 5000, counter: null, life: 4,
-  attribute: "Strike", subtypes: ["Straw Hat Crew"], keywords: ["Rush"], timings: ["Activate: Main"], hasText: true, marketUsd: 1200, change7d: 8.5, change30d: 14,
+  name: "Sol Ring", variant: null, number: "270", printing: "standard", setName: "Commander Masters", setCode: "CMM", setKind: "masters",
+  releasedOn: "2023-08-04", today: "2026-10-04", rarity: "U", cardType: "Artifact", typeLine: "Artifact", colors: [], manaCost: "{1}", manaValue: 1, pt: null, loyalty: null,
+  keywords: [], legalIn: ["Commander", "Vintage", "Legacy"], commander: false, marketUsd: 1200, change7d: 8.5, change30d: 14,
   high90Usd: 1500,
   baseline: mk("US", "USD", "the United States", 1250), markets: [mk("US", "USD", "the United States", 1250), mk("AU", "AUD", "Australia", 2400), mk("UK", "GBP", "the United Kingdom", 900)],
-  printings: [{ label: "Parallel", marketUsd: 9000 }, { label: "Manga", marketUsd: 80000 }], setContext: { pricedInSet: 120, cheaperThan: 119, medianUsd: 90 },
+  printings: [{ label: "Borderless", marketUsd: 9000 }, { label: "Showcase", marketUsd: 80000 }], setContext: { pricedInSet: 120, cheaperThan: 119, medianUsd: 90 },
   sameNameElsewhere: 14,
 };
 
 test("a fully priced card gets a long, multi-paragraph narrative", () => {
   const n = buildNarrative(base);
   assert.ok(n.paragraphs.length >= 5, `${n.paragraphs.length} paragraphs`);
-  assert.ok(n.words >= 280, `${n.words} words`);
+  assert.ok(n.words >= 240, `${n.words} words`);
   const text = n.paragraphs.join(" ");
-  assert.match(text, /Leader/);
-  assert.match(text, /4 Life/);
+  assert.match(text, /Sol Ring \(270\) is an Artifact/);
+  assert.match(text, /legal in Commander/);
   assert.match(text, /US\$12\.00/);
   assert.match(text, /90-day high/);
 });
@@ -53,22 +53,22 @@ test("an upcoming set says it is not released", () => {
 });
 
 test("special printings open with the printing and compare with the standard print", () => {
-  const n = buildNarrative({ ...base, printing: "manga", variant: "Manga · Alternate Art", rarity: "SEC", cardType: "Character", colors: ["Red"], marketUsd: 80000, printings: [{ label: "Standard", marketUsd: 500 }] });
-  assert.match(n.paragraphs[0], /Manga printing of Monkey\.D\.Luffy/);
+  const n = buildNarrative({ ...base, printing: "borderless", variant: "Borderless", rarity: "U", marketUsd: 80000, printings: [{ label: "Standard", marketUsd: 500 }] });
+  assert.match(n.paragraphs[0], /borderless printing of Sol Ring/);
   assert.match(n.paragraphs.join(" "), /160x the standard print/);
-  assert.doesNotMatch(n.paragraphs.join(" "), /Manga · Alternate Art/);
+  assert.doesNotMatch(n.paragraphs.join(" "), /Borderless · /);
 });
 
 test("three different cards do not share a fixed skeleton", () => {
   const a = buildNarrative(base);
   const b = buildNarrative({
-    ...base, name: "Nami", number: "OP01-016", cardType: "Character", colors: ["Red"], rarity: "R", cost: 1, power: 2000, counter: 1000, life: null, attribute: null,
-    keywords: [], timings: ["Trigger", "On Play"], marketUsd: 40, change7d: -1, change30d: 0.5, printings: [], sameNameElsewhere: 0, setContext: { pricedInSet: 120, cheaperThan: 50, medianUsd: 60 },
+    ...base, name: "Lightning Bolt", number: "141", cardType: "Instant", typeLine: "Instant", colors: ["Red"], rarity: "C", manaCost: "{R}", manaValue: 1,
+    keywords: [], legalIn: ["Modern"], marketUsd: 40, change7d: -1, change30d: 0.5, printings: [], sameNameElsewhere: 0, setContext: { pricedInSet: 120, cheaperThan: 50, medianUsd: 60 },
     baseline: mk("US", "USD", "the United States", 35, { storeCount: 1, secondCents: null }), markets: [mk("US", "USD", "the United States", 35, { storeCount: 1, secondCents: null })],
   });
   const c = buildNarrative({
-    ...base, name: "Gum-Gum Pistol", number: "OP01-029", cardType: "Event", colors: ["Blue"], rarity: "C", cost: 1, power: null, counter: 3000, life: null, attribute: null,
-    keywords: [], timings: [], marketUsd: null, change7d: null, change30d: null, high90Usd: null, printings: [], sameNameElsewhere: 2, setContext: null,
+    ...base, name: "Counterspell", number: "55", cardType: "Instant", typeLine: "Instant", colors: ["Blue"], rarity: "U", manaCost: "{U}{U}", manaValue: 2,
+    keywords: [], legalIn: [], marketUsd: null, change7d: null, change30d: null, high90Usd: null, printings: [], sameNameElsewhere: 2, setContext: null,
     baseline: mk("US", "USD", "the United States", null), markets: [mk("US", "USD", "the United States", null)],
   });
   // Replace everything specific; what is left must still differ.

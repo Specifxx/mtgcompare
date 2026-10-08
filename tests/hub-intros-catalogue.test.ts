@@ -7,10 +7,10 @@ import { HUB_INTROS, hubIntro } from "../src/lib/content/hub-intros";
 import { POSTS } from "../src/lib/blog";
 
 const LINK = /\[([^\]]+)\]\(([^)\s]*)\)/g;
-const routes = new Set(["/market", "/movers", "/price-guide", "/sets", "/sealed", "/leaders", "/colors", "/deck", "/tools/box-ev", "/tools/best-basket", "/blog"]);
+const routes = new Set(["/market", "/movers", "/price-guide", "/sets", "/sealed", "/commanders", "/colors", "/deck", "/tools/box-ev", "/tools/best-basket", "/blog", "/cards", "/cards/rarity"]);
 
 test("every catalogue hub has an intro, and HUB_INTROS carries them", () => {
-  for (const p of ["/market", "/movers", "/price-guide", "/sets", "/sealed", "/leaders", "/colors"]) {
+  for (const p of ["/market", "/movers", "/price-guide", "/sets", "/sealed", "/commanders", "/colors"]) {
     assert.ok(CATALOGUE_HUB_INTROS[p], p);
     assert.equal(hubIntro(p).length >= 2, true, p);
     assert.equal(HUB_INTROS[p], CATALOGUE_HUB_INTROS[p]);
@@ -39,7 +39,7 @@ test("no sentence appears in two intros, and none names a number a constant owns
       assert.ok(!seen.has(k) || seen.get(k) === route, `"${s}" is in ${seen.get(k)} and ${route}`);
       seen.set(k, route);
     }
-    assert.doesNotMatch(intro.paragraphs.join(" "), /Riftbound|RiftCompare|\bOP\d{2}\b/);
+    assert.doesNotMatch(intro.paragraphs.join(" "), /Riftbound|RiftCompare|One Piece|OP Compare|\bOP\d{2}\b|Leader|DON!!/);
   }
 });
 
@@ -50,5 +50,5 @@ test("each intro is short enough that the page still starts near the top", () =>
 test("the catalogue pages render the intro", () => {
   const root = path.resolve(__dirname, "..");
   
-  for (const f of ["sets", "leaders", "colors", "sealed", "price-guide", "market", "movers"].map((x) => `src/app/${x}/page.tsx`)) assert.match(fs.readFileSync(path.join(root, f), "utf8"), /HubIntro/, f);
+  for (const f of ["sets", "commanders", "colors", "sealed", "price-guide", "market", "movers"].map((x) => `src/app/${x}/page.tsx`)) assert.match(fs.readFileSync(path.join(root, f), "utf8"), /HubIntro/, f);
 });

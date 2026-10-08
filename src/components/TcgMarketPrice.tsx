@@ -53,7 +53,7 @@ export function TcgMarketPrice({
             : `TCGplayer's US market price, converted to ${cur} at an approximate rate. A reference value, not a listing — TCGplayer may not ship to your country.`}
         </p>
         {href && disclosure ? (
-          <p className="mt-1 text-[11px] text-slate-500">Affiliate link: as a TCGplayer affiliate, OP Compare earns from qualifying purchases.</p>
+          <p className="mt-1 text-[11px] text-slate-500">Affiliate link: as a TCGplayer affiliate, MTG Compare earns from qualifying purchases.</p>
         ) : null}
       </div>
       {href ? (

@@ -1,8 +1,8 @@
 // Google AdSense, OPTIONAL (RiftCompare's lib/adsense.ts without its build-halting
-// assertion). OP Compare has no AdSense account: everything here is derived from
+// assertion). MTG Compare has no AdSense account: everything here is derived from
 // ONE env var, NEXT_PUBLIC_ADSENSE_CLIENT_ID, and with it unset or malformed the
 // site simply runs its first-party house promos. It NEVER throws, in production
-// or anywhere else; approving AdSense for opcompare.app is the owner's call.
+// or anywhere else; approving AdSense for mtgcompare.app is the owner's call.
 //
 // The id is public by design (it ships in the page HTML), but it is written only
 // in env files, never as a literal in src/. NEXT_PUBLIC_ is inlined at build

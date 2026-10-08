@@ -43,7 +43,7 @@ test("filters: text, price band in the visitor's currency, stock, kinds, sets, S
 });
 
 test("a market-less price falls back to TCGplayer's converted reference for the band", () => {
-  assert.deepEqual(filterSealed(rows, parseSealedQuery({ min: "1500" }), ctx).map((r) => r.id), [541179, 541166]);
+  assert.deepEqual(filterSealed(rows, parseSealedQuery({ min: "800" }), ctx).map((r) => r.id), [541179, 541166]);
 });
 
 test("sorts: price both ways (unpriced last / first), name, newest, featured by kind then recency", () => {

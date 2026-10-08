@@ -1,43 +1,36 @@
-// ShadowPOS stores (the TCGLocal storefront): the second platform after
-// Shopify. Network + parsing only; what a title MEANS is decided in
-// lib/match.ts, exactly as for a Shopify listing.
+// ShadowPOS stores (the TCGLocal storefront): the second platform after Shopify. Network + parsing only; what a title MEANS is decided in lib/match.ts, exactly as for a Shopify listing.
 //
 // ── THE FEED ─────────────────────────────────────────────────────────────────
 // Every ShadowPOS storefront serves its own catalogue search at
-//   /api/advanced-search?game=onepiece&limit=100&offset=N&orderBy=title&inStockOnly=true
-// which returns the HTML fragment the storefront's search page renders: one
-// `div.product-item` per product, holding
-//   - h2.productTitle  "Absalom (OP06-081 — Alternate Art)"  (TCGplayer's own
-//     catalogue name, card number included),
-//   - h3.productSubtitle  the set ("Wings of the Captain"),
-//   - data-variants='[…]'  HTML-escaped JSON, one entry per printing/condition:
-//     { title: "Normal / Near Mint", price: 0.25, available, inventory_quantity },
+//   /api/advanced-search?game=mtg&limit=50&offset=N&orderBy=price-desc&inStockOnly=true
+// which returns the HTML fragment the storefront's search page renders: one `div.product-item` per product, holding
+//   - h2.productTitle     "The One Ring (0246)" / "Mana Vault (308/331)" / "Scalding Tarn" (TCGplayer's own catalogue name; the collector number is in the title when the store prints one),
+//   - h3.productSubtitle  the SET NAME ("The Lord of the Rings: Tales of Middle-earth"),
+//   - data-variants='[…]' HTML-escaped JSON, one entry per finish and condition:
+//     { title: "Foil / Near Mint", price: 119, available, inventory_quantity }   (`price` is DOLLARS, not cents),
 //   - a link to /products/<product id>.
-// It is the public read the storefront itself makes, robots.txt allows it
-// ("User-agent: *  Allow: /", only AI crawlers are refused), and it is the
-// whole in-stock catalogue: about one request per 100 listings.
+// It is the public read the storefront itself makes, it is the whole IN-STOCK catalogue, and `orderBy=price-desc` returns the dearest first, so a crawl stops at the track floor instead of reading the
+// long tail of one-dollar cards (13 of 13 stores serve game=mtg; probed 2026-10-07). Serialized cards print "(0338 — Serialized)".
 //
 // ── CURRENCY ─────────────────────────────────────────────────────────────────
-// price_money.currency is null. Every ShadowPOS store found is a US shop with a
-// US street address pricing in dollars, so the reader refuses any store whose
-// market is not US (tests/stores.test.ts pins that the registry has none).
+// price_money.currency is null. Every ShadowPOS store found is a US shop with a US street address pricing in dollars, so the reader refuses any store whose market is not US
+// (tests/stores.test.ts pins that the registry has none).
 //
 // ── POLITENESS ───────────────────────────────────────────────────────────────
-// A page is ~3 MB of HTML before gzip, and all of these storefronts are served
-// by the same platform, so at most two ShadowPOS stores are read at once and
-// pages are a second apart.
+// A listing is ~33 KB of HTML (a 50-listing page is ~1.6 MB before gzip) and all of these storefronts are served by the same platform, so at most two ShadowPOS stores are read at once and pages
+// are a second apart.
 import { decodeEntities, getWithRetry, limiter, robotsAllows, sleep } from "./scrape";
 import type { StoreListing, StoreRead } from "./store-import";
 import type { StoreInfo } from "./stores";
 
-export const SHADOWPOS_PAGE = 100;
-/** 60 × 100: the deepest store found holds ~2,150 in-stock One Piece listings. */
-const MAX_PAGES = 60;
+export const SHADOWPOS_PAGE = 50;
+/** 120 x 50: the deepest in-stock Magic catalogue found holds a few thousand listings above the track floor. */
+const MAX_PAGES = 120;
 const PAGE_DELAY_MS = 1000;
 const gate = limiter(2);
 
 export const shadowposSearchPath = (offset: number) =>
-  `/api/advanced-search?game=onepiece&limit=${SHADOWPOS_PAGE}&offset=${offset}&orderBy=title&inStockOnly=true`;
+  `/api/advanced-search?game=mtg&limit=${SHADOWPOS_PAGE}&offset=${offset}&orderBy=price-desc&inStockOnly=true`;
 
 interface ShadowVariant {
   title?: string;
@@ -65,8 +58,8 @@ export function parseShadowposPage(html: string, base: string): StoreListing[] |
     const name = decodeEntities(title[1]).replace(/\s+/g, " ").trim();
     const setName = set ? decodeEntities(set[1]).replace(/\s+/g, " ").trim() : "";
     out.push({
-      // "Absalom (OP06-081 — Alternate Art) [Wings of the Captain]": the set in
-      // trailing brackets, the BinderPOS shape lib/match.ts already reads.
+      // "The One Ring (0246) [The Lord of the Rings: Tales of Middle-earth]": the set in
+      // trailing brackets, the number + set name shape lib/match.ts reads.
       title: setName ? `${name} [${setName}]` : name,
       handle: href[1].slice("/products/".length),
       url: `${base}${href[1]}`,
@@ -76,6 +69,7 @@ export function parseShadowposPage(html: string, base: string): StoreListing[] |
           title: String(v.title ?? ""),
           price: Number.isFinite(price) ? price.toFixed(2) : "0",
           available: v.available === true && (v.inventory_quantity == null || v.inventory_quantity > 0),
+          options: String(v.title ?? "").split("/").map((o) => o.trim()).filter(Boolean),
         };
       }),
     });
@@ -83,16 +77,24 @@ export function parseShadowposPage(html: string, base: string): StoreListing[] |
   return out;
 }
 
-/** Every in-stock One Piece listing a ShadowPOS store has. */
-export function fetchShadowposStore(store: StoreInfo): Promise<StoreRead> {
+/** The dearest price on a parsed page, in cents: what a price-sorted crawl compares with the floor. */
+export const pageMaxCents = (page: readonly StoreListing[]): number => Math.round(Math.max(0, ...page.flatMap((p) => p.variants.map((v) => parseFloat(v.price) || 0))) * 100);
+
+/**
+ * Every in-stock Magic listing a ShadowPOS store has above `stopBelowCents`. The search is sorted dearest first: the read ends after the first page whose dearest listing is under the stop price
+ * (everything after it is cheaper), after a short page, or at MAX_PAGES. `deadline` (epoch ms) ends a read that runs out of the stage's time as a FAILED one.
+ */
+export function fetchShadowposStore(store: StoreInfo, o: { stopBelowCents?: number; deadline?: number } = {}): Promise<StoreRead> {
   return gate(async () => {
-    const handles = ["advanced-search?game=onepiece"];
+    const handles = ["advanced-search?game=mtg"];
     if (store.country !== "US") return { products: [], failed: true, handles, note: "ShadowPOS states no currency; only US stores are read" };
     const allowed = await robotsAllows(store.base);
     if (!allowed(shadowposSearchPath(0))) return { products: [], failed: false, handles, note: "robots.txt disallows the search" };
     const products: StoreListing[] = [];
     const seen = new Set<string>();
-    for (let page = 0; page < MAX_PAGES; page++) {
+    const maxPages = store.maxPages ?? MAX_PAGES;
+    for (let page = 0; page < maxPages; page++) {
+      if (o.deadline && Date.now() > o.deadline) return { products, failed: true, handles, note: "the stage's time budget ran out" };
       if (page) await sleep(PAGE_DELAY_MS);
       const res = await getWithRetry(`${store.base}${shadowposSearchPath(page * SHADOWPOS_PAGE)}`, { timeoutMs: 60000, headers: { Accept: "text/html, */*" }, retryDelayMs: 5000 });
       if (!res || res.status !== 200) {
@@ -106,6 +108,7 @@ export function fetchShadowposStore(store: StoreInfo): Promise<StoreRead> {
         products.push(p);
       }
       if (got.length < SHADOWPOS_PAGE) break;
+      if (o.stopBelowCents && pageMaxCents(got) < o.stopBelowCents) break;
     }
     return { products, failed: false, handles };
   });
