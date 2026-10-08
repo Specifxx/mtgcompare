@@ -2,6 +2,7 @@
 // republish of the day never extend a history run; a missed day is a null run. The pipeline tests run the real importer over the mini day (the 57 real products of tests/fixtures/magic-products.json, no network); the property test kills and re-runs S10 for 60 days.
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import path from "node:path";
 import { bootstrap } from "../scripts/bootstrap";
 import { runImport } from "../scripts/import";
@@ -13,6 +14,7 @@ import { decodeDense, endDayOf, spanOf, type SeriesV4 } from "../src/lib/data/pl
 import { PRICE_MASK } from "../src/lib/constants";
 import { TRACK_DEFAULTS } from "../src/lib/track";
 import { importEnv, magicFixtures, miniMagicDay, sh, tmpRoot } from "./helpers/publish-harness";
+const fx = (id: number) => magicFixtures().find((f) => f.productId === id)!;
 
 const quiet = (): void => undefined;
 const NOW = (): Date => new Date("2026-10-08T01:00:00Z");
@@ -100,6 +102,62 @@ test("runImport over a bare repository: the gate stops a published day, a forced
     const r4 = await runImport({ phase: "catalog", env: { ...importEnv(path.join(t.root, "e2"), d2), ...base }, skipHook: true }); assert.equal((r4.outcome as { kind: string }).kind, "published");
     const ptr4 = JSON.parse(sh(t.root, "--git-dir", remote, "show", "data:latest.json")) as { seq: number; priceDay: string }; assert.equal(ptr4.seq, 3); assert.equal(ptr4.priceDay, "2026-10-08");
     const log = sh(t.root, "--git-dir", remote, "log", "--format=%s", "data"); assert.match(log, /data 2026-10-08 3 catalog/); assert.ok(!/\[deploy\]/i.test(log), "no commit subject of the data repository carries the deploy marker");
+  } finally { t.done(); }
+});
+
+test("the second copy on branch state is best effort and never silent: a remote that refuses it still publishes, and the run says so", async () => {
+  const t = tmpRoot(); const out: string[] = []; const orig = console.log; try {
+    const remote = path.join(t.root, "remote.git"); sh(t.root, "init", "-q", "--bare", remote);
+    const hook = path.join(remote, "hooks", "pre-receive"); fs.writeFileSync(hook, '#!/bin/sh\nwhile read old new ref; do if [ "$ref" = "refs/heads/state" ]; then echo "state branch refused" >&2; exit 1; fi; done\n', { mode: 0o755 });
+    const d1 = miniMagicDay(path.join(t.root, "d1")); const env = { ...importEnv(path.join(t.root, "e1"), d1), PLANE_REMOTE: remote, PLANE_REPO: "o/mtg-data" };
+    console.log = (...a: unknown[]) => { out.push(a.join(" ")); };
+    const r = await runImport({ phase: "catalog", env, skipHook: true }); console.log = orig;
+    assert.equal((r.outcome as { kind: string }).kind, "published", "a refused backup never fails or delays the publish");
+    assert.equal(sh(t.root, "--git-dir", remote, "branch", "--list", "state"), "", "no state branch was created");
+    assert.ok(out.some((l) => /::warning::the second copy on branch state was not pushed/.test(l) && /state branch refused/.test(l)), `the warning names the cause: ${out.slice(-3).join(" | ")}`);
+  } finally { console.log = orig; t.done(); }
+});
+
+test("nine price days: meta/buckets.json lists the bucket of EVERY tracked unit in the first phase-1 tree already; a tracked unit with no change figure has no ix/p `t` row (REQ-WP02-4, REQ-WP02-5)", async () => {
+  const t = tmpRoot(); try {
+    const plane = path.join(t.root, "plane"); const extra = fx(2831); const entrant = 9_200_001;
+    const trackedBuckets = (tree: ReturnType<typeof fsTree>): number[] => { const b = new Set<number>(); for (const f of tree.files()) if (f.startsWith("px/")) for (const r of (JSON.parse(tree.read(f)) as { p: number[][] }).p) if (r[5]! & (PRICE_MASK.TRACKN | PRICE_MASK.TRACKF)) b.add(Math.floor(r[0]! / 256)); return [...b].sort((a, c) => a - c); };
+    for (let n = 1; n <= 9; n++) {
+      const day = miniMagicDay(path.join(t.root, `d${n}`), { stamp: `2026-10-${String(6 + n).padStart(2, "0")}T20:06:09Z`, scale: (id, sub) => 1 + 0.013 * n * ((id + (sub === "Foil" ? 1 : 0)) % 3), products: n === 9 ? [{ productId: entrant, name: extra.name, groupId: extra.groupId, number: extra.tcgNumber, rarity: extra.tcgRarity, Normal: extra.prices.Normal, Foil: extra.prices.Foil }] : [] });
+      const r = await bootstrap({ ...importEnv(path.join(t.root, `e${n}`), day), PLANE_DIR: plane }, () => new Date(`2026-10-${String(7 + n).padStart(2, "0")}T01:00:00Z`)); assert.deepEqual(r.problems, [], `day ${n}`);
+      const tree = fsTree(path.join(plane, "v1")); const listed = (JSON.parse(tree.read("meta/buckets.json")) as { tracked: number[] }).tracked;
+      assert.ok(listed.length > 0 && listed.join() === trackedBuckets(tree).join(), `day ${n}: the tracked list is the buckets of the tracked units (${listed.join()})`);
+    }
+    const tree = fsTree(path.join(plane, "v1")); const ser = seriesOf(tree); const withT = new Set<number>(); let rowsT = 0;
+    for (const f of tree.files()) { const m = /^ix\/p-(\d+)\.json$/.exec(f); if (!m) continue; const K = JSON.parse(tree.read(`ix/k-${m[1]}.json`)) as { id: number[] }; for (const r of (JSON.parse(tree.read(f)) as { t: number[][] }).t) { withT.add(K.id[r[0]!]! * 2 + r[1]!); rowsT++; } }
+    const trackedUnits = [...ser.keys()].filter((uid) => { for (const f of tree.files()) if (f.startsWith("px/")) for (const r of (JSON.parse(tree.read(f)) as { p: number[][] }).p) if (r[0] === Math.floor(uid / 2)) return !!(r[5]! & (uid % 2 ? PRICE_MASK.TRACKF : PRICE_MASK.TRACKN)); return false; });
+    assert.ok(trackedUnits.length >= 20 && rowsT >= 20, `${rowsT} change rows for ${trackedUnits.length} tracked units`);
+    const fresh = [entrant * 2, entrant * 2 + 1].filter((u) => ser.has(u)); assert.ok(fresh.length >= 1, "the entrant is tracked with a one-day history");
+    for (const u of fresh) assert.ok(!withT.has(u), `unit ${u} entered on day 9: tracked, but no change figure and so no \`t\` row`);
+    for (const uid of trackedUnits) if (spanOf(ser.get(uid)!) >= 9 && !fresh.includes(uid)) assert.ok(withT.has(uid), `unit ${uid} has 9 days of history and a change figure`);
+  } finally { t.done(); }
+});
+
+test("an F7 day keeps the change figures of the last recorded day: the px columns, the movers and the ix/p change rows are not emptied for a day, and the next ordinary day resumes", async () => {
+  const t = tmpRoot(); try {
+    const plane = path.join(t.root, "plane"); const dear = magicFixtures().filter((f) => (f.prices.Normal?.market ?? 0) >= 5 || (f.prices.Foil?.market ?? 0) >= 5).map((f) => f.productId); assert.ok(dear.length >= 10);
+    const unpriced = new Set(dear.slice(0, Math.ceil(dear.length / 2)));
+    const figures = (): { px: string; movers: number; changeRows: number; recent: string } => {
+      const tree = fsTree(path.join(plane, "v1")); const cols: string[] = []; let movers = 0, changeRows = 0;
+      for (const f of tree.files()) {
+        if (f.startsWith("px/")) { for (const r of (JSON.parse(tree.read(f)) as { p: (number | null)[][] }).p) if (r.length > 6) cols.push(`${r[0]}:${r.slice(6).join(",")}`); }
+        else if (f.startsWith("mv/") && f !== "mv/recent.json") movers += (JSON.parse(tree.read(f)) as { r: unknown[] }).r.length;
+        else if (/^ix\/p-\d+\.json$/.test(f)) changeRows += (JSON.parse(tree.read(f)) as { t: unknown[] }).t.length;
+      }
+      return { px: cols.sort().join("|"), movers, changeRows, recent: tree.read("mv/recent.json") };
+    };
+    const day = async (n: number, f7: boolean) => bootstrap({ ...importEnv(path.join(t.root, `e${n}`), miniMagicDay(path.join(t.root, `d${n}`), { stamp: `2026-10-${String(6 + n).padStart(2, "0")}T20:06:09Z`, scale: (id, sub) => 1 + 0.02 * n * ((id + (sub === "Foil" ? 1 : 0)) % 3), patch: f7 ? (p) => (unpriced.has(p.productId) ? { ...p, Normal: undefined, Foil: undefined } : p) : undefined })), PLANE_DIR: plane }, () => new Date(`2026-10-${String(7 + n).padStart(2, "0")}T01:00:00Z`));
+    for (let n = 1; n <= 9; n++) assert.deepEqual((await day(n, false)).problems, [], `day ${n}`);
+    const before = figures(); assert.ok(before.movers >= 20 && before.changeRows >= 10 && before.px.length > 0, `nine ordinary days leave change figures to keep: ${JSON.stringify({ ...before, px: before.px.length, recent: 0 })}`);
+    const skipped = await day(10, true); assert.deepEqual(skipped.problems, []); assert.match((skipped.summary as { history?: { skipped?: string } }).history?.skipped ?? "", /^F7: only \d+ of \d+ tracked units are priced today/);
+    const during = figures(); assert.equal(during.px, before.px, "the F7 day keeps yesterday's change columns of every tracked unit"); assert.equal(during.changeRows, before.changeRows, "and its ix/p change rows"); assert.equal(during.recent, before.recent, "and the recent movers file as it was");
+    assert.ok(during.movers > 0 && during.movers <= before.movers, `the movers lists are not emptied (${during.movers} of ${before.movers}: a unit with no price today cannot be listed)`);
+    assert.deepEqual((await day(11, false)).problems, []); const after = figures(); assert.ok(after.movers >= 20 && after.changeRows >= 10, "the next ordinary day resumes");
   } finally { t.done(); }
 });
 

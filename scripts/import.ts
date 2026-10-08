@@ -13,9 +13,8 @@ import os from "node:os";
 import path from "node:path";
 import zlib from "node:zlib";
 import { createHash, randomInt } from "node:crypto";
-import { aggregate, aggregateInfoOf, importCatalog, matchRowsFromTree, recordHistory, revalidateSite, scryfallStamp, snapshotFromTree, tcgcsvStamp, utcDay, writeCatalogueFiles, type ImportContext, type ImportSummaryV1, type SlugSeed } from "../src/lib/import";
+import { aggregate, aggregateInfoOf, importCatalog, matchRowsFromTree, recordHistory, revalidateSite, scryfallStamp, snapshotFromTree, tcgcsvStamp, writeCatalogueFiles, type ImportContext, type ImportSummaryV1, type SlugSeed } from "../src/lib/import";
 import { MARKETS, normalizeCountry, type Country } from "../src/lib/country";
-import { PRICE_MASK } from "../src/lib/constants";
 import { trackConfigFromEnv, trackConfigHash } from "../src/lib/track";
 import type { MatchRow } from "../src/lib/match";
 import type { StoreResult } from "../src/lib/stores";
@@ -95,11 +94,20 @@ export function familiesOf(tree: MutableTree): StatusFile["families"] {
   for (const f of tree.files()) { const text = tree.read(f); const e = by.get(familyOf(f)) ?? [0, 0, 0]; e[0]++; e[1] += Buffer.byteLength(text); e[2] += zlib.gzipSync(text, { level: 6 }).length; by.set(familyOf(f), e); }
   return [...by].sort((a, b) => (a[0] < b[0] ? -1 : 1)).map(([name, [files, raw, gz]]) => [name, files, raw, gz]);
 }
-const loadStoreStage = async (): Promise<PhaseArgs["deps"]> => {
-  const spec = ["..", "src", "lib", "store-import"].join("/");
-  try { const mod = (await import(spec)) as { importStores?: NonNullable<PhaseArgs["deps"]>["importStores"] }; if (typeof mod.importStores !== "function") return {}; let storeId: NonNullable<PhaseArgs["deps"]>["storeId"];
-    try { const reg = (await import(["..", "src", "lib", "stores"].join("/"))) as { storeByKey?: (k: string) => { id: number } | undefined }; if (typeof reg.storeByKey === "function") storeId = (key) => reg.storeByKey!(key)?.id; } catch { /* no registry yet */ }
-    return { importStores: mod.importStores, storeId }; } catch { return {}; }
+/** Is `e` the error of the module `name` not being there (as opposed to a module that is there and broken, or one of its own imports missing)? The first line of Node's message names the module that could not be found. */
+export function isMissingModule(e: unknown, name: string): boolean {
+  const code = (e as { code?: string } | null)?.code;
+  return (code === "MODULE_NOT_FOUND" || code === "ERR_MODULE_NOT_FOUND") && (String((e as Error).message).split("\n")[0] ?? "").includes(name);
+}
+/** The store stage (src/lib/store-import.ts importStores) and the registry lookup. A module that does not exist yet means "no store stage": the day stays at phase catalog. A module that exists and fails to load (a syntax error, a missing import of its own, a throw at load time) is an error:
+ *  swallowing it would leave phase 2 skipped every day behind a green run. */
+export const loadStoreStage = async (specs: { stage: string; registry: string } = { stage: ["..", "src", "lib", "store-import"].join("/"), registry: ["..", "src", "lib", "stores"].join("/") }): Promise<PhaseArgs["deps"]> => {
+  let mod: { importStores?: NonNullable<PhaseArgs["deps"]>["importStores"] };
+  try { mod = (await import(specs.stage)) as typeof mod; } catch (e) { if (isMissingModule(e, path.basename(specs.stage))) return {}; throw e; }
+  if (typeof mod.importStores !== "function") return {};
+  let storeId: NonNullable<PhaseArgs["deps"]>["storeId"];
+  try { const reg = (await import(specs.registry)) as { storeByKey?: (k: string) => { id: number } | undefined }; if (typeof reg.storeByKey === "function") storeId = (key) => reg.storeByKey!(key)?.id; } catch (e) { if (!isMissingModule(e, path.basename(specs.registry))) throw e; }
+  return { importStores: mod.importStores, storeId };
 };
 
 /** Builds one phase into `tree` (the checkout of the previous publish) and returns what the publisher needs: counts, the history cut and this run's slice of status.json. `catalog` = S1..S7, S10, S11; `full` = S8, S9, S11. */
@@ -127,7 +135,8 @@ export async function buildPhase(tree: MutableTree, c: { prev: PointerFile | nul
     if (!deps?.importStores) throw new AlreadyPublished("the store stage (src/lib/store-import.ts) is not available: the day stays at phase catalog");
     stores = await deps.importStores(ctx, { only: a.onlyStores?.length ? a.onlyStores : undefined, market: a.market });
     // F2c: a read whose matched count fell under 50% of the last run's is a FAILED read: its rows stay, its freshness does not advance
-    const memory = new Map<string, number>(); for (const s of c.prevStatus?.runs?.[0]?.stores ?? []) memory.set(`${s.key}|${s.market}`, s.matched);
+    // the last matched count of each (store, market) pair, from the newest run that read it: the newest RUN is today's phase 1 (it has no stores), and a manual run of a few stores must not make the others forget
+    const memory = new Map<string, number>(); for (const r of c.prevStatus?.runs ?? []) for (const s of r.stores ?? []) if (!memory.has(`${s.key}|${s.market}`)) memory.set(`${s.key}|${s.market}`, s.matched);
     const hold: string[] = [];
     for (const s of stores) { const was = memory.get(`${s.key}|${s.country}`); if (!s.failed && was && (s.matched ?? 0) < was * 0.5) { hold.push(`${s.key}|${s.country}`); const id = deps.storeId?.(s.key, s.country); const m = MARKETS.indexOf(s.country); if (id !== undefined && ctx.offers) for (const r of ctx.offers.reads) if (r.store === id && r.market === m) r.ok = false; } }
     if (hold.length) { log(`F2c: ${hold.length} store read(s) held (matched fell under 50%): ${hold.join(", ")}`); degraded.push(`store hold: ${hold.join(", ")}`); }
@@ -146,7 +155,8 @@ export async function buildPhase(tree: MutableTree, c: { prev: PointerFile | nul
   const run: StatusFile["runs"][number] = { at: new Date().toISOString(), startedAt, kind: a.phase, ok: true, seconds: Math.round((Date.now() - started) / 1000), note: runNote(a.phase, summary, counts, restoredFrom), errors: degraded.length ? degraded : undefined, stores: stores.length ? stores.map((s) => ({ key: s.key, market: s.country, ok: !s.failed, matched: s.matched ?? 0, offers: s.cards + s.sealed, failure: s.failed ? s.skipped ?? s.note : undefined })) : undefined };
   const status: Partial<StatusFile> = {
     counts, families: fam, groups, guards,
-    config: { trackConfigHash: trackConfigHash(cfg), guardTrips: { flagChange: guards.flagChange ? (c.prevStatus?.config?.guardTrips?.flagChange ?? 0) + 1 : 0 }, catalogFloorCents: cfg.catalogFloorCents, indexFloorCents: cfg.indexFloorCents },
+    // F10 trips are counted by phase 1 only (phase 2 carries phase 1's guards and its count): counted again there, a trip would be two and the "third consecutive trip" would arrive on the second day
+    config: { trackConfigHash: trackConfigHash(cfg), guardTrips: { flagChange: a.phase === "full" ? c.prevStatus?.config?.guardTrips?.flagChange ?? 0 : guards.flagChange ? (c.prevStatus?.config?.guardTrips?.flagChange ?? 0) + 1 : 0 }, catalogFloorCents: cfg.catalogFloorCents, indexFloorCents: cfg.indexFloorCents },
     previous: prevCounts ? { files: prevCounts.files, cards: prevCounts.cards, listed: prevCounts.listed, tracked: prevCounts.tracked, oracles: prevCounts.oracles } : null,
     runs: [run, ...(c.prevStatus?.runs ?? [])].slice(0, 30),
     refusals: c.prevStatus?.refusals ?? [],
@@ -183,6 +193,7 @@ export async function runImport(a: { phase: Phase; onlyStores?: string[]; market
       remote, workdir, phase: a.phase, priceDay, tcgcsv, scryfall, repo,
       build: async (tree, ctx) => { result = await buildPhase(tree, ctx, { phase: a.phase, priceDay, tcgcsv, scryfall, env, onlyStores: a.onlyStores, market: a.market, remote, deps: a.deps }); return result.built; },
       verify: github ? (ref) => verifyThroughRaw(ref, env, a.fetch) : undefined,
+      onStateBackupError: (e) => log(`::warning::the second copy on branch state was not pushed (the publish is unaffected; slugs and ordinals are recoverable from the data branch until the next good run): ${String(e).slice(0, 200)}`),
     });
   } catch (e) {
     if (e instanceof AlreadyPublished) { log(e.message); return { outcome: "already-published", neon: "skipped", message: e.message }; }
@@ -223,7 +234,6 @@ async function main(): Promise<void> {
     if (typeof r.outcome === "object" && r.outcome.kind === "refused") { process.exitCode = 1; return; }
   }
 }
-void utcDay; void PRICE_MASK;
 if (process.argv[1] && /scripts[\\/]import\.ts$/.test(process.argv[1])) {
   main().catch((e) => { console.error(e); process.exitCode = 1; });
 }

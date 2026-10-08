@@ -19,7 +19,7 @@ export interface OgFont {
 }
 
 export const OG_FONT_FILES: { name: string; file: string; weight: Weight }[] = [
-  { name: "Luckiest Guy", file: "LuckiestGuy-400.ttf", weight: 400 },
+  { name: "Cinzel", file: "Cinzel-900.ttf", weight: 900 },
   { name: "Archivo", file: "Archivo-900.ttf", weight: 900 },
   { name: "Inter", file: "Inter-600.ttf", weight: 600 },
   { name: "Inter", file: "Inter-700.ttf", weight: 700 },

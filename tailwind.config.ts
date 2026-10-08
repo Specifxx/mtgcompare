@@ -9,9 +9,8 @@ import { DURATION, EASING, Z } from "./src/lib/motion-tokens";
 // globals.css (`:root` = dark, `:root[data-theme="light"]` = light) without a
 // single className changing — the same `text-white` / `bg-ink-900` /
 // `text-slate-400` renders correctly in both. `<alpha-value>` keeps the
-// `bg-ink-900/95`-style opacity modifiers working. The dark values in
-// globals.css are the exact hexes that used to live here, so dark mode is
-// pixel-identical. tests/theme.test.ts pins that every variable named here is
+// `bg-ink-900/95`-style opacity modifiers working. The hexes in the comments
+// below are the DARK values (the default theme). tests/theme.test.ts pins that every variable named here is
 // defined in both palettes and that the light one clears WCAG AA where the
 // dark one does. See src/lib/theme-shared.ts for how the attribute is set.
 // The chromatic TEXT shades listed under `colors` (rose/red/emerald/amber/sky/
@@ -23,29 +22,29 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Clean, low-saturation dark palette (CSFloat-style): near-black surfaces,
-        // cool grey borders, restrained accents — no neon.
+        // "Arcane Ink": near-black surfaces tinted toward violet, quiet lavender-grey
+        // borders, one amethyst accent — no neon.
         ink: {
-          950: v("ink-950"), // dark #0a0c10
-          900: v("ink-900"), // dark #0e1116
-          850: v("ink-850"), // dark #13171f
-          800: v("ink-800"), // dark #191e28
-          700: v("ink-700"), // dark #252b38
-          600: v("ink-600"), // dark #333b4d
+          950: v("ink-950"), // dark #0a0912
+          900: v("ink-900"), // dark #0f0e18
+          850: v("ink-850"), // dark #151421
+          800: v("ink-800"), // dark #1c1b2b
+          700: v("ink-700"), // dark #2a293e
+          600: v("ink-600"), // dark #3b3a54
         },
-        // The single sharp accent — OP Compare's Straw Hat red (RiftCompare's
-        // green is the one token that differs), used sparingly for primary
-        // actions + active states. Everything else stays neutral graphite.
+        // The single sharp accent — MTG Compare's amethyst, used sparingly for
+        // primary actions + active states. Everything else stays neutral ink.
         brand: {
-          DEFAULT: "#d92b33",
-          // 400 is the LINK shade (text-brand-400). #ff6b6b is fine on dark
+          DEFAULT: "#9140da",
+          // 400 is the LINK shade (text-brand-400). #c394f4 is fine on dark
           // ink and unreadable on white, so it alone is themed; 500/600 are
-          // fills and borders and stay fixed.
-          400: v("brand-400"), // dark #ff6b6b
-          500: "#d92b33",
-          600: "#b11f27",
+          // fills and borders and stay fixed (white ink on both: 5.3:1, 7.0:1).
+          400: v("brand-400"), // dark #c394f4
+          500: "#9140da",
+          600: "#7b2cc4",
         },
-        // Muted greys, LIFTED to clear WCAG AA on this palette's surfaces.
+        // Muted greys, LIFTED to clear WCAG AA on this palette's surfaces, and
+        // tinted lavender to sit on the violet ink.
         //
         // Tailwind's stock slate-500 (#64748b) measures 4.11:1 on ink-950 and
         // 3.97:1 on ink-900 — under the 4.5:1 body-text floor — and slate-600 is
@@ -54,30 +53,30 @@ const config: Config = {
         // the audit. These replacements keep the same visual ramp (400 lighter
         // than 500 lighter than 600) and the same restrained, low-saturation
         // character, while clearing 4.5:1 on both surfaces with margin:
-        //   500 #8593a6 → 6.05:1 on ink-900
-        //   600 #76828f → 4.82:1 on ink-900
+        //   500 #958fb2 → 6.2:1 on ink-900
+        //   600 #8480a1 → 5.1:1 on ink-900
         // Changing the token rather than 660 class names means it cannot be
         // half-applied, and a new component that reaches for text-slate-500 is
         // accessible by default.
         // The full ramp is themed (not just 500/600): text-slate-400 alone is
         // ~630 usages, and Tailwind's stock #94a3b8 is 2.5:1 on white.
         slate: {
-          100: v("slate-100"), // dark: Tailwind stock #f1f5f9
-          200: v("slate-200"), // dark: stock #e2e8f0
-          300: v("slate-300"), // dark: stock #cbd5e1
-          400: v("slate-400"), // dark: stock #94a3b8
-          500: v("slate-500"), // dark #8593a6 (lifted, see above)
-          600: v("slate-600"), // dark #76828f (lifted, see above)
-          700: v("slate-700"), // dark: stock #334155
-          800: v("slate-800"), // dark: stock #1e293b
-          900: v("slate-900"), // dark: stock #0f172a
+          100: v("slate-100"), // dark #f3f1fa
+          200: v("slate-200"), // dark #e5e2f1
+          300: v("slate-300"), // dark #cdc9df
+          400: v("slate-400"), // dark #a8a4c0
+          500: v("slate-500"), // dark #958fb2 (lifted, see above)
+          600: v("slate-600"), // dark #8480a1 (lifted, see above)
+          700: v("slate-700"), // dark #3b3a54
+          800: v("slate-800"), // dark #27263a
+          900: v("slate-900"), // dark #171625
         },
         // `text-white` is the primary text colour (~900 usages); in the light
         // theme it is near-black ink. bg-black overlays are NOT themed on purpose.
         white: v("white"),
         // "accent" now reads as the high-contrast NUMERAL colour — a near-white ink
         // for prices, so figures stay crisp and neutral like a trading desk.
-        accent: v("accent"), // dark #eef1f5
+        accent: v("accent"), // dark #efedf8
         // Muted brass — reserved for genuine gold/foil semantics only, never UI chrome.
         gold: v("gold"), // dark #caa85a
         // Market deltas: gains/losses on the terminal. Calm, not neon.
@@ -86,7 +85,7 @@ const config: Config = {
         // Chromatic TEXT shades. Tailwind's stock pastels were tuned for dark ink
         // and read 1.3-2.8:1 on the light theme's white cards, so the shades that
         // are used as text go through the palette like the neutrals. The dark
-        // values in globals.css are Tailwind's stock hexes (pixel-identical).
+        // values in globals.css are Tailwind's stock hexes.
         // `extend` deep-merges, so every shade not listed here (the 50/100 tints
         // bar amber-100, and the 500-950 fills) stays stock. amber-400 is
         // deliberately NOT themed: CardImage.tsx's PromoStamp uses from-amber-400
@@ -100,6 +99,10 @@ const config: Config = {
         lime: { 200: v("lime-200"), 300: v("lime-300") },
         purple: { 300: v("purple-300") },
         blue: { 300: v("blue-300") },
+        // MTG Compare additions: the Mythic and Special rarity text (RARITIES in constants.ts).
+        // orange-300 dark #fdba74 (10.8-11.7:1), light #9a3412 (6.3-7.3:1); fuchsia-300 dark #f0abfc, light #86198f.
+        orange: { 300: v("orange-300") },
+        fuchsia: { 300: v("fuchsia-300") },
       },
       fontFamily: {
         sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"],

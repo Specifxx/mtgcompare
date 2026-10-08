@@ -4,9 +4,9 @@ import { guideOg } from "@/lib/og/images";
 // itself, with five real top cards. The rules (fixed US market, fallback never
 // a 500, cache headers) are written down in src/lib/og/images.tsx and respond.ts.
 export const runtime = "nodejs";
-export const revalidate = 21600;
+export const dynamic = "force-dynamic";
 export const alt =
-  "OP Compare's One Piece price guide: the top cards with their TCGplayer market price, the cheapest in-stock store price and store counts, across six markets";
+  "MTG Compare's Magic: The Gathering price guide: the top cards with their TCGplayer market price, the cheapest in-stock store price and store counts, across six markets";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

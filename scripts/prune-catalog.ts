@@ -5,7 +5,7 @@
 import path from "node:path";
 import { PRICE_MASK } from "../src/lib/constants";
 import { fsTree, type TreeView } from "../src/lib/data/plane/tree";
-import type { PxRow, SealedListFile, CatRow } from "../src/lib/data/plane/formats";
+import type { PxRow, SealedListFile } from "../src/lib/data/plane/formats";
 
 export function goneReport(t: TreeView): { rows: number; gone: number; gonep: number; goneIds: number[]; sealed: number; goneSealed: number; goneWithPrice: number } {
   let rows = 0, gone = 0, gonep = 0, withPrice = 0; const ids: number[] = [];
@@ -21,4 +21,3 @@ if (process.argv[1] && /scripts[\\/]prune-catalog\.ts$/.test(process.argv[1])) {
   if (r.goneIds.length) console.log(`first GONE ids: ${r.goneIds.slice(0, 20).join(", ")}${r.goneIds.length > 20 ? " ..." : ""}`);
   console.log("Nothing was changed: rows are flagged, never deleted (ROW_DELETED refuses a publish that drops one).");
 }
-void (null as unknown as CatRow);

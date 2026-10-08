@@ -5,6 +5,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { DATA_GROUP, DATA_WRITER_WORKFLOWS, DEMAND_SNAPSHOT_CRON, IMPORT_CRONS, KEEPALIVE_AFTER_DAYS, SQUASH_CRON, WATCHDOG_CRON, parseDailyCron } from "../src/lib/schedule";
 import { runWatchdog } from "../scripts/data-watchdog";
+import { hook } from "../scripts/data-hook";
+import { authenticateGit, isMissingModule, loadStoreStage, readRemotePointer, remoteOf, verifyThroughRaw } from "../scripts/import";
+import { revalidateSite } from "../src/lib/import";
 import { runRollback } from "../scripts/data-rollback";
 import { apiSquash, runSquash } from "../scripts/data-squash";
 import { rebuildFiles } from "../scripts/history-rebuild";
@@ -13,7 +16,7 @@ import { decodeDense } from "../src/lib/data/plane/history-codec";
 import { historyDelta, seriesOf, type DeltaFile } from "../src/lib/data/plane/history-delta";
 import { addDays } from "../src/lib/history";
 import { dayOf, miniFull } from "./helpers/plane-tree";
-import { T0, at, day, head, input, mk, sh, showAt } from "./helpers/publish-harness";
+import { T0, at, checkout, day, head, input, mk, sh, showAt, tmpRoot } from "./helpers/publish-harness";
 
 const ROOT = process.env.TEST_ROOT ?? path.resolve(__dirname, "..");
 const DIR = path.join(ROOT, ".github/workflows");
@@ -60,7 +63,7 @@ test("a step or job name is a valid YAML plain scalar: no `: ` and no ` #` insid
 
 // ── the cores of the data-* scripts, run against a local bare repository with a fake fetch (owner WP01b) ─────────────────────────────────────────────────────────────────────
 // What cannot be run here: the GitHub host probes (raw, the contents API, the token expiry header), the sampled manifest check and the API-created squash against the real API: they need github.com. Their request shapes are asserted below with a fake fetch.
-const wenv = (m: ReturnType<typeof mk>, extra: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv => ({ PLANE_REMOTE: m.remote, PLANE_REPO: "o/data", SITE_URL: "https://site.test", ...extra });
+const wenv = (m: ReturnType<typeof mk>, extra: Record<string, string> = {}): NodeJS.ProcessEnv => ({ PLANE_REMOTE: m.remote, PLANE_REPO: "o/data", SITE_URL: "https://site.test", ...extra }) as unknown as NodeJS.ProcessEnv;
 const siteServing = (ref: string): typeof fetch => (async (u: string) => { assert.equal(String(u), "https://site.test/api/data-status"); return new Response(JSON.stringify({ ref })); }) as unknown as typeof fetch;
 /** git dates every commit by the environment: a publish made "on day n" is dated T0 + n days, so tag ages and commit ages are the test's, not the wall clock's. */
 async function onDay<T>(n: number, fn: () => Promise<T>): Promise<T> {
@@ -148,4 +151,91 @@ test("history-rebuild: the daily delta files rebuild every series day for day in
   const dense = decodeDense(all["1.0"] as never); assert.equal(dense.length, 730); assert.equal(dense[0]!.day, addDays(20260401, -729)); assert.equal(dense.at(-1)!.day, 20260401); assert.equal(dense.at(-1)!.cents, 520);
   assert.ok(!all["2.0"] || decodeDense(all["2.0"] as never).every((p) => p.cents == null), "the unit that left tracking in January 2024 has no price inside the 2025-2026 window");
   assert.equal(rebuildFiles([]).size, 0);
+});
+
+// ── S12 step 5 (verification through raw), S13 (the warm call), the git token ─────────────────────────────────────────────────────────────────────────────────────────
+const rawServing = (tree: ReturnType<typeof checkout>, o: { corrupt?: RegExp; missing?: RegExp; failFirst?: number } = {}): { f: typeof fetch; urls: string[]; headers: string[] } => {
+  const urls: string[] = [], headers: string[] = []; let failed = 0;
+  const f = (async (url: string, init?: RequestInit) => {
+    urls.push(String(url)); headers.push(String((init?.headers as Record<string, string> | undefined)?.Authorization));
+    const m = /^https:\/\/raw\.githubusercontent\.com\/o\/data\/([0-9a-f]{40})\/v1\/(.+)$/.exec(String(url)); if (!m) return new Response("?", { status: 400 });
+    if (failed < (o.failFirst ?? 0)) { failed++; return new Response("not yet", { status: 404 }); }
+    if (o.missing?.test(m[2]!) || !tree.has(m[2]!)) return new Response("no", { status: 404 });
+    return new Response(o.corrupt?.test(m[2]!) ? `${tree.read(m[2]!)} ` : tree.read(m[2]!));
+  }) as unknown as typeof fetch;
+  return { f, urls, headers };
+};
+test("verification through raw: every file of the manifest (status.json is not in it) matches its sha-256 prefix after a SECOND publish; a corrupt file, a missing manifest and propagation delay are told apart", async () => {
+  const m = mk(); try {
+    await publish(input(m, 0, "full")); await publish(input(m, 1, "catalog")); const ptr = head(m); const tree = checkout(m, ptr.ref);
+    const env = { PLANE_REPO: "o/data", DATA_REPO_TOKEN: "ghp_SECRET_TOKEN" } as unknown as NodeJS.ProcessEnv; const man = JSON.parse(tree.read("manifest.json")) as { files: [string, number, string][] };
+    assert.ok(!man.files.some(([rel]) => rel === "status.json" || rel === "manifest.json"), "the manifest lists data files only"); assert.ok(man.files.length > 100);
+    const ok = rawServing(tree); await verifyThroughRaw(ptr.ref, env, ok.f, { sample: 100_000, sleepMs: 1, maxMs: 1000 }); assert.equal(ok.urls.length, man.files.length + 1, "the manifest and every file it lists");
+    assert.ok(ok.headers.every((h) => h === "token ghp_SECRET_TOKEN") && ok.urls.every((u) => !u.includes("ghp_")), "the token is a header, never in the URL");
+    await assert.rejects(verifyThroughRaw(ptr.ref, env, rawServing(tree, { corrupt: /^cat\// }).f, { sample: 100_000, sleepMs: 1, maxMs: 30 }), /cat\/.*sha-256 differs from the manifest/);
+    await assert.rejects(verifyThroughRaw(ptr.ref, env, rawServing(tree, { missing: /^manifest\.json$/ }).f, { sleepMs: 1, maxMs: 30 }), /verification through raw failed: Error: manifest\.json: HTTP 404/);
+    const slow = rawServing(tree, { failFirst: 3 }); await verifyThroughRaw(ptr.ref, env, slow.f, { sample: 20, sleepMs: 1, maxMs: 2000 }); assert.ok(slow.urls.length > 20, "three 404s while raw propagates, then the commit verifies");
+  } finally { m.done(); }
+});
+test("the warm call: POST /api/data-warm with the cron secret and the ref, then poll /api/data-status until the site serves it; it never throws and says nothing without its two variables", async () => {
+  const was = [process.env.REVALIDATE_URL, process.env.CRON_SECRET]; const logs: string[] = []; const log = (...a: unknown[]): void => { logs.push(a.join(" ")); };
+  const pointer = { ref: "a".repeat(40), seq: 7 } as never; const calls: string[] = [];
+  const served = ["b".repeat(40), "b".repeat(40), "a".repeat(40)];
+  const f = (async (url: string, init?: RequestInit) => { calls.push(`${init?.method ?? "GET"} ${url} ${String((init?.headers as Record<string, string> | undefined)?.Authorization ?? "")} ${String(init?.body ?? "")}`); return String(url).endsWith("/api/data-status") ? new Response(JSON.stringify({ ref: served.shift() })) : new Response("{}", { status: 200 }); }) as unknown as typeof fetch;
+  try {
+    delete process.env.REVALIDATE_URL; delete process.env.CRON_SECRET; await revalidateSite(log, { pointer, fetch: f, pollMs: 1 }); assert.equal(calls.length, 0); assert.match(logs[0]!, /skipped/);
+    process.env.REVALIDATE_URL = "https://site.test/anything/else"; process.env.CRON_SECRET = "cron-secret-value";
+    await revalidateSite(log, { pointer, fetch: f, pollMs: 1, maxMs: 5000 });
+    assert.deepEqual(calls, [`POST https://site.test/api/data-warm Bearer cron-secret-value {"ref":"${"a".repeat(40)}"}`, "GET https://site.test/api/data-status  ", "GET https://site.test/api/data-status  ", "GET https://site.test/api/data-status  "]);
+    assert.ok(logs.some((l) => /the site serves aaaaaaa/.test(l)) && !logs.some((l) => l.includes("cron-secret-value")), "the secret is never logged");
+    const dead = (async () => { throw new Error("down"); }) as unknown as typeof fetch; logs.length = 0; await revalidateSite(log, { pointer, fetch: dead, pollMs: 1, maxMs: 20 });
+    assert.ok(logs.some((l) => /warm failed: down/.test(l)) && logs.some((l) => /did not report aaaaaaa/.test(l)), "an unreachable site is reported, not thrown");
+    // the data-hook script: the pointer through raw with the token, then the same warm call
+    calls.length = 0; served.push("a".repeat(40)); const ptrFetch = (async (url: string, init?: RequestInit) => String(url) === "https://raw.githubusercontent.com/o/data/data/latest.json" ? new Response(JSON.stringify({ ref: "a".repeat(40), seq: 7 })) : f(url, init)) as unknown as typeof fetch;
+    assert.equal(await hook({ PLANE_REPO: "o/data", DATA_REPO_TOKEN: "t" } as unknown as NodeJS.ProcessEnv, ptrFetch), true); assert.ok(calls.some((c) => c.startsWith("POST https://site.test/api/data-warm")));
+    assert.equal(await hook({ PLANE_REPO: "o/data" } as unknown as NodeJS.ProcessEnv, ptrFetch), false, "no token, no pointer, nothing to announce");
+  } finally { for (const [k, v] of [["REVALIDATE_URL", was[0]], ["CRON_SECRET", was[1]]] as const) { if (v === undefined) delete process.env[k]; else process.env[k] = v; } }
+});
+test("git access: the write token travels in an http.extraheader for github.com only, is masked in the log, and is never in the remote URL; a local remote needs none; the pointer is read through raw with the token", async () => {
+  const keys = ["GIT_CONFIG_COUNT", "GIT_CONFIG_KEY_0", "GIT_CONFIG_VALUE_0"] as const; const was = keys.map((k) => process.env[k]); const out: string[] = []; const orig = console.log; console.log = (...a: unknown[]): void => { out.push(a.join(" ")); };
+  try {
+    const env = { PLANE_REPO: "o/data", DATA_REPO_TOKEN: "ghp_SECRET_TOKEN" } as unknown as NodeJS.ProcessEnv; const r = remoteOf(env); assert.deepEqual(r, { remote: "https://github.com/o/data.git", repo: "o/data", github: true }); assert.ok(!r.remote.includes("ghp_"));
+    for (const k of keys) delete process.env[k]; authenticateGit({ ...env, PLANE_REMOTE: "/tmp/some/bare.git" } as unknown as NodeJS.ProcessEnv); assert.equal(process.env.GIT_CONFIG_COUNT, undefined, "a local remote gets no header");
+    authenticateGit({ PLANE_REPO: "o/data" } as unknown as NodeJS.ProcessEnv); assert.equal(process.env.GIT_CONFIG_COUNT, undefined, "no token, no header");
+    authenticateGit(env); assert.equal(process.env.GIT_CONFIG_COUNT, "1"); assert.equal(process.env.GIT_CONFIG_KEY_0, "http.https://github.com/.extraheader");
+    assert.equal(process.env.GIT_CONFIG_VALUE_0, `AUTHORIZATION: basic ${Buffer.from("x-access-token:ghp_SECRET_TOKEN").toString("base64")}`); assert.ok(!String(process.env.GIT_CONFIG_VALUE_0).includes("ghp_SECRET_TOKEN"), "base64, not the token itself");
+    assert.ok(out.filter((l) => l.startsWith("::add-mask::")).length === 2 && out.every((l) => !l.includes("ghp_SECRET_TOKEN")), "both forms are masked and the plain token is never printed");
+    const seen: string[] = []; const f = (async (u: string, init?: RequestInit) => { seen.push(`${u} ${String((init?.headers as Record<string, string>).Authorization)}`); return new Response(JSON.stringify({ seq: 3, ref: "c".repeat(40) })); }) as unknown as typeof fetch;
+    assert.equal((await readRemotePointer(env, f))?.seq, 3); assert.deepEqual(seen, ["https://raw.githubusercontent.com/o/data/data/latest.json token ghp_SECRET_TOKEN"]);
+    assert.equal(await readRemotePointer({ PLANE_REPO: "o/data" } as unknown as NodeJS.ProcessEnv, f), null, "no token: the gate decides from the checkout"); assert.equal(await readRemotePointer(env, (async () => new Response("", { status: 404 })) as unknown as typeof fetch), null);
+  } finally { console.log = orig; keys.forEach((k, i) => { if (was[i] === undefined) delete process.env[k]; else process.env[k] = was[i]; }); }
+});
+test("the store stage is loaded by name: a module that is not there means no store stage (the day stays at phase catalog); one that is there and broken fails the run instead of being skipped every day behind a green workflow", async () => {
+  const t = tmpRoot("store-stage-"); try {
+    const w = (name: string, text: string): string => { const f = path.join(t.root, name); fs.writeFileSync(f, text); return f; };
+    const good = w("good-store-import.ts", "export async function importStores() { return []; }\n"), reg = path.join(t.root, "no-registry");
+    const needsMissing = w("needs-missing-store-import.ts", 'import "./not-there-at-all";\nexport async function importStores() { return []; }\n'), syntax = w("syntax-store-import.ts", "export const = ;\n"), throws = w("throws-store-import.ts", 'throw new Error("boom at load");\n');
+    assert.deepEqual(await loadStoreStage({ stage: path.join(t.root, "missing-store-import"), registry: reg }), {}, "no module: no store stage");
+    assert.deepEqual(await loadStoreStage({ stage: w("empty-store-import.ts", "export const x = 1;\n"), registry: reg }), {}, "a module without importStores (the OP baseline) is no store stage either");
+    const ok = await loadStoreStage({ stage: good, registry: reg }); assert.equal(typeof ok?.importStores, "function"); assert.equal(ok?.storeId, undefined, "no registry yet: the F2c hold cannot map a store to its id, and the stage still runs");
+    await assert.rejects(loadStoreStage({ stage: needsMissing, registry: reg }), /not-there-at-all/, "a module that is there but imports one that is not is broken, not absent");
+    await assert.rejects(loadStoreStage({ stage: syntax, registry: reg }), "a syntax error is an error");
+    await assert.rejects(loadStoreStage({ stage: throws, registry: reg }), /boom at load/, "a throw at load time is an error");
+    const withReg = await loadStoreStage({ stage: good, registry: w("registry.ts", 'export const storeByKey = (k: string) => (k === "a" ? { id: 10 } : undefined);\n') }); assert.equal(withReg?.storeId?.("a", "US"), 10);
+    await assert.rejects(loadStoreStage({ stage: good, registry: w("broken-registry.ts", "export const = ;\n") }), "a broken registry is an error too");
+    assert.equal(isMissingModule(Object.assign(new Error("Cannot find module './x'\nRequire stack:\n- /a/store-import.ts"), { code: "MODULE_NOT_FOUND" }), "store-import"), false, "the require stack names the importer; only the first line names the missing module");
+    assert.equal(isMissingModule(Object.assign(new Error("Cannot find module '/a/store-import' imported from /b.ts"), { code: "ERR_MODULE_NOT_FOUND" }), "store-import"), true);
+    assert.equal(isMissingModule(new Error("Cannot find module 'store-import'"), "store-import"), false, "a plain error is not a missing module");
+  } finally { t.done(); }
+});
+test("import-prices.yml: a cron run has no inputs, so the store phase and the alerts must not be conditioned on `inputs.x != false` (null is compared with false as 0 != 0, which skips them on every scheduled run); the alerts read a checkout of the pointed tree in .data", () => {
+  const t = read("import-prices.yml"); const steps = [...t.matchAll(/^      - name: (.+)\n(?:        if: (.+)\n)?        run: (.+)$/gm)].map((m) => ({ name: m[1]!, cond: m[2] ?? null, run: m[3]! }));
+  assert.ok(!/inputs\.\w+\s*(?:!=|==)\s*(?:false|true)/.test(t.replace(/^\s*#.*$/gm, "")), "no step compares a dispatch input with a boolean literal: on a schedule the input is null");
+  const phase2 = steps.find((x) => /--phase full/.test(x.run)), checkout = steps.find((x) => /plane-checkout\.sh/.test(x.run)), alerts = steps.find((x) => /scripts\/alerts\.ts/.test(x.run));
+  assert.ok(phase2 && checkout && alerts, "phase 2, the tree checkout and the alerts are steps of the job");
+  assert.equal(phase2!.cond, "${{ github.event_name != 'workflow_dispatch' || inputs.stores }}", "a schedule runs phase 2; a manual run runs it unless the box is unticked");
+  for (const x of [checkout!, alerts!]) assert.equal(x.cond, "${{ github.event_name != 'workflow_dispatch' || inputs.alerts }}", x.name);
+  assert.equal(checkout!.run, "bash scripts/plane-checkout.sh .data", "the alert step reads .data/v1 (fsSource), the tree of the pointed commit");
+  assert.ok(steps.indexOf(checkout!) < steps.indexOf(alerts!) && steps.indexOf(phase2!) < steps.indexOf(checkout!), "phase 2, then the checkout, then the alerts");
+  assert.match(t, /PLANE_REPO: \$\{\{ vars\.PLANE_REPO \}\}\n\s+DATA_REPO_TOKEN: \$\{\{ secrets\.DATA_REPO_TOKEN \}\}/, "the checkout script gets the repository and the token from the job's environment");
 });

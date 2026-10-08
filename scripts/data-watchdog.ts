@@ -96,6 +96,6 @@ async function main(): Promise<void> {
   authenticateGit();
   const r = await runWatchdog({ fetch, now: () => new Date(), env: process.env, workdir: path.join(workRoot(), "watch") });
   log(`watchdog: ${r.alarms.length} alarm(s)${r.alarms.length ? ` (${r.alarms.map((a) => `${a.code}/${a.level}`).join(", ")})` : ""}; status ${r.wrote ? "written" : "unchanged"}`);
-  if (r.alarms.some((a) => a.level === "error")) process.exitCode = 0;                // an alarm is a record in status.json and the admin panel, never a red workflow of its own
+  // an alarm is a record in status.json and the admin panel, never a red workflow of its own: the exit code stays 0
 }
 if (process.argv[1] && /scripts[\\/]data-watchdog\.ts$/.test(process.argv[1])) main().catch((e) => { console.error(e); process.exitCode = 1; });

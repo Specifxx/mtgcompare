@@ -4,35 +4,39 @@
 
 :root {
   color-scheme: dark;
-  /* ── Palette: DARK (the default) ────────────────────────────────────────
+  /* ── Palette: DARK (MTG Compare's default, as on RiftCompare) ───────────
      RGB triplets, not hexes, because tailwind.config.ts wraps each one as
      `rgb(var(--c-x) / <alpha-value>)` so opacity modifiers keep working.
-     These are the exact values the config used to hard-code, so dark mode
-     renders pixel-identically. The light set is further down under
-     `:root[data-theme="light"]`; src/lib/theme-shared.ts explains the switch
-     and tests/theme.test.ts pins that both sets define every variable. */
-  --c-ink-950: 10 12 16;
-  --c-ink-900: 14 17 22;
-  --c-ink-850: 19 23 31;
-  --c-ink-800: 25 30 40;
-  --c-ink-700: 37 43 56;
-  --c-ink-600: 51 59 77;
-  --c-brand-400: 255 107 107;
-  --c-slate-100: 241 245 249;
-  --c-slate-200: 226 232 240;
-  --c-slate-300: 203 213 225;
-  --c-slate-400: 148 163 184;
-  --c-slate-500: 133 147 166;
-  --c-slate-600: 118 130 143;
-  --c-slate-700: 51 65 85;
-  --c-slate-800: 30 41 59;
-  --c-slate-900: 15 23 42;
-  --c-accent: 238 241 245;
+     "Arcane Ink": near-black surfaces tinted toward indigo (hue ~245, at most
+     ~18% saturation on the lighter steps so it reads as ink, not as colour), a
+     lavender-grey text ramp, one amethyst accent (brand, hue ~272) and the
+     brass `gold`. The
+     light set is further down under `:root[data-theme="light"]`;
+     src/lib/theme-shared.ts explains the switch and tests/theme.test.ts pins
+     that both sets define every variable and clear WCAG AA. */
+  --c-ink-950: 10 9 18;
+  --c-ink-900: 15 14 24;
+  --c-ink-850: 21 20 33;
+  --c-ink-800: 28 27 43;
+  --c-ink-700: 42 41 62;
+  --c-ink-600: 59 58 84;
+  --c-brand-400: 195 148 244;
+  --c-slate-100: 243 241 250;
+  --c-slate-200: 229 226 241;
+  --c-slate-300: 205 201 223;
+  --c-slate-400: 168 164 192;
+  --c-slate-500: 149 143 178;
+  --c-slate-600: 132 128 161;
+  --c-slate-700: 59 58 84;
+  --c-slate-800: 39 38 58;
+  --c-slate-900: 23 22 37;
+  --c-accent: 239 237 248;
   --c-gold: 202 168 90;
   --c-up: 63 185 80;
   --c-down: 240 80 110;
   --c-white: 255 255 255;
-  /* Chromatic text shades: Tailwind's stock hexes, so dark is pixel-identical. */
+  /* Chromatic text shades: Tailwind's stock hexes (orange-300 is the Mythic
+     rarity text, fuchsia-300 the Special one). */
   --c-rose-200: 254 205 211;
   --c-rose-300: 253 164 175;
   --c-rose-400: 251 113 133;
@@ -50,15 +54,17 @@
   --c-lime-300: 190 242 100;
   --c-purple-300: 216 180 254;
   --c-blue-300: 147 197 253;
-  --page-bg: #0b0e14;
-  --page-fg: #e8eaee;
+  --c-orange-300: 253 186 116;
+  --c-fuchsia-300: 240 171 252;
+  --page-bg: #0c0b14;
+  --page-fg: #e9e7f3;
   --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.02), 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-glow: 0 1px 0 rgba(255, 255, 255, 0.03), 0 4px 12px rgba(0, 0, 0, 0.45);
   /* The scrolled header's drop (NavbarShell SCROLLED, tailwind `shadow-header`). */
   --shadow-header: 0 8px 30px rgba(0, 0, 0, 0.35);
-  --scroll-track: #0f131c;
-  --scroll-thumb: #2c3650;
-  --scroll-thumb-hover: #3a4564;
+  --scroll-track: #0f0e18;
+  --scroll-thumb: #2a293e;
+  --scroll-thumb-hover: #3b3a54;
   /* Reserved width for the persistent desktop SideNav (components/SideNav.tsx),
      0 by default so every element that pads/positions against it (the header,
      main, the footer ad zone, the footer itself, CinematicHero's full-bleed
@@ -91,7 +97,9 @@
 
 /* ── Palette: LIGHT ──────────────────────────────────────────────────────
    Opt-in via the header toggle (ThemeToggle.tsx), stamped on <html> before
-   first paint by THEME_BOOT_SCRIPT. Same variables, inverted lightness:
+   first paint by THEME_BOOT_SCRIPT (a visitor's `theme` cookie wins; dark is
+   the default). Same variables, inverted lightness, a faint lavender tint on
+   the surfaces to match the dark ink:
    `text-white` becomes near-black ink, `bg-ink-900` a white card, and the
    slate text ramp darkens so that every shade the dark theme guarantees at
    4.5:1 still clears it on the light surfaces (pinned in tests/theme.test.ts).
@@ -105,27 +113,27 @@
    4.54:1 on each family's own 15-20% tint. */
 :root[data-theme="light"] {
   color-scheme: light;
-  --c-ink-950: 244 246 248;
+  --c-ink-950: 245 244 250;
   --c-ink-900: 255 255 255;
-  --c-ink-850: 238 241 245;
-  --c-ink-800: 226 230 236;
-  --c-ink-700: 207 213 222;
-  --c-ink-600: 180 188 200;
-  --c-brand-400: 176 22 30;
-  --c-slate-100: 15 23 42;
-  --c-slate-200: 30 41 59;
-  --c-slate-300: 51 65 85;
-  --c-slate-400: 71 85 105;
-  --c-slate-500: 85 98 122;
-  --c-slate-600: 95 107 128;
-  --c-slate-700: 148 163 184;
-  --c-slate-800: 203 213 225;
-  --c-slate-900: 226 232 240;
-  --c-accent: 11 15 20;
+  --c-ink-850: 239 237 247;
+  --c-ink-800: 227 224 240;
+  --c-ink-700: 208 204 226;
+  --c-ink-600: 181 176 206;
+  --c-brand-400: 106 36 176;
+  --c-slate-100: 12 10 24;
+  --c-slate-200: 34 30 56;
+  --c-slate-300: 56 51 90;
+  --c-slate-400: 78 72 108;
+  --c-slate-500: 92 86 122;
+  --c-slate-600: 101 95 130;
+  --c-slate-700: 150 146 178;
+  --c-slate-800: 205 202 224;
+  --c-slate-900: 227 224 240;
+  --c-accent: 12 10 24;
   --c-gold: 122 95 20;
   --c-up: 22 101 52;
   --c-down: 190 18 60;
-  --c-white: 11 15 20;
+  --c-white: 12 10 24;
   --c-rose-200: 136 19 55;
   --c-rose-300: 159 18 57;
   --c-rose-400: 190 18 60;
@@ -143,16 +151,18 @@
   --c-lime-300: 63 98 18;
   --c-purple-300: 107 33 168;
   --c-blue-300: 30 64 175;
-  --page-bg: #f4f6f8;
-  --page-fg: #0b0f14;
+  --c-orange-300: 154 52 18;
+  --c-fuchsia-300: 134 25 143;
+  --page-bg: #f5f4fa;
+  --page-fg: #0c0a18;
   --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.1);
   --shadow-glow: 0 4px 12px rgba(16, 24, 40, 0.12);
   /* A soft 12px lift, not the dark theme's 30px black drop: that one measured a
-     grey band ~45px deep under the header on the #f4f6f8 page (202 → 237). */
+     grey band ~45px deep under the header on the #f5f4fa page. */
   --shadow-header: 0 4px 12px rgba(16, 24, 40, 0.08);
-  --scroll-track: #eef1f5;
-  --scroll-thumb: #cfd5de;
-  --scroll-thumb-hover: #b4bcc8;
+  --scroll-track: #efedf7;
+  --scroll-thumb: #cdc9df;
+  --scroll-thumb-hover: #b3aecb;
 }
 
 html,
@@ -223,16 +233,15 @@ h1 {
   font-weight: 900;
 }
 
-/* HOMEPAGE ONLY — swaps the flared serif above for a heavy neutral grotesque,
-   the bold square sans of the One Piece Card Game's own product typography
-   (RiftCompare matches the Riftbound wordmark lockup the same way). Scoped to the `.rb-display-sans` wrapper applied in
+/* HOMEPAGE ONLY — swaps the flared serif above for a heavy neutral grotesque
+   (Archivo), the same lockup voice RiftCompare uses for its homepage. Scoped to the `.rb-display-sans` wrapper applied in
    src/app/page.tsx, so the rest of the site keeps the Fraunces titling voice.
    The face itself (--font-riftbound / Archivo, RiftCompare's variable name kept
    so the two sites' CSS stays one diff) is imported by that same file.
 
    Deliberately does NOT force text-transform: uppercase. The reference lockup is
-   a single short word; this page's h1 is a full sentence ("One Piece Card
-   Game Card Prices"), and setting a string that long in
+   a single short word; this page's h1 is a short sentence ("MTG Card
+   Prices"), and setting a string that long in
    tracked-out caps hurts legibility badly — the same reason .rb-eyebrow below is
    opt-in for short labels rather than applied to headings wholesale. Use
    .rb-eyebrow where you want the tracked all-caps treatment. */
@@ -308,14 +317,13 @@ html {
   scrollbar-color: var(--scroll-thumb) var(--scroll-track);
 }
 
-/* OP Compare: the brand fill is Straw Hat red, not RiftCompare's bright green,
-   and red takes WHITE ink in both themes (white on #d92b33 is 4.8:1, near-black
-   about 4.4:1). Markup copied from RiftCompare writes `bg-brand-500
-   text-ink-950` for a filled brand chip or the current page cell; this rule is
-   what keeps that markup verbatim and still readable; `text-white` on the red
-   fill (whose themed value is near-black in light) is held white the same
-   way. .btn-primary sets white
-   itself (below). See DECISIONS.md, "Wave-2 design tokens". */
+/* MTG Compare: the brand fill is amethyst (#9140da), not RiftCompare's bright
+   green, and amethyst takes WHITE ink in both themes (white on #9140da is
+   5.3:1, near-black about 3.9:1). Markup copied from RiftCompare writes
+   `bg-brand-500 text-ink-950` for a filled brand chip or the current page
+   cell; this rule is what keeps that markup verbatim and still readable;
+   `text-white` on the brand fill (whose themed value is near-black in light)
+   is held white the same way. .btn-primary sets white itself (below). */
 .bg-brand-500.text-ink-950,
 .bg-brand-500.text-white {
   color: #ffffff;
@@ -324,16 +332,16 @@ html {
 /* Light theme: dark ink on bright fills. `text-ink-950` is the palette's
    near-black, which the light theme inverts to near-white — right for text on
    a page, wrong for the one place it is used on purpose: dark ink sitting ON
-   a bright fill (the green primary button, a solid gold badge). Those fills
+   a bright fill (a solid gold badge). Those fills
    stay bright in both themes, so their ink must stay dark. Pinned by
    tests/theme.test.ts. bg-accent is deliberately NOT here: accent inverts to
    near-black in light mode, and its ink inverting with it keeps .btn-accent
    readable as a dark button. */
 :root[data-theme="light"] .bg-gold.text-ink-950,
 :root[data-theme="light"] .bg-gold\/85.text-ink-950 {
-  color: #0a0c10;
+  color: #0a0912;
 }
-/* Solid gold and bright-green FILLS keep their dark-theme colour: the light
+/* Solid gold and bright-brand FILLS keep their dark-theme colour: the light
    palette darkens `gold` and `brand-400` for text legibility, but a badge or
    button filled with them carries dark ink and needs the bright version. The
    translucent tints (bg-gold/10 etc.) are separate classes and correctly use
@@ -345,7 +353,7 @@ html {
   background-color: rgb(202 168 90 / 0.85);
 }
 :root[data-theme="light"] .bg-brand-400 {
-  background-color: #ff6b6b;
+  background-color: #c394f4;
 }
 
 /* Data-coloured text: domain, rarity, condition and grader chips. The hex is
@@ -375,12 +383,12 @@ html {
   .btn {
     @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-fast active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 aria-busy:pointer-events-none aria-busy:opacity-70;
   }
-  /* Primary action: flat, solid Straw Hat red — the one accent. No gradient/glow. */
-  /* WHITE ink on the red, the one class that differs from RiftCompare (whose
-     green takes dark ink). White on #d92b33 measures 4.8:1, near-black about
-     4.4:1, and the hover DARKENS to brand-600 (#b11f27, 6.6:1) — a lighter red
-     would lose the white text's contrast. Fixed #ffffff, not `text-white`:
-     the themed white is near-black in the light palette. */
+  /* Primary action: flat, solid amethyst — the one accent. No gradient/glow. */
+  /* WHITE ink on the amethyst, the one class that differs from RiftCompare
+     (whose green takes dark ink). White on #9140da measures 5.3:1, and the
+     hover DARKENS to brand-600 (#7b2cc4, 7.0:1) — a lighter violet would lose
+     the white text's contrast. Fixed #ffffff, not `text-white`: the themed
+     white is near-black in the light palette. */
   .btn-primary {
     @apply btn bg-brand-500 text-[#ffffff] hover:bg-brand-600;
   }
@@ -389,7 +397,7 @@ html {
   }
   /* eBay's own action (2026-09-26, "Pushing eBay clicks" in DECISIONS.md). eBay
      is the site's main affiliate partner, so its buy buttons wear eBay blue
-     instead of the one green every other retailer shares. Position is never
+     instead of the one amethyst every other retailer shares. Position is never
      touched: a comparison stays cheapest-first, this only changes the colour.
      Fixed hexes in both themes — eBay blue takes white ink by eBay's brand rule,
      and the themed `text-white` is near-black in light (tests/theme.test.ts). */
@@ -507,7 +515,7 @@ html {
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
   }
   @media (max-width: 1023px) {
-    body[data-oc-buybar] .above-bottombar {
+    body[data-mc-buybar] .above-bottombar {
       bottom: calc(var(--native-banner-h) + env(safe-area-inset-bottom, 0px) + 4.75rem);
     }
   }
@@ -517,14 +525,14 @@ html {
   /* A nudge that was ALREADY showing yields to any Dialog or nav menu opened after
      it. z-[70] (Z.nudge) outranks z-overlay (60), which QuickView, SealedQuickView
      and CommandLauncher use, and the nudges only check the flag before they
-     appear. useModalFlag (ui/Dialog.tsx) sets data-oc-dialog on <body> while any
+     appear. useModalFlag (ui/Dialog.tsx) sets data-mc-dialog on <body> while any
      modal is open and deletes it on close, so the nudge comes back untouched.
      visibility:hidden also takes its ✕ out of the tab order, which keeps the
      dialog's focus trap clean. `.left-4` matches exactly the three nudges
      (FeedbackWidget is right-4; Toast is inset-x-0). Pairs with the nudges'
      own Escape guard. (2026-09-23: at 390×844 the nudge hid ~56% of QuickView,
      including its price list and 'View full page'.) */
-  body[data-oc-dialog] .above-bottombar.left-4 {
+  body[data-mc-dialog] .above-bottombar.left-4 {
     visibility: hidden;
     pointer-events: none;
   }
@@ -666,10 +674,10 @@ body {
   padding-bottom: calc(var(--native-banner-h) + env(safe-area-inset-bottom, 0px));
 }
 
-/* OP Compare: the card page's phone buy bar (CardStickyBuyBar) is showing —
+/* The card page's phone buy bar (CardStickyBuyBar) is showing —
    room under the footer so the bar never covers its last lines. */
 @media (max-width: 1023.98px) {
-  body[data-oc-buybar] {
+  body[data-mc-buybar] {
     padding-bottom: 4.5rem;
   }
 }

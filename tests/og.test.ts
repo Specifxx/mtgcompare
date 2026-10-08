@@ -1,17 +1,25 @@
 // Share images (src/lib/og, src/app/**/opengraph-image.tsx). Network-free: art is
-// passed as null (the placeholder path) and fonts come from the repo.
+// passed as null (the placeholder path) and fonts come from the repo. The cards
+// are real TCGplayer products with their TCGCSV prices of 2026-10-07 (Time Walk,
+// Ancestral Recall, Sol Ring, Counterspell, Lightning Bolt, The One Ring, Black
+// Lotus ...), built through the loaders' own liteFromRow.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import React from "react";
-import type { CardLite, SetLite } from "../src/lib/data";
+import { CARD_FLAGS, PRICE_MASK, type Finish } from "../src/lib/constants";
 import { MARKETS, type Country } from "../src/lib/country";
+import type { CardLite, SetLite } from "../src/lib/data";
+import { liteFromRow } from "../src/lib/data/lite";
+import { usdCentsToCountry } from "../src/lib/fx";
+import { imageFor } from "../src/lib/images";
 import { OG_FONT_DIR, OG_FONT_FILES, isSfnt, loadOgFonts } from "../src/lib/og/fonts";
 import { DEFAULT_OG_IMAGE, pageOg, pageOgOwnImage } from "../src/lib/og/meta";
 import { OG_AFTER_ERROR, OG_CACHED } from "../src/lib/og/respond";
-import { ogPriceLines, pickGuideRows, setTopRows, showMoveColumn, storesTracked } from "../src/lib/og/select";
-import { SET_STATS, badgeText, clip, clipWords, fitStats, ogDate, ogDelta, ogMoney, setTitleSize, splitEdition, statWidth } from "../src/lib/og/theme";
+import { ogPriceLines, pickGuideRows, setBoxImage, setPreviewCards, setTopRows, showMoveColumn, storesTracked, toRow } from "../src/lib/og/select";
+import { SET_STATS, badgeText, clip, clipWords, fitStats, ogDate, ogDelta, ogMoney, rarityTone, setTitleSize, splitEdition, statWidth } from "../src/lib/og/theme";
+import { slugify } from "../src/lib/catalog";
 
 const ROOT = path.resolve(__dirname, "..");
 const APP = path.join(ROOT, "src", "app");
@@ -22,7 +30,7 @@ function walk(dir: string): string[] {
 const ogRoutes = walk(APP).filter((f) => /[/\\](opengraph|twitter)-image\.(tsx|ts|jsx|js)$/.test(f));
 
 // ── 1. Route exports ────────────────────────────────────────────────────────
-const ALLOWED = new Set(["default", "alt", "size", "contentType", "runtime", "revalidate", "dynamic", "maxDuration", "generateImageMetadata"]);
+const ALLOWED = new Set(["default", "alt", "size", "contentType", "runtime", "dynamic", "maxDuration", "generateImageMetadata"]);
 
 test("there is a share image for /, /price-guide, sets, sealed, cards and blog posts", () => {
   const rel = ogRoutes.map((f) => path.relative(APP, f).split(path.sep).join("/")).sort();
@@ -42,23 +50,36 @@ test("there is a share image for /, /price-guide, sets, sealed, cards and blog p
 
 for (const file of ogRoutes) {
   const rel = path.relative(ROOT, file);
-  test(`${rel}: nodejs, 1200×630 PNG, alt, revalidate, only Next's export names`, () => {
+  test(`${rel}: nodejs, force-dynamic, 1200×630 PNG, alt, only Next's export names`, () => {
     const src = fs.readFileSync(file, "utf8");
     assert.match(src, /export const runtime = "nodejs";/);
     assert.match(src, /export const size = \{ width: 1200, height: 630 \};/);
     assert.match(src, /export const contentType = "image\/png";/);
-    assert.match(src, /export const revalidate = 21600;/);
+    // Every image reads the published data per request: force-dynamic keeps `next build` from reading it (an `export const revalidate`
+    // would make a param-less route prerender at build and bake a degraded image: tests/build-no-data.test.ts rules A and B).
+    assert.match(src, /export const dynamic = "force-dynamic";/);
+    assert.doesNotMatch(src, /export const revalidate/);
     const alt = src.match(/export const alt =\s*"([^"]*)"/);
     assert.ok(alt && alt[1].length > 20, "alt text");
+    assert.match(alt[1], /Magic|MTG Compare/);
     const names = [...src.matchAll(/export\s+(?:default\s+)?(?:async\s+)?(?:const|function|let|var)?\s*(\w+)?/g)].map((m) =>
       /export\s+default/.test(m[0]) ? "default" : m[1],
     );
     for (const n of names) assert.ok(ALLOWED.has(n), `${rel} exports "${n}", which next build rejects in an image route`);
     assert.doesNotMatch(src, /export[^\n]*generateStaticParams/, "never prewarm share images");
-    assert.doesNotMatch(src, /no-store|force-dynamic/, "a share image must stay ISR-cached");
+    assert.doesNotMatch(src, /no-store/);
     assert.doesNotMatch(src, /from "@\/lib\/db"/);
   });
 }
+
+test("the image loaders read the data layer only: no database, no cache of their own, no eBay, no paid loader", () => {
+  const src = fs.readFileSync(path.join(ROOT, "src", "lib", "og", "images.tsx"), "utf8");
+  assert.doesNotMatch(src, /from "\.\.\/db"|@\/lib\/db|unstable_cache|prisma/);
+  assert.doesNotMatch(src, /getDealList|getTopDemand|getCachedRisingCards|getDealOffers|getEbay|getChaseBanner/);
+  // Card art is imageFor(c, "og"), the JPEG of both hosts, never the optimiser and never a WebP size.
+  assert.match(src, /imageFor\(c, "og"\)/);
+  assert.doesNotMatch(src, /imageFor\([^)]*"(thumb|tile|large)"/);
+});
 
 // ── 2–3. Metadata that would hide or mis-point the images ────────────────────
 test("a page beside an opengraph-image never sets openGraph.images (it blocks the file)", () => {
@@ -108,7 +129,7 @@ test("every page with a canonical also sets og:url to that same path (pageOg)", 
 });
 
 test("pageOg: OG_BASE plus the page's url and the default image; extra fields override, a non-path throws", () => {
-  assert.deepEqual(pageOg("/movers"), { siteName: "OP Compare", locale: "en_US", type: "website", url: "/movers", images: [DEFAULT_OG_IMAGE] });
+  assert.deepEqual(pageOg("/movers"), { siteName: "MTG Compare", locale: "en_US", type: "website", url: "/movers", images: [DEFAULT_OG_IMAGE] });
   assert.equal("images" in pageOgOwnImage("/card/x"), false);
   // The default image's alt is the root route's own.
   const root = fs.readFileSync(path.join(APP, "opengraph-image.tsx"), "utf8");
@@ -116,7 +137,7 @@ test("pageOg: OG_BASE plus the page's url and the default image; extra fields ov
   const a = pageOg("/blog/x", { type: "article", title: "T" }) as Record<string, unknown>;
   assert.equal(a.type, "article");
   assert.equal(a.url, "/blog/x");
-  assert.throws(() => pageOg("https://opcompare.app/"));
+  assert.throws(() => pageOg("https://mtgcompare.app/"));
 });
 
 // ── Cache headers ────────────────────────────────────────────────────────────
@@ -135,85 +156,171 @@ test("share images send a 6 h CDN header, fallbacks one minute; never ImageRespo
   assert.match(respond, /"cache-control": cacheControl/, "the key must be lowercase to replace ImageResponse's default");
 });
 
-// ── 4. Row selection ─────────────────────────────────────────────────────────
-const SETS: SetLite[] = [
-  { id: 1, slug: "romance-dawn", code: "OP01", name: "Romance Dawn", kind: "booster", releasedOn: "2022-12-02", cardCount: 0, sealedCount: 0 },
-  { id: 2, slug: "promos", code: "P", name: "Promotion Cards", kind: "promo", releasedOn: null, cardCount: 0, sealedCount: 0 },
-];
-let nextId = 1;
-function card(o: Partial<CardLite> & { lowUS?: number | null; storesUS?: number }): CardLite {
-  const low = Object.fromEntries(MARKETS.map((m) => [m, null])) as Record<Country, number | null>;
-  const stores = Object.fromEntries(MARKETS.map((m) => [m, 0])) as Record<Country, number>;
-  low.US = o.lowUS === undefined ? (o.marketUsd ?? 5000) : o.lowUS;
-  stores.US = o.storesUS ?? 3;
-  const id = o.id ?? nextId++;
-  return {
-    id, slug: `c-${id}`, name: `Card ${id}`, number: `OP01-${String(id).padStart(3, "0")}`, setId: 1, rarity: "SEC", variant: null,
-    printing: "manga", colors: ["Red"], cardType: "Character", cost: 1, power: 1000, counter: null, life: null, hasImage: true,
-    marketUsd: 5000, change7d: 0, change30d: null, high90Usd: null,
-    ...o, low, stores,
-  };
-}
-const catOf = (cards: CardLite[]) => ({ cards, setById: new Map(SETS.map((s) => [s.id, s])) });
+// ── 4. Real fixtures ─────────────────────────────────────────────────────────
+// TCGCSV, 2026-10-07 (cents). The store counts and the cheapest listing of a card are what the store stage
+// of the import would publish; here the cheapest US listing is TCGplayer's own low, the one real figure there is.
+const set = (id: number, tok: string, code: string, name: string, kind: SetLite["kind"], releasedOn: string | null, cardCount: number): SetLite => ({
+  id, slug: slugify(`${tok} ${name}`), tok, code, name, tcgName: name, kind, releasedOn, bucket: false, cardCount, trackedCount: 0, sealedCount: 0,
+});
+const SETS = {
+  lea: set(7, "lea", "LEA", "Alpha Edition", "core", "1993-09-05", 294),
+  leb: set(17, "leb", "LEB", "Beta Edition", "core", "1993-10-04", 301),
+  ed2: set(115, "2ed", "2ED", "Unlimited Edition", "core", "1993-12-06", 301),
+  ced: set(1526, "ced", "CED", "Collector's Edition", "gold-border", "1993-12-03", 0),
+  ed7: set(2, "7ed", "7ED", "7th Edition", "core", "2001-04-11", 350),
+  babp: set(2156, "babp", "BABP", "Buy-A-Box Promos", "promo", "2009-07-19", 92),
+  mh2: set(2809, "mh2", "MH2", "Modern Horizons 2", "masters", "2021-06-19", 697),
+  a30: set(17666, "30a", "30A", "30th Anniversary Edition", "masters", "2022-11-28", 0),
+  ltr: set(23019, "ltr", "LTR", "Universes Beyond: The Lord of the Rings: Tales of Middle-earth", "expansion", "2023-06-23", 0),
+  jdg: set(62, "jdg", "JDG", "Judge Promos", "promo", "2026-10-07", 0),
+  slp: set(22970, "slp", "SLP", "Secret Lair Showdown", "secret-lair", "2023-02-17", 53),
+  trk: set(24766, "trk", "TRK", "Star Trek", "expansion", "2026-11-13", 0),
+};
+const SET_LIST: SetLite[] = Object.values(SETS);
+const setById = new Map(SET_LIST.map((s) => [s.id, s]));
+const US_FIRST: Country[] = ["US", "AU", "UK", "SG", "CA", "EU"];
 
-test("pickGuideRows: excludes promos, odd variants, no-art, single-store and out-of-band listings", () => {
-  const good = [10, 9, 8, 7, 6].map((k) => card({ name: `Good ${k}`, marketUsd: k * 10000 }));
+interface Fix {
+  id: number; name: string; set: SetLite; oracle: number | null; number?: string | null; rarity?: string; treat?: string; label?: string | null; flags?: number;
+  marketN?: number | null; lowN?: number | null; marketF?: number | null; lowF?: number | null; shown?: Finish;
+  lowUS?: number | null; storesUS?: number; change7d?: number | null; scryId?: string | null;
+}
+function card(o: Fix): CardLite {
+  const shown = o.shown ?? "N";
+  const lowShown = shown === "N" ? (o.lowN ?? null) : (o.lowF ?? null);
+  const low = US_FIRST.map((m) => (m === "US" ? (o.lowUS === undefined ? lowShown : o.lowUS) : null));
+  const stores = US_FIRST.map((m) => (m === "US" ? (o.storesUS ?? 3) : 0));
+  return liteFromRow({
+    id: o.id, slug: slugify(`${o.name} ${o.set.tok}`), name: o.name, alt: null, setId: o.set.id, sc: null, number: o.number ?? null, rarity: o.rarity ?? "R", cls: 0,
+    treat: o.treat ?? "", label: o.label ?? null, flags: o.flags ?? CARD_FLAGS.TCGIMG, oracleNo: o.oracle, scryId: o.scryId ?? null, colors: 0, mv: 0, ptype: 0, setTok: o.set.tok,
+    marketN: o.marketN ?? null, marketF: o.marketF ?? null, lowN: o.lowN ?? null, lowF: o.lowF ?? null,
+    mask: PRICE_MASK.LISTED | (o.marketN !== undefined || o.lowN !== undefined ? PRICE_MASK.HASN : 0) | (o.marketF !== undefined || o.lowF !== undefined ? PRICE_MASK.HASF : 0) | (shown === "F" ? PRICE_MASK.HEADF : 0),
+    shown, low, stores, change7d: o.change7d ?? null, change30d: null, high90: null,
+  });
+}
+const ORACLE = { timeWalk: 1, ancestral: 2, blackLotus: 3, solRing: 4, counterspell: 5, bolt: 6, oneRing: 7, moxJet: 8, moxSapphire: 9, birds: 10 };
+const F = {
+  timeWalk: () => card({ id: 9231, name: "Time Walk", set: SETS.ed2, oracle: ORACLE.timeWalk, marketN: 571999, lowN: 399500, storesUS: 2 }),
+  ancestral: () => card({ id: 8973, name: "Ancestral Recall", set: SETS.ed2, oracle: ORACLE.ancestral, marketN: 499995, lowN: 499999 }),
+  oneRing: () => card({ id: 517451, name: "The One Ring", set: SETS.ltr, oracle: ORACLE.oneRing, number: "748", rarity: "M", treat: "borderless poster", label: "Borderless · Poster", marketN: 93166, lowN: 92260, marketF: 175306, lowF: 229999 }),
+  counterspellBeta: () => card({ id: 8718, name: "Counterspell", set: SETS.leb, oracle: ORACLE.counterspell, rarity: "U", marketN: 91992, lowN: 69999 }),
+  counterspellAlpha: () => card({ id: 1073, name: "Counterspell", set: SETS.lea, oracle: ORACLE.counterspell, rarity: "U", marketN: 54898, lowN: 72229 }),
+  solRing: () => card({ id: 8908, name: "Sol Ring", set: SETS.leb, oracle: ORACLE.solRing, rarity: "U", marketN: 86999, lowN: 64973 }),
+  boltAlpha: () => card({ id: 1174, name: "Lightning Bolt", set: SETS.lea, oracle: ORACLE.bolt, rarity: "C", marketN: 62667, lowN: 44999 }),
+  boltBeta: () => card({ id: 8819, name: "Lightning Bolt", set: SETS.leb, oracle: ORACLE.bolt, rarity: "C", marketN: 34964, lowN: 32500 }),
+  // 30th Anniversary Edition: Black Lotus asks 1.82× its market (US$5,999.99 against US$3,299.99).
+  blackLotus30: () => card({ id: 449115, name: "Black Lotus", set: SETS.a30, oracle: ORACLE.blackLotus, number: "228", marketN: 329999, lowN: 599999, storesUS: 1 }),
+  moxJet30: () => card({ id: 449148, name: "Mox Jet", set: SETS.a30, oracle: ORACLE.moxJet, number: "259", marketN: 79099, lowN: 78210 }),
+  moxSapphire30: () => card({ id: 449152, name: "Mox Sapphire", set: SETS.a30, oracle: ORACLE.moxSapphire, number: "262", marketN: 58358, lowN: 69999 }),
+  solRingRetro30: () => card({ id: 449467, name: "Sol Ring", set: SETS.a30, oracle: ORACLE.solRing, number: "563", rarity: "U", treat: "retro", label: "Retro Frame", marketN: 21999, lowN: 27499 }),
+  // Excluded from the guide, each for its own reason:
+  blackLotusCE: () => card({ id: 97413, name: "Black Lotus", set: SETS.ced, oracle: ORACLE.blackLotus, marketN: 300000, lowN: 300000 }),
+  boltShowdown: () => card({ id: 619755, name: "Lightning Bolt", set: SETS.slp, oracle: ORACLE.bolt, number: "0037", marketN: 64729, lowN: 68999 }),
+  boltJudge: () => card({ id: 38253, name: "Lightning Bolt", set: SETS.jdg, oracle: ORACLE.bolt, rarity: "R", treat: "judge", label: "Judge Gift", flags: CARD_FLAGS.TCGIMG | CARD_FLAGS.PROMO, marketF: 62444, lowF: 58495, shown: "F" }),
+  // Its only price is a US$20,000 listing; it stands in as a market here so the serial rule, not the market rule, is what excludes it.
+  gandalfSerial: () => card({ id: 518172, name: "Gandalf the White", set: SETS.ltr, oracle: 11, rarity: "M", treat: "borderless poster serial", label: "Borderless · Poster · Serialized", flags: CARD_FLAGS.TCGIMG | CARD_FLAGS.SERIAL, marketF: 2000000, lowF: 2000000, shown: "F" }),
+  counterspellMH2: () => card({ id: 238617, name: "Counterspell", set: SETS.mh2, oracle: ORACLE.counterspell, number: "267", rarity: "U", marketN: 394, lowN: 199 }),
+  // Birds of Paradise, 7th Edition: the foil prints at US$3,980.75 against a US$22.89 Normal; the image is Scryfall's only.
+  birdsFoil: () => card({ id: 2831, name: "Birds of Paradise", set: SETS.ed7, oracle: ORACLE.birds, number: "231", rarity: "R", flags: CARD_FLAGS.SCRYIMG, scryId: "a2985857-fee5-42a6-9b5d-e157ada52a03", marketN: 2289, lowN: 1749, marketF: 398075, lowF: 400000, shown: "F" }),
+};
+const catOf = (cards: CardLite[]) => ({ cards, setById });
+
+test("pickGuideRows: excludes promos, serialized and secret-lair printings, no-art, single-store, mislisted and cheap cards", () => {
+  const good = [F.ancestral(), F.timeWalk(), F.oneRing(), F.counterspellBeta(), F.solRing()];
   const bad = [
-    card({ name: "Promo", printing: "promo", marketUsd: 900000 }),
-    card({ name: "Promo set", setId: 2, marketUsd: 900000 }),
-    card({ name: "Serial", variant: "Serial Numbered", marketUsd: 900000 }),
-    card({ name: "Championship", variant: "Championship 2025", marketUsd: 900000 }),
-    card({ name: "No art", hasImage: false, marketUsd: 900000 }),
-    card({ name: "One store", storesUS: 1, marketUsd: 900000 }),
-    card({ name: "Mislisted", marketUsd: 900000, lowUS: 5000000 }),
-    card({ name: "Cheap", marketUsd: 999 }),
-    card({ name: "No US", marketUsd: 900000, lowUS: null }),
+    F.boltJudge(),
+    F.gandalfSerial(),
+    F.boltShowdown(),
+    F.blackLotusCE(),
+    F.blackLotus30(),
+    F.counterspellMH2(),
+    { ...F.moxJet30(), flags: 0 },                                       // no scan on either host
+    { ...F.moxSapphire30(), stores: { ...F.moxSapphire30().stores, US: 1 } },
+    { ...F.boltAlpha(), low: { ...F.boltAlpha().low, US: null } },
   ];
   const rows = pickGuideRows(catOf([...bad, ...good]));
-  assert.deepEqual(rows.map((r) => r.name), ["Good 10", "Good 9", "Good 8", "Good 7", "Good 6"]);
-  assert.equal(rows[0].setCode, "OP01");
-  assert.equal(rows[0].low, 100000);
+  assert.deepEqual(rows.map((r) => r.name), ["Ancestral Recall", "Time Walk", "The One Ring", "Counterspell", "Sol Ring"]);
+  assert.deepEqual(rows.map((r) => r.id), [8973, 9231, 517451, 8718, 8908]);
+  assert.equal(rows[0].setCode, "2ED");
+  assert.equal(rows[0].low, 499999);
+  assert.equal(rows[1].low, 399500);
 });
 
-test("pickGuideRows: the hero rows keep to 1.2× the market; a 1.5× ask only fills in when nothing else does", () => {
-  const good = [10, 9, 8, 7, 6].map((k) => card({ name: `G${k}`, marketUsd: k * 10000 }));
-  // DB, 2026-10-03: Monkey.D.Luffy Manga OP05-119, market US$5,000, cheapest US$7,499.98 (3 stores).
-  const high = card({ name: "Luffy manga", marketUsd: 500000, lowUS: 749998, storesUS: 3 });
-  assert.deepEqual(pickGuideRows(catOf([high, ...good])).map((r) => r.name), ["G10", "G9", "G8", "G7", "G6"]);
-  const few = [card({ name: "Luffy manga 2", marketUsd: 500000, lowUS: 749998 }), card({ name: "A", marketUsd: 20000 }), card({ name: "B", marketUsd: 10000 })];
-  assert.equal(pickGuideRows(catOf(few)).length, 3);
+test("pickGuideRows: the hero rows keep to 1.2× the market; a 1.82× ask (Black Lotus, 30th Anniversary) only fills in when nothing else does", () => {
+  const good = [F.ancestral(), F.timeWalk(), F.oneRing(), F.counterspellBeta(), F.solRing()];
+  assert.deepEqual(pickGuideRows(catOf([F.blackLotus30(), ...good])).map((r) => r.name), ["Ancestral Recall", "Time Walk", "The One Ring", "Counterspell", "Sol Ring"]);
+  const few = [F.blackLotus30(), F.timeWalk(), F.ancestral()];
+  const rows = pickGuideRows(catOf(few));
+  assert.deepEqual(rows.map((r) => r.name), ["Black Lotus", "Ancestral Recall", "Time Walk"]);
 });
 
-test("pickGuideRows: one row per name, sorted by the cheapest US price, at most 5", () => {
-  const cards = [
-    card({ name: "Shanks", marketUsd: 400000, lowUS: 285000 }),
-    card({ name: "Shanks", marketUsd: 300000, lowUS: 290000 }),
-    ...[1, 2, 3, 4, 5, 6].map((k) => card({ name: `N${k}`, marketUsd: k * 20000 })),
-  ];
+test("pickGuideRows: one row per card (the dearest listing inside the band), sorted by the cheapest US price, at most 5", () => {
+  // Alpha Counterspell asks US$722.29 for a US$548.98 market (1.32×): the Beta printing is the card's row.
+  const cards = [F.counterspellAlpha(), F.counterspellBeta(), F.timeWalk(), F.ancestral(), F.solRing(), F.boltAlpha(), F.boltBeta(), F.moxJet30()];
   const rows = pickGuideRows(catOf(cards));
   assert.equal(rows.length, 5);
-  assert.deepEqual(rows.map((r) => r.name), ["Shanks", "N6", "N5", "N4", "N3"]);
-  assert.equal(rows[0].low, 290000);
+  assert.deepEqual(rows.map((r) => r.name), ["Ancestral Recall", "Time Walk", "Mox Jet", "Counterspell", "Sol Ring"]);
+  assert.equal(rows[3].id, 8718);
+  assert.equal(new Set(rows.map((r) => r.name)).size, 5);
 });
 
 test("pickGuideRows: empty catalogue gives []; relaxes to one store, then drops the band", () => {
   assert.deepEqual(pickGuideRows(catOf([])), []);
-  const oneStore = [1, 2, 3, 4, 5].map((k) => card({ name: `S${k}`, storesUS: 1, marketUsd: k * 10000 }));
+  const one = (c: CardLite): CardLite => ({ ...c, stores: { ...c.stores, US: 1 } });
+  const oneStore = [F.ancestral(), F.timeWalk(), F.oneRing(), F.counterspellBeta(), F.solRing()].map(one);
   assert.equal(pickGuideRows(catOf(oneStore)).length, 5);
-  const offBand = [1, 2, 3].map((k) => card({ name: `B${k}`, storesUS: 1, marketUsd: 10000, lowUS: 10000 * (k + 2) }));
-  assert.deepEqual(pickGuideRows(catOf(offBand)).map((r) => r.name), ["B3", "B2", "B1"]);
+  // Black Lotus (1.82×), Mox Sapphire (1.1995×, inside the band) and the retro Sol Ring (1.25×): only a lone store each, so the band relaxes last.
+  const offBand = [F.blackLotus30(), F.moxSapphire30(), F.solRingRetro30()].map(one);
+  assert.deepEqual(pickGuideRows(catOf(offBand)).map((r) => r.name), ["Black Lotus", "Mox Sapphire", "Sol Ring"]);
+});
+
+test("pickGuideRows: a foil unit says so in the row, and a share image draws a Scryfall-only card", () => {
+  const rows = pickGuideRows(catOf([F.birdsFoil(), F.timeWalk(), F.ancestral(), F.solRing()]));
+  const birds = rows.find((r) => r.name === "Birds of Paradise");
+  assert.ok(birds, "a US$3,980.75 foil is a guide row");
+  assert.equal(birds.finish, "Foil");
+  assert.deepEqual([birds.setCode, birds.number], ["7ED", "231"]);
+  assert.equal(birds.marketUsd, 398075);
+  assert.equal(birds.img, "https://cards.scryfall.io/normal/front/a/2/a2985857-fee5-42a6-9b5d-e157ada52a03.jpg", "the og size is a JPEG on Scryfall too, never the WebP grid");
+  assert.equal(rows.find((r) => r.name === "Time Walk")?.finish, null);
+  assert.equal(toRow(F.timeWalk()).img, "https://tcgplayer-cdn.tcgplayer.com/product/9231_400w.jpg");
+  // The other host first when NEXT_PUBLIC_IMAGE_PRIMARY says so, and still a JPEG.
+  const both = card({ id: 594545, name: "Sol Ring", set: SETS.babp, oracle: ORACLE.solRing, number: "1", rarity: "P", flags: CARD_FLAGS.TCGIMG | CARD_FLAGS.SCRYIMG, scryId: "120e2b4b-afc7-4bf0-a09f-568e08f6bd8f", marketF: 788, lowF: 599, shown: "F" });
+  assert.match(imageFor(both, "og", "scryfall") ?? "", /^https:\/\/cards\.scryfall\.io\/normal\/front\/1\/2\/120e2b4b-.*\.jpg$/);
+  assert.equal(imageFor({ id: 1, scryId: null, flags: 0 }, "og"), null);
 });
 
 test("setTopRows: the set's most valuable printings; a wild ask shows the market instead", () => {
-  const cards = [
-    card({ name: "Top", marketUsd: 600000, lowUS: 5000000 }),
-    card({ name: "Second", marketUsd: 300000, lowUS: 280000 }),
-    card({ name: "Other set", setId: 2, marketUsd: 900000 }),
-  ];
-  const rows = setTopRows(catOf(cards), SETS[0]);
-  assert.deepEqual(rows.map((r) => r.name), ["Top", "Second"]);
+  const cards = [F.moxJet30(), F.blackLotus30(), F.timeWalk(), F.solRingRetro30(), F.solRing()];
+  const rows = setTopRows(cards, SETS.a30);
+  // Black Lotus asks 1.82× its market: the row carries the market, no "cheapest". Sol Ring (retro) is the set's own Sol Ring; the Beta one is another set's.
+  assert.deepEqual(rows.map((r) => r.name), ["Black Lotus", "Mox Jet", "Sol Ring"]);
   assert.equal(rows[0].low, null);
-  assert.equal(rows[1].low, 280000);
+  assert.equal(rows[0].marketUsd, 329999);
+  assert.equal(rows[1].low, 78210);
+  assert.equal(rows[2].low, 27499, "1.25× the market is inside the 1.5× band, so the ask stays");
+});
+
+test("setTopRows keeps the ask inside the band; setPreviewCards lists art-bearing cards, dearest first, unpriced last", () => {
+  const rows = setTopRows([F.solRingRetro30(), F.moxSapphire30()], SETS.a30);
+  assert.deepEqual(rows.map((r) => [r.name, r.low]), [["Mox Sapphire", 69999], ["Sol Ring", 27499]]);
+  const lotus = card({ id: 8989, name: "Black Lotus", set: SETS.ed2, oracle: ORACLE.blackLotus, marketN: null, lowN: 1814999 });   // Unlimited: a single US$18,149.99 listing, no market
+  const noScan = { ...F.ancestral(), id: 8974, flags: 0 };
+  const prev = setPreviewCards([lotus, F.timeWalk(), noScan, F.ancestral()], SETS.ed2, 4);
+  assert.deepEqual(prev.map((r) => r.name), ["Time Walk", "Ancestral Recall", "Black Lotus"]);
+});
+
+test("setBoxImage: the booster box first, else a pack, else any sealed product of the set", () => {
+  const mh3 = 23444;
+  const all = [
+    { id: 541163, setId: mh3, kind: "Booster Pack" as const },   // Play Booster Pack
+    { id: 541164, setId: mh3, kind: "Booster Box" as const },    // Play Booster Display
+    { id: 541166, setId: mh3, kind: "Case" as const },
+    { id: 999, setId: 1, kind: "Booster Box" as const },
+  ];
+  assert.equal(setBoxImage(all, mh3), "https://tcgplayer-cdn.tcgplayer.com/product/541164_400w.jpg");
+  assert.equal(setBoxImage(all.filter((s) => s.kind !== "Booster Box"), mh3), "https://tcgplayer-cdn.tcgplayer.com/product/541163_400w.jpg");
+  assert.equal(setBoxImage([], mh3), null);
 });
 
 // ── 5. The 7-day column switch ───────────────────────────────────────────────
@@ -225,43 +332,60 @@ test("showMoveColumn: store counts until at least 3 rows really moved", () => {
 
 // ── 6. Formatting ────────────────────────────────────────────────────────────
 test("ogMoney: whole units from 100 up, cents below, each market's symbol", () => {
-  assert.equal(ogMoney(69900), "US$699");
+  assert.equal(ogMoney(86999), "US$870");
   assert.equal(ogMoney(1234), "US$12.34");
-  assert.equal(ogMoney(398001), "US$3,980");
+  assert.equal(ogMoney(571999), "US$5,720");
   assert.equal(ogMoney(249900, "UK"), "£2,499");
   assert.equal(ogMoney(295000, "EU"), "€2,950");
   assert.equal(ogMoney(null), "—");
 });
 
 test("clip, badgeText, ogDelta", () => {
-  assert.equal(clip("Monkey.D.Luffy", 21), "Monkey.D.Luffy");
-  assert.equal(clip("Charlotte Katakuri and friends", 10), "Charlotte…");
-  assert.equal(badgeText({ variant: "Parallel · Manga · Alternate Art", printing: "manga" }), "Manga");
-  assert.equal(badgeText({ variant: "Super Alternate Art", printing: "alt" }), "Super Alternate Art");
+  assert.equal(clip("Lightning Bolt", 21), "Lightning Bolt");
+  assert.equal(clip("Bloodline Recollector", 10), "Bloodline…");
+  // A table row's card name breaks at a word, never inside a hyphenated one ("Mirror-B…").
+  assert.equal(clipWords("Fable of the Mirror-Breaker", 21), "Fable of the…");
+  assert.equal(clipWords("Lightning Bolt", 21), "Lightning Bolt");
+  // The printing's own label when it fits; the first treatment's short label when it does not.
+  assert.equal(badgeText({ variant: "Borderless · Poster", printing: "borderless" }), "Borderless · Poster");
+  assert.equal(badgeText({ variant: "Borderless · Showcase · Facet Foil · from FRA", printing: "borderless" }), "Borderless");
   assert.equal(badgeText({ variant: null, printing: "standard" }), "Standard");
+  // The foil word follows when the unit is a foil that the label does not already name.
+  assert.equal(badgeText({ variant: null, printing: "standard", finish: "Foil" }), "Standard · Foil");
+  assert.equal(badgeText({ variant: "Borderless · Facet Foil", printing: "borderless", finish: "Facet Foil" }), "Borderless · Facet Foil");
+  assert.equal(badgeText({ variant: "Foil Etched", printing: "etched", finish: "Foil Etched" }), "Foil Etched");
   assert.equal(ogDelta(12.44).text, "+12.4%");
   assert.equal(ogDelta(-3.1).text, "-3.1%");
   assert.equal(ogDelta(0.01).text, "—");
   assert.equal(ogDelta(null).text, "—");
 });
 
+test("rarityTone: the dark value of each rarity's text class; unknown rarities read as plain text", () => {
+  assert.equal(rarityTone("M"), "#fdba74");
+  assert.equal(rarityTone("R"), "#fcd34d");
+  assert.equal(rarityTone("S"), "#f0abfc");
+  assert.equal(rarityTone("SEC"), "#cdc9df");
+  assert.equal(rarityTone(null), "#cdc9df");
+});
+
 test("ogDate: a 3-letter month, never en-GB's 'Sept'", () => {
   assert.equal(ogDate("2025-09-30"), "30 Sep 2025");
-  assert.equal(ogDate("2025-08-22T00:00:00.000Z"), "22 Aug 2025");
+  assert.equal(ogDate("2026-11-13"), "13 Nov 2026");
+  assert.equal(ogDate("1993-09-05T00:00:00.000Z"), "5 Sep 1993");
   assert.equal(ogDate(null), "");
   assert.equal(ogDate("nope"), "");
 });
 
 test("set titles: the edition goes to the eyebrow, three size steps, clipped at a word", () => {
-  const long = "Starter Deck 3: The Seven Warlords of The Sea (Super Pre-Release Edition)";
-  assert.deepEqual(splitEdition(long), { title: "Starter Deck 3: The Seven Warlords of The Sea", edition: "Super Pre-Release Edition" });
-  assert.deepEqual(splitEdition("Romance Dawn"), { title: "Romance Dawn", edition: null });
-  assert.equal(setTitleSize("Romance Dawn"), 58);
-  assert.equal(setTitleSize("The World's Strongest Warriors"), 48);
-  assert.equal(setTitleSize("Starter Deck 3: The Seven Warlords of The Sea"), 40);
-  assert.equal(clipWords("Sea (Super Pre-Release Edition) and more words", 22), "Sea (Super…");
-  assert.ok(!/-…$/.test(clipWords("Super Pre-Release Edition", 15)));
-  assert.equal(clipWords("Short", 22), "Short");
+  assert.deepEqual(splitEdition("Fourth Edition (Foreign Black Border)"), { title: "Fourth Edition", edition: "Foreign Black Border" });
+  assert.deepEqual(splitEdition("Magic 2015 (M15)"), { title: "Magic 2015", edition: "M15" });
+  assert.deepEqual(splitEdition("Alpha Edition"), { title: "Alpha Edition", edition: null });
+  assert.equal(setTitleSize("Alpha Edition"), 58);
+  assert.equal(setTitleSize("Universes Beyond: Fallout"), 48);
+  assert.equal(setTitleSize("Universes Beyond: The Lord of the Rings: Tales of Middle-earth"), 40);
+  assert.equal(clipWords("Universes Beyond: The Lord of the Rings: Tales of Middle-earth", 30), "Universes Beyond: The Lord…");
+  assert.ok(!/-…$/.test(clipWords("Tales of Middle-earth", 15)));
+  assert.equal(clipWords("Alpha Edition", 22), "Alpha Edition");
 });
 
 test("set stats: the widest real row fits its 396px column; 'top card' goes first", () => {
@@ -269,9 +393,9 @@ test("set stats: the widest real row fits its 396px column; 'top card' goes firs
   assert.ok(statWidth(["US$13,000", "top card"]) >= 118);
   assert.ok(statWidth(["30 Sep 2025", "released"]) >= 144);
   const total = (xs: [string, string][]) => xs.reduce((w, x, i) => w + statWidth(x) + (i ? SET_STATS.gap : 0), 0);
-  // The widest real sets on 2026-10-03: OP-PR (1,348 printings), OP11 (top card US$13,000), plus the longest date.
-  for (const top of ["US$80.99", "US$1,895", "US$13,000", "US$99,999"]) {
-    for (const n of ["17", "159", "1,348"]) {
+  // The widest real sets of 2026-10-07: The List Reprints (5,302 cards), Modern Horizons 3 (665), Alpha (294); Unlimited's Time Walk is US$5,720.
+  for (const top of ["US$80.99", "US$1,895", "US$5,720", "US$99,999"]) {
+    for (const n of ["17", "665", "5,302"]) {
       const row = fitStats([[n, "printings"], [top, "top card"], ["30 Sep 2025", "released"]]);
       assert.ok(total(row) <= SET_STATS.width, `${n} / ${top}: ${total(row)}px`);
       assert.equal(row[0][1], "printings");
@@ -281,18 +405,22 @@ test("set stats: the widest real row fits its 396px column; 'top card' goes firs
   assert.equal(fitStats([["17", "printings"], ["US$80.99", "top card"], ["30 Sep 2025", "released"]]).length, 3);
 });
 
+// Derived prices of the other markets: the same listing priced through the site's own FX, since TCGCSV has US prices only.
+const inMarket = (usdCents: number, m: Country): number => usdCentsToCountry(usdCents, m);
+
 test("ogPriceLines: the US listing leads; else EU, UK, …; else TCGplayer's market", () => {
-  const p = (low: Partial<Record<Country, number>>, marketUsd: number | null = 1000) => ({
+  const p = (low: Partial<Record<Country, number>>, marketUsd: number | null = 86999) => ({
     low: Object.fromEntries(MARKETS.map((m) => [m, low[m] ?? null])) as Record<Country, number | null>,
     stores: Object.fromEntries(MARKETS.map((m) => [m, low[m] != null ? 2 : 0])) as Record<Country, number>,
     marketUsd,
   });
-  const a = ogPriceLines(p({ US: 900, UK: 700, EU: 800 }));
-  assert.deepEqual([a.head.kind, a.head.country, a.head.cents], ["listing", "US", 900]);
+  // Sol Ring, Beta Edition: TCGplayer market US$869.99, cheapest US$649.73; the same listing in pounds and euros.
+  const a = ogPriceLines(p({ US: 64973, UK: inMarket(64973, "UK"), EU: inMarket(64973, "EU") }));
+  assert.deepEqual([a.head.kind, a.head.country, a.head.cents], ["listing", "US", 64973]);
   assert.deepEqual(a.others.map((o) => o.country), ["UK", "EU"]);
-  const b = ogPriceLines(p({ UK: 700, EU: 800 }));
+  const b = ogPriceLines(p({ UK: inMarket(64973, "UK"), EU: inMarket(64973, "EU") }));
   assert.deepEqual([b.head.kind, b.head.country], ["listing", "EU"]);
-  assert.deepEqual(ogPriceLines(p({})).head, { kind: "reference", country: "US", cents: 1000, stores: 0 });
+  assert.deepEqual(ogPriceLines(p({})).head, { kind: "reference", country: "US", cents: 86999, stores: 0 });
   assert.equal(ogPriceLines(p({}, null)).head.kind, "none");
 });
 
@@ -302,37 +430,36 @@ test("ogPriceLines: a lone ask far above the market never leads; the market does
     stores: Object.fromEntries(MARKETS.map((m) => [m, m === "US" ? storesUS : m === "UK" && lowUK != null ? 1 : 0])) as Record<Country, number>,
     marketUsd,
   });
-  // DB, 2026-10-03: monkey-d-luffy-op05-119-sp-gold lowUS 5,000,000, market 1,300,000, 1 US store.
-  const gold = ogPriceLines(p(5000000, 1300000));
-  assert.deepEqual(gold.head, { kind: "reference", country: "US", cents: 1300000, stores: 0, ask: { country: "US", cents: 5000000, stores: 1 } });
-  // 1.5× exactly still leads; no market means nothing to compare with.
-  assert.equal(ogPriceLines(p(150000, 100000)).head.kind, "listing");
-  assert.equal(ogPriceLines(p(5000000, null)).head.kind, "listing");
+  // TCGCSV, 2026-10-07: Black Lotus, 30th Anniversary Edition, market US$3,299.99, cheapest US$5,999.99, one US store.
+  const lotus = ogPriceLines(p(599999, 329999));
+  assert.deepEqual(lotus.head, { kind: "reference", country: "US", cents: 329999, stores: 0, ask: { country: "US", cents: 599999, stores: 1 } });
+  // Up to 1.5× still leads (the retro-frame Sol Ring of the 30th Anniversary asks 1.25× and leads); no market means nothing to compare with.
+  assert.equal(ogPriceLines(p(Math.floor(329999 * 1.5), 329999)).head.kind, "listing");
+  assert.equal(ogPriceLines(p(27499, 21999)).head.kind, "listing");
+  assert.equal(ogPriceLines(p(599999, null)).head.kind, "listing");
   // A UK lead is compared in pounds, not dollars.
-  const uk = ogPriceLines(p(null, 10000, 0, 9000));
+  const uk = ogPriceLines(p(null, 86999, 0, inMarket(64973, "UK")));
   assert.deepEqual([uk.head.kind, uk.head.country], ["listing", "UK"]);
-  assert.equal(ogPriceLines(p(null, 10000, 0, 90000)).head.kind, "reference");
+  assert.equal(ogPriceLines(p(null, 86999, 0, inMarket(86999, "UK") * 2)).head.kind, "reference");
 });
 
-test("storesTracked: distinct sources with stock; the registry size before any import", () => {
-  assert.equal(
-    storesTracked({ storeOffers: [
-      { source: "tcgplayer", market: "US", offers: 9, inStock: 9 },
-      { source: "a", market: "US", offers: 3, inStock: 1 },
-      { source: "a", market: "CA", offers: 3, inStock: 2 },
-      { source: "b", market: "UK", offers: 3, inStock: 0 },
-    ] }),
-    2,
-  );
-  assert.ok(storesTracked(null) > 1);
+test("storesTracked: the stores live anywhere, or null before the first store run (the stat is then left out, never the registry size)", () => {
+  assert.equal(storesTracked({ liveStoresAll: 12 }), 12);
+  assert.equal(storesTracked({ liveStoresAll: 0 }), null);
+  assert.equal(storesTracked(null), null);
+  assert.equal(storesTracked(undefined), null);
 });
 
 // ── 7. Fonts ─────────────────────────────────────────────────────────────────
-test("brand fonts are bundled as TTF/OTF (never WOFF2) and load", async () => {
+test("brand fonts are bundled as TTF/OTF (never WOFF2), each with its licence beside it, and load", async () => {
   for (const f of OG_FONT_FILES) {
     const buf = fs.readFileSync(path.join(OG_FONT_DIR, f.file));
     assert.ok(isSfnt(buf), `${f.file} must be TTF/OTF`);
+    const family = f.file.split("-")[0];
+    assert.ok(fs.existsSync(path.join(OG_FONT_DIR, `${family}-OFL.txt`)), `${family}-OFL.txt beside ${f.file}`);
   }
+  assert.deepEqual(OG_FONT_FILES.map((f) => f.name + f.weight), ["Cinzel900", "Archivo900", "Inter600", "Inter700", "JetBrains Mono700"]);
+  assert.equal(fs.readdirSync(OG_FONT_DIR).filter((n) => /luckiest/i.test(n)).length, 0, "the retired comic face is gone with its licence");
   assert.equal(isSfnt(Buffer.from("wOF2xxxx")), false);
   const fonts = await loadOgFonts();
   assert.equal(fonts.length, OG_FONT_FILES.length);
@@ -342,27 +469,50 @@ test("brand fonts are bundled as TTF/OTF (never WOFF2) and load", async () => {
 });
 
 // ── 8. Render smoke test ─────────────────────────────────────────────────────
-test("GuideImage and FallbackImage render to PNGs under 1 MB with the bundled fonts", async () => {
+test("every composition renders to a PNG under 1 MB with the bundled fonts", async () => {
   // tsx compiles JSX in the classic runtime (React.createElement); Next uses the automatic one.
   (globalThis as unknown as { React: typeof React }).React = React;
-  const { GuideImage, FallbackImage, SetImage, CardImage } = await import("../src/lib/og/compose");
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { GuideImage, FallbackImage, SetImage, CardImage, SealedImage, BlogImage } = await import("../src/lib/og/compose");
   const { ImageResponse } = require("next/dist/compiled/@vercel/og/index.node.js");
   const fonts = await loadOgFonts();
-  const rows = pickGuideRows(catOf([1, 2, 3, 4, 5].map((k) => card({ name: `Monkey.D.Luffy ${k}`, marketUsd: k * 100000, variant: "Parallel · Manga · Alternate Art" }))));
-  const els = [
-    React.createElement(GuideImage, { rows, cards: 7255, stores: 231, variant: "home" }),
-    React.createElement(FallbackImage),
-    React.createElement(SetImage, { code: "OP18", name: "The Dominance of God", kindLabel: "Booster set", printings: 21, topCard: null, released: "20 Nov 2026", upcoming: true, rows: [], preview: [] }),
-    React.createElement(CardImage, {
-      name: "Shanks", variant: null, printing: "manga", printingLabel: "Manga", rarity: "SEC", rarityLabel: "Secret Rare", number: "OP01-120",
-      setName: "Romance Dawn", art: null, marketUsd: 399874, head: { kind: "listing", country: "US", cents: 285000, stores: 2 }, others: [{ country: "UK", cents: 249900 }],
-    }),
+  const rows = pickGuideRows(catOf([F.ancestral(), F.timeWalk(), F.oneRing(), F.counterspellBeta(), F.solRing(), F.birdsFoil()]));
+  const topRows = setTopRows([F.moxJet30(), F.blackLotus30(), F.moxSapphire30(), F.solRingRetro30()], SETS.a30);
+  const lightning = ogPriceLines(F.boltAlpha(), 5);
+  const els: [string, React.ReactElement][] = [
+    ["guide", React.createElement(GuideImage, { rows, cards: 98991, stores: 12, variant: "home" })],
+    ["guide-no-stores", React.createElement(GuideImage, { rows, cards: 98991, stores: null, variant: "guide" })],
+    ["fallback", React.createElement(FallbackImage)],
+    ["set-priced", React.createElement(SetImage, { code: "30A", name: "30th Anniversary Edition", kindLabel: "Masters & special set", printings: 610, topCard: 329999, released: "28 Nov 2022", upcoming: false, rows: topRows, preview: [] })],
+    ["set-upcoming", React.createElement(SetImage, { code: "TRK", name: "Star Trek", kindLabel: "Expansion", printings: 56, topCard: null, released: "13 Nov 2026", upcoming: true, rows: [], preview: [] })],
+    ["set-edition-note", React.createElement(SetImage, { code: "4ED", name: "Fourth Edition (Foreign Black Border)", kindLabel: "Foreign", printings: 376, topCard: null, released: "3 Apr 1995", upcoming: false, rows: [], preview: [] })],
+    [
+      "card",
+      React.createElement(CardImage, {
+        name: "Lightning Bolt", variant: null, printing: "standard", printingLabel: "Standard", rarity: "C", rarityLabel: "Common", number: null, setCode: "LEA", setName: "Alpha Edition",
+        art: null, marketUsd: 62667, head: lightning.head, others: lightning.others,
+      }),
+    ],
+    [
+      "card-foil",
+      React.createElement(CardImage, {
+        name: "Birds of Paradise", variant: null, printing: "standard", printingLabel: "Standard", finish: "Foil", rarity: "R", rarityLabel: "Rare", number: "231", setCode: "7ED", setName: "7th Edition",
+        art: null, marketUsd: 398075, head: { kind: "listing", country: "US", cents: 400000, stores: 1 }, others: [{ country: "UK", cents: inMarket(400000, "UK") }],
+      }),
+    ],
+    [
+      "sealed",
+      React.createElement(SealedImage, {
+        name: "Modern Horizons 3 - Play Booster Display", kindLabel: "Booster Box", setCode: "MH3", art: null, marketUsd: 30393, packCount: 36,
+        head: { kind: "listing", country: "US", cents: 29899, stores: 0 }, others: [],
+      }),
+    ],
+    ["blog", React.createElement(BlogImage, { title: "The most valuable Magic cards right now: Time Walk, Ancestral Recall and the rest of the Power Nine", arts: [null, null, null] })],
   ];
-  for (const el of els) {
+  for (const [name, el] of els) {
     const res = new ImageResponse(el, { width: 1200, height: 630, fonts });
     const buf = Buffer.from(await res.arrayBuffer());
-    assert.deepEqual([...buf.subarray(0, 4)], [0x89, 0x50, 0x4e, 0x47]);
-    assert.ok(buf.length > 10_000 && buf.length < 1_000_000, `PNG size ${buf.length}`);
+    assert.deepEqual([...buf.subarray(0, 4)], [0x89, 0x50, 0x4e, 0x47], name);
+    assert.ok(buf.length > 10_000 && buf.length < 1_000_000, `${name}: PNG size ${buf.length}`);
+    if (process.env.OG_OUT_DIR) fs.writeFileSync(path.join(process.env.OG_OUT_DIR, `${name}.png`), buf);
   }
 });

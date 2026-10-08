@@ -1,7 +1,7 @@
 // Card / product art for share images, fetched by the route itself so a failed
 // fetch draws a placeholder instead of satori's empty bordered box. JPEG and PNG
-// only (satori cannot decode WebP; the TCGplayer CDN serves JPEG).
-import { cardImage } from "../images";
+// only (satori cannot decode WebP): the URLs come from imageFor(c, "og"), which
+// is a JPEG on both image hosts, whichever one NEXT_PUBLIC_IMAGE_PRIMARY names.
 
 const TIMEOUT_MS = 2500;
 const WEEK = 60 * 60 * 24 * 7;
@@ -22,8 +22,8 @@ export async function ogArt(url: string | null | undefined): Promise<string | nu
   }
 }
 
-/** Fill each row's `art` with its card thumbnail (_200w), in parallel. */
-export async function withThumbs<T extends { id: number; art?: string | null }>(rows: T[], size: "thumb" | "tile" = "thumb"): Promise<T[]> {
-  const arts = await Promise.all(rows.map((r) => ogArt(cardImage[size](r.id))));
+/** Fill each row's `art` from its `img` (the imageFor(c, "og") URL, or null for a card with no scan), in parallel. */
+export async function withArt<T extends { img: string | null; art?: string | null }>(rows: T[]): Promise<T[]> {
+  const arts = await Promise.all(rows.map((r) => ogArt(r.img)));
   return rows.map((r, i) => ({ ...r, art: arts[i] }));
 }

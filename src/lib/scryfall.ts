@@ -8,6 +8,7 @@ import readline from "node:readline";
 import zlib from "node:zlib";
 import { Readable } from "node:stream";
 import { fold } from "./constants";
+import { SITE_URL } from "./site";
 
 export interface ScryfallRow {                       // slim, paper only (games includes "paper"); about 450 B in memory
   id: string; oracleId: string; name: string; set: string; setName: string; setType: string; cn: string; releasedAt: string; lang: string;
@@ -26,10 +27,9 @@ export interface JoinResult { linkLevel: LinkLevel; oracleId: string | null; row
 
 // ── headers, politeness ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 const BUILD_UA = "MTGCompare-build/0.1 (+https://github.com/Specifxx/mtgcompare)";
-/** The build string in CI (and in every Actions job), "MTGCompare/1.0 (+<SITE_URL>)" in production code. Never a personal e-mail. */
+/** The build string in CI (and in every Actions job), "MTGCompare/1.0 (+<SITE_URL>)" in production code (the site address is the one constant of site.ts, REQ-WP16-12). Never a personal e-mail. */
 export function scryfallHeaders(env: Record<string, string | undefined> = process.env): Record<string, string> {
-  const site = (env.NEXT_PUBLIC_SITE_URL || "https://mtgcompare.app").replace(/\/+$/, "");
-  return { "User-Agent": env.CI || env.GITHUB_ACTIONS ? BUILD_UA : `MTGCompare/1.0 (+${site})`, Accept: "*/*" };
+  return { "User-Agent": env.CI || env.GITHUB_ACTIONS ? BUILD_UA : `MTGCompare/1.0 (+${SITE_URL})`, Accept: "*/*" };
 }
 export class ScryfallRateLimited extends Error { constructor(where: string) { super(`Scryfall answered 429 for ${where}`); this.name = "ScryfallRateLimited"; } }
 const API = "https://api.scryfall.com";

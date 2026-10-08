@@ -5,14 +5,14 @@ import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
 import { createHash } from "node:crypto";
-import { CARD_CLASS, CARD_FLAGS, COLOR_BIT, GROUP_TREATMENTS, LINK, NOTPLAY_SET_KINDS, ORACLE_FLAGS, PRICE_MASK, PRIMARY_TYPES, SEALED_KINDS, TREATMENTS, classifyGroup, colorMask, displayName, effectiveRarity, fold, isBucketGroup, joinTreat, legalString, nkey, nsort, oracleFlags, ptypeOf, reskinAlt, type SealedKind, type SetKind, type TreatmentKey } from "./constants";
+import { CARD_CLASS, CARD_FLAGS, COLOR_BIT, GROUP_TREATMENTS, LINK, NOTPLAY_SET_KINDS, ORACLE_FLAGS, PRICE_MASK, PRIMARY_TYPES, SEALED_KINDS, STALE_HOURS, TREATMENTS, classifyGroup, colorMask, displayName, effectiveRarity, fold, isBucketGroup, joinTreat, legalString, nkey, nsort, oracleFlags, ptypeOf, reskinAlt, type SealedKind, type SetKind, type TreatmentKey } from "./constants";
 import { MARKETS, type Country } from "./country";
 import type { Finish, Rarity, UnitRef } from "./constants";
 import { TCGCSV_BASE, chooseSetToks, finishPrices, isSealedProduct, labelOf, oracleSlugOf, parseSealed, parseTcgName, productClass, sealedSlugOf, setCodeOf, setDisplayName, setSlugOf, slugBase, withProductSuffix, type ParsedName, type PriceRowLike, type TcgcsvGroup, type TcgcsvPrice, type TcgcsvProduct } from "./catalog";
 import { completenessPicks, flagChangeGuard, headlineOf, inCatalogue, isIndexable, isThin, marketOnlyCents, popularity, trackConfigHash, trackScoreCents, unitTracked, unitValueCents, type GuardVerdict, type TrackConfig } from "./track";
 import { addDays, dayIso, dayNum, daysBetween, nextIndex } from "./history";
 import { usdCentsToCountry, toUsdCents } from "./fx";
-import { buildScryfallIndex, claimByIds, fetchBulkListing, fetchSets, joinProduct, parseSets, slimScryfall, streamDefaultCards, streamDefaultCardsFile, strictOracleName, type JoinResult, type LinkLevel, type ScryfallIndex, type ScryfallRow, type ScryfallSet } from "./scryfall";
+import { buildScryfallIndex, claimByIds, fetchBulkListing, fetchSets, joinProduct, parseSets, slimScryfall, streamDefaultCards, streamDefaultCardsFile, strictOracleName, type JoinResult, type LinkLevel, type ScryfallRow, type ScryfallSet } from "./scryfall";
 import type { MatchRow } from "./match";
 import type { StoreResult } from "./stores";
 import type { PrevState } from "./data/plane/prevstate";
@@ -489,7 +489,7 @@ export async function importCatalog(base: Pick<ImportContext, "log" | "cfg" | "p
   const rows = cardsAll.filter((k) => (k.pr.mask & PRICE_MASK.LISTED) || prev.slugById.has(k.c.id));
   // oracles: only the ones a catalogue row references; the slugs and ordinals of the published ones are write-once, the new ones go oldest first
   { const referenced = new Set<string>(); for (const k of rows) if (k.oracleKey) referenced.add(k.oracleKey);
-    const oracleNos = new Set<number>(prev.slugByOracleNo.keys()); let nextNo = Math.max(0, ...oracleNos) + 1;
+    const oracleNos = new Set<number>(prev.slugByOracleNo.keys()); let nextNo = 1; for (const n of oracleNos) if (n >= nextNo) nextNo = n + 1;
     const takenOracleSlug = new Set<string>(prev.oracleNoBySlug.keys()); for (const v of Object.values(seed?.oracles ?? {})) takenOracleSlug.add(v);
     const orderedUsed = [...referenced].sort((a, b) => { const fa = firstRelease.get(a)!, fb = firstRelease.get(b)!; return fa < fb ? -1 : fa > fb ? 1 : a < b ? -1 : 1; });
     const pendingNew: string[] = [];                                                // oracles without a slug yet
@@ -559,10 +559,10 @@ export async function importCatalog(base: Pick<ImportContext, "log" | "cfg" | "p
     absent: { cards: absentCards, sealed: absentSealed, sets: carriedSets },
     scrySets: sf.sets.filter((s) => scrySetsUsed.has(s.code)).sort((a, b) => (a.code < b.code ? -1 : 1)), stamps: { tcgcsv: tcg.lastUpdated, scryfall: sf.updatedAt },
   };
-  const match = matchRowsOf(snapshot, rows.map((k) => k.single), idx, setRows);
+  const match = matchRowsOf(snapshot, rows.map((k) => k.single), setRows);
   lap("snapshot");
-  let listedCount = 0, thinCount = 0, specials = 0, reservedUnpriced = 0, added = 0, unlisted = 0;
-  for (const k of rows) { if (k.pr.mask & PRICE_MASK.LISTED) { listedCount++; if (k.c.cls !== 0) specials++; else if (!(k.vn || k.vf) && k.reserved) reservedUnpriced++; } else unlisted++; if (k.pr.mask & PRICE_MASK.THIN) thinCount++; if (!prev.slugById.has(k.c.id)) added++; }
+  let listedCount = 0, specials = 0, reservedUnpriced = 0, added = 0, unlisted = 0;
+  for (const k of rows) { if (k.pr.mask & PRICE_MASK.LISTED) { listedCount++; if (k.c.cls !== 0) specials++; else if (!(k.vn || k.vf) && k.reserved) reservedUnpriced++; } else unlisted++; if (!prev.slugById.has(k.c.id)) added++; }
   const unjoinedCatalogue = rows.filter((k) => k.c.cls === 0 && (k.pr.mask & PRICE_MASK.LISTED) && k.c.oracleNo === null).length;
   const groupMemory = new Map<number, [number, number]>(groupStat); for (const [gid, v] of heldGroupRows) groupMemory.set(gid, v);        // a held group keeps the numbers it was held at: the memory never ratchets down
   const groups: [number, number, number][] = [...groupMemory].map(([gid, [a, b]]) => [gid, a, b] as [number, number, number]).sort((a, b) => a[0] - b[0]);
@@ -579,14 +579,13 @@ export async function importCatalog(base: Pick<ImportContext, "log" | "cfg" | "p
     guards: { ...(verdict.reason && !verdict.ok ? { flagChange: verdict.reason } : {}), degraded: [...(effectiveFloor > cfg.trackFloorCents ? [`offer budget raised the track floor to ${effectiveFloor} cents`] : []), ...(setMoves ? [`${setMoves} product(s) moved group and were held in their old set`] : []), ...(unknownStatuses ? [`${unknownStatuses} unknown legality status(es)`] : [])] },
     timings,
   };
-  void thinCount;
   log(`Catalogue: ${rows.length} rows (${listedCount} listed, ${specials} specials), ${units.length} tracked units, ${oracleOf.size} oracles, ${absentCards.length} absent, join ${j(joinCount)}`);
   return { ctx, result: { summary, guards: { flagChange: verdict.ok ? null : verdict.reason ?? null, groupHold: [...held].sort((a, b) => a - b), storeHold: [], configChanged, countsOk: true }, groups } };
 }
 const takenByOther = (m: Map<string, OracleRow>, slug: string): boolean => { for (const r of m.values()) if (r.slug === slug) return true; return false; };
 
 /** S7: one row per LISTED catalogue product the store matcher may emit. The folded name forms are the product's, its oracle's, each face and the printed name; the set names carry the prefix variants of the group name. */
-function matchRowsOf(snap: CatalogueSnapshot, singles: Single[], idx: ScryfallIndex, setRows: Map<number, SetRow>): MatchRow[] {
+function matchRowsOf(snap: CatalogueSnapshot, singles: Single[], setRows: Map<number, SetRow>): MatchRow[] {
   const byId = new Map<number, Single>(singles.map((s) => [s.id, s])); const oracle = new Map<number, OracleRow>(snap.oracles.map((o) => [o.no, o]));
   const out: MatchRow[] = [];
   for (let i = 0; i < snap.cards.length; i++) {
@@ -598,7 +597,7 @@ function matchRowsOf(snap: CatalogueSnapshot, singles: Single[], idx: ScryfallIn
     sn(s?.row?.setName); if (set) { sn(set.tcgName); for (const pre of ["Commander: ", "Universes Beyond: ", "Art Series: ", "Promo Pack: "]) if (set.tcgName.startsWith(pre)) sn(set.tcgName.slice(pre.length)); }
     out.push({ id: c.id, groupId: c.setId, names: [...names], sc: c.sc ?? set?.scry ?? null, setNames: [...setNames], nkey: c.nkey, treat: c.treat ? (c.treat.split(" ") as TreatmentKey[]) : [], hasN: (p.mask & PRICE_MASK.HASN) !== 0, hasF: (p.mask & PRICE_MASK.HASF) !== 0, etched: (c.flags & CARD_FLAGS.ETCHED) !== 0, rootId: c.rootId, cls: c.cls });
   }
-  void idx; return out;
+  return out;
 }
 
 // ── S6 + S11 (the free views): the files ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -621,6 +620,19 @@ function pxRowOf(id: number, pr: CardPriceRow, stats: Map<number, UnitStat> | un
   if (sn || sfin) { row.push(sn?.c7 ?? null, sn?.c30 ?? null, sn?.hi90 ?? null, sfin?.c7 ?? null, sfin?.c30 ?? null, sfin?.hi90 ?? null); while (row.length > 6 && row[row.length - 1] == null) row.pop(); }
   return row as PxRow;
 }
+/** A day whose history stage was skipped (F7) has no change figures of its own. Publishing every tracked unit as "unknown" for that day would empty the movers, the rising sort and the arrows of the home page, so the px rows keep the figures of the last recorded day, for the finishes that are still tracked. */
+function carryStats(t: TreeView, snap: CatalogueSnapshot, px: Map<number, PxRow>): void {
+  const buckets = new Set<number>(); for (const c of snap.cards) buckets.add(cardBucket(c.id));
+  for (const b of buckets) {
+    for (const old of readJson<{ p: PxRow[] }>(t, bucketPath("px", b))?.p ?? []) {
+      const row = px.get(old[0]); if (!row || old.length <= 6) continue;
+      const cols: (number | null)[] = [];
+      for (const [bit, from] of [[PRICE_MASK.TRACKN, 6], [PRICE_MASK.TRACKF, 9]] as const) for (let k = 0; k < 3; k++) cols.push(row[5] & bit ? (old[from + k] as number | null | undefined) ?? null : null);
+      while (cols.length && cols[cols.length - 1] == null) cols.pop();
+      if (cols.length) px.set(old[0], [...row.slice(0, 6), ...cols] as PxRow);
+    }
+  }
+}
 function catRowOf(c: CardRow): CatRow {
   return [c.id, c.slug, c.name, z(c.alt), c.setId, z(c.sc), z(c.number), z(c.fnum), c.rarity, c.cls, c.treat, z(c.label), c.flags, c.link, c.oracleNo ?? 0, c.flags & CARD_FLAGS.SCRYIMG ? z(c.scryId) : 0, z(c.rootId), z(c.tn), c.colors, c.mv, c.ptype];
 }
@@ -640,6 +652,7 @@ export function writeCatalogueFiles(ctx: ImportContext): { written: number; unch
   // 1. every identity and price row: today's, then the carried ones
   const cat = new Map<number, CatRow>(), px = new Map<number, PxRow>();
   snap.cards.forEach((c, i) => { cat.set(c.id, catRowOf(c)); px.set(c.id, pxRowOf(c.id, snap.prices[i]!, stats)); });
+  if (!stats && snap.cards.length) carryStats(t, snap, px);
   const absent = new Map<number, number>(snap.absent?.cards ?? []);
   if (absent.size) {
     const buckets = new Set<number>(); for (const id of absent.keys()) buckets.add(cardBucket(id));
@@ -669,8 +682,8 @@ export function writeCatalogueFiles(ctx: ImportContext): { written: number; unch
   for (const r of sealedRows) if (r[3] && !(r[7] & SEALED_FLAGS.GONE)) sealedCount.set(r[3] as number, (sealedCount.get(r[3] as number) ?? 0) + 1);
   w.put("meta/sets.json", `{"v":1,"at":"${at}","sets":[\n${lines(setRows.map((s) => [s.id, s.slug, s.tok, s.code, s.name, s.tcgName === s.name ? 0 : s.tcgName, s.kind, z(s.releasedOn), s.bucket ? 1 : 0, z(s.scry), cardCount.get(s.id) ?? 0, trackedCount.get(s.id) ?? 0, sealedCount.get(s.id) ?? 0]))}\n]}`);
   if (snap.scrySets) w.put("meta/scrysets.json", `{"v":1,"sets":[\n${lines(snap.scrySets.map((s) => [s.code, s.name, s.setType, z(s.releasedAt), z(s.parentSetCode)]))}\n]}`);
-  const unBuckets = t.files().filter((f) => f.startsWith("un/")).map((f) => Number(/\/(\d+)\.json$/.exec(f)![1])).sort((a, b) => a - b);
-  w.put("meta/buckets.json", `{"v":1,"width":256,"cat":${j([...byBucket.keys()].sort((a, b) => a - b))},"tracked":${j(unBuckets)}}`);
+  const trackedBuckets = [...new Set(view.filter((r) => r.p[5] & STAR_BITS).map((r) => cardBucket(r.c[0])))].sort((a, b) => a - b);   // every bucket that holds a tracked unit, whatever the phase (REQ-WP02-4): the readers skip the history files of the others
+  w.put("meta/buckets.json", `{"v":1,"width":256,"cat":${j([...byBucket.keys()].sort((a, b) => a - b))},"tracked":${j(trackedBuckets)}}`);
   // 4. lookups: slugs, set code + number, oracles, names
   const oracles = new Map<number, OracleRow>(snap.oracles.map((o) => [o.no, o]));
   const oldOracle = new Map<number, (string | number)[]>();                       // oracles no product of the day references stay published (ordinals are write-once)
@@ -682,12 +695,11 @@ export function writeCatalogueFiles(ctx: ImportContext): { written: number; unch
   for (const s of sealedRows) slugShards[Number.parseInt(slugShard(s[1]), 16)]!.z.push([s[1], s[0]]);
   const byS = (a: [string, number], b: [string, number]): number => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : a[1] - b[1]);
   slugShards.forEach((sh, h) => { sh.s.sort(byS); sh.o.sort(byS); sh.z.sort(byS); w.put(`slug/${hex2(h)}.json`, `{"v":1,"h":${h},"s":[\n${lines(sh.s)}\n],"o":[\n${lines(sh.o)}\n],"z":[\n${lines(sh.z)}\n]}`); });
-  const sc: Record<string, number[]>[][] = Array.from({ length: 64 }, () => []); const scMaps: Map<string, Map<string, number[]>>[] = Array.from({ length: 64 }, () => new Map());
+  const scMaps: Map<string, Map<string, number[]>>[] = Array.from({ length: 64 }, () => new Map());
   for (const r of view) {
     const code = (r.c[5] as string | 0) || setById.get(r.c[4])?.tok || ""; const key = nkey((r.c[6] as string | 0) || null); if (!code || !key) continue;
     const m = scMaps[Number.parseInt(scShard(code), 16)]!; let km = m.get(code); if (!km) m.set(code, (km = new Map())); const a = km.get(key); if (a) a.push(r.c[0]); else km.set(key, [r.c[0]]);
   }
-  void sc;
   scMaps.forEach((m, h) => { const o: Record<string, Record<string, number[]>> = {}; for (const code of [...m.keys()].sort()) { o[code] = {}; for (const k of [...m.get(code)!.keys()].sort()) o[code]![k] = m.get(code)!.get(k)!; } w.put(`sc/${hex2(h)}.json`, `{"v":1,"h":${h},"s":${j(o)}}`); });
   const orShards: unknown[][][] = Array.from({ length: 512 }, () => []);
   for (const o of [...oracles.values()].sort((a, b) => a.no - b.no)) orShards[o.no % 512]!.push([o.no, o.scryfallId, o.slug, o.name, o.manaCost, o.manaValue, o.typeLine, o.colors, o.identity, o.legal, z(o.edhrecRank), o.flags, o.layout === "normal" ? 0 : o.layout, z(o.pt), z(o.loyalty), z(o.oracleText), o.keywords, o.faces === 1 ? 0 : o.faces, o.nPrint]);
@@ -720,7 +732,10 @@ export function writeCatalogueFiles(ctx: ImportContext): { written: number; unch
   w.sweep((f) => f.startsWith("st/"));
   writeSealed(w, t, sealedRows, snap, at);
   // 6. the browse index
-  writeBrowseIndex(w, t, listed, oracles, oldOracle, un, stats, at);
+  // the flat offers of the store picker follow the same freshness rule as the aggregates: an offer is in stock only while the run of its (store, market) pair is at most STALE_HOURS old
+  const runAt = new Map<string, number>(); for (const r of readJson<StoreRunsFile>(t, "ss/runs.json")?.r ?? []) runAt.set(`${r[0]}|${r[1]}`, Date.parse(r[2]));
+  const asOf = Date.parse(ctx.offers?.asOf ?? new Date().toISOString());
+  writeBrowseIndex(w, t, listed, oracles, oldOracle, un, (o) => o[5] === 1 && asOf - (runAt.get(`${o[2]}|${o[1]}`) ?? 0) <= STALE_HOURS * 3_600_000, at);
   // 7. the free views
   writeViews(w, t, ctx, view, listed, repOf, un, stats, sealedRows, at);
   // 8. files a fresh dataset needs before any later stage has run: an empty store-run list, the empty preview slices, an empty history index
@@ -736,7 +751,7 @@ export function writeCatalogueFiles(ctx: ImportContext): { written: number; unch
 function buildSealedRows(snap: CatalogueSnapshot, old: Map<number, SealedRow>, stats: Map<number, UnitStat> | undefined): SealedRow[] {
   const rows: SealedRow[] = snap.sealed.map((s) => {
     const was = old.get(s.id);
-    return [s.id, s.slug, s.name, z(s.setId), s.kind, z(s.packCount), z(s.releasedOn ?? snap.sets.find((q) => q.id === s.setId)?.releasedOn ?? null), s.presale ? SEALED_FLAGS.PRESALE : 0, s.marketUsd, s.lowTcg, was ? was[10] : 0, was ? was[11] : 0, stats?.get(s.id * 2)?.c7 ?? null] as SealedRow;
+    return [s.id, s.slug, s.name, z(s.setId), s.kind, z(s.packCount), z(s.releasedOn ?? snap.sets.find((q) => q.id === s.setId)?.releasedOn ?? null), s.presale ? SEALED_FLAGS.PRESALE : 0, s.marketUsd, s.lowTcg, was ? was[10] : 0, was ? was[11] : 0, stats ? stats.get(s.id * 2)?.c7 ?? null : was?.[12] ?? null] as SealedRow;
   });
   const have = new Set(rows.map((r) => r[0]));
   for (const [id, flags] of snap.absent?.sealed ?? []) { const was = old.get(id); if (was && !have.has(id)) rows.push([...was.slice(0, 7), flags, ...was.slice(8)] as SealedRow); }
@@ -753,15 +768,14 @@ function writeSealed(w: Writer, t: TreeView, rows: SealedRow[], snap: CatalogueS
   shards.forEach((p, h) => w.put(`sl/d/${hex2(h)}.json`, `{"v":1,"h":${h},"p":[\n${lines(p)}\n]}`));
 }
 
-function writeBrowseIndex(w: Writer, t: TreeView, listed: RowView[], oracles: Map<number, OracleRow>, oldOracle: Map<number, (string | number)[]>, un: Map<number, UnAgg>, stats: Map<number, UnitStat> | undefined, at: string): void {
-  void stats;
+function writeBrowseIndex(w: Writer, t: TreeView, listed: RowView[], oracles: Map<number, OracleRow>, oldOracle: Map<number, (string | number)[]>, un: Map<number, UnAgg>, inStock: (o: OfferTuple) => boolean, at: string): void {
   const prevDict = readJson<IxDict>(t, "ix/dict.json");
   const sc = ["", ...(prevDict?.sc.slice(1) ?? [])], tr = ["", ...(prevDict?.tr.slice(1) ?? [])], lb = ["", ...(prevDict?.lb.slice(1) ?? [])];
   const maps = [sc, tr, lb].map((a) => new Map<string, number>(a.map((v, i) => [v, i] as const)));
   const di = (k: 0 | 1 | 2, v: string | number): number => { const s = String(v === 0 ? "" : v); if (!s) return 0; const m = maps[k]!; let i = m.get(s); if (i === undefined) { const arr = k === 0 ? sc : k === 1 ? tr : lb; i = arr.length; arr.push(s); m.set(s, i); } return i; };
   const nCh = Math.ceil(listed.length / IX_CHUNK);
   const flat: { uid: number; mk: number; st: number; pr: number }[] = [];
-  for (const f of t.files()) if (f.startsWith("of/")) for (const o of readJson<OfferFile>(t, f)?.o ?? []) if (o[5] === 1) flat.push({ uid: o[0], mk: o[1], st: o[2], pr: o[3] });
+  for (const f of t.files()) if (f.startsWith("of/")) for (const o of readJson<OfferFile>(t, f)?.o ?? []) if (inStock(o)) flat.push({ uid: o[0], mk: o[1], st: o[2], pr: o[3] });
   flat.sort((a, b) => a.uid - b.uid || a.mk - b.mk || a.st - b.st || a.pr - b.pr);
   for (let ch = 0; ch < nCh; ch++) {
     const rows = listed.slice(ch * IX_CHUNK, (ch + 1) * IX_CHUNK);
@@ -777,12 +791,11 @@ function writeBrowseIndex(w: Writer, t: TreeView, listed: RowView[], oracles: Ma
       P.mn.push(p[1] ?? -1); P.mf.push(p[2] ?? -1); P.ln.push(p[3] ?? -1); P.lf.push(p[4] ?? -1); P.mk.push(p[5]);
       for (const f of [0, 1] as const) {
         if (!(p[5] & (f === 0 ? PRICE_MASK.TRACKN : PRICE_MASK.TRACKF))) continue;
-        const st = statOf(p, f); P.t.push([i, f, Math.round((st.c7 ?? 0) * 10), Math.round((st.c30 ?? 0) * 10)]);
+        const st = statOf(p, f); if (st.c7 != null || st.c30 != null) P.t.push([i, f, Math.round((st.c7 ?? 0) * 10), Math.round((st.c30 ?? 0) * 10)]);       // a tracked unit with no change figure has no `t` row: its change reads as unknown, not 0.0% (REQ-WP02-5)
         const a = un.get(c[0] * 2 + f); if (a) S.u.push([i, f, ...a.low.map((x) => x ?? -1), ...a.stores, ...a.smin.map((x) => x ?? -1)]);
       }
     });
     w.put(ixPath("k", ch), j(K)); w.put(ixPath("p", ch), j(P)); w.put(ixPath("s", ch), j(S));
-    const idToRow = new Map<number, number>(); K.id.forEach((id, i) => idToRow.set(id, i)); void idToRow;
   }
   // the flat in-stock offers of the store picker (<= 40,000 rows a chunk) over the tracked units that survive; rebuilt from the of files (reconciled in phase 1)
   const fch = Math.ceil(flat.length / IX_FLAT_CHUNK);
@@ -979,7 +992,7 @@ export function aggregate(ctx: ImportContext, stores: readonly StoreResult[]): {
   const perPair = new Map<string, { offers: number; inStock: number; singles: number; sealed: number; cheapest: number }>();
   const pair = (s: number, m: number): { offers: number; inStock: number; singles: number; sealed: number; cheapest: number } => { const k = `${s}|${m}`; let e = perPair.get(k); if (!e) perPair.set(k, (e = { offers: 0, inStock: 0, singles: 0, sealed: 0, cheapest: 0 })); return e; };
   const runAt = (s: number, m: number): number => { const r = reads.get(`${s}|${m}`); if (r?.ok) return Date.parse(r.at); const p = prevRuns.get(`${s}|${m}`); return p ? Date.parse(p[2]) : 0; };
-  const fresher = (o: OfferTuple): boolean => o[5] === 1 && asOf - runAt(o[2], o[1]) <= 72 * 3_600_000;
+  const fresher = (o: OfferTuple): boolean => o[5] === 1 && asOf - runAt(o[2], o[1]) <= STALE_HOURS * 3_600_000;
   // offer budget: drop the offers of the cheapest units until the rows fit
   const valueOf = new Map<number, number>(); for (const f of t.files()) if (f.startsWith("px/")) for (const r of readJson<{ p: PxRow[] }>(t, f)?.p ?? []) { valueOf.set(r[0] * 2, r[1] ?? r[3] ?? 0); valueOf.set(r[0] * 2 + 1, r[2] ?? r[4] ?? 0); }
   let pruned = 0;
@@ -993,7 +1006,6 @@ export function aggregate(ctx: ImportContext, stores: readonly StoreResult[]): {
   // un: one row per tracked unit
   const price = new Map<number, PxRow>(); for (const f of t.files()) if (f.startsWith("px/")) for (const r of readJson<{ p: PxRow[] }>(t, f)?.p ?? []) price.set(r[0], r);
   const agg = new Map<number, UnAgg>(); for (const u of ctx.tracked) agg.set(u, { low: MARKETS.map(() => null), stores: MARKETS.map(() => 0), smin: MARKETS.map(() => null) });
-  const cheapestOf = new Map<number, number[]>();
   for (const o of rows) {
     const e = pair(o[2], o[1]); e.offers++;
     if (!fresher(o)) continue; e.inStock++; e.singles++;
@@ -1001,7 +1013,7 @@ export function aggregate(ctx: ImportContext, stores: readonly StoreResult[]): {
     a.stores[m]!++; a.smin[m] = a.smin[m] == null ? o[3] : Math.min(a.smin[m]!, o[3]); a.low[m] = a.low[m] == null ? o[3] : Math.min(a.low[m]!, o[3]);
   }
   for (const [uid, a] of agg) { const p = price.get(Math.floor(uid / 2)); const lo = p ? (uid % 2 === 0 ? p[3] : p[4]) : null; if (lo != null) a.low[0] = a.low[0] == null ? lo : Math.min(a.low[0]!, lo); }
-  for (const o of rows) { if (!fresher(o)) continue; const a = agg.get(o[0]); if (a && a.smin[o[1]] === o[3]) pair(o[2], o[1]).cheapest++; void cheapestOf; }
+  for (const o of rows) { if (!fresher(o)) continue; const a = agg.get(o[0]); if (a && a.smin[o[1]] === o[3]) pair(o[2], o[1]).cheapest++; }
   const byBucket = new Map<number, UnRow[]>(); for (const [uid, a] of [...agg].sort((x, y) => x[0] - y[0])) { const b = cardBucket(Math.floor(uid / 2)); const l = byBucket.get(b) ?? []; l.push([uid, a.low, a.stores, a.smin]); byBucket.set(b, l); }
   const ofBucket = new Map<number, OfferTuple[]>(); for (const o of rows) { const b = cardBucket(Math.floor(o[0] / 2)); const l = ofBucket.get(b) ?? []; l.push(o); ofBucket.set(b, l); }
   for (const [b, u] of [...byBucket].sort((x, y) => x[0] - y[0])) w.put(bucketPath("un", b), `{"v":1,"b":${b},"at":"${at}","u":[\n${lines(u)}\n]}`);
@@ -1014,7 +1026,7 @@ export function aggregate(ctx: ImportContext, stores: readonly StoreResult[]): {
   for (const o of stage?.sealed ?? []) if (okPairs.has(`${o.store}|${o.market}`)) { const a = sealedNew.get(o.productId) ?? []; a.push([o.market, o.store, o.priceCents, o.condition, o.inStock, o.path]); sealedNew.set(o.productId, a); }
   const sealedBest = new Map<number, SealedOfferTuple[]>();
   for (const [id, os] of sealedNew) { const m = new Map<string, SealedOfferTuple>(); for (const o of os) { const k = `${o[0]}|${o[1]}`; const cur = m.get(k); if (!cur || (o[4] !== cur[4] ? o[4] > cur[4] : (o[3] ?? 0) !== (cur[3] ?? 0) ? (o[3] ?? 0) < (cur[3] ?? 0) : o[2] !== cur[2] ? o[2] < cur[2] : o[5] < cur[5])) m.set(k, o); } sealedBest.set(id, [...m.values()].sort((a, b) => a[0] - b[0] || a[1] - b[1])); }
-  for (const [id, os] of sealedBest) for (const o of os) { const e = pair(o[1], o[0]); e.offers++; if (o[4] === 1 && asOf - runAt(o[1], o[0]) <= 72 * 3_600_000) { e.inStock++; e.sealed++; } }
+  for (const [id, os] of sealedBest) for (const o of os) { const e = pair(o[1], o[0]); e.offers++; if (o[4] === 1 && asOf - runAt(o[1], o[0]) <= STALE_HOURS * 3_600_000) { e.inStock++; e.sealed++; } }
   rewriteSealedOffers(t, w, sealedBest, asOf, runAt);
   // runs and per-store listings
   const runs: StoreRunRow[] = [];
@@ -1052,7 +1064,7 @@ function rewriteSealedOffers(t: MutableTree, w: Writer, offers: Map<number, Seal
   byShard.forEach((p, h) => w.put(`sl/d/${hex2(h)}.json`, `{"v":1,"h":${h},"p":[\n${lines(p)}\n]}`));
   // the cheapest in-stock offer and the store count per market, written back into the list rows
   for (const [id, r] of rowsById) {
-    const os = (offers.get(id) ?? []).filter((o) => o[4] === 1 && asOf - runAt(o[1], o[0]) <= 72 * 3_600_000);
+    const os = (offers.get(id) ?? []).filter((o) => o[4] === 1 && asOf - runAt(o[1], o[0]) <= STALE_HOURS * 3_600_000);
     const low: (number | null)[] = MARKETS.map(() => null), st: number[] = MARKETS.map(() => 0);
     for (const o of os) { low[o[0]] = low[o[0]] == null ? o[2] : Math.min(low[o[0]]!, o[2]); st[o[0]]!++; }
     if (r[8] != null && r[9] != null) low[0] = low[0] == null ? r[9] : Math.min(low[0]!, r[9]);
@@ -1125,9 +1137,9 @@ export async function recordHistory(ctx: ImportContext, today?: Date): Promise<H
     w.sweep((f) => f.startsWith("hist/p/") || f.startsWith("hist/t/"));
   } else {
     const tails = new Map<number, Record<string, (number | null)[]>>();
-    for (const [uid, s] of next) {
+    for (const uid of next.keys()) {
       const id = Math.floor(uid / 2), tb = tailBucket(id); const own = loadTail(tb)[keyOf(uid)] as SeriesV4 | undefined;
-      const r = appendDay(own, day, values.get(uid)!); let m = tails.get(tb); if (!m) tails.set(tb, (m = { ...loadTail(tb) })); m[keyOf(uid)] = r.series as (number | null)[]; void s;
+      const r = appendDay(own, day, values.get(uid)!); let m = tails.get(tb); if (!m) tails.set(tb, (m = { ...loadTail(tb) })); m[keyOf(uid)] = r.series as (number | null)[];
     }
     for (const [tb, p] of [...tails].sort((a, c) => a[0] - c[0])) { const o: Record<string, (number | null)[]> = {}; for (const k of Object.keys(p).sort((a, c) => uidOfKey(a) - uidOfKey(c))) o[k] = p[k]!; w.put(bucketPath("hist/t", tb), `{"v":4,"cut":${lastCut},"p":${j(o)}}`); }
   }
@@ -1157,7 +1169,6 @@ export async function recordHistory(ctx: ImportContext, today?: Date): Promise<H
   if (wroteCatalogue.has(snap)) writeCatalogueFiles(ctx);                              // the other order of the stages: refresh the px columns and the views that quote them
   return { day: ctx.day, units: values.size, files: w.written + w.unchanged, cut: cutDay };
 }
-void WEEKS;
 
 // ── S13: tell the site ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 /** After the pointer commit: POST /api/data-warm { ref } (loads the hot set into the regional Data Cache and makes the instance look at the pointer), then poll GET /api/data-status until the site serves `ref`, for at most 12 minutes. Never throws:

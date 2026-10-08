@@ -7,7 +7,7 @@
 //   * Store ids in offers must be 8, 9 or >= 10: ids 1 to 7 are the eBay display ids of constants.ts and can never be published (a numeric hole in the string scan).
 import { PRICE_MASK } from "../../constants";
 import { PLANE_FILE_MAX_BYTES, FAMILIES, type BucketsFile, type CatRow, type IxDict, type IxF, type IxK, type IxP, type IxS, type OfferTuple, type SlugShard, type UnRow } from "./formats";
-import { CARD_BUCKET, IX_CHUNK, IX_FLAT_CHUNK, slugShard } from "./shards";
+import { CARD_BUCKET, IX_CHUNK, IX_FLAT_CHUNK, cardBucket, slugShard } from "./shards";
 import type { TreeView } from "./tree";
 
 export type Phase = "catalog" | "full";
@@ -92,9 +92,9 @@ function inner(t: TreeView, o: ValidateOpts): ValidateResult {
   }
   if (catFiles.length && !files.some((x) => x.startsWith("px/"))) add("PX_MISSING", "cat exists but px does not");
   // 4. store families: PHASE-AWARE membership
-  const unSeen = new Set<number>(); let offers = 0; const unBuckets: number[] = [];
+  const unSeen = new Set<number>(); let offers = 0;
   for (const f of files.filter((x) => x.startsWith("un/"))) {
-    const J = rd<{ b: number; u: UnRow[] }>(f); unBuckets.push(J.b);
+    const J = rd<{ b: number; u: UnRow[] }>(f);
     for (const r of J.u) {
       if (!trackedUids.has(r[0])) add("UN_UNTRACKED", `${f}: unit ${r[0]} is not tracked in px (phase ${o.phase}: membership must be reconciled before the store stage)`);
       if (unSeen.has(r[0])) add("UN_DUP", `${f}: unit ${r[0]} has two un rows`); unSeen.add(r[0]);
@@ -122,9 +122,10 @@ function inner(t: TreeView, o: ValidateOpts): ValidateResult {
   if (badOr) add("ORACLE_REF", `${badOr} oracle ordinals referenced by cat are not in or/*`);
   // 6. bucket presence list: what the reader trusts to skip requests
   if (files.includes("meta/buckets.json")) {
-    const b = rd<BucketsFile>("meta/buckets.json"); const catB = [...idsByBucket.keys()].sort((x, y) => x - y), unB = [...unBuckets].sort((x, y) => x - y);
+    const b = rd<BucketsFile>("meta/buckets.json"); const catB = [...idsByBucket.keys()].sort((x, y) => x - y), trB = [...new Set([...trackedUids].map((u) => cardBucket(Math.floor(u / 2))))].sort((x, y) => x - y);
     if (b.cat.join() !== catB.join()) add("BUCKETS", "meta/buckets.json cat list differs from the cat/ files");
-    if (b.tracked.join() !== unB.join()) add("BUCKETS", "meta/buckets.json tracked list differs from the un/ files");
+    // the buckets that hold a tracked unit in px (formats.ts BucketsFile), in every phase. An EMPTY list is "not computed" to the readers (they rule nothing out): a tree that has not listed them is legal, one that lists them wrongly is not
+    if (b.tracked.length && b.tracked.join() !== trB.join()) add("BUCKETS", "meta/buckets.json tracked list differs from the buckets of the units px tracks");
   } else add("BUCKETS", "meta/buckets.json is missing");
   // 7. chunked families
   const boards = new Map<number, { chunks: number; n: number; got: number; seen: Set<number> }>();

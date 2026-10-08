@@ -23,7 +23,7 @@ export const DEFAULT_OG_IMAGE = {
   width: 1200,
   height: 630,
   type: "image/png",
-  alt: "OP Compare's One Piece price guide: the top cards with their TCGplayer market price, the cheapest in-stock store price and store counts, across six markets",
+  alt: "MTG Compare's Magic: The Gathering price guide: the top cards with their TCGplayer market price, the cheapest in-stock store price and store counts, across six markets",
 } as const;
 
 function build(path: string, extra: Partial<OpenGraph>): OpenGraph {

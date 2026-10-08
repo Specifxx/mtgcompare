@@ -1,48 +1,48 @@
 // Share-image (Open Graph) tokens and formatters. Pure: no Next, no Prisma, so
-// the compositions, the tests and scripts/render-og.tsx can all import it.
-// Colours are the site's dark "night sea" palette (globals.css, tailwind.config).
+// the compositions and the tests can both import it.
+// Colours are the site's dark "Arcane Ink" palette (globals.css, tailwind.config):
+// violet-tinted ink, amethyst brand, brass gold.
 import { COUNTRIES, type Country } from "../country";
 import { PRINTINGS, RARITIES } from "../constants";
 
 export const OG_SIZE = { width: 1200, height: 630 } as const;
 
-/** 6 h — the same as TTL in lib/data.ts; the import's revalidateTag("prices") refreshes sooner. */
+/** 6 h: how long the CDN keeps a share image (OG_CACHED in respond.ts); the routes are force-dynamic, so this is the only freshness bound. */
 export const OG_REVALIDATE = 21600;
 
 export const OG = {
-  page: "#070c16",
-  ink900: "#0a111e",
-  ink850: "#0e1728",
-  ink800: "#141f34",
-  ink700: "#212f4b",
-  red: "#d92b33",
-  redWord: "#ff4d55",
-  straw: "#f5c542",
+  page: "#08070f",
+  ink900: "#100f1b",
+  ink850: "#161524",
+  ink800: "#1e1d30",
+  ink700: "#2d2c46",
+  brand: "#9140da",
+  brandWord: "#c394f4",
+  gold: "#dcb95e",
   white: "#ffffff",
-  slate100: "#f1f5f9",
-  slate300: "#cbd5e1",
-  slate400: "#9aa8be",
-  slate500: "#8997ad",
-  accent: "#eef1f5",
+  slate100: "#f3f1fa",
+  slate300: "#cdc9df",
+  slate400: "#a8a4c0",
+  slate500: "#958fb2",
+  accent: "#efedf8",
   up: "#3fb950",
   down: "#f06278",
 } as const;
 
-/** The site's --hero-sea, in the unsized radial-gradient form satori accepts. */
-export const SEA_BG =
-  "radial-gradient(circle at 50% -30%, rgba(217,43,51,0.32) 0%, rgba(217,43,51,0) 55%), radial-gradient(circle at 95% 0%, rgba(245,197,66,0.13) 0%, rgba(245,197,66,0) 40%)";
+/** The share images' backdrop: an amethyst glow top-centre and a brass one top-right, in the unsized radial-gradient form satori accepts. */
+export const ARCANE_BG =
+  "radial-gradient(circle at 50% -30%, rgba(145,64,218,0.34) 0%, rgba(145,64,218,0) 55%), radial-gradient(circle at 95% 0%, rgba(220,185,94,0.12) 0%, rgba(220,185,94,0) 40%)";
 
-/** Dark-theme values of the rarity tone classes in RARITIES (text-rose-300 …). */
+/** Dark-theme values of the rarity tone classes in RARITIES (text-orange-300 for Mythic …), keyed by the rarity letter. */
 const RARITY_TONE: Record<string, string> = {
-  SEC: "#fda4af",
-  SR: "#d8b4fe",
-  L: "#fcd34d",
-  R: "#7dd3fc",
-  UC: "#6ee7b7",
-  C: "#cbd5e1",
-  TR: "#fde68a",
-  PR: "#bef264",
-  "DON!!": "#fcd34d",
+  M: "#fdba74",
+  R: "#fcd34d",
+  U: "#cdc9df",
+  C: "#a8a4c0",
+  S: "#f0abfc",
+  P: "#bef264",
+  L: "#6ee7b7",
+  T: "#7dd3fc",
 };
 
 export function rarityTone(r: string | null | undefined): string {
@@ -80,10 +80,15 @@ export function clip(s: string, n: number): string {
   return s.length > n ? `${s.slice(0, n - 1).trimEnd()}…` : s;
 }
 
-/** The printing badge: the variant when it fits, else the printing's short label. */
-export function badgeText(c: { variant: string | null; printing: string }): string {
-  if (c.variant && c.variant.length <= 26) return c.variant;
-  return PRINTINGS[c.printing]?.label ?? c.variant ?? "Standard";
+/**
+ * The printing badge: the printing's own label ("Borderless · Showcase") when it
+ * fits, else the short label of its first treatment, and the foil word after it
+ * when the unit shown is a foil that the label does not already name, so a
+ * foil-only price is never read as the plain card's.
+ */
+export function badgeText(c: { variant: string | null; printing: string; finish?: string | null }, max = 26): string {
+  const base = c.variant && c.variant.length <= max ? c.variant : (PRINTINGS[c.printing]?.label ?? c.variant ?? "Standard");
+  return c.finish && !base.toLowerCase().includes(c.finish.toLowerCase()) ? `${base} · ${c.finish}` : base;
 }
 
 /** "+12.4%" / "-3.1%" with its colour, or "—" for no move. No arrows, to match <Delta>. */
@@ -114,8 +119,7 @@ export function clipWords(s: string, n: number): string {
 }
 
 /**
- * "Starter Deck 3: The Seven Warlords of The Sea (Super Pre-Release Edition)" →
- * { title: "Starter Deck 3: The Seven Warlords of The Sea", edition: "Super Pre-Release Edition" }.
+ * "Fourth Edition (Foreign Black Border)" → { title: "Fourth Edition", edition: "Foreign Black Border" }.
  * A trailing parenthetical is an edition note, not the name: it goes to the eyebrow.
  */
 export function splitEdition(name: string): { title: string; edition: string | null } {

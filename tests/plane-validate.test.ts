@@ -66,6 +66,8 @@ test("planted defects are REFUSED (the lab's ten, plus the phase, store-id, prem
     ["a truncated JSON file", "NOT_JSON", (t) => t.write(FIRST(t, "of/"), t.read(FIRST(t, "of/")).slice(0, 40))],
     ["a cat row that points at an oracle that does not exist", "ORACLE_REF", (t) => edit(t, FIRST(t, "cat/"), (j) => { j.c[0][14] = 99999; })],
     ["meta/buckets.json missing a bucket", "BUCKETS", (t) => edit(t, "meta/buckets.json", (j) => { j.cat.pop(); })],
+    ["meta/buckets.json tracked list that omits the bucket of a tracked unit (REQ-WP02-4: the readers would skip its history)", "BUCKETS", (t) => edit(t, "meta/buckets.json", (j) => { j.tracked.pop(); })],
+    ["meta/buckets.json tracked list that names a bucket no tracked unit is in", "BUCKETS", (t) => edit(t, "meta/buckets.json", (j) => { j.tracked.push(999); })],
     ["a set board with a missing chunk", "BOARD", (t) => edit(t, "st/100.json", (j) => { j.chunks = 2; })],
     ["hist/t files that name two different cut days", "HIST_CUT", (t) => { t.write("hist/t/9/90.json", JSON.stringify({ v: 4, cut: 20250101, p: {} })); }],
     ["an oversized file (1,000,001 bytes)", "FILE_TOO_BIG", (t) => t.write("mv/up-7-a.json", `[${"0,".repeat(500_000)}0]  `)],
@@ -117,3 +119,15 @@ test("REAL TREE (PLANE_SAMPLE_DIR): the lab's S3 tree validates in the full phas
   assert.deepEqual(validateTree(t, { phase: "catalog" }).problems, [], "after reconciliation phase 1 passes"); console.log(`real tree: ${r.counts.files} files, ${(r.counts.bytes / 1e6).toFixed(1)} MB, validated twice in ${Date.now() - t0} ms; reconcile ${JSON.stringify(rep)}`);
 });
 void memTree;
+
+test("meta/buckets.json: `tracked` is the buckets of the units px tracks in every phase; an EMPTY list is legal (the readers treat it as unknown and rule nothing out)", () => {
+  for (const phase of ["catalog", "full"] as const) {
+    const t = cloneToMem(phase === "full" ? miniFull({ day: 1 }) : miniCatalog({ day: 1 })); const b = JSON.parse(t.read("meta/buckets.json")) as { tracked: number[] };
+    if (phase === "full") assert.ok(b.tracked.length > 2); else assert.deepEqual(b.tracked, [], "the generator's catalogue tree has not listed them");
+    assert.deepEqual(validateTree(t, { phase }).problems, [], `${phase}: valid as generated`);
+    const px = new Set<number>(); for (const f of t.files()) if (f.startsWith("px/")) for (const r of (JSON.parse(t.read(f)) as { p: number[][] }).p) if (r[5]! & (PRICE_MASK.TRACKN | PRICE_MASK.TRACKF)) px.add(Math.floor(r[0]! / 256));
+    edit(t, "meta/buckets.json", (j) => { j.tracked = [...px].sort((x, y) => x - y); }); assert.deepEqual(validateTree(t, { phase }).problems, [], `${phase}: the true list is valid`);
+    edit(t, "meta/buckets.json", (j) => { j.tracked = []; }); assert.deepEqual(validateTree(t, { phase }).problems, [], `${phase}: the empty list is "not computed"`);
+    edit(t, "meta/buckets.json", (j) => { j.tracked = [...px].sort((x, y) => y - x); }); assert.ok(validateTree(t, { phase }).problems.some((p) => p.code === "BUCKETS"), "a list out of order is not the list");
+  }
+});

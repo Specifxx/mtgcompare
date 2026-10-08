@@ -6,6 +6,7 @@
 // (an absent row means "no store data yet"; the reader treats it so, and the phase-2 `full` publish adds them). Pure over a MutableTree.
 import { PRICE_MASK } from "../../constants";
 import type { IxF, IxK, IxS, OfferFile, UnFile } from "./formats";
+import { cardBucket } from "./shards";
 import type { MutableTree } from "./tree";
 
 export interface ReconcileReport { unDropped: number; ofDropped: number; ixSDropped: number; ixFDropped: number; filesRemoved: number; filesRewritten: number; tracked: number; withoutStoreRows: number }
@@ -13,13 +14,13 @@ const json = (v: unknown): string => JSON.stringify(v);
 
 export function reconcileStoreFamilies(t: MutableTree, trackedUids: ReadonlySet<number>): ReconcileReport {
   const rep: ReconcileReport = { unDropped: 0, ofDropped: 0, ixSDropped: 0, ixFDropped: 0, filesRemoved: 0, filesRewritten: 0, tracked: trackedUids.size, withoutStoreRows: 0 };
-  const haveUn = new Set<number>(); const unBuckets: number[] = [];
+  const haveUn = new Set<number>();
   for (const f of t.files().filter((x) => x.startsWith("un/"))) {
     const J = JSON.parse(t.read(f)) as UnFile; const keep = J.u.filter((r) => trackedUids.has(r[0]));
     rep.unDropped += J.u.length - keep.length;
     if (!keep.length) { t.remove(f); rep.filesRemoved++; continue; }
     if (keep.length !== J.u.length) { t.write(f, json({ ...J, u: keep })); rep.filesRewritten++; }
-    unBuckets.push(J.b); for (const r of keep) haveUn.add(r[0]);
+    for (const r of keep) haveUn.add(r[0]);
   }
   for (const f of t.files().filter((x) => x.startsWith("of/"))) {
     const J = JSON.parse(t.read(f)) as OfferFile; const keep = J.o.filter((r) => trackedUids.has(r[0]));
@@ -37,7 +38,7 @@ export function reconcileStoreFamilies(t: MutableTree, trackedUids: ReadonlySet<
     rep.ixFDropped += J.uid.length - idx.length;
     if (idx.length !== J.uid.length) { t.write(f, json({ ...J, n: idx.length, uid: idx.map((i) => J.uid[i]!), mk: idx.map((i) => J.mk[i]!).join(""), st: idx.map((i) => J.st[i]!), pr: idx.map((i) => J.pr[i]!) })); rep.filesRewritten++; }
   }
-  if (t.has("meta/buckets.json")) { const b = JSON.parse(t.read("meta/buckets.json")); b.tracked = unBuckets.sort((x, y) => x - y); t.write("meta/buckets.json", json(b)); }
+  if (t.has("meta/buckets.json")) { const b = JSON.parse(t.read("meta/buckets.json")); b.tracked = [...new Set([...trackedUids].map((u) => cardBucket(Math.floor(u / 2))))].sort((x, y) => x - y); t.write("meta/buckets.json", json(b)); }   // the buckets that hold a tracked unit (px), not only those with store rows: the history of a unit before its first store row is readable
   for (const u of trackedUids) if (!haveUn.has(u)) rep.withoutStoreRows++;
   return rep;
 }

@@ -49,9 +49,14 @@ jobs:
           restore-keys: import-cache-
       - name: Gate, phase 1 (catalogue, prices, history, free views), pointer, hook
         run: npx tsx scripts/import.ts --phase catalog
+      # A scheduled run has no inputs: `inputs.stores` is null there, and GitHub compares null with false as numbers (0 != 0 is false), so `inputs.stores != false` would skip these steps on every cron run.
+      # The condition names the event instead: a schedule runs them, a manual run runs them unless the box is unticked.
       - name: Phase 2 (store offers and aggregates), pointer, hook
-        if: ${{ inputs.stores != false }}
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.stores }}
         run: npx tsx scripts/import.ts --phase full --only-stores "${{ inputs.only_stores }}"
-      - name: Alerts, newsletter, digests (read the tree just published; Neon only for the user rows)
-        if: ${{ inputs.alerts != false }}
+      - name: Check out the pointed tree into .data (the alerts step reads .data/v1; a retry that published nothing leaves the same tree)
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.alerts }}
+        run: bash scripts/plane-checkout.sh .data
+      - name: Alerts, newsletter, digests (read .data/v1; Neon only for the user rows)
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.alerts }}
         run: npx tsx scripts/alerts.ts

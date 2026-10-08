@@ -1,9 +1,10 @@
 import { deckOg } from "@/lib/og/images";
 
-// A published deck's share image: the deck's title and cost beside its Leader.
+// A published deck's share image: the deck's title and cost beside its commander
+// and two dearest cards.
 export const runtime = "nodejs";
-export const revalidate = 21600;
-export const alt = "OP Compare deck: the deck title, what it costs to build and its Leader";
+export const dynamic = "force-dynamic";
+export const alt = "MTG Compare deck: the deck title, what it costs to build and its key cards";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

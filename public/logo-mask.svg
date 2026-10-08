@@ -1,13 +1,3 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <defs>
-    <mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
-      <rect width="64" height="64" fill="#000"/>
-      <ellipse cx="32" cy="41" rx="29" ry="11" fill="#fff"/>
-      <path d="M15 40 C15 12.5 49 12.5 49 40 Z" fill="#fff"/>
-      <path d="M15.3 33 C24 37.4 40 37.4 48.7 33" stroke="#000" stroke-width="2.2" fill="none"/>
-      <path d="M15 40 C24 44.2 40 44.2 49 40" stroke="#000" stroke-width="2.2" fill="none"/>
-      <path d="M23 26 C28 22.6 36 22.6 41 26" stroke="#000" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.6"/>
-    </mask>
-  </defs>
-  <rect width="64" height="64" fill="#000" mask="url(#m)"/>
+  <path fill="#000" fill-rule="evenodd" d="M18.12 9.09Q21 5 23.88 9.09L37.12 27.91Q40 32 37.12 36.09L23.88 54.91Q21 59 18.12 54.91L4.88 36.09Q2 32 4.88 27.91ZM40.12 9.09Q43 5 45.88 9.09L59.12 27.91Q62 32 59.12 36.09L45.88 54.91Q43 59 40.12 54.91L26.88 36.09Q24 32 26.88 27.91Z"/>
 </svg>

@@ -16,21 +16,22 @@
 //   ~575 (Reddit/X overlay the domain there). The centre square (x 285–915)
 //   always holds real content.
 import type { CSSProperties, ReactNode } from "react";
-import { HAT_PATHS } from "../../components/Logo";
+import { MARK_COLORS, MARK_PATHS } from "../../components/Logo";
 import { MARKETS, type Country } from "../country";
+import { SITE_NAME, SITE_URL } from "../site";
 import type { OgPrice, OgRow } from "./select";
 import { showMoveColumn } from "./select";
-import { OG, MARKETS_LINE, SEA_BG, SET_STATS, badgeText, clip, clipWords, fitStats, ogDelta, ogMoney, plural, printingDot, rarityTone, setTitleSize, splitEdition } from "./theme";
+import { ARCANE_BG, OG, MARKETS_LINE, SET_STATS, badgeText, clip, clipWords, fitStats, ogDelta, ogMoney, plural, printingDot, rarityTone, setTitleSize, splitEdition } from "./theme";
 
-const F = {
-  brand: { fontFamily: "Luckiest Guy", fontWeight: 400 },
+export const F = {
+  brand: { fontFamily: "Cinzel", fontWeight: 900 },
   display: { fontFamily: "Archivo", fontWeight: 900 },
   semi: { fontFamily: "Inter", fontWeight: 600 },
   bold: { fontFamily: "Inter", fontWeight: 700 },
   mono: { fontFamily: "JetBrains Mono", fontWeight: 700 },
 } as const;
 
-const PANEL: CSSProperties = {
+export const PANEL: CSSProperties = {
   display: "flex",
   flexDirection: "column",
   background: OG.ink900,
@@ -39,9 +40,9 @@ const PANEL: CSSProperties = {
   boxShadow: "0 18px 50px rgba(0,0,0,0.55)",
   overflow: "hidden",
 };
-const ROW_RULE = "1.5px solid rgba(20,31,52,0.8)";
+export const ROW_RULE = "1.5px solid rgba(45,44,70,0.55)";
 
-function Canvas({ children, padding, bg = SEA_BG, column = false }: { children: ReactNode; padding: string; bg?: string; column?: boolean }) {
+export function Canvas({ children, padding, bg = ARCANE_BG, column = false }: { children: ReactNode; padding: string; bg?: string; column?: boolean }) {
   return (
     <div
       style={{
@@ -62,54 +63,60 @@ function Canvas({ children, padding, bg = SEA_BG, column = false }: { children: 
 }
 
 // ── Brand ────────────────────────────────────────────────────────────────────
-export function Hat({ size, id = "h" }: { size: number; id?: string }) {
+// The full-colour mark (components/Logo.tsx): two rhombi, the right clipped by the left for the overlap.
+export function Mark({ size, id = "m" }: { size: number; id?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 64 64">
       <defs>
-        <linearGradient id={`${id}c`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#ffe28c" />
-          <stop offset="1" stopColor="#e3a531" />
+        <linearGradient id={`${id}v`} x1="0" y1="0" x2="0.6" y2="1">
+          <stop offset="0" stopColor={MARK_COLORS.violetTop} />
+          <stop offset="1" stopColor={MARK_COLORS.violetBottom} />
         </linearGradient>
-        <linearGradient id={`${id}b`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#f8d262" />
-          <stop offset="1" stopColor="#c7861f" />
+        <linearGradient id={`${id}b`} x1="0.4" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor={MARK_COLORS.brassTop} />
+          <stop offset="1" stopColor={MARK_COLORS.brassBottom} />
         </linearGradient>
+        <clipPath id={`${id}l`}>
+          <path d={MARK_PATHS.left} />
+        </clipPath>
       </defs>
-      <ellipse {...HAT_PATHS.brim} fill={`url(#${id}b)`} stroke="#7d520e" strokeWidth="1.6" />
-      <path d={HAT_PATHS.brimLine} stroke="#7d520e" strokeWidth="1" fill="none" opacity="0.45" />
-      <path d={HAT_PATHS.crown} fill={`url(#${id}c)`} stroke="#7d520e" strokeWidth="1.6" />
-      <path d={HAT_PATHS.band} fill="#d92b33" stroke="#6e1016" strokeWidth="1.2" />
-      <path d={HAT_PATHS.shine} stroke="#fff6cf" strokeWidth="1.6" fill="none" opacity="0.75" strokeLinecap="round" />
+      <path d={MARK_PATHS.left} fill={`url(#${id}v)`} />
+      <path d={MARK_PATHS.right} fill={`url(#${id}b)`} />
+      <path d={MARK_PATHS.right} fill={MARK_COLORS.ivory} clipPath={`url(#${id}l)`} />
     </svg>
   );
 }
 
-export function Lockup({ hat = 46, text = 29 }: { hat?: number; text?: number }) {
+export function Lockup({ mark = 46, text = 29 }: { mark?: number; text?: number }) {
   return (
     <div style={{ display: "flex", alignItems: "center" }}>
-      <Hat size={hat} />
+      <Mark size={mark} />
       <div style={{ display: "flex", marginLeft: 10, ...F.display, fontSize: text, letterSpacing: -0.5 }}>
-        <span style={{ color: OG.redWord }}>OP</span>
+        <span style={{ color: OG.brandWord }}>MTG</span>
         <span style={{ color: OG.white }}>Compare</span>
       </div>
     </div>
   );
 }
 
-function Eyebrow({ children, size = 19 }: { children: string; size?: number }) {
-  return <div style={{ display: "flex", ...F.bold, fontSize: size, color: OG.straw, letterSpacing: 2.6, textTransform: "uppercase" }}>{children}</div>;
+export function Eyebrow({ children, size = 19 }: { children: string; size?: number }) {
+  return <div style={{ display: "flex", ...F.bold, fontSize: size, color: OG.gold, letterSpacing: 2.6, textTransform: "uppercase" }}>{children}</div>;
 }
 
-/** Art box: the data URI when we have one, else a dark plate with a small hat. */
-function Art({ src, width, height, radius = 4, border = true, shadow }: { src: string | null | undefined; width: number; height: number; radius?: number; border?: boolean; shadow?: string }) {
+/**
+ * Art box: the data URI when we have one, else a dark plate with the small mark.
+ * `contain`, never `cover`: a card scan is drawn whole (Scryfall's image rules: the copyright and artist
+ * line are never clipped); the boxes are the scan's own 5:7 (488:680), so nothing is letterboxed by more than a pixel.
+ */
+export function Art({ src, width, height, radius = 4, border = true, shadow }: { src: string | null | undefined; width: number; height: number; radius?: number; border?: boolean; shadow?: string }) {
   const frame: CSSProperties = { borderRadius: radius, ...(border ? { border: `1px solid ${OG.ink700}` } : {}), ...(shadow ? { boxShadow: shadow } : {}) };
   if (src) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img alt="" src={src} width={width} height={height} style={{ ...frame, objectFit: "cover" }} />;
+    return <img alt="" src={src} width={width} height={height} style={{ ...frame, objectFit: "contain" }} />;
   }
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width, height, background: OG.ink800, ...frame }}>
-      <Hat size={Math.round(Math.min(width, height) * 0.56)} id={`p${width}`} />
+      <Mark size={Math.round(Math.min(width, height) * 0.56)} id={`p${width}`} />
     </div>
   );
 }
@@ -128,6 +135,9 @@ function PrintingBadge({ printing, text, size = 18, dot = 11 }: { printing: stri
 // thumbnail, x 285–915) keeps the site's selling point and the market beside it.
 const GUIDE_COLS = { card: 400, low: 203, market: 214, set: 150, last: 86 }; // 1053 = 1104 − 3 border − 48 padding
 
+/** "LEA 233": the set code and the collector number, as printed. */
+const setNo = (r: Pick<OgRow, "setCode" | "number">): string => [r.setCode, r.number].filter(Boolean).join(" ");
+
 export function PriceTable({ rows, showMove }: { rows: OgRow[]; showMove: boolean }) {
   const c = GUIDE_COLS;
   const head: CSSProperties = { display: "flex", ...F.bold, fontSize: 15, letterSpacing: 1.6, color: OG.slate500, textTransform: "uppercase" };
@@ -136,7 +146,7 @@ export function PriceTable({ rows, showMove }: { rows: OgRow[]; showMove: boolea
     <div style={PANEL}>
       <div style={{ display: "flex", alignItems: "center", height: 40, padding: "0 24px", borderBottom: `1.5px solid ${OG.ink800}`, background: OG.ink850 }}>
         <div style={{ ...head, width: c.card }}>Card</div>
-        <div style={{ ...head, width: c.low, justifyContent: "flex-end", color: OG.straw }}>Cheapest ▼</div>
+        <div style={{ ...head, width: c.low, justifyContent: "flex-end", color: OG.gold }}>Cheapest ▼</div>
         <div style={{ ...head, width: c.market, justifyContent: "flex-end" }}>TCGplayer market</div>
         <div style={{ ...head, width: c.set, justifyContent: "flex-end" }}>Set · No.</div>
         <div style={{ ...head, width: c.last, justifyContent: "flex-end" }}>{showMove ? "7 days" : "Stores"}</div>
@@ -158,15 +168,15 @@ export function PriceTable({ rows, showMove }: { rows: OgRow[]; showMove: boolea
             <div style={{ display: "flex", alignItems: "center", width: c.card }}>
               <Art src={r.art} width={50} height={70} />
               <div style={{ display: "flex", flexDirection: "column", marginLeft: 16 }}>
-                <div style={{ display: "flex", ...F.bold, fontSize: 27, color: OG.slate100, lineHeight: 1.1 }}>{clip(r.name, 21)}</div>
+                <div style={{ display: "flex", ...F.bold, fontSize: 27, color: OG.slate100, lineHeight: 1.1 }}>{clipWords(r.name, 21)}</div>
                 <div style={{ display: "flex", marginTop: 6 }}>
-                  <PrintingBadge printing={r.printing} text={badgeText(r)} />
+                  <PrintingBadge printing={r.printing} text={clip(badgeText(r), 34)} />
                 </div>
               </div>
             </div>
             <div style={{ ...num, width: c.low, fontSize: 30, color: OG.accent }}>{ogMoney(r.low)}</div>
             <div style={{ ...num, width: c.market, fontSize: 25, color: OG.slate300 }}>{ogMoney(r.marketUsd)}</div>
-            <div style={{ ...num, width: c.set, fontSize: 19, color: OG.slate400 }}>{r.number ?? r.setCode}</div>
+            <div style={{ ...num, width: c.set, fontSize: 19, color: OG.slate400 }}>{clip(setNo(r), 13)}</div>
             {showMove ? (
               <div style={{ ...num, width: c.last, fontSize: 23, color: d.color }}>{d.text}</div>
             ) : (
@@ -195,7 +205,7 @@ function Stats({ items, size = 26 }: { items: [string, string][]; size?: number 
 function GuideTitle({ size = 58 }: { size?: number }) {
   return (
     <div style={{ display: "flex", ...F.brand, fontSize: size, lineHeight: 1, textTransform: "uppercase", letterSpacing: 0.5 }}>
-      <span style={{ color: OG.redWord, marginRight: Math.round(size * 0.28) }}>One Piece</span>
+      <span style={{ color: OG.brandWord, marginRight: Math.round(size * 0.28) }}>MTG</span>
       <span style={{ color: OG.white }}>Price Guide</span>
     </div>
   );
@@ -203,13 +213,15 @@ function GuideTitle({ size = 58 }: { size?: number }) {
 
 export type GuideVariant = "home" | "guide";
 
+// The host comes from SITE_URL, so the share images follow the domain with no edit here.
+const HOST = SITE_URL.replace(/^https?:\/\//, "");
 const GUIDE_FOOTER: Record<GuideVariant, [string, string]> = {
-  home: ["Every card, the cheapest store in your market, updated twice a day", "opcompare.app"],
-  guide: ["Every printing in one table · sorted by price · updated twice a day", "opcompare.app/price-guide"],
+  home: ["Every card, the cheapest store in your market, updated daily", HOST],
+  guide: ["Every printing in one table · sorted by price · updated daily", `${HOST}/price-guide`],
 };
 
 /** The site default and /price-guide: brand header + a five-row price guide. */
-export function GuideImage({ rows, cards, stores, variant = "home" }: { rows: OgRow[]; cards: number; stores: number; variant?: GuideVariant }) {
+export function GuideImage({ rows, cards, stores, variant = "home" }: { rows: OgRow[]; cards: number; stores: number | null; variant?: GuideVariant }) {
   const [tag, url] = GUIDE_FOOTER[variant];
   return (
     <Canvas padding="30px 48px 0" column>
@@ -224,11 +236,11 @@ export function GuideImage({ rows, cards, stores, variant = "home" }: { rows: Og
           <Stats
             items={[
               [cards.toLocaleString("en-US"), "cards"],
-              [stores.toLocaleString("en-US"), "stores"],
+              ...(stores != null ? [[stores.toLocaleString("en-US"), "stores"] as [string, string]] : []),
               [String(MARKETS.length), "markets"],
             ]}
           />
-          <div style={{ display: "flex", ...F.bold, fontSize: 18, color: OG.straw, marginTop: 10, letterSpacing: 2.6 }}>{MARKETS_LINE}</div>
+          <div style={{ display: "flex", ...F.bold, fontSize: 18, color: OG.gold, marginTop: 10, letterSpacing: 2.6 }}>{MARKETS_LINE}</div>
         </div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", marginTop: 14 }}>
@@ -248,7 +260,7 @@ export function FallbackImage() {
   return (
     <Canvas padding="40px 48px" column>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
-        <Lockup hat={72} text={44} />
+        <Lockup mark={72} text={44} />
         <div style={{ display: "flex", marginTop: 18 }}>
           <GuideTitle size={76} />
         </div>
@@ -261,11 +273,11 @@ export function FallbackImage() {
               <div style={{ display: "flex", width: 22, height: 30, borderRadius: 3, background: OG.ink700 }} />
               <div style={{ display: "flex", width: w, height: 12, borderRadius: 6, background: OG.ink700, marginLeft: 18 }} />
               <div style={{ display: "flex", flex: 1 }} />
-              <div style={{ display: "flex", width: 110, height: 12, borderRadius: 6, background: "rgba(245,197,66,0.55)" }} />
+              <div style={{ display: "flex", width: 110, height: 12, borderRadius: 6, background: "rgba(220,185,94,0.55)" }} />
             </div>
           ))}
         </div>
-        <div style={{ display: "flex", ...F.semi, fontSize: 22, color: OG.straw, letterSpacing: 3, marginTop: 26 }}>{MARKETS_LINE}</div>
+        <div style={{ display: "flex", ...F.semi, fontSize: 22, color: OG.gold, letterSpacing: 3, marginTop: 26 }}>{MARKETS_LINE}</div>
       </div>
     </Canvas>
   );
@@ -281,10 +293,10 @@ function MiniTable({ rows }: { rows: OgRow[] }) {
     <div style={PANEL}>
       <div style={{ display: "flex", alignItems: "center", height: 40, padding: "0 22px", borderBottom: `1.5px solid ${OG.ink800}`, background: OG.ink850 }}>
         <div style={{ ...head, width: 400 }}>Top cards by value</div>
-        <div style={{ ...head, width: 206, justifyContent: "flex-end", color: OG.straw }}>Cheapest</div>
+        <div style={{ ...head, width: 206, justifyContent: "flex-end", color: OG.gold }}>Cheapest</div>
       </div>
       {rows.slice(0, 5).map((r, i, all) => {
-        const badge = `${badgeText(r)} · ${r.number ?? r.setCode}`;
+        const badge = r.number ? `${badgeText(r)} · #${r.number}` : badgeText(r);
         const listed = r.low != null;
         const price = listed ? ogMoney(r.low) : `≈${ogMoney(r.marketUsd)}`;
         // r.stores counts real stores only: a TCGplayer or eBay low has none to name.
@@ -295,7 +307,7 @@ function MiniTable({ rows }: { rows: OgRow[] }) {
           <div key={r.id} style={{ display: "flex", alignItems: "center", height: 92, padding: "0 22px", borderBottom: i < all.length - 1 ? ROW_RULE : "none" }}>
             <Art src={r.art} width={58} height={81} />
             <div style={{ display: "flex", flexDirection: "column", marginLeft: 16, width: 326 }}>
-              <div style={{ display: "flex", ...F.bold, fontSize: 26, color: OG.slate100 }}>{clip(r.name, 20)}</div>
+              <div style={{ display: "flex", ...F.bold, fontSize: 26, color: OG.slate100 }}>{clipWords(r.name, 20)}</div>
               <div style={{ display: "flex", marginTop: 5 }}>
                 <PrintingBadge printing={r.printing} text={badge.length <= 30 ? badge : clip(badgeText(r), 28)} size={17} dot={10} />
               </div>
@@ -338,8 +350,10 @@ export function SetImage(p: SetImageProps) {
     ...released,
   ]);
   const { title, edition } = splitEdition(p.name);
-  // "ST-03 PRE · Super Pre-Release": the edition note, when the name carries one, in place of the kind.
-  const eyebrow = `${p.code} · ${edition ? edition.replace(/\s+Edition$/i, "") : p.kindLabel}`;
+  // "4ED · Foreign Black Border": the edition note, when the name carries one that is not just the code again
+  // ("Magic 2015 (M15)"), in place of the kind.
+  const note = edition && edition.toLowerCase() !== p.code.toLowerCase() ? edition : null;
+  const eyebrow = `${p.code} · ${note ? note.replace(/\s+Edition$/i, "") : p.kindLabel}`;
   return (
     <Canvas padding="40px 48px 40px">
       <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: 396, marginRight: 32 }}>
@@ -380,8 +394,8 @@ export function SetImage(p: SetImageProps) {
               </div>
             ) : datePlate ? (
               <div style={{ ...PANEL, alignItems: "center", justifyContent: "center", width: 520, height: 400 }}>
-                <Hat size={150} id="soon" />
-                <div style={{ display: "flex", ...F.bold, fontSize: 20, letterSpacing: 2.6, color: OG.straw, textTransform: "uppercase", marginTop: 6 }}>Releases</div>
+                <Mark size={150} id="soon" />
+                <div style={{ display: "flex", ...F.bold, fontSize: 20, letterSpacing: 2.6, color: OG.gold, textTransform: "uppercase", marginTop: 6 }}>Releases</div>
                 <div style={{ display: "flex", ...F.mono, fontSize: 56, color: OG.accent, marginTop: 8 }}>{p.released}</div>
               </div>
             ) : (
@@ -469,7 +483,7 @@ function PriceBlock({
   );
 }
 
-function Chip({ children, color = OG.slate100, dot }: { children: string; color?: string; dot?: string }) {
+export function Chip({ children, color = OG.slate100, dot }: { children: string; color?: string; dot?: string }) {
   return (
     <div style={{ display: "flex", alignItems: "center", padding: "6px 14px", borderRadius: 8, background: OG.ink850, border: `1.5px solid ${OG.ink700}`, marginRight: 10 }}>
       {dot ? <div style={{ display: "flex", width: 12, height: 12, borderRadius: 6, background: dot, marginRight: 10 }} /> : null}
@@ -484,9 +498,12 @@ export interface CardImageProps {
   variant: string | null;
   printing: string;
   printingLabel: string;
+  /** The foil word when the unit priced is a foil ("Foil", "Foil Etched"), else null. */
+  finish?: string | null;
   rarity: string | null;
   rarityLabel: string | null;
   number: string | null;
+  setCode: string;
   setName: string;
   art: string | null;
   marketUsd: number | null;
@@ -497,26 +514,26 @@ export interface CardImageProps {
 export function CardImage(p: CardImageProps) {
   const n = p.name.length;
   const size = n > 40 ? 40 : n > 28 ? 46 : n > 18 ? 54 : 66;
-  const eyebrow = [p.number, p.setName].filter(Boolean).join(" · ");
+  const eyebrow = [[p.setCode, p.number ? `#${p.number}` : null].filter(Boolean).join(" "), p.setName].filter(Boolean).join(" · ");
   return (
     <Canvas
       padding="44px 56px 44px 48px"
-      bg="radial-gradient(circle at 18% 40%, rgba(217,43,51,0.28) 0%, rgba(217,43,51,0) 45%), radial-gradient(circle at 95% 0%, rgba(245,197,66,0.12) 0%, rgba(245,197,66,0) 40%)"
+      bg="radial-gradient(circle at 18% 40%, rgba(145,64,218,0.30) 0%, rgba(145,64,218,0) 45%), radial-gradient(circle at 95% 0%, rgba(220,185,94,0.12) 0%, rgba(220,185,94,0) 40%)"
     >
       {p.art ? (
         <Art src={p.art} width={388} height={542} radius={16} border={false} shadow="0 18px 50px rgba(0,0,0,0.7)" />
       ) : (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 388, height: 542, borderRadius: 16, background: OG.ink900, border: `1.5px solid ${OG.ink800}` }}>
-          <Hat size={220} id="cardplate" />
+          <Mark size={220} id="cardplate" />
         </div>
       )}
       <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", flex: 1, marginLeft: 48 }}>
         <Lockup />
         <div style={{ display: "flex", flexDirection: "column" }}>
-          {eyebrow ? <Eyebrow>{clip(eyebrow, 48)}</Eyebrow> : null}
+          {eyebrow ? <Eyebrow>{clipWords(eyebrow, 48)}</Eyebrow> : null}
           <div style={{ display: "flex", ...F.display, fontSize: size, lineHeight: 1.02, color: OG.white, marginTop: 10, letterSpacing: -1 }}>{clip(p.name, 72)}</div>
           <div style={{ display: "flex", marginTop: 16 }}>
-            <Chip dot={printingDot(p.printing)}>{clip(p.variant ?? p.printingLabel, 34)}</Chip>
+            <Chip dot={printingDot(p.printing)}>{clip(badgeText({ variant: p.variant, printing: p.printing, finish: p.finish }, 34), 40)}</Chip>
             {p.rarityLabel ? <Chip color={rarityTone(p.rarity)}>{p.rarityLabel}</Chip> : null}
           </div>
         </div>
@@ -530,7 +547,7 @@ export function CardImage(p: CardImageProps) {
 function SealedPlate({ kindLabel, width = 470, height = 542 }: { kindLabel: string; width?: number; height?: number }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width, height, background: OG.ink900, border: `1.5px solid ${OG.ink800}`, borderRadius: 18 }}>
-      <Hat size={Math.round(Math.min(width, height) * 0.42)} id="plate" />
+      <Mark size={Math.round(Math.min(width, height) * 0.42)} id="plate" />
       <div style={{ display: "flex", ...F.bold, fontSize: 20, letterSpacing: 2.6, color: OG.slate400, textTransform: "uppercase", marginTop: 8 }}>{kindLabel}</div>
     </div>
   );
@@ -576,7 +593,7 @@ export function SealedImage(p: SealedImageProps) {
 }
 
 // ── (d) A blog post ──────────────────────────────────────────────────────────
-export function BlogImage({ title, arts, badge = "BLOG", footer = "Live prices from the OP Compare price guide" }: { title: string; arts: (string | null)[]; badge?: string; footer?: string }) {
+export function BlogImage({ title, arts, badge = "BLOG", footer = `Live prices from the ${SITE_NAME} price guide` }: { title: string; arts: (string | null)[]; badge?: string; footer?: string }) {
   const cards = arts.filter((a): a is string => !!a).slice(0, 3);
   const size = title.length > 70 ? 46 : title.length > 48 ? 54 : 62;
   // Back-left, back-right, then the front card last so it sits on top.
@@ -590,7 +607,7 @@ export function BlogImage({ title, arts, badge = "BLOG", footer = "Live prices f
   return (
     <Canvas
       padding="44px 48px"
-      bg="radial-gradient(circle at 10% -10%, rgba(217,43,51,0.30) 0%, rgba(217,43,51,0) 50%), radial-gradient(circle at 95% 0%, rgba(245,197,66,0.12) 0%, rgba(245,197,66,0) 40%)"
+      bg="radial-gradient(circle at 10% -10%, rgba(145,64,218,0.32) 0%, rgba(145,64,218,0) 50%), radial-gradient(circle at 95% 0%, rgba(220,185,94,0.12) 0%, rgba(220,185,94,0) 40%)"
     >
       <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: cards.length ? 600 : 1104 }}>
         <div style={{ display: "flex", alignItems: "center" }}>
@@ -601,19 +618,19 @@ export function BlogImage({ title, arts, badge = "BLOG", footer = "Live prices f
               marginLeft: 14,
               padding: "4px 12px",
               borderRadius: 6,
-              background: "rgba(217,43,51,0.15)",
-              border: "1.5px solid rgba(217,43,51,0.5)",
+              background: "rgba(145,64,218,0.16)",
+              border: "1.5px solid rgba(145,64,218,0.55)",
               ...F.bold,
               fontSize: 16,
               letterSpacing: 2,
-              color: "#ff8a8f",
+              color: "#d3b0f8",
             }}
           >
             {badge}
           </div>
         </div>
         <div style={{ display: "flex", ...F.display, fontSize: size, lineHeight: 1.06, color: OG.white, letterSpacing: -1 }}>{clip(title, 110)}</div>
-        <div style={{ display: "flex", ...F.semi, fontSize: 21, color: OG.straw }}>{footer}</div>
+        <div style={{ display: "flex", ...F.semi, fontSize: 21, color: OG.gold }}>{footer}</div>
       </div>
       {cards.length ? (
         <div style={{ display: "flex", position: "relative", flex: 1 }}>
@@ -627,7 +644,7 @@ export function BlogImage({ title, arts, badge = "BLOG", footer = "Live prices f
                 src={cards[ci]}
                 width={s.w}
                 height={s.h}
-                style={{ position: "absolute", left: s.left, top: s.top, borderRadius: 12, boxShadow: "0 14px 36px rgba(0,0,0,0.65)", transform: `rotate(${s.rot}deg)` }}
+                style={{ position: "absolute", left: s.left, top: s.top, borderRadius: 12, objectFit: "contain", boxShadow: "0 14px 36px rgba(0,0,0,0.65)", transform: `rotate(${s.rot}deg)` }}
               />
             );
           })}

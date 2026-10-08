@@ -168,28 +168,31 @@ function storeCtx(tree: MutableTree, day: string, asOf: string, prev: PrevState)
   const snapshot = snapshotFromTree(tree, day); const tracked = new Set<number>(snapshot.units.map((u) => u.id * 2 + (u.finish === "F" ? 1 : 0)));
   return { log: quiet, day, cfg: TRACK_DEFAULTS, prev, phase: "full", work: tree, snapshot, match: [], joined: new Map(), tracked, offers: { cards: [], sealed: [], reads: [], asOf } };
 }
+/** The real TCGplayer market (cents) of every unit with one: a store offer in these tests is a fraction of it, never a number made up. */
+const marketsOf = (tree: MutableTree): Map<number, number> => { const m = new Map<number, number>(); for (const f of tree.files()) if (f.startsWith("px/")) for (const r of (JSON.parse(tree.read(f)) as { p: (number | null)[][] }).p) { if (r[1] != null) m.set(r[0]! * 2, r[1]); if (r[2] != null) m.set(r[0]! * 2 + 1, r[2]); } return m; };
 const result = (matched: number, failed = false): StoreResult => ({ key: "teststore", country: "US", platform: "shopify", products: matched, cards: matched, sealed: 0, inStock: matched, failed, misses: {}, matched });
 test("a vanishing store: a failed read keeps its rows and its run row; the rows read as out of stock 72 hours after the last good read, never before; a good read replaces them", async () => {
   const t = tmpRoot(); const plane = path.join(t.root, "plane"); try {
     const d1 = miniMagicDay(path.join(t.root, "d1")); const a = await bootstrap({ ...importEnv(path.join(t.root, "e1"), d1), PLANE_DIR: plane }, NOW); assert.deepEqual(a.problems, []);
     const tree = fsTree(path.join(plane, "v1")); const prev = loadPrevState(tree); const units = [...snapshotFromTree(tree, "2026-10-07").units].map((u) => u.id * 2 + (u.finish === "F" ? 1 : 0)).slice(0, 8); assert.equal(units.length, 8);
-    const read = (at: string): Staged => ({ cards: units.map((uid, i) => ({ uid, market: 0, store: TEST_STORE, priceCents: 1000 + i * 50, condition: 1, inStock: 1 as const, path: `/p/${uid}` })), sealed: [], reads: [{ store: TEST_STORE, market: 0, ok: true, at }] });
+    const mk = marketsOf(tree); const read = (at: string): Staged => ({ cards: units.map((uid, i) => ({ uid, market: 0, store: TEST_STORE, priceCents: Math.round(mk.get(uid)! * (0.9 + i * 0.01)), condition: 1, inStock: 1 as const, path: `/p/${uid}` })), sealed: [], reads: [{ store: TEST_STORE, market: 0, ok: true, at }] });
     // good read at t0
     const c0 = storeCtx(tree, "2026-10-07", "2026-10-08T05:00:00Z", prev); Object.assign(c0.offers!, read("2026-10-08T04:00:00Z")); aggregate(c0, [result(8)]);
     const ofRows = (): number => { let n = 0; for (const f of tree.files()) if (f.startsWith("of/")) n += (JSON.parse(tree.read(f)) as { o: unknown[] }).o.length; return n; };
     const runsOf = (): (string | number)[][] => (JSON.parse(tree.read("ss/runs.json")) as { r: (string | number)[][] }).r;
-    assert.equal(ofRows(), 8); assert.equal(runsOf().length, 1); const un = (uid: number): (number | null)[] | undefined => { for (const f of tree.files()) if (f.startsWith("un/")) { const r = (JSON.parse(tree.read(f)) as { u: [number, (number | null)[], number[], (number | null)[]][] }).u.find((x) => x[0] === uid); if (r) return r[2]; } return undefined; };
+    const flatRows = (): number => { let n = 0; for (const f of tree.files()) if (/^ix\/f-\d+\.json$/.test(f)) n += (JSON.parse(tree.read(f)) as { n: number }).n; return n; };
+    assert.equal(ofRows(), 8); assert.equal(flatRows(), 8, "the store picker lists the 8 fresh in-stock offers"); assert.equal(runsOf().length, 1); const un = (uid: number): (number | null)[] | undefined => { for (const f of tree.files()) if (f.startsWith("un/")) { const r = (JSON.parse(tree.read(f)) as { u: [number, (number | null)[], number[], (number | null)[]][] }).u.find((x) => x[0] === uid); if (r) return r[2]; } return undefined; };
     assert.equal(un(units[0]!)![0], 1, "one store has the unit in stock in the US");
     // the store vanishes: no read at all (its site is down, importStores returns a failed result and stages nothing)
     const c1 = storeCtx(tree, "2026-10-07", "2026-10-09T04:00:00Z", prev); aggregate(c1, [result(0, true)]);                    // 24 h after the last good read
-    assert.equal(ofRows(), 8, "the rows stay"); assert.equal(runsOf()[0]![2], "2026-10-08T04:00:00Z", "the run row keeps the time of the last GOOD read"); assert.equal(un(units[0]!)![0], 1, "still in stock after 24 h");
-    const c2 = storeCtx(tree, "2026-10-07", "2026-10-10T03:00:00Z", prev); aggregate(c2, [result(0, true)]); assert.equal(un(units[0]!)![0], 1, "47 h: still in stock");
-    const c3 = storeCtx(tree, "2026-10-07", "2026-10-11T05:00:00Z", prev); aggregate(c3, [result(0, true)]); assert.equal(ofRows(), 8, "73 h: the rows are still there"); assert.equal(un(units[0]!)![0], 0, "73 h after the last good read the offers read as out of stock");
+    assert.equal(ofRows(), 8, "the rows stay"); assert.equal(runsOf()[0]![2], "2026-10-08T04:00:00Z", "the run row keeps the time of the last GOOD read"); assert.equal(un(units[0]!)![0], 1, "still in stock after 24 h"); assert.equal(flatRows(), 8);
+    const c2 = storeCtx(tree, "2026-10-07", "2026-10-10T03:00:00Z", prev); aggregate(c2, [result(0, true)]); assert.equal(un(units[0]!)![0], 1, "47 h: still in stock"); assert.equal(flatRows(), 8);
+    const c3 = storeCtx(tree, "2026-10-07", "2026-10-11T05:00:00Z", prev); aggregate(c3, [result(0, true)]); assert.equal(ofRows(), 8, "73 h: the rows are still there"); assert.equal(un(units[0]!)![0], 0, "73 h after the last good read the offers read as out of stock"); assert.equal(flatRows(), 0, "and the store picker no longer lists them (ix/f carries no run time, so the writer applies the 72-hour rule)");
     // a read that was not even attempted (the store is absent from this run altogether) is the same
     const c4 = storeCtx(tree, "2026-10-07", "2026-10-11T06:00:00Z", prev); aggregate(c4, []); assert.equal(ofRows(), 8);
     // the store comes back with a smaller catalogue: the pair's rows are replaced by what it lists now
     const c5 = storeCtx(tree, "2026-10-07", "2026-10-12T05:00:00Z", prev); const back = read("2026-10-12T04:00:00Z"); back.cards = back.cards.slice(0, 3); Object.assign(c5.offers!, back); aggregate(c5, [result(3)]);
-    assert.equal(ofRows(), 3, "a good read replaces the pair's rows"); assert.equal(un(units[0]!)![0], 1); assert.equal(un(units[5]!)![0], 0); assert.equal(runsOf()[0]![2], "2026-10-12T04:00:00Z");
+    assert.equal(ofRows(), 3, "a good read replaces the pair's rows"); assert.equal(flatRows(), 3); assert.equal(un(units[0]!)![0], 1); assert.equal(un(units[5]!)![0], 0); assert.equal(runsOf()[0]![2], "2026-10-12T04:00:00Z");
   } finally { t.done(); }
 });
 
@@ -203,11 +206,12 @@ test("aggregate: one row per (unit, market, store) (in stock, then best conditio
       for (const f of mem.files()) if (f.startsWith("of/")) for (const o of (JSON.parse(mem.read(f)) as { o: number[][] }).o) { const a = rows.get(o[0]!) ?? []; a.push(o); rows.set(o[0]!, a); }
       return { rows, ctx };
     };
-    const u0 = units[0]!.uid; const offer = (uid: number, price: number, condition: number | null, inStock: 0 | 1, p: string, store = TEST_STORE) => ({ uid, market: 0, store, priceCents: price, condition, inStock, path: p });
-    const one = run({}, (ctx) => { ctx.offers!.cards.push(offer(u0, 900, 2, 1, "/b"), offer(u0, 1100, 1, 1, "/a"), offer(u0, 100, 0, 0, "/oos"), offer(u0, 1000, 1, 1, "/c"), offer(u0, 1200, 1, 1, "/d", TEST_STORE + 1), offer(99_999_999, 100, 1, 1, "/untracked")); ctx.offers!.reads.push({ store: TEST_STORE, market: 0, ok: true, at: "2026-10-08T04:00:00Z" }, { store: TEST_STORE + 1, market: 0, ok: true, at: "2026-10-08T04:00:00Z" }); });
-    const mine = one.rows.get(u0)!; assert.equal(mine.length, 2, "one row per store"); const byStore = new Map(mine.map((r) => [r[2]!, r])); assert.deepEqual(byStore.get(TEST_STORE)!.slice(3, 7), [1000, 1, 1, "/c" as unknown as number], "in stock beats out of stock; among the in-stock, the better condition (NM=0 < LP=1 < MP=2), then the lower price");
+    const mk = marketsOf(fsTree(path.join(plane, "v1"))); const u0 = units[0]!.uid; const real = mk.get(u0)!; const at = (k: number): number => Math.round(real * k); assert.ok(real >= 500, "a tracked unit's market is at least the $5 floor, so 0.9, 1.0 and 1.1 of it are three different prices");
+    const offer = (uid: number, price: number, condition: number | null, inStock: 0 | 1, p: string, store = TEST_STORE) => ({ uid, market: 0, store, priceCents: price, condition, inStock, path: p });
+    const one = run({}, (ctx) => { ctx.offers!.cards.push(offer(u0, at(0.9), 2, 1, "/b"), offer(u0, at(1.1), 1, 1, "/a"), offer(u0, at(0.1), 0, 0, "/oos"), offer(u0, at(1), 1, 1, "/c"), offer(u0, at(1.2), 1, 1, "/d", TEST_STORE + 1), offer(99_999_999, at(0.5), 1, 1, "/untracked")); ctx.offers!.reads.push({ store: TEST_STORE, market: 0, ok: true, at: "2026-10-08T04:00:00Z" }, { store: TEST_STORE + 1, market: 0, ok: true, at: "2026-10-08T04:00:00Z" }); });
+    const mine = one.rows.get(u0)!; assert.equal(mine.length, 2, "one row per store"); const byStore = new Map(mine.map((r) => [r[2]!, r])); assert.deepEqual(byStore.get(TEST_STORE)!.slice(3, 7), [at(1), 1, 1, "/c" as unknown as number], "in stock beats out of stock; among the in-stock, the better condition (NM=0 < LP=1 < MP=2), then the lower price");
     assert.equal(one.rows.has(99_999_999), false, "a unit that is not tracked has no offer row");
-    const all = units.slice(0, 8); const pruned = run({ offerRowsBudget: 5 }, (ctx) => { for (const u of all) for (let k = 0; k < 2; k++) ctx.offers!.cards.push(offer(u.uid, 1000 + k, 1, 1, `/${u.uid}`, TEST_STORE + k)); ctx.offers!.reads.push({ store: TEST_STORE, market: 0, ok: true, at: "2026-10-08T04:00:00Z" }, { store: TEST_STORE + 1, market: 0, ok: true, at: "2026-10-08T04:00:00Z" }); });
+    const all = units.slice(0, 8); const pruned = run({ offerRowsBudget: 5 }, (ctx) => { for (const u of all) for (let k = 0; k < 2; k++) ctx.offers!.cards.push(offer(u.uid, mk.get(u.uid)! + k, 1, 1, `/${u.uid}`, TEST_STORE + k)); ctx.offers!.reads.push({ store: TEST_STORE, market: 0, ok: true, at: "2026-10-08T04:00:00Z" }, { store: TEST_STORE + 1, market: 0, ok: true, at: "2026-10-08T04:00:00Z" }); });
     const total = [...pruned.rows.values()].reduce((a, r) => a + r.length, 0); assert.ok(total <= 5 && total > 0, `${total} rows under a budget of 5`); assert.equal(aggregateInfoOf(pruned.ctx).offersPruned, 16 - total);
     const kept = new Set(pruned.rows.keys()); const dropped = all.filter((u) => !kept.has(u.uid)); assert.ok(dropped.length > 0 && kept.size > 0, "some units kept, some dropped, whole units at a time");
   } finally { t.done(); }
@@ -217,20 +221,35 @@ test("F2c: a store read whose matched count fell under 50% of the last run's is 
     const d1 = miniMagicDay(path.join(t.root, "d1")); const env = importEnv(path.join(t.root, "e1"), d1, { IMPORT_FORCE: "1" }); const a = await bootstrap({ ...env, PLANE_DIR: plane }, NOW); assert.deepEqual(a.problems, []);
     const tree = fsTree(path.join(plane, "v1")); const ptr = JSON.parse(fs.readFileSync(path.join(plane, "latest.json"), "utf8")) as PointerFile; let status = JSON.parse(fs.readFileSync(path.join(plane, "status.json"), "utf8")) as StatusFile;
     const units = snapshotFromTree(tree, "2026-10-07").units.map((u) => u.id * 2 + (u.finish === "F" ? 1 : 0)).slice(0, 10);
-    const stage = (ctx: ImportContext, n: number, at: string): void => { for (const uid of units.slice(0, n)) ctx.offers!.cards.push({ uid, market: 0, store: TEST_STORE, priceCents: 1500, condition: 1, inStock: 1, path: `/p/${uid}` }); ctx.offers!.reads.push({ store: TEST_STORE, market: 0, ok: true, at }); };
+    const mk = marketsOf(tree); const stage = (ctx: ImportContext, n: number, at: string): void => { for (const uid of units.slice(0, n)) ctx.offers!.cards.push({ uid, market: 0, store: TEST_STORE, priceCents: Math.round(mk.get(uid)! * 0.95), condition: 1, inStock: 1, path: `/p/${uid}` }); ctx.offers!.reads.push({ store: TEST_STORE, market: 0, ok: true, at }); };
     const phase = (matched: number, now: Date) => buildPhase(tree, { prev: ptr, prevStatus: status, cutDay: false }, {
       phase: "full", priceDay: "2026-10-07", tcgcsv: ptr.tcgcsv, scryfall: ptr.scryfall, env, now: () => now,
       deps: { importStores: async (ctx) => { stage(ctx, matched, now.toISOString()); return [result(matched)]; }, storeId: () => TEST_STORE },
     });
-    const first = await phase(10, new Date("2026-10-08T04:00:00Z")); status = { ...status, ...first.built.status } as StatusFile; assert.equal(first.built.status.runs?.[0]?.stores?.[0]?.matched, 10); assert.deepEqual(first.built.status.guards?.storeHold, []);
+    // in the daily flow the newest run of the record, when phase 2 starts, is the phase 1 of the same day (it has no store results): the memory of a store comes from the newest run that READ it
+    const first = await phase(10, new Date("2026-10-08T04:00:00Z")); status = { ...status, ...first.built.status, runs: [{ at: "2026-10-08T05:00:00.000Z", kind: "catalog", ok: true, seconds: 1, note: "the next day's phase 1" }, ...first.built.status.runs!] } as StatusFile; assert.equal(first.built.status.runs?.[0]?.stores?.[0]?.matched, 10); assert.deepEqual(first.built.status.guards?.storeHold, []);
     const ofRows = (): number => { let n = 0; for (const f of tree.files()) if (f.startsWith("of/")) n += (JSON.parse(tree.read(f)) as { o: unknown[] }).o.length; return n; }; assert.equal(ofRows(), 10);
     const lastRead = (): string => (JSON.parse(tree.read("ss/runs.json")) as { r: string[][] }).r[0]![2]!;
     assert.equal(lastRead(), "2026-10-08T04:00:00.000Z");
     const second = await phase(3, new Date("2026-10-08T16:00:00Z"));                                                                  // 3 of 10 matched: under 50%
     assert.deepEqual(second.built.status.guards?.storeHold, ["teststore|US"], "the read is held"); assert.equal(ofRows(), 10, "its rows stay (the 3 fresh ones are NOT merged either: a failed read changes nothing)"); assert.equal(lastRead(), "2026-10-08T04:00:00.000Z", "freshness did not advance");
     assert.ok(second.built.status.runs?.[0]?.errors?.some((e) => /store hold/.test(e)), "the run record names the hold");
-    status = { ...status, ...second.built.status } as StatusFile;
+    status = { ...status, ...second.built.status, runs: [{ at: "2026-10-09T03:00:00.000Z", kind: "catalog", ok: true, seconds: 1, note: "the day after's phase 1" }, ...second.built.status.runs!] } as StatusFile;
     const third = await phase(8, new Date("2026-10-09T04:00:00Z")); assert.deepEqual(third.built.status.guards?.storeHold, [], "8 of 10 against the last run's 3: a healthy read"); assert.equal(lastRead(), "2026-10-09T04:00:00.000Z"); assert.equal(ofRows(), 8);
+  } finally { t.done(); }
+});
+
+test("F10 trips are counted once a day: phase 2 carries the count of phase 1 instead of adding another (else the third consecutive trip would arrive on the second day)", async () => {
+  const t = tmpRoot(); const plane = path.join(t.root, "plane"); try {
+    const d1 = miniMagicDay(path.join(t.root, "d1")); const env = importEnv(path.join(t.root, "e1"), d1, { IMPORT_FORCE: "1" }); const a = await bootstrap({ ...env, PLANE_DIR: plane }, NOW); assert.deepEqual(a.problems, []);
+    const tree = fsTree(path.join(plane, "v1")); const ptr = JSON.parse(fs.readFileSync(path.join(plane, "latest.json"), "utf8")) as PointerFile; const status = JSON.parse(fs.readFileSync(path.join(plane, "status.json"), "utf8")) as StatusFile;
+    const tripped = "LISTED would change on 60 of 1100 rows";
+    const afterPhase1 = { ...status, guards: { ...status.guards, flagChange: tripped }, config: { ...status.config, guardTrips: { flagChange: 1 } } } as StatusFile;      // the record phase 1 of a tripping day leaves
+    const full = await buildPhase(tree, { prev: ptr, prevStatus: afterPhase1, cutDay: false }, { phase: "full", priceDay: "2026-10-07", tcgcsv: ptr.tcgcsv, scryfall: ptr.scryfall, env, now: NOW, deps: { importStores: async () => [], storeId: () => TEST_STORE } });
+    assert.equal(full.built.status.guards?.flagChange, tripped, "phase 2 carries the guard record of phase 1");
+    assert.equal(full.built.status.config?.guardTrips.flagChange, 1, "one tripping day is one trip, however many phases the day has");
+    const quiet = await buildPhase(tree, { prev: ptr, prevStatus: { ...status, config: { ...status.config, guardTrips: { flagChange: 2 } } } as StatusFile, cutDay: false }, { phase: "full", priceDay: "2026-10-07", tcgcsv: ptr.tcgcsv, scryfall: ptr.scryfall, env, now: NOW, deps: { importStores: async () => [], storeId: () => TEST_STORE } });
+    assert.equal(quiet.built.status.config?.guardTrips.flagChange, 2, "a day that did not trip leaves the count as phase 1 wrote it");
   } finally { t.done(); }
 });
 

@@ -85,6 +85,6 @@ export function miniMagicDay(root: string, o: MiniDayOpts = {}): MiniDay {
 export const tmpRoot = (prefix = "import-"): { root: string; done: () => void } => { const root = fs.mkdtempSync(path.join(os.tmpdir(), prefix)); return { root, done: () => fs.rmSync(root, { recursive: true, force: true }) }; };
 
 /** The environment of an offline importer run over a mini day: the downloaded TCGCSV and Scryfall files, a private cache and clone directory, no revalidate hook. Nothing here reaches the network, the repository's .cache or the system temp of another test. */
-export function importEnv(root: string, day: MiniDay, extra: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
-  return { TCGCSV_CACHE_DIR: day.tcgDir, SCRYFALL_CACHE_DIR: day.scryDir, IMPORT_CACHE_DIR: path.join(root, "cache"), PLANE_WORK_DIR: path.join(root, "work"), SKIP_REVALIDATE: "1", ...extra };
+export function importEnv(root: string, day: MiniDay, extra: Record<string, string> = {}): NodeJS.ProcessEnv {
+  return { TCGCSV_CACHE_DIR: day.tcgDir, SCRYFALL_CACHE_DIR: day.scryDir, IMPORT_CACHE_DIR: path.join(root, "cache"), PLANE_WORK_DIR: path.join(root, "work"), SKIP_REVALIDATE: "1", ...extra } as unknown as NodeJS.ProcessEnv;
 }

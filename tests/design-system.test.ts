@@ -79,20 +79,20 @@ test("ui/Dialog.tsx hidden states use motion-safe:, never a bare opacity-0", () 
   assert.match(code, /motion-safe:opacity-0/);
 });
 
-test("the ui/ primitives are RiftCompare's, with OP's body flag", () => {
+test("the ui/ primitives are RiftCompare's, with the site's own body flag", () => {
   for (const f of ["Dialog", "EmptyState", "SegmentedTabs", "Skeleton", "Toast", "Tooltip"]) {
     assert.ok(existsSync(join(ROOT, `src/components/ui/${f}.tsx`)), `ui/${f}.tsx`);
   }
   const dialog = read("src/components/ui/Dialog.tsx");
   for (const name of ["useScrollLock", "useModalFlag", "useEscapeLayer"]) assert.match(dialog, new RegExp(`export function ${name}`));
-  assert.match(dialog, /document\.body\.dataset\.ocDialog = "1"/);
-  assert.doesNotMatch(dialog, /rcDialog/);
+  assert.match(dialog, /document\.body\.dataset\.mcDialog = "1"/);
+  assert.doesNotMatch(dialog, /rcDialog|ocDialog/);
   assert.match(dialog, /export type DialogPlacement = "center" \| "top" \| "sheet" \| "right";/);
   const css = read("src/app/globals.css");
-  assert.match(css, /body\[data-oc-dialog\] \.above-bottombar\.left-4/);
+  assert.match(css, /body\[data-mc-dialog\] \.above-bottombar\.left-4/);
   assert.doesNotMatch(css, /data-rc-/);
   // The nudges yield to the same flag.
-  assert.match(read("src/lib/nudge-runtime.ts"), /dataset\.ocDialog === "1"/);
+  assert.match(read("src/lib/nudge-runtime.ts"), /dataset\.mcDialog === "1"/);
   // Wave 1's Dialog is a thin re-export that keeps its default-export callers working.
   const shim = readCode("src/components/Dialog.tsx");
   assert.match(shim, /from "\.\/ui\/Dialog"/);
@@ -103,7 +103,7 @@ test("the ui/ primitives are RiftCompare's, with OP's body flag", () => {
   assert.match(plan, /useScrollLock\(true\)/);
   assert.match(plan, /useModalFlag\(true\)/);
   assert.match(plan, /useEscapeLayer\(true, onClose\)/);
-  assert.doesNotMatch(plan, /dataset\.ocDialog/);
+  assert.doesNotMatch(plan, /dataset\.(?:mc|oc)Dialog/);
 });
 
 test("the old ui.tsx EmptyState is gone; every caller uses ui/EmptyState", () => {
@@ -134,7 +134,7 @@ test("every outline-none in src/**/*.tsx carries a focus-visible: ring in the sa
   assert.deepEqual(offenders, []);
 });
 
-test("OP Compare's retired design vocabulary is gone: no straw, no sea, no comic face, no prose-op", () => {
+test("the retired design vocabulary is gone: no straw, no sea, no comic face, no prose-op", () => {
   const cfg = read("tailwind.config.ts");
   const css = read("src/app/globals.css");
   assert.doesNotMatch(cfg, /straw|brand:\s*\[|bob/, "no straw token, no font-brand family, no bob animation");
@@ -157,7 +157,7 @@ test("fonts: RiftCompare's next/font block on <html>, Fraunces headings, mono nu
   assert.match(layout, /const inter = Inter\(\{ subsets: \["latin"\], variable: "--font-sans", display: "swap" \}\);/);
   assert.match(layout, /JetBrains_Mono\(\{ subsets: \["latin"\], variable: "--font-mono", display: "swap", preload: false \}\)/);
   assert.match(layout, /weight: \["600", "700", "900"\],\s*style: \["normal"\],\s*variable: "--font-display",\s*display: "swap",/);
-  assert.match(layout, /<html lang="en" data-theme="light" className=\{`\$\{inter\.variable\} \$\{jetbrainsMono\.variable\} \$\{fraunces\.variable\}`\}/);
+  assert.match(layout, /<html lang="en" data-theme="dark" className=\{`\$\{inter\.variable\} \$\{jetbrainsMono\.variable\} \$\{fraunces\.variable\}`\}/);
   assert.match(layout, /<body className="min-h-screen bg-ink-950">/);
   assert.doesNotMatch(readCode("src/app/layout.tsx"), /Luckiest_Guy|Archivo/, "Archivo is the homepage's own import");
   const css = read("src/app/globals.css");
@@ -173,7 +173,7 @@ test("the layout's main container: skip link, the rail wrapper, container-app on
   assert.match(layout, /href="#main-content"[\s\S]{0,400}Skip to main content/);
   assert.match(layout, /focus:z-\[200\][^"]*focus:min-h-11[^"]*focus:ring-2 focus:ring-brand-400/);
   assert.match(layout, /<div className="pl-\[var\(--sidenav-w\)\]">\s*<main id="main-content" className="container-app min-w-0 py-6">/);
-  assert.match(layout, /viewport: Viewport = \{ themeColor: "#f4f6f8" \}/);
+  assert.match(layout, /viewport: Viewport = \{ themeColor: "#0c0b14" \}/);
   const offenders = walk("src/app")
     .filter((f) => /page\.tsx$/.test(f))
     .filter((f) => /return \(\s*<(?:div|article|section)\s+className="[^"]*\bcontainer-app\b/.test(read(f)));
