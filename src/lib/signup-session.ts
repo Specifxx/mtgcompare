@@ -7,7 +7,7 @@
 // against SignupWelcome's, and the Plus/Premium slide-in can stay away for
 // the session. sessionStorage, so "the rest of the session" is this tab until
 // it closes. Both fail closed in private mode or on the server.
-const KEY = "oc_signup_session";
+const KEY = "mc_signup_session";
 
 /** Called by SignupWelcome on a ?welcome landing. */
 export function markSignupSession(): void {

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 // POST → "Keep Plus/Premium": turn renewal back ON for the caller's own
 // subscription that is set to end (RiftCompare's /api/premium/resume, without
-// its intro-coupon branch: OP Compare has no intro offer). It clears the
+// its intro-coupon branch: MTG Compare has no intro offer). It clears the
 // cancellation and nothing else: nothing is charged now and the next renewal
 // date is unchanged. A GET does nothing (405 by omission).
 //

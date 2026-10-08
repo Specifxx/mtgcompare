@@ -16,8 +16,8 @@ import { priceIdFor, stripe } from "./stripe";
 //             unused part is CREDITED against the next invoice; nothing is
 //             charged now and no cash is refunded. Takes effect now.
 //
-// Only the caller's own OP Compare subscription (ourSubscription refuses one
-// whose Price/metadata isn't site=opcompare), only an ACTIVE one (not a trial,
+// Only the caller's own MTG Compare subscription (ourSubscription refuses one
+// whose Price/metadata isn't site=mtgcompare), only an ACTIVE one (not a trial,
 // not past_due), and never one set to end. Idempotent on the TIER read from
 // the live Price. ENTITLEMENT IS NEVER WRITTEN HERE: the update fires
 // customer.subscription.updated and the webhook (or the daily reconcile)

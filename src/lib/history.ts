@@ -105,9 +105,10 @@ export function highOver(series: Point[], today: number, days = 90): number | nu
 }
 
 /**
- * The OP Compare Index for today: chained and value-weighted over every single
- * priced at US$1+ on both the previous recorded day and today, 1,000 on day one.
- * `pairs` are [today, previous day] market cents of cards priced on both days.
+ * The MTG Compare Index for today: chained and value-weighted over every tracked
+ * unit (market values, contract 8.2) priced on both the previous recorded day and
+ * today, 1,000 on day one. `pairs` are [today, previous day] market cents of the
+ * units priced on both days.
  */
 export function nextIndex(prev: IndexRow | null, pairs: [number, number][], total: number, cardCount: number, day: string): IndexRow {
   let value = 1000;

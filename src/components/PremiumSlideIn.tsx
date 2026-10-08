@@ -25,10 +25,10 @@ import { TierComparisonTable } from "./TierComparisonTable";
 //   • once per session; a dismissal snoozes it 7 days, a click 14 days, and
 //     two dismissals end it for good (lib/nudge-timing.ts).
 // The button goes straight to /premium (no dialog in between).
-const SESSION_SEEN = "oc_prem_slidein_session"; // sessionStorage
-const DISMISS_COUNT = "oc_prem_slidein_dismisses"; // localStorage: lifetime dismissals
-const SNOOZE_UNTIL = "oc_prem_slidein_until"; // localStorage: epoch ms
-const PV_KEY = "oc_prem_slidein_pv"; // sessionStorage: signed-in page views
+const SESSION_SEEN = "mc_prem_slidein_session"; // sessionStorage
+const DISMISS_COUNT = "mc_prem_slidein_dismisses"; // localStorage: lifetime dismissals
+const SNOOZE_UNTIL = "mc_prem_slidein_until"; // localStorage: epoch ms
+const PV_KEY = "mc_prem_slidein_pv"; // sessionStorage: signed-in page views
 
 // One honest line per kind of page, naming the paid feature that fits it.
 const CONTEXT_PITCH: { prefixes: string[]; tier: Tier; heading: string; line: string }[] = [
@@ -36,7 +36,7 @@ const CONTEXT_PITCH: { prefixes: string[]; tier: Tier; heading: string; line: st
     prefixes: ["/card/"],
     tier: "plus",
     heading: "Deal Finder shows every card under TCGplayer market",
-    line: "Every One Piece card whose cheapest listing at a real store in your market sits under TCGplayer's market price, at every price level. Your free account shows the top three; Plus shows them all, with no ads.",
+    line: "Every Magic card whose cheapest listing at a real store in your market sits under TCGplayer's market price, at every price level. Your free account shows the top three; Plus shows them all, with no ads.",
   },
   {
     prefixes: ["/movers", "/market", "/price-guide"],
@@ -49,6 +49,12 @@ const CONTEXT_PITCH: { prefixes: string[]; tier: Tier; heading: string; line: st
     tier: "premium",
     heading: "Premium plans which stores to buy your list from",
     line: "Paste a deck or send your watchlist and Best Basket finds the cheapest delivered way to buy it: which store for each card, postage included.",
+  },
+  {
+    prefixes: ["/browse", "/cards", "/search"],
+    tier: "premium",
+    heading: "See which cards are about to move",
+    line: "Rising Cards lists the picks that demand and price timing say are about to move, with the reason for each; Demand Finder shows what everyone is searching and viewing. A free account sees the top three picks and the ten most searched cards; Premium opens both in full.",
   },
 ];
 
@@ -140,7 +146,7 @@ export function PremiumSlideIn() {
   useEffect(() => {
     if (!shown) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && document.body.dataset.ocDialog !== "1") dismiss();
+      if (e.key === "Escape" && document.body.dataset.mcDialog !== "1") dismiss();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -149,13 +155,13 @@ export function PremiumSlideIn() {
   if (!shown) return null;
   const pitch = contextPitchFor(pathname);
   const tier: Tier = pitch?.tier ?? "plus";
-  const heading = pitch?.heading ?? "Never overpay for a One Piece card";
-  const line = pitch?.line ?? "You've been comparing prices. Plus shows every Deal Finder deal with no ads; Premium also plans which stores to buy your list from.";
+  const heading = pitch?.heading ?? "Never overpay for a Magic card";
+  const line = pitch?.line ?? "You've been comparing prices. Plus shows every Deal Finder deal with no ads; Premium adds the full Rising Cards and Demand Finder lists and plans which stores to buy your list from.";
 
   return (
     <div
       role="region"
-      aria-label="OP Compare Plus and Premium offer"
+      aria-label="MTG Compare Plus and Premium offer"
       data-nudge="slidein"
       className={`fixed z-[70] w-[calc(100%-2rem)] transition-[opacity,transform] duration-slow ease-out ${details ? "max-w-[23rem]" : "max-w-[20rem]"} ${entered ? "translate-y-0 opacity-100" : "motion-safe:translate-y-4 motion-safe:opacity-0"}`}
       style={{ left: "calc(var(--sidenav-w) + 1rem)", bottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}

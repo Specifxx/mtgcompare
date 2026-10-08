@@ -28,8 +28,8 @@ test("every field is checked: over-long is rejected, never truncated", () => {
   assert.ok(trimmed.ok && trimmed.value.name === "Bill" && trimmed.value.subject === "Charged twice");
 });
 
-test("ticket numbers are OC-n and come from an atomic counter seeded below the first", async () => {
-  assert.equal(formatTicketNumber(10001), "OC-10001");
+test("ticket numbers are MC-n and come from an atomic counter seeded below the first", async () => {
+  assert.equal(formatTicketNumber(10001), "MC-10001");
   assert.equal(formatTicketNumber(null), null);
   const rows = new Map<string, number>();
   const client: CounterClient = {

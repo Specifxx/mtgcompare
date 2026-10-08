@@ -9,7 +9,7 @@
 //                      ends, and re-checked when it fires.
 //   • useSessionViews  distinct page views this visit (tab), reloads not counted.
 //
-// "A dialog is open" = body[data-oc-dialog="1"] (PlanDialog sets it) or any
+// "A dialog is open" = body[data-mc-dialog="1"] (PlanDialog sets it) or any
 // [aria-modal="true"] element on the page (the phone menu, QuickView …), so a
 // new modal is respected without having to know about this file.
 
@@ -25,7 +25,7 @@ const dialogListeners = new Set<(open: boolean) => void>();
 
 export function anyDialogOpen(): boolean {
   if (typeof document === "undefined") return false;
-  if (document.body.dataset.ocDialog === "1") return true;
+  if (document.body.dataset.mcDialog === "1") return true;
   // An aria-modal element only counts while it is actually showing: the phone
   // nav menu stays mounted when closed, wrapped in aria-hidden/inert, and must
   // not read as "a dialog is open" (it silenced every corner nudge, the launch
@@ -50,7 +50,7 @@ function ensureWatchers(): void {
     if (queued) return;
     queued = true;
     requestAnimationFrame(check);
-  }).observe(document.body, { attributes: true, attributeFilter: ["data-oc-dialog", "aria-modal"], childList: true, subtree: true });
+  }).observe(document.body, { attributes: true, attributeFilter: ["data-mc-dialog", "aria-modal"], childList: true, subtree: true });
   window.addEventListener("scroll", () => (lastScrollAt = Date.now()), { passive: true, capture: true });
   document.addEventListener("keydown", () => (lastKeyAt = Date.now()), { passive: true, capture: true });
 }

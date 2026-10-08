@@ -116,7 +116,7 @@ export interface ParsedName {
   digit: string | null;                  // first token that is 1-4 digits: the collector number written in the name ("0205" -> "205")
   faceDigits: string[];                  // further digit tokens (double-sided token faces)
   index: string | null;                  // "2/54", "1 of 9", "1 // 2": an art-card or token index, NOT a collector number
-  src: string | null;                    // a token equal to a known Scryfall set code or abbreviation (4ED, KHC, BRO): the SOURCE set in bucket groups
+  src: string | null;                    // a token equal to a known Scryfall set code or abbreviation (4ED, KHC, BRO): the SOURCE set in bucket groups (SOURCE_KINDS)
   version: string | null;                // (A)..(F), (a)/(b), (2-3-6), [Version 2]
   event: { year: number; player: string } | null;   // "Name - 1996 Bertrand Lestree (4ED)" in World Championship Decks
   pack: string | null;                   // "Clear Pack" (APAC Lands)
@@ -130,16 +130,20 @@ export interface ParsedName {
 //   * a " - tail" is classified once, by this order: event ("1996 Bertrand Lestree"), pack ("Clear Pack"), "Thick Stock", "Full Art"/"JP Full Art", emblem (head ends in "Emblem" or the tail ends in
 //     "Double-Sided Token"), a language word ("foreign"), treatment words only ("word"), a basic land's variant word ("word": "Forest - Guru"), else "reskin?": a possible flavor-name pair, which only the Scryfall
 //     join may resolve (the grammar never decides which side is the oracle name). `base` drops the tail of event, pack, thick, fullart and word; every other kind keeps it (it is part of the name).
-//   * a token equal to a Scryfall set code is the SOURCE set (`src`) only in bucket kinds (promo, promo-pack, list, secret-lair, gold-border): in an expansion "(Man)" is an art word, not a code. An exact
-//     treatment synonym wins over a code ("CE" is Collector's Edition; "FNM" is the promo stamp).
-//   * everything the vocabulary does not know is kept as text in `words` (never a raw: key), in name order, one entry per token.
-const BUCKET_KINDS: readonly SetKind[] = ["promo", "promo-pack", "list", "secret-lair", "gold-border"];
+//   * a token equal to a Scryfall set code is the SOURCE set (`src`) only in the kinds whose groups shelve cards of many origin sets (SOURCE_KINDS: the bucket kinds promo, promo-pack, list, secret-lair and
+//     gold-border, plus deck, unset and oversized, where "Flamewave Invoker (EVG)" and "Tomb of Annihilation (AFR)" name the origin), and only in the printed form of a code (upper case or digits, as the reference
+//     requires): in an expansion "(Man)" is an art word, not a code. An exact treatment synonym wins over a code ("CE" is Collector's Edition; "FNM" is the promo stamp).
+//   * a language key found anywhere in a token ("Chinese Simplified", "Japanese Promo") sets `lang` too, so the field and the key never disagree.
+//   * everything the vocabulary does not know is kept as text in `words` (never a raw: key), in name order, one entry per token. That includes the class words "Art Series", "Oversize" and "Emblem": the class
+//     (productClass) already says it, a key would only duplicate it, and the label keeps the text (decisions/WP01a-name-grammar-families.md).
+const SOURCE_KINDS: readonly SetKind[] = ["promo", "promo-pack", "list", "secret-lair", "gold-border", "deck", "unset", "oversized"];
 const LANGUAGES: ReadonlySet<string> = new Set(["spanish", "french", "italian", "german", "japanese", "portuguese", "korean", "chinese", "russian", "greek", "hebrew", "sanskrit", "latin", "arabic", "english"]);   // the reference's LANGS minus "phyrexian": an art key of the vocabulary, not a language
 const TAIL_KINDS_DROPPED_FROM_BASE: ReadonlySet<string> = new Set(["event", "pack", "thick", "fullart", "word"]);   // the dash kinds whose tail is not part of the name; the others keep it in `base`
 const BASIC_LAND = /^(?:Snow-Covered )?(?:Plains|Island|Swamp|Mountain|Forest)$|^Wastes$/;
 const PREFIX_SYNONYMS: readonly (readonly [string, TreatmentKey])[] = [...TREATMENT_BY_SYNONYM].filter(([s]) => s.endsWith(" *")).map(([s, k]) => [s.slice(0, -2), k] as const).sort((a, b) => b[0].length - a[0].length);
 const IGNORED_WORDS: ReadonlySet<string> = new Set(IGNORED_FINISH_WORDS.map((w) => fold(w)));
 const LANGUAGE_KEY = new Map<string, TreatmentKey>(TREATMENTS.filter((t) => t.kind === "language").flatMap((t) => t.syn.map((s) => [fold(s), t.key as TreatmentKey] as const)));
+const LANGUAGE_OF_KEY = new Map<string, string>(TREATMENTS.filter((t) => t.kind === "language").map((t) => [t.key, fold(t.syn[0]!)] as const));
 /** The reference's greedy consumption: from each word the longest phrase that is a synonym; a prefix synonym ("neon ink*") takes the rest of the token; finish words are dropped; the rest is leftover. */
 function consumeWords(text: string): { keys: TreatmentKey[]; leftover: string[] } {
   const words = text.split(/\s+/).filter(Boolean);
@@ -159,8 +163,8 @@ export function parseTcgName(name: string, ctx: { setCodes: ReadonlySet<string>;
   const { core, tokens } = splitGroups(name);
   const p: ParsedName = { core, base: core, dash: null, tokens, digit: null, faceDigits: [], index: null, src: null, version: null, event: null, pack: null, sideboard: false, lang: null, treat: [], words: [] };
   const keys = new Set<TreatmentKey>();
-  const bucket = BUCKET_KINDS.includes(ctx.groupKind);
-  const isCode = (t: string): boolean => /^[A-Za-z0-9]{2,5}$/.test(t) && (ctx.setCodes.has(t.toLowerCase()) || ctx.setCodes.has(t));
+  const shelf = SOURCE_KINDS.includes(ctx.groupKind);
+  const isCode = (t: string): boolean => /^[A-Z0-9]{2,5}$/.test(t) && (ctx.setCodes.has(t.toLowerCase()) || ctx.setCodes.has(t));
   const addWords = (leftover: string[]): void => { if (leftover.length) p.words.push(leftover.join(" ")); };
   const grammarToken = (raw: string): void => {                       // classify_token of the reference, in its order
     const t = raw.trim();
@@ -172,7 +176,7 @@ export function parseTcgName(name: string, ctx: { setCodes: ReadonlySet<string>;
     if (/^[A-Fa-f]$/.test(t) || /^\d-\d-\d$/.test(t) || /^version \d+$/i.test(t)) { p.version ??= t; return; }
     const exact = TREATMENT_BY_SYNONYM.get(fold(t));
     if (exact) { keys.add(exact); return; }                           // "CE", "FNM", "Showcase": a treatment beats a set code
-    if (bucket && isCode(t)) { p.src ??= t.toLowerCase(); return; }
+    if (shelf && isCode(t)) { p.src ??= t.toLowerCase(); return; }
     const compound = /^([A-Za-z0-9]{2,4})\s+bundle$/i.exec(t);       // "WAR Bundle": the Bundle key plus the source set
     if (compound && isCode(compound[1]!)) { keys.add("bundle"); p.src ??= compound[1]!.toLowerCase(); return; }
     const c = consumeWords(t);
@@ -211,10 +215,12 @@ export function parseTcgName(name: string, ctx: { setCodes: ReadonlySet<string>;
   pieces.sort((a, b) => a.pos - b.pos);
   for (const piece of pieces) piece.run();
   p.treat = TREATMENT_KEYS.filter((k) => keys.has(k));
+  p.lang ??= p.treat.map((k) => LANGUAGE_OF_KEY.get(k)).find((l) => l !== undefined) ?? null;
   return p;
 }
 /** Treatment labels (TREATMENTS order, the group's own treatment added when absent), then version, event, pack, "from KHC", sideboard, words; " · "-joined; null when empty. The exact text of a placing
- *  ("3rd Place") and of a special foil stays in the label (the generic key label would lose it); language keys and the sideboard key are shown through their own field. */
+ *  ("3rd Place") and of a special foil stays in the label (the generic key label would lose it). `hidden` in the vocabulary keeps a key out of the filter pages, not out of the label: "No PW Symbol" and a language
+ *  name stay, so two products that differ only there do not read the same; the sideboard key is written once, as "Sideboard". */
 export function labelOf(p: ParsedName, groupTreat: TreatmentKey | null): string | null {
   const keys = new Set<TreatmentKey>(p.treat); if (groupTreat) keys.add(groupTreat);
   const parts: string[] = [];

@@ -7,7 +7,7 @@ import { prisma } from "./db";
  * event a daily visitor might not repeat for a month; these two answer the
  * questions the admin accounts page actually asks.
  *
- * THE WRITE IS THROTTLED, AND THAT IS THE WHOLE DESIGN. OP Compare's root
+ * THE WRITE IS THROTTLED, AND THAT IS THE WHOLE DESIGN. MTG Compare's root
  * layout never reads the session, so the stamp runs where getCurrentUser
  * already does: /api/me (the header asks once per signed-in page view) and
  * the account pages. Stamping unconditionally would still be one UPDATE per
@@ -19,7 +19,7 @@ import { prisma } from "./db";
  *     (an hour of browsing is 2 writes, not 60), or on a new UTC day.
  *   • It is never awaited, and a failure costs nothing but a stale number.
  *
- * Days are UTC days here (RiftCompare buckets by Sydney; OP Compare's import
+ * Days are UTC days here (RiftCompare buckets by Sydney; MTG Compare's import
  * and history files are UTC throughout).
  */
 export const ACTIVITY_STAMP_INTERVAL_MS = 30 * 60_000;

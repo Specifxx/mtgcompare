@@ -26,7 +26,7 @@ test("self-referral and junk codes are ignored before any lookup", () => {
 });
 
 test("the cookie is cleared on use and capture stays", () => {
-  assert.equal(REFERRAL_COOKIE, "oc_ref");
+  assert.equal(REFERRAL_COOKIE, "mc_ref");
   const src = read("src/lib/referral.ts");
   assert.match(src, /jar\.set\(REFERRAL_COOKIE, "", \{ path: "\/", maxAge: 0 \}\)/);
   assert.match(read("src/components/ReferralCapture.tsx"), /captureEntrySource\(\)/);

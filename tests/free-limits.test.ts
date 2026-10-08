@@ -1,6 +1,6 @@
 // The pure half of RiftCompare's tests/free-limits.test.ts (wave 2, 2026-10-03).
 // The route, panel and tier-table halves arrive with the tracks that build
-// those surfaces. OP Compare's card ids are numbers, so the ids here are too.
+// those surfaces. MTG Compare's card ids are numbers, so the ids here are too.
 import test from "node:test";
 import assert from "node:assert/strict";
 import {

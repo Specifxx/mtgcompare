@@ -19,10 +19,10 @@ import { usePlanDialog } from "./PlanProvider";
 // the same caps as the slide-in except a 30-day snooze: it saves the member
 // money, it is not a hard sell. Entitlement is not touched here: the webhook
 // stamps the new period when Stripe confirms the switch.
-const SESSION_SEEN = "oc_annual_nudge_session";
-const PV_KEY = "oc_annual_nudge_pv";
-const DISMISS_COUNT = "oc_annual_nudge_dismisses";
-const SNOOZE_UNTIL = "oc_annual_nudge_until";
+const SESSION_SEEN = "mc_annual_nudge_session";
+const PV_KEY = "mc_annual_nudge_pv";
+const DISMISS_COUNT = "mc_annual_nudge_dismisses";
+const SNOOZE_UNTIL = "mc_annual_nudge_until";
 const SNOOZE_AFTER_DISMISS_MS = 30 * 864e5;
 const ANNUAL_SKIP_PATHS = ["/premium", "/account", "/profile", "/login", "/admin"] as const;
 
@@ -127,7 +127,7 @@ export function AnnualSwitchNudge() {
   useEffect(() => {
     if (phase !== "offer") return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && document.body.dataset.ocDialog !== "1") dismiss();
+      if (e.key === "Escape" && document.body.dataset.mcDialog !== "1") dismiss();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -157,7 +157,7 @@ export function AnnualSwitchNudge() {
         </div>
         <div className="px-4 py-3">
           {phase === "done" ? (
-            <p className="text-xs leading-relaxed text-slate-300">Switched. You&apos;re on the yearly plan now, at {planPrice(tier, "year")}/yr. Thanks for supporting OP Compare.</p>
+            <p className="text-xs leading-relaxed text-slate-300">Switched. You&apos;re on the yearly plan now, at {planPrice(tier, "year")}/yr. Thanks for supporting MTG Compare.</p>
           ) : phase === "error" ? (
             <>
               <p className="text-xs leading-relaxed text-red-300">{error ?? "Couldn't switch your plan automatically."} You can change it yourself from the billing portal.</p>

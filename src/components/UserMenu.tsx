@@ -13,7 +13,7 @@ import { trackEvent } from "@/lib/analytics";
 const AUTH_PATHS = ["/login"];
 
 // RiftCompare's UserMenu: "Log in" + a btn-primary "Sign up free" when signed
-// out; an avatar with a w-60 menu when signed in. OP Compare signs in with
+// out; an avatar with a w-60 menu when signed in. MTG Compare signs in with
 // Google or Discord only, so there is no unverified-email dot or "Resend" row.
 // The Admin row (admins only) lives here and nowhere else in the public UI
 // (CLAUDE.md, "Admin access").

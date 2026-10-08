@@ -90,3 +90,49 @@ test("a closed, aria-hidden nav menu never reads as an open dialog (it silenced 
   const src = read("src/lib/nudge-runtime.ts");
   assert.match(src, /closest\('\[aria-hidden="true"\], \[inert\]'\)/);
 });
+
+// ── src/lib/data/site.ts: the launch promotion's counter and the other site-wide facts (owner WP18) ──────────────────────────────────────────
+// Store sizes are the probe's collection counts (stores-brief, store-probe-results.json: rhysticnostalgiagaming 113,011, goodgames 114,004, mysterymtg 2,316);
+// the catalogue counts are the contract's (98,991 listed rows, 98,796 of them class-0 singles priced in the US).
+import { MARKETS } from "../src/lib/country";
+import { homeStatsFrom } from "../src/lib/home";
+import { MIN_REVIEWS_TO_DISPLAY, siteStatsFrom, tcgplayerRow } from "../src/lib/data/site";
+
+const CAT = { pricedByMarket: { US: 98_796, AU: 0, UK: 0, SG: 0, CA: 0, EU: 0 }, pricesAt: "2026-10-07T20:06:09Z" };
+const RUNS = [
+  { source: "store:rhysticnostalgiagaming", market: "AU", offers: 113_011, inStock: 113_011 },
+  { source: "store:goodgames", market: "AU", offers: 114_004, inStock: 0 },
+  { source: "store:mysterymtg", market: "US", offers: 2_316, inStock: 2_316 },
+  { source: "ebay", market: "US", offers: 40, inStock: 40 },
+];
+
+test("site stats: the published store rows plus TCGplayer as the US store, never eBay, stamped with the publish time", () => {
+  const s = siteStatsFrom(RUNS, CAT, "2026-10-08T07:41:00Z");
+  assert.deepEqual(s.storeOffers.map((r) => `${r.source}|${r.market}`), ["store:rhysticnostalgiagaming|AU", "store:goodgames|AU", "store:mysterymtg|US", "tcgplayer|US"]);
+  assert.deepEqual(tcgplayerRow(CAT), { source: "tcgplayer", market: "US", offers: 98_796, inStock: 98_796 });
+  assert.equal(s.lastImportAt, "2026-10-08T07:41:00Z");
+  assert.equal(siteStatsFrom(RUNS, CAT, null).lastImportAt, CAT.pricesAt, "no status.json: the price day of the catalogue counts");
+  assert.equal(siteStatsFrom([], { pricedByMarket: CAT.pricedByMarket, pricesAt: "" }, null).lastImportAt, null);
+});
+
+test("home stats count a store only while it has stock, TCGplayer counts once in the US, and the hero numbers come from the published counts", () => {
+  const s = siteStatsFrom(RUNS, CAT, "2026-10-08T07:41:00Z");
+  const h = homeStatsFrom(s.storeOffers, CAT.pricedByMarket, 98_991, s.lastImportAt);
+  assert.equal(h.totalCards, 98_991);
+  assert.deepEqual(Object.fromEntries(MARKETS.map((m) => [m, h.statsByCountry[m].stores])), { US: 2, AU: 1, UK: 0, SG: 0, CA: 0, EU: 0 }, "mysterymtg + TCGplayer in the US; rhysticnostalgiagaming in AU (goodgames has no stock)");
+  assert.equal(h.statsByCountry.US.inStock, 2_316 + 98_796, "eBay is not a store and adds nothing");
+  assert.equal(h.liveStoresAll, 3, "mysterymtg, rhysticnostalgiagaming (goodgames has no stock) and TCGplayer; the same store in two markets would count once");
+  assert.equal(h.updatedAt, "2026-10-08T07:41:00Z");
+});
+
+test("the three Neon bits fail quiet and never store a failure; the reviews strip needs three; no plane module is imported here", () => {
+  assert.equal(MIN_REVIEWS_TO_DISPLAY, 3);
+  const src = read("src/lib/data/site.ts");
+  const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+  assert.doesNotMatch(code, /from "\.\/plane|@\/lib\/data\/plane/, "a module that reads the plane may not hold an unstable_cache (nested-cache RULE 5)");
+  assert.match(code, /loadEbayLive\(\)\.catch\(\(\) => false\)/, "Neon down: ebayLive false");
+  assert.match(code, /catch \{\s*return \[\];/, "Neon down: no reviews");
+  assert.match(code, /catch \{\s*return promoStatus\(PROMO_SLOTS\);/, "Neon down or unreadable counter: none left, so the popup hides");
+  assert.match(code, /select: \{ id: true, rating: true, message: true, displayName: true \}/, "never widen the reviews select to the reply email");
+  assert.doesNotMatch(code, /email/);
+});

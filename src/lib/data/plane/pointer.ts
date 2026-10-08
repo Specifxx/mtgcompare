@@ -69,4 +69,6 @@ export class PointerReader {
   }
   /** For planeHealth(): the memo without any request. */
   peek(): PointerState { return this.state(this.memo ? "memo" : "none"); }
+  /** The warm call: the next get() looks at the origin even inside the memo window. The last good pointer stays, so stale-while-error is untouched. */
+  invalidate(): void { if (this.memo) this.memo = { ptr: this.memo.ptr, at: Number.NEGATIVE_INFINITY }; }
 }

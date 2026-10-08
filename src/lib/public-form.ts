@@ -24,6 +24,8 @@ export type FormGate = {
   userId: string | null;
   /** A 400 for this submission, with its rate-limit slots refunded. */
   reject: (error: string) => NextResponse;
+  /** A 503 for this submission (a dependency the form needs is unreachable), slots refunded: the visitor did nothing wrong. */
+  unavailable: (error: string) => NextResponse;
 } | { response: NextResponse };
 
 export async function publicFormGate(req: Request, limits: FormLimits, success: Record<string, unknown> = { ok: true }): Promise<FormGate> {
@@ -52,7 +54,11 @@ export async function publicFormGate(req: Request, limits: FormLimits, success: 
     taken.forEach(refundRateLimit);
     return badRequest(error);
   };
-  return { body, userId: user?.id ?? null, reject };
+  const unavailable = (error: string) => {
+    taken.forEach(refundRateLimit);
+    return NextResponse.json({ error }, { status: 503, headers: { "Retry-After": "60" } });
+  };
+  return { body, userId: user?.id ?? null, reject, unavailable };
 }
 
 export const badRequest = (error: string) => NextResponse.json({ error }, { status: 400 });

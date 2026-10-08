@@ -59,7 +59,7 @@ export declare function getOracleBySlug(slug: string): Promise<OracleDetail | nu
 export declare function getOraclePrintings(oracleNo: number, page?: number, per?: 24 | 48): Promise<{ total: number; items: CardMini[] }>;   // M engine: cls 0 and LISTED, marketUsd desc, nulls last
 export declare function getSetHighlights(setId: number, n?: number): Promise<CardMini[]>;           // P st/<setId>.json; n <= 12
 /** Fan-in by bucket: P cat/px (+ un) of the distinct buckets (floor(id / 256)); more than 9 buckets reads the browse index (M). Misses are absent from the map. <= 2,000 ids. Per-user class: /api/* and account pages. */
-export declare function getCardsByIds(ids: readonly number[], opts?: { stores?: boolean }): Promise<Map<number, CardLite>>;
+export declare function getCardsByIds(ids: readonly number[], opts?: { stores?: boolean; unit?: Finish }): Promise<Map<number, CardLite>>;   // `unit` shows every card in that finish instead of its headline (requests/AMENDMENTS.md W02-1)
 export declare function getCardLookup(q: { ids?: readonly number[]; slugs?: readonly string[] }): Promise<CardLookup>;   // <= 500 ids + 500 slugs; never throws on a miss
 export declare function resolveOracles(nameKeys: readonly string[]): Promise<Map<string, OracleMini>>;   // P nm/<k> (the hot chunk first), <= 300 keys
 export declare function resolveBySetNumber(pairs: readonly { set: string; number: string }[]): Promise<Map<string, CardLite[]>>;   // P sc/<h> then cat/px; key "<sc>|<nkey>"; 1 to 3 cards per pair

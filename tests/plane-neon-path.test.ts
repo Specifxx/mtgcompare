@@ -43,3 +43,65 @@ test("the outbound click log is buffered and flushed in the SAME aligned window 
   let wakesA = 0; for (let m = 0; m < 24 * 60; m++) { t = m * 60_000 + 2_000; if (v.due() || c.due()) { wakesA++; v.drain(); c.drain(); } v.record(1, "view", false); c.record(row, false); }
   assert.ok(wakesA <= 48, `views and clicks share one aligned window: ${wakesA} wakes a day (at most 48)`);
 });
+
+// ══ with Neon unreachable the published-data loaders still answer (Annex C check 23); the three plane routes (warm, status, the Neon-tag purge) ═══════════════════════════════════════════════════════════════════════
+import fs from "node:fs";
+import path from "node:path";
+import { importsOf, resolveSpec } from "./helpers/import-graph";
+import { realMiniTree, writePlaneDir } from "./helpers/data-source";
+import { resetPlaneForTests } from "../src/lib/data/plane/runtime";
+import { hotSet } from "../src/lib/data/plane/shards";
+
+const ROOT = process.env.TEST_ROOT ?? path.resolve(__dirname, "..");
+const READER = ["src/lib/data/core.ts", "src/lib/data/catalog.ts", "src/lib/data/history.ts", "src/lib/data/catalog-shim.ts", "src/lib/data/lite.ts", "src/lib/data/types.ts", "src/lib/offer-read.ts", "src/lib/price.ts", "src/lib/selectors.ts", ...fs.readdirSync(path.join(ROOT, "src/lib/data/plane")).filter((f) => f.endsWith(".ts")).map((f) => `src/lib/data/plane/${f}`)];
+test("the reader's import closure never reaches the database client: not @/lib/db, not @prisma/client (so a closed Neon cannot break a public read)", () => {
+  const seen = new Set<string>(), bad: string[] = [], stack = READER.map((f) => path.join(ROOT, f));
+  while (stack.length) {
+    const f = stack.pop()!; if (seen.has(f)) continue; seen.add(f);
+    for (const e of importsOf(fs.readFileSync(f, "utf8"))) {
+      if (e.typeOnly) continue;
+      if (/^@prisma\/client|\/lib\/db$|^\.\.?\/db$|^@\/lib\/db/.test(e.spec) || e.spec === "pg") bad.push(`${path.relative(ROOT, f)} -> ${e.spec}`);
+      const r = resolveSpec(f, e.spec, ROOT); if (r && /\.tsx?$/.test(r)) stack.push(r);
+    }
+  }
+  assert.deepEqual(bad, []); assert.ok(seen.size > 20, `walked ${seen.size} files`);
+});
+test("loaders answer with DATABASE_URL pointing at a closed port, and no Prisma client is ever constructed", async () => {
+  const dir = writePlaneDir(realMiniTree()); process.env.PLANE_DIR = dir; process.env.DATABASE_URL = "postgresql://nobody:x@127.0.0.1:1/none"; resetPlaneForTests();
+  try {
+    const cat = await import("../src/lib/data/catalog"), hist = await import("../src/lib/data/history"), core = await import("../src/lib/data/core");
+    assert.equal((await cat.getCardDetail("counterspell-mh2-267"))?.name, "Counterspell"); assert.ok((await cat.getSets()).length > 5); assert.equal((await cat.getBrowseIndex()).n > 40, true); assert.deepEqual(await hist.getIndexSeries(), []); assert.equal((await core.getPlaneStatus())?.counts.sets! > 5, true);
+    assert.equal((globalThis as { prisma?: unknown }).prisma, undefined, "no client was built"); assert.deepEqual(Object.keys(require.cache).filter((k) => /@prisma[\\/]client|src[\\/]lib[\\/]db\.ts/.test(k)), []);
+  } finally { delete process.env.PLANE_DIR; delete process.env.DATABASE_URL; resetPlaneForTests(); }
+});
+test("GET /api/data-status: what this instance serves, counts and names only, never cached, no secret in the body", async () => {
+  const dir = writePlaneDir(realMiniTree(), { seq: 41, ref: "c".repeat(40) }); process.env.PLANE_DIR = dir; process.env.PLANE_TOKEN = "ghp_secret_token_value"; resetPlaneForTests();
+  try {
+    const { GET, dynamic } = await import("../src/app/api/data-status/route"); assert.equal(dynamic, "force-dynamic");
+    const r = await GET(), text = await r.text(), j = JSON.parse(text) as Record<string, unknown>;
+    assert.equal(r.status, 200); assert.equal(r.headers.get("cache-control"), "private, no-store"); assert.deepEqual(Object.keys(j).sort(), ["ageHours", "failures", "hostUsed", "lruMb", "ref", "seq", "stale", "tokenRejected"]); assert.equal(j.ref, "c".repeat(40)); assert.equal(j.seq, 41); assert.equal(j.hostUsed, "dir"); assert.doesNotMatch(text, /ghp_|secret/);
+  } finally { delete process.env.PLANE_DIR; delete process.env.PLANE_TOKEN; resetPlaneForTests(); }
+});
+test("POST /api/data-warm: Bearer CRON_SECRET only (fail closed), reads the hot set of the named commit, counts absent files apart from failed ones", async () => {
+  const tree = realMiniTree(), dir = writePlaneDir(tree); process.env.PLANE_DIR = dir; process.env.CRON_SECRET = "cron-secret-for-tests"; resetPlaneForTests();
+  try {
+    const { POST, maxDuration } = await import("../src/app/api/data-warm/route"); assert.ok(maxDuration >= 30);
+    const req = (auth: string | null, body: unknown = {}) => new Request("http://x/api/data-warm", { method: "POST", headers: auth ? { authorization: auth } : {}, body: JSON.stringify(body) });
+    assert.equal((await POST(req(null))).status, 401); assert.equal((await POST(req("Bearer nope"))).status, 401); assert.equal((await POST(req("cron-secret-for-tests"))).status, 401, "the scheme is required");
+    delete process.env.CRON_SECRET; assert.equal((await POST(req("Bearer undefined"))).status, 401, "with no secret configured nothing is authorised"); process.env.CRON_SECRET = "cron-secret-for-tests";
+    const named = "d".repeat(40), ok = await POST(req("Bearer cron-secret-for-tests", { ref: named })), j = (await ok.json()) as { ok: boolean; ref: string; servedRef: string; files: number; absent: number; failed: number; index: boolean; bytes: number };
+    assert.equal(ok.status, 200); assert.equal(ok.headers.get("cache-control"), "private, no-store"); assert.equal(j.ref, named, "the commit the publisher named is the one warmed"); assert.equal(j.servedRef, "b".repeat(40)); assert.equal(j.failed, 0); assert.equal(j.ok, true); assert.equal(j.index, false, "the index is built only when the pointer already names the ref");
+    const rows = (JSON.parse(tree.read("ix/dict.json")) as { rows: number }).rows; assert.equal(j.files, hotSet(rows).length); assert.ok(j.absent > 10 && j.absent < j.files, "a tree that has no market, mover or preview files counts them absent, not failed"); assert.ok(j.bytes > 10_000);
+    const own = (await (await POST(req("Bearer cron-secret-for-tests", { ref: "not a sha" }))).json()) as typeof j; assert.equal(own.ref, "b".repeat(40), "a malformed ref falls back to the pointer's"); assert.equal(own.index, true);
+  } finally { delete process.env.PLANE_DIR; delete process.env.CRON_SECRET; resetPlaneForTests(); }
+});
+test("POST /api/revalidate purges the Neon-backed tags and the rankings, nothing of the published data; Bearer CRON_SECRET only", async () => {
+  const tags: string[] = [], key = require.resolve("next/cache"); const saved = require.cache[key];
+  require.cache[key] = { id: key, filename: key, loaded: true, exports: { revalidateTag: (t: string) => { tags.push(t); } } } as never; process.env.CRON_SECRET = "cron-secret-for-tests";
+  try {
+    const { POST } = await import("../src/app/api/revalidate/route"), mk = (auth?: string) => new Request("http://x/api/revalidate", { method: "POST", headers: auth ? { authorization: auth } : {} });
+    assert.equal((await POST(mk())).status, 401); assert.equal((await POST(mk("Bearer wrong"))).status, 401); assert.deepEqual(tags, []);
+    const r = await POST(mk("Bearer cron-secret-for-tests")), j = (await r.json()) as { ok: boolean; revalidated: string[] }; assert.equal(r.status, 200); assert.deepEqual(tags, ["published-decks", "rising-snapshots", "ebay-banner", "rank"]); assert.deepEqual(j.revalidated, tags); assert.equal(r.headers.get("cache-control"), "private, no-store");
+  } finally { if (saved) require.cache[key] = saved; else delete require.cache[key]; delete process.env.CRON_SECRET; }
+  for (const f of ["revalidate", "data-warm", "data-status"]) { const src = fs.readFileSync(path.join(ROOT, `src/app/api/${f}/route.ts`), "utf8"); assert.doesNotMatch(src, /PRICES_TAG|CATALOG_TAG|from "@\/lib\/db"/, f); assert.match(src, /export const dynamic = "force-dynamic"/, f); }
+});

@@ -23,7 +23,7 @@
 // portfolio entry one row per (card, condition, foil), so both are counted as
 // DISTINCT cardId — in Postgres (the server half), never by pulling rows.
 //
-// OP Compare's card ids are numbers (Card.id, the TCGplayer productId), so the
+// MTG Compare's card ids are numbers (the TCGplayer productId), so the
 // id-taking helpers are generic over string | number.
 //
 // Client-safe: no server imports. The routes (the enforcement), the upgrade

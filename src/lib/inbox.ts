@@ -4,33 +4,66 @@
 // here reads the session (routes pass the user id), stores an IP address or
 // sends email. Every read is one narrow lookup by key.
 import { prisma } from "./db";
+import type { Country } from "./country";
+import type { Finish } from "./constants";
+import { cardExists, sealedExists } from "./data";
+import { planeSource } from "./data/plane/runtime";
+import { readLiveOffers, type LiveOffer } from "./offer-read";
 import { formatTicketNumber, nextNumber, type CounterClient } from "./order-number";
 import type { SupportInput, ContactInput, FeedbackInput, PriceReportInput, StoreSuggestionInput } from "./inbox-rules";
 import { STORES, sourceLabel } from "./stores";
 
+/** The offer a report is about, out of the live offers of its unit: same source, same market. Pure. */
+export function pickShownOffer(offers: readonly LiveOffer[], source: string, market: string): { priceCents: number; currency: string; url: string } | null {
+  const o = offers.find((x) => x.source === source && x.market === market);
+  return o ? { priceCents: o.priceCents, currency: o.currency, url: o.url } : null;
+}
+
 /**
- * A wrong-price report. The product must exist; what we SHOWED (price, currency,
- * listing title and URL) is read from the Offer row server-side, never from the
- * request. A vanished offer stores nulls.
+ * What we SHOWED for a report: the published offer of (product, finish) at that source, read here and never taken from the
+ * request. Singles only (sealed offers sit in their own detail file), and never an eBay row (eBay data is not a published file).
+ * A vanished offer, an unknown store or an unreachable data host is null: the report is still worth keeping.
  */
-export async function createPriceReport(v: PriceReportInput, userId: string | null): Promise<{ ok: true } | { ok: false; status: 400; error: string }> {
-  const card = await prisma.card.findUnique({ where: { id: v.productId }, select: { id: true } });
-  const sealed = card ? null : await prisma.sealed.findUnique({ where: { id: v.productId }, select: { id: true } });
-  if (!card && !sealed) return { ok: false, status: 400, error: "Unknown product" };
-  const offer = await prisma.offer.findUnique({
-    where: { productId_source_market: { productId: v.productId, source: v.source, market: v.market } },
-    select: { priceCents: true, currency: true, title: true, url: true },
-  });
+async function shownOffer(v: PriceReportInput): Promise<{ priceCents: number; currency: string; url: string } | null> {
+  if (!/^(tcgplayer|store:|feed:)/.test(v.source)) return null;
+  try {
+    const { src } = await planeSource();
+    const finish: Finish = v.finish === 1 ? "F" : "N";
+    const offers = await readLiveOffers(src, { units: [{ id: v.productId, finish }], market: v.market as Country, includeTcgplayer: true });
+    return pickShownOffer(offers, v.source, v.market);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * A wrong-price report. The product must exist in the published catalogue (its id, no foreign key: user rows hold a plain
+ * productId); what we SHOWED (price, currency, listing URL) is read from the published offers server-side, never from the
+ * request. The offer's own title is not published, so `listingTitle` stays null. If the catalogue cannot be reached the
+ * visitor is asked to try again (503) rather than told the product is unknown.
+ */
+export async function createPriceReport(v: PriceReportInput, userId: string | null): Promise<{ ok: true } | { ok: false; status: 400 | 503; error: string }> {
+  let kind: "card" | "sealed";
+  try {
+    const [cards, sealed] = await Promise.all([cardExists([v.productId]), sealedExists([v.productId])]);
+    if (cards.has(v.productId)) kind = "card";
+    else if (sealed.has(v.productId)) kind = "sealed";
+    else return { ok: false, status: 400, error: "Unknown product" };
+  } catch {
+    return { ok: false, status: 503, error: "We couldn't check that product just now. Try again in a minute." };
+  }
+  const offer = kind === "card" ? await shownOffer(v) : null;
   await prisma.priceReport.create({
     data: {
       productId: v.productId,
-      kind: card ? "card" : "sealed",
+      finish: v.finish,
+      kind,
       source: v.source,
       market: v.market,
       storeName: sourceLabel(v.source, v.market),
       shownPriceCents: offer?.priceCents ?? null,
       currency: offer?.currency ?? null,
-      listingTitle: offer?.title ?? null,
+      listingTitle: null,
       listingUrl: offer?.url ?? null,
       issue: v.issue,
       claimedCents: v.claimedCents,
@@ -82,7 +115,7 @@ export async function createContactMessage(v: ContactInput, userId: string | nul
 /**
  * A support ticket. The number comes from order-number.ts inside the SAME
  * transaction as the insert, so a failed write never burns a number. Shown on
- * screen as OC-<n>; no email is sent until a mailer exists (the owner replies
+ * screen as MC-<n>; no email is sent until a mailer exists (the owner replies
  * from their own mail client).
  */
 export async function createSupportTicket(v: SupportInput, userId: string | null): Promise<{ ok: true; ticket: string; number: number }> {

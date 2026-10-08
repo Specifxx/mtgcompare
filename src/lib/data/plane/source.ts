@@ -66,7 +66,7 @@ export class HttpPlane {
   /** optional reads: a 404 at ref AND prev is `null`, not an error (history of an untracked card, un/of of an untracked card). */
   async optionalJson<T>(ref: string, rel: string, prev: string | null = null): Promise<T | null> { try { return (await this.read(ref, rel, prev)).parsed as T; } catch (e) { if (e instanceof PlaneError && e.reason === "missing") return null; throw e; } }
 
-  private async slot<T>(fn: () => Promise<T>): Promise<T> {
+  private async withPermit<T>(fn: () => Promise<T>): Promise<T> {
     const cap = this.cfg.maxInflight ?? 8;
     while (this.active >= cap) await new Promise<void>((r) => this.waiters.push(r));
     this.active++; this.stats.inflightPeak = Math.max(this.stats.inflightPeak, this.active);
@@ -82,7 +82,7 @@ export class HttpPlane {
     const key = `${this.cfg.repo}@${ref}/${rel}`;
     const hit = this.lru.get(key); if (hit) { this.lru.delete(key); this.lru.set(key, hit); this.stats.lruHits++; return hit.v as { text: string; parsed: unknown }; }
     const running = this.inflight.get(key); if (running) return running as Promise<{ text: string; parsed: unknown }>;
-    const p = this.slot(() => this.chain(ref, rel, prev)).then((r) => { this.remember(key, r, r.text.length); return r; }).finally(() => this.inflight.delete(key));
+    const p = this.withPermit(() => this.chain(ref, rel, prev)).then((r) => { this.remember(key, r, r.text.length); return r; }).finally(() => this.inflight.delete(key));
     this.inflight.set(key, p); return p;
   }
   private async chain(ref: string, rel: string, prev: string | null): Promise<{ text: string; parsed: unknown }> {

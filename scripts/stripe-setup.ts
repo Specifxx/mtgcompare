@@ -1,18 +1,33 @@
-// One-off (and safe to re-run) Stripe setup for OP Compare, run by the
-// "Stripe setup" workflow with the STRIPE_SECRET_KEY secret:
-//   • a Product per tier (metadata site=opcompare, tier),
+// One-off (and safe to re-run) Stripe setup for MTG Compare, run by the
+// "Stripe setup" workflow with the STRIPE_SECRET_KEY secret of MTG Compare's OWN
+// Stripe account (created inside the owner's RiftCompare organisation; never
+// RiftCompare's keys):
+//   • a Product per tier (metadata site=mtgcompare, tier, statement descriptor
+//     MTGCOMPARE),
 //   • a recurring Price per tier × interval, from src/lib/plans.ts, with the
-//     lookup key the site reads (opcompare_plus_month …) — a changed amount gets
+//     lookup key the site reads (mtgcompare_plus_month …) — a changed amount gets
 //     a NEW Price and the lookup key moves to it (existing subscribers keep theirs),
 //   • a Customer Portal configuration (cancel at period end, card, invoices,
 //     switch between the four Prices), found by the site via metadata.
-// It never touches anything without metadata site=opcompare, and prints only ids.
+// It never touches anything without metadata site=mtgcompare, and prints only ids.
 // The webhook endpoint is made in the Dashboard (its signing secret must go to
-// Vercel), and this script reports whether it exists.
+// Vercel), and this script reports whether it exists. Account BRANDING (colour
+// #9140da, icon <SITE_URL>/icon-512.png) is a Dashboard setting with no API for
+// your own account: the script only reads it and says what is off.
 import Stripe from "stripe";
 import { INTERVALS, PLAN_CENTS, PLAN_CURRENCY, STRIPE_SITE, TIERS, TIER_NAMES, lookupKey } from "../src/lib/plans";
 
-const SITE = (process.env.SITE_URL || "https://opcompare.app").replace(/\/+$/, "");
+const SITE = (process.env.SITE_URL || "https://mtgcompare.app").replace(/\/+$/, "");
+const HOST = new URL(SITE).host;
+/** MTG Compare's "Arcane Ink" amethyst (brand spec): Dashboard > Settings > Branding. */
+const BRAND_COLOR = "#9140da";
+const BRAND_ICON = `${SITE}/icon-512.png`;
+/** On the card statement of every subscription charge (22 characters at most, capitals). */
+const STATEMENT_DESCRIPTOR = "MTGCOMPARE";
+const DESCRIPTIONS: Record<(typeof TIERS)[number], string> = {
+  plus: `No ads and every Deal Finder deal on ${HOST}.`,
+  premium: `Everything in Plus, plus the full Rising Cards and Demand Finder lists and Best Basket on ${HOST}.`,
+};
 const EVENTS = [
   "checkout.session.completed",
   "checkout.session.async_payment_succeeded",
@@ -31,6 +46,9 @@ async function main() {
   const stripe = new Stripe(key);
   const account = await stripe.accounts.retrieveCurrent();
   console.log(`Stripe account: ${account.settings?.dashboard?.display_name ?? account.id} (${key.startsWith("sk_live") ? "LIVE" : "TEST"} mode)`);
+  const branding = account.settings?.branding;
+  if (branding?.primary_color?.toLowerCase() !== BRAND_COLOR) console.log(`BRANDING: set the brand colour to ${BRAND_COLOR} and the icon to ${BRAND_ICON} (Dashboard > Settings > Branding); it is ${branding?.primary_color ?? "not set"} now.`);
+  else console.log(`Branding colour ${BRAND_COLOR} is set.`);
 
   const existing: Stripe.Product[] = [];
   for await (const p of stripe.products.list({ limit: 100, active: true })) if (p.metadata?.site === STRIPE_SITE) existing.push(p);
@@ -40,12 +58,19 @@ async function main() {
     let product = existing.find((p) => p.metadata.tier === tier);
     if (!product) {
       product = await stripe.products.create({
-        name: `OP Compare ${TIER_NAMES[tier]}`,
-        description: tier === "plus" ? "No ads and every Deal Finder deal on opcompare.app." : "Everything in Plus, plus Best Basket on opcompare.app.",
+        name: `MTG Compare ${TIER_NAMES[tier]}`,
+        description: DESCRIPTIONS[tier],
+        statement_descriptor: STATEMENT_DESCRIPTOR,
         metadata: { site: STRIPE_SITE, tier },
       });
       console.log(`Created product ${product.id} (${product.name})`);
-    } else console.log(`Product ${product.id} (${product.name}) exists`);
+    } else {
+      console.log(`Product ${product.id} (${product.name}) exists`);
+      if (product.statement_descriptor !== STATEMENT_DESCRIPTOR || product.description !== DESCRIPTIONS[tier]) {
+        await stripe.products.update(product.id, { statement_descriptor: STATEMENT_DESCRIPTOR, description: DESCRIPTIONS[tier] });
+        console.log(`  updated its description and statement descriptor (${STATEMENT_DESCRIPTOR})`);
+      }
+    }
     const prices: string[] = [];
     for (const interval of INTERVALS) {
       const lk = lookupKey(tier, interval);
@@ -73,7 +98,7 @@ async function main() {
   }
 
   const portalParams = {
-    business_profile: { headline: "OP Compare — manage your plan", privacy_policy_url: `${SITE}/privacy`, terms_of_service_url: `${SITE}/terms` },
+    business_profile: { headline: "MTG Compare — manage your plan", privacy_policy_url: `${SITE}/privacy`, terms_of_service_url: `${SITE}/terms` },
     default_return_url: `${SITE}/account`,
     features: {
       customer_update: { enabled: true, allowed_updates: ["email" as const] },

@@ -7,24 +7,24 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { checkoutParams } from "../src/lib/checkout-params";
 
-const base = { priceId: "price_p", tier: "plus" as const, interval: "month" as const, user: { id: "u1", email: "a@b.c", stripeCustomerId: null }, siteUrl: "https://opcompare.app" };
+const base = { priceId: "price_p", tier: "plus" as const, interval: "month" as const, user: { id: "u1", email: "a@b.c", stripeCustomerId: null }, siteUrl: "https://mtgcompare.app" };
 
 test("surface and back are stamped on the Session AND the subscription metadata", () => {
   const p = checkoutParams({ ...base, surface: "gate:deal-finder", back: "/card/x" });
   for (const m of [p.metadata, p.subscription_data.metadata]) {
     assert.equal(m.surface, "gate:deal-finder");
     assert.equal(m.back, "/card/x");
-    assert.equal(m.kind, "oc_premium");
-    assert.equal(m.site, "opcompare");
+    assert.equal(m.kind, "mc_premium");
+    assert.equal(m.site, "mtgcompare");
   }
-  assert.equal(p.success_url, "https://opcompare.app/premium/welcome?session_id={CHECKOUT_SESSION_ID}&back=%2Fcard%2Fx");
-  assert.equal(p.cancel_url, "https://opcompare.app/card/x");
+  assert.equal(p.success_url, "https://mtgcompare.app/premium/welcome?session_id={CHECKOUT_SESSION_ID}&back=%2Fcard%2Fx");
+  assert.equal(p.cancel_url, "https://mtgcompare.app/card/x");
 });
 
 test("without them: the plain welcome URL and a cancel back to /premium, no empty keys", () => {
   const p = checkoutParams(base);
-  assert.equal(p.success_url, "https://opcompare.app/premium/welcome?session_id={CHECKOUT_SESSION_ID}");
-  assert.equal(p.cancel_url, "https://opcompare.app/premium");
+  assert.equal(p.success_url, "https://mtgcompare.app/premium/welcome?session_id={CHECKOUT_SESSION_ID}");
+  assert.equal(p.cancel_url, "https://mtgcompare.app/premium");
   assert.equal("surface" in p.metadata, false);
   assert.equal("back" in p.metadata, false);
 });

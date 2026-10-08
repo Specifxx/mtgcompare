@@ -1,6 +1,6 @@
 // How this visitor FIRST arrived in this tab session: "reddit", "search",
 // "email"… — a coarse bucket, never the referring URL itself (RiftCompare's
-// lib/entry-source.ts, ported in wave 2, 2026-10-03). Reddit is OP Compare's
+// lib/entry-source.ts, ported in wave 2, 2026-10-03). Reddit is MTG Compare's
 // growth channel (the owner posts there). The bucket used to ride each outbound
 // click; outbound clicks are no longer recorded (DECISIONS 2026-10-05), so it
 // is only kept in the tab's sessionStorage for the sign-up surface.
@@ -15,7 +15,7 @@
 export type EntrySource = "reddit" | "discord" | "search" | "social" | "email" | "internal" | "direct" | "other";
 export const ENTRY_SOURCES: readonly EntrySource[] = ["reddit", "discord", "search", "social", "email", "internal", "direct", "other"];
 
-const KEY = "oc_entry";
+const KEY = "mc_entry";
 
 const BUCKETS: [EntrySource, RegExp][] = [
   ["reddit", /(^|\.)reddit\.com$|(^|\.)redd\.it$|com\.reddit/],

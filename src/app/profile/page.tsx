@@ -3,8 +3,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { SignOutButton } from "@/components/PricingCards";
+import { TierBadge } from "@/components/TierBadge";
 import { WelcomeChecklist } from "@/components/WelcomeChecklist";
 import { touchActivity } from "@/lib/activity";
+import { tierOf } from "@/lib/premium";
 
 // RiftCompare's /profile, ported in wave 2 (2026-10-03): who you are, sign
 // out, the setup checklist, your collection and Account & security (the referral link card was removed with the reward, 2026-10-04). Membership and billing live on
@@ -35,7 +37,10 @@ export default async function ProfilePage() {
             <div className="grid h-14 w-14 place-items-center rounded-full bg-brand-500 text-2xl font-black text-white">{user.displayName.slice(0, 1).toUpperCase()}</div>
           )}
           <div>
-            <h1 className="text-xl font-extrabold text-white">{user.displayName}</h1>
+            <h1 className="flex flex-wrap items-center gap-2 text-xl font-extrabold text-white">
+              {user.displayName}
+              <TierBadge tier={tierOf(user)} />
+            </h1>
             <p className="text-sm text-slate-400">{user.email}</p>
           </div>
         </div>

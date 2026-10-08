@@ -10,6 +10,33 @@
 // cancel at Stripe returns to `back` (else /premium).
 import { STRIPE_SITE, TIER_NAMES, type Interval, type Tier } from "./plans";
 
+// Some Stripe account-level errors (the business name not set, a portal not
+// saved: one-time, Dashboard-only steps with no API equivalent) embed a
+// dashboard URL right in the message text. Only the OWNER should ever see such
+// a message, and only a Stripe address in it is ever turned into a link: the
+// text comes from an error response, and a link built from free text must not
+// be able to point anywhere else (components/StripeErrorNotice).
+const STRIPE_HOST = /^(?:[a-z0-9-]+\.)*stripe\.com$/i;
+
+/** The Stripe dashboard URL inside a message, without trailing punctuation, or null. Pure. */
+export function stripeUrlIn(message: string): string | null {
+  const match = message.match(/https?:\/\/\S+/);
+  if (!match) return null;
+  const url = match[0].replace(/[.,;:!?)]+$/, "");
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" && STRIPE_HOST.test(u.hostname) ? u.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
+/** What a failed Stripe call tells the caller: the real message to an admin when it names a Dashboard step, otherwise `generic`. Pure. */
+export function checkoutErrorText(err: unknown, isAdmin: boolean, generic: string): string {
+  const message = err instanceof Error ? err.message : "";
+  return isAdmin && stripeUrlIn(message) ? message : generic;
+}
+
 export interface CheckoutInput {
   priceId: string;
   tier: Tier;
@@ -23,7 +50,7 @@ export interface CheckoutInput {
 }
 
 export function checkoutParams(i: CheckoutInput) {
-  const meta: Record<string, string> = { site: STRIPE_SITE, kind: "oc_premium", userId: i.user.id, tier: i.tier, interval: i.interval };
+  const meta: Record<string, string> = { site: STRIPE_SITE, kind: "mc_premium", userId: i.user.id, tier: i.tier, interval: i.interval };
   if (i.surface) meta.surface = i.surface;
   if (i.back) meta.back = i.back;
   const backQ = i.back ? `&back=${encodeURIComponent(i.back)}` : "";
@@ -33,7 +60,7 @@ export function checkoutParams(i: CheckoutInput) {
     ...(i.user.stripeCustomerId ? { customer: i.user.stripeCustomerId } : { customer_email: i.user.email }),
     client_reference_id: i.user.id,
     metadata: meta,
-    subscription_data: { metadata: meta, description: `OP Compare ${TIER_NAMES[i.tier]}` },
+    subscription_data: { metadata: meta, description: `MTG Compare ${TIER_NAMES[i.tier]}` },
     allow_promotion_codes: true,
     success_url: `${i.siteUrl}/premium/welcome?session_id={CHECKOUT_SESSION_ID}${backQ}`,
     cancel_url: `${i.siteUrl}${i.back ?? "/premium"}`,

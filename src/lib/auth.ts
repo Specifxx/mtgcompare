@@ -1,5 +1,5 @@
 // Sessions: an HS256 JWT {sub: userId} in an httpOnly cookie, 30 days, no
-// session table — RiftCompare's model. A second, readable cookie (oc_auth=1)
+// session table — RiftCompare's model. A second, readable cookie (mc_auth=1)
 // only tells the browser "someone is signed in", so signed-out visitors never
 // call /api/me; it grants nothing (the JWT is what's checked).
 //
@@ -11,9 +11,11 @@ import { SignJWT, jwtVerify } from "jose";
 import { authSecret } from "./auth-secret";
 import { isAdminEmail } from "./admin-emails";
 import { prisma } from "./db";
+import type { Entitlement } from "./data/plane/entitlement";
+import { entitlementOfRead } from "./premium";
 
-export const SESSION_COOKIE = "oc_session";
-export const AUTH_HINT_COOKIE = "oc_auth";
+export const SESSION_COOKIE = "mc_session";
+export const AUTH_HINT_COOKIE = "mc_auth";
 const MAX_AGE = 60 * 60 * 24 * 30;
 
 export interface SessionUser {
@@ -73,3 +75,13 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   if (!u) return null;
   return { ...u, isAdmin: u.isAdmin || isAdminEmail(u.email) };
 });
+
+/**
+ * The opaque Entitlement of THIS request, for the paid loaders (getDealList,
+ * getCachedRisingCards, getTopDemand). A failed read of the user (Neon down, a
+ * bad row) is a signed-out viewer, never Premium: the gate fails to its
+ * narrowest end. See lib/premium.ts entitlementOf.
+ */
+export function currentEntitlement(): Promise<Entitlement> {
+  return entitlementOfRead(getCurrentUser);
+}

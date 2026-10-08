@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { stripeUrlIn } from "@/lib/checkout-params";
+import { StripeErrorNotice } from "./StripeErrorNotice";
 
 // Opens the Stripe Billing customer portal (update card, invoices, cancel) —
 // RiftCompare's ManageSubscriptionButton, ported in wave 2 (2026-10-03). On an
@@ -33,11 +35,14 @@ export function ManageSubscriptionButton({ label = "Manage subscription", classN
       <button type="button" onClick={open} disabled={busy} className={className}>
         {busy ? "Opening…" : label}
       </button>
-      {error && (
-        <span role="alert" className="text-xs text-rose-400">
-          {error}
-        </span>
-      )}
+      {error &&
+        (stripeUrlIn(error) ? (
+          <StripeErrorNotice message={error} />
+        ) : (
+          <span role="alert" className="text-xs text-rose-400">
+            {error}
+          </span>
+        ))}
     </span>
   );
 }

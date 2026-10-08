@@ -35,3 +35,18 @@ test("one database, one URL: no directUrl, no second datasource; Meta holds no i
   assert.equal([...schema.matchAll(/^datasource /gm)].length, 1); assert.match(schema, /url\s+=\s+env\("DATABASE_URL"\)/); assert.ok(!/directUrl/.test(schema));
   assert.ok(!/historyRef|tcgcsv\.lastUpdated|catalog\.lastGroups/.test(models.find((m) => m.name === "Meta")!.body));
 });
+test("db-push-safe.sh applies prisma/sql/post-push.sql after every successful push; the file is idempotent and names only tables of this schema (R20)", () => {
+  const sh = fs.readFileSync(path.join(ROOT, "scripts/db-push-safe.sh"), "utf8");
+  assert.match(sh, /prisma db execute --file "\$file" --schema prisma\/schema\.prisma/, "the Prisma way first, psql as the fallback");
+  assert.match(sh, /psql "\$DATABASE_URL" -v ON_ERROR_STOP=1 -f "\$file"/);
+  assert.match(sh, /if \[ \$status -eq 0 \]; then\s+post_push\s+exit \$\?/, "the plain push is followed by it");
+  assert.match(sh, /--accept-data-loss \|\| exit \$\?\npost_push\n?$/, "so is the retry that only waves through an added unique constraint");
+  const sql = fs.readFileSync(path.join(ROOT, "prisma/sql/post-push.sql"), "utf8");
+  const statements = sql.split("\n").filter((l) => l.trim() && !l.trim().startsWith("--"));
+  assert.ok(statements.length >= 1);
+  for (const s of statements) {
+    const m = /^ALTER TABLE "(\w+)" SET \(fillfactor = \d+\);$/.exec(s.trim());
+    assert.ok(m, `post-push.sql may only tune storage parameters (idempotent): ${s}`);
+    assert.ok(models.some((x) => x.name === m![1]), `${m![1]} is a model of this schema`);
+  }
+});

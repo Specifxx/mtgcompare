@@ -1,6 +1,6 @@
 // WHICH SURFACE SENT SOMEONE TO PLUS / PREMIUM — one vocabulary for the
 // premium-interest beacon (/api/premium/click → PremiumClick) and the
-// /admin/premium report. RiftCompare's lib/premium-surface.ts, One Piece's
+// /admin/premium report. RiftCompare's lib/premium-surface.ts, MTG Compare's
 // surfaces.
 //
 // Client-safe: no server imports. The route validates with isPlanClickSurface

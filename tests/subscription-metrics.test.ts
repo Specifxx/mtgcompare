@@ -1,6 +1,6 @@
 // /admin/subscriptions maths (ported from RiftCompare, minus its legacy-price
 // and checkout-surface cases), plus the filter that keeps other sites'
-// subscriptions out of OP Compare's numbers.
+// subscriptions out of MTG Compare's numbers.
 import test from "node:test";
 import assert from "node:assert/strict";
 import type Stripe from "stripe";
@@ -84,7 +84,7 @@ test("MRR, plan mix, tier mix, ARPU, churn, LTV and cohorts compute correctly", 
   assert.ok(jul && jul.started === 2 && jul.active === 1 && jul.retentionPct === 50);
 });
 
-test("only OP Compare's subscriptions reach the metrics, with the tier from the live Price", () => {
+test("only MTG Compare's subscriptions reach the metrics, with the tier from the live Price", () => {
   const sub = (site: string | null, tier: string, id: string) =>
     ({
       id,
@@ -96,7 +96,7 @@ test("only OP Compare's subscriptions reach the metrics, with the tier from the 
       metadata: {},
       items: { data: [{ price: { id: `price_${id}`, unit_amount: 499, currency: "usd", recurring: { interval: "month" }, metadata: site ? { site, tier } : {} } }] },
     }) as unknown as Stripe.Subscription;
-  const rows = ourRows([sub("opcompare", "plus", "a"), sub("riftcompare", "premium", "b"), sub(null, "premium", "c"), sub("opcompare", "premium", "d")]);
+  const rows = ourRows([sub("mtgcompare", "plus", "a"), sub("riftcompare", "premium", "b"), sub(null, "premium", "c"), sub("mtgcompare", "premium", "d")]);
   assert.equal(rows.length, 2, "another site's (or an untagged) subscription is excluded");
   assert.deepEqual(rows.map((r) => r.tier), ["plus", "premium"]);
   assert.equal(rows[0]!.interval, "month");

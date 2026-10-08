@@ -9,7 +9,7 @@ import { claimAlertsForUser } from "./alerts";
 import { claimLaunchPromo } from "./launch-promo";
 
 // `signupSource` (wave 2): the whitelisted sign-up surface from the
-// oc_signup_src cookie (lib/signup-source-shared.ts parseSignupSource),
+// mc_signup_src cookie (lib/signup-source-shared.ts parseSignupSource),
 // stamped on a NEW account only — never rewritten on a later sign-in.
 export async function upsertOAuthUser(provider: OAuthProvider, p: OAuthProfile, opts: { signupSource?: string | null } = {}): Promise<{ id: string; isNew: boolean; promo: boolean } | null> {
   if (!p.providerId || !p.email) return null;

@@ -90,10 +90,10 @@ function firstPrice(sub: unknown): Rec | null {
 }
 
 /**
- * Is this an OP Compare subscription? Its Price (created by scripts/stripe-
- * setup.ts) or its own metadata (set at checkout) says site=opcompare. Anything
+ * Is this an MTG Compare subscription? Its Price (created by scripts/stripe-
+ * setup.ts) or its own metadata (set at checkout) says site=mtgcompare. Anything
  * else in the Stripe account is ignored, so a subscription to another product
- * can never grant OP Compare access.
+ * can never grant MTG Compare access.
  */
 export function isOurSubscription(sub: unknown): boolean {
   const price = firstPrice(sub);

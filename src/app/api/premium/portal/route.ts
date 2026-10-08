@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
+import { checkoutErrorText } from "@/lib/checkout-params";
 import { SITE_URL } from "@/lib/site";
 import { portalConfigurationId, stripe, stripeEnabled } from "@/lib/stripe";
 
@@ -19,6 +20,6 @@ export async function POST() {
     return NextResponse.json({ url: session.url });
   } catch (e) {
     console.error("[portal]", (e as Error).message);
-    return NextResponse.json({ error: "The billing portal could not open. Please try again." }, { status: 502 });
+    return NextResponse.json({ error: checkoutErrorText(e, user.isAdmin, "The billing portal could not open. Please try again.") }, { status: 502 });
   }
 }

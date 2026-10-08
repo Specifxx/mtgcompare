@@ -9,7 +9,7 @@ import { getEmailStatus } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
-// The header's account state, fetched by the browser only when the oc_auth hint
+// The header's account state, fetched by the browser only when the mc_auth hint
 // cookie says someone is signed in (lib/use-me.ts). Never cached.
 //
 // Wave 2 (member track, RiftCompare's /api/me):

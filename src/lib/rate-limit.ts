@@ -71,7 +71,7 @@ export function clientIp(req: Request, env: Record<string, string | undefined> =
 
 let salt: string | null = null;
 function ipSalt(): string {
-  salt ??= crypto.createHash("sha256").update("opcompare-rate-limit:").update(authSecret()).digest("hex");
+  salt ??= crypto.createHash("sha256").update("mtgcompare-rate-limit:").update(authSecret()).digest("hex");
   return salt;
 }
 

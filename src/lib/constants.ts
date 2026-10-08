@@ -59,7 +59,7 @@ const RARITY_TABLE = {
   C: { label: "Common",      order: 3, tone: "text-slate-400" },
   S: { label: "Special",     order: 4, tone: "text-fuchsia-300" },   // Scryfall "special" / "bonus", or TCGplayer S when unjoined
   P: { label: "Promo",       order: 5, tone: "text-lime-300" },      // only when unjoined: a joined promo shows its true rarity and the PROMO flag
-  L: { label: "Basic Land",  order: 6, tone: "text-emerald-300" },   // "L" is Leader in OP; here it is Land
+  L: { label: "Basic Land",  order: 6, tone: "text-emerald-300" },   // "L" is TCGplayer's own letter for a basic land
   T: { label: "Token",       order: 7, tone: "text-sky-300" },       // class 1
 } as const satisfies Record<string, RarityInfo>;
 export type Rarity = keyof typeof RARITY_TABLE;
@@ -269,7 +269,7 @@ export const SEALED_KINDS = [
 ] as const;
 export type SealedKind = (typeof SEALED_KINDS)[number];
 export function sealedKindSlug(k: string): string { return k.toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
-/** Ordered, first match wins, on the lower-cased product name; applied only to products without `Rarity` in the 439 included groups. Counts on 2026-10-07 (3,712 products in the 439 imported groups), in rule order: Secret Lair Drop 1,079; Case 328; Prerelease Pack 168; Commander Deck 199; Bundle 142; Booster Box 382; Booster Pack 768; Starter Product 510; Tin & Box Set 80; Collection & Gift 8; Other 48. */
+/** Ordered, first match wins, on the lower-cased product name; applied only to products without `Rarity` in the 439 included groups. Counts on 2026-10-07 (3,712 products in the 439 imported groups), in rule order: Secret Lair Drop 1,079; Case 328; Prerelease Pack 168; Commander Deck 199; Bundle 142; Booster Box 382; Booster Pack 596; Starter Product 682 (510 before the Intro Pack rule moved 172 products out of Booster Pack); Tin & Box Set 80; Collection & Gift 8; Other 48. */
 export const SEALED_RULES: readonly (readonly [SealedKind, RegExp])[] = [
   ["Secret Lair Drop", /secret lair/],
   ["Case", /\bcase\b/],
@@ -277,6 +277,7 @@ export const SEALED_RULES: readonly (readonly [SealedKind, RegExp])[] = [
   ["Commander Deck", /commander deck|commander collection|commander (starter|party)/],
   ["Bundle", /\b(bundle|fat pack|gift bundle)\b/],
   ["Booster Box", /booster display|booster box|\bdisplay\b|\bbox\b(?! set)/],
+  ["Starter Product", /\bintro pack\b/],                                   // an Intro Pack is a 60-card deck with two boosters (172 products), not a booster pack
   ["Booster Pack", /\bboosters?\b|\bpack\b/],
   ["Starter Product", /starter|welcome|planeswalker deck|challenger|theme deck|beginner|intro|\bkit\b|\bdeck\b/],
   ["Tin & Box Set", /\btin\b|box set|\bset of\b|\bbox\b/],

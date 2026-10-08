@@ -38,7 +38,7 @@ export function summarizeSubscription(sub: unknown, now = Date.now()): Subscript
   };
 }
 
-/** The customer's live OP Compare subscription (active or past_due), with its Price expanded. */
+/** The customer's live MTG Compare subscription (active or past_due), with its Price expanded. */
 export async function ourSubscription(customerId: string): Promise<Stripe.Subscription | null> {
   const subs = await stripe().subscriptions.list({ customer: customerId, status: "all", limit: 10, expand: ["data.items.data.price"] });
   return subs.data.find((s) => (s.status === "active" || s.status === "past_due" || s.status === "trialing") && isOurSubscription(s)) ?? null;

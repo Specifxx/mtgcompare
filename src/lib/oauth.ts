@@ -3,8 +3,8 @@
 //   GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET
 //   DISCORD_CLIENT_ID / DISCORD_CLIENT_SECRET
 // Redirect URIs to register with each provider:
-//   https://opcompare.app/api/auth/oauth/google/callback
-//   https://opcompare.app/api/auth/oauth/discord/callback
+//   https://mtgcompare.app/api/auth/oauth/google/callback
+//   https://mtgcompare.app/api/auth/oauth/discord/callback
 import { SITE_URL } from "./site";
 
 export type OAuthProvider = "google" | "discord";

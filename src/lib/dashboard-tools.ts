@@ -1,5 +1,6 @@
 import type { Tier } from "./plans";
-import { FREE_DEAL_ROWS, FREE_DEMAND_ROWS, FREE_PORTFOLIO_LIMIT, FREE_RISING_ROWS, FREE_WATCHLIST_LIMIT, DECK_WATCH_LIMIT, SEALED_WATCH_LIMIT_PLUS } from "./tier-limits";
+import { FEATURE_RULES, type Feature } from "./premium-gates";
+import { FREE_PORTFOLIO_LIMIT, FREE_WATCHLIST_LIMIT, DECK_WATCH_LIMIT, SEALED_WATCH_LIMIT_PLUS } from "./tier-limits";
 
 // The member dashboard's tool list (app/dashboard/page.tsx) — RiftCompare's
 // lib/dashboard-tools.ts, ported in wave 2 (2026-10-03). A lib module, not a
@@ -12,23 +13,29 @@ import { FREE_DEAL_ROWS, FREE_DEMAND_ROWS, FREE_PORTFOLIO_LIMIT, FREE_RISING_ROW
 // labelled with exactly that, never a lock. A paid tool with no taste
 // (sealed watches, the deck watch) renders as a lock below its tier.
 //
-// The numbers in the copy are the enforced constants (lib/tier-limits.ts).
+// The numbers in the copy are the enforced constants (lib/tier-limits.ts), and
+// the tier and free taste of the three PAID ANALYTICS tools are read from the
+// gate module (lib/premium-gates.ts FEATURE_RULES), the one place that says who
+// gets how many rows of them.
 export type DashTool = { title: string; desc: string; href: string; tier: Tier | "free"; freeTaste?: string };
+
+/** The free taste of a gated tool: what a signed-in account below the tool's tier already gets ("Top 3 free"). */
+const tasteOf = (f: Feature): string => `Top ${FEATURE_RULES[f].freePreviewRows} free`;
 
 export const DASHBOARD_TOOLS: DashTool[] = [
   {
     title: "Deal Finder",
     desc: "Every card underpriced vs TCGplayer or vs eBay at a real store — narrow it to the cards you watch.",
-    href: "/tools/deal-finder",
-    tier: "plus",
-    freeTaste: `Top ${FREE_DEAL_ROWS} free`,
+    href: FEATURE_RULES["deal-finder"].path,
+    tier: FEATURE_RULES["deal-finder"].minTier,
+    freeTaste: tasteOf("deal-finder"),
   },
   {
     title: "Rising Cards",
     desc: "Cards with high or rising demand whose price hasn't moved up yet, each with the reason it ranks.",
-    href: "/tools/rising",
-    tier: "premium",
-    freeTaste: `Top ${FREE_RISING_ROWS} free`,
+    href: FEATURE_RULES.rising.path,
+    tier: FEATURE_RULES.rising.minTier,
+    freeTaste: tasteOf("rising"),
   },
   {
     title: "Best Basket",
@@ -38,10 +45,10 @@ export const DASHBOARD_TOOLS: DashTool[] = [
   },
   {
     title: "Demand Finder",
-    desc: "The cards players are searching for and opening most, over the last 7 or 30 days.",
-    href: "/tools/demand",
-    tier: "premium",
-    freeTaste: `Top ${FREE_DEMAND_ROWS} free`,
+    desc: "The cards players are searching for and viewing most, over the last 7 or 30 days.",
+    href: FEATURE_RULES.demand.path,
+    tier: FEATURE_RULES.demand.minTier,
+    freeTaste: tasteOf("demand"),
   },
   {
     title: "Watchlist & target alerts",
@@ -81,7 +88,7 @@ export const DASHBOARD_TOOLS: DashTool[] = [
   },
   {
     title: "Deck pricer",
-    desc: "Paste a One Piece Card Game decklist and price every card across every store.",
+    desc: "Paste a Magic decklist and price every card across every store.",
     href: "/deck",
     tier: "free",
   },

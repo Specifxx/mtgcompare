@@ -1,7 +1,7 @@
 // src/lib/data/plane/entitlement.ts (owner WP02, FROZEN). THE GATE AT THE DATA BOUNDARY for the three paid analytics (Deal Finder: Plus and Premium; Rising Cards and Demand Finder: Premium). Pure and client-safe: it imports only premium-gates.ts.
 // This is the place the premium-leak question (critique DP-07, DP-08) is closed in code. Four rules, each pinned by tests/plane-entitlement.test.ts:
 //   1. NOTHING PAID IS A FILE. The publisher has no code path for a ranking, a score or a demand count (validate.ts refuses the keys); the paid lists are computed per request from published columns, behind this gate.
-//   2. THE TIER IS AN OPAQUE VALUE minted from the session on the server (`mintEntitlement`, called by src/lib/data/entitlement.ts `entitlementOf(user)` only). A loader takes `who: Entitlement`; a string, a header or a query parameter cannot be passed
+//   2. THE TIER IS AN OPAQUE VALUE minted from the session on the server (`mintEntitlement`, called by `entitlementOf(user)` in src/lib/premium.ts only; `currentEntitlement()` in src/lib/auth.ts is the one for a request). A loader takes `who: Entitlement`; a string, a header or a query parameter cannot be passed
 //      (the brand is a module-private symbol: a plain object `{ tier: "premium" }` is refused at run time, not just by the compiler).
 //   3. THE CACHE NEVER SEES THE TIER. The ranking is computed once under a tier-neutral key and cut AFTER `who` is looked at. A key or a value that depends on `who` is a defect.
 //   4. A BELOW-FULL VIEWER GETS THE DEFAULT SLICE ONLY. Every refinement (page, sort, store picker, "only my cards") is COERCED to the default before the ranking is read, so no sequence of requests can enumerate more rows than the free preview
@@ -12,7 +12,7 @@ import { accessFor, allowsRefinement, gate, rowLimit, type Access, type Feature,
 const MINT = Symbol("entitlement");
 export type EntitlementTier = "anon" | "free" | "plus" | "premium";
 export interface Entitlement { readonly [MINT]: true; readonly tier: EntitlementTier; readonly viewer: Viewer }
-/** Server-only constructor. Call it from src/lib/data/entitlement.ts and from tests. `tier` is tierOf(user) (an admin is "premium"); signedIn false = anonymous. A failed user read is { signedIn: false, tier: null }: NEVER premium. */
+/** Server-only constructor. Call it from `entitlementOf` in src/lib/premium.ts and from tests. `tier` is tierOf(user) (an admin is "premium"); signedIn false = anonymous. A failed user read is { signedIn: false, tier: null }: NEVER premium. */
 export function mintEntitlement(v: Viewer): Entitlement {
   const tier: EntitlementTier = !v.signedIn ? "anon" : v.tier === "premium" ? "premium" : v.tier === "plus" ? "plus" : "free";
   return Object.freeze({ [MINT]: true as const, tier, viewer: Object.freeze({ signedIn: v.signedIn, tier: v.signedIn ? v.tier : null }) });

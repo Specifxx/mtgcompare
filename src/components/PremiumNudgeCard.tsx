@@ -7,8 +7,9 @@ import { memberNudgeHref } from "@/lib/premium-nudge";
 // lib/premium-nudge.ts nudgeCopy(), which returns null when there is nothing
 // true and specific to say; callers render this only when it did not.
 //
-// FREE ACCOUNT: the upsell, on the Plus gate (the full lists are a Plus
-// feature). MEMBER: never a wall — a link straight to the list it talks about.
+// FREE ACCOUNT: the upsell, on the gate of the tool the line talks about: Deal
+// Finder is Plus ("deal"), Rising Cards is Premium ("rising", lib/premium-gates.ts
+// FEATURE_RULES). MEMBER: never a wall — a link straight to the list it talks about.
 export function PremiumNudgeCard({
   heading,
   line,
@@ -27,7 +28,7 @@ export function PremiumNudgeCard({
   return (
     <section
       className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gold/30 bg-gold/5 px-4 py-3 ${className}`}
-      aria-label={member ? "Your cards in our lists" : "What Plus would show you"}
+      aria-label={member ? "Your cards in our lists" : `What ${kind === "rising" ? "Premium" : "Plus"} would show you`}
     >
       <div className="min-w-0 flex-1">
         <p className="text-sm font-bold text-white">
@@ -43,7 +44,7 @@ export function PremiumNudgeCard({
           {kind === "rising" ? "See the picks →" : "See them →"}
         </Link>
       ) : (
-        <PlanButton surface={surface} tier="plus" />
+        <PlanButton surface={surface} tier={kind === "rising" ? "premium" : "plus"} />
       )}
     </section>
   );

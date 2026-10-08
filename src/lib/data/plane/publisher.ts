@@ -40,9 +40,10 @@ export type PublishOutcome = { kind: "published"; ref: string; seq: number; poin
 
 function readPointer(dir: string): PointerFile | null { const f = path.join(dir, "latest.json"); return fs.existsSync(f) ? (JSON.parse(fs.readFileSync(f, "utf8")) as PointerFile) : null; }
 function readStatus(dir: string): StatusFile | null { const f = path.join(dir, "status.json"); return fs.existsSync(f) ? (JSON.parse(fs.readFileSync(f, "utf8")) as StatusFile) : null; }
+/** The manifest lists the data files. status.json is written AFTER it (it carries the manifest's own hash) and the checkout still holds the previous commit's copy, so listing it would pin a stale hash that the verification step (a random sample of the manifest) and the watchdog would flag. */
 function manifestOf(tree: TreeView): { text: string; files: number; bytes: number } {
-  const files = tree.files().filter((f) => f !== "manifest.json").map((f) => [f, tree.size(f), sha256(tree.read(f)).slice(0, 16)] as [string, number, string]);
-  const text = JSON.stringify({ v: 1, files }); return { text, files: files.length + 1, bytes: files.reduce((a, f) => a + f[1], 0) };
+  const files = tree.files().filter((f) => f !== "manifest.json" && f !== "status.json").map((f) => [f, tree.size(f), sha256(tree.read(f)).slice(0, 16)] as [string, number, string]);
+  const text = JSON.stringify({ v: 1, files }); return { text, files: files.length + 2, bytes: files.reduce((a, f) => a + f[1], 0) };
 }
 function clone(i: { remote: string; workdir: string; branch: string }): Git {
   fs.rmSync(i.workdir, { recursive: true, force: true }); fs.mkdirSync(i.workdir, { recursive: true });

@@ -46,7 +46,7 @@ export const DIALOG_BINARY_FEATURES = new Set(["Deal Finder"]);
 /**
  * `compact` is also "is this the dialog?" — it trims padding and type scale
  * AND switches to the dialog's presentation (fewer rows, a red ✗). `showPlus`
- * renders the Plus column (always configured on OP Compare). `tinted` gives
+ * renders the Plus column (always configured on MTG Compare). `tinted` gives
  * each paid column a faint wash (Plus slate, Premium gold).
  */
 export function TierComparisonTable({ compact = false, showPlus = true, tinted = false }: { compact?: boolean; showPlus?: boolean; tinted?: boolean }) {

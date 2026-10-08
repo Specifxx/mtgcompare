@@ -4,7 +4,7 @@
 import type { MutableTree } from "../../src/lib/data/plane/tree";
 
 export function upgradeLabTree(t: MutableTree): void {
-  const edit = (f: string, fn: (j: any) => void): void => { const j = JSON.parse(t.read(f)); fn(j); t.write(f, JSON.stringify(j)); };       // eslint-disable-line @typescript-eslint/no-explicit-any
+  const edit = (f: string, fn: (j: any) => void): void => { const j = JSON.parse(t.read(f)); fn(j); t.write(f, JSON.stringify(j)); };
   const kcols = new Map<number, [number, number, number]>();
   for (const f of t.files().filter((x) => /^ix\/k-\d+\.json$/.test(x))) { const k = JSON.parse(t.read(f)); k.id.forEach((id: number, i: number) => kcols.set(id, [k.co[i], k.mv[i], k.pt.charCodeAt(i) - 48])); }
   for (const f of t.files().filter((x) => x.startsWith("cat/"))) edit(f, (j) => { for (const r of j.c) if (r.length === 18) r.push(...(kcols.get(r[0]) ?? [0, 0, 9])); });

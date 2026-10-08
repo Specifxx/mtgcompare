@@ -6,7 +6,7 @@
 // The whitelist means attribution is only ever one of these known strings, so
 // a tampered cookie can't inject arbitrary text into the User table or the
 // admin breakdown.
-export const SIGNUP_SOURCE_COOKIE = "oc_signup_src";
+export const SIGNUP_SOURCE_COOKIE = "mc_signup_src";
 
 export const SIGNUP_SOURCES = new Set<string>([
   "navbar",
@@ -41,4 +41,4 @@ export function parseSignupSource(value: string | null | undefined): string | nu
 // localStorage key for a watch that was mid-flight when a signed-out visitor
 // chose "Continue with Google/Discord" on the price-drop alert CTA; SignupWelcome
 // (root layout) completes it after the OAuth round trip.
-export const PENDING_WATCH_KEY = "oc_pending_watch";
+export const PENDING_WATCH_KEY = "mc_pending_watch";

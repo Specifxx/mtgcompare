@@ -11,7 +11,7 @@ export type ReportIssue = (typeof REPORT_ISSUES)[number];
 export const ISSUE_LABELS: Record<ReportIssue, string> = {
   PRICE_WRONG: "Price is wrong",
   OUT_OF_STOCK: "Out of stock",
-  WRONG_PRINTING: "Wrong printing (parallel / alt art / manga / other set)",
+  WRONG_PRINTING: "Wrong printing (another set, foil or non-foil, borderless / showcase / extended art)",
   WRONG_ITEM: "Wrong item",
   LINK_BROKEN: "Link is broken",
   OTHER: "Something else",
@@ -66,7 +66,7 @@ export const LIMITS = {
   supportMessageMax: 4000,
 } as const;
 
-export const SOURCE_RE = /^(tcgplayer|ebay|ebay_us|store:[a-z0-9-]{1,60})$/;
+export const SOURCE_RE = /^(tcgplayer|ebay|ebay_us|store:[a-z0-9-]{1,60}|feed:[a-z0-9-]{1,60})$/;
 // Letters, digits and `._+'-` before the @, a plain host after it. Deliberately
 // narrower than RFC 5322: the address is shown to the owner and becomes a
 // mailto: link, so `? & = % / , ; : < >` (which would smuggle cc/bcc/body
@@ -82,7 +82,7 @@ export function replyMailto(email: string, subject: string | null): string | nul
   if (!EMAIL_RE.test(email)) return null;
   const at = email.lastIndexOf("@");
   const to = `${encodeURIComponent(email.slice(0, at))}@${encodeURIComponent(email.slice(at + 1))}`;
-  return `mailto:${to}?subject=${encodeURIComponent(`Re: ${subject ?? "your message to OP Compare"}`)}`;
+  return `mailto:${to}?subject=${encodeURIComponent(`Re: ${subject ?? "your message to MTG Compare"}`)}`;
 }
 
 export const isIn = <T extends string>(list: readonly T[], v: unknown): v is T => typeof v === "string" && (list as readonly string[]).includes(v);
@@ -123,6 +123,8 @@ function optPage(v: unknown): { ok: true; value: string | null } | { ok: false; 
 // ── Wrong-price report ──────────────────────────────────────────────────────
 export interface PriceReportInput {
   productId: number;
+  /** The unit's finish: 0 Normal, 1 Foil (an Etched product is its own productId and reports as Foil). Absent in the request = 0. */
+  finish: 0 | 1;
   source: string;
   market: string;
   issue: ReportIssue;
@@ -138,6 +140,8 @@ export function parsePriceReport(body: unknown): Parsed<PriceReportInput> {
   if (typeof productId !== "number" || !Number.isInteger(productId) || productId <= 0) return fail("Unknown product");
   if (typeof b.source !== "string" || !SOURCE_RE.test(b.source)) return fail("Unknown store");
   if (!isCountry(b.market)) return fail("Unknown market");
+  if (b.finish != null && b.finish !== 0 && b.finish !== 1) return fail("Unknown finish");
+  const finish: 0 | 1 = b.finish === 1 ? 1 : 0;
   if (!isIn(REPORT_ISSUES, b.issue)) return fail("Pick what's wrong");
   let claimedCents: number | null = null;
   if (b.issue === "PRICE_WRONG" && b.claimedCents != null && b.claimedCents !== "") {
@@ -149,7 +153,7 @@ export function parsePriceReport(body: unknown): Parsed<PriceReportInput> {
   if (!note.ok) return note;
   const page = optPage(b.page);
   if (!page.ok) return page;
-  return { ok: true, value: { productId, source: b.source, market: b.market, issue: b.issue, claimedCents, note: note.value, page: page.value } };
+  return { ok: true, value: { productId, finish, source: b.source, market: b.market, issue: b.issue, claimedCents, note: note.value, page: page.value } };
 }
 
 // ── Store suggestion ────────────────────────────────────────────────────────

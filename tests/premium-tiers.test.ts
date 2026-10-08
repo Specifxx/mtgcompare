@@ -1,11 +1,12 @@
 // The tier lineup as the dashboard, the plan switches and the billing facts
-// read it (RiftCompare's tests/premium-tiers.test.ts, the parts OP Compare has).
+// read it (RiftCompare's tests/premium-tiers.test.ts, the parts MTG Compare has).
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { DASHBOARD_TOOLS, dashboardToolOpens } from "../src/lib/dashboard-tools";
 import { TIER_COMPARISON } from "../src/lib/plans";
+import { FEATURES, accessFor } from "../src/lib/premium-gates";
 import { planSwitchPriceLabel } from "../src/lib/plan-switch-price";
 import { billingStateFor, forgetBillingState } from "../src/lib/billing-state";
 
@@ -75,7 +76,7 @@ test("the dashboard never calls a Plus member Premium, and is sign-in only and n
   assert.match(src, /isPlus \? "Plus · ad-free" : tierName/);
   assert.match(src, /redirect\("\/login\?next=\/dashboard"\)/);
   assert.match(src, /robots: \{ index: false, follow: false \}/);
-  assert.match(src, /<RecentAlerts/, "OP Compare's in-app alerts have a home");
+  assert.match(src, /<RecentAlerts/, "MTG Compare's in-app alerts have a home");
 });
 
 test("a plan switch quotes the price the route will charge, in the subscriber's own interval", () => {
@@ -146,4 +147,18 @@ test("/api/me reads billing state for Plus viewers only, and carries the wave-2 
   const me = read("src/lib/use-me.ts");
   assert.match(me, /addEventListener\("focus"/, "the count refreshes on window focus, never on a timer");
   assert.doesNotMatch(read("src/lib/use-unread.ts"), /setInterval/, "no 60-second poll");
+});
+
+test("the /premium member quick links open only what the member's tier opens in full: the gate decides, not a tier comparison of its own", () => {
+  const src = read("src/app/premium/PremiumPlans.tsx");
+  assert.match(src, /from "@\/lib\/premium-gates"/);
+  assert.match(src, /accessFor\(feature, \{ signedIn: true, tier: shownTier \}\) === "full"/);
+  for (const [feature, href] of [["deal-finder", "/tools/deal-finder"], ["rising", "/tools/rising"], ["demand", "/tools/demand"]] as const) {
+    assert.match(src, new RegExp(`opens\\("${feature}"\\) && \\(\\s*<Link href="${href}"`), `${feature}: its link is behind the gate`);
+  }
+  assert.doesNotMatch(src, /shownTier !== "plus" && \(\s*<Link href="\/tools\/(rising|demand)"/, "no hand-written tier test for a gated tool");
+  // And the answer itself: a Plus member opens Deal Finder only; a Premium member opens all three.
+  const opens = (tier: "plus" | "premium") => FEATURES.filter((f) => accessFor(f, { signedIn: true, tier }) === "full");
+  assert.deepEqual(opens("plus"), ["deal-finder"]);
+  assert.deepEqual(opens("premium"), ["deal-finder", "rising", "demand"]);
 });

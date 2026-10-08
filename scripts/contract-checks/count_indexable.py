@@ -2,9 +2,13 @@
 Reads the policy snapshot (111,839 included singles: id, cls, N/F {m,l}, EDHREC rank, Reserved flag, oracle id). Run: python3 count_indexable.py [snapshot-policy.json]
 Expected on the 2026-10-07 snapshot: listed class-0 rows 98796, THIN 33640, index-eligible rows 65156, tracked printings 22712, TOP printings 21443, indexable card pages 35050,
 oracles with a page 33429, oracles with an INDEXABLE page 21667, indexable hubs (an eligible oracle with >= 2 listed printings) and the largest hub."""
-import json, sys
+import json, os, sys
 from collections import Counter
-rows = json.load(open(sys.argv[1] if len(sys.argv) > 1 else "snapshot-policy.json"))
+path = sys.argv[1] if len(sys.argv) > 1 else "snapshot-policy.json"
+if not os.path.exists(path):
+    print("SKIPPED: no policy snapshot at", path, "(pass the file as the first argument)")
+    sys.exit(0)
+rows = json.load(open(path))
 def plaus(low, m):
     if low is None: return None
     return None if (m is not None and m >= 500 and low < m * 0.25) else low

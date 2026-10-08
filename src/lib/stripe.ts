@@ -2,11 +2,12 @@
 // and every paid surface simply reads as "not configured". Checkout is hosted
 // by Stripe, so no publishable key is needed anywhere.
 //
-// OP Compare should run on its OWN Stripe account (docs/SETUP.md): RiftCompare's
-// daily reconcile matches every subscription in its account by email, so an OP
-// Compare subscriber sharing that account could be granted RiftCompare Premium.
+// MTG Compare runs on its OWN Stripe account, created inside the owner's
+// RiftCompare organisation (docs/SETUP.md): RiftCompare's daily reconcile matches
+// every subscription in its account by email, so an MTG Compare subscriber sharing
+// that account could be granted RiftCompare Premium.
 import Stripe from "stripe";
-import { INTERVALS, TIERS, lookupKey, type Interval, type Tier } from "./plans";
+import { INTERVALS, STRIPE_SITE, TIERS, lookupKey, type Interval, type Tier } from "./plans";
 
 let client: Stripe | null = null;
 
@@ -20,7 +21,7 @@ export function stripe(): Stripe {
   return client;
 }
 
-// Price ids by lookup key (opcompare_plus_month …), read from Stripe and kept
+// Price ids by lookup key (mtgcompare_plus_month …), read from Stripe and kept
 // for ten minutes. No price-id env vars to keep in sync by hand.
 let priceCache: { at: number; ids: Map<string, string> } | null = null;
 
@@ -34,14 +35,14 @@ export async function priceIdFor(tier: Tier, interval: Interval): Promise<string
 }
 
 // The Customer Portal configuration scripts/stripe-setup.ts creates (metadata
-// site=opcompare): cancel, card, invoices and Plus ↔ Premium / monthly ↔ yearly
+// site=mtgcompare): cancel, card, invoices and Plus ↔ Premium / monthly ↔ yearly
 // switches. Falls back to the account default when there isn't one.
 let portalCache: { at: number; id: string | null } | null = null;
 
 export async function portalConfigurationId(): Promise<string | undefined> {
   if (!portalCache || Date.now() - portalCache.at > 10 * 60 * 1000) {
     const list = await stripe().billingPortal.configurations.list({ active: true, limit: 50 });
-    portalCache = { at: Date.now(), id: list.data.find((c) => c.metadata?.site === "opcompare")?.id ?? null };
+    portalCache = { at: Date.now(), id: list.data.find((c) => c.metadata?.site === STRIPE_SITE)?.id ?? null };
   }
   return portalCache.id ?? undefined;
 }

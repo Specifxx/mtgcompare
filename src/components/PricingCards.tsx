@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { stripeUrlIn } from "@/lib/checkout-params";
 import { INTERVALS, PLAN_FEATURES, PLAN_PITCH, TIER_NAMES, annualSavingPct, perMonth, planPrice, type Interval, type Tier } from "@/lib/plans";
 import { firePlanClick } from "@/lib/nudge-surface";
 import { goParamToStart, intervalPlan, premiumStartHref } from "@/lib/premium-start";
@@ -9,6 +10,7 @@ import { recallPremiumSurface } from "@/lib/premium-surface";
 import { trackEvent } from "@/lib/analytics";
 import { useMe } from "@/lib/use-me";
 import { ManageSubscriptionButton } from "./ManageSubscriptionButton";
+import { StripeErrorNotice } from "./StripeErrorNotice";
 
 export { ManageSubscriptionButton };
 
@@ -175,11 +177,14 @@ function PlanCta({ tier, interval, checkoutOpen }: { tier: Tier; interval: Inter
       <button type="button" onClick={subscribe} disabled={busy} className={CTA_BTN}>
         {busy ? "Opening checkout…" : `Get ${TIER_NAMES[tier]} →`}
       </button>
-      {error && (
-        <p role="alert" className="mt-2 text-xs text-rose-400">
-          {error}
-        </p>
-      )}
+      {error &&
+        (stripeUrlIn(error) ? (
+          <StripeErrorNotice message={error} />
+        ) : (
+          <p role="alert" className="mt-2 text-xs text-rose-400">
+            {error}
+          </p>
+        ))}
     </div>
   );
 }

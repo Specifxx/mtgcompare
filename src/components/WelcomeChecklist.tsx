@@ -13,11 +13,11 @@ import { FREE_PORTFOLIO_LIMIT, FREE_WATCHLIST_LIMIT } from "@/lib/free-limits";
 import { FREE_DEAL_ROWS } from "@/lib/tier-limits";
 import { isSignupSession } from "@/lib/signup-session";
 
-const DISMISS_KEY = "op_welcome_dismissed";
+const DISMISS_KEY = "mc_welcome_dismissed";
 // Written by SignupWelcome the moment a ?welcome landing fires.
-const WELCOME_KEY = "op_welcome_at";
+const WELCOME_KEY = "mc_welcome_at";
 // The third step's fallback, before the portfolio exists: Deal Finder opened.
-const DEALS_KEY = "op_welcome_deals";
+const DEALS_KEY = "mc_welcome_deals";
 const ELIGIBLE_MS = 7 * 24 * 60 * 60 * 1000;
 
 // Inline, three-step onboarding — never a modal (RiftCompare's WelcomeChecklist,
@@ -31,7 +31,7 @@ const ELIGIBLE_MS = 7 * 24 * 60 * 60 * 1000;
 // a card you own (/api/collection, the collection-alerts track's; until it
 // exists the step is "Open Deal Finder's free top 3", so the count is still
 // three). After a watch, a non-counted ✦ step offers Plus/Premium — no trial
-// copy (OP Compare sells none).
+// copy (MTG Compare sells none).
 export function WelcomeChecklist() {
   const { me, loaded } = useMe();
   const user = me.user;

@@ -2,7 +2,7 @@ import { sameOrigin } from "@/lib/admin-guard";
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { recordCheckoutStart } from "@/lib/beacons";
-import { checkoutParams } from "@/lib/checkout-params";
+import { checkoutErrorText, checkoutParams } from "@/lib/checkout-params";
 import { isPlanClickSurface } from "@/lib/nudge-surface";
 import { isInterval, isTier } from "@/lib/plans";
 import { isPremium } from "@/lib/premium";
@@ -37,6 +37,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ url: session.url });
   } catch (e) {
     console.error("[checkout]", (e as Error).message);
-    return NextResponse.json({ error: "Checkout could not start. Please try again." }, { status: 502 });
+    // An admin (the owner testing a new Stripe account) is told the Dashboard step Stripe asks for; everyone else gets the generic line.
+    return NextResponse.json({ error: checkoutErrorText(e, user.isAdmin, "Checkout could not start. Please try again.") }, { status: 502 });
   }
 }

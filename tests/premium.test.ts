@@ -9,7 +9,9 @@ import { checkoutParams } from "../src/lib/checkout-params";
 import { sanitizeNextPath } from "../src/lib/next-param";
 import { normaliseProfile } from "../src/lib/oauth";
 import { dealAccess, lookupKey, PLAN_CENTS } from "../src/lib/plans";
-import { isPremium, tierOf } from "../src/lib/premium";
+import { accessFor, rowLimit } from "../src/lib/premium-gates";
+import { isEntitlement, viewerOf } from "../src/lib/data/plane/entitlement";
+import { entitlementOf, entitlementOfRead, isPremium, tierOf } from "../src/lib/premium";
 import {
   entitledUntilFromSubscription,
   extendedPremiumUntil,
@@ -20,7 +22,7 @@ import {
 } from "../src/lib/stripe-entitlement";
 
 const T = 1_900_000_000; // epoch seconds
-const price = (tier: string, site = "opcompare") => ({ id: "price_1", metadata: { site, tier } });
+const price = (tier: string, site = "mtgcompare") => ({ id: "price_1", metadata: { site, tier } });
 
 test("invoices name their subscription in both payload generations", () => {
   assert.equal(subscriptionIdFromInvoice({ subscription: "sub_old" }), "sub_old");
@@ -53,9 +55,9 @@ test("stamping is extend-only", () => {
   assert.equal(extendedPremiumUntil(earlier, null), null);
 });
 
-test("only OP Compare's subscriptions count, and the live Price names the tier", () => {
+test("only MTG Compare's subscriptions count, and the live Price names the tier", () => {
   assert.equal(isOurSubscription({ items: { data: [{ price: price("plus") }] } }), true);
-  assert.equal(isOurSubscription({ metadata: { site: "opcompare" }, items: { data: [{ price: "price_x" }] } }), true);
+  assert.equal(isOurSubscription({ metadata: { site: "mtgcompare" }, items: { data: [{ price: "price_x" }] } }), true);
   // RiftCompare's (or anything else's) subscription in the same account: ignored.
   assert.equal(isOurSubscription({ metadata: { userId: "u1", kind: "premium" }, items: { data: [{ price: { id: "p", metadata: {} } }] } }), false);
   assert.equal(tierOfSubscription({ items: { data: [{ price: price("plus") }] }, metadata: { tier: "premium" } }), "plus");
@@ -83,8 +85,44 @@ test("Deal Finder: nothing signed out, three rows free, everything with a plan",
   assert.equal(dealAccess(true, "premium"), "full");
 });
 
+test("entitlementOf mints the opaque Entitlement from the stored date, never from anything a request can say", () => {
+  const now = T * 1000;
+  const future = new Date(now + 86400000);
+  const user = (o: { isAdmin?: boolean; until?: Date | null; tier?: string }) => ({ isAdmin: o.isAdmin ?? false, premiumUntil: o.until ?? null, premiumTier: o.tier ?? "premium" });
+  const access = (u: ReturnType<typeof user> | null, f: "deal-finder" | "rising" | "demand") => accessFor(f, viewerOf(entitlementOf(u, now)));
+  // signed out, or a failed read of the user (null): the narrowest end of every gate, never Premium
+  assert.deepEqual(["deal-finder", "rising", "demand"].map((f) => access(null, f as "rising")), ["none", "none", "preview"]);
+  assert.deepEqual(["deal-finder", "rising", "demand"].map((f) => access(undefined as never, f as "rising")), ["none", "none", "preview"]);
+  // a free account, Plus, Premium, an admin: the matrix of 14.3
+  const free = user({});
+  assert.deepEqual(["deal-finder", "rising", "demand"].map((f) => access(free, f as "rising")), ["preview", "preview", "preview"]);
+  const plus = user({ until: future, tier: "plus" });
+  assert.deepEqual(["deal-finder", "rising", "demand"].map((f) => access(plus, f as "rising")), ["full", "preview", "preview"]);
+  const premium = user({ until: future, tier: "premium" });
+  assert.deepEqual(["deal-finder", "rising", "demand"].map((f) => access(premium, f as "rising")), ["full", "full", "full"]);
+  assert.deepEqual(["deal-finder", "rising", "demand"].map((f) => access(user({ isAdmin: true }), f as "rising")), ["full", "full", "full"], "an admin counts as Premium");
+  // a lapsed entitlement is nothing; the rows follow from premium-gates, not from a second rule here
+  assert.equal(access(user({ until: new Date(now - 1), tier: "premium" }), "rising"), "preview");
+  assert.equal(rowLimit("rising", access(plus, "rising"), viewerOf(entitlementOf(plus, now))), 3);
+  assert.ok(isEntitlement(entitlementOf(null)));
+});
+
+test("a failed read of the user is a signed-out viewer, never Premium and never an error", async () => {
+  const now = T * 1000;
+  const premium = { isAdmin: false, premiumUntil: new Date(now + 86400000), premiumTier: "premium" };
+  const boom = async () => { throw new Error("Neon is down"); };
+  for (const f of ["deal-finder", "rising", "demand"] as const) {
+    assert.equal(accessFor(f, viewerOf(await entitlementOfRead(boom, now))), accessFor(f, viewerOf(entitlementOf(null))), f);
+    assert.equal(accessFor(f, viewerOf(await entitlementOfRead(async () => null, now))), accessFor(f, { signedIn: false, tier: null }), f);
+    assert.equal(accessFor(f, viewerOf(await entitlementOfRead(async () => premium, now))), "full", f);
+  }
+  assert.equal(accessFor("rising", viewerOf(await entitlementOfRead(boom, now))), "none", "not even the free preview: signed out reads as signed out");
+  assert.match(fs.readFileSync(path.resolve(__dirname, "../src/lib/auth.ts"), "utf8"), /entitlementOfRead\(getCurrentUser\)/, "the session's Entitlement is the guarded read");
+  assert.equal(isEntitlement({ tier: "premium", viewer: { signedIn: true, tier: "premium" } }), false, "a plain object is not an Entitlement");
+});
+
 test("?next= stays on this site and off the API", () => {
-  for (const ok of ["/premium?go=plus-year", "/card/luffy-op01-024", "/account"]) assert.equal(sanitizeNextPath(ok), ok);
+  for (const ok of ["/premium?go=plus-year", "/card/counterspell-mh2-267", "/account"]) assert.equal(sanitizeNextPath(ok), ok);
   for (const bad of ["//evil.com", "/\\evil.com", "/\t/evil.com", "https://evil.com", "/api/me", "", null, "premium"]) assert.equal(sanitizeNextPath(bad as string), null, String(bad));
 });
 
@@ -97,14 +135,14 @@ test("only a provider-verified email is trusted", () => {
 });
 
 test("the checkout session carries the site, the user and the tier", () => {
-  const base = { priceId: "price_p", tier: "plus" as const, interval: "year" as const, siteUrl: "https://opcompare.app" };
+  const base = { priceId: "price_p", tier: "plus" as const, interval: "year" as const, siteUrl: "https://mtgcompare.app" };
   const a = checkoutParams({ ...base, user: { id: "u1", email: "a@b.c", stripeCustomerId: null } });
   assert.equal(a.mode, "subscription");
   assert.deepEqual(a.line_items, [{ price: "price_p", quantity: 1 }]);
   assert.equal((a as { customer_email?: string }).customer_email, "a@b.c");
   assert.equal(a.client_reference_id, "u1");
-  assert.deepEqual(a.subscription_data.metadata, { site: "opcompare", kind: "oc_premium", userId: "u1", tier: "plus", interval: "year" });
-  assert.equal(a.success_url, "https://opcompare.app/premium/welcome?session_id={CHECKOUT_SESSION_ID}");
+  assert.deepEqual(a.subscription_data.metadata, { site: "mtgcompare", kind: "mc_premium", userId: "u1", tier: "plus", interval: "year" });
+  assert.equal(a.success_url, "https://mtgcompare.app/premium/welcome?session_id={CHECKOUT_SESSION_ID}");
   const b = checkoutParams({ ...base, user: { id: "u1", email: "a@b.c", stripeCustomerId: "cus_1" } });
   assert.equal((b as { customer?: string }).customer, "cus_1");
   assert.equal((b as { customer_email?: string }).customer_email, undefined);
@@ -133,13 +171,15 @@ test("Best Basket: the cheapest split beats buying each card where it is cheapes
 
 const read = (p: string) => fs.readFileSync(path.resolve(__dirname, "..", p), "utf8");
 
-test("the session is never read by the layout, and gated rows are cut in the query", () => {
+test("the session is never read by the layout, and the three paid pages take their rows from the gate module", () => {
   assert.doesNotMatch(read("src/app/layout.tsx"), /getCurrentUser|@\/lib\/auth/);
-  const deal = read("src/app/tools/deal-finder/page.tsx");
-  // Signed out runs no query on the gated views; a free account's rows are cut
-  // by pageSize in the ranking call itself (tests/deals.test.ts pins the rest).
-  assert.match(deal, /access === "none" \? null/);
-  assert.match(deal, /pageSize: FREE_DEAL_ROWS/);
+  // One gate (src/lib/premium-gates.ts): a page computes accessFor() and asks its loader for rowLimit() rows; the loader cuts the
+  // ranking once more with the opaque Entitlement. tests/premium-gates-pages.test.ts walks the same pages for the rest.
+  for (const page of ["deal-finder", "rising", "demand"]) {
+    const src = read(`src/app/tools/${page}/page.tsx`);
+    assert.match(src, /from "@\/lib\/premium-gates"/, `${page} imports the gate module`);
+    assert.doesNotMatch(src, /blur-/, `${page}: rows are limited in the query, never hidden with CSS`);
+  }
   assert.match(read("src/app/api/basket/route.ts"), /isPremium\(user, "premium"\)/);
 });
 

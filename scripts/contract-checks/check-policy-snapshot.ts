@@ -2,7 +2,10 @@
 import * as T from "../../src/lib/track";
 import * as fs from "node:fs";
 import { plausibleLow } from "../../src/lib/catalog";
-const rows = JSON.parse(fs.readFileSync(process.env.POLICY_SNAPSHOT ?? "/tmp/claude-0/-home-user/1729fd1a-6a1a-50c2-b66b-ed691e9d9923/scratchpad/port/design/_judge/src/snapshot-policy.json", "utf8"));   // 15.7 MB, kept outside the tree
+const flag = (name: string): string | undefined => process.argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3);   // a path is an argument, not an environment variable (tests/env-names.test.ts)
+const snapshotFile = flag("snapshot");   // 15.7 MB, kept outside the tree; no default, no machine path in the repository
+if (!snapshotFile || !fs.existsSync(snapshotFile)) { console.log("policy snapshot SKIPPED:", snapshotFile ? `no file at ${snapshotFile}` : "no file named", "(pass --snapshot=<file>); tests/track.test.ts replays the same functions on the 57 fixtures"); process.exit(0); }
+const rows = JSON.parse(fs.readFileSync(snapshotFile, "utf8"));
 const cfg = T.TRACK_DEFAULTS;
 interface Row { id: number; cls: number; N: { m: number | null; l: number | null } | null; F: { m: number | null; l: number | null } | null; rank: number | null; res: boolean; oid: string | null }
 const priced = (p: Row) => {

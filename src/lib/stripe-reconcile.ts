@@ -1,7 +1,7 @@
 // The daily backstop for a missed or failed webhook (ported from RiftCompare):
-// every active/trialing OP Compare subscription is stamped again, extend-only,
+// every active/trialing MTG Compare subscription is stamped again, extend-only,
 // so a dropped renewal event can't leave a paying member locked out. It never
-// matches by email — only by the userId OP Compare's checkout put in the
+// matches by email — only by the userId MTG Compare's checkout put in the
 // subscription's metadata, or a customer id already linked to a user.
 import { stripe } from "./stripe";
 import { stampFromSubscription } from "./premium";

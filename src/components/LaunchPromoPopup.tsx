@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { trackEvent } from "@/lib/analytics";
 import { capsAllow } from "@/lib/nudge-gate";
+import { useBuyPathClear } from "@/lib/buy-intent";
 import { armNudge, readStoredNum, useSessionViews } from "@/lib/nudge-runtime";
 import { PROMO_DAYS, PROMO_DELAY_MS, PROMO_MAX_DISMISSALS, PROMO_SLOTS, PROMO_SNOOZE_MS, PROMO_SOURCE, promoPopupEligible, type PromoStatus } from "@/lib/launch-promo-shared";
 import type { OAuthProvider } from "@/lib/oauth";
@@ -18,13 +19,16 @@ import { Dialog } from "./ui/Dialog";
 //     quiet moment (never over another dialog or while typing — armNudge);
 //   • once per visit; a dismissal rests it 3 days; three dismissals end it;
 //   • it disappears for good once the 50 are claimed (the counter says 0 left);
-//   • never on /login, /premium, account pages and the other skip paths.
+//   • never on /login, /premium, account pages and the other skip paths;
+//   • never over a buy path: on a page with a buy link it waits until the
+//     visitor has clicked out to a store this session (lib/buy-intent.ts), the
+//     one moment an ask cannot cost a buy_click.
 // The grant itself happens server-side when a NEW account is created
 // (lib/launch-promo.ts); this popup only invites and shows the counter.
-const SESSION_SEEN = "oc_promo_session"; // sessionStorage
-const DISMISS_COUNT = "oc_promo_dismisses"; // localStorage
-const SNOOZE_UNTIL = "oc_promo_until"; // localStorage, epoch ms
-const PV_KEY = "oc_promo_pv"; // sessionStorage: page views this visit
+const SESSION_SEEN = "mc_promo_session"; // sessionStorage
+const DISMISS_COUNT = "mc_promo_dismisses"; // localStorage
+const SNOOZE_UNTIL = "mc_promo_until"; // localStorage, epoch ms
+const PV_KEY = "mc_promo_pv"; // sessionStorage: page views this visit
 
 export function LaunchPromoPopup({ providers }: { providers: OAuthProvider[] }) {
   const { me, loaded } = useMe();
@@ -34,7 +38,8 @@ export function LaunchPromoPopup({ providers }: { providers: OAuthProvider[] }) 
 
   const signedOut = loaded && !me.user;
   const views = useSessionViews(PV_KEY, pathname, signedOut);
-  const eligible = promoPopupEligible({ loaded, signedIn: !!me.user, left: status ? status.left : null, views, pathname });
+  const buyPathClear = useBuyPathClear();
+  const eligible = buyPathClear && promoPopupEligible({ loaded, signedIn: !!me.user, left: status ? status.left : null, views, pathname });
 
   const caps = useCallback(() => {
     let ls: Storage | null = null;
@@ -118,7 +123,7 @@ export function LaunchPromoPopup({ providers }: { providers: OAuthProvider[] }) 
           The first {slots} members get {PROMO_DAYS} days of Premium free
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-slate-300">
-          Create a free account and your month starts straight away: every Deal Finder deal, Best Basket, no ads. No card, and nothing to cancel. It just ends.
+          Create a free account and your month starts straight away: every Deal Finder deal, the full Rising Cards and Demand Finder lists, Best Basket, no ads. No card, and nothing to cancel. It just ends.
         </p>
 
         <div className="mt-4" aria-live="polite">

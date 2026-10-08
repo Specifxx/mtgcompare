@@ -13,7 +13,7 @@ import { SITE_NAME } from "@/lib/site";
 // wave 2, 2026-10-03). Entitlement still comes from the webhook (never from
 // this redirect — a success_url is attacker-reachable), so this page proves
 // two separate things: that the Checkout Session named in the URL belongs to
-// the signed-in viewer (metadata.kind "oc_premium" and its userId), and, by
+// the signed-in viewer (metadata.kind "mc_premium" and its userId), and, by
 // polling /api/me, that the webhook has landed.
 export const dynamic = "force-dynamic";
 
@@ -41,7 +41,7 @@ export default async function PremiumWelcomePage({ searchParams }: { searchParam
   try {
     const s = await stripe().checkout.sessions.retrieve(sessionId);
     const ownerId = s.metadata?.userId ?? s.client_reference_id;
-    if (s.metadata?.kind !== "oc_premium" || ownerId !== user.id) redirect("/premium");
+    if (s.metadata?.kind !== "mc_premium" || ownerId !== user.id) redirect("/premium");
     tier = isTier(s.metadata?.tier) ? s.metadata.tier : "premium";
   } catch (e) {
     // redirect() throws a control-flow signal that must not be swallowed here.
@@ -56,15 +56,16 @@ export default async function PremiumWelcomePage({ searchParams }: { searchParam
     feature: r.feature,
     detail: typeof r[tier] === "string" ? (r[tier] as string) : null,
   }));
-  // Where to go first — only the tools this tier opens.
+  // Where to go first — only the tools this tier opens in full (Plus: Deal
+  // Finder; Premium: Rising Cards and Demand Finder as well, lib/premium-gates.ts).
   const firstStops: { href: string; label: string }[] = [
     { href: "/watching", label: "Set a target price" },
     { href: "/tools/deal-finder?mine=watch", label: "Deal Finder: only my cards" },
-    { href: "/tools/rising", label: "Rising Cards" },
     ...(tier === "premium"
       ? [
-          { href: "/tools/best-basket?source=watchlist", label: "Buy my watchlist for less" },
+          { href: "/tools/rising", label: "Rising Cards" },
           { href: "/tools/demand", label: "Demand Finder" },
+          { href: "/tools/best-basket?source=watchlist", label: "Buy my watchlist for less" },
         ]
       : []),
   ];

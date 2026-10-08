@@ -21,7 +21,7 @@ export function isPremiumSurface(v: unknown): v is string {
   return isPlanClickSurface(v) && !NOT_A_SURFACE.has(v);
 }
 
-const SURFACE_KEY = "oc_premium_surface";
+const SURFACE_KEY = "mc_premium_surface";
 
 /** Remember the surface for the rest of this tab's session. */
 export function rememberPremiumSurface(surface: string): void {

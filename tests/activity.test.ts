@@ -1,5 +1,5 @@
 // lastActiveAt / activeDays (lib/activity.ts) — RiftCompare's activity tests,
-// with UTC days (OP Compare's import and history are UTC throughout).
+// with UTC days (MTG Compare's import and history are UTC throughout).
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";

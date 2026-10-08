@@ -12,7 +12,7 @@ import { parseSignupSource } from "@/lib/signup-source-shared";
 // /login page, the Plus/Premium dialog's signed-out state (`compact bare`) and
 // the price-alert modal.
 //
-// OP Compare has only ever been OAuth, so RiftCompare's "signed up with a
+// MTG Compare has only ever been OAuth, so RiftCompare's "signed up with a
 // password before?" note is not ported.
 const OAUTH_ERRORS: Record<string, string> = {
   provider_unavailable: "That sign-in option isn't available right now — try the other one.",
@@ -24,7 +24,7 @@ const OAUTH_ERRORS: Record<string, string> = {
   oauth_session: "Something went wrong finishing sign-in. Please try again.",
 };
 
-// What a free account really gets on OP Compare (no perk promises an email).
+// What a free account really gets on MTG Compare (no perk promises an email).
 const PERKS = ["Watchlist", "Binder", "Top 3 deals"] as const;
 
 export function AuthForm({

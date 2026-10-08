@@ -325,7 +325,7 @@ model SetReleaseAlert {
   @@index([unsubToken])
 }
 
-model PublishedDeck {                         // leader* -> commander*; colours -> identity mask; lines carry finish
+model PublishedDeck {                         // the commander (and partner) of a Commander deck; identity is a WUBRG mask; lines carry finish
   id              String   @id @default(cuid())
   slug            String   @unique
   userId          String?

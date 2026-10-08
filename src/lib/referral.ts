@@ -1,10 +1,10 @@
 // Referral ATTRIBUTION only (RiftCompare's lib/referral.ts, ported in wave 2,
 // 2026-10-03; the reward removed 2026-10-04). A link like
-// opcompare.app/?ref=<userId> drops a cookie (components/ReferralCapture), read
+// mtgcompare.app/?ref=<userId> drops a cookie (components/ReferralCapture), read
 // here when the referred visitor creates an account.
 //
 // THERE IS NO REWARD. RiftCompare credits the referrer with days of their own
-// tier. On OP Compare that would be an entitlement write from the public OAuth
+// tier. On MTG Compare that would be an entitlement write from the public OAuth
 // sign-up path, and CLAUDE.md allows User.premiumUntil to be written only by the
 // Stripe webhook, the daily reconcile and the admin grant/revoke routes. The
 // first port gated it behind an env var, which left it one setting away from

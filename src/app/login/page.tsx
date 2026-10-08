@@ -12,7 +12,7 @@ import { pageOg } from "@/lib/og/meta";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Log in",
-  description: "Sign in to OP Compare with Google or Discord.",
+  description: "Sign in to MTG Compare with Google or Discord.",
   alternates: { canonical: "/login" },
   openGraph: pageOg("/login"),
   robots: { index: false, follow: true },

@@ -6,6 +6,7 @@ import { PricingCards } from "@/components/PricingCards";
 import { ManageSubscriptionButton } from "@/components/ManageSubscriptionButton";
 import { SubscriptionActions } from "@/components/SubscriptionActions";
 import { TIER_NAMES, planPrice, type Interval, type Tier } from "@/lib/plans";
+import { accessFor, type Feature } from "@/lib/premium-gates";
 import { useMe } from "@/lib/use-me";
 
 // The top of /premium: the pricing cards for everyone who is not a member,
@@ -50,6 +51,8 @@ function MemberView({ tier, until, admin, checkoutOpen }: { tier: Tier; until: s
   }, [reload]);
 
   const shownTier = sub?.tier ?? tier;
+  // A paid tool is a quick link only where this member's tier opens it in FULL (the gate module decides, lib/premium-gates.ts): Plus gets Deal Finder, Premium also Rising Cards and Demand Finder.
+  const opens = (feature: Feature) => accessFor(feature, { signedIn: true, tier: shownTier }) === "full";
   const keep =
     sub?.cancelAtPeriodEnd && sub.periodEnd ? { line: `${planPrice(shownTier, sub.interval ?? "month")}/${sub.interval === "year" ? "yr" : "mo"}`, from: day(sub.periodEnd) } : null;
 
@@ -94,18 +97,22 @@ function MemberView({ tier, until, admin, checkoutOpen }: { tier: Tier; until: s
       </div>
 
       {/* Member quick links — only what this member can open. Best Basket's
-          plan and Demand Finder are dropped for a Plus member rather than
-          bouncing them into a wall; the upgrade path is the card above. */}
+          plan, Rising Cards and Demand Finder are dropped for a Plus member
+          rather than bouncing them into a wall; the upgrade path is the card above. */}
       <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-sm">
         <Link href="/dashboard" className="btn-primary">
           ◆ Your dashboard
         </Link>
-        <Link href="/tools/deal-finder" className="btn-ghost">
-          Deal Finder
-        </Link>
-        <Link href="/tools/rising" className="btn-ghost">
-          Rising Cards
-        </Link>
+        {opens("deal-finder") && (
+          <Link href="/tools/deal-finder" className="btn-ghost">
+            Deal Finder
+          </Link>
+        )}
+        {opens("rising") && (
+          <Link href="/tools/rising" className="btn-ghost">
+            Rising Cards
+          </Link>
+        )}
         <Link href="/watching" className="btn-ghost">
           Watchlist &amp; target alerts
         </Link>
@@ -114,7 +121,7 @@ function MemberView({ tier, until, admin, checkoutOpen }: { tier: Tier; until: s
             Best Basket
           </Link>
         )}
-        {shownTier !== "plus" && (
+        {opens("demand") && (
           <Link href="/tools/demand" className="btn-ghost">
             Demand Finder
           </Link>

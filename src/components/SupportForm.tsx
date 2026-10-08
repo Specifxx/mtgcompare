@@ -7,7 +7,7 @@ const field = "mt-1 block w-full rounded-lg border border-ink-700 bg-ink-850 px-
 
 // The /support form (RiftCompare's SupportForm): Payment / billing, Account or
 // Something else, prefilled from ?category and ?subject. Posts to /api/support
-// and shows the ticket number on screen (OC-<n>); no email is sent. The hidden
+// and shows the ticket number on screen (MC-<n>); no email is sent. The hidden
 // `website` field is the honeypot every public form carries.
 export function SupportForm({ defaultName, defaultEmail, defaultCategory, defaultSubject }: { defaultName?: string; defaultEmail?: string; defaultCategory?: string; defaultSubject?: string }) {
   const [form, setForm] = useState({

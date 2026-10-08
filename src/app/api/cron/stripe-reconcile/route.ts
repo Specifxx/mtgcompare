@@ -12,6 +12,6 @@ export async function GET(req: Request) {
   if (!secret || req.headers.get("authorization") !== `Bearer ${secret}`) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   if (!stripeEnabled()) return NextResponse.json({ skipped: "STRIPE_SECRET_KEY not set" });
   const r = await runStripeReconcile();
-  if (r.unmatched.length) console.warn("[reconcile] subscriptions with no OP Compare user:", r.unmatched.join(", "));
+  if (r.unmatched.length) console.warn("[reconcile] subscriptions with no MTG Compare user:", r.unmatched.join(", "));
   return NextResponse.json(r);
 }

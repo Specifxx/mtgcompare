@@ -15,6 +15,7 @@ import { touchActivity } from "@/lib/activity";
 import { notificationFeed } from "@/lib/notifications";
 import { DASHBOARD_TOOLS, dashboardToolOpens } from "@/lib/dashboard-tools";
 import { ManageSubscriptionButton } from "@/components/ManageSubscriptionButton";
+import { TierBadge } from "@/components/TierBadge";
 import { NavIcon } from "@/components/NavIcon";
 import { PricingLink } from "@/components/PlanButton";
 import { WatchlistSnapshot } from "@/components/WatchlistSnapshot";
@@ -67,7 +68,7 @@ export default async function DashboardPage() {
   const lockedTools = tools.filter((t) => !t.opens && !t.freeTaste);
   const canUpgrade = isFree ? stripeEnabled() : isPlus && stripeEnabled() && !billing.trialing;
 
-  // OP Compare: the alerts are delivered in-app while email is off — the ten
+  // MTG Compare: the alerts are delivered in-app while email is off — the ten
   // newest, one bounded per-user read (lib/notifications.ts).
   const feed = await notificationFeed(user.id, 10).catch(() => ({ notifications: [], unreadCount: 0 }));
   const alerts: AlertRow[] = feed.notifications.map((n) => ({ ...n, readAt: n.readAt?.toISOString() ?? null, createdAt: n.createdAt.toISOString() }));
@@ -81,11 +82,7 @@ export default async function DashboardPage() {
               {isNewAccount ? "Welcome" : "Welcome back"}, {user.displayName}
             </h1>
             {/* Gold marks Premium, so the Free chip never wears it; Plus names its headline benefit. */}
-            <span
-              className={`chip text-[10px] font-bold uppercase tracking-wider ${isFree ? "bg-ink-700 text-slate-300" : isPlus ? "bg-slate-500/15 text-slate-200" : "bg-gold/15 text-gold"}`}
-            >
-              {isPlus ? "Plus · ad-free" : tierName}
-            </span>
+            <TierBadge tier={tier}>{isPlus ? "Plus · ad-free" : tierName}</TierBadge>
           </div>
           <p className="mt-1 text-sm text-slate-400">Your {tierName} hub — tools, portfolio and the market at a glance.</p>
         </div>
@@ -152,7 +149,7 @@ export default async function DashboardPage() {
                   <span className="text-sm font-semibold text-brand-400">{t.freeTaste} →</span>
                   {t.tier !== "free" && (
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                      Full {t.tier === "plus" ? "list" : "plan"}: {TIER_NAMES[t.tier]}
+                      Full list: {TIER_NAMES[t.tier]}
                     </span>
                   )}
                 </span>

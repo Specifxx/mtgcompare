@@ -9,13 +9,13 @@ export async function ReviewsSection() {
   const reviews = await getApprovedReviews(6);
   if (reviews.length < MIN_REVIEWS_TO_DISPLAY) return null;
   return (
-    <section aria-labelledby="op-reviews-heading">
+    <section aria-labelledby="mc-reviews-heading">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 id="op-reviews-heading" className="text-xl font-extrabold text-white">
+          <h2 id="mc-reviews-heading" className="text-xl font-extrabold text-white">
             What people say
           </h2>
-          <p className="mt-0.5 text-xs text-slate-500">Real feedback from people using OP Compare, shared with their permission.</p>
+          <p className="mt-0.5 text-xs text-slate-500">Real feedback from people using MTG Compare, shared with their permission.</p>
         </div>
         <Link href="/feedback" className="btn-ghost hidden text-xs sm:inline-flex">
           Add yours →

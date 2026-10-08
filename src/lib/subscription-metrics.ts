@@ -1,4 +1,4 @@
-// Subscription analytics for OP Compare's Plus and Premium (ported from
+// Subscription analytics for MTG Compare's Plus and Premium (ported from
 // RiftCompare's lib/subscription-metrics.ts): MRR/ARR, active vs trialing, plan
 // and tier mix, new vs churned, an estimated monthly churn rate, a rough LTV,
 // trial→paid conversion and a signup-month cohort-retention table.
@@ -215,7 +215,7 @@ export function computeSubscriptionMetrics(rows: SubRow[], nowMs: number, cohort
 }
 
 /**
- * Only OP Compare's subscriptions (Price or subscription metadata site=opcompare,
+ * Only MTG Compare's subscriptions (Price or subscription metadata site=mtgcompare,
  * the same test the webhook applies), flattened. Anything else in the Stripe
  * account never reaches the metrics.
  */

@@ -3,7 +3,7 @@
 // a missing or known-default value THROWS, because signing with a public secret
 // would let anyone forge a session cookie.
 let cached: Uint8Array | null = null;
-const DEV_SECRET = "opcompare-dev-secret-change-me";
+const DEV_SECRET = "mtgcompare-dev-secret-change-me";
 
 export function authSecret(): Uint8Array {
   if (cached) return cached;

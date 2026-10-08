@@ -6,7 +6,7 @@ import { subscriptionIdFromInvoice } from "@/lib/stripe-entitlement";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Stripe → OP Compare. Subscribe the endpoint (https://opcompare.app/api/stripe/
+// Stripe → MTG Compare. Subscribe the endpoint (https://mtgcompare.app/api/stripe/
 // webhook) to exactly these events:
 //   checkout.session.completed, checkout.session.async_payment_succeeded,
 //   invoice.paid, invoice.payment_succeeded,
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       case "checkout.session.completed":
       case "checkout.session.async_payment_succeeded": {
         const meta = (obj.metadata ?? {}) as Record<string, string>;
-        if (meta.kind !== "oc_premium" || typeof obj.subscription !== "string") break;
+        if (meta.kind !== "mc_premium" || typeof obj.subscription !== "string") break;
         const sub = await stripe().subscriptions.retrieve(obj.subscription);
         const r = await stampFromSubscription(sub, meta.userId ?? (obj.client_reference_id as string | null));
         console.log(`[stripe] ${event.type} ${sub.id}: ${r}`);

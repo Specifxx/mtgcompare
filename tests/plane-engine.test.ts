@@ -68,3 +68,70 @@ test("REAL INDEX (PLANE_SAMPLE_DIR): 98,991 rows load, the default list's top 10
   console.log(`real index: ${ix.n} rows, ${ix.stats.files} files, ${(ix.stats.bytes / 1e6).toFixed(1)} MB, load ${load.toFixed(0)} ms, first value query ${qms.toFixed(1)} ms, top: ${page.items[0]!.name} ${page.items[0]!.marketUsd}`);
   const lowTop = ix.query(Q({ per: 100, minCents: 5_000_000 })); assert.ok(lowTop.items.every((x) => x.marketUsd != null && x.marketUsd >= 5_000_000), "a range filter matches market only");
 });
+
+// ══ the rest of CardQuery over the 57 real products of Annex A (realMiniTree): treatments, keywords, formats, hidden set kinds ═══════════════════════════════════════════════════════════════════════════════════════
+import { FORMAT_INDEX, TREATMENT_KEYS } from "../src/lib/constants";
+import { realMiniTree } from "./helpers/data-source";
+import { memTree } from "../src/lib/data/plane/tree";
+import type { IxDict, IxK, IxO, IxOdict } from "../src/lib/data/plane/formats";
+
+const treatOf = (slug: string): string => [["borderless", "borderless"], ["showcase", "showcase"], ["retro-frame", "retro"], ["serial-numbered", "serial"], ["foil-etched", "etched"], ["extended-art", "extended"]].filter(([w]) => slug.includes(w!)).map(([, k]) => k!).filter((k) => TREATMENT_KEYS.includes(k as never)).join(" ");
+/** The real tree with the treatment words of each slug in the index (dict.tr), two real keywords and the Modern/Legacy/Commander legality of four real oracles (the fixture carries neither; set here, stated in the test). */
+function treated(): { tree: ReturnType<typeof memTree>; ids: Map<string, number> } {
+  const src0 = realMiniTree(), t = memTree(src0.files().map((f) => [f, src0.read(f)] as [string, string]));
+  const dict = JSON.parse(t.read("ix/dict.json")) as IxDict, k = JSON.parse(t.read("ix/k-0.json")) as IxK, words = [...new Set(k.slug.map(treatOf))]; dict.tr = words; k.tr = k.slug.map((s) => words.indexOf(treatOf(s)));
+  t.write("ix/dict.json", JSON.stringify(dict)); t.write("ix/k-0.json", JSON.stringify(k));
+  const od = JSON.parse(t.read("ix/odict.json")) as IxOdict, o = JSON.parse(t.read("ix/o-0.json")) as IxO, legalOf = (...f: string[]): string => Array.from({ length: 22 }, (_, i) => (f.some((x) => FORMAT_INDEX[x as never] === i) ? "L" : "N")).join("");
+  const nameOf = (id: number): number => k.or[k.id.indexOf(id)]!; od.keywords = ["", "flying", "flash flying"]; od.legal = ["", legalOf("modern", "legacy", "vintage", "commander"), legalOf("legacy", "vintage", "commander")];
+  o.lg = o.lg.map(() => 0);                                                  // every other oracle: legality unknown
+  for (const [id, kw, lg] of [[2831, 1, 1], [3077, 1, 2], [513650, 2, 1], [238617, 0, 1], [609611, 0, 1]] as const) { const r = o.no.indexOf(nameOf(id)); o.kw[r] = kw; o.lg[r] = lg; }
+  t.write("ix/odict.json", JSON.stringify(od)); t.write("ix/o-0.json", JSON.stringify(o));
+  return { tree: t, ids: new Map(k.slug.map((s, i) => [s, k.id[i]!] as const)) };
+}
+const realSets = (t: TreeView): SetLite[] => (JSON.parse(t.read("meta/sets.json")) as SetsFile).sets.map((s) => ({ id: s[0], slug: s[1], tok: s[2], code: s[3], name: s[4], tcgName: s[4], kind: s[6] as never, releasedOn: null, bucket: false, cardCount: 0, trackedCount: 0, sealedCount: 0 }));
+const idsOf = (page: { items: { id: number }[] }): number[] => page.items.map((x) => x.id).sort((a, b) => a - b);
+
+test("treatments: ANY of the named words, matched on the words of a row (borderless, serial, etched); an unknown word matches nothing", async () => {
+  const { tree } = treated(), ix = await BrowseIndex.load(src(tree), realSets(tree), { withOracle: true }), k = JSON.parse(tree.read("ix/k-0.json")) as IxK;
+  const want = (...w: string[]): number[] => k.id.filter((_, i) => treatOf(k.slug[i]!).split(" ").some((x) => w.includes(x))).sort((a, b) => a - b);
+  assert.deepEqual(idsOf(ix.query(Q({ treats: ["borderless"], classes: [0, 1, 2, 3, 4] }))), want("borderless")); assert.ok(want("borderless").length >= 4);
+  assert.deepEqual(idsOf(ix.query(Q({ treats: ["serial", "etched"], classes: [0, 1, 2, 3, 4] }))), want("serial", "etched")); assert.ok(want("serial", "etched").includes(541332), "Ezio Auditore da Firenze (Foil Etched)");
+  assert.equal(ix.query(Q({ treats: ["gilded"], classes: [0, 1, 2, 3, 4] })).total, 0);
+});
+test("keywords and formats come from the oracle columns: a keyword is a whole token, a format filter is playable or not playable, a printing without an oracle never matches either", async () => {
+  const { tree } = treated(), ix = await BrowseIndex.load(src(tree), realSets(tree), { withOracle: true });
+  assert.deepEqual(idsOf(ix.query(Q({ keyword: "flying" }))), [2831, 3077, 513650, 560662], "Birds of Paradise (7th Edition and the Secret Lair African Swallow printing: one oracle), Shivan Dragon, Brazen Borrower"); assert.deepEqual(idsOf(ix.query(Q({ keyword: "flash" }))), [513650]); assert.equal(ix.query(Q({ keyword: "fly" })).total, 0, "a token, not a prefix");
+  const modern = idsOf(ix.query(Q({ format: { key: "modern", playable: true } }))), legacyOnly = idsOf(ix.query(Q({ format: { key: "modern", playable: false } })));
+  assert.deepEqual(modern, [2831, 238617, 513650, 560662, 609611], "the four oracles patched as Modern-legal (five printings)"); assert.ok(legacyOnly.includes(3077), "Shivan Dragon is not Modern-legal here"); assert.ok(!legacyOnly.includes(2831));
+  assert.deepEqual(idsOf(ix.query(Q({ format: { key: "legacy", playable: true } }))), [2831, 3077, 238617, 513650, 560662, 609611]);
+  const unjoined = ix.lookup([485192]).get(485192)!; assert.equal(unjoined.oracleNo, null, "Sword of _ and _ (Un-Known Event playtest) has no Scryfall oracle"); assert.ok(![...modern, ...legacyOnly].includes(485192), "a row with no oracle is neither playable nor not playable");
+});
+test("hidden set kinds (art-series, oversized) are out unless includeHidden is set or the query names the set; the oracle filters refuse an index loaded without oracle columns; rootId is not an index question", async () => {
+  const { tree } = treated(), sets = realSets(tree), ix = await BrowseIndex.load(src(tree), sets, { withOracle: true }), all = [0, 1, 2, 3, 4];
+  const art = 718476, oversize = 174434, artSet = sets.find((s) => s.kind === "art-series")!, overSet = sets.find((s) => s.kind === "oversized")!; assert.ok(artSet && overSet);
+  const def = idsOf(ix.query(Q({ classes: all }))); assert.ok(!def.includes(art) && !def.includes(oversize), "Flickering Hound Art Card and Rukh Egg (Box Topper) are hidden by default");
+  const withHidden = idsOf(ix.query(Q({ classes: all, includeHidden: true }))); assert.ok(withHidden.includes(art) && withHidden.includes(oversize)); assert.equal(withHidden.length, def.length + 2);
+  assert.deepEqual(idsOf(ix.query(Q({ classes: all, setIds: [artSet.id] }))), [art], "naming the set is asking for it");
+  const lean = await BrowseIndex.load(src(tree), sets, { withStores: false }); assert.equal(lean.hasOracle, false);
+  for (const q of [{ keyword: "flying" }, { format: { key: "modern" as const, playable: true } }, { identity: { mask: 3 } }, { sort: "popular" as const }]) assert.throws(() => lean.query(Q(q)), /oracle columns/);
+  assert.throws(() => ix.query(Q({ rootId: 5 })), /rootId/); assert.equal(lean.query(Q({ per: 24 })).items.length, 24 < lean.n ? 24 : lean.n);
+  assert.equal(lean.liteAt(0).low.US, null, "withStores false: no store columns");
+});
+test("ix/s is a phase-2 family: a tree published before the first store stage loads with every store column at 'none'", async () => {
+  const full = realMiniTree(), t = memTree(full.files().filter((f) => !f.startsWith("ix/s-")).map((f) => [f, full.read(f)] as [string, string]));
+  const ix = await BrowseIndex.load(src(t), realSets(t), { withStores: true, withOracle: true }); assert.equal(ix.n, (JSON.parse(full.read("ix/dict.json")) as IxDict).rows); const bird = ix.lookup([2831]).get(2831)!; assert.equal(bird.marketUsd, 2289); assert.deepEqual([bird.low.US, bird.stores.US], [null, 0]);
+  const withS = await BrowseIndex.load(src(full), realSets(full), { withStores: true }); assert.equal(withS.lookup([2831]).get(2831)!.low.US, 1749, "and with the file the TCGplayer low of a tracked unit is the US low");
+});
+
+test("the engine carries the store-only minimum beside the all-source low: the Deal Finder's buy side is never TCGplayer's own listing (and rowOf maps a product id to its row)", async () => {
+  const t = miniFull({ day: 1 }), sets = setsOf(t), ix = await BrowseIndex.load(src(t), sets), cards = miniCards({ day: 1 }); let checked = 0;
+  for (const c of cards.filter((x) => x.mask & PRICE_MASK.TRACKN).slice(0, 40)) {
+    const row = ix.rowOf(c.id), m = c.mN ?? 100, at = row * 2 * 6; assert.ok(row >= 0, `${c.id} is a listed row`); assert.equal(ix.id[row], c.id);
+    assert.equal(ix.low[at], Math.round(m * 0.9), "the all-source low (the US one includes TCGplayer's own)"); assert.equal(ix.smin[at], Math.round(m * 0.92), "the cheapest STORE listing: dearer than that low here, so the two cannot stand in for each other");
+    assert.equal(ix.smin[at + 1], -1, "no AU listing: none"); checked++;
+  }
+  assert.ok(checked >= 30);
+  const untracked = cards.find((c) => !(c.mask & (PRICE_MASK.TRACKN | PRICE_MASK.TRACKF)) && (c.mask & PRICE_MASK.LISTED))!, r2 = ix.rowOf(untracked.id); assert.deepEqual([...ix.smin.slice(r2 * 12, r2 * 12 + 12)], Array(12).fill(-1), "an untracked card has no store minimum");
+  assert.equal(ix.rowOf(-5), -1); assert.equal(ix.rowOf(1), -1, "an id that is not a listed row");
+  const lean = await BrowseIndex.load(src(t), sets, { withStores: false }); assert.ok(lean.smin.every((v) => v === -1), "withStores false: no store columns");
+});

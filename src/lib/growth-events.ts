@@ -13,7 +13,7 @@
 // auth_start, in localStorage for 30 minutes.
 import { trackEvent } from "./analytics";
 
-const PLACEMENT_KEY = "oc_auth_placement";
+const PLACEMENT_KEY = "mc_auth_placement";
 const PLACEMENT_TTL_MS = 30 * 60_000;
 
 export function trackSignupCta(placement: string): void {

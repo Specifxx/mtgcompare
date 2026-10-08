@@ -7,7 +7,7 @@ import { firePlanClick } from "@/lib/nudge-surface";
 // premium-interest beacon (surface "nav:navbar", "nav:sidebar", "nav:menu"…)
 // before navigating. Used for every "Pricing" link in the chrome. Members never
 // see it: each call site hides it for a Plus/Premium account, and `memberHint`
-// also hides it at first paint for a returning member (the oc_adfree hint,
+// also hides it at first paint for a returning member (the mc_adfree hint,
 // lib/ad-free.ts) so it does not flash in before /api/me answers.
 export function PremiumNavLink({
   href = "/premium",

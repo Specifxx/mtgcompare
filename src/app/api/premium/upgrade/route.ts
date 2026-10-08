@@ -8,7 +8,7 @@ import { stripeEnabled } from "@/lib/stripe";
 export const dynamic = "force-dynamic";
 
 // POST → Plus → Premium, same interval, billed the prorated difference now (always_invoice).
-// RiftCompare's /api/premium/upgrade. The logic, the site=opcompare check and the
+// RiftCompare's /api/premium/upgrade. The logic, the site=mtgcompare check and the
 // idempotency are lib/plan-change.ts. Entitlement is NOT written here: the
 // webhook restamps the tier from customer.subscription.updated.
 const json = (status: number, body: Record<string, unknown>) => NextResponse.json(body, { status, headers: { "Cache-Control": "no-store" } });

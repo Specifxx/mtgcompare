@@ -14,7 +14,7 @@ import { PlanDialog } from "./PlanDialog";
 // `checkoutOpen` is stripeEnabled(), read by the layout from the environment.
 // It is NOT a session read (the root layout never reads the session); who the
 // visitor is comes from useMe() inside the dialog, which asks /api/me only when
-// the oc_auth hint cookie exists.
+// the mc_auth hint cookie exists.
 export interface PlanDialogApi {
   open: (surface: string, opts?: { tier?: Tier }) => void;
   checkoutOpen: boolean;

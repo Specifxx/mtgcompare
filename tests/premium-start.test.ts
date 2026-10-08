@@ -1,5 +1,5 @@
 // Sign-in is a step inside checkout (lib/premium-start.ts, /premium/start,
-// CheckoutLauncher) — RiftCompare's tests/premium-start.test.ts for OP Compare.
+// CheckoutLauncher) — RiftCompare's tests/premium-start.test.ts for MTG Compare.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -27,7 +27,7 @@ test("sanitizeBackPath keeps next-param's rules AND adds the funnel loop guards"
   assert.equal(sanitizeBackPath("/premium/start?tier=plus"), null);
   assert.equal(sanitizeBackPath("/premium/welcome"), null);
   assert.equal(sanitizeBackPath("/login?next=/x"), null);
-  assert.equal(sanitizeBackPath("/card/monkey-d-luffy-op01-024"), "/card/monkey-d-luffy-op01-024");
+  assert.equal(sanitizeBackPath("/card/counterspell-mh2-267"), "/card/counterspell-mh2-267");
   assert.equal(sanitizeBackPath("/tools/deal-finder?mine=watch"), "/tools/deal-finder?mine=watch");
 });
 
@@ -69,7 +69,7 @@ test("every signed-out buy button goes through the start step", () => {
 
 test("the welcome page proves the session is this viewer's before confirming anything", () => {
   const src = code("src/app/premium/welcome/page.tsx");
-  assert.match(src, /s\.metadata\?\.kind !== "oc_premium" \|\| ownerId !== user\.id/);
+  assert.match(src, /s\.metadata\?\.kind !== "mc_premium" \|\| ownerId !== user\.id/);
   assert.match(src, /TIER_COMPARISON\.filter/, "'Just unlocked' is derived from the table");
   assert.match(src, /Open your \$\{tierName\} tools →/);
   assert.match(src, /<PremiumActivationPoller>/);

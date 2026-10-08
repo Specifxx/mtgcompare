@@ -16,8 +16,8 @@ function sub(tier: "plus" | "premium", over: Record<string, unknown> = {}) {
     status: "active",
     cancel_at_period_end: false,
     cancel_at: null,
-    metadata: { site: "opcompare", tier },
-    items: { data: [{ id: "si_1", price: { id: `price_${tier}`, recurring: { interval: "year" }, metadata: { site: "opcompare", tier } } }] },
+    metadata: { site: "mtgcompare", tier },
+    items: { data: [{ id: "si_1", price: { id: `price_${tier}`, recurring: { interval: "year" }, metadata: { site: "mtgcompare", tier } } }] },
     ...over,
   };
 }
@@ -62,8 +62,8 @@ test("idempotent on the tier read from the live price: nothing is charged twice"
   assert.equal(updates.length, 0);
 });
 
-test("refused: no OP Compare subscription (a foreign one is filtered out), not active, or set to end", async () => {
-  // ourSubscription() returns null for a subscription whose Price/metadata isn't site=opcompare.
+test("refused: no MTG Compare subscription (a foreign one is filtered out), not active, or set to end", async () => {
+  // ourSubscription() returns null for a subscription whose Price/metadata isn't site=mtgcompare.
   assert.equal((await changePlan("upgrade", "cus_1", deps(null).d)).status, 400);
   assert.equal((await changePlan("upgrade", "cus_1", deps(sub("plus", { status: "trialing" })).d)).status, 400);
   assert.equal((await changePlan("upgrade", "cus_1", deps(sub("plus", { status: "past_due" })).d)).status, 400);
@@ -72,7 +72,7 @@ test("refused: no OP Compare subscription (a foreign one is filtered out), not a
   assert.equal(ending.updates.length, 0);
 });
 
-test("ourSubscription only ever returns an OP Compare subscription", () => {
+test("ourSubscription only ever returns an MTG Compare subscription", () => {
   const src = code("src/lib/plan-subscription.ts");
   assert.match(src, /isOurSubscription\(s\)/);
 });

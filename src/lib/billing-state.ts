@@ -4,7 +4,7 @@ import { ourSubscription, summarizeSubscription } from "./plan-subscription";
 // subscription, published on /api/me — RiftCompare's lib/billing-state.ts,
 // ported in wave 2 (2026-10-03):
 //
-//   trialing — inside a trial (OP Compare sells none, so this stays false
+//   trialing — inside a trial (MTG Compare sells none, so this stays false
 //     unless the owner ever turns one on; the plan-change routes select only
 //     active subscriptions, so a trialist must not be offered a switch).
 //   interval — "month" | "year". The upgrade route keeps the subscriber's

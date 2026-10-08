@@ -1,5 +1,5 @@
 // Community nicknames for ONE exact printing (RiftCompare's card-aliases.ts): the
-// phrase a collector types ("gold roger luffy") that appears nowhere in a
+// phrase a collector types ("bob" for Dark Confidant) that appears nowhere in a
 // product's TCGplayer name. Keyed by Card.slug, never by name (a nickname names a
 // printing, not a character), and SEEDED EMPTY: an alias is added only when an
 // owner or a source confirms it, never guessed. The search box answers an alias

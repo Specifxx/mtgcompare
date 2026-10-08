@@ -10,7 +10,7 @@ const DAY = 24 * 60 * 60 * 1000;
 
 // Public support-ticket intake (RiftCompare's /api/support through OP's public
 // form gate): same-origin, size-capped, honeypot, 3 an hour per IP, and for a
-// signed-in account 5 a day. The ticket gets a number (OC-<n>, shown on screen);
+// signed-in account 5 a day. The ticket gets a number (MC-<n>, shown on screen);
 // no email is sent, because no mailer exists: the owner reads /admin/support and
 // replies from their own mail client.
 export async function POST(req: Request) {

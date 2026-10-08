@@ -41,7 +41,7 @@ export function FeedbackForm() {
     <form onSubmit={submit} className="card-surface space-y-4 p-5">
       {me.user ? <p className="text-xs text-slate-400">Signed in as {me.user.email}</p> : null}
       <fieldset>
-        <legend className="text-sm text-slate-300">How useful is OP Compare?</legend>
+        <legend className="text-sm text-slate-300">How useful is MTG Compare?</legend>
         <div className="mt-1 flex gap-1" role="radiogroup">
           {[1, 2, 3, 4, 5].map((n) => (
             <button

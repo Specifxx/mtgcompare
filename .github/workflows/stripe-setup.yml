@@ -1,9 +1,10 @@
 name: Stripe setup
 
 # Run by hand once Stripe is connected (and again after changing a price in
-# src/lib/plans.ts): creates or updates OP Compare's products, prices and
+# src/lib/plans.ts): creates or updates MTG Compare's products, prices and
 # billing-portal configuration (scripts/stripe-setup.ts). Idempotent; prints
-# only ids. Needs the STRIPE_SECRET_KEY secret.
+# only ids. Needs the STRIPE_SECRET_KEY secret of MTG Compare's own Stripe
+# account (never RiftCompare's).
 on:
   workflow_dispatch:
 
@@ -13,7 +14,7 @@ jobs:
     timeout-minutes: 10
     env:
       STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-      SITE_URL: ${{ vars.SITE_URL || 'https://opcompare.app' }}
+      SITE_URL: ${{ vars.SITE_URL || 'https://mtgcompare.app' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

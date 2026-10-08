@@ -1,6 +1,6 @@
 // The tier table (lib/plans.ts TIER_COMPARISON) and the pricing bullets read
 // against the enforced constants (RiftCompare's access-tiers and
-// ad-free-tier tests, as far as OP Compare's lineup goes).
+// ad-free-tier tests, as far as MTG Compare's lineup goes).
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -35,7 +35,7 @@ test("eighteen rows, RiftCompare's order, Ad-free last", () => {
       "Compare prices across every store",
       "Full card database, charts & search",
       "Deck & list pricer, trade calculator & box EV",
-      "OP Compare Index & weekly price movers",
+      "MTG Compare Index & weekly price movers",
       "Watchlist & new-low alerts",
       "Portfolio",
       "Set tracker",
@@ -92,6 +92,7 @@ test("pricing bullets: four a card, Plus leads with no ads, numbers from the con
   assert.equal(PLAN_FEATURES.plus.length, 4);
   assert.equal(PLAN_FEATURES.premium.length, 4);
   assert.equal(PLAN_FEATURES.plus[0], "No ads on any page");
+  assert.equal(PLAN_FEATURES.plus[1], "Deal Finder in full, no watchlist or portfolio limit", "Plus names its tool: Deal Finder");
   assert.ok(PLAN_FEATURES.plus.includes(`Target alerts on up to ${PLUS_TARGET_ALERT_LIMIT} cards`));
   assert.ok(PLAN_FEATURES.plus.includes(`Sealed watches on up to ${SEALED_WATCH_LIMIT_PLUS} products`));
   assert.ok(PLAN_FEATURES.premium.includes(`Deck price watch on up to ${DECK_WATCH_LIMIT} lists`));

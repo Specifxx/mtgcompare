@@ -1,7 +1,7 @@
 "use client";
 
 // The visitor's account state, for the header and the ad-free switch. The
-// browser asks /api/me ONLY when the readable oc_auth hint cookie says someone
+// browser asks /api/me ONLY when the readable mc_auth hint cookie says someone
 // signed in on this device, so signed-out visitors (most of them) cost no
 // request. One fetch per page load, shared by every caller.
 import { useEffect, useState } from "react";
@@ -15,7 +15,7 @@ export interface Me {
   admin: boolean; // the caller's own flag, only to show the menu's "Admin" link
   createdAt: string | null; // the account's creation time (ISO), for the slide-in's 48-hour rule
   // Wave 2 (member track; RiftCompare's /api/me fields):
-  trialing: boolean; // inside a trial — no plan switch offered (OP sells none; false)
+  trialing: boolean; // inside a trial — no plan switch offered (MTG Compare sells none; false)
   interval: "month" | "year" | null; // a Plus member's own billing interval, for the upgrade quote
   unreadCount: number; // unread in-app notifications (the alerts' delivery while email is off)
   preferredCountry: string | null; // the market the welcome checklist saved
@@ -39,7 +39,7 @@ export const SIGNED_OUT: Me = {
   billing: false,
   emailOn: false,
 };
-const AD_FREE_COOKIE = "oc_adfree";
+const AD_FREE_COOKIE = "mc_adfree";
 
 let pending: Promise<Me> | null = null;
 
@@ -48,7 +48,7 @@ function hasCookie(name: string): boolean {
 }
 
 export function fetchMe(): Promise<Me> {
-  if (!hasCookie("oc_auth")) return Promise.resolve(SIGNED_OUT);
+  if (!hasCookie("mc_auth")) return Promise.resolve(SIGNED_OUT);
   pending ??= fetch("/api/me", { cache: "no-store" })
     .then((r) => (r.ok ? (r.json() as Promise<Partial<Me>>).then((m): Me => ({ ...SIGNED_OUT, ...m, admin: m.admin === true })) : SIGNED_OUT))
     .catch(() => SIGNED_OUT);
@@ -57,7 +57,7 @@ export function fetchMe(): Promise<Me> {
 
 export function invalidateMe() {
   pending = null;
-  window.dispatchEvent(new Event("oc:me"));
+  window.dispatchEvent(new Event("mc:me"));
 }
 
 // Refresh on window focus (wave 2): the unread count and a plan change made in
@@ -69,7 +69,7 @@ function listenFocus() {
   if (focusListening || typeof window === "undefined") return;
   focusListening = true;
   window.addEventListener("focus", () => {
-    if (!hasCookie("oc_auth") || Date.now() - lastFocusRefresh < 60_000) return;
+    if (!hasCookie("mc_auth") || Date.now() - lastFocusRefresh < 60_000) return;
     lastFocusRefresh = Date.now();
     invalidateMe();
   });
@@ -99,10 +99,10 @@ export function useMe(): { me: Me; loaded: boolean } {
     load();
     lastFocusRefresh ||= Date.now();
     listenFocus();
-    window.addEventListener("oc:me", load);
+    window.addEventListener("mc:me", load);
     return () => {
       live = false;
-      window.removeEventListener("oc:me", load);
+      window.removeEventListener("mc:me", load);
     };
   }, []);
   return state;

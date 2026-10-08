@@ -28,7 +28,7 @@ export async function nextNumber(key: keyof typeof SEED, client: CounterClient =
   return rows[0]!.value;
 }
 
-/** "OC-10001": the prefix lives in one place. */
+/** "MC-10001": the prefix lives in one place. */
 export function formatTicketNumber(n: number | null | undefined): string | null {
-  return n == null ? null : `OC-${n}`;
+  return n == null ? null : `MC-${n}`;
 }

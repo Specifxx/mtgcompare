@@ -18,7 +18,7 @@ import { Toast } from "./ui/Toast";
 //
 // The OAuth callback appends ?welcome=<provider> for new accounts only; this
 // component, mounted once in the root layout, turns that into one
-// sign_up event, stamps `op_welcome_at` (WelcomeChecklist's 7-day window),
+// sign_up event, stamps `mc_welcome_at` (WelcomeChecklist's 7-day window),
 // marks the signup session and strips the param with router.replace — so a
 // refresh or share can never re-fire it. Reads searchParams client-side only
 // and renders nothing but a toast, so it leaks no per-user state into any
@@ -60,7 +60,7 @@ function SignupWelcomeInner() {
     }
     trackSignupComplete(welcome);
     try {
-      localStorage.setItem("op_welcome_at", String(Date.now()));
+      localStorage.setItem("mc_welcome_at", String(Date.now()));
     } catch {
       /* private mode — the checklist just never shows for this visitor */
     }

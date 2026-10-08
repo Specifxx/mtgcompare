@@ -6,12 +6,14 @@ import { INTERVALS, PLAN_PITCH, TIERS, TIER_NAMES, annualSavingPct, perMonth, pl
 import type { OAuthProvider } from "@/lib/oauth";
 import { AuthForm } from "./AuthForm";
 import { invalidateMe, useMe } from "@/lib/use-me";
+import { stripeUrlIn } from "@/lib/checkout-params";
 import { planSwitchPriceLabel } from "@/lib/plan-switch-price";
 import { intervalPlan, premiumStartHref } from "@/lib/premium-start";
 import { firePlanClick } from "@/lib/nudge-surface";
 import { trackEvent } from "@/lib/analytics";
 import { Icon } from "./Icon";
 import { AnnualPriceBlock } from "./AnnualPriceBlock";
+import { StripeErrorNotice } from "./StripeErrorNotice";
 import { startCheckout } from "./PricingCards";
 import { TierComparisonTable } from "./TierComparisonTable";
 import { useEscapeLayer, useModalFlag, useScrollLock } from "./ui/Dialog";
@@ -38,7 +40,7 @@ export function PlanDialog({ initialTier, surface, checkoutOpen, providers = [],
   const [error, setError] = useState<string | null>(null);
   const panel = useRef<HTMLDivElement>(null);
 
-  // Modal manners: the shared, refcounted scroll lock, body[data-oc-dialog]
+  // Modal manners: the shared, refcounted scroll lock, body[data-mc-dialog]
   // flag (the corner nudges yield to it, lib/nudge-runtime.ts) and topmost-only
   // Escape from ui/Dialog, so a plan dialog opened over QuickView releases
   // neither early; plus focus in, a Tab trap and focus back out.
@@ -119,7 +121,7 @@ export function PlanDialog({ initialTier, surface, checkoutOpen, providers = [],
         <div ref={panel} tabIndex={-1} className="pointer-events-auto relative w-full outline-none focus-visible:outline-none max-w-lg overflow-hidden rounded-xl border border-ink-700 bg-ink-900 shadow-2xl">
           <div className="flex items-center justify-between border-b border-ink-700 bg-ink-950/60 py-1 pl-5 pr-2">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">OP Compare</span>
+              <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">MTG Compare</span>
               <span className="rounded border border-gold/40 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gold">{TIER_NAMES[tier]}</span>
             </div>
             <button type="button" onClick={onClose} aria-label="Close" className="tap-icon rounded-lg text-slate-400 hover:bg-ink-800 hover:text-white">
@@ -129,10 +131,10 @@ export function PlanDialog({ initialTier, surface, checkoutOpen, providers = [],
 
           <div className="px-5 py-5">
             <h2 id="plan-dialog-title" className="text-lg font-extrabold text-white">
-              Never overpay for a One Piece card
+              Never overpay for a Magic card
             </h2>
             <p className="mt-1 text-sm text-slate-400">
-              Plus and Premium are ad-free. Plus shows every Deal Finder deal in all six markets; Premium also plans which stores to buy your list from. Comparing prices stays free.
+              Plus and Premium are ad-free. Plus shows every Deal Finder deal in all six markets; Premium adds the full Rising Cards and Demand Finder lists and plans which stores to buy your list from. Comparing prices stays free.
             </p>
 
             <div className="mt-4 max-h-[32vh] overflow-y-auto rounded-lg border border-ink-800">
@@ -148,9 +150,9 @@ export function PlanDialog({ initialTier, surface, checkoutOpen, providers = [],
                   {me.tier === "plus" ? (
                     <>
                       <p className="mt-1 text-xs text-slate-400">
-                        Premium plans the order: Best Basket&apos;s store-by-store plan for a deck, a list or the rest of a set, at the minimum condition you
-                        set, a deck price watch that re-prices a saved list after every price update, unlimited target alerts and sealed watches, and
-                        Demand Finder.
+                        Premium opens the rest of the analysis: every Rising Cards pick and the full Demand Finder lists, and plans the order: Best Basket&apos;s
+                        store-by-store plan for a deck, a list or the rest of a set, at the minimum condition you set, a deck price watch that re-prices a
+                        saved list after every price update, and unlimited target alerts and sealed watches.
                       </p>
                       {!checkoutOpen ? (
                         <p className="mt-2 text-xs text-slate-400">Plan changes open when subscriptions do.</p>
@@ -241,9 +243,13 @@ export function PlanDialog({ initialTier, surface, checkoutOpen, providers = [],
                       </button>
                       <p className="mt-2 text-center text-[11px] text-slate-500">Cancel anytime · secure checkout by Stripe</p>
                       {error ? (
-                        <p role="alert" className="mt-2 text-center text-xs text-red-300">
-                          {error}
-                        </p>
+                        stripeUrlIn(error) ? (
+                          <StripeErrorNotice message={error} />
+                        ) : (
+                          <p role="alert" className="mt-2 text-center text-xs text-red-300">
+                            {error}
+                          </p>
+                        )
                       ) : null}
                     </>
                   )}

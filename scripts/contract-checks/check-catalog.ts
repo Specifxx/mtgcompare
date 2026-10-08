@@ -1,7 +1,8 @@
 import * as K from "../../src/lib/catalog";
 import * as C from "../../src/lib/constants";
 import * as fs from "node:fs";
-const base = process.env.FIXTURE_BASE ?? "/tmp/claude-0/-home-user/1729fd1a-6a1a-50c2-b66b-ed691e9d9923/scratchpad/port/design/magic-tools";   // singles.json (9.5 MB) lives there, not in the tree
+const flag = (name: string): string | undefined => process.argv.find((a) => a.startsWith(`--${name}=`))?.slice(name.length + 3);   // paths are arguments, not environment variables (tests/env-names.test.ts)
+const base = flag("fixture-base");   // the research snapshot's design/magic-tools directory: singles.json (9.5 MB) lives there, not in the tree; no default, no machine path in the repository
 const fx = JSON.parse(fs.readFileSync("tests/fixtures/magic-products.json", "utf8"));
 const groups = JSON.parse(fs.readFileSync("tests/fixtures/tcgcsv-groups.json", "utf8"));
 let bad = 0;
@@ -15,10 +16,13 @@ for (const f of fx) { const tok = toks.get(f.groupId)!; const slug = f.expect.cl
   if (f.expect.cls !== "sealed") { const num = (f.scryfall ?? []).map((r: any) => r.cn).sort((a: string, b: string) => Number(/[★†]/.test(a)) - Number(/[★†]/.test(b)))[0] ?? f.tcgNumber; const n = C.nkey(num); const s = C.nsort(num);
     if (n !== (f.expect.nkey || null) || s !== f.expect.nsort) { fb++; console.log("NKEY/NSORT MISMATCH", f.productId, num, n, s, f.expect.nkey, f.expect.nsort); } } }
 console.log("fixture mismatches", fb, "of", fx.length);
-const singles = JSON.parse(fs.readFileSync(base + "/ts-check/singles.json", "utf8"));
-const seen = new Map<string, number[]>();
-for (const p of singles.sort((a: any, b: any) => a.productId - b.productId)) { const s = K.slugBase(p, toks.get(p.gid)!); const l = seen.get(s); if (l) l.push(p.productId); else seen.set(s, [p.productId]); }
-console.log("singles", singles.length, "distinct", seen.size, "colliding", [...seen].filter(([, v]) => v.length > 1).length);
+const singlesFile = base ? `${base}/ts-check/singles.json` : null;
+if (singlesFile && fs.existsSync(singlesFile)) {   // the 9.5 MB lab file of the 111,839 included singles; without it the fixture and vector checks still run (tests/catalog.test.ts sweeps it when MTG_LAB is set)
+  const singles = JSON.parse(fs.readFileSync(singlesFile, "utf8"));
+  const seen = new Map<string, number[]>();
+  for (const p of singles.sort((a: any, b: any) => a.productId - b.productId)) { const s = K.slugBase(p, toks.get(p.gid)!); const l = seen.get(s); if (l) l.push(p.productId); else seen.set(s, [p.productId]); }
+  console.log("singles", singles.length, "distinct", seen.size, "colliding", [...seen].filter(([, v]) => v.length > 1).length);
+} else console.log("singles SKIPPED: no lab file", singlesFile ? `at ${singlesFile}` : "named", "(pass --fixture-base=<dir>)");
 console.log(K.finishPrices([{ productId: 1, lowPrice: 0.5, marketPrice: 10, subTypeName: "Normal" }, { productId: 1, lowPrice: 3, marketPrice: null, subTypeName: "Foil" }, { productId: 1, lowPrice: 1, marketPrice: 1, subTypeName: "Etched" }]));
 console.log(K.productClass({ name: "Treasure Token (2018 Lunar New Year Promo)", rarity: "T" }, "promo", null), K.productClass({ name: "Rules Card (WAR Bundle)", rarity: "T" }, "promo", null), K.productClass({ name: "Foo Art Card (2/54)", rarity: "S" }, "art-series", null));
 // critique 12: ligatures. NFKD does not decompose Æ, Œ, ß, Ø, Đ, Ł; they are transliterated first, so oracle hub URLs are readable.

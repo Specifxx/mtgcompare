@@ -1,25 +1,29 @@
-// Derived lists the pages share — pure functions over the cached catalogue.
-import type { Country } from "./country";
+// Derived lists the pages share — pure functions over rows the loaders return (a page, a set list or a bounded list of cards; never "every card": nothing here scans the catalogue).
+// A "main" set is a Magic set kind that is sold in boosters and announced on the release calendar (constants.ts MAIN_SET_KINDS / RELEASE_SET_KINDS), not a literal list of this file.
+import { MAIN_SET_KINDS, RELEASE_SET_KINDS } from "./constants";
 import type { CardLite, SealedLite, SetLite } from "./data";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export function releasedSets(sets: SetLite[], kinds: string[] = ["booster", "extra", "premium"]): SetLite[] {
+/** Sets already released, newest first. Default kinds: the main sets (expansion, core, masters). */
+export function releasedSets(sets: SetLite[], kinds: readonly string[] = MAIN_SET_KINDS): SetLite[] {
   const t = today();
   return sets
     .filter((s) => kinds.includes(s.kind) && s.releasedOn && s.releasedOn <= t)
     .sort((a, b) => (b.releasedOn ?? "").localeCompare(a.releasedOn ?? ""));
 }
 
+/** Sets announced for a later day, soonest first: every kind the release calendar shows (expansion, core, masters, commander). */
 export function upcomingSets(sets: SetLite[]): SetLite[] {
   const t = today();
   return sets
-    .filter((s) => ["booster", "extra", "premium", "starter"].includes(s.kind) && s.releasedOn && s.releasedOn > t)
+    .filter((s) => RELEASE_SET_KINDS.includes(s.kind) && s.releasedOn && s.releasedOn > t)
     .sort((a, b) => (a.releasedOn ?? "").localeCompare(b.releasedOn ?? ""));
 }
 
+/** The newest released main set (a "booster set" is a main set here: expansion, core or masters). */
 export function newestBoosterSet(sets: SetLite[]): SetLite | null {
-  return releasedSets(sets, ["booster"])[0] ?? null;
+  return releasedSets(sets)[0] ?? null;
 }
 
 export function mostValuable(cards: CardLite[], n: number, filter: (c: CardLite) => boolean = () => true): CardLite[] {

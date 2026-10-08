@@ -66,7 +66,7 @@ export function FeedbackWidget() {
   // must clear the flag: arriving from a footer link while the banners were on
   // screen would otherwise leave the launcher hidden for the whole page.
   useEffect(() => {
-    const zone = document.getElementById("op-ad-zone");
+    const zone = document.getElementById("mc-ad-zone");
     if (!zone || typeof IntersectionObserver === "undefined") {
       setOverAdZone(false);
       return;
@@ -84,12 +84,12 @@ export function FeedbackWidget() {
   // hand-roll a scrollY threshold, this reuses the SAME pattern the ad-zone
   // check right above it already established: look for a marker element by
   // id and hide for as long as it's in view. CinematicHero's outermost
-  // section carries id="op-hero" for exactly this. On every OTHER route
+  // section carries id="mc-hero" for exactly this. On every OTHER route
   // (149 of them), that id doesn't exist, `zone` is null, and this becomes a
   // pure no-op — so the launcher's behavior everywhere except the homepage
   // is completely unchanged by this effect.
   useEffect(() => {
-    const zone = document.getElementById("op-hero");
+    const zone = document.getElementById("mc-hero");
     if (!zone || typeof IntersectionObserver === "undefined") return;
     const io = new IntersectionObserver((entries) => setOverHero(entries[0]?.isIntersecting ?? false));
     io.observe(zone);
@@ -189,7 +189,7 @@ export function FeedbackWidget() {
         </button>
       )}
 
-      <Dialog open={open} onClose={close} placement="sheet" size="md" z="sheet" labelledBy="op-feedback-title" className="p-5">
+      <Dialog open={open} onClose={close} placement="sheet" size="md" z="sheet" labelledBy="mc-feedback-title" className="p-5">
             {/* .tap-icon (2026-09-23): 48px on touch, up from 29x32. Every
                 step's title below carries pr-12 so none runs under it. */}
             <button
@@ -204,8 +204,8 @@ export function FeedbackWidget() {
             {/* ── Step 1: the rating ─────────────────────────────────────── */}
             {phase === "rating" && (
               <>
-                <h2 id="op-feedback-title" className="pr-12 text-lg font-extrabold text-white">
-                  How&apos;s OP Compare working for you?
+                <h2 id="mc-feedback-title" className="pr-12 text-lg font-extrabold text-white">
+                  How&apos;s MTG Compare working for you?
                 </h2>
                 <p className="mt-1 text-sm text-slate-400">
                   One tap. No account needed — we read every one.
@@ -213,7 +213,7 @@ export function FeedbackWidget() {
                 {/* Stars (2026-09-23): min-h-11/min-w-11 lifts each to the
                     tap floor (43x38 before), and the idle glyph is slate-600
                     rather than ink-600, which read ~1.7:1 against the sheet. */}
-                <div className="mt-4 flex justify-center gap-1.5" role="group" aria-label="Rate OP Compare out of 5">
+                <div className="mt-4 flex justify-center gap-1.5" role="group" aria-label="Rate MTG Compare out of 5">
                   {[1, 2, 3, 4, 5].map((n) => (
                     <button
                       key={n}
@@ -243,7 +243,7 @@ export function FeedbackWidget() {
             {/* ── Step 2: the follow-up, routed by sentiment ──────────────── */}
             {(phase === "detail" || phase === "sending") && (
               <>
-                <h2 id="op-feedback-title" className="pr-12 text-lg font-extrabold text-white">
+                <h2 id="mc-feedback-title" className="pr-12 text-lg font-extrabold text-white">
                   {rating == null
                     ? "What would you like to tell us?"
                     : positive
@@ -346,14 +346,14 @@ export function FeedbackWidget() {
             {/* ── Step 3: thanks, and (only if positive) the share offer ──── */}
             {phase === "done" && (
               <>
-                <h2 id="op-feedback-title" className="pr-12 text-lg font-extrabold text-white">
+                <h2 id="mc-feedback-title" className="pr-12 text-lg font-extrabold text-white">
                   Thanks — that&apos;s genuinely useful.
                 </h2>
                 {positive ? (
                   <>
                     <p className="mt-1 text-sm text-slate-400">
-                      If OP Compare saved you money, the single most useful thing you can do is tell one
-                      other person who plays One Piece.
+                      If MTG Compare saved you money, the single most useful thing you can do is tell one
+                      other person who plays Magic.
                     </p>
                     <ShareRow source="feedback_widget" size="sm" className="mt-4" />
                   </>

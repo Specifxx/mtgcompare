@@ -57,7 +57,7 @@ export function PricingLink({
   children: React.ReactNode;
   role?: string;
   onClick?: () => void;
-  /** Hide at first paint for a returning member (the oc_adfree hint, lib/ad-free.ts). */
+  /** Hide at first paint for a returning member (the mc_adfree hint, lib/ad-free.ts). */
   memberHint?: boolean;
 }) {
   return (

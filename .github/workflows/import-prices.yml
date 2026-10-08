@@ -34,6 +34,7 @@ jobs:
       CRON_SECRET: ${{ secrets.CRON_SECRET }}
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       IMPORT_FORCE: ${{ inputs.force && '1' || '' }}
+      SCRYFALL_MODE: ${{ inputs.scryfall == 'off' && 'off' || '' }}
       NODE_OPTIONS: --max-old-space-size=3072
     steps:
       - uses: actions/checkout@v4

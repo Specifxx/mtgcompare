@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { trackEvent } from "@/lib/analytics";
+import { stripeUrlIn } from "@/lib/checkout-params";
 import { TIER_NAMES, type Tier } from "@/lib/plans";
 import type { StartPlan, StartSrc } from "@/lib/premium-start";
 import { recallPremiumSurface } from "@/lib/premium-surface";
+import { StripeErrorNotice } from "./StripeErrorNotice";
 
 // The last step of /premium/start for a SIGNED-IN visitor: open Stripe
 // (RiftCompare's CheckoutLauncher, ported in wave 2, 2026-10-03).
@@ -65,7 +67,7 @@ export function CheckoutLauncher({ tier, plan, back, src }: { tier: Tier; plan: 
 
       {error && (
         <div role="alert" className="mt-3 text-xs">
-          <p className="text-rose-400">{error}</p>
+          {stripeUrlIn(error) ? <StripeErrorNotice message={error} /> : <p className="text-rose-400">{error}</p>}
           <p className="mt-1 text-slate-400">
             <button onClick={() => void launch()} className="text-brand-400 hover:underline">
               Try again
