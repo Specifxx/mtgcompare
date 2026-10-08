@@ -178,3 +178,4 @@ shows an email field. Each run records Meta `email` = on/off, which is what
 the site reads. A key that is set but refused fails the run red.
 `tests/no-email-api.test.ts` pins where the provider hosts and key names may
 appear and that no page or route can call a send function. Setup: `docs/SETUP.md` section 6b.
+
