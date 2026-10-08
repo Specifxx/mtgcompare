@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { COLORS, COLOR_KEYS, PRINTINGS, PRINTING_KEYS, RARITIES, SET_KINDS, CARD_TYPES } from "@/lib/constants";
+import { COLORS, COLOR_LETTERS, FORMAT_LABEL, FORMAT_UI, PRIMARY_TYPES, PRIMARY_TYPE_LABEL, RARITIES, RARITY_KEYS, SET_KINDS, TREATMENTS, TREATMENT_KIND_DOT, type TreatmentKind } from "@/lib/constants";
 import { COUNTRIES, type Country } from "@/lib/country";
 import type { BrowseQuery } from "@/lib/browse";
 import type { SetLite } from "@/lib/data";
@@ -23,11 +23,25 @@ function Section({ title, open = false, children }: { title: string; open?: bool
 function Check({ name, value, checked, onToggle, children }: { name: string; value: string; checked: boolean; onToggle: () => void; children: React.ReactNode }) {
   return (
     <label className="flex min-h-8 cursor-pointer items-center gap-2.5 rounded px-1 text-[15px] text-slate-200 hover:bg-ink-800/60 hover:text-white">
-      <input type="checkbox" name={name} value={value} checked={checked} onChange={onToggle} className="h-4 w-4 shrink-0 rounded border-ink-600 bg-ink-950 accent-[#d92b33]" />
+      <input type="checkbox" name={name} value={value} checked={checked} onChange={onToggle} className="h-4 w-4 shrink-0 rounded border-ink-600 bg-ink-950 accent-[#9140da]" />
       <span className="min-w-0 truncate">{children}</span>
     </label>
   );
 }
+
+function Radio({ name, value, checked, onPick, children }: { name: string; value: string; checked: boolean; onPick: () => void; children: React.ReactNode }) {
+  return (
+    <label className="flex min-h-8 cursor-pointer items-center gap-2.5 rounded px-1 text-[15px] text-slate-200 hover:bg-ink-800/60 hover:text-white">
+      <input type="radio" name={name} value={value} checked={checked} onChange={onPick} className="h-4 w-4 shrink-0 border-ink-600 bg-ink-950 accent-[#9140da]" />
+      <span className="min-w-0 truncate">{children}</span>
+    </label>
+  );
+}
+
+/** The treatments a visitor can filter by, grouped by what kind of difference they are; the hidden ones (languages, event placings) are left out. */
+const TREATMENT_GROUPS: { kind: TreatmentKind; label: string }[] = [
+  { kind: "frame", label: "Frames" }, { kind: "art", label: "Art" }, { kind: "foil", label: "Foil patterns" }, { kind: "edition", label: "Editions" }, { kind: "promo", label: "Promos" }, { kind: "serial", label: "Serialized" },
+];
 
 // The /browse filter panel (RiftCompare's Filters): every tick applies at once
 // — no Apply button — and the URL is the only state. A tick flips instantly
