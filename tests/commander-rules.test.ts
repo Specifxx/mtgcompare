@@ -177,7 +177,7 @@ test("Pioneer and Standard refuse what is not in them, with the card named", () 
 
 // ══ Pauper: a real 60 + 15 and the rarity note ═══════════════════════════════════════════════════════════════════════════════════════════════════════
 
-test("Pauper: the mono-red burn list is legal, and Goblin Guide, Eidolon and a Banned Swiftspear are named", () => {
+test("Pauper: the mono-red burn list is legal; Goblin Guide is not legal there and Monastery Swiftspear is banned, each named", () => {
   const r = check(DECKS.pauper, "pauper");
   assert.equal(r.ok, true);
   assert.deepEqual(r.counts, { main: 60, side: 15, commander: 0, companion: 0, deck: 60 });

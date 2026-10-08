@@ -8,7 +8,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs, { readFileSync } from "node:fs";
 import path, { join } from "node:path";
-import { ROOT } from "./helpers/ratchet";
 
 const ROOT = process.cwd();
 const read = (p: string): string => readFileSync(join(ROOT, p), "utf8");

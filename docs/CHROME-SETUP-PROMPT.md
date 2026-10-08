@@ -129,6 +129,11 @@ site does not depend on the database. Neon holds only accounts, billing, alerts 
    ("MTG Compare has ads, affiliate links and subscriptions: Vercel Hobby is non-commercial, move this team to Pro") with the
    billing tab left open. Do not upgrade.
 
+### A3b. Vercel Web Analytics
+In the Vercel project, open the **Analytics** tab and click **Enable** (Web Analytics; the site already contains the component, nothing is
+sent until this is on). Custom `buy_click` events need a Pro or Enterprise plan: if Vercel says the plan does not include custom events,
+make it a manual item and continue.
+
 ### A4. Google sign-in: a new OAuth client
 1. console.cloud.google.com: **New project** "MTG Compare" (reuse if it exists).
 2. APIs & Services, OAuth consent screen (Google Auth Platform): app name "MTG Compare", support and developer e-mail = my

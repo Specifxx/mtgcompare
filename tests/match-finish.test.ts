@@ -145,6 +145,13 @@ test("the sku suffix decides when the variant is silent; a store with no suffix 
   assert.equal(m({ title: SYLVAN, skus: [null], variantTitle: "Near Mint" }), "miss:finish-unknown");
 });
 
+test("'Traditional Foil' (Wizards' name for a regular foil, as in the Secret Lair Drop Series titles of the corpus) is the Foil finish, not a Traditional Chinese card", () => {
+  assert.deepEqual(variantFacts("Near Mint / Traditional Foil", undefined), { lang: null, fin: "foil", graded: false });
+  assert.deepEqual(variantFacts("Near Mint", ["Traditional Foil"]), { lang: null, fin: "foil", graded: false });
+  assert.equal(m({ title: SYLVAN, skus: ["MH2-176-EN-FO-1"], variantTitle: "Near Mint / Traditional Foil" }), "239693.F.sku");
+  assert.equal(m({ title: SYLVAN, skus: ["MH2-176-EN-FO-1"], variantTitle: "Traditional Chinese / Near Mint / Foil" }), "miss:language-option", "the language still is one");
+});
+
 test("a Foil tag never decides: it is on stores' non-foil products too", () => {
   const input = { title: SYLVAN, skus: [null], variantTitle: "Near Mint" } as const;
   assert.equal(m({ ...input, tags: ["Foil"] }), "miss:finish-unknown", "a Foil tag alone says nothing about this variant");

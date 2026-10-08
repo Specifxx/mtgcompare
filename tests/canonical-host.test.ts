@@ -15,21 +15,40 @@ import { pageOg } from "../src/lib/og/meta";
 const read = (p: string): string => fs.readFileSync(path.join(ROOT, p), "utf8");
 const HOST = new URL(SITE_URL).hostname;
 
-test("RATCHET: vercel.json redirects www to the canonical host with a permanent redirect that keeps every path", () => {
-  const vercel = JSON.parse(read("vercel.json")) as { redirects?: { source: string; destination: string; permanent?: boolean; statusCode?: number; has?: { type: string; value: string }[] }[] };
-  const www = (vercel.redirects ?? []).find((x) => x.has?.some((h) => h.type === "host" && h.value === `www.${HOST.replace(/^www\./, "")}`));
-  const problems: string[] = [];
-  if (!www) problems.push(`no redirect for www.${HOST}`);
-  else {
-    if (www.source !== "/:path*") problems.push(`source ${www.source}: every path, sitemaps and feeds included`);
-    if (www.destination !== `${SITE_URL}/:path*`) problems.push(`destination ${www.destination}, expected ${SITE_URL}/:path*`);
-    if (www.permanent !== true && www.statusCode !== 308) problems.push("not permanent (308 keeps GET and HEAD semantics)");
+export interface HostRedirect { source: string; destination: string; permanent: boolean }
+/** The www redirects of vercel.json (`redirects`) and of next.config.js (`async redirects()`, read as text): either file may carry the rule, both are configuration and neither is a billed function. */
+export function wwwRedirects(vercel: { redirects?: { source: string; destination: string; permanent?: boolean; statusCode?: number; has?: { type: string; value: string }[] }[] }, nextConfig: string, host: string): HostRedirect[] {
+  const bare = host.replace(/^www\./, ""), out: HostRedirect[] = [];
+  for (const x of vercel.redirects ?? []) if (x.has?.some((h) => h.type === "host" && h.value === `www.${bare}`)) out.push({ source: x.source, destination: x.destination, permanent: x.permanent === true || x.statusCode === 308 });
+  const text = stripComments(nextConfig), hostRule = new RegExp(`value:\\s*"www\\.${bare.replace(/\./g, "\\.")}"`);
+  for (const m of text.matchAll(/source:\s*"([^"]+)"/g)) {                                 // an object literal runs from its `source:` to the next one
+    const rest = text.slice(m.index!), end = rest.indexOf("source:", 8), obj = end > 0 ? rest.slice(0, end) : rest.slice(0, 600);
+    if (hostRule.test(obj)) out.push({ source: m[1]!, destination: /destination:\s*"([^"]+)"/.exec(obj)?.[1] ?? "", permanent: /permanent:\s*true/.test(obj) });
   }
-  // the owner of vercel.json is WP21, and the redirect arrives with the domain decision: until then this is a ratchet that records "1"
+  return out;
+}
+test("the www finder reads both files, and the rule can fail", () => {
+  const ok = { redirects: [{ source: "/:path*", has: [{ type: "host", value: "www.x.test" }], destination: "https://x.test/:path*", permanent: true }] };
+  assert.deepEqual(wwwRedirects(ok, "", "x.test"), [{ source: "/:path*", destination: "https://x.test/:path*", permanent: true }]);
+  const cfg = 'async redirects() { return [ { source: "/:path*", has: [{ type: "host", value: "www.x.test" }], destination: "https://x.test/:path*", permanent: true }, { source: "/a", destination: "/b", permanent: true } ]; }';
+  assert.deepEqual(wwwRedirects({}, cfg, "x.test"), [{ source: "/:path*", destination: "https://x.test/:path*", permanent: true }]);
+  assert.deepEqual(wwwRedirects({}, cfg.replace("www.x.test", "www.y.test"), "x.test"), [], "another host");
+  assert.equal(wwwRedirects({ redirects: [{ source: "/:path*", has: [{ type: "host", value: "www.x.test" }], destination: "https://x.test/:path*", permanent: false }] }, "", "x.test")[0]!.permanent, false);
+});
+test("RATCHET: www is redirected to the canonical host with a permanent redirect that keeps every path (vercel.json or next.config.js)", () => {
+  const vercel = JSON.parse(read("vercel.json")) as Parameters<typeof wwwRedirects>[0];
+  const found = wwwRedirects(vercel, fs.existsSync(path.join(ROOT, "next.config.js")) ? read("next.config.js") : "", HOST), problems: string[] = [];
+  if (!found.length) problems.push(`no redirect for www.${HOST}`);
+  for (const x of found) {
+    if (x.source !== "/:path*") problems.push(`source ${x.source}: every path, sitemaps and feeds included`);
+    if (x.destination !== `${SITE_URL}/:path*`) problems.push(`destination ${x.destination}, expected ${SITE_URL}/:path*`);
+    if (!x.permanent) problems.push("not permanent (308 keeps GET and HEAD semantics)");
+  }
+  // the owner of both files is WP21, and the redirect follows the domain decision: a ratchet that records the count until then
   const r = ratchet("canonical-host:www-redirect", problems.length ? ["vercel.json"] : []);
   if (problems.length) console.log(`canonical-host www redirect: ${summary(r)}: ${problems.join("; ")}`);
   assert.ok(r.ok, r.failures.join("\n"));
-  for (const x of vercel.redirects ?? []) if (x.has?.some((h) => h.type === "host")) assert.ok(x.permanent === true || x.statusCode === 308, `${x.source}: a host redirect is permanent`);
+  for (const x of vercel.redirects ?? []) if ((x as { has?: { type: string }[] }).has?.some((h) => h.type === "host")) assert.ok((x as { permanent?: boolean; statusCode?: number }).permanent === true || (x as { statusCode?: number }).statusCode === 308, `${x.source}: a host redirect is permanent`);
 });
 test("no middleware runs per request", () => {
   assert.ok(!fs.existsSync(path.join(ROOT, "src/middleware.ts")) && !fs.existsSync(path.join(ROOT, "middleware.ts")));

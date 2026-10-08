@@ -41,7 +41,6 @@ function child(testFile: string, outFile: string): void {
     } });
   };
   process.on("exit", () => fs.writeFileSync(outFile, JSON.stringify(seen)));
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   require(path.resolve(testFile));
 }
 

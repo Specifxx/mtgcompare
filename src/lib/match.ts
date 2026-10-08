@@ -125,7 +125,7 @@ const LANGUAGE_WORDS: ReadonlyMap<string, string> = new Map([
   ["portuguese", "pt"], ["portugues", "pt"], ["portoghese", "pt"], ["portugiesisch", "pt"],
   ["japanese", "ja"], ["giapponese", "ja"], ["japonais", "ja"], ["japanisch", "ja"], ["japones", "ja"],
   ["korean", "ko"], ["coreano", "ko"], ["koreanisch", "ko"],
-  ["chinese", "zh"], ["cinese", "zh"], ["chinesisch", "zh"], ["simplified", "zh"], ["traditional", "zh"],
+  ["chinese", "zh"], ["cinese", "zh"], ["chinesisch", "zh"],                    // not "simplified" / "traditional": "Traditional Foil" is Wizards' name for a regular foil (Secret Lair Drop Series)
   ["russian", "ru"], ["russo", "ru"], ["russisch", "ru"],
   ["phyrexian", "ph"], ["hebrew", "he"], ["latin", "la"], ["greek", "grc"], ["arabic", "ar"], ["sanskrit", "sa"],      // the other languages Scryfall lists for a printing
 ]);
@@ -819,6 +819,8 @@ export function matchCardTitle(title: string, idx: CardIndex): { id: number; fin
   let cands: Entry[];
   if (nums.length) cands = [...codes].flatMap((c) => nums.flatMap((n) => lookup(m, c, n)));
   else cands = [...codes].flatMap((c) => m.bySc.get(c) ?? []);
+  // The List (PLST) numbers its cards "<set>-<number>" ("cm2-14"): a title that names it beside the original printing's set and number ("The List PLST CM2-14") is The List's product or nothing, never the original printing
+  if (codes.has("plst") && nums.length) cands = [...cands.filter((e) => e.sc === "plst"), ...[...codes].filter((c) => c !== "plst").flatMap((c) => nums.flatMap((n) => lookup(m, "plst", `${c}-${n}`)))];
   cands = unique(cands).filter((e) => e.names.some((n) => n.length >= 3 && flat.includes(` ${n} `)));
   if (!cands.length) return { miss: nums.length ? "name-mismatch" : "name-setname-not-in-catalogue" };
   if (codes.size && nums.length === 0 && setText) cands = cands.filter((e) => e.sc !== null && codes.has(e.sc));
@@ -930,7 +932,8 @@ export function conditionLabel(label: string | null | undefined): string | null 
 
 /** KEPT from OP with their signatures (imported by store-import, import, the eBay modules and basket-condition). */
 export interface StoreVariant { title: string; price: string; available: boolean }
-/** Best condition first, then cheapest, among in-stock variants of another language or grade excluded. Null = nothing buyable. */
+/** Best condition first, then cheapest, among in-stock variants of another language or grade excluded. Null = nothing buyable. A product that sells a Normal and a Foil variant is TWO offers: pass the variants
+ *  matchStoreVariants answered with ONE finish (it does not look at the finish, so a mixed list would price the Foil with the Normal's condition). */
 export function bestVariant(variants: StoreVariant[]): { priceCents: number; condition: string | null } | null {
   const ok = variants.filter((v) => v.available && parseFloat(v.price) > 0 && languageOfVariant(v.title) !== "other" && !/\b(?:graded|psa|bgs|cgc|sgc|beckett|signed)\b/i.test(v.title));
   if (!ok.length) return null;

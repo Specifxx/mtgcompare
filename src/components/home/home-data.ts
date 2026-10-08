@@ -81,14 +81,17 @@ export function homeSets(sets: readonly SetLite[], today: string): SetLite[] {
   return [...upcoming, ...released].slice(0, SET_TILES);
 }
 
+/** An optional read: whatever goes wrong inside it, even a throw before it returns a promise, is the fallback and never the page. */
+const soft = <T,>(read: () => Promise<T>, fallback: T): Promise<T> => Promise.resolve().then(read).catch(() => fallback);
+
 export async function loadHomeData(): Promise<HomeData> {
   const [board, stats, sets, risers, fallers, recent] = await Promise.all([
     getHomeBoard(),
     getHomeStats(),
     getSets(),
-    getMovers({ dir: "up", window: 7, minCents: 100, n: 6 }).catch((): CardLite[] => []),      // P mv files; a failure drops the tab, never the page
-    getMovers({ dir: "down", window: 7, minCents: 100, n: 6 }).catch((): CardLite[] => []),
-    getRecentlyUpdated(24).catch((): { card: CardLite; pct: number }[] => []),
+    soft(() => getMovers({ dir: "up", window: 7, minCents: 100, n: 6 }), []),      // P mv files; a failure drops the tab, never the page
+    soft(() => getMovers({ dir: "down", window: 7, minCents: 100, n: 6 }), []),
+    soft(() => getRecentlyUpdated(24), []),
   ]);
   const renderedAt = new Date().toISOString(), today = renderedAt.slice(0, 10);
   // Biggest movers: TCGplayer's 7-day market change is one worldwide figure, so the list is the same for every market (prices still localise).

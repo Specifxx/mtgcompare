@@ -332,6 +332,8 @@ test("languageOfVariant reads English and foreign words, in several languages, o
     ["English / Near Mint / Foil Normal", "en"], ["Inglese / Near Mint / Regolare", "en"], ["German / Near Mint / Normal", "other"], ["Italian / Excellent / Normal", "other"], ["Near Mint French", "other"],
     ["Near Mint", null], ["Default Title", null], ["Near Mint Foil", null], ["Japanese", "other"], ["Simplified Chinese / NM", "other"], ["Near Mint / Español", "other"],
     ["Near Mint / Phyrexian", "other"], ["Hebrew / Near Mint", "other"], ["Latin", "other"], ["English / Phyrexian", "other"],
+    // "Traditional Foil" is Wizards' name for a regular foil (the Secret Lair Drop Series titles of the corpus: "Secret Lair x Blood Bowl (Traditional Foil Edition)"), not the Traditional Chinese language
+    ["Traditional Foil", null], ["Near Mint / Traditional Foil", null], ["Traditional Chinese / Near Mint", "other"], ["Chinese (Simplified)", "other"],
   ];
   for (const [text, want] of cases) assert.equal(languageOfVariant(text), want, text);
 });
@@ -524,6 +526,26 @@ test("a store product with no title, a null sku, tags as a string and a missing 
   assert.deepEqual(m, { id: 544402, finish: "N", path: "set-number" });
 });
 
+// ── rows without the optional fields (amendment W03-2): the importer fills label and abbr only when WP01b has (REQ-WP03-1) ──
+test("an index built from rows without label and abbr never answers with another product than the full index does where both answer", () => {
+  const bare = rows.map(({ label: _label, abbr: _abbr, ...r }) => r as MatchRow);
+  assert.ok(bare.every((r) => r.label === undefined && r.abbr === undefined));
+  const degraded: StoreMatchIndexes = { cards: buildCardIndex(bare), names: buildNameIndex(bare), sealed };
+  let both = 0, onlyFull = 0; const differ: string[] = [];
+  for (const l of listings) {
+    const full = answers(l), thin = answers(l, degraded);
+    full.forEach((a, i) => {
+      const b = thin[i]!;
+      if ("id" in a && "id" in b) { both++; if (a.id !== b.id || a.finish !== b.finish) differ.push(`${l.key} [${l.variants[i]![0]}] full ${fmt(a)} bare ${fmt(b)}`); }
+      else if ("id" in a) onlyFull++;
+    });
+  }
+  assert.deepEqual(differ, []);
+  assert.ok(both > 500, `${both} variants are matched by both indexes`);
+  assert.ok(onlyFull > 0, "the label and the abbreviation do find listings the bare index cannot");
+  // the bare index also reads titles the full one refuses (a plain title beside a Promo Pack of the same set name: `Choreographed Sparks [Promo Pack: Secrets of Strixhaven]`), so the importer must fill label and abbr (REQ-WP03-1) before its first real run
+});
+
 // ── a listing that is the same card under another key is one product ──
 test("the same card keyed by sku, by SET-NUM and by number + set name is the same product", () => {
   const sku = matchStoreProduct({ title: "Counterspell", skus: ["TMP-057-EN-NF-1"], variantTitle: "Near Mint", explicitFoil: true }, ix);
@@ -579,6 +601,20 @@ test("matchCardTitle on titles written in a seller's style from catalogue rows: 
   assert.equal(t("Sylvan Anthem NM Magic the Gathering"), "miss:nokey");
   assert.equal(t("Marvel Super Heroes Play Booster Box MSH"), "miss:not-a-single");
   assert.equal(t("Wrong Name MH2 176"), "miss:name-mismatch");
+});
+
+test("matchCardTitle: a title that names The List is The List's product, never the original printing it reprints", () => {
+  // two real TCGCSV rows (2026-10-07): The List's Artisan of Kozilek, numbered "cm2-14" in the PLST set, and the Commander Anthology Volume II printing it reprints, #14 of CM2
+  const original: MatchRow = { id: 166725, groupId: 2246, names: ["artisan of kozilek"], sc: "cm2", setNames: ["commander anthology volume ii"], nkey: "14", treat: [], hasN: true, hasF: false, etched: false, rootId: null, cls: 0, label: null, abbr: "cm2" };
+  const list = rowById.get(202763)!;
+  assert.equal(list.sc, "plst");
+  assert.equal(list.nkey, "cm2-14");
+  const both = buildCardIndex([...rows, original]);
+  const t = (title: string) => { const r = matchCardTitle(title, both); return "id" in r ? r.id : `miss:${r.miss}`; };
+  assert.equal(t("Artisan of Kozilek The List PLST CM2-14 Near Mint"), 202763);
+  assert.equal(t("Artisan of Kozilek (The List) CM2 14 NM"), 202763);
+  assert.equal(t("Artisan of Kozilek CM2 14 Commander Anthology Volume II Near Mint"), 166725, "the original printing, when the title does not name The List");
+  assert.equal(t("Artisan of Kozilek The List PLST CM2-15 NM"), "miss:name-mismatch", "The List has no such card: the original printing is not offered instead");
 });
 
 test("matchCardBySku: a numberless title is placed by the (set, number) of its skus, strictly", () => {
@@ -653,6 +689,7 @@ test("bestVariant: the best condition in stock first, then the lowest price; ano
   assert.deepEqual(bestVariant(symbiosis), { priceCents: 25, condition: "NM" });
   assert.equal(bestVariant([]), null);
   assert.equal(bestVariant([{ title: "Near Mint", price: "0.00", available: true }]), null, "a zero price is no price");
+  assert.deepEqual(bestVariant([{ title: "Near Mint / Traditional Foil", price: "4.30", available: true }]), { priceCents: 430, condition: "NM" }, "a Traditional Foil is not a Traditional Chinese card");
 });
 
 test("anyVariant: the cheapest variant of any condition, in stock or not", () => {

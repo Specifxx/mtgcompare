@@ -12,7 +12,9 @@ import { FOOTER_GROUPS, NAV_GROUPS, PRIMARY_NAV } from "../src/components/nav-gr
 // merge; until their track lands they may be missing here. Once a route
 // exists, the second test fails until it is removed from the list — the
 // integrator empties IN_FLIGHT after the merges.
-const IN_FLIGHT = new Set<string>([]);
+// At the MTG port the chrome (WP15, wave 3) links four pages that later waves build: the Commander hub (WP11, wave 5), the creators page (WP17, wave 6), the pre-order page and the embed gallery (WP20, wave 5).
+// The second test below fails the day each route lands, so this list can only shrink; at M2 it is empty.
+const IN_FLIGHT = new Set<string>(["/commanders", "/creators", "/preorders", "/embed"]);
 
 const APP = join(process.cwd(), "src/app");
 
