@@ -6,13 +6,15 @@
 # database-backed pages and clears the ISR cache, and at 10–30 pushes a day that
 # alone exhausted a Neon free-tier transfer allowance every few days (its
 # DECISIONS.md, "Network transfer: the deploy cadence was the burn", 2026-09-11).
-# OP Compare starts with the same rule rather than relearning it.
+# MTG Compare starts with the same rule rather than relearning it.
 #
 # THE RULE. A PRODUCTION build happens only when the commit's SUBJECT LINE carries
 # the literal marker  [deploy]  (any case). .github/workflows/production-deploy.yml
-# lands one such commit on main every day at 08:00 UTC; "Run workflow" there, or
-# [deploy] in your own commit subject, deploys now. The SUBJECT only — a body that
-# discusses the marker must not deploy.
+# lands one such commit on main every TUESDAY at 08:00 UTC (weekly since 2026-10-08;
+# the data does not wait for it: the daily import publishes prices to the data
+# repository and moves a pointer, no deploy needed); "Run workflow" there, or [deploy] in your own
+# commit subject, deploys now. The SUBJECT only — a body that discusses the marker
+# must not deploy.
 #
 # Preview and development builds are not gated. An unknown environment is
 # treated as production. If the commit message cannot be read at all, build
@@ -42,5 +44,5 @@ if printf '%s' "$subject" | grep -qiF -- "$MARKER"; then
   exit 1
 fi
 
-echo "[vercel-ignore-build] no '$MARKER' in the commit subject — skipping. Production deploys daily at 08:00 UTC (production-deploy.yml)."
+echo "[vercel-ignore-build] no '$MARKER' in the commit subject — skipping. Production deploys weekly, Tuesday 08:00 UTC (production-deploy.yml); data refreshes need no deploy."
 exit 0

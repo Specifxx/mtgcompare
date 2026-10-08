@@ -1,0 +1,3131 @@
+[
+ {
+  "productId": 496078,
+  "rule": "slug: digit token is the number; basic land",
+  "name": "Forest (0205)",
+  "groupId": 23165,
+  "group": "Universes Beyond: Doctor Who",
+  "groupKind": "expansion",
+  "tcgNumber": "205",
+  "tcgRarity": "L",
+  "prices": {
+   "Normal": {
+    "market": 0.25,
+    "low": 0.01
+   },
+   "Foil": {
+    "market": 0.35,
+    "low": 0.18
+   }
+  },
+  "expect": {
+   "slug": "forest-who-205",
+   "setTok": "who",
+   "cls": 0,
+   "rarity": "L",
+   "nkey": "205",
+   "nsort": 205000,
+   "hasN": true,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Forest",
+   "alt": null,
+   "fnum": null,
+   "sc": "who",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil",
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "15b3f35e-451e-4de6-a4f7-249287566964",
+    "set": "who",
+    "cn": "205",
+    "name": "Forest",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil",
+     "foil"
+    ],
+    "rarity": "common",
+    "oracle_id": "b34bb2dc-c1af-4d77-b0b3-a0fb342a5fc6",
+    "tcgplayer_id": 496078,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": null
+   }
+  ]
+ },
+ {
+  "productId": 638920,
+  "rule": "slug: number first, two treatments",
+  "name": "Plains (0367) (Borderless) (Galaxy Foil)",
+  "groupId": 24233,
+  "group": "Edge of Eternities",
+  "groupKind": "expansion",
+  "tcgNumber": "367",
+  "tcgRarity": "L",
+  "prices": {
+   "Foil": {
+    "market": 4.21,
+    "low": 2.3
+   }
+  },
+  "expect": {
+   "slug": "plains-eoe-367-borderless-galaxy-foil",
+   "setTok": "eoe",
+   "cls": 0,
+   "rarity": "L",
+   "nkey": "367",
+   "nsort": 367000,
+   "hasN": false,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Plains",
+   "alt": null,
+   "fnum": null,
+   "sc": "eoe",
+   "layout": "normal",
+   "scryFinishes": [
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "926aad15-87a8-4510-b327-d1648f89c497",
+    "set": "eoe",
+    "cn": "367",
+    "name": "Plains",
+    "layout": "normal",
+    "finishes": [
+     "foil"
+    ],
+    "rarity": "common",
+    "oracle_id": "bc71ebf6-2056-41f7-be35-b2e5c34afa99",
+    "tcgplayer_id": 638920,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": null
+   }
+  ]
+ },
+ {
+  "productId": 692998,
+  "rule": "slug: number LAST; Facet Foil",
+  "name": "Stingcaster Mage (Borderless) (Facet Foil) (0457)",
+  "groupId": 24684,
+  "group": "Reality Fracture",
+  "groupKind": "expansion",
+  "tcgNumber": "457",
+  "tcgRarity": "M",
+  "prices": {
+   "Foil": {
+    "market": 298.0,
+    "low": 298.99
+   }
+  },
+  "expect": {
+   "slug": "stingcaster-mage-fra-457-borderless-facet-foil",
+   "setTok": "fra",
+   "cls": 0,
+   "rarity": "M",
+   "nkey": "457",
+   "nsort": 457000,
+   "hasN": false,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Stingcaster Mage",
+   "alt": null,
+   "fnum": null,
+   "sc": "fra",
+   "layout": "normal",
+   "scryFinishes": [
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "38096f2a-7fae-43f1-a1e9-f9c670bc191d",
+    "set": "fra",
+    "cn": "457",
+    "name": "Stingcaster Mage",
+    "layout": "normal",
+    "finishes": [
+     "foil"
+    ],
+    "rarity": "mythic",
+    "oracle_id": "056b651e-e0e2-4333-9235-d1ffe8fcca29",
+    "tcgplayer_id": 692998,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 20169
+   }
+  ]
+ },
+ {
+  "productId": 719547,
+  "rule": "slug: three stacked treatments; low-only foil: not tracked",
+  "name": "Bloodline Recollector (Retro Frame) (Serial Numbered) (Double Rainbow Foil)",
+  "groupId": 24684,
+  "group": "Reality Fracture",
+  "groupKind": "expansion",
+  "tcgNumber": "402",
+  "tcgRarity": "M",
+  "prices": {
+   "Foil": {
+    "market": null,
+    "low": 15000.0
+   }
+  },
+  "expect": {
+   "slug": "bloodline-recollector-fra-402-retro-frame-serial-numbered-double-rainbow-foil",
+   "setTok": "fra",
+   "cls": 0,
+   "rarity": "M",
+   "nkey": "402",
+   "nsort": 402000,
+   "hasN": false,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Bloodline Recollector",
+   "alt": null,
+   "fnum": null,
+   "sc": "fra",
+   "layout": "prepare",
+   "scryFinishes": [
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "9a5db4d2-035f-4f48-8752-75487267c222",
+    "set": "fra",
+    "cn": "402",
+    "name": "Bloodline Recollector // Ancestral Craving",
+    "layout": "prepare",
+    "finishes": [
+     "foil"
+    ],
+    "rarity": "mythic",
+    "oracle_id": "c8e9a7e1-28ae-40e3-8715-1bb0aa2057c7",
+    "tcgplayer_id": 719547,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [
+     "Bloodline Recollector",
+     "Ancestral Craving"
+    ],
+    "reserved": false,
+    "edhrec_rank": 15005
+   }
+  ]
+ },
+ {
+  "productId": 541332,
+  "rule": "finish: Foil Etched token AND etched id",
+  "name": "Ezio Auditore da Firenze (Foil Etched)",
+  "groupId": 23446,
+  "group": "Universes Beyond: Assassin's Creed",
+  "groupKind": "expansion",
+  "tcgNumber": "203",
+  "tcgRarity": "M",
+  "prices": {
+   "Foil": {
+    "market": 7.1,
+    "low": 6.21
+   }
+  },
+  "expect": {
+   "slug": "ezio-auditore-da-firenze-acr-203-foil-etched",
+   "setTok": "acr",
+   "cls": 0,
+   "rarity": "M",
+   "nkey": "203",
+   "nsort": 203000,
+   "hasN": false,
+   "hasF": true,
+   "etched": true,
+   "star": false,
+   "displayName": "Ezio Auditore da Firenze",
+   "alt": null,
+   "fnum": null,
+   "sc": "acr",
+   "layout": "normal",
+   "scryFinishes": [
+    "etched"
+   ],
+   "link": "etched"
+  },
+  "scryfall": [
+   {
+    "id": "5a5184ac-f73a-4fdc-a531-0f577892997a",
+    "set": "acr",
+    "cn": "203",
+    "name": "Ezio Auditore da Firenze",
+    "layout": "normal",
+    "finishes": [
+     "etched"
+    ],
+    "rarity": "mythic",
+    "oracle_id": "3017ac79-37f1-4cc1-8efd-4add027618a2",
+    "tcgplayer_id": null,
+    "tcgplayer_etched_id": 541332,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 7618
+   }
+  ]
+ },
+ {
+  "productId": 251776,
+  "rule": "finish: Foil Etched token, etched-id row whose Scryfall finishes LACK etched: still ETCHED (name wins; rule E, 3 real products)",
+  "name": "Griselbrand (Foil Etched)",
+  "groupId": 2576,
+  "group": "Secret Lair Drop Series",
+  "groupKind": "secret-lair",
+  "tcgNumber": "160",
+  "tcgRarity": "M",
+  "prices": {
+   "Foil": {
+    "market": 11.1,
+    "low": 9.99
+   }
+  },
+  "expect": {
+   "slug": "griselbrand-sld-160-foil-etched",
+   "setTok": "sld",
+   "cls": 0,
+   "rarity": "M",
+   "nkey": "160",
+   "nsort": 160000,
+   "hasN": false,
+   "hasF": true,
+   "etched": true,
+   "star": false,
+   "displayName": "Griselbrand",
+   "alt": null,
+   "fnum": null,
+   "sc": "sld",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil",
+    "foil"
+   ],
+   "link": "etched"
+  },
+  "scryfall": [
+   {
+    "id": "a624eff1-9347-4a99-8986-a2312258791c",
+    "set": "sld",
+    "cn": "160",
+    "name": "Griselbrand",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil",
+     "foil"
+    ],
+    "rarity": "mythic",
+    "oracle_id": "f759d112-76db-4091-a22b-b9f19ab6fa5f",
+    "tcgplayer_id": 251775,
+    "tcgplayer_etched_id": 251776,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": null
+   },
+   {
+    "id": "c506f57a-e8b9-410f-9b7e-086900e26e46",
+    "set": "sld",
+    "cn": "160★",
+    "name": "Griselbrand",
+    "layout": "normal",
+    "finishes": [
+     "etched"
+    ],
+    "rarity": "mythic",
+    "oracle_id": "f759d112-76db-4091-a22b-b9f19ab6fa5f",
+    "tcgplayer_id": null,
+    "tcgplayer_etched_id": 251776,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": null
+   }
+  ]
+ },
+ {
+  "productId": 532997,
+  "rule": "finish: etched id WITHOUT a Foil Etched token",
+  "name": "Mirko, Obsessive Theorist (Display Commander) - Thick Stock",
+  "groupId": 23363,
+  "group": "Commander: Murders at Karlov Manor",
+  "groupKind": "commander",
+  "tcgNumber": "50",
+  "tcgRarity": "M",
+  "prices": {
+   "Foil": {
+    "market": 0.33,
+    "low": 0.01
+   }
+  },
+  "expect": {
+   "slug": "mirko-obsessive-theorist-thick-stock-mkc-50-display-commander",
+   "setTok": "mkc",
+   "cls": 0,
+   "rarity": "M",
+   "nkey": "50",
+   "nsort": 50000,
+   "hasN": false,
+   "hasF": true,
+   "etched": true,
+   "star": false,
+   "displayName": "Mirko, Obsessive Theorist",
+   "alt": null,
+   "fnum": null,
+   "sc": "mkc",
+   "layout": "normal",
+   "scryFinishes": [
+    "etched"
+   ],
+   "link": "etched"
+  },
+  "scryfall": [
+   {
+    "id": "043c7b0e-2f7b-4936-88fe-84d8022ffb51",
+    "set": "mkc",
+    "cn": "50",
+    "name": "Mirko, Obsessive Theorist",
+    "layout": "normal",
+    "finishes": [
+     "etched"
+    ],
+    "rarity": "mythic",
+    "oracle_id": "1692f19e-4906-4808-965f-5f0284004f55",
+    "tcgplayer_id": null,
+    "tcgplayer_etched_id": 532997,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 8109
+   }
+  ]
+ },
+ {
+  "productId": 594545,
+  "rule": "finish: id == etched id, Scryfall finishes lack etched: NOT etched",
+  "name": "Sol Ring",
+  "groupId": 2156,
+  "group": "Buy-A-Box Promos",
+  "groupKind": "promo",
+  "tcgNumber": "1",
+  "tcgRarity": "P",
+  "prices": {
+   "Foil": {
+    "market": 7.88,
+    "low": 5.99
+   }
+  },
+  "expect": {
+   "slug": "sol-ring-babp-1",
+   "setTok": "babp",
+   "cls": 0,
+   "rarity": "R",
+   "nkey": "1",
+   "nsort": 1000,
+   "hasN": false,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Sol Ring",
+   "alt": null,
+   "fnum": null,
+   "sc": "pfdn",
+   "layout": "normal",
+   "scryFinishes": [
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "120e2b4b-afc7-4bf0-a09f-568e08f6bd8f",
+    "set": "pfdn",
+    "cn": "1",
+    "name": "Sol Ring",
+    "layout": "normal",
+    "finishes": [
+     "foil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "6ad8011d-3471-4369-9d68-b264cc027487",
+    "tcgplayer_id": 594545,
+    "tcgplayer_etched_id": 594545,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 1
+   }
+  ]
+ },
+ {
+  "productId": 286677,
+  "rule": "finish: both indexes hit, finishes lack etched: NOT etched",
+  "name": "Inquisitor Greyfax (Display Commander) (Surge Foil) - Thick Stock",
+  "groupId": 3079,
+  "group": "Universes Beyond: Warhammer 40,000",
+  "groupKind": "expansion",
+  "tcgNumber": "179",
+  "tcgRarity": "M",
+  "prices": {
+   "Foil": {
+    "market": 0.75,
+    "low": 0.52
+   }
+  },
+  "expect": {
+   "slug": "inquisitor-greyfax-thick-stock-40k-179-display-commander-surge-foil",
+   "setTok": "40k",
+   "cls": 0,
+   "rarity": "M",
+   "nkey": "179",
+   "nsort": 179000,
+   "hasN": false,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Inquisitor Greyfax",
+   "alt": null,
+   "fnum": null,
+   "sc": "40k",
+   "layout": "normal",
+   "scryFinishes": [
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "e3b13cf3-e1e8-4206-90c6-82c086a867f5",
+    "set": "40k",
+    "cn": "179",
+    "name": "Inquisitor Greyfax",
+    "layout": "normal",
+    "finishes": [
+     "foil"
+    ],
+    "rarity": "mythic",
+    "oracle_id": "9439d6eb-4c10-451d-85c4-3752611c671c",
+    "tcgplayer_id": 286677,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 10011
+   }
+  ]
+ },
+ {
+  "productId": 238617,
+  "rule": "finish: base product whose Scryfall row lists etched: NOT etched",
+  "name": "Counterspell",
+  "groupId": 2809,
+  "group": "Modern Horizons 2",
+  "groupKind": "masters",
+  "tcgNumber": "267",
+  "tcgRarity": "U",
+  "prices": {
+   "Normal": {
+    "market": 3.94,
+    "low": 1.99
+   },
+   "Foil": {
+    "market": 3.26,
+    "low": 1.87
+   }
+  },
+  "expect": {
+   "slug": "counterspell-mh2-267",
+   "setTok": "mh2",
+   "cls": 0,
+   "rarity": "U",
+   "nkey": "267",
+   "nsort": 267000,
+   "hasN": true,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Counterspell",
+   "alt": null,
+   "fnum": null,
+   "sc": "mh2",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil",
+    "foil",
+    "etched"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "1920dae4-fb92-4f19-ae4b-eb3276b8dac7",
+    "set": "mh2",
+    "cn": "267",
+    "name": "Counterspell",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil",
+     "foil",
+     "etched"
+    ],
+    "rarity": "uncommon",
+    "oracle_id": "cc187110-1148-4090-bbb8-e205694a39f5",
+    "tcgplayer_id": 238617,
+    "tcgplayer_etched_id": 240803,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 16
+   }
+  ]
+ },
+ {
+  "productId": 697908,
+  "rule": "finish: Surge Foil is its own product, Foil row only",
+  "name": "War Machine, Avenging Arsenal (Surge Foil)",
+  "groupId": 24554,
+  "group": "Commander: Marvel Super Heroes",
+  "groupKind": "commander",
+  "tcgNumber": "63",
+  "tcgRarity": "R",
+  "prices": {
+   "Foil": {
+    "market": 1.91,
+    "low": 1.37
+   }
+  },
+  "expect": {
+   "slug": "war-machine-avenging-arsenal-msc-63-surge-foil",
+   "setTok": "msc",
+   "cls": 0,
+   "rarity": "R",
+   "nkey": "63",
+   "nsort": 63000,
+   "hasN": false,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": null,
+   "alt": null,
+   "fnum": null,
+   "sc": "msc",
+   "layout": null,
+   "scryFinishes": null,
+   "link": "variant"
+  },
+  "scryfall": []
+ },
+ {
+  "productId": 2831,
+  "rule": "finish: shared id, Normal 231 / Foil 231 star, Foil worth $3,980",
+  "name": "Birds of Paradise",
+  "groupId": 2,
+  "group": "7th Edition",
+  "groupKind": "core",
+  "tcgNumber": "231",
+  "tcgRarity": "R",
+  "prices": {
+   "Normal": {
+    "market": 22.89,
+    "low": 17.49
+   },
+   "Foil": {
+    "market": 3980.75,
+    "low": 4000.0
+   }
+  },
+  "expect": {
+   "slug": "birds-of-paradise-7ed-231",
+   "setTok": "7ed",
+   "cls": 0,
+   "rarity": "R",
+   "nkey": "231",
+   "nsort": 231000,
+   "hasN": true,
+   "hasF": true,
+   "etched": false,
+   "star": true,
+   "displayName": "Birds of Paradise",
+   "alt": null,
+   "fnum": "231★",
+   "sc": "7ed",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "a2985857-fee5-42a6-9b5d-e157ada52a03",
+    "set": "7ed",
+    "cn": "231",
+    "name": "Birds of Paradise",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "d3a0b660-358c-41bd-9cd2-41fbf3491b1a",
+    "tcgplayer_id": 2831,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 35
+   },
+   {
+    "id": "ef7106d8-ec4f-4bc2-aa39-9a605b04cf88",
+    "set": "7ed",
+    "cn": "231★",
+    "name": "Birds of Paradise",
+    "layout": "normal",
+    "finishes": [
+     "foil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "d3a0b660-358c-41bd-9cd2-41fbf3491b1a",
+    "tcgplayer_id": 2831,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 35
+   }
+  ]
+ },
+ {
+  "productId": 3077,
+  "rule": "finish: shared id, Foil is low-only",
+  "name": "Shivan Dragon",
+  "groupId": 2,
+  "group": "7th Edition",
+  "groupKind": "core",
+  "tcgNumber": "218",
+  "tcgRarity": "R",
+  "prices": {
+   "Normal": {
+    "market": 0.91,
+    "low": 0.4
+   },
+   "Foil": {
+    "market": null,
+    "low": 897.0
+   }
+  },
+  "expect": {
+   "slug": "shivan-dragon-7ed-218",
+   "setTok": "7ed",
+   "cls": 0,
+   "rarity": "R",
+   "nkey": "218",
+   "nsort": 218000,
+   "hasN": true,
+   "hasF": true,
+   "etched": false,
+   "star": true,
+   "displayName": "Shivan Dragon",
+   "alt": null,
+   "fnum": "218★",
+   "sc": "7ed",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "7fec2b71-8fa9-4818-9c4f-5d2dcd2af495",
+    "set": "7ed",
+    "cn": "218",
+    "name": "Shivan Dragon",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "711eea87-0fa3-46e0-a42b-fa5a86455f04",
+    "tcgplayer_id": 3077,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 11144
+   },
+   {
+    "id": "de98d9ad-d011-43de-92c8-f97037b42803",
+    "set": "7ed",
+    "cn": "218★",
+    "name": "Shivan Dragon",
+    "layout": "normal",
+    "finishes": [
+     "foil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "711eea87-0fa3-46e0-a42b-fa5a86455f04",
+    "tcgplayer_id": 3077,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 11144
+   }
+  ]
+ },
+ {
+  "productId": 609611,
+  "rule": "name: transform lists the front face",
+  "name": "Delver of Secrets",
+  "groupId": 23848,
+  "group": "Innistrad Remastered",
+  "groupKind": "masters",
+  "tcgNumber": "60",
+  "tcgRarity": "C",
+  "prices": {
+   "Normal": {
+    "market": 0.32,
+    "low": 0.09
+   },
+   "Foil": {
+    "market": 0.38,
+    "low": 0.14
+   }
+  },
+  "expect": {
+   "slug": "delver-of-secrets-inr-60",
+   "setTok": "inr",
+   "cls": 0,
+   "rarity": "C",
+   "nkey": "60",
+   "nsort": 60000,
+   "hasN": true,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Delver of Secrets",
+   "alt": null,
+   "fnum": null,
+   "sc": "inr",
+   "layout": "transform",
+   "scryFinishes": [
+    "nonfoil",
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "6904ea20-e504-47da-95a0-08739fdde260",
+    "set": "inr",
+    "cn": "60",
+    "name": "Delver of Secrets // Insectile Aberration",
+    "layout": "transform",
+    "finishes": [
+     "nonfoil",
+     "foil"
+    ],
+    "rarity": "common",
+    "oracle_id": "edd531b9-f615-4399-8c8c-1c5e18c4acbf",
+    "tcgplayer_id": 609611,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [
+     "Delver of Secrets",
+     "Insectile Aberration"
+    ],
+    "reserved": false,
+    "edhrec_rank": 16190
+   }
+  ]
+ },
+ {
+  "productId": 513650,
+  "rule": "name: adventure lists the front face",
+  "name": "Brazen Borrower",
+  "groupId": 23164,
+  "group": "Commander: Wilds of Eldraine",
+  "groupKind": "commander",
+  "tcgNumber": "85",
+  "tcgRarity": "M",
+  "prices": {
+   "Normal": {
+    "market": 1.61,
+    "low": 0.78
+   }
+  },
+  "expect": {
+   "slug": "brazen-borrower-woc-85",
+   "setTok": "woc",
+   "cls": 0,
+   "rarity": "M",
+   "nkey": "85",
+   "nsort": 85000,
+   "hasN": true,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": "Brazen Borrower",
+   "alt": null,
+   "fnum": null,
+   "sc": "woc",
+   "layout": "adventure",
+   "scryFinishes": [
+    "nonfoil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "77fbe280-eca3-4d2a-903b-f25d57c32902",
+    "set": "woc",
+    "cn": "85",
+    "name": "Brazen Borrower // Petty Theft",
+    "layout": "adventure",
+    "finishes": [
+     "nonfoil"
+    ],
+    "rarity": "mythic",
+    "oracle_id": "c7b044c3-3cfa-407e-bf20-2875e8e04b7b",
+    "tcgplayer_id": 513650,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [
+     "Brazen Borrower",
+     "Petty Theft"
+    ],
+    "reserved": false,
+    "edhrec_rank": 2675
+   }
+  ]
+ },
+ {
+  "productId": 457193,
+  "rule": "name: split lists the full name",
+  "name": "Fire // Ice",
+  "groupId": 17670,
+  "group": "Dominaria Remastered",
+  "groupKind": "masters",
+  "tcgNumber": "215",
+  "tcgRarity": "U",
+  "prices": {
+   "Foil": {
+    "market": 0.33,
+    "low": 0.08
+   },
+   "Normal": {
+    "market": 0.17,
+    "low": 0.04
+   }
+  },
+  "expect": {
+   "slug": "fire-ice-dmr-215",
+   "setTok": "dmr",
+   "cls": 0,
+   "rarity": "U",
+   "nkey": "215",
+   "nsort": 215000,
+   "hasN": true,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Fire // Ice",
+   "alt": null,
+   "fnum": null,
+   "sc": "dmr",
+   "layout": "split",
+   "scryFinishes": [
+    "nonfoil",
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "18303862-4726-4136-814f-157aa7006579",
+    "set": "dmr",
+    "cn": "215",
+    "name": "Fire // Ice",
+    "layout": "split",
+    "finishes": [
+     "nonfoil",
+     "foil"
+    ],
+    "rarity": "uncommon",
+    "oracle_id": "ae92942b-919c-4ea9-b693-85fcef765d5a",
+    "tcgplayer_id": 457193,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [
+     "Fire",
+     "Ice"
+    ],
+    "reserved": false,
+    "edhrec_rank": 13166
+   }
+  ]
+ },
+ {
+  "productId": 208535,
+  "rule": "name: five-part split",
+  "name": "Who // What // When // Where // Why",
+  "groupId": 2598,
+  "group": "Unsanctioned",
+  "groupKind": "unset",
+  "tcgNumber": "75",
+  "tcgRarity": "R",
+  "prices": {
+   "Normal": {
+    "market": 0.25,
+    "low": 0.1
+   }
+  },
+  "expect": {
+   "slug": "who-what-when-where-why-und-75",
+   "setTok": "und",
+   "cls": 0,
+   "rarity": "R",
+   "nkey": "75",
+   "nsort": 75000,
+   "hasN": true,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": "Who // What // When // Where // Why",
+   "alt": null,
+   "fnum": null,
+   "sc": "und",
+   "layout": "split",
+   "scryFinishes": [
+    "nonfoil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "fea4a077-718b-44af-87be-90df61aab643",
+    "set": "und",
+    "cn": "75",
+    "name": "Who // What // When // Where // Why",
+    "layout": "split",
+    "finishes": [
+     "nonfoil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "adfe1b07-dd82-4c39-a7a6-ded0b1c39761",
+    "tcgplayer_id": 208535,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [
+     "Who",
+     "What",
+     "When",
+     "Where",
+     "Why"
+    ],
+    "reserved": false,
+    "edhrec_rank": null
+   }
+  ]
+ },
+ {
+  "productId": 12430,
+  "rule": "name: flip card",
+  "name": "Erayo, Soratami Ascendant",
+  "groupId": 99,
+  "group": "Saviors of Kamigawa",
+  "groupKind": "expansion",
+  "tcgNumber": "35",
+  "tcgRarity": "R",
+  "prices": {
+   "Normal": {
+    "market": 23.21,
+    "low": 14.0
+   },
+   "Foil": {
+    "market": 168.5,
+    "low": 110.0
+   }
+  },
+  "expect": {
+   "slug": "erayo-soratami-ascendant-sok-35",
+   "setTok": "sok",
+   "cls": 0,
+   "rarity": "R",
+   "nkey": "35",
+   "nsort": 35000,
+   "hasN": true,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Erayo, Soratami Ascendant",
+   "alt": null,
+   "fnum": null,
+   "sc": "sok",
+   "layout": "flip",
+   "scryFinishes": [
+    "nonfoil",
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "0b61d772-2d8b-4acf-9dd2-b2e8b03538c8",
+    "set": "sok",
+    "cn": "35",
+    "name": "Erayo, Soratami Ascendant // Erayo's Essence",
+    "layout": "flip",
+    "finishes": [
+     "nonfoil",
+     "foil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "d83bb32d-f409-421a-9d93-bd7ea3240b47",
+    "tcgplayer_id": 12430,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [
+     "Erayo, Soratami Ascendant",
+     "Erayo's Essence"
+    ],
+    "reserved": false,
+    "edhrec_rank": null
+   }
+  ]
+ },
+ {
+  "productId": 456592,
+  "rule": "name: reversible card + reskin",
+  "name": "Megatron - Blightsteel Colossus",
+  "groupId": 2576,
+  "group": "Secret Lair Drop Series",
+  "groupKind": "secret-lair",
+  "tcgNumber": "1079",
+  "tcgRarity": "M",
+  "prices": {
+   "Foil": {
+    "market": 67.63,
+    "low": 63.28
+   },
+   "Normal": {
+    "market": 54.36,
+    "low": 45.0
+   }
+  },
+  "expect": {
+   "slug": "megatron-blightsteel-colossus-sld-1079",
+   "setTok": "sld",
+   "cls": 0,
+   "rarity": "M",
+   "nkey": "1079",
+   "nsort": 1079000,
+   "hasN": true,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Blightsteel Colossus",
+   "alt": "Megatron",
+   "fnum": null,
+   "sc": "sld",
+   "layout": "reversible_card",
+   "scryFinishes": [
+    "nonfoil",
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "4d227cd3-ebfe-4dd3-929a-4f8ff7c8981e",
+    "set": "sld",
+    "cn": "1079",
+    "name": "Blightsteel Colossus // Blightsteel Colossus",
+    "layout": "reversible_card",
+    "finishes": [
+     "nonfoil",
+     "foil"
+    ],
+    "rarity": "mythic",
+    "oracle_id": "e80772e2-8623-4094-81a2-70828b2b151c",
+    "tcgplayer_id": 456592,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [
+     "Blightsteel Colossus",
+     "Blightsteel Colossus"
+    ],
+    "reserved": false,
+    "edhrec_rank": 967
+   }
+  ]
+ },
+ {
+  "productId": 560662,
+  "rule": "name: reversible card + reskin",
+  "name": "African Swallow - Birds of Paradise",
+  "groupId": 2576,
+  "group": "Secret Lair Drop Series",
+  "groupKind": "secret-lair",
+  "tcgNumber": "1675",
+  "tcgRarity": "R",
+  "prices": {
+   "Normal": {
+    "market": 44.23,
+    "low": 44.08
+   },
+   "Foil": {
+    "market": 55.85,
+    "low": 47.99
+   }
+  },
+  "expect": {
+   "slug": "african-swallow-birds-of-paradise-sld-1675",
+   "setTok": "sld",
+   "cls": 0,
+   "rarity": "R",
+   "nkey": "1675",
+   "nsort": 1675000,
+   "hasN": true,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Birds of Paradise",
+   "alt": "African Swallow",
+   "fnum": null,
+   "sc": "sld",
+   "layout": "reversible_card",
+   "scryFinishes": [
+    "nonfoil",
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "dae8751c-4c72-4034-a192-a1e166f20246",
+    "set": "sld",
+    "cn": "1675",
+    "name": "Birds of Paradise // Birds of Paradise",
+    "layout": "reversible_card",
+    "finishes": [
+     "nonfoil",
+     "foil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "d3a0b660-358c-41bd-9cd2-41fbf3491b1a",
+    "tcgplayer_id": 560662,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [
+     "Birds of Paradise",
+     "Birds of Paradise"
+    ],
+    "reserved": false,
+    "edhrec_rank": 35
+   }
+  ]
+ },
+ {
+  "productId": 706216,
+  "rule": "name: reskin, flavor_name = head",
+  "name": "Khan, Engineered Evil - Sheoldred, the Apocalypse (Borderless)",
+  "groupId": 24771,
+  "group": "Star Trek: Stardates",
+  "groupKind": "expansion",
+  "tcgNumber": "11",
+  "tcgRarity": "M",
+  "prices": {
+   "Foil": {
+    "market": 249.99,
+    "low": 249.99
+   },
+   "Normal": {
+    "market": null,
+    "low": 199.99
+   }
+  },
+  "expect": {
+   "slug": "khan-engineered-evil-sheoldred-the-apocalypse-sds-11-borderless",
+   "setTok": "sds",
+   "cls": 0,
+   "rarity": "M",
+   "nkey": "11",
+   "nsort": 11000,
+   "hasN": true,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Sheoldred, the Apocalypse",
+   "alt": "Khan, Engineered Evil",
+   "fnum": null,
+   "sc": "sds",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil",
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "c68629ff-72b3-40a2-b578-cddb6ddb4ccf",
+    "set": "sds",
+    "cn": "11",
+    "name": "Sheoldred, the Apocalypse",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil",
+     "foil"
+    ],
+    "rarity": "mythic",
+    "oracle_id": "34f34409-326d-4994-a0ea-1a69aa278f03",
+    "tcgplayer_id": 706216,
+    "tcgplayer_etched_id": null,
+    "flavor_name": "Khan, Engineered Evil",
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 461
+   }
+  ]
+ },
+ {
+  "productId": 652038,
+  "rule": "name: reskin; hyphen without spaces inside a name",
+  "name": "Spider-Gwen, Web-Warrior - Najeela, the Blade-Blossom (Borderless)",
+  "groupId": 24432,
+  "group": "Marvel Universe Eternal-Legal",
+  "groupKind": "masters",
+  "tcgNumber": "24",
+  "tcgRarity": "M",
+  "prices": {
+   "Foil": {
+    "market": 9.25,
+    "low": 6.86
+   },
+   "Normal": {
+    "market": 4.86,
+    "low": 2.5
+   }
+  },
+  "expect": {
+   "slug": "spider-gwen-web-warrior-najeela-the-blade-blossom-mar-24-borderless",
+   "setTok": "mar",
+   "cls": 0,
+   "rarity": "M",
+   "nkey": "24",
+   "nsort": 24000,
+   "hasN": true,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Najeela, the Blade-Blossom",
+   "alt": "Spider-Gwen, Web-Warrior",
+   "fnum": null,
+   "sc": "mar",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil",
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "08eb1bef-b00d-490b-a631-2849e0d1fd8e",
+    "set": "mar",
+    "cn": "24",
+    "name": "Najeela, the Blade-Blossom",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil",
+     "foil"
+    ],
+    "rarity": "mythic",
+    "oracle_id": "09619943-6aec-4080-ace5-a0c6ebb23f1c",
+    "tcgplayer_id": 652038,
+    "tcgplayer_etched_id": null,
+    "flavor_name": "Spider-Gwen, Web-Warrior",
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 5577
+   }
+  ]
+ },
+ {
+  "productId": 253194,
+  "rule": "name: transform reskin",
+  "name": "Lucy Westenra - Innocent Traveler",
+  "groupId": 2862,
+  "group": "Innistrad: Crimson Vow",
+  "groupKind": "expansion",
+  "tcgNumber": "336",
+  "tcgRarity": "U",
+  "prices": {
+   "Foil": {
+    "market": 0.37,
+    "low": 0.09
+   },
+   "Normal": {
+    "market": 0.37,
+    "low": 0.05
+   }
+  },
+  "expect": {
+   "slug": "lucy-westenra-innocent-traveler-vow-336",
+   "setTok": "vow",
+   "cls": 0,
+   "rarity": "U",
+   "nkey": "336",
+   "nsort": 336000,
+   "hasN": true,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Innocent Traveler",
+   "alt": "Lucy Westenra",
+   "fnum": null,
+   "sc": "vow",
+   "layout": "transform",
+   "scryFinishes": [
+    "nonfoil",
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "7a043975-59b4-490c-bf33-c08bd7b40bd3",
+    "set": "vow",
+    "cn": "336",
+    "name": "Innocent Traveler // Malicious Invader",
+    "layout": "transform",
+    "finishes": [
+     "nonfoil",
+     "foil"
+    ],
+    "rarity": "uncommon",
+    "oracle_id": "7950a7ff-7c2e-40fe-b64a-324f4fbcf528",
+    "tcgplayer_id": 253194,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [
+     "Innocent Traveler",
+     "Malicious Invader"
+    ],
+    "reserved": false,
+    "edhrec_rank": 20970
+   }
+  ]
+ },
+ {
+  "productId": 541495,
+  "rule": "name: mutate reskin",
+  "name": "Toxic Sheepsquatch - Gemrazer (Showcase)",
+  "groupId": 23337,
+  "group": "Universes Beyond: Fallout",
+  "groupKind": "expansion",
+  "tcgNumber": "351",
+  "tcgRarity": "R",
+  "prices": {
+   "Normal": {
+    "market": 2.34,
+    "low": 0.99
+   },
+   "Foil": {
+    "market": 2.6,
+    "low": 1.05
+   }
+  },
+  "expect": {
+   "slug": "toxic-sheepsquatch-gemrazer-pip-351-showcase",
+   "setTok": "pip",
+   "cls": 0,
+   "rarity": "R",
+   "nkey": "351",
+   "nsort": 351000,
+   "hasN": true,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Gemrazer",
+   "alt": "Toxic Sheepsquatch",
+   "fnum": null,
+   "sc": "pip",
+   "layout": "mutate",
+   "scryFinishes": [
+    "nonfoil",
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "8c89a613-2a48-4953-8e45-9afaebdf84bc",
+    "set": "pip",
+    "cn": "351",
+    "name": "Gemrazer",
+    "layout": "mutate",
+    "finishes": [
+     "nonfoil",
+     "foil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "3dfb0c0a-b68f-43b9-8475-28d0192fc4ed",
+    "tcgplayer_id": 541495,
+    "tcgplayer_etched_id": null,
+    "flavor_name": "Toxic Sheepsquatch",
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 3930
+   }
+  ]
+ },
+ {
+  "productId": 478655,
+  "rule": "number: double-sided token 7 // 2",
+  "name": "Soldier (007) // Angel (002) Double-Sided Token",
+  "groupId": 17685,
+  "group": "Commander: Phyrexia: All Will Be One",
+  "groupKind": "commander",
+  "tcgNumber": "7 // 2",
+  "tcgRarity": "T",
+  "prices": {
+   "Normal": {
+    "market": 0.59,
+    "low": 0.19
+   }
+  },
+  "expect": {
+   "slug": "soldier-angel-double-sided-token-onc-7-2",
+   "setTok": "onc",
+   "cls": 1,
+   "rarity": "T",
+   "nkey": "7",
+   "nsort": 7000,
+   "hasN": true,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": null,
+   "alt": null,
+   "fnum": null,
+   "sc": null,
+   "layout": null,
+   "scryFinishes": null,
+   "link": "none"
+  },
+  "scryfall": []
+ },
+ {
+  "productId": 542621,
+  "rule": "number: composite, one face number in the name",
+  "name": "Food (0012) // Copy Double-Sided Token",
+  "groupId": 23337,
+  "group": "Universes Beyond: Fallout",
+  "groupKind": "expansion",
+  "tcgNumber": "12 // 1",
+  "tcgRarity": "T",
+  "prices": {
+   "Foil": {
+    "market": 1.26,
+    "low": 1.49
+   }
+  },
+  "expect": {
+   "slug": "food-copy-double-sided-token-pip-12",
+   "setTok": "pip",
+   "cls": 1,
+   "rarity": "T",
+   "nkey": "12",
+   "nsort": 12000,
+   "hasN": false,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": null,
+   "alt": null,
+   "fnum": null,
+   "sc": null,
+   "layout": null,
+   "scryFinishes": null,
+   "link": "none"
+  },
+  "scryfall": []
+ },
+ {
+  "productId": 584510,
+  "rule": "number: index token (1 // 2)",
+  "name": "Punch Card Token (1 // 2)",
+  "groupId": 23550,
+  "group": "Duskmourn: House of Horror",
+  "groupKind": "expansion",
+  "tcgNumber": "1 // 2",
+  "tcgRarity": "T",
+  "prices": {
+   "Normal": {
+    "market": 0.1,
+    "low": 0.01
+   }
+  },
+  "expect": {
+   "slug": "punch-card-token-dsk-1-1-2",
+   "setTok": "dsk",
+   "cls": 1,
+   "rarity": "T",
+   "nkey": "1",
+   "nsort": 1000,
+   "hasN": true,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": null,
+   "alt": null,
+   "fnum": null,
+   "sc": null,
+   "layout": null,
+   "scryFinishes": null,
+   "link": "none"
+  },
+  "scryfall": []
+ },
+ {
+  "productId": 720960,
+  "rule": "name: longest name; Emblem - inside",
+  "name": "Emblem - Chandra, Chill of Compliance // Emblem - Chandra, Torch of Defiance Double-Sided Token",
+  "groupId": 24684,
+  "group": "Reality Fracture",
+  "groupKind": "expansion",
+  "tcgNumber": "17 // 18",
+  "tcgRarity": "T",
+  "prices": {
+   "Foil": {
+    "market": 9.36,
+    "low": 7.5
+   },
+   "Normal": {
+    "market": 0.82,
+    "low": 0.5
+   }
+  },
+  "expect": {
+   "slug": "emblem-chandra-chill-of-compliance-emblem-chandra-torch-of-defiance-double-sided-token-fra",
+   "setTok": "fra",
+   "cls": 1,
+   "rarity": "T",
+   "nkey": "17",
+   "nsort": 17000,
+   "hasN": true,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": null,
+   "alt": null,
+   "fnum": null,
+   "sc": null,
+   "layout": null,
+   "scryFinishes": null,
+   "link": "none"
+  },
+  "scryfall": []
+ },
+ {
+  "productId": 536485,
+  "rule": "group: Prerelease Cards (no treatment word)",
+  "name": "Case of the Locked Hothouse",
+  "groupId": 92,
+  "group": "Prerelease Cards",
+  "groupKind": "promo",
+  "tcgNumber": "155",
+  "tcgRarity": "R",
+  "prices": {
+   "Foil": {
+    "market": 7.32,
+    "low": 6.0
+   }
+  },
+  "expect": {
+   "slug": "case-of-the-locked-hothouse-pre-155",
+   "setTok": "pre",
+   "cls": 0,
+   "rarity": "R",
+   "nkey": "155s",
+   "nsort": 155020,
+   "hasN": false,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Case of the Locked Hothouse",
+   "alt": null,
+   "fnum": null,
+   "sc": "pmkm",
+   "layout": "case",
+   "scryFinishes": [
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "f73b2012-f54d-42ec-b161-776660cf46a3",
+    "set": "pmkm",
+    "cn": "155s",
+    "name": "Case of the Locked Hothouse",
+    "layout": "case",
+    "finishes": [
+     "foil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "2380fd04-6d19-4f5a-8a9e-c17d9ae09fb6",
+    "tcgplayer_id": 536485,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 1524
+   }
+  ]
+ },
+ {
+  "productId": 533889,
+  "rule": "group: same name+number, main set",
+  "name": "Case of the Locked Hothouse",
+  "groupId": 23361,
+  "group": "Murders at Karlov Manor",
+  "groupKind": "expansion",
+  "tcgNumber": "155",
+  "tcgRarity": "R",
+  "prices": {
+   "Foil": {
+    "market": 3.87,
+    "low": 2.23
+   },
+   "Normal": {
+    "market": 3.96,
+    "low": 1.7
+   }
+  },
+  "expect": {
+   "slug": "case-of-the-locked-hothouse-mkm-155",
+   "setTok": "mkm",
+   "cls": 0,
+   "rarity": "R",
+   "nkey": "155",
+   "nsort": 155000,
+   "hasN": true,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Case of the Locked Hothouse",
+   "alt": null,
+   "fnum": null,
+   "sc": "mkm",
+   "layout": "case",
+   "scryFinishes": [
+    "nonfoil",
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "0929a1bd-e35c-4ca5-8c8c-dd304cf4b830",
+    "set": "mkm",
+    "cn": "155",
+    "name": "Case of the Locked Hothouse",
+    "layout": "case",
+    "finishes": [
+     "nonfoil",
+     "foil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "2380fd04-6d19-4f5a-8a9e-c17d9ae09fb6",
+    "tcgplayer_id": 533889,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 1524
+   }
+  ]
+ },
+ {
+  "productId": 719572,
+  "rule": "group: Promo Pack (no treatment word)",
+  "name": "The Theorist, Jace Beleren",
+  "groupId": 24877,
+  "group": "Promo Pack: Reality Fracture",
+  "groupKind": "promo-pack",
+  "tcgNumber": "43",
+  "tcgRarity": "M",
+  "prices": {
+   "Foil": {
+    "market": 50.49,
+    "low": 49.99
+   },
+   "Normal": {
+    "market": 35.2,
+    "low": 47.0
+   }
+  },
+  "expect": {
+   "slug": "the-theorist-jace-beleren-ppfra-43",
+   "setTok": "ppfra",
+   "cls": 0,
+   "rarity": "M",
+   "nkey": "43",
+   "nsort": 43000,
+   "hasN": true,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "The Theorist, Jace Beleren",
+   "alt": null,
+   "fnum": null,
+   "sc": "pfra",
+   "layout": null,
+   "scryFinishes": null,
+   "link": "fallback"
+  },
+  "scryfall": []
+ },
+ {
+  "productId": 453935,
+  "rule": "group: Promo Pack 165p",
+  "name": "Skitterbeam Battalion",
+  "groupId": 3160,
+  "group": "Promo Pack: The Brothers' War",
+  "groupKind": "promo-pack",
+  "tcgNumber": "165",
+  "tcgRarity": "M",
+  "prices": {
+   "Normal": {
+    "market": 5.97,
+    "low": 3.25
+   },
+   "Foil": {
+    "market": null,
+    "low": 8.0
+   }
+  },
+  "expect": {
+   "slug": "skitterbeam-battalion-ppbro-165",
+   "setTok": "ppbro",
+   "cls": 0,
+   "rarity": "M",
+   "nkey": "165p",
+   "nsort": 165017,
+   "hasN": true,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Skitterbeam Battalion",
+   "alt": null,
+   "fnum": null,
+   "sc": "pbro",
+   "layout": "prototype",
+   "scryFinishes": [
+    "nonfoil",
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "20c76db5-4d24-4eb5-b356-f544b6866008",
+    "set": "pbro",
+    "cn": "165p",
+    "name": "Skitterbeam Battalion",
+    "layout": "prototype",
+    "finishes": [
+     "nonfoil",
+     "foil"
+    ],
+    "rarity": "mythic",
+    "oracle_id": "ff1dd9c1-d1e5-49dd-b8b2-df3e4a41d3e5",
+    "tcgplayer_id": 453935,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 6767
+   }
+  ]
+ },
+ {
+  "productId": 158462,
+  "rule": "name: World Championship Decks event name",
+  "name": "Armageddon - 1996 Bertrand Lestree (4ED)",
+  "groupId": 2198,
+  "group": "World Championship Decks",
+  "groupKind": "gold-border",
+  "tcgNumber": null,
+  "tcgRarity": "S",
+  "prices": {
+   "Normal": {
+    "market": 6.52,
+    "low": 6.56
+   }
+  },
+  "expect": {
+   "slug": "armageddon-1996-bertrand-lestree-wcd-4ed",
+   "setTok": "wcd",
+   "cls": 0,
+   "rarity": "R",
+   "nkey": "bl5",
+   "nsort": 1000005000,
+   "hasN": true,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": "Armageddon",
+   "alt": null,
+   "fnum": null,
+   "sc": "ptc",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "7e33e463-4e90-4adf-ad6c-66aa8e8dd0dd",
+    "set": "ptc",
+    "cn": "bl5",
+    "name": "Armageddon",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "c9ed8b01-959a-47d6-891e-0abbdccf6e4f",
+    "tcgplayer_id": 158462,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 4057
+   }
+  ]
+ },
+ {
+  "productId": 158496,
+  "rule": "name: WCD sideboard",
+  "name": "Order of Leitbur (Group) - 1996 Bertrand Lestree (FEM) (SB)",
+  "groupId": 2198,
+  "group": "World Championship Decks",
+  "groupKind": "gold-border",
+  "tcgNumber": null,
+  "tcgRarity": "S",
+  "prices": {
+   "Normal": {
+    "market": 2.1,
+    "low": 0.99
+   }
+  },
+  "expect": {
+   "slug": "order-of-leitbur-1996-bertrand-lestree-wcd-group-fem-sb",
+   "setTok": "wcd",
+   "cls": 0,
+   "rarity": "C",
+   "nkey": "bl16csb",
+   "nsort": 1000016030,
+   "hasN": true,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": "Order of Leitbur",
+   "alt": null,
+   "fnum": null,
+   "sc": "ptc",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "e70f7a79-295e-49c4-8954-691e0b9c9190",
+    "set": "ptc",
+    "cn": "bl16csb",
+    "name": "Order of Leitbur",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil"
+    ],
+    "rarity": "common",
+    "oracle_id": "d8f5279f-c58e-4560-9c68-77d226a3c86c",
+    "tcgplayer_id": 158496,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 28773
+   }
+  ]
+ },
+ {
+  "productId": 173922,
+  "rule": "name: WCD basic land digits + event",
+  "name": "Forest (348) - 2003 Daniel Zink (8ED)",
+  "groupId": 2198,
+  "group": "World Championship Decks",
+  "groupKind": "gold-border",
+  "tcgNumber": null,
+  "tcgRarity": "S",
+  "prices": {
+   "Normal": {
+    "market": null,
+    "low": 1.77
+   }
+  },
+  "expect": {
+   "slug": "forest-2003-daniel-zink-wcd-348-8ed",
+   "setTok": "wcd",
+   "cls": 0,
+   "rarity": "C",
+   "nkey": "dz348",
+   "nsort": 1000348000,
+   "hasN": true,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": "Forest",
+   "alt": null,
+   "fnum": null,
+   "sc": "wc03",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "1c01e4ce-5d77-4bbb-9df8-39cd3a2f9e6e",
+    "set": "wc03",
+    "cn": "dz348",
+    "name": "Forest",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil"
+    ],
+    "rarity": "common",
+    "oracle_id": "b34bb2dc-c1af-4d77-b0b3-a0fb342a5fc6",
+    "tcgplayer_id": 173922,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": null
+   }
+  ]
+ },
+ {
+  "productId": 97396,
+  "rule": "token: CE is a treatment, not a set code",
+  "name": "Air Elemental (CE)",
+  "groupId": 1526,
+  "group": "Collector's Edition",
+  "groupKind": "gold-border",
+  "tcgNumber": null,
+  "tcgRarity": "U",
+  "prices": {
+   "Normal": {
+    "market": 4.9,
+    "low": 2.56
+   }
+  },
+  "expect": {
+   "slug": "air-elemental-ced-ce",
+   "setTok": "ced",
+   "cls": 0,
+   "rarity": "U",
+   "nkey": "47",
+   "nsort": 47000,
+   "hasN": true,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": "Air Elemental",
+   "alt": null,
+   "fnum": null,
+   "sc": "ced",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "ed4706ba-5387-4ac9-b939-15b5d2e4880a",
+    "set": "ced",
+    "cn": "47",
+    "name": "Air Elemental",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil"
+    ],
+    "rarity": "uncommon",
+    "oracle_id": "7744bae4-a8b7-44a5-9b4c-0048ad4cc448",
+    "tcgplayer_id": 97396,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 24409
+   }
+  ]
+ },
+ {
+  "productId": 21668,
+  "rule": "name: APAC pack colour + artist with a comma",
+  "name": "Forest - Clear Pack (Beard, Jr.)",
+  "groupId": 9,
+  "group": "APAC Lands",
+  "groupKind": "promo",
+  "tcgNumber": null,
+  "tcgRarity": "P",
+  "prices": {
+   "Normal": {
+    "market": 25.26,
+    "low": 22.75
+   }
+  },
+  "expect": {
+   "slug": "forest-clear-pack-apac-beard-jr",
+   "setTok": "apac",
+   "cls": 0,
+   "rarity": "C",
+   "nkey": "11",
+   "nsort": 11000,
+   "hasN": true,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": "Forest",
+   "alt": null,
+   "fnum": null,
+   "sc": "palp",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "93dc440e-53f8-45d7-bc3b-c9b9a67767de",
+    "set": "palp",
+    "cn": "11",
+    "name": "Forest",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil"
+    ],
+    "rarity": "common",
+    "oracle_id": "b34bb2dc-c1af-4d77-b0b3-a0fb342a5fc6",
+    "tcgplayer_id": 21668,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": null
+   }
+  ]
+ },
+ {
+  "productId": 80110,
+  "rule": "number: Alliances art word; TCG 148 vs Scryfall 15a",
+  "name": "Royal Herbalist (Man)",
+  "groupId": 6,
+  "group": "Alliances",
+  "groupKind": "expansion",
+  "tcgNumber": "148",
+  "tcgRarity": "C",
+  "prices": {
+   "Normal": {
+    "market": 0.1,
+    "low": 0.01
+   }
+  },
+  "expect": {
+   "slug": "royal-herbalist-all-148-man",
+   "setTok": "all",
+   "cls": 0,
+   "rarity": "C",
+   "nkey": "15a",
+   "nsort": 15002,
+   "hasN": true,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": "Royal Herbalist",
+   "alt": null,
+   "fnum": null,
+   "sc": "all",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "027e03e1-1a39-47ba-b206-44d022b4c346",
+    "set": "all",
+    "cn": "15a",
+    "name": "Royal Herbalist",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil"
+    ],
+    "rarity": "common",
+    "oracle_id": "b3baf498-3be7-4a22-8fed-806d8d8ac748",
+    "tcgplayer_id": 80110,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 31485
+   }
+  ]
+ },
+ {
+  "productId": 4536,
+  "rule": "name: [Version 2]",
+  "name": "Reef Pirates [Version 2]",
+  "groupId": 57,
+  "group": "Homelands",
+  "groupKind": "expansion",
+  "tcgNumber": "36",
+  "tcgRarity": "C",
+  "prices": {
+   "Normal": {
+    "market": 0.18,
+    "low": 0.02
+   }
+  },
+  "expect": {
+   "slug": "reef-pirates-hml-36-version-2",
+   "setTok": "hml",
+   "cls": 0,
+   "rarity": "C",
+   "nkey": "36a",
+   "nsort": 36002,
+   "hasN": true,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": "Reef Pirates",
+   "alt": null,
+   "fnum": null,
+   "sc": "hml",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "5b742d75-860d-4b90-89cb-4292f18aed39",
+    "set": "hml",
+    "cn": "36a",
+    "name": "Reef Pirates",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil"
+    ],
+    "rarity": "common",
+    "oracle_id": "13fb5413-0057-4022-84da-2c90ce065ed1",
+    "tcgplayer_id": 4536,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 27752
+   }
+  ]
+ },
+ {
+  "productId": 286903,
+  "rule": "name: (2-3-6)",
+  "name": "The Superlatorium (2-3-6)",
+  "groupId": 2958,
+  "group": "Unfinity",
+  "groupKind": "unset",
+  "tcgNumber": "230",
+  "tcgRarity": "U",
+  "prices": {
+   "Normal": {
+    "market": 0.08,
+    "low": 0.01
+   },
+   "Foil": {
+    "market": 0.12,
+    "low": 0.04
+   }
+  },
+  "expect": {
+   "slug": "the-superlatorium-unf-230-2-3-6",
+   "setTok": "unf",
+   "cls": 0,
+   "rarity": "U",
+   "nkey": "230a",
+   "nsort": 230002,
+   "hasN": true,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "The Superlatorium",
+   "alt": null,
+   "fnum": null,
+   "sc": "unf",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil",
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "0319b2d1-1d63-4f3f-a1da-10ec64d74f03",
+    "set": "unf",
+    "cn": "230a",
+    "name": "The Superlatorium",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil",
+     "foil"
+    ],
+    "rarity": "uncommon",
+    "oracle_id": "8169a0a2-2e2b-4b07-bee5-6ae535458f17",
+    "tcgplayer_id": 286903,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": null
+   }
+  ]
+ },
+ {
+  "productId": 152906,
+  "rule": "name: (B)",
+  "name": "Very Cryptic Command (B)",
+  "groupId": 2092,
+  "group": "Unstable",
+  "groupKind": "unset",
+  "tcgNumber": "49",
+  "tcgRarity": "R",
+  "prices": {
+   "Foil": {
+    "market": null,
+    "low": 5.85
+   },
+   "Normal": {
+    "market": 1.99,
+    "low": 1.18
+   }
+  },
+  "expect": {
+   "slug": "very-cryptic-command-ust-49-b",
+   "setTok": "ust",
+   "cls": 0,
+   "rarity": "R",
+   "nkey": "49b",
+   "nsort": 49003,
+   "hasN": true,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Very Cryptic Command",
+   "alt": null,
+   "fnum": null,
+   "sc": "ust",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil",
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "2a90b2b6-d96e-4c13-83be-849d2ec1d845",
+    "set": "ust",
+    "cn": "49b",
+    "name": "Very Cryptic Command",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil",
+     "foil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "48d94218-a460-4974-82b9-d3a9cba9998e",
+    "tcgplayer_id": 152906,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": null
+   }
+  ]
+ },
+ {
+  "productId": 630946,
+  "rule": "number: 551a",
+  "name": "Traveling Chocobo (Borderless) (Neon Ink Yellow)",
+  "groupId": 24219,
+  "group": "FINAL FANTASY",
+  "groupKind": "expansion",
+  "tcgNumber": "551a",
+  "tcgRarity": "M",
+  "prices": {
+   "Foil": {
+    "market": 1845.6,
+    "low": 1995.04
+   }
+  },
+  "expect": {
+   "slug": "traveling-chocobo-fin-551a-borderless-neon-ink-yellow",
+   "setTok": "fin",
+   "cls": 0,
+   "rarity": "M",
+   "nkey": "551a",
+   "nsort": 551002,
+   "hasN": false,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Traveling Chocobo",
+   "alt": null,
+   "fnum": null,
+   "sc": "fin",
+   "layout": "normal",
+   "scryFinishes": [
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "81690ce7-0651-40e4-9769-baebe10e2cbf",
+    "set": "fin",
+    "cn": "551a",
+    "name": "Traveling Chocobo",
+    "layout": "normal",
+    "finishes": [
+     "foil"
+    ],
+    "rarity": "mythic",
+    "oracle_id": "2e5675d3-3fb0-43b5-a65c-95aacbe48bf9",
+    "tcgplayer_id": 630946,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 1884
+   }
+  ]
+ },
+ {
+  "productId": 660625,
+  "rule": "number: plain 4-digit parenthetical",
+  "name": "Dandan (2138)",
+  "groupId": 2576,
+  "group": "Secret Lair Drop Series",
+  "groupKind": "secret-lair",
+  "tcgNumber": "2138",
+  "tcgRarity": "R",
+  "prices": {
+   "Foil": {
+    "market": 4.9,
+    "low": 4.19
+   }
+  },
+  "expect": {
+   "slug": "dandan-sld-2138",
+   "setTok": "sld",
+   "cls": 0,
+   "rarity": "R",
+   "nkey": "2138",
+   "nsort": 2138000,
+   "hasN": false,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": "Dandân",
+   "alt": null,
+   "fnum": null,
+   "sc": "sld",
+   "layout": "normal",
+   "scryFinishes": [
+    "foil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "a2104c94-4d28-42a8-a620-0cb3aa83eff1",
+    "set": "sld",
+    "cn": "2138",
+    "name": "Dandân",
+    "layout": "normal",
+    "finishes": [
+     "foil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "88929373-b2c8-4a81-a809-fed87fd5b0d7",
+    "tcgplayer_id": 660625,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 21735
+   }
+  ]
+ },
+ {
+  "productId": 165632,
+  "rule": "class: token worth $215",
+  "name": "Treasure Token (2018 Lunar New Year Promo)",
+  "groupId": 1163,
+  "group": "Unique and Miscellaneous Promos",
+  "groupKind": "promo",
+  "tcgNumber": "1",
+  "tcgRarity": "P",
+  "prices": {
+   "Foil": {
+    "market": 215.24,
+    "low": 179.99
+   }
+  },
+  "expect": {
+   "slug": "treasure-token-ump-1-2018-lunar-new-year-promo",
+   "setTok": "ump",
+   "cls": 1,
+   "rarity": "T",
+   "nkey": "1",
+   "nsort": 1000,
+   "hasN": false,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": null,
+   "alt": null,
+   "fnum": null,
+   "sc": null,
+   "layout": "token",
+   "scryFinishes": [
+    "foil"
+   ],
+   "link": "none"
+  },
+  "scryfall": [
+   {
+    "id": "fa8bbe0c-3813-4e3f-9bcf-cffe4fed6341",
+    "set": "plny",
+    "cn": "1",
+    "name": "Treasure",
+    "layout": "token",
+    "finishes": [
+     "foil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "3c549374-6c37-42e0-8d88-a8555d46732d",
+    "tcgplayer_id": 165632,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": null
+   }
+  ]
+ },
+ {
+  "productId": 718476,
+  "rule": "class: art card (2/54) + stamped",
+  "name": "Flickering Hound Art Card (2/54) (Gold-Stamped Signature)",
+  "groupId": 24887,
+  "group": "Art Series: Reality Fracture",
+  "groupKind": "art-series",
+  "tcgNumber": "2",
+  "tcgRarity": "S",
+  "prices": {
+   "Normal": {
+    "market": null,
+    "low": 4.0
+   }
+  },
+  "expect": {
+   "slug": "flickering-hound-art-card-asfra-2-2-54-gold-stamped-signature",
+   "setTok": "asfra",
+   "cls": 2,
+   "rarity": "S",
+   "nkey": "2",
+   "nsort": 2000,
+   "hasN": true,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": null,
+   "alt": null,
+   "fnum": null,
+   "sc": null,
+   "layout": null,
+   "scryFinishes": null,
+   "link": "none"
+  },
+  "scryfall": []
+ },
+ {
+  "productId": 174434,
+  "rule": "class: oversized",
+  "name": "Rukh Egg (8th Edition) (Box Topper)",
+  "groupId": 82,
+  "group": "Oversize Cards",
+  "groupKind": "oversized",
+  "tcgNumber": null,
+  "tcgRarity": "P",
+  "prices": {
+   "Normal": {
+    "market": 2.75,
+    "low": 7.97
+   }
+  },
+  "expect": {
+   "slug": "rukh-egg-over-8th-edition-box-topper",
+   "setTok": "over",
+   "cls": 3,
+   "rarity": "P",
+   "nkey": null,
+   "nsort": 2000000000,
+   "hasN": true,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": null,
+   "alt": null,
+   "fnum": null,
+   "sc": null,
+   "layout": null,
+   "scryFinishes": null,
+   "link": "none"
+  },
+  "scryfall": []
+ },
+ {
+  "productId": 189807,
+  "rule": "class: helper/rules card",
+  "name": "Rules Card (WAR Bundle)",
+  "groupId": 1163,
+  "group": "Unique and Miscellaneous Promos",
+  "groupKind": "promo",
+  "tcgNumber": null,
+  "tcgRarity": "T",
+  "prices": {},
+  "expect": {
+   "slug": "rules-card-ump-war-bundle",
+   "setTok": "ump",
+   "cls": 4,
+   "rarity": "T",
+   "nkey": null,
+   "nsort": 2000000000,
+   "hasN": false,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": null,
+   "alt": null,
+   "fnum": null,
+   "sc": null,
+   "layout": null,
+   "scryFinishes": null,
+   "link": "none"
+  },
+  "scryfall": []
+ },
+ {
+  "productId": 649283,
+  "rule": "class: no Rarity -> classified sealed",
+  "name": "Clue Token (JP) (Metal Promo)",
+  "groupId": 53,
+  "group": "WPN & Gateway Promos",
+  "groupKind": "promo",
+  "tcgNumber": null,
+  "tcgRarity": null,
+  "prices": {},
+  "expect": {
+   "slug": "clue-token-jp-metal-promo",
+   "setTok": "wpn",
+   "cls": "sealed",
+   "rarity": null,
+   "nkey": null,
+   "nsort": 2000000000,
+   "hasN": false,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": null,
+   "alt": null,
+   "fnum": null,
+   "sc": null,
+   "layout": null,
+   "scryFinishes": null,
+   "link": "none"
+  },
+  "scryfall": []
+ },
+ {
+  "productId": 686671,
+  "rule": "sealed: 100+ char name",
+  "name": "Secret Lair Drop: Secret Lair x Marvel's Deadpool: FINAL_final_REALLYfinal_v7_USETHISONE(2)_Everything Bundle",
+  "groupId": 2576,
+  "group": "Secret Lair Drop Series",
+  "groupKind": "secret-lair",
+  "tcgNumber": null,
+  "tcgRarity": null,
+  "prices": {
+   "Normal": {
+    "market": 160.1,
+    "low": 172.0
+   }
+  },
+  "expect": {
+   "slug": "secret-lair-drop-secret-lair-x-marvels-deadpool-final-final-reallyfinal-v7-useth",
+   "setTok": "sld",
+   "cls": "sealed",
+   "rarity": null,
+   "nkey": null,
+   "nsort": 2000000000,
+   "hasN": true,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": null,
+   "alt": null,
+   "fnum": null,
+   "sc": null,
+   "layout": null,
+   "scryFinishes": null,
+   "link": "none"
+  },
+  "scryfall": []
+ },
+ {
+  "productId": 452492,
+  "rule": "class: single with Box in the name",
+  "name": "Kayla's Music Box (Extended Art)",
+  "groupId": 3159,
+  "group": "Commander: The Brothers' War",
+  "groupKind": "commander",
+  "tcgNumber": "62",
+  "tcgRarity": "R",
+  "prices": {
+   "Normal": {
+    "market": 0.27,
+    "low": 0.07
+   }
+  },
+  "expect": {
+   "slug": "kaylas-music-box-brc-62-extended-art",
+   "setTok": "brc",
+   "cls": 0,
+   "rarity": "R",
+   "nkey": "62",
+   "nsort": 62000,
+   "hasN": true,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": "Kayla's Music Box",
+   "alt": null,
+   "fnum": null,
+   "sc": "brc",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "673aaf8d-6716-4f2d-ad2a-b18430c13367",
+    "set": "brc",
+    "cn": "62",
+    "name": "Kayla's Music Box",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "8110f15d-82db-4299-a959-09c22475daec",
+    "tcgplayer_id": 452492,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 19295
+   }
+  ]
+ },
+ {
+  "productId": 485192,
+  "rule": "join: unjoined single worth $500",
+  "name": "Sword of _ and _",
+  "groupId": 23025,
+  "group": "Un-Known Event Playtest Cards",
+  "groupKind": "unset",
+  "tcgNumber": null,
+  "tcgRarity": "P",
+  "prices": {
+   "Normal": {
+    "market": null,
+    "low": 499.99
+   }
+  },
+  "expect": {
+   "slug": "sword-of-and-unk",
+   "setTok": "unk",
+   "cls": 0,
+   "rarity": "P",
+   "nkey": null,
+   "nsort": 2000000000,
+   "hasN": true,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": null,
+   "alt": null,
+   "fnum": null,
+   "sc": null,
+   "layout": null,
+   "scryFinishes": null,
+   "link": "none"
+  },
+  "scryfall": []
+ },
+ {
+  "productId": 557904,
+  "rule": "join: variant of a linked printing + reskin",
+  "name": "Encore Electromancer - Snapcaster Mage (Rainbow Foil)",
+  "groupId": 2576,
+  "group": "Secret Lair Drop Series",
+  "groupKind": "secret-lair",
+  "tcgNumber": "808",
+  "tcgRarity": "M",
+  "prices": {
+   "Foil": {
+    "market": 1773.6,
+    "low": 5999.92
+   }
+  },
+  "expect": {
+   "slug": "encore-electromancer-snapcaster-mage-sld-808-rainbow-foil",
+   "setTok": "sld",
+   "cls": 0,
+   "rarity": "M",
+   "nkey": "808",
+   "nsort": 808000,
+   "hasN": false,
+   "hasF": true,
+   "etched": false,
+   "star": false,
+   "displayName": null,
+   "alt": null,
+   "fnum": null,
+   "sc": "sld",
+   "layout": null,
+   "scryFinishes": null,
+   "link": "variant"
+  },
+  "scryfall": []
+ },
+ {
+  "productId": 664143,
+  "rule": "join: variant (Reprint)",
+  "name": "Phila, Unsealed (Reprint)",
+  "groupId": 23025,
+  "group": "Un-Known Event Playtest Cards",
+  "groupKind": "unset",
+  "tcgNumber": null,
+  "tcgRarity": "M",
+  "prices": {
+   "Normal": {
+    "market": null,
+    "low": 5349.9
+   }
+  },
+  "expect": {
+   "slug": "phila-unsealed-unk-reprint",
+   "setTok": "unk",
+   "cls": 0,
+   "rarity": "M",
+   "nkey": null,
+   "nsort": 2000000000,
+   "hasN": true,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": null,
+   "alt": null,
+   "fnum": null,
+   "sc": "unk",
+   "layout": null,
+   "scryFinishes": null,
+   "link": "variant"
+  },
+  "scryfall": []
+ },
+ {
+  "productId": 1042,
+  "rule": "policy: Alpha Black Lotus, unpriced, Reserved List",
+  "name": "Black Lotus",
+  "groupId": 7,
+  "group": "Alpha Edition",
+  "groupKind": "core",
+  "tcgNumber": null,
+  "tcgRarity": "R",
+  "prices": {},
+  "expect": {
+   "slug": "black-lotus-lea",
+   "setTok": "lea",
+   "cls": 0,
+   "rarity": "R",
+   "nkey": "232",
+   "nsort": 232000,
+   "hasN": false,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": "Black Lotus",
+   "alt": null,
+   "fnum": null,
+   "sc": "lea",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "b0faa7f2-b547-42c4-a810-839da50dadfe",
+    "set": "lea",
+    "cn": "232",
+    "name": "Black Lotus",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "5089ec1a-f881-4d55-af14-5d996171203b",
+    "tcgplayer_id": 1042,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": true,
+    "edhrec_rank": null
+   }
+  ]
+ },
+ {
+  "productId": 8687,
+  "rule": "policy: Beta Black Lotus, unpriced, Reserved List",
+  "name": "Black Lotus",
+  "groupId": 17,
+  "group": "Beta Edition",
+  "groupKind": "core",
+  "tcgNumber": null,
+  "tcgRarity": "R",
+  "prices": {},
+  "expect": {
+   "slug": "black-lotus-leb",
+   "setTok": "leb",
+   "cls": 0,
+   "rarity": "R",
+   "nkey": "233",
+   "nsort": 233000,
+   "hasN": false,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": "Black Lotus",
+   "alt": null,
+   "fnum": null,
+   "sc": "leb",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "b3a69a1c-c80f-4413-a6fd-ae54cabbce28",
+    "set": "leb",
+    "cn": "233",
+    "name": "Black Lotus",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "5089ec1a-f881-4d55-af14-5d996171203b",
+    "tcgplayer_id": 8687,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": true,
+    "edhrec_rank": null
+   }
+  ]
+ },
+ {
+  "productId": 8989,
+  "rule": "policy: Unlimited Black Lotus, low-only",
+  "name": "Black Lotus",
+  "groupId": 115,
+  "group": "Unlimited Edition",
+  "groupKind": "core",
+  "tcgNumber": null,
+  "tcgRarity": "R",
+  "prices": {
+   "Normal": {
+    "market": null,
+    "low": 18149.99
+   }
+  },
+  "expect": {
+   "slug": "black-lotus-2ed",
+   "setTok": "2ed",
+   "cls": 0,
+   "rarity": "R",
+   "nkey": "233",
+   "nsort": 233000,
+   "hasN": true,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": "Black Lotus",
+   "alt": null,
+   "fnum": null,
+   "sc": "2ed",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "4a2e428c-dd25-484c-bbc8-2d6ce10ef42c",
+    "set": "2ed",
+    "cn": "233",
+    "name": "Black Lotus",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "5089ec1a-f881-4d55-af14-5d996171203b",
+    "tcgplayer_id": 8989,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": true,
+    "edhrec_rank": null
+   }
+  ]
+ },
+ {
+  "productId": 449401,
+  "rule": "policy: $203k low-only",
+  "name": "Living Artifact (Retro Frame)",
+  "groupId": 17666,
+  "group": "30th Anniversary Edition",
+  "groupKind": "masters",
+  "tcgNumber": "501",
+  "tcgRarity": "R",
+  "prices": {
+   "Normal": {
+    "market": null,
+    "low": 203067.7
+   }
+  },
+  "expect": {
+   "slug": "living-artifact-30a-501-retro-frame",
+   "setTok": "30a",
+   "cls": 0,
+   "rarity": "R",
+   "nkey": "501",
+   "nsort": 501000,
+   "hasN": true,
+   "hasF": false,
+   "etched": false,
+   "star": false,
+   "displayName": "Living Artifact",
+   "alt": null,
+   "fnum": null,
+   "sc": "30a",
+   "layout": "normal",
+   "scryFinishes": [
+    "nonfoil"
+   ],
+   "link": "id"
+  },
+  "scryfall": [
+   {
+    "id": "07b7a98c-397c-467e-8932-460ae2188926",
+    "set": "30a",
+    "cn": "501",
+    "name": "Living Artifact",
+    "layout": "normal",
+    "finishes": [
+     "nonfoil"
+    ],
+    "rarity": "rare",
+    "oracle_id": "4ff9af56-ac18-4966-9e48-183e1ca1c2d0",
+    "tcgplayer_id": 449401,
+    "tcgplayer_etched_id": null,
+    "flavor_name": null,
+    "faces": [],
+    "reserved": false,
+    "edhrec_rank": 29123
+   }
+  ]
+ }
+]

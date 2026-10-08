@@ -1,0 +1,38 @@
+{
+ "file": "hm/home.json",
+ "content": {
+  "v": 1,
+  "at": "x",
+  "stats": {
+   "cards": 700,
+   "tracked": 294,
+   "sets": 3,
+   "sealed": 0,
+   "oracles": 350
+  },
+  "newest": [
+   100
+  ],
+  "upcoming": [],
+  "chase": [],
+  "popular": [],
+  "up": [],
+  "down": [],
+  "dealCounts": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "dealsFree": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ]
+ }
+}

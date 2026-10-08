@@ -1,33 +1,20 @@
-// Public price history lives in GitHub, not in Postgres (the owner's call,
-// 2026-10-03; DECISIONS.md "History lives in GitHub"). The import writes three
-// kinds of JSON file to the `data` branch of Specifxx/OpCompare:
-//
-//   history/days/YYYY-MM-DD.json   every product's [market, low] that day —
-//                                  append-only, the permanent archive
-//   history/products/<bb>.json     each product's last 730 days, bucketed by
-//                                  productId % 256 (hex "00"–"ff") — what a card
-//                                  or sealed page's chart reads
-//   history/index.json             the OP Compare Index, one row per day
-//
-// Prices are US cents (TCGplayer's market price and the cheapest US listing),
-// days are YYYYMMDD integers. This module is pure — formats and maths only —
-// so tests/history.test.ts can pin it; lib/history-store.ts does the file I/O.
-export const HISTORY_BUCKETS = 256;
-export const KEEP_DAYS = 730;
+// src/lib/history.ts (owner WP01a, FROZEN; MERGED text: OP's file plus the v3 codec, minus the bucket constants of the Postgres era). Public price history lives in the PRIVATE data repository (contract section 12), never in Postgres.
+// Pure: formats and maths only. UNCHANGED from OP (bodies copied): Point, POINT_LEN, HISTORY_MARKETS, DayFile, normPoint, IndexRow, IndexFile, dayNum, dayIso, addDays, withPoint, changeOver, highOver, nextIndex, chartSeries.
+// REMOVED (data plane): HISTORY_BUCKETS, bucketOf (hex bucket of productId % N), RECENT_DAYS, KEEP_DAY_FILES and the `recent/` and `days/` families. The bucket of a unit is histBucket(id) = floor(id / 64) (plane/shards.ts);
+// the v4 series, the base + tail merge and appendDay live in plane/history-codec.ts. In memory a series stays Point[] ([YYYYMMDD, market, null x 6]); files are decoded at the edge, so tests/history.test.ts keeps pinning the maths
+// and the consumers (tools-history, rise-predictor, portfolio-performance, collection-server, data/history) only change their KEY (unitKey(id, finish)).
+import type { UnitKey } from "./constants";
 
-/**
- * v2 (2026-10-04, "history files carry every market"):
- * [YYYYMMDD, TCGplayer market USD cents, lowUS, lowAU, lowUK, lowSG, lowCA, lowEU]
- * with each low in its market's own currency, in MARKETS order. v1 files held
- * only [day, market, lowUS]; readers pad them (a v1 point has no other market).
- */
+export const KEEP_DAYS = 730;
 export type Point = (number | null)[];
 export const POINT_LEN = 8;
 export const HISTORY_MARKETS = ["US", "AU", "UK", "SG", "CA", "EU"] as const;
-export interface BucketFile {
-  v: 1 | 2;
-  p: Record<string, Point[]>;
-}
+/** In memory. Keys are UnitKey ("<productId>.<finishIndex>"); v1/v2 files (OP) keyed by productId are still decodable but are never written. */
+export interface BucketFile { v: 1 | 2; p: Record<string, Point[]> }
+/** On disk: per unit [startDay (YYYYMMDD), c0, c1, ...]: MARKET cents for consecutive calendar days from startDay, null = no price that day. */
+export type SeriesV3 = [startDay: number, ...marketCents: (number | null)[]];
+export interface BucketFileV3 { v: 3; p: Record<UnitKey, SeriesV3> }
+// ── KEPT from OP (bodies unchanged; the 22 names the smoke rule demanded back, design/_final2/handoff/frozen-imports-demands.txt): the v2 day file and the index types, normPoint ──
 export interface DayFile {
   v: 2;
   day: string;
@@ -51,12 +38,42 @@ export interface IndexFile {
   days: IndexRow[];
 }
 
-export const bucketOf = (id: number) => (((id % HISTORY_BUCKETS) + HISTORY_BUCKETS) % HISTORY_BUCKETS).toString(16).padStart(2, "0");
-export const dayNum = (iso: string) => Number(iso.slice(0, 10).replace(/-/g, ""));
-export const dayIso = (n: number) => `${String(n).slice(0, 4)}-${String(n).slice(4, 6)}-${String(n).slice(6, 8)}`;
-const dayMs = (n: number) => Date.UTC(Math.floor(n / 10000), (Math.floor(n / 100) % 100) - 1, n % 100);
-export const addDays = (n: number, d: number) => dayNum(new Date(dayMs(n) + d * 864e5).toISOString());
+// OP's day helpers (bodies unchanged)
+export const dayNum = (iso: string): number => Number(iso.slice(0, 10).replace(/-/g, ""));
+export const dayIso = (n: number): string => `${String(n).slice(0, 4)}-${String(n).slice(4, 6)}-${String(n).slice(6, 8)}`;
+const dayMs = (n: number): number => Date.UTC(Math.floor(n / 10000), (Math.floor(n / 100) % 100) - 1, n % 100);
+export const addDays = (n: number, d: number): number => dayNum(new Date(dayMs(n) + d * 864e5).toISOString());
+/** Calendar days from a to b (both YYYYMMDD), b >= a. */
+export const daysBetween = (a: number, b: number): number => Math.round((dayMs(b) - dayMs(a)) / 864e5);
 
+/** v3 -> memory. v1/v2 pass through. A null day is dropped. */
+export function decodeBucket(raw: unknown): BucketFile {
+  const f = raw as { v?: number; p?: Record<string, unknown> } | null;
+  if (!f || f.v !== 3) return (raw as BucketFile) ?? { v: 2, p: {} };
+  const p: BucketFile["p"] = {};
+  for (const [k, s] of Object.entries((f as unknown as BucketFileV3).p)) {
+    const [start, ...vals] = s; const pts: Point[] = [];
+    vals.forEach((c, i) => { if (c != null) pts.push([addDays(start, i), c, null, null, null, null, null, null]); });
+    if (pts.length) p[k] = pts;
+  }
+  return { v: 2, p };
+}
+/** memory -> v3. Only the market (index 1) survives; a series is cut to its first and last non-null day. */
+export function encodeBucket(f: BucketFile): BucketFileV3 {
+  const p: BucketFileV3["p"] = {};
+  for (const [k, pts] of Object.entries(f.p)) {
+    const rows = pts.filter((x) => x[1] != null).sort((a, b) => (a[0] as number) - (b[0] as number));
+    if (!rows.length) continue;
+    const start = rows[0]![0] as number, last = rows[rows.length - 1]![0] as number, n = daysBetween(start, last) + 1;
+    const out: (number | null)[] = new Array(n).fill(null);
+    for (const x of rows) out[daysBetween(start, x[0] as number)] = x[1]!;
+    p[k as UnitKey] = [start, ...out];
+  }
+  return { v: 3, p };
+}
+
+
+// ── KEPT from OP (bodies unchanged): the series maths tests/history.test.ts pins. In memory a series stays Point[]; the v3 codec above is the on-disk form. ──
 /** A series with today's point set (replacing a same-day point) and anything older than `keep` days dropped. */
 export function withPoint(series: Point[] | undefined, p: Point, keep = KEEP_DAYS): Point[] {
   const cutoff = addDays(p[0] as number, -keep);

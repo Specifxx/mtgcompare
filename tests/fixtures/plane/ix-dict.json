@@ -1,0 +1,18 @@
+{
+ "file": "ix/dict.json",
+ "content": {
+  "v": 1,
+  "chunk": 8192,
+  "rows": 700,
+  "sc": [
+   "",
+   "tst"
+  ],
+  "tr": [
+   ""
+  ],
+  "lb": [
+   ""
+  ]
+ }
+}

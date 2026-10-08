@@ -1,0 +1,14 @@
+{
+ "file": "pv/demand.json",
+ "content": {
+  "v": 1,
+  "at": "x",
+  "days": 7,
+  "r": [
+   [
+    1001,
+    12
+   ]
+  ]
+ }
+}

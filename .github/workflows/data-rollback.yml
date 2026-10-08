@@ -1,0 +1,30 @@
+name: Data rollback
+
+# ONE pointer commit that names an older retained data commit (a seq number or a sha), then the hook. No deploy. In the same group as every other writer: a rollback dispatched during a running import WAITS (queue: max), it is never dropped.
+on:
+  workflow_dispatch:
+    inputs:
+      to: { description: "seq number (e.g. 41) or data commit sha", type: string, required: true }
+
+concurrency:
+  group: data-publish
+  queue: max
+
+permissions:
+  contents: read
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PLANE_REPO: ${{ vars.PLANE_REPO }}
+      DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+      REVALIDATE_URL: ${{ vars.REVALIDATE_URL }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx tsx scripts/data-rollback.ts "${{ inputs.to }}"

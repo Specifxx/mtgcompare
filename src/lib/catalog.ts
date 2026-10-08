@@ -1,440 +1,283 @@
-// Building the One Piece catalogue from TCGplayer's public data, mirrored daily
-// by TCGCSV (https://tcgcsv.com, category 68 = One Piece Card Game). Pure: the
-// importer (src/lib/import.ts) fetches, this decides. Every rule here is pinned
-// in tests/catalog.test.ts against real TCGplayer titles.
-//
-// The same source RiftCompare's Pokémon section uses (lib/pokemon/catalog.ts):
-// one static JSON per group, no pagination, no API key, English-only category.
+// src/lib/catalog.ts (owner WP01a, FROZEN signatures). Pure: no I/O, no clock. TCGCSV parsing, slugs, the name grammar. OP names are kept where the meaning is unchanged.
+import { CARD_CLASS, IGNORED_FINISH_WORDS, TREATMENTS, TREATMENT_BY_SYNONYM, TREATMENT_KEYS, fold, nkey, sealedKind, type Finish, type SetKind, type TreatmentKey } from "./constants";
+export type { SetKind } from "./constants";                         // OP importers of `SetKind` from "./catalog" keep compiling
+export { fold } from "./constants";
 
-import type { SealedKind } from "./constants";
-
-// ── TCGCSV payload shapes (only the fields we read) ──────────────────────────
-export interface TcgcsvGroup {
-  groupId: number;
-  name: string;
-  abbreviation: string;
-  publishedOn: string;
-  isSupplemental?: boolean;
-}
-export interface TcgcsvProduct {
-  productId: number;
-  name: string;
-  imageUrl: string;
-  imageCount?: number;
-  groupId: number;
-  url: string;
-  presaleInfo?: { isPresale: boolean; releasedOn: string | null } | null;
-  extendedData?: { name: string; value: string }[];
-}
-export interface TcgcsvPrice {
-  productId: number;
-  lowPrice: number | null;
-  midPrice?: number | null;
-  marketPrice: number | null;
-  subTypeName: string;
-}
-
-export const TCGCSV_CATEGORY = 68;
+export const TCGCSV_CATEGORY = 1;                                    // Magic (OP: 68)
 export const TCGCSV_BASE = `https://tcgcsv.com/tcgplayer/${TCGCSV_CATEGORY}`;
+export interface TcgcsvGroup { groupId: number; name: string; abbreviation: string; publishedOn: string; isSupplemental?: boolean }
+export interface TcgcsvProduct { productId: number; name: string; imageUrl: string; imageCount?: number; groupId: number; url: string; presaleInfo?: { isPresale: boolean; releasedOn: string | null } | null; extendedData?: { name: string; value: string }[] }
+export interface TcgcsvPrice { productId: number; lowPrice: number | null; midPrice?: number | null; highPrice?: number | null; marketPrice: number | null; directLowPrice?: number | null; subTypeName: string }
+export interface PriceRowLike { marketCents: number | null; lowCents: number | null }
 
-// ── Strings ──────────────────────────────────────────────────────────────────
+/** OP's slugify plus ONE addition (critique 12): the Latin ligatures and letters NFKD does not decompose are transliterated BEFORE it, so "Æther Vial" is `aether-vial`, not `ther-vial` (and "Ætherling" is `aetherling`, not `therling`).
+ *  Then as in OP: NFKD, ASCII, "&" -> " and ", quotes dropped, [^a-z0-9]+ -> "-", trimmed, capped at 90. Greenfield: nothing to migrate. */
+const LIGATURES: Readonly<Record<string, string>> = { "Æ": "Ae", "æ": "ae", "Œ": "Oe", "œ": "oe", "ß": "ss", "ẞ": "SS", "Ø": "O", "ø": "o", "Đ": "D", "đ": "d", "Ł": "L", "ł": "l", "Þ": "Th", "þ": "th", "Ð": "D", "ð": "d" };
 export function slugify(s: string): string {
-  return s
-    .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/&/g, " and ")
-    .replace(/['’"”“]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 90)
-    .replace(/-+$/g, "");
+  return s.replace(/[ÆæŒœßẞØøĐđŁłÞþÐð]/g, (c) => LIGATURES[c] ?? c).normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/&/g, " and ").replace(/['\u2019"\u201d\u201c]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 90).replace(/-+$/g, "");
 }
-
-function decode(s: string): string {
-  return s
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;/g, "'")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&nbsp;/g, " ");
-}
-
-/** Card text without HTML, errata links or the reminder-text <em> markup. */
-export function cleanEffect(html: string | undefined | null): string | null {
-  if (!html) return null;
-  const t = decode(
-    html
-      .replace(/<a\b[^>]*>[^<]*errata[^<]*<\/a>/gi, "")
-      .replace(/<br\s*\/?>/gi, "\n")
-      .replace(/<[^>]+>/g, ""),
-  )
-    .replace(/\r/g, "")
-    .split("\n")
-    .map((l) => l.replace(/\s+/g, " ").trim())
-    .filter(Boolean)
-    .join("\n")
-    .trim();
-  return t || null;
-}
-
-// ── Sets ─────────────────────────────────────────────────────────────────────
-export type SetKind = "booster" | "extra" | "premium" | "starter" | "promo" | "event" | "collection";
-
-/** What a TCGplayer group is. Every One Piece group is in scope; this only sorts them. */
-export function setKind(g: Pick<TcgcsvGroup, "name" | "abbreviation">): SetKind {
-  const code = (g.abbreviation ?? "").trim().toUpperCase();
-  const name = g.name ?? "";
-  if (/\b(PRE|RE|ANN)$/.test(code) || /pre-release|release event|anniversary tournament/i.test(name)) return "event";
-  if (code === "OP-PR") return "promo";
-  if (/^OP\d{2}(?:-EB\d{2})?$/.test(code)) return "booster";
-  if (/^EB-?\d/.test(code)) return "extra";
-  if (/^PRB-?\d/.test(code)) return "premium";
-  if (/^(ST|SD|LT)-?\d/.test(code) || /starter deck|ultra deck|deck set/i.test(name)) return "starter";
-  return "collection";
-}
-
-/** "ST-01: Starter Deck 1 Straw Hat Crew" → "Starter Deck 1: Straw Hat Crew". */
-export function setDisplayName(g: Pick<TcgcsvGroup, "name">): string {
-  let n = g.name.replace(/^[A-Z]{2,3}-\d{2}(?:-\d{2})?:\s*/, "").trim();
-  n = n.replace(/^(Starter Deck(?: EX)? \d+|Ultra Deck|Starter Deck EX)\s+(?!:)/, "$1: ");
-  return n.replace(/”|“/g, '"').replace(/\s+/g, " ");
-}
-
-/** A set's code as players write it: "OP01", "ST-01", "EB-01", "PRB-01". */
-export function setCode(g: Pick<TcgcsvGroup, "abbreviation" | "groupId">): string {
-  const c = (g.abbreviation ?? "").trim();
-  return c || `G${g.groupId}`;
-}
-
-export function setSlug(g: Pick<TcgcsvGroup, "name" | "abbreviation" | "groupId">): string {
-  const code = setCode(g);
-  const kind = setKind(g);
-  // Booster sets are searched by code and name ("op01 romance dawn"); the
-  // others by name alone, which already carries their number.
-  const base = kind === "booster" || kind === "extra" || kind === "premium" ? `${code} ${setDisplayName(g)}` : setDisplayName(g);
-  return slugify(base) || `set-${g.groupId}`;
-}
-
-// ── Cards ────────────────────────────────────────────────────────────────────
-export type Printing = "standard" | "alt" | "manga" | "sp" | "treasure" | "foil" | "reprint" | "promo" | "don";
-
-const ext = (p: TcgcsvProduct): Record<string, string> => {
-  const o: Record<string, string> = {};
-  for (const e of p.extendedData ?? []) o[e.name] = e.value;
-  return o;
-};
-
-/** A product is sealed when it has neither a card number nor a rarity. */
-export function isSealedProduct(p: TcgcsvProduct): boolean {
-  const e = ext(p);
-  return !e.Number && !e.Rarity;
-}
-
-/** The parenthesised suffixes of a TCGplayer card name, minus number disambiguators. */
-export function variantTokens(name: string, number: string | null): string[] {
-  const out: string[] = [];
-  // Parentheses carry the printing; square brackets carry a placing ("[Winner]").
-  for (const m of name.matchAll(/\(([^()]+)\)|\[([^[\]]+)\]/g)) {
-    const t0 = (m[1] ?? m[2]).trim();
-    const t = t0;
-    if (/^\d{3}$/.test(t)) continue; // "(003)" — TCGplayer's way to tell two same-named cards apart
-    if (number && t.toUpperCase() === number.toUpperCase()) continue;
-    if (/^[A-Z]{1,3}\d{0,2}-\d{3}$/i.test(t)) continue; // a card number in parentheses
-    out.push(t);
-  }
-  return out;
-}
-
-// A word match, not an exact token: "Red Super Alternate Art" and "Super Leader
-// Alternate Art" are alternate arts too.
-const ALT = /\b(parallel|alt(?:ernate)? art|full art|wanted poster)\b/i;
-const FOIL = /^(jolly roger foil|pirate foil|gold|textured foil|textured|gem|foil)$/i;
-
-export function classifyPrinting(input: { tokens: string[]; rarity: string | null; cardType: string | null }): Printing {
-  const t = input.tokens;
-  if (input.cardType === "DON!!" || input.rarity === "DON!!") return "don";
-  if (input.rarity === "TR" || t.some((x) => /^(TR|treasure rare)$/i.test(x))) return "treasure";
-  if (t.some((x) => /^(SP|special card|SP card)$/i.test(x))) return "sp";
-  if (t.some((x) => /^manga$/i.test(x))) return "manga";
-  if (input.rarity === "PR") return "promo";
-  if (t.some((x) => ALT.test(x))) return "alt";
-  if (t.some((x) => FOIL.test(x))) return "foil";
-  if (t.some((x) => /^reprint$/i.test(x))) return "reprint";
-  if (t.length) return "promo"; // an event or product tag ("Judge Pack Vol. 2", "Box Topper")
-  return "standard";
-}
-
-/** "Monkey.D.Luffy (003) (Parallel)" → "Monkey.D.Luffy". */
-export function baseName(name: string): string {
-  return name
-    .replace(/\s*\([^()]*\)/g, "")
-    .replace(/\s*\[[^[\]]*\]/g, "")
-    .replace(/\s+-\s+.*$/, "")
-    .replace(/”|“/g, '"')
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-const toInt = (v: string | undefined): number | null => {
-  if (v == null) return null;
-  const n = parseInt(v.replace(/[^0-9-]/g, ""), 10);
-  return Number.isFinite(n) ? n : null;
-};
-const toList = (v: string | undefined): string[] =>
-  v ? v.split(";").map((s) => s.trim()).filter(Boolean) : [];
-
-export interface CatalogCard {
-  id: number;
-  tcgName: string;
-  name: string;
-  number: string | null;
-  setId: number;
-  rarity: string | null;
-  variant: string | null;
-  printing: Printing;
-  colors: string[];
-  cardType: string | null;
-  cost: number | null;
-  power: number | null;
-  counter: number | null;
-  life: number | null;
-  attribute: string | null;
-  subtypes: string[];
-  effect: string | null;
-  tcgplayerUrl: string;
-  hasImage: boolean;
-  slugBase: string;
-}
-
-/**
- * The stamp an event group's cards carry. TCGplayer files the Pre-Release,
- * Release Event and Anniversary Tournament prints under the SAME name and
- * number as the main-set card, so without this tag "Curiel OP16-004" names two
- * products and neither page could say which one it is.
- */
-export function eventTag(g: Pick<TcgcsvGroup, "name" | "abbreviation">): string | null {
-  const code = (g.abbreviation ?? "").trim().toUpperCase();
-  if (/ PRE$/.test(code)) return /super pre-release/i.test(g.name) ? "Super Pre-Release" : "Pre-Release";
-  if (/ RE$/.test(code)) return "Release Event";
-  if (/ ANN$/.test(code)) {
-    const m = /(\d+(?:st|nd|rd|th) Anniversary Tournament)/i.exec(g.name);
-    return m ? m[1] : "Anniversary Tournament";
-  }
-  return null;
-}
-
-/**
- * The extra token a printing needs to be told apart from its namesake: the
- * event stamp. Reprints in another set (Premium Booster, Demo Deck) are told
- * apart by their SET, which the matcher reads separately (lib/match.ts).
- */
-export function printingTag(g: Pick<TcgcsvGroup, "name" | "abbreviation">): string | null {
-  return eventTag(g);
-}
-
-/** DON!! cards have no number: the character and finish in their name ARE the variant. */
-function donTokens(name: string): string[] {
-  return [...name.matchAll(/\(([^()]+)\)/g)].map((m) => m[1].trim()).filter((t) => !/^alternate art$/i.test(t));
-}
-
-export function parseCard(p: TcgcsvProduct, setCodeHint?: string, group?: Pick<TcgcsvGroup, "name" | "abbreviation">): CatalogCard {
-  const e = ext(p);
-  const number = e.Number?.trim() || null;
-  const rarity = e.Rarity?.trim() || null;
-  const cardType = e.CardType?.trim() || (rarity === "DON!!" ? "DON!!" : null);
-  const isDon = cardType === "DON!!" || rarity === "DON!!";
-  const tokens = isDon ? donTokens(p.name) : variantTokens(p.name, number).map((t) => (/^TR$/i.test(t) ? "Treasure Rare" : t));
-  const tag = !isDon && group ? printingTag(group) : null;
-  if (tag && !tokens.some((t) => t.toLowerCase() === tag.toLowerCase())) tokens.push(tag);
-  const printing = classifyPrinting({ tokens: isDon ? [] : tokens, rarity, cardType });
-  const name = isDon ? "DON!! Card" : baseName(p.name);
-  let variant = tokens.length ? tokens.join(" · ") : null;
-  if (!variant && printing === "treasure") variant = "Treasure Rare";
-  return {
-    id: p.productId,
-    tcgName: p.name,
-    name,
-    number,
-    setId: p.groupId,
-    rarity,
-    variant,
-    printing,
-    colors: toList(e.Color),
-    cardType,
-    cost: toInt(e.Cost),
-    power: toInt(e.Power),
-    counter: toInt(e.Counterplus),
-    life: toInt(e.Life),
-    attribute: e.Attribute ? toList(e.Attribute).join(" / ") : null,
-    subtypes: toList(e.Subtypes),
-    effect: cleanEffect(e.Description),
-    tcgplayerUrl: p.url || `https://www.tcgplayer.com/product/${p.productId}`,
-    hasImage: (p.imageCount ?? 1) > 0 && Boolean(p.imageUrl),
-    slugBase: slugify([name, number ?? (isDon ? setCodeHint : null), variant].filter(Boolean).join(" ")),
-  };
-}
-
-/**
- * A character alias TCGplayer writes in parentheses belongs to the NAME:
- * "Mr.3 (Galdino)", "Miss Doublefinger(Zala)", "Gloriosa (Grandma Nyon)". Read as
- * a printing tag it makes the base card a "promo" and leaves the matcher no
- * name word in "Mr.3". An alias is a token that every printing of the number in
- * its own set carries and that is the ONLY token on one of them (its plain
- * print) — so "(Box Topper)", which sits beside an untagged twin, is not one —
- * and that is not printing vocabulary. Folding it also renames the card's
- * reprints elsewhere that carry the alias.
- */
-const NOT_AN_ALIAS = /parallel|alt(?:ernate)?\s*art|full art|manga|\bsp\b|special|treasure|\btr\b|foil|reprint|wanted|topper|pack|deck|event|release|tournament|anniversary|vol\b|winner|finalist|participant|promo|edition|collection|box|\d/i;
-
-export function foldNameAliases(cards: CatalogCard[], setCodeOf: (setId: number) => string): void {
-  const home = (c: CatalogCard) => {
-    const code = setCodeOf(c.setId).toUpperCase().replace(/[^A-Z0-9]/g, "");
-    return Boolean(c.number) && code.includes(c.number!.toUpperCase().split("-")[0]);
-  };
-  const byNumber = new Map<string, CatalogCard[]>();
-  for (const c of cards) if (c.number && !c.number.startsWith("P-") && c.printing !== "don") (byNumber.get(c.number) ?? byNumber.set(c.number, []).get(c.number)!).push(c);
-  for (const list of byNumber.values()) {
-    const own = list.filter(home);
-    const tokens = (c: CatalogCard) => (c.variant ? c.variant.split(" · ") : []);
-    const alias = own.map(tokens).find((t) => t.length === 1)?.[0];
-    if (!alias || NOT_AN_ALIAS.test(alias) || !own.every((c) => tokens(c).includes(alias))) continue;
-    for (const c of list) {
-      const t = tokens(c);
-      if (!t.includes(alias)) continue;
-      const rest = t.filter((x) => x !== alias);
-      c.name = `${c.name} (${alias})`;
-      c.variant = rest.length ? rest.join(" · ") : null;
-      c.printing = classifyPrinting({ tokens: rest, rarity: c.rarity, cardType: c.cardType });
-      if (!c.variant && c.printing === "treasure") c.variant = "Treasure Rare";
-      c.slugBase = slugify([c.name, c.number, c.variant].filter(Boolean).join(" "));
-    }
-  }
-}
-
-// ── Sealed ───────────────────────────────────────────────────────────────────
-/** The sealed product type, or null for things we do not price (multi-product "[Set of N]" bundles). */
-export function sealedKind(name: string): SealedKind | null {
-  const n = name.toLowerCase();
-  if (/\[set of \d+\]/.test(n)) return null;
-  if (/premium card collection/.test(n)) return "Premium Collection";
-  if (/gift collection/.test(n) && !/promotion pack/.test(n)) return /display/.test(n) ? "Display" : "Gift Collection";
-  if (/illustration box/.test(n)) return /\bcase\b/.test(n) ? "Display Case" : "Illustration Box";
-  if (/tin pack set/.test(n)) return /display case/.test(n) ? "Display Case" : /display/.test(n) ? "Display" : "Tin Pack Set";
-  if (/devil fruits collection/.test(n)) return /\bcase\b/.test(n) ? "Display Case" : "Devil Fruits Collection";
-  if (/don!! card pack|don!! set/.test(n)) return "DON!! Pack";
-  if (/double pack set/.test(n)) return /display case/.test(n) ? "Display Case" : /display/.test(n) ? "Display" : "Double Pack Set";
-  if (/(booster|collection|edition) box case|\bbox case\b/.test(n)) return "Booster Case";
-  if (/sleeved booster pack/.test(n)) return "Sleeved Booster Pack";
-  if (/(starter deck|ultra deck|deck set)/.test(n) && !/participation|winner|battle|bonus pack|party/.test(n)) {
-    if (/display case/.test(n)) return "Display Case";
-    if (/display/.test(n)) return "Display";
-    return "Starter Deck";
-  }
-  if (
-    /tournament pack|winner pack|event pack|judge pack|participation pack|pre-release pack|release event pack|promotion pack|celebration pack|top player pack|dash pack|welcome pack|finalist|treasure campaign|battle pack|revision pack|battle kit|bonus pack|treasure booster set|promo pack/.test(
-      n,
-    )
-  )
-    return "Promo Pack";
-  if (/booster box|collection box|edition box|\bbox\b \(wave/.test(n) || /extra booster: .* box$/.test(n)) return "Booster Box";
-  if (/booster pack|collection pack|edition pack/.test(n) || /extra booster: .* pack$/.test(n)) return "Booster Pack";
-  if (/anniversary set|binder|special set|bundle/.test(n)) return "Collection";
-  return "Collection";
-}
-
-/** Packs inside, only where it is certain. Main booster-set boxes hold 24. */
-export function sealedPackCount(kind: SealedKind, setKindOf: SetKind | null): number | null {
-  if (kind === "Booster Pack" || kind === "Sleeved Booster Pack") return 1;
-  if (kind === "Double Pack Set") return 2;
-  if (kind === "Booster Box" && setKindOf === "booster") return 24;
-  return null;
-}
-
-export interface CatalogSealed {
-  id: number;
-  name: string;
-  setId: number | null;
-  kind: SealedKind;
-  packCount: number | null;
-  imageUrl: string | null;
-  tcgplayerUrl: string;
-  releasedOn: string | null;
-  presale: boolean;
-  slugBase: string;
-}
-
-export function parseSealed(p: TcgcsvProduct, kindOfSet: SetKind | null, setIsReal: boolean): CatalogSealed | null {
-  const kind = sealedKind(p.name);
-  if (!kind) return null;
-  const name = p.name.replace(/”|“/g, '"').replace(/\s+/g, " ").trim();
-  return {
-    id: p.productId,
-    name,
-    setId: setIsReal ? p.groupId : null,
-    kind,
-    packCount: sealedPackCount(kind, kindOfSet),
-    imageUrl: (p.imageCount ?? 1) > 0 && p.imageUrl ? largeImage(p.productId) : null,
-    tcgplayerUrl: p.url || `https://www.tcgplayer.com/product/${p.productId}`,
-    releasedOn: p.presaleInfo?.releasedOn?.slice(0, 10) ?? null,
-    presale: Boolean(p.presaleInfo?.isPresale),
-    slugBase: slugify(name),
-  };
-}
-
-// ── Images ───────────────────────────────────────────────────────────────────
-export function largeImage(productId: number): string {
-  return `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_in_1000x1000.jpg`;
-}
-
-// ── Prices ───────────────────────────────────────────────────────────────────
-export const toCents = (v: number | null | undefined): number | null =>
-  typeof v === "number" && Number.isFinite(v) && v > 0 ? Math.round(v * 100) : null;
-
-/**
- * TCGplayer's own price rows for one product. A product usually has one
- * subtype (Normal or Foil); when it has both, the one with a market price wins
- * (the other is a stray listing in the wrong finish).
- */
-export function pickPrice(rows: TcgcsvPrice[]): { lowCents: number | null; marketCents: number | null; finish: string | null } {
-  if (!rows.length) return { lowCents: null, marketCents: null, finish: null };
-  const ranked = [...rows].sort((a, b) => {
-    const am = toCents(a.marketPrice) != null ? 1 : 0;
-    const bm = toCents(b.marketPrice) != null ? 1 : 0;
-    if (am !== bm) return bm - am;
-    return (toCents(b.marketPrice) ?? 0) - (toCents(a.marketPrice) ?? 0);
-  });
-  const r = ranked[0];
-  const marketCents = toCents(r.marketPrice);
-  return { lowCents: plausibleLow(toCents(r.lowPrice), marketCents), marketCents, finish: r.subTypeName || null };
-}
-
-/**
- * A "low" far under the card's own market price is a damaged copy or a
- * mis-listing more often than a deal, and it would become the headline. Under
- * 25% of a market price above $5 is dropped (the market price still shows).
- */
+export const toCents = (v: number | null | undefined): number | null => (v == null || !Number.isFinite(v) ? null : Math.round(v * 100));   // OP's, unchanged
+/** OP's guard, unchanged: a low under 25% of a market >= $5 is dropped (thin-market single listings). */
 export function plausibleLow(lowCents: number | null, marketCents: number | null): number | null {
   if (lowCents == null) return null;
   if (marketCents != null && marketCents >= 500 && lowCents < marketCents * 0.25) return null;
   return lowCents;
 }
-
-/**
- * Stable, unique slugs. A product keeps the slug it was first given forever; a
- * new one takes its base slug, or base + id when that is taken.
- */
-export function assignSlugs(items: { id: number; slugBase: string }[], existing: Map<number, string>): Map<number, string> {
-  const out = new Map<number, string>();
-  const taken = new Set<string>(existing.values());
-  for (const [id, slug] of existing) out.set(id, slug);
-  for (const p of [...items].sort((a, b) => a.id - b.id)) {
-    if (out.has(p.id)) continue;
-    const base = p.slugBase || `card-${p.id}`;
-    const slug = taken.has(base) ? `${base}-${p.id}` : base;
-    taken.add(slug);
-    out.set(p.id, slug);
+/** OP's pickPrice (highest market wins) is DELETED: it would headline the Foil row for 89.8% of dual-finish printings. One row per finish, other subtypes ignored and counted. */
+export function finishPrices(rows: readonly TcgcsvPrice[]): { n: PriceRowLike | null; f: PriceRowLike | null; unknownSubtypes: string[] } {
+  const out: { n: PriceRowLike | null; f: PriceRowLike | null; unknownSubtypes: string[] } = { n: null, f: null, unknownSubtypes: [] };
+  for (const r of rows) {
+    const row: PriceRowLike = { marketCents: toCents(r.marketPrice), lowCents: null };
+    row.lowCents = plausibleLow(toCents(r.lowPrice), row.marketCents);
+    if (r.subTypeName === "Normal") out.n = row; else if (r.subTypeName === "Foil") out.f = row; else out.unknownSubtypes.push(r.subTypeName);
   }
   return out;
 }
+/** A product is a single iff its extendedData has Rarity; otherwise sealed/other (3,725 of 119,147). */
+export const isSealedProduct = (p: TcgcsvProduct): boolean => !(p.extendedData ?? []).some((e) => e.name === "Rarity");
+
+// ── names, slugs ──
+/** "Soldier // Angel (0007) Double-Sided Token (Foil)" -> core "Soldier // Angel Double-Sided Token", tokens ["0007", "Foil"]. Non-nested "(...)" and "[...]" groups, in order. */
+export function splitGroups(name: string): { core: string; tokens: string[] } {
+  const tokens: string[] = [];
+  const core = name.replace(/\s*[(\[]([^)\]]*)[)\]]/g, (_m, t: string) => { tokens.push(t.trim()); return ""; });
+  return { core: core.replace(/\s+/g, " ").trim(), tokens };
+}
+/** The number part of a slug from TCGplayer's `Number`: "029/281" -> "29", "7 // 2" -> "7", "A39" -> "a39", "551a" -> "551a", "" / null -> "". */
+export function numberToken(number: string | null): string {
+  if (!number) return "";
+  let s = number.trim().toLowerCase();
+  if (!s) return "";
+  s = s.includes(" // ") ? s.split(" // ")[0]! : s.replace(/\s*\/\s*\d+$/, "");
+  return s.replace(/^0+(?=\d)/, "");
+}
+/** A card's URL is a function of what TCGplayer calls the product, never of Scryfall. Measured: 3 collisions in all 111,839 included singles. */
+export function slugBase(p: { productId: number; name: string; number: string | null }, setTok: string): string {
+  const { core, tokens } = splitGroups(p.name);
+  let digit: string | null = null; const rest: string[] = [];
+  for (const raw of tokens) {
+    const t = raw.trim();
+    if (/^\d{1,4}$/.test(t)) { const d = t.replace(/^0+(?=\d)/, ""); if (digit === null) digit = d; else rest.push(d); }   // "(0205)" is the collector number; later digit groups (double-sided token faces) stay as text
+    else rest.push(t);                                                                                                  // EVERY other parenthetical word keeps its TEXT, not a canonical key
+  }
+  const num = digit ?? numberToken(p.number);
+  const base = slugify([core, setTok, num, rest.join(" ")].filter(Boolean).join(" "));
+  return base || `card-${p.productId}`;
+}
+export const withProductSuffix = (base: string, productId: number): string => `${base.slice(0, 80).replace(/-+$/, "")}-p${productId}`;   // the collision form
+export interface GroupRef { groupId: number; abbreviation: string | null; kind: SetKind }
+const KIND_RANK = (k: SetKind): number => (k === "expansion" || k === "core" || k === "masters" ? 0 : k === "commander" ? 1 : 2);
+/** The write-once slug token of every group (Set.tok). `frozen` = tokens already stored: returned unchanged and counted as taken. WHO and MOC are shared by two groups each. */
+export function chooseSetToks(groups: readonly GroupRef[], frozen: ReadonlyMap<number, string>): Map<number, string> {
+  const out = new Map<number, string>(frozen);
+  const taken = new Set<string>(frozen.values());
+  const byAbbr = new Map<string, GroupRef[]>();
+  for (const g of groups) {
+    if (frozen.has(g.groupId)) continue;
+    const a = slugify(g.abbreviation ?? "");
+    if (!a) { out.set(g.groupId, `g${g.groupId}`); taken.add(`g${g.groupId}`); continue; }
+    const list = byAbbr.get(a); if (list) list.push(g); else byAbbr.set(a, [g]);
+  }
+  for (const [a, list] of byAbbr) {
+    list.sort((x, y) => KIND_RANK(x.kind) - KIND_RANK(y.kind) || x.groupId - y.groupId);
+    list.forEach((g, i) => { const t = i === 0 && !taken.has(a) ? a : `g${g.groupId}`; out.set(g.groupId, t); taken.add(t); });
+  }
+  return out;
+}
+/** Set.slug: bucket groups are named by the group alone; every other group by "<tok> <name>". On a unique violation the importer retries with `${slug}-g${groupId}`. */
+export const setSlugOf = (g: { name: string; bucket: boolean }, tok: string): string => slugify(g.bucket ? g.name : `${tok} ${g.name}`);
+/** Oracle.slug at write time; the importer feeds new oracles ordered by (released_at ASC, id ASC) so the oldest card keeps the bare slug. Empty -> "card-<8>". */
+export function oracleSlugOf(o: { id: string; name: string }, bareTaken: boolean): string {
+  const base = slugify(o.name).slice(0, 80).replace(/-+$/, "");
+  if (!base) return `card-${o.id.slice(0, 8)}`;
+  return bareTaken ? `${base}-${o.id.slice(0, 8)}` : base;
+}
+/** Sealed.slug at write time (Secret Lair Drop names run past 100 characters). Rows are inserted in ascending productId order. */
+export function sealedSlugOf(name: string, productId: number, bareTaken: boolean): string {
+  const base = slugify(name).slice(0, 80).replace(/-+$/, "") || `sealed-${productId}`;
+  return bareTaken ? `${base}-${productId}` : base;
+}
+
+// ── product class (decided once at import; called before the join with sf = null and again after a link) ──
+export type ProductClass = (typeof CARD_CLASS)[keyof typeof CARD_CLASS];
+export function productClass(p: { name: string; rarity: string | null }, kind: SetKind | "foreign" | "non-card", sf: { layout: string; oversized: boolean } | null): ProductClass {
+  if (kind === "art-series" || sf?.layout === "art_series" || /\bArt Card\b/i.test(p.name)) return CARD_CLASS.ART;
+  if (kind === "oversized" || sf?.oversized) return CARD_CLASS.OVERSIZED;
+  if (p.rarity === "T" || (sf && ["token", "double_faced_token", "emblem"].includes(sf.layout))) return /\b(Helper|Rules|Theme) Card\b|Insert Card$/i.test(p.name) ? CARD_CLASS.HELPER : CARD_CLASS.TOKEN;
+  return CARD_CLASS.CARD;
+}
+
+// ── the product-name grammar (bodies: WP01a, ported at C0 from the executable reference design/magic-tools/parse_name.py; acceptance: tests/fixtures/magic-products.json) ──
+export interface ParsedName {
+  core: string;                          // the name with every (...) and [...] group removed, whitespace collapsed; keeps " - tail" and " // " (slug input)
+  base: string;                          // core without a recognised dash tail
+  dash: { head: string; tail: string; kind: "event" | "pack" | "thick" | "foreign" | "fullart" | "emblem" | "reskin?" | "word" } | null;
+  tokens: string[];                      // every group's text, in order
+  digit: string | null;                  // first token that is 1-4 digits: the collector number written in the name ("0205" -> "205")
+  faceDigits: string[];                  // further digit tokens (double-sided token faces)
+  index: string | null;                  // "2/54", "1 of 9", "1 // 2": an art-card or token index, NOT a collector number
+  src: string | null;                    // a token equal to a known Scryfall set code or abbreviation (4ED, KHC, BRO): the SOURCE set in bucket groups
+  version: string | null;                // (A)..(F), (a)/(b), (2-3-6), [Version 2]
+  event: { year: number; player: string } | null;   // "Name - 1996 Bertrand Lestree (4ED)" in World Championship Decks
+  pack: string | null;                   // "Clear Pack" (APAC Lands)
+  sideboard: boolean;                    // "(SB)"
+  lang: string | null;                   // a language word
+  treat: TreatmentKey[];                 // closed keys, TREATMENTS order
+  words: string[];                       // leftover words, in name order: the unknown vocabulary
+}
+// The port of design/magic-tools/parse_name.py (C0, WP01a). The token classes, their ORDER and the greedy longest-phrase treatment consumption are the reference's; the treatment KEYS come from the
+// closed vocabulary of constants.ts (TREATMENT_BY_SYNONYM), not from the reference's own table. What the reference does not have (the dash layer, and gating the source-set token by group kind) is decided here:
+//   * a " - tail" is classified once, by this order: event ("1996 Bertrand Lestree"), pack ("Clear Pack"), "Thick Stock", "Full Art"/"JP Full Art", emblem (head ends in "Emblem" or the tail ends in
+//     "Double-Sided Token"), a language word ("foreign"), treatment words only ("word"), a basic land's variant word ("word": "Forest - Guru"), else "reskin?": a possible flavor-name pair, which only the Scryfall
+//     join may resolve (the grammar never decides which side is the oracle name). `base` drops the tail of event, pack, thick, fullart and word; every other kind keeps it (it is part of the name).
+//   * a token equal to a Scryfall set code is the SOURCE set (`src`) only in bucket kinds (promo, promo-pack, list, secret-lair, gold-border): in an expansion "(Man)" is an art word, not a code. An exact
+//     treatment synonym wins over a code ("CE" is Collector's Edition; "FNM" is the promo stamp).
+//   * everything the vocabulary does not know is kept as text in `words` (never a raw: key), in name order, one entry per token.
+const BUCKET_KINDS: readonly SetKind[] = ["promo", "promo-pack", "list", "secret-lair", "gold-border"];
+const LANGUAGES: ReadonlySet<string> = new Set(["spanish", "french", "italian", "german", "japanese", "portuguese", "korean", "chinese", "russian", "greek", "hebrew", "sanskrit", "latin", "arabic", "english"]);   // the reference's LANGS minus "phyrexian": an art key of the vocabulary, not a language
+const TAIL_KINDS_DROPPED_FROM_BASE: ReadonlySet<string> = new Set(["event", "pack", "thick", "fullart", "word"]);   // the dash kinds whose tail is not part of the name; the others keep it in `base`
+const BASIC_LAND = /^(?:Snow-Covered )?(?:Plains|Island|Swamp|Mountain|Forest)$|^Wastes$/;
+const PREFIX_SYNONYMS: readonly (readonly [string, TreatmentKey])[] = [...TREATMENT_BY_SYNONYM].filter(([s]) => s.endsWith(" *")).map(([s, k]) => [s.slice(0, -2), k] as const).sort((a, b) => b[0].length - a[0].length);
+const IGNORED_WORDS: ReadonlySet<string> = new Set(IGNORED_FINISH_WORDS.map((w) => fold(w)));
+const LANGUAGE_KEY = new Map<string, TreatmentKey>(TREATMENTS.filter((t) => t.kind === "language").flatMap((t) => t.syn.map((s) => [fold(s), t.key as TreatmentKey] as const)));
+/** The reference's greedy consumption: from each word the longest phrase that is a synonym; a prefix synonym ("neon ink*") takes the rest of the token; finish words are dropped; the rest is leftover. */
+function consumeWords(text: string): { keys: TreatmentKey[]; leftover: string[] } {
+  const words = text.split(/\s+/).filter(Boolean);
+  const keys: TreatmentKey[] = []; const leftover: string[] = [];
+  let i = 0;
+  while (i < words.length) {
+    let hit: { key: TreatmentKey; end: number } | null = null;
+    for (let j = words.length; j > i && !hit; j--) { const k = TREATMENT_BY_SYNONYM.get(fold(words.slice(i, j).join(" "))); if (k) hit = { key: k, end: j }; }
+    if (!hit) { const rest = fold(words.slice(i).join(" ")); for (const [p, k] of PREFIX_SYNONYMS) if (rest === p || rest.startsWith(p + " ")) { hit = { key: k, end: words.length }; break; } }
+    if (hit) { keys.push(hit.key); i = hit.end; continue; }
+    if (!IGNORED_WORDS.has(fold(words[i]))) leftover.push(words[i]!);
+    i++;
+  }
+  return { keys, leftover };
+}
+export function parseTcgName(name: string, ctx: { setCodes: ReadonlySet<string>; groupKind: SetKind }): ParsedName {
+  const { core, tokens } = splitGroups(name);
+  const p: ParsedName = { core, base: core, dash: null, tokens, digit: null, faceDigits: [], index: null, src: null, version: null, event: null, pack: null, sideboard: false, lang: null, treat: [], words: [] };
+  const keys = new Set<TreatmentKey>();
+  const bucket = BUCKET_KINDS.includes(ctx.groupKind);
+  const isCode = (t: string): boolean => /^[A-Za-z0-9]{2,5}$/.test(t) && (ctx.setCodes.has(t.toLowerCase()) || ctx.setCodes.has(t));
+  const addWords = (leftover: string[]): void => { if (leftover.length) p.words.push(leftover.join(" ")); };
+  const grammarToken = (raw: string): void => {                       // classify_token of the reference, in its order
+    const t = raw.trim();
+    if (!t) return;
+    if (/^\d{1,4}$/.test(t)) { const d = t.replace(/^0+(?=\d)/, ""); if (p.digit === null) p.digit = d; else p.faceDigits.push(d); return; }
+    if (/^\d+\s*\/\s*\d+$/.test(t) || /^\d+\s+of\s+\d+$/i.test(t) || /^\d+\s*\/\/\s*\d+$/.test(t)) { p.index ??= t.replace(/\s+/g, ""); return; }
+    if (t.toUpperCase() === "SB") { p.sideboard = true; keys.add("sb"); return; }
+    if (LANGUAGES.has(t.toLowerCase())) { p.lang ??= t.toLowerCase(); const k = LANGUAGE_KEY.get(fold(t)); if (k) keys.add(k); else p.words.push(t); return; }
+    if (/^[A-Fa-f]$/.test(t) || /^\d-\d-\d$/.test(t) || /^version \d+$/i.test(t)) { p.version ??= t; return; }
+    const exact = TREATMENT_BY_SYNONYM.get(fold(t));
+    if (exact) { keys.add(exact); return; }                           // "CE", "FNM", "Showcase": a treatment beats a set code
+    if (bucket && isCode(t)) { p.src ??= t.toLowerCase(); return; }
+    const compound = /^([A-Za-z0-9]{2,4})\s+bundle$/i.exec(t);       // "WAR Bundle": the Bundle key plus the source set
+    if (compound && isCode(compound[1]!)) { keys.add("bundle"); p.src ??= compound[1]!.toLowerCase(); return; }
+    const c = consumeWords(t);
+    for (const k of c.keys) keys.add(k);
+    addWords(c.leftover);
+  };
+  // the pieces in the order they stand in the name: the groups, and the dash tail where the first top-level " - " is
+  type Piece = { pos: number; run: () => void };
+  const pieces: Piece[] = [];
+  for (const m of name.matchAll(/[(\[]([^)\]]*)[)\]]/g)) pieces.push({ pos: m.index ?? 0, run: () => grammarToken(m[1]!) });
+  const dashAt = core.indexOf(" - ");
+  if (dashAt > 0) {
+    const head = core.slice(0, dashAt).trim(); const tail = core.slice(dashAt + 3).trim();
+    let depth = 0; let pos = name.length;
+    for (let i = 0; i < name.length; i++) { const c = name[i]!; if (c === "(" || c === "[") depth++; else if (c === ")" || c === "]") depth = Math.max(0, depth - 1); else if (depth === 0 && name.startsWith(" - ", i)) { pos = i; break; } }
+    pieces.push({ pos, run: () => {
+      let kind: NonNullable<ParsedName["dash"]>["kind"];
+      const ev = /^(\d{4})\s+(\S.*)$/.exec(tail); const f = fold(tail);
+      if (ev) { p.event = { year: Number(ev[1]), player: ev[2]! }; kind = "event"; }
+      else if (/^[A-Z][A-Za-z]*\s+Pack$/.test(tail)) { p.pack = tail; kind = "pack"; }
+      else if (f === "thick stock") { keys.add("display"); kind = "thick"; }
+      else if (/^(?:jp\s+)?full[\s-]?art$/i.test(tail)) { for (const k of consumeWords(tail).keys) keys.add(k); kind = "fullart"; }
+      else if (/(?:^|\s)Emblem$/.test(head) || /Double-Sided Token$/i.test(tail)) kind = "emblem";
+      else if (/^\d+\s*(?:\/\/?|of)\s*\d+$/i.test(tail)) { p.index ??= tail.replace(/\s+/g, ""); kind = "word"; }
+      else if (LANGUAGES.has(f)) { grammarToken(tail); kind = "foreign"; }
+      else {
+        const c = consumeWords(tail);
+        if (c.keys.length > 0 && c.leftover.length === 0) { for (const k of c.keys) keys.add(k); kind = "word"; }
+        else if (BASIC_LAND.test(head)) { for (const k of c.keys) keys.add(k); addWords(c.leftover); kind = "word"; }
+        else kind = "reskin?";
+      }
+      p.dash = { head, tail, kind };
+      if (TAIL_KINDS_DROPPED_FROM_BASE.has(kind)) p.base = head;
+    } });
+  }
+  pieces.sort((a, b) => a.pos - b.pos);
+  for (const piece of pieces) piece.run();
+  p.treat = TREATMENT_KEYS.filter((k) => keys.has(k));
+  return p;
+}
+/** Treatment labels (TREATMENTS order, the group's own treatment added when absent), then version, event, pack, "from KHC", sideboard, words; " · "-joined; null when empty. The exact text of a placing
+ *  ("3rd Place") and of a special foil stays in the label (the generic key label would lose it); language keys and the sideboard key are shown through their own field. */
+export function labelOf(p: ParsedName, groupTreat: TreatmentKey | null): string | null {
+  const keys = new Set<TreatmentKey>(p.treat); if (groupTreat) keys.add(groupTreat);
+  const parts: string[] = [];
+  for (const t of TREATMENTS) {
+    if (!keys.has(t.key)) continue;
+    if (t.key === "sb") continue;
+    if (t.key === "placing" || t.key === "otherfoil") {
+      const tokenText = [...p.tokens, p.dash?.tail ?? ""].filter((x) => TREATMENT_BY_SYNONYM.get(fold(x)) === t.key || consumeWords(x).keys.includes(t.key));
+      parts.push(...(tokenText.length ? tokenText : [t.label])); continue;
+    }
+    parts.push(t.label);
+  }
+  if (p.version) parts.push(`Version ${p.version.replace(/^version\s+/i, "").toUpperCase()}`);
+  if (p.event) parts.push(`${p.event.year} ${p.event.player}`);
+  if (p.pack) parts.push(p.pack);
+  if (p.src) parts.push(`from ${p.src.toUpperCase()}`);
+  if (p.sideboard) parts.push("Sideboard");
+  parts.push(...p.words);
+  return parts.length ? parts.join(" · ") : null;
+}
+
+// ── set / sealed helpers (bodies: WP01) ──
+export interface ScrySetRef { code: string; name: string; setType: string; tcgplayerId: number | null; releasedAt: string | null; parentSetCode: string | null; digital: boolean }
+export function setDisplayName(g: Pick<TcgcsvGroup, "name">): string { return g.name; }          // the group name, verbatim today (the one place to add a tidy rule)
+export function setCodeOf(g: Pick<TcgcsvGroup, "abbreviation" | "groupId">, sf?: ScrySetRef | null): string {   // dominant Scryfall code (>= 60% of the group's joined products, chosen by the importer) upper-cased, else the abbreviation, else "G<groupId>"
+  const code = sf?.code?.trim() || g.abbreviation?.trim();
+  return code ? code.toUpperCase() : `G${g.groupId}`;
+}
+export interface CatalogSealed { id: number; name: string; setId: number | null; kind: string; packCount: number | null; releasedOn: string | null; presale: boolean; contents: string | null }
+/** Packs inside, only where the name SAYS so: one pack for a plain "<Set> - ... Booster Pack", N for "Nx Booster Packs" and "N-Pack". "3-Booster Draft Pack", "2 - Booster Pack" and every box stay null: the count of a box depends on the era (36, 30, 12). */
+function sealedPackCount(name: string): number | null {
+  const x = /\b(\d{1,2})x\s+(?:[A-Za-z]+\s+)?Booster Packs?\b/i.exec(name) ?? /\b(\d{1,2})-Pack\b/i.exec(name);
+  if (x) return Number(x[1]);
+  return !/\d/.test(name) && /\bBooster Pack$/i.test(name) && !/\bCase\b|\bBox\b/i.test(name) ? 1 : null;
+}
+/** The "Contents:" list of the cleaned OracleText when there is one (else its start), at most 600 characters, cut at a word. */
+function sealedContents(text: string | null): string | null {
+  if (!text) return null;
+  const at = text.search(/\bContents:/i);
+  const s = (at >= 0 ? text.slice(at) : text).trim();
+  if (s.length <= 600) return s || null;
+  const cut = s.slice(0, 599); const sp = cut.lastIndexOf(" ");
+  return `${(sp > 400 ? cut.slice(0, sp) : cut).trimEnd()}…`;
+}
+export function parseSealed(p: TcgcsvProduct, setKind: SetKind | null): CatalogSealed {     // contents = cleaned OracleText <= 600 chars; packCount parsed only where certain; setId is null when the group is not an included set
+  const name = p.name.replace(/[“”]/g, '"').replace(/\s+/g, " ").trim();
+  return {
+    id: p.productId, name, setId: setKind === null ? null : p.groupId, kind: sealedKind(p.name), packCount: sealedPackCount(name),
+    releasedOn: p.presaleInfo?.releasedOn?.slice(0, 10) ?? null, presale: Boolean(p.presaleInfo?.isPresale),
+    contents: sealedContents(cleanEffect((p.extendedData ?? []).find((e) => e.name === "OracleText")?.value)),
+  };
+}
+function decode(s: string): string {
+  return s.replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&nbsp;/g, " ");
+}
+/** OP's, unchanged (TCGCSV OracleText; unjoined rows and sealed contents only): card text without HTML, errata links or the reminder-text <em> markup. */
+export function cleanEffect(html: string | undefined | null): string | null {
+  if (!html) return null;
+  const t = decode(html.replace(/<a\b[^>]*>[^<]*errata[^<]*<\/a>/gi, "").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, ""))
+    .replace(/\r/g, "").split("\n").map((l) => l.replace(/\s+/g, " ").trim()).filter(Boolean).join("\n").trim();
+  return t || null;
+}
+export function largeImage(productId: number): string { return `https://tcgplayer-cdn.tcgplayer.com/product/${productId}_in_1000x1000.jpg`; }   // OP's, unchanged
+
+export type { Finish };
+export { nkey };

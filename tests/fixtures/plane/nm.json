@@ -1,0 +1,36 @@
+{
+ "file": "nm/0.json",
+ "content": {
+  "v": 1,
+  "n": 0,
+  "r": [
+   [
+    1,
+    "Oracle 1",
+    "oracle-1",
+    0,
+    1,
+    null,
+    0
+   ],
+   [
+    2,
+    "Oracle 2",
+    "oracle-2",
+    0,
+    1,
+    null,
+    0
+   ],
+   [
+    3,
+    "Oracle 3",
+    "oracle-3",
+    0,
+    1,
+    null,
+    0
+   ]
+  ]
+ }
+}

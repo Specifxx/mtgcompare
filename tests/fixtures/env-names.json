@@ -1,0 +1,1744 @@
+{
+ "comment": "Generated once by the contract (Annex B prints the same rows). After C0 this file is the table: edit it directly (owner WP19, with WP21 for .env.example), keep Annex-B-style fields (kind, at, status, wp, default, where, wf, note, group). Read by tests/env-names.test.ts.",
+ "patterns": [
+  "EBAY_MKRID_{CC}",
+  "EBAY_SITEID_{CC}"
+ ],
+ "names": {
+  "DATABASE_URL": {
+   "kind": "secret",
+   "at": "V+G",
+   "status": "op",
+   "wp": "WP01a",
+   "default": "none",
+   "where": [
+    "src/lib/db.ts",
+    "scripts/**",
+    "prisma/**"
+   ],
+   "wf": [
+    "ebay-prices.yml",
+    "email-weekly.yml",
+    "email.yml",
+    "import-prices.yml",
+    "inbox-audit.yml",
+    "alerts.yml",
+    "db-audit.yml",
+    "demand-snapshot.yml"
+   ],
+   "note": "the ONE Neon project (pooled URL): private tables only (accounts, billing, watches, alerts, collection, notifications, newsletter, inbox, click events, ledger and eBay data, ImportRun/Meta). Public data is NOT in it (section 12). The importer does not read it",
+   "group": "Database and platform"
+  },
+  "TEST_DATABASE_URL": {
+   "kind": "test",
+   "at": "local",
+   "status": "new",
+   "wp": "WP19",
+   "default": "unset",
+   "where": [
+    "tests/helpers/pg.ts"
+   ],
+   "wf": [],
+   "note": "DB-backed tests skip when unset (C23)",
+   "group": "Database and platform"
+  },
+  "PRISMA_LOG": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP02",
+   "default": "unset",
+   "where": [
+    "src/lib/db.ts"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Database and platform"
+  },
+  "NODE_ENV": {
+   "kind": "platform",
+   "at": "-",
+   "status": "op",
+   "wp": "",
+   "default": "",
+   "where": [
+    "*"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Database and platform"
+  },
+  "NODE_OPTIONS": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01b",
+   "default": "--max-old-space-size=3072",
+   "where": [],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "importer heap",
+   "group": "Database and platform"
+  },
+  "VERCEL_ENV": {
+   "kind": "platform",
+   "at": "V",
+   "status": "op",
+   "wp": "WP21",
+   "default": "",
+   "where": [
+    "scripts/vercel-ignore-build.sh",
+    "src/lib/**"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Database and platform"
+  },
+  "VERCEL_GIT_COMMIT_MESSAGE": {
+   "kind": "platform",
+   "at": "V",
+   "status": "op",
+   "wp": "WP21",
+   "default": "",
+   "where": [
+    "scripts/vercel-ignore-build.sh",
+    "src/lib/**"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Database and platform"
+  },
+  "VERCEL_GIT_COMMIT_SHA": {
+   "kind": "platform",
+   "at": "V",
+   "status": "new",
+   "wp": "WP21",
+   "default": "",
+   "where": [
+    "src/lib/deploy-facts.ts",
+    "next.config.js"
+   ],
+   "wf": [],
+   "note": "baked into the build for /admin/deploys (the deployment's own commit)",
+   "group": "Database and platform"
+  },
+  "GITHUB_STEP_SUMMARY": {
+   "kind": "platform",
+   "at": "G",
+   "status": "op",
+   "wp": "WP01b",
+   "default": "",
+   "where": [
+    "scripts/**"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Database and platform"
+  },
+  "NEXT_PUBLIC_SITE_URL": {
+   "kind": "public",
+   "at": "V",
+   "status": "op",
+   "wp": "WP16",
+   "default": "https://mtgcompare.app (placeholder, flagged)",
+   "where": [
+    "src/lib/site.ts"
+   ],
+   "wf": [],
+   "note": "the domain (10.3); read in ONE file",
+   "group": "Site identity and links"
+  },
+  "SITE_URL": {
+   "kind": "var",
+   "at": "G",
+   "status": "op",
+   "wp": "WP01b",
+   "default": "none",
+   "where": [
+    "scripts/**"
+   ],
+   "wf": [
+    "email-weekly.yml",
+    "email.yml",
+    "import-prices.yml",
+    "indexnow.yml",
+    "search-console.yml",
+    "stripe-setup.yml"
+   ],
+   "note": "production origin for scripts and the importer's User-Agent",
+   "group": "Site identity and links"
+  },
+  "NEXT_PUBLIC_CONTACT_EMAIL": {
+   "kind": "public",
+   "at": "V",
+   "status": "op",
+   "wp": "WP16",
+   "default": "contact@mtgcompare.app (placeholder, flagged)",
+   "where": [
+    "src/lib/site.ts"
+   ],
+   "wf": [],
+   "note": "ONE contact address (requirements 1.4)",
+   "group": "Site identity and links"
+  },
+  "NEXT_PUBLIC_DISCORD_URL": {
+   "kind": "public",
+   "at": "V",
+   "status": "op",
+   "wp": "WP16",
+   "default": "unset",
+   "where": [
+    "src/lib/site.ts",
+    "src/components/**"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Site identity and links"
+  },
+  "NEXT_PUBLIC_ANON_ALERTS": {
+   "kind": "public",
+   "at": "V",
+   "status": "op",
+   "wp": "WP14",
+   "default": "unset",
+   "where": [
+    "src/lib/**",
+    "src/components/**"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Site identity and links"
+  },
+  "NEXT_PUBLIC_USD_TO_AUD": {
+   "kind": "public",
+   "at": "V",
+   "status": "op",
+   "wp": "WP01a",
+   "default": "built-in rate",
+   "where": [
+    "src/lib/fx.ts"
+   ],
+   "wf": [],
+   "note": "static fallback exchange rate",
+   "group": "Site identity and links"
+  },
+  "NEXT_PUBLIC_USD_TO_CAD": {
+   "kind": "public",
+   "at": "V",
+   "status": "op",
+   "wp": "WP01a",
+   "default": "built-in rate",
+   "where": [
+    "src/lib/fx.ts"
+   ],
+   "wf": [],
+   "note": "static fallback exchange rate",
+   "group": "Site identity and links"
+  },
+  "NEXT_PUBLIC_USD_TO_EUR": {
+   "kind": "public",
+   "at": "V",
+   "status": "op",
+   "wp": "WP01a",
+   "default": "built-in rate",
+   "where": [
+    "src/lib/fx.ts"
+   ],
+   "wf": [],
+   "note": "static fallback exchange rate",
+   "group": "Site identity and links"
+  },
+  "NEXT_PUBLIC_USD_TO_GBP": {
+   "kind": "public",
+   "at": "V",
+   "status": "op",
+   "wp": "WP01a",
+   "default": "built-in rate",
+   "where": [
+    "src/lib/fx.ts"
+   ],
+   "wf": [],
+   "note": "static fallback exchange rate",
+   "group": "Site identity and links"
+  },
+  "NEXT_PUBLIC_USD_TO_SGD": {
+   "kind": "public",
+   "at": "V",
+   "status": "op",
+   "wp": "WP01a",
+   "default": "built-in rate",
+   "where": [
+    "src/lib/fx.ts"
+   ],
+   "wf": [],
+   "note": "static fallback exchange rate",
+   "group": "Site identity and links"
+  },
+  "NEXT_PUBLIC_IMAGE_PRIMARY": {
+   "kind": "public",
+   "at": "V",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "tcgplayer",
+   "where": [
+    "src/lib/images.ts"
+   ],
+   "wf": [],
+   "note": "scryfall flips the front-image order (10.4)",
+   "group": "Site identity and links"
+  },
+  "NEXT_PUBLIC_EBAY_CAMPAIGN_ID": {
+   "kind": "public",
+   "at": "V+G",
+   "status": "renamed",
+   "wp": "WP06",
+   "default": "none: links render as plain eBay search links",
+   "where": [
+    "src/lib/affiliate.ts"
+   ],
+   "wf": [
+    "ebay-prices.yml"
+   ],
+   "note": "EPN campaign id, MTG's own (10.20). Replaces OP's EBAY_AFFILIATE_CAMPAIGN, which client components could not read (no NEXT_PUBLIC prefix) and which fell back to RIFT's id 5339155912 in the browser",
+   "group": "Affiliate links"
+  },
+  "NEXT_PUBLIC_TCGPLAYER_IMPACT_LINK": {
+   "kind": "public",
+   "at": "V",
+   "status": "renamed",
+   "wp": "WP06",
+   "default": "none: links render as plain TCGplayer links",
+   "where": [
+    "src/lib/affiliate.ts"
+   ],
+   "wf": [],
+   "note": "Impact link. Replaces OP's TCGPLAYER_IMPACT_LINK (default was Rift's partner link)",
+   "group": "Affiliate links"
+  },
+  "NEXT_PUBLIC_TCGPLAYER_CREATIVES": {
+   "kind": "public",
+   "at": "V",
+   "status": "op",
+   "wp": "WP06",
+   "default": "unset",
+   "where": [
+    "src/components/TcgplayerAd.tsx"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Affiliate links"
+  },
+  "EBAY_MKRID_US": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP06",
+   "default": "built-in",
+   "where": [
+    "src/lib/affiliate.ts"
+   ],
+   "wf": [],
+   "note": "per-market EPN tracking parameter (templated read)",
+   "group": "Affiliate links"
+  },
+  "EBAY_SITEID_US": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP06",
+   "default": "built-in",
+   "where": [
+    "src/lib/affiliate.ts"
+   ],
+   "wf": [],
+   "note": "per-market EPN site id (templated read)",
+   "group": "Affiliate links"
+  },
+  "EBAY_MKRID_AU": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP06",
+   "default": "built-in",
+   "where": [
+    "src/lib/affiliate.ts"
+   ],
+   "wf": [],
+   "note": "per-market EPN tracking parameter (templated read)",
+   "group": "Affiliate links"
+  },
+  "EBAY_SITEID_AU": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP06",
+   "default": "built-in",
+   "where": [
+    "src/lib/affiliate.ts"
+   ],
+   "wf": [],
+   "note": "per-market EPN site id (templated read)",
+   "group": "Affiliate links"
+  },
+  "EBAY_MKRID_UK": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP06",
+   "default": "built-in",
+   "where": [
+    "src/lib/affiliate.ts"
+   ],
+   "wf": [],
+   "note": "per-market EPN tracking parameter (templated read)",
+   "group": "Affiliate links"
+  },
+  "EBAY_SITEID_UK": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP06",
+   "default": "built-in",
+   "where": [
+    "src/lib/affiliate.ts"
+   ],
+   "wf": [],
+   "note": "per-market EPN site id (templated read)",
+   "group": "Affiliate links"
+  },
+  "EBAY_MKRID_CA": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP06",
+   "default": "built-in",
+   "where": [
+    "src/lib/affiliate.ts"
+   ],
+   "wf": [],
+   "note": "per-market EPN tracking parameter (templated read)",
+   "group": "Affiliate links"
+  },
+  "EBAY_SITEID_CA": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP06",
+   "default": "built-in",
+   "where": [
+    "src/lib/affiliate.ts"
+   ],
+   "wf": [],
+   "note": "per-market EPN site id (templated read)",
+   "group": "Affiliate links"
+  },
+  "EBAY_MKRID_SG": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP06",
+   "default": "built-in",
+   "where": [
+    "src/lib/affiliate.ts"
+   ],
+   "wf": [],
+   "note": "per-market EPN tracking parameter (templated read)",
+   "group": "Affiliate links"
+  },
+  "EBAY_SITEID_SG": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP06",
+   "default": "built-in",
+   "where": [
+    "src/lib/affiliate.ts"
+   ],
+   "wf": [],
+   "note": "per-market EPN site id (templated read)",
+   "group": "Affiliate links"
+  },
+  "EBAY_MKRID_EU": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP06",
+   "default": "built-in",
+   "where": [
+    "src/lib/affiliate.ts"
+   ],
+   "wf": [],
+   "note": "per-market EPN tracking parameter (templated read)",
+   "group": "Affiliate links"
+  },
+  "EBAY_SITEID_EU": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP06",
+   "default": "built-in",
+   "where": [
+    "src/lib/affiliate.ts"
+   ],
+   "wf": [],
+   "note": "per-market EPN site id (templated read)",
+   "group": "Affiliate links"
+  },
+  "AUTH_SECRET": {
+   "kind": "secret",
+   "at": "V+G",
+   "status": "op",
+   "wp": "WP18",
+   "default": "none",
+   "where": [
+    "src/lib/auth-secret.ts"
+   ],
+   "wf": [],
+   "note": "session signing; also verifies signed email links in scripts",
+   "group": "Accounts, billing, admin"
+  },
+  "ADMIN_EMAILS": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP21",
+   "default": "mastermisclick@gmail.com (built in; REPLACED when set)",
+   "where": [
+    "src/lib/admin-emails.ts"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Accounts, billing, admin"
+  },
+  "ADMIN_TOKEN": {
+   "kind": "secret",
+   "at": "V",
+   "status": "op",
+   "wp": "WP21",
+   "default": "unset (token path closed)",
+   "where": [
+    "src/lib/admin-guard.ts"
+   ],
+   "wf": [],
+   "note": "scripts only, Authorization: Bearer, at least 32 characters",
+   "group": "Accounts, billing, admin"
+  },
+  "GOOGLE_CLIENT_ID": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP18",
+   "default": "none: the provider button is hidden",
+   "where": [
+    "src/lib/oauth.ts"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Accounts, billing, admin"
+  },
+  "GOOGLE_CLIENT_SECRET": {
+   "kind": "secret",
+   "at": "V",
+   "status": "op",
+   "wp": "WP18",
+   "default": "none: the provider button is hidden",
+   "where": [
+    "src/lib/oauth.ts"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Accounts, billing, admin"
+  },
+  "DISCORD_CLIENT_ID": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP18",
+   "default": "none: the provider button is hidden",
+   "where": [
+    "src/lib/oauth.ts"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Accounts, billing, admin"
+  },
+  "DISCORD_CLIENT_SECRET": {
+   "kind": "secret",
+   "at": "V",
+   "status": "op",
+   "wp": "WP18",
+   "default": "none: the provider button is hidden",
+   "where": [
+    "src/lib/oauth.ts"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Accounts, billing, admin"
+  },
+  "STRIPE_SECRET_KEY": {
+   "kind": "secret",
+   "at": "V+G",
+   "status": "op",
+   "wp": "WP18",
+   "default": "none: billing is off",
+   "where": [
+    "src/lib/stripe.ts",
+    "src/app/api/stripe/webhook/route.ts",
+    "scripts/stripe-setup.ts"
+   ],
+   "wf": [
+    "stripe-setup.yml"
+   ],
+   "note": "the NEW MTG Compare Stripe account (test mode first). The site tag `site=mtgcompare` and the lookup keys `mtgcompare_*` are constants in plans.ts, not variables",
+   "group": "Accounts, billing, admin"
+  },
+  "STRIPE_WEBHOOK_SECRET": {
+   "kind": "secret",
+   "at": "V",
+   "status": "op",
+   "wp": "WP18",
+   "default": "none",
+   "where": [
+    "src/app/api/stripe/webhook/route.ts"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Accounts, billing, admin"
+  },
+  "CRON_SECRET": {
+   "kind": "secret",
+   "at": "V+G",
+   "status": "op",
+   "wp": "WP02",
+   "default": "none",
+   "where": [
+    "src/app/api/cron/**",
+    "src/app/api/revalidate/route.ts",
+    "src/app/api/data-warm/route.ts",
+    "scripts/**",
+    "src/lib/import.ts"
+   ],
+   "wf": [
+    "import-prices.yml",
+    "data-hook.yml",
+    "demand-snapshot.yml",
+    "data-rollback.yml"
+   ],
+   "note": "bearer secret: Vercel cron routes, the warm call /api/data-warm that every publish makes, and the purge of the Neon-backed tags /api/revalidate. Plane data needs no purge (pinned URLs)",
+   "group": "Accounts, billing, admin"
+  },
+  "REVALIDATE_URL": {
+   "kind": "var",
+   "at": "G",
+   "status": "op",
+   "wp": "WP01b",
+   "default": "none: the warm call is skipped and logged (the site still reads the new pointer within 20 seconds)",
+   "where": [
+    "scripts/**",
+    "src/lib/import.ts"
+   ],
+   "wf": [
+    "import-prices.yml",
+    "data-hook.yml",
+    "demand-snapshot.yml",
+    "data-watchdog.yml",
+    "data-rollback.yml"
+   ],
+   "note": "production origin: /api/data-warm and /api/data-status are called after every publish, /api/revalidate only for the Neon-backed tags",
+   "group": "Accounts, billing, admin"
+  },
+  "GITHUB_DISPATCH_TOKEN": {
+   "kind": "secret",
+   "at": "V",
+   "status": "new",
+   "wp": "WP21",
+   "default": "unset: the admin panels show a link to the workflow instead of a Run button",
+   "where": [
+    "src/lib/admin-dispatch.ts"
+   ],
+   "wf": [],
+   "note": "OPTIONAL fine-grained token, this repository only, Actions: write. Lets /admin/ebay and /admin/deploys dispatch a workflow. NOT an eBay credential",
+   "group": "Accounts, billing, admin"
+  },
+  "NEXT_PUBLIC_GITHUB_REPO": {
+   "kind": "public",
+   "at": "V",
+   "status": "new",
+   "wp": "WP21",
+   "default": "Specifxx/mtgcompare",
+   "where": [
+    "src/lib/site.ts",
+    "src/lib/admin-dispatch.ts"
+   ],
+   "wf": [],
+   "note": "owner/repo used by the admin links and the unauthenticated release-history read",
+   "group": "Accounts, billing, admin"
+  },
+  "CLICK_LOG": {
+   "kind": "var",
+   "at": "V",
+   "status": "new",
+   "wp": "WP15",
+   "default": "1",
+   "where": [
+    "src/app/api/click/route.ts",
+    "src/lib/data/plane/view-beacon.ts"
+   ],
+   "wf": [],
+   "note": "0 = outbound clicks are not recorded (owner decision 10.32); GA's buy_click is unaffected. Clicks are buffered in the instance and written in ONE insert inside the aligned half-hour window shared with the view counter (ClickBatcher)",
+   "group": "Accounts, billing, admin"
+  },
+  "CLICK_SAMPLE_RATE": {
+   "kind": "var",
+   "at": "V",
+   "status": "new",
+   "wp": "WP15",
+   "default": "1",
+   "where": [
+    "src/app/api/click/route.ts",
+    "src/lib/data/plane/view-beacon.ts"
+   ],
+   "wf": [],
+   "note": "1 = every click (buffered); 0.1 = one in ten. Read only by ClickBatcher's caller",
+   "group": "Accounts, billing, admin"
+  },
+  "EMAIL_FROM": {
+   "kind": "var",
+   "at": "G",
+   "status": "op",
+   "wp": "WP14",
+   "default": "none: no mail is sent",
+   "where": [
+    "src/lib/email.ts"
+   ],
+   "wf": [
+    "email-weekly.yml",
+    "email.yml",
+    "import-prices.yml"
+   ],
+   "note": "",
+   "group": "Email and notifications"
+  },
+  "EMAIL_REPLY_TO": {
+   "kind": "var",
+   "at": "G",
+   "status": "op",
+   "wp": "WP14",
+   "default": "none",
+   "where": [
+    "src/lib/email.ts"
+   ],
+   "wf": [
+    "email-weekly.yml",
+    "email.yml",
+    "import-prices.yml"
+   ],
+   "note": "",
+   "group": "Email and notifications"
+  },
+  "EMAIL_LINK_SECRET": {
+   "kind": "secret",
+   "at": "V+G",
+   "status": "op",
+   "wp": "WP14",
+   "default": "none",
+   "where": [
+    "src/lib/alert-actions.ts"
+   ],
+   "wf": [
+    "email-weekly.yml",
+    "email.yml",
+    "import-prices.yml"
+   ],
+   "note": "signs unsubscribe and action links",
+   "group": "Email and notifications"
+  },
+  "RESEND_API_KEY": {
+   "kind": "secret",
+   "at": "G",
+   "status": "op",
+   "wp": "WP14",
+   "default": "none: no mail is sent",
+   "where": [
+    "src/lib/email.ts"
+   ],
+   "wf": [
+    "email-weekly.yml",
+    "email.yml",
+    "import-prices.yml"
+   ],
+   "note": "script-side only (tests/no-email-api.test.ts)",
+   "group": "Email and notifications"
+  },
+  "BREVO_API_KEY": {
+   "kind": "secret",
+   "at": "G",
+   "status": "op",
+   "wp": "WP14",
+   "default": "none",
+   "where": [
+    "src/lib/email.ts"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Email and notifications"
+  },
+  "ALERT_DAILY_BUDGET": {
+   "kind": "var",
+   "at": "G",
+   "status": "op",
+   "wp": "WP14",
+   "default": "built-in",
+   "where": [],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "",
+   "group": "Email and notifications"
+  },
+  "OPS_WEBHOOK_URL": {
+   "kind": "secret",
+   "at": "G",
+   "status": "new",
+   "wp": "WP19",
+   "default": "unset: ops alerts only print in the log",
+   "where": [
+    "scripts/ops-webhook.ts",
+    "src/lib/ops-webhook.ts"
+   ],
+   "wf": [
+    "import-prices.yml",
+    "data-watchdog.yml",
+    "ebay-prices.yml",
+    "store-health.yml",
+    "db-audit.yml"
+   ],
+   "note": "Discord/Slack webhook for freshness, failure and store-health alerts (parity P39). Webhook only, no bot",
+   "group": "Email and notifications"
+  },
+  "NEXT_PUBLIC_GA_ID": {
+   "kind": "public",
+   "at": "V",
+   "status": "op",
+   "wp": "WP15",
+   "default": "unset: no analytics",
+   "where": [
+    "src/lib/ga.ts",
+    "src/components/**"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Analytics and search engines"
+  },
+  "NEXT_PUBLIC_ADSENSE_CLIENT_ID": {
+   "kind": "public",
+   "at": "V",
+   "status": "op",
+   "wp": "WP15",
+   "default": "unset: house promo",
+   "where": [
+    "src/lib/adsense.ts"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Analytics and search engines"
+  },
+  "GOOGLE_SITE_VERIFICATION": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP15",
+   "default": "unset",
+   "where": [
+    "src/app/layout.tsx"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Analytics and search engines"
+  },
+  "BING_SITE_VERIFICATION": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP15",
+   "default": "unset",
+   "where": [
+    "src/app/layout.tsx"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Analytics and search engines"
+  },
+  "INDEXNOW_KEY": {
+   "kind": "var",
+   "at": "V+G",
+   "status": "op",
+   "wp": "WP15",
+   "default": "unset",
+   "where": [
+    "scripts/indexnow-submit.ts",
+    "src/app/indexnow.txt/route.ts"
+   ],
+   "wf": [
+    "indexnow.yml"
+   ],
+   "note": "",
+   "group": "Analytics and search engines"
+  },
+  "GSC_PROPERTY": {
+   "kind": "var",
+   "at": "G",
+   "status": "op",
+   "wp": "WP15",
+   "default": "sc-domain:<domain>",
+   "where": [
+    "scripts/gsc-report.ts"
+   ],
+   "wf": [
+    "search-console.yml"
+   ],
+   "note": "",
+   "group": "Analytics and search engines"
+  },
+  "GSC_SA_KEY": {
+   "kind": "secret",
+   "at": "G",
+   "status": "op",
+   "wp": "WP15",
+   "default": "none",
+   "where": [
+    "scripts/gsc-report.ts"
+   ],
+   "wf": [
+    "search-console.yml"
+   ],
+   "note": "",
+   "group": "Analytics and search engines"
+  },
+  "EBAY_CLIENT_ID": {
+   "kind": "secret",
+   "at": "G",
+   "status": "op",
+   "wp": "WP05",
+   "default": "none: eBay stays off (a green no-op run)",
+   "where": [
+    "src/lib/ebay*.ts"
+   ],
+   "wf": [
+    "ebay-prices.yml"
+   ],
+   "note": "tests/no-ebay-api.test.ts: named only in src/lib/ebay*.ts and ebay-prices.yml. The workflow file name is ebay-prices.yml (one name, everywhere)",
+   "group": "eBay (script-side only; the credentials are GitHub Actions secrets, never Vercel)"
+  },
+  "EBAY_CLIENT_SECRET": {
+   "kind": "secret",
+   "at": "G",
+   "status": "op",
+   "wp": "WP05",
+   "default": "none",
+   "where": [
+    "src/lib/ebay*.ts"
+   ],
+   "wf": [
+    "ebay-prices.yml"
+   ],
+   "note": "",
+   "group": "eBay (script-side only; the credentials are GitHub Actions secrets, never Vercel)"
+  },
+  "EBAY_KEYSET_MODE": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP05",
+   "default": "shared",
+   "where": [
+    "src/lib/ebay*.ts",
+    "scripts/ebay.ts"
+   ],
+   "wf": [
+    "ebay-prices.yml"
+   ],
+   "note": "shared (Rift first, then MTG on the same quota) or own (10.1)",
+   "group": "eBay (script-side only; the credentials are GitHub Actions secrets, never Vercel)"
+  },
+  "EBAY_OBSERVE_ONLY": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP05",
+   "default": "1 for the first 7 days",
+   "where": [
+    "src/lib/ebay*.ts",
+    "scripts/ebay.ts"
+   ],
+   "wf": [
+    "ebay-prices.yml"
+   ],
+   "note": "quota reads only (10.2)",
+   "group": "eBay (script-side only; the credentials are GitHub Actions secrets, never Vercel)"
+  },
+  "EBAY_API_ENABLED": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP05",
+   "default": "1",
+   "where": [
+    "src/lib/ebay*.ts",
+    "scripts/ebay.ts"
+   ],
+   "wf": [
+    "ebay-prices.yml"
+   ],
+   "note": "KILL SWITCH (requirements 4): 0 = no Browse call at all",
+   "group": "eBay (script-side only; the credentials are GitHub Actions secrets, never Vercel)"
+  },
+  "EBAY_DAILY_CALL_BUDGET": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP05",
+   "default": "1000",
+   "where": [
+    "src/lib/ebay*.ts",
+    "scripts/ebay.ts"
+   ],
+   "wf": [
+    "ebay-prices.yml"
+   ],
+   "note": "calls per day for MTG (requirements 4); the ledger enforces it",
+   "group": "eBay (script-side only; the credentials are GitHub Actions secrets, never Vercel)"
+  },
+  "EBAY_QUOTA_RESERVE": {
+   "kind": "var",
+   "at": "G",
+   "status": "op",
+   "wp": "WP05",
+   "default": "OP's value",
+   "where": [
+    "src/lib/ebay*.ts",
+    "scripts/ebay.ts"
+   ],
+   "wf": [
+    "ebay-prices.yml"
+   ],
+   "note": "calls always left for Rift",
+   "group": "eBay (script-side only; the credentials are GitHub Actions secrets, never Vercel)"
+  },
+  "EBAY_MAX_CALLS": {
+   "kind": "var",
+   "at": "G",
+   "status": "op",
+   "wp": "WP05",
+   "default": "OP's value",
+   "where": [
+    "src/lib/ebay*.ts",
+    "scripts/ebay.ts"
+   ],
+   "wf": [
+    "ebay-prices.yml"
+   ],
+   "note": "cap per run",
+   "group": "eBay (script-side only; the credentials are GitHub Actions secrets, never Vercel)"
+  },
+  "EBAY_MIN_VALUE_CENTS": {
+   "kind": "var",
+   "at": "G",
+   "status": "op",
+   "wp": "WP05",
+   "default": "OP's value",
+   "where": [
+    "src/lib/ebay*.ts",
+    "scripts/ebay.ts"
+   ],
+   "wf": [
+    "ebay-prices.yml"
+   ],
+   "note": "price floor for the allocator",
+   "group": "eBay (script-side only; the credentials are GitHub Actions secrets, never Vercel)"
+  },
+  "EBAY_DISPATCH_CAP": {
+   "kind": "var",
+   "at": "G",
+   "status": "op",
+   "wp": "WP05",
+   "default": "OP's value",
+   "where": [
+    "src/lib/ebay*.ts",
+    "scripts/ebay.ts"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "eBay (script-side only; the credentials are GitHub Actions secrets, never Vercel)"
+  },
+  "EBAY_FORCE": {
+   "kind": "var",
+   "at": "G",
+   "status": "op",
+   "wp": "WP05",
+   "default": "unset",
+   "where": [
+    "src/lib/ebay*.ts",
+    "scripts/ebay.ts"
+   ],
+   "wf": [],
+   "note": "manual override flag",
+   "group": "eBay (script-side only; the credentials are GitHub Actions secrets, never Vercel)"
+  },
+  "EBAY_ONLY_MARKET": {
+   "kind": "var",
+   "at": "G",
+   "status": "op",
+   "wp": "WP05",
+   "default": "unset",
+   "where": [
+    "src/lib/ebay*.ts",
+    "scripts/ebay.ts"
+   ],
+   "wf": [],
+   "note": "restrict a manual run to one market",
+   "group": "eBay (script-side only; the credentials are GitHub Actions secrets, never Vercel)"
+  },
+  "EBAY_REFRESH": {
+   "kind": "var",
+   "at": "G",
+   "status": "op",
+   "wp": "WP05",
+   "default": "unset",
+   "where": [
+    "src/lib/ebay*.ts",
+    "scripts/ebay.ts"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "eBay (script-side only; the credentials are GitHub Actions secrets, never Vercel)"
+  },
+  "EBAY_VERIFICATION_TOKEN": {
+   "kind": "secret",
+   "at": "V",
+   "status": "op",
+   "wp": "WP05",
+   "default": "none",
+   "where": [
+    "src/app/api/ebay/marketplace-deletion/route.ts"
+   ],
+   "wf": [],
+   "note": "Marketplace Account Deletion route; tests/no-ebay-api.test.ts pins the two names this route reads",
+   "group": "eBay (script-side only; the credentials are GitHub Actions secrets, never Vercel)"
+  },
+  "EBAY_DELETION_ENDPOINT": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP05",
+   "default": "none",
+   "where": [
+    "src/app/api/ebay/marketplace-deletion/route.ts"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "eBay (script-side only; the credentials are GitHub Actions secrets, never Vercel)"
+  },
+  "CATALOG_FLOOR_CENTS": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "1",
+   "where": [
+    "src/lib/track.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "every priced class-0 single has a row; 10, 25, 50 are the fallback ladder (5.6) (read only by trackConfigFromEnv)",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "CATALOG_EXIT_RATIO": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "0.8",
+   "where": [
+    "src/lib/track.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "read only by trackConfigFromEnv",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "CATALOG_ORACLE_COMPLETE": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "1",
+   "where": [
+    "src/lib/track.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "every priced oracle keeps its TOP printing listed whatever the floor (read only by trackConfigFromEnv)",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "INDEX_FLOOR_CENTS": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "50",
+   "where": [
+    "src/lib/track.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "a listed row below this score is THIN: noindex, no sitemap entry (read only by trackConfigFromEnv)",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "CATALOG_SPECIAL_FLOOR_CENTS": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "2000",
+   "where": [
+    "src/lib/track.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "read only by trackConfigFromEnv",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "TRACK_FLOOR_CENTS": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "500",
+   "where": [
+    "src/lib/track.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "read only by trackConfigFromEnv",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "TRACK_EXIT_RATIO": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "0.8",
+   "where": [
+    "src/lib/track.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "read only by trackConfigFromEnv",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "TRACK_LOW_BASIS": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "0",
+   "where": [
+    "src/lib/track.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "read only by trackConfigFromEnv",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "TRACK_POP_BOOST": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "0",
+   "where": [
+    "src/lib/track.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "read only by trackConfigFromEnv",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "TRACK_PER_ORACLE_CAP": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "0",
+   "where": [
+    "src/lib/track.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "read only by trackConfigFromEnv",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "PRICE_CLIP_CENTS": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "200000",
+   "where": [
+    "src/lib/track.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "read only by trackConfigFromEnv",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "CATALOG_MAX_ROWS": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "200000",
+   "where": [
+    "src/lib/track.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "F6 cap (read only by trackConfigFromEnv)",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "TRACK_MAX_UNITS": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "70000",
+   "where": [
+    "src/lib/track.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "F6 cap (read only by trackConfigFromEnv)",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "OFFER_ROWS_BUDGET": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "450000",
+   "where": [
+    "src/lib/track.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "section 12 may re-express it in bytes (read only by trackConfigFromEnv)",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "IMPORT_MAX_LISTED_CHANGE": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "0.05",
+   "where": [
+    "src/lib/track.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "F10 (read only by trackConfigFromEnv)",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "IMPORT_MAX_TRACKED_CHANGE": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "0.15",
+   "where": [
+    "src/lib/track.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "F10 (read only by trackConfigFromEnv)",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "IMPORT_ACCEPT_FLAG_CHANGE": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "0",
+   "where": [
+    "src/lib/track.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "1 = accept this run's flag changes once (read only by trackConfigFromEnv)",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "IMPORT_GUARD_MAX_TRIPS": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "3",
+   "where": [
+    "src/lib/track.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "the Nth consecutive F10 trip is accepted (read only by trackConfigFromEnv)",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "IMPORT_MIN_PARSE_RATIO": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01b",
+   "default": "0.9",
+   "where": [
+    "src/lib/import.ts",
+    "scripts/import.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "a parse below this fraction of the last run aborts (F2, F4)",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "SCRYFALL_MODE": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01b",
+   "default": "auto",
+   "where": [
+    "src/lib/scryfall.ts"
+   ],
+   "wf": [],
+   "note": "off = prices-only run keeping existing links",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "IMPORT_FORCE": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01b",
+   "default": "unset",
+   "where": [
+    "scripts/import.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "1 = ignore the last-updated.txt gate",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "IMPORT_STORES": {
+   "kind": "var",
+   "at": "G",
+   "status": "op",
+   "wp": "WP01b",
+   "default": "1",
+   "where": [
+    "scripts/import.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "0 = skip the store stage (bootstrap sets 0)",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "IMPORT_ONLY_STORES": {
+   "kind": "var",
+   "at": "G",
+   "status": "op",
+   "wp": "WP01b",
+   "default": "unset",
+   "where": [
+    "scripts/import.ts",
+    "src/lib/import.ts"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "IMPORT_ONLY_COUNTRY": {
+   "kind": "var",
+   "at": "G",
+   "status": "op",
+   "wp": "WP01b",
+   "default": "unset",
+   "where": [
+    "scripts/import.ts",
+    "src/lib/import.ts"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "SKIP_REVALIDATE": {
+   "kind": "var",
+   "at": "G",
+   "status": "op",
+   "wp": "WP01b",
+   "default": "unset",
+   "where": [
+    "scripts/import.ts"
+   ],
+   "wf": [],
+   "note": "1 = skip the warm call and the status poll after a publish (S13); the pointer has already moved",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "TCGCSV_CACHE_DIR": {
+   "kind": "var",
+   "at": "G",
+   "status": "op",
+   "wp": "WP01b",
+   "default": "unset",
+   "where": [
+    "src/lib/import.ts",
+    "scripts/**"
+   ],
+   "wf": [],
+   "note": "local response cache for offline re-runs",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "SCRYFALL_CACHE_DIR": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01b",
+   "default": "unset",
+   "where": [
+    "src/lib/scryfall.ts",
+    "scripts/**"
+   ],
+   "wf": [],
+   "note": "",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "BOOTSTRAP_GROUPS": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01b",
+   "default": "unset",
+   "where": [
+    "scripts/bootstrap.ts"
+   ],
+   "wf": [],
+   "note": "N = restrict the first run to the N largest and newest groups",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "FEED_SOURCES": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP04",
+   "default": "empty",
+   "where": [
+    "src/lib/stores.ts",
+    "src/lib/store-import.ts"
+   ],
+   "wf": [],
+   "note": "public price feeds stay off (10.11)",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "PLANE_REPO": {
+   "kind": "var",
+   "at": "V+G",
+   "status": "dp",
+   "wp": "WP02",
+   "default": "Specifxx/mtgcompare-data",
+   "where": [
+    "src/lib/data/plane/runtime.ts",
+    "scripts/**"
+   ],
+   "wf": [
+    "import-prices.yml",
+    "demand-snapshot.yml",
+    "data-squash.yml",
+    "data-watchdog.yml",
+    "data-rollback.yml",
+    "data-hook.yml"
+   ],
+   "note": "owner/name of the PRIVATE data repository (12.4); the same value in Vercel and in Actions",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "PLANE_BRANCH": {
+   "kind": "var",
+   "at": "V+G",
+   "status": "dp",
+   "wp": "WP02",
+   "default": "data",
+   "where": [
+    "src/lib/data/plane/runtime.ts",
+    "scripts/**"
+   ],
+   "wf": [],
+   "note": "the data branch; only the publisher writes it",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "PLANE_TOKEN": {
+   "kind": "secret",
+   "at": "V",
+   "status": "dp",
+   "wp": "WP02",
+   "default": "unset: reads are unauthenticated and a private repository answers 404 (the site serves its last good pointer and raises TOKEN_REJECTED)",
+   "where": [
+    "src/lib/data/plane/runtime.ts"
+   ],
+   "wf": [],
+   "note": "fine-grained personal access token, Contents: read, on the data repository ONLY, at most 1 year (alarm 30 days before expiry). Part of the Data Cache key of every file: a rotation makes the cache cold and is followed by the data-hook workflow",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "PLANE_DIR": {
+   "kind": "var",
+   "at": "local",
+   "status": "dp",
+   "wp": "WP02",
+   "default": "unset",
+   "where": [
+    "src/lib/data/plane/runtime.ts",
+    "scripts/**"
+   ],
+   "wf": [],
+   "note": "development, jobs and tests: a directory that holds v1/ (and optionally latest.json); no network, no token",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "PLANE_LRU_MB": {
+   "kind": "var",
+   "at": "V",
+   "status": "dp",
+   "wp": "WP02",
+   "default": "64",
+   "where": [
+    "src/lib/data/plane/runtime.ts"
+   ],
+   "wf": [],
+   "note": "per-instance memory cache of parsed files",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "PLANE_TIMEOUT_RAW_MS": {
+   "kind": "var",
+   "at": "V",
+   "status": "dp",
+   "wp": "WP02",
+   "default": "3000",
+   "where": [
+    "src/lib/data/plane/runtime.ts"
+   ],
+   "wf": [],
+   "note": "per-file budget of the raw host before the API fallback",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "PLANE_TIMEOUT_API_MS": {
+   "kind": "var",
+   "at": "V",
+   "status": "dp",
+   "wp": "WP02",
+   "default": "5000",
+   "where": [
+    "src/lib/data/plane/runtime.ts"
+   ],
+   "wf": [],
+   "note": "per-file budget of the contents API fallback",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "PLANE_ALLOW_PUBLIC": {
+   "kind": "var",
+   "at": "G",
+   "status": "dp",
+   "wp": "WP01b",
+   "default": "unset: a public data repository raises DATA_REPO_PUBLIC (error)",
+   "where": [
+    "scripts/data-watchdog.ts"
+   ],
+   "wf": [],
+   "note": "1 = operate knowingly with a public data repository; the premium inputs and licensed data are then world-readable (12.3.3)",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "DATA_REPO_TOKEN": {
+   "kind": "secret",
+   "at": "G",
+   "status": "dp",
+   "wp": "WP01b",
+   "default": "none: no publish",
+   "where": [
+    "scripts/**"
+   ],
+   "wf": [
+    "import-prices.yml",
+    "demand-snapshot.yml",
+    "data-squash.yml",
+    "data-watchdog.yml",
+    "data-rollback.yml",
+    "data-hook.yml"
+   ],
+   "note": "fine-grained personal access token, Contents: write (and Administration: read for the size probe), on the data repository ONLY. GITHUB_TOKEN covers only the workflow's own repository. Travels in an http extraheader, never in a URL or a log",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "VIEW_BEACON_SAMPLE": {
+   "kind": "var",
+   "at": "V",
+   "status": "dp",
+   "wp": "WP02",
+   "default": "10",
+   "where": [
+    "src/lib/data/plane/**",
+    "src/app/api/**"
+   ],
+   "wf": [],
+   "note": "the card-view counter samples one view in N and never counts a crawler; 1 = every view, 0 = off (12.12)",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "VIEW_FLUSH_MINUTES": {
+   "kind": "var",
+   "at": "V",
+   "status": "dp",
+   "wp": "WP02",
+   "default": "30",
+   "where": [
+    "src/lib/data/plane/**",
+    "src/app/api/**"
+   ],
+   "wf": [],
+   "note": "the counter writes to Neon at most this often per instance (scale-to-zero arithmetic: 12.12)",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "NEXT_PHASE": {
+   "kind": "platform",
+   "at": "V",
+   "status": "dp",
+   "wp": "WP02",
+   "default": "",
+   "where": [
+    "src/lib/data/plane/source.ts"
+   ],
+   "wf": [],
+   "note": "set by Next while `next build` runs: the plane refuses every fetch then (the build reads no data)",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  }
+ }
+}

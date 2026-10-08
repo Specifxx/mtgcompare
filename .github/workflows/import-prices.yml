@@ -1,163 +1,56 @@
 name: Import prices
 
-# The twice-daily One Piece price import (scripts/import.ts):
-#   07:00 UTC — before the 08:00 production release, so it builds on fresh prices
-#   19:00 UTC — after TCGCSV's daily TCGplayer refresh (~20:00 UTC the day before
-#               is already in; this run picks up the stores' afternoon changes)
-# It writes ONLY to the OP Compare database (secret DATABASE_URL) and never calls
-# eBay: the eBay pass is ebay-prices.yml (05:37 / 17:37), whose rows this import
-# aggregates. This job never holds the eBay credentials. Without the secret it is a no-op, so the repo can be pushed
-# before the database exists.
+# THE DAILY PUBLISH (contract sections 6.4 and 6.6). The importer reads NOTHING from Neon: its memory is a depth-1 checkout of the data repository. Phase 1 (catalogue, prices, history, free views) goes live about 10 minutes after the start;
+# phase 2 (store offers and aggregates) 35 to 75 minutes later. Every data push goes to the PRIVATE data repository (vars/secrets: PLANE_REPO, DATA_REPO_TOKEN); GITHUB_TOKEN cannot write another repository.
+# Concurrency: ONE group for every writer of the data repository, with `queue: max` (critique DP-10: the default single pending slot lets a newer run cancel the older pending one).
 on:
   schedule:
-    - cron: "7 7 * * *"
-    - cron: "7 19 * * *"
+    - cron: "25 21 * * *"
+    - cron: "55 21 * * *"
+    - cron: "25 22 * * *"
   workflow_dispatch:
     inputs:
-      stores:
-        description: "Read the stores too (uncheck for a ~30 s catalogue + TCGplayer run)"
-        type: boolean
-        default: true
-      only_stores:
-        description: "Comma-separated store keys to read (blank = all)"
-        type: string
-        required: false
-      alerts:
-        description: "Price alerts after this import: none (a routine re-import), baseline (after a matcher change: move baselines, send nothing) or free (recover a missed 07:07 run: free then paid)"
-        type: choice
-        options: [none, baseline, free]
-        default: none
+      force: { description: "Import even if the sources have not changed (IMPORT_FORCE=1)", type: boolean, required: false, default: false }
+      stores: { description: "Run the store stage (phase 2)", type: boolean, required: false, default: true }
+      only_stores: { description: "Comma-separated store keys (empty = all)", type: string, required: false }
+      scryfall: { description: "auto or off", type: string, required: false, default: auto }
+      alerts: { description: "Run alerts, newsletter and digests after the publish", type: boolean, required: false, default: true }
 
 concurrency:
-  group: import-prices
-  cancel-in-progress: false
+  group: data-publish
+  queue: max
 
-# Writes the price history to the `data` branch (lib/history.ts), so it needs
-# to push.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   import:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 180
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PLANE_REPO: ${{ vars.PLANE_REPO }}
+      DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+      REVALIDATE_URL: ${{ vars.REVALIDATE_URL }}
       CRON_SECRET: ${{ secrets.CRON_SECRET }}
-      REVALIDATE_URL: ${{ format('{0}/api/revalidate', vars.SITE_URL || 'https://opcompare.app') }}
-      NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL || 'https://opcompare.app' }}
-      IMPORT_STORES: ${{ (github.event_name != 'workflow_dispatch' || inputs.stores) && '1' || '0' }}
-      IMPORT_ONLY_STORES: ${{ inputs.only_stores }}
-      HISTORY_DIR: .data/history
-      SKIP_REVALIDATE: "1"
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      IMPORT_FORCE: ${{ inputs.force && '1' || '' }}
+      NODE_OPTIONS: --max-old-space-size=3072
     steps:
-      - name: Skip when the database is not configured
-        id: gate
-        run: |
-          if [ -z "$DATABASE_URL" ]; then
-            echo "DATABASE_URL secret is not set — nothing to import."
-            echo "run=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "run=true" >> "$GITHUB_OUTPUT"
-          fi
       - uses: actions/checkout@v4
-        if: steps.gate.outputs.run == 'true'
       - uses: actions/setup-node@v4
-        if: steps.gate.outputs.run == 'true'
-        with:
-          node-version: 20
-          cache: npm
+        with: { node-version: 22, cache: npm }
       - run: npm ci
-        if: steps.gate.outputs.run == 'true'
-      # Creates the tables on the first run; later runs apply additive schema
-      # changes. A destructive change fails here (no --accept-data-loss) rather
-      # than dropping data.
-      - name: Sync schema
-        if: steps.gate.outputs.run == 'true'
-        run: bash scripts/db-push-safe.sh && npx prisma generate
-      # The history lives on the `data` branch, not in Postgres. Check it out
-      # into .data (an orphan branch, created on the first run).
-      - name: Check out the history branch
-        if: steps.gate.outputs.run == 'true'
-        env:
-          REMOTE: https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
-        run: |
-          if git ls-remote --exit-code --heads "$REMOTE" data >/dev/null 2>&1; then
-            git clone --quiet --depth 1 --branch data --single-branch "$REMOTE" .data
-          else
-            mkdir -p .data && cd .data && git init --quiet -b data && git remote add origin "$REMOTE"
-            # Vercel must never try to build this branch.
-            printf '{\n  "git": { "deploymentEnabled": false }\n}\n' > vercel.json
-            printf '# OP Compare price history\n\nWritten twice a day by the Import prices workflow on main. See src/lib/history.ts there for the format.\n' > README.md
-          fi
-      - name: Import
-        id: import
-        if: steps.gate.outputs.run == 'true'
-        run: npx tsx scripts/import.ts
-      # Scrapers that broke quietly (lib/store-health.ts): a summary table and
-      # up to 20 warnings in this run's log. Never fails the import.
-      - name: Store health report
-        if: steps.gate.outputs.run == 'true'
-        continue-on-error: true
-        run: npx tsx scripts/store-health.ts
-      - name: Publish the history
-        if: steps.gate.outputs.run == 'true'
-        run: |
-          cd .data
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if ! git diff --cached --quiet; then
-            git commit --quiet -m "History $(date -u +%F) $(date -u +%H:%M)"
-            git push --quiet origin data
-          fi
-          echo "HISTORY_REF=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
-      - name: Point the site at it and refresh
-        if: steps.gate.outputs.run == 'true'
-        run: npx tsx scripts/publish-history.ts
-
-      # ── Price alerts (scripts/alerts.ts; wave 2, 2026-10-03) ──────────────
-      # RiftCompare's refresh-prices.yml alert steps, run script-side: the
-      # alert run reads Offer rows straight after this import and delivers
-      # either by EMAIL (only when RESEND_API_KEY and EMAIL_FROM are both set,
-      # OP Compare's own Resend account — lib/email.ts) or, until then, IN-APP
-      # (a Notification and lastFlaggedAt per trigger). Each run records Meta
-      # "email" = on/off, which is what the site promises from.
-      #
-      # Gated on the IMPORT'S OWN OUTCOME: only after an import that succeeded
-      # (a half-written import compares a partial Offer table). `!cancelled()`
-      # replaces the implicit success() so a failed store-health or publish
-      # step never drops the day's alerts; a manual cancel still stops them.
-      # A pass that fails is recorded in its ImportRun row and is non-fatal; a
-      # mail key that is set but REFUSED exits 1 and turns this run red, as
-      # the eBay pass does.
-      #
-      # 07:07 import: the free run (every watch, the weekly digest) then the
-      #   paid run (Plus/Premium targets, below-market, restocks, deck and
-      #   sealed watches, release alerts).
-      # 19:07 import: the paid run only.
-      # Manual runs: nothing by default — a re-import after a matcher change
-      #   writes matching fixes, not market news, so choose `baseline` to move
-      #   every watch's baseline with nothing sent, or `free` to recover a
-      #   missed 07:07 run.
-      - name: Free price alerts (daily digest)
-        if: ${{ !cancelled() && steps.import.outcome == 'success' && (github.event.schedule == '7 7 * * *' || (github.event_name == 'workflow_dispatch' && inputs.alerts == 'free')) }}
-        env:
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
-          EMAIL_LINK_SECRET: ${{ secrets.EMAIL_LINK_SECRET }}
-          EMAIL_REPLY_TO: ${{ vars.EMAIL_REPLY_TO }}
-          ALERT_DAILY_BUDGET: ${{ vars.ALERT_DAILY_BUDGET }}
-        run: npx tsx scripts/alerts.ts --mode=free
-      - name: Paid price alerts (targets, below-market, deck, sealed and release alerts)
-        if: ${{ !cancelled() && steps.import.outcome == 'success' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.alerts == 'free')) }}
-        env:
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
-          EMAIL_LINK_SECRET: ${{ secrets.EMAIL_LINK_SECRET }}
-          EMAIL_REPLY_TO: ${{ vars.EMAIL_REPLY_TO }}
-          ALERT_DAILY_BUDGET: ${{ vars.ALERT_DAILY_BUDGET }}
-        run: npx tsx scripts/alerts.ts --mode=paid
-      - name: Alert baselines after a matcher change (no alerts)
-        if: ${{ !cancelled() && steps.import.outcome == 'success' && github.event_name == 'workflow_dispatch' && inputs.alerts == 'baseline' }}
-        run: npx tsx scripts/alerts.ts --mode=baseline
+      - name: Restore the Scryfall slim cache and the match index
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: import-cache-${{ github.run_id }}
+          restore-keys: import-cache-
+      - name: Gate, phase 1 (catalogue, prices, history, free views), pointer, hook
+        run: npx tsx scripts/import.ts --phase catalog
+      - name: Phase 2 (store offers and aggregates), pointer, hook
+        if: ${{ inputs.stores != false }}
+        run: npx tsx scripts/import.ts --phase full --only-stores "${{ inputs.only_stores }}"
+      - name: Alerts, newsletter, digests (read the tree just published; Neon only for the user rows)
+        if: ${{ inputs.alerts != false }}
+        run: npx tsx scripts/alerts.ts

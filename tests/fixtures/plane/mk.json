@@ -1,0 +1,17 @@
+{
+ "file": "mk/overview.json",
+ "content": {
+  "v": 1,
+  "at": "x",
+  "basket": {
+   "n": 1,
+   "totalUsd": 1,
+   "avg": 1,
+   "median": 1
+  },
+  "adv": 0,
+  "dec": 0,
+  "cons": [],
+  "sets": []
+ }
+}

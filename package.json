@@ -16,7 +16,22 @@
     "probe:stores": "tsx scripts/probe-stores.ts",
     "icons": "tsx scripts/gen-icons.ts",
     "health:stores": "tsx scripts/store-health.ts",
-    "audit:inbox": "tsx scripts/audit-inbox.ts"
+    "audit:inbox": "tsx scripts/audit-inbox.ts",
+    "check:constants": "tsx scripts/contract-checks/check-constants.ts",
+    "check:catalog": "tsx scripts/contract-checks/check-catalog.ts",
+    "check:images": "tsx scripts/contract-checks/check-images.ts",
+    "check:track": "tsx scripts/contract-checks/check-track.ts",
+    "check:policy": "tsx scripts/contract-checks/check-policy-snapshot.ts",
+    "check:indexable": "python3 scripts/contract-checks/count_indexable.py",
+    "check:plane-tree": "tsx scripts/contract-checks/check-plane-tree.ts",
+    "check:smoke": "node scripts/contract-checks/frozen-imports.cjs . .",
+    "check:exports": "node scripts/contract-checks/exports.cjs",
+    "check:tsc-by-owner": "node scripts/contract-checks/tsc-by-owner.mjs",
+    "check:ownership": "tsx scripts/gen-ownership.ts --check",
+    "check:ratchets": "tsx scripts/ratchet-baseline.ts --check",
+    "check:pure": "npm run check:constants && npm run check:catalog && npm run check:images && npm run check:track && npm run check:smoke && npm run check:ownership",
+    "ownership:generate": "tsx scripts/gen-ownership.ts",
+    "ratchet:baseline": "tsx scripts/ratchet-baseline.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

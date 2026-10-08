@@ -1,0 +1,29 @@
+name: Data hook
+
+# Re-send the warm call after a publish (or after rotating PLANE_TOKEN: the token is part of the Data Cache key, so a rotation makes every cached entry cold). Reads and writes nothing in the data repository.
+# POST /api/data-warm {ref} loads the hot set (about 60 files, 14 MB) into the regional Data Cache, then polls GET /api/data-status until the site serves the ref. Tag purges are NOT used for plane data (pinned URLs need none).
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: data-hook
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  hook:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PLANE_REPO: ${{ vars.PLANE_REPO }}
+      DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+      REVALIDATE_URL: ${{ vars.REVALIDATE_URL }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx tsx scripts/data-hook.ts

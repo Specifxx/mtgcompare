@@ -1,0 +1,8 @@
+// src/lib/data/plane/crawler.ts (owner WP02, FROZEN). The public render path must not wake Neon (critique DP-03, verified: five server components on public pages read Neon-backed loaders). Two things keep it asleep for non-members:
+//   * the Neon-backed panels (the eBay listing panel, the chase strip's listings, "decks using this card", reviews, the launch promo) are loaded by the BROWSER from /api routes after hydration, never by the server render;
+//   * those loads and the view beacon are skipped for known crawlers. These are AD and STATISTICS surfaces ("Ad" label, disclosure): not serving them to a bot is standard and changes no indexable content.
+// A user-agent test is a cost control, not a security control. Pure.
+const BOT = /(googlebot|google-inspectiontool|adsbot|mediapartners|bingbot|bingpreview|slurp|duckduckbot|baiduspider|yandex(bot|images)?|applebot|facebookexternalhit|facebot|twitterbot|linkedinbot|slackbot|discordbot|whatsapp|telegrambot|pinterest|redditbot|embedly|quora link preview|semrush|ahrefs|mj12bot|dotbot|petalbot|bytespider|amazonbot|gptbot|chatgpt-user|oai-searchbot|claudebot|claude-web|anthropic|perplexity|ccbot|cohere|diffbot|archive\.org_bot|ia_archiver|screaming frog|lighthouse|pagespeed|headlesschrome|phantomjs|python-requests|curl\/|wget\/|httpclient|go-http-client|okhttp|libwww|scrapy|node-fetch|undici|axios|spider|crawler|bot\b)/i;
+export function isLikelyBot(userAgent: string | null | undefined): boolean { return !userAgent || BOT.test(userAgent); }
+/** Should this request cause a Neon read on its behalf (an ad panel fetch, a view count)? Humans only. */
+export const shouldTouchNeon = (userAgent: string | null | undefined): boolean => !isLikelyBot(userAgent);

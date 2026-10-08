@@ -1,16 +1,8 @@
-// OP Compare — One Piece Card Game prices.
-//
-// ONE database (a Neon project of its own; DATABASE_URL). Nothing here is
-// shared with RiftCompare: the Riftbound databases are never read or written.
-//
-// The catalogue is TCGplayer's, mirrored daily by TCGCSV (category 68 = One
-// Piece Card Game). A Card is ONE PRINTING — TCGplayer's own product — so the
-// base OP01-120 Shanks, its Parallel and its Manga art are three rows that share
-// a `number`. Ids are TCGplayer product/group ids, stable for life.
-//
-// EGRESS: every page reads through the self-cached loaders in src/lib/data.ts
-// (unstable_cache, tag "prices", purged by the import). Read the rules at the
-// top of src/lib/db.ts before adding a query to a request path.
+// MTG Compare: the PRIVATE-STATE schema (contract section 2.2, FROZEN; owner WP01a). ONE Neon database, DATABASE_URL, 28 models.
+// The public catalogue (sets, cards, oracles, prices, units, store offers, sealed, price history and every precomputed public view) is NOT here: it lives in the PRIVATE data repository as sharded versioned JSON
+// (sections 2.9 and 12, src/lib/data/plane). This schema keeps ONLY accounts, billing, member data, inbox, counters, ops rows, the private demand analytics and the eBay data that must never leave the database.
+// Products are referenced by plain integers (productId = Card.id / Sealed.id) with NO foreign key; existence is checked against the plane (cardExists / sealedExists), and the importer never deletes a catalogue row,
+// so a stored id always resolves. Public pages never read this database (tests/public-no-neon.test.ts): it is touched by member pages, /api routes, the card-view beacon (sampled, batched), and the Actions jobs.
 
 generator client {
   provider = "prisma-client-js"
@@ -19,162 +11,6 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-model Set {
-  id          Int       @id // TCGplayer groupId
-  slug        String    @unique
-  code        String // "OP01", "ST-01", "EB-01", "OP-PR"
-  name        String // "Romance Dawn"
-  tcgName     String    @default("") // TCGplayer's own group name: "ST-01: Starter Deck 1 Straw Hat Crew"
-  kind        String // booster | extra | premium | starter | promo | event | collection
-  releasedOn  DateTime?
-  cardCount   Int       @default(0)
-  sealedCount Int       @default(0)
-  updatedAt   DateTime  @updatedAt
-  cards       Card[]
-  sealed      Sealed[]
-}
-
-model Card {
-  id           Int      @id // TCGplayer productId — one printing
-  slug         String   @unique
-  name         String // display name, variant suffixes removed: "Monkey.D.Luffy"
-  tcgName      String // TCGplayer's own product name
-  number       String? // "OP01-003"; null only for DON!! cards
-  setId        Int
-  set          Set      @relation(fields: [setId], references: [id])
-  rarity       String? // L C UC R SR SEC PR TR DON!!
-  variant      String? // "Parallel", "Manga · Alternate Art", "SP", "Reprint"… null = standard print
-  printing     String // standard | alt | manga | sp | treasure | reprint | promo | foil | don
-  colors       String[]
-  cardType     String? // Leader | Character | Event | Stage | DON!!
-  cost         Int?
-  power        Int?
-  counter      Int?
-  life         Int?
-  attribute    String?
-  subtypes     String[]
-  effect       String?
-  finish       String? // TCGplayer price subtype: Normal | Foil
-  hasImage     Boolean  @default(true)
-  tcgplayerUrl String
-
-  // TCGplayer's market price (USD cents) — a REFERENCE, never a listing.
-  marketUsd Int?
-  // Cheapest OPEN listing per market, in that market's currency (cents) — any
-  // source, TCGplayer and eBay included — and how many real stores (`store:`
-  // rows only) have one. Written by the import from Offer rows.
-  lowUS     Int?
-  lowAU     Int?
-  lowUK     Int?
-  lowSG     Int?
-  lowCA     Int?
-  lowEU     Int?
-  storesUS  Int      @default(0)
-  storesAU  Int      @default(0)
-  storesUK  Int      @default(0)
-  storesSG  Int      @default(0)
-  storesCA  Int      @default(0)
-  storesEU  Int      @default(0)
-  // TCGplayer market price change against ~7 and ~30 days ago, percent.
-  change7d  Float?
-  change30d Float?
-  // Highest market price in the last 90 days (USD cents) — "best value" movers.
-  high90Usd Int?
-  firstSeen DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Popularity signals (RiftCompare parity). searchCount counts picks from the
-  // search box, viewCount any open (page or QuickView). One UPDATE per counted
-  // view — the DECISIONS exception to "no per-request writes".
-  searchCount  Int       @default(0)
-  viewCount    Int       @default(0)
-  lastViewedAt DateTime?
-
-  priceAlerts PriceAlert[]
-  collection  CollectionCard[]
-
-  @@index([setId])
-  @@index([number])
-  @@index([marketUsd])
-}
-
-model Sealed {
-  id           Int       @id // TCGplayer productId
-  slug         String    @unique
-  name         String
-  setId        Int?
-  set          Set?      @relation(fields: [setId], references: [id])
-  kind         String // Booster Box | Booster Case | Booster Pack | Starter Deck | …
-  packCount    Int?
-  imageUrl     String?
-  tcgplayerUrl String
-  releasedOn   DateTime?
-  presale      Boolean   @default(false)
-  marketUsd    Int?
-  lowUS        Int?
-  lowAU        Int?
-  lowUK        Int?
-  lowSG        Int?
-  lowCA        Int?
-  lowEU        Int?
-  storesUS     Int       @default(0)
-  storesAU     Int       @default(0)
-  storesUK     Int       @default(0)
-  storesSG     Int       @default(0)
-  storesCA     Int       @default(0)
-  storesEU     Int       @default(0)
-  change7d     Float?
-  firstSeen    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  sealedWatches SealedWatch[]
-
-  @@index([setId])
-}
-
-// One store's (or TCGplayer's) offer for one product in one market. Card and
-// sealed ids are both TCGplayer product ids, so one table serves both.
-model Offer {
-  id            String   @id @default(cuid())
-  productId     Int
-  source        String // "tcgplayer" | "store:<key>" | "ebay" | "ebay_us" (CA rows derived from the US eBay search)
-  market        String // US AU UK SG CA EU
-  priceCents    Int // in `currency` (eBay: the ITEM price, postage separate)
-  currency      String
-  url           String
-  inStock       Boolean
-  condition     String?
-  title         String? // the store's own listing title, kept for audits
-  shippingCents Int? // eBay only: first shipping option in `currency`; null = unknown / at checkout
-  updatedAt     DateTime
-
-  @@unique([productId, source, market])
-  @@index([market, productId])
-  @@index([source])
-}
-
-// One row per (product, market) the eBay pass (scripts/ebay.ts) has searched.
-// Drives "due": a pair with no row has never been searched. Written only after
-// a COMPLETED search, so a run cut short leaves the pairs it missed due.
-model EbayCheck {
-  productId Int
-  market    String
-  checkedAt DateTime
-  matched   Boolean
-
-  @@id([productId, market])
-  @@index([checkedAt])
-}
-
-model ImportRun {
-  id         Int       @id @default(autoincrement())
-  kind       String // "full" | "catalog" | "stores" | "ebay"
-  startedAt  DateTime  @default(now())
-  finishedAt DateTime?
-  ok         Boolean   @default(false)
-  summary    Json?
 }
 
 // ── Accounts and Premium (ported from RiftCompare) ──────────────────────────
@@ -216,36 +52,32 @@ model User {
   @@index([stripeCustomerId])
 }
 
-// Small key/value settings the import writes and the site reads. "historyRef":
-// the `data`-branch commit holding the current price history (lib/history.ts).
+// Small key/value settings written by jobs and read by the admin: alert-run counters (alerts.*), db.footprint.<week>, ebay.paused, ebay.observeOnly, email. It holds NO import state any more:
+// the gate, the hold memory, the guard counters and the pointer live in the data repository (latest.json, status.json).
 model Meta {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
 }
 
-// ── Inbox (admin port from RiftCompare) ─────────────────────────────────────
-// What visitors send: wrong-price reports, store suggestions, feedback and
-// contact messages, read in /admin/inbox. Written only through src/lib/inbox.ts.
-// No IP address is stored anywhere, and no row has a foreign key to User, so
-// deleting an account never cascades through the inbox.
-model PriceReport {
+model PriceReport {                           // + finish; listingTitle stays nullable and is no longer filled (Offer has no title)
   id              String   @id @default(cuid())
-  productId       Int // TCGplayer id: Card.id or Sealed.id
-  kind            String // "card" | "sealed"
-  source          String // Offer.source, e.g. "store:foo" | "tcgplayer"
+  productId       Int
+  finish          Int      @default(0) @db.SmallInt
+  kind            String
+  source          String
   market          String
-  storeName       String // from stores.ts sourceLabel(source), never from the request
-  shownPriceCents Int? // Offer.priceCents read server-side; null if the offer is gone
+  storeName       String
+  shownPriceCents Int?
   currency        String?
-  listingTitle    String? // Offer.title snapshot, for tests/match.test.ts
+  listingTitle    String?
   listingUrl      String?
-  issue           String // REPORT_ISSUES (lib/inbox-rules.ts)
+  issue           String
   claimedCents    Int?
   note            String?
   userId          String?
   page            String?
-  status          String   @default("NEW") // NEW | CONFIRMED | REJECTED | FIXED
+  status          String   @default("NEW")
   createdAt       DateTime @default(now())
 
   @@index([status, createdAt])
@@ -300,11 +132,8 @@ model ContactMessage {
 }
 
 // ── Beacons (ported from RiftCompare) ───────────────────────────────────────
-// RETIRED (owner's call, 2026-10-05): outbound shop clicks are no longer
-// recorded (OutboundBeacon, /api/click and /admin/clicks are gone: each click was
-// a database write and cost network credits). The model and its rows stay only
-// so the schema push never has to drop a table; nothing reads or writes it.
-// Drop it by hand when the old rows are no longer wanted.
+// RESTORED (owner addendum 2026-10-08: "click events" stay in Neon; OP deleted the feature on 2026-10-05 because each click was a write). POST /api/click records a SAMPLED row (CLICK_LOG, CLICK_SAMPLE_RATE),
+// batched per instance and flushed like the view counter; rows older than 90 days are swept by the daily alerts script; /admin/clicks reads it.
 model ClickEvent {
   id        String   @id @default(cuid())
   retailer  String // data-retailer: "store:<key>", "tcgplayer", "ebay", "ebay_search", "buy_list" …
@@ -334,22 +163,13 @@ model PremiumClick {
   @@index([userId])
 }
 
-// ── Wave 2: watchlist, alerts, collection, decks, support, eBay panels ──────
-// Ported from RiftCompare (prisma/schema.prisma) with OP's ids: Card.id and
-// Sealed.id are TCGplayer product ids (Int), User.id a cuid, default market US.
-// Additive only. Public price history stays in files (src/lib/history*.ts):
-// never add a history or snapshot table here.
-
-// One watched card in one market. userId is NULLABLE so an anonymous (email
-// only) watch can be enabled later; a signed-in watch carries the account
-// email. Email is never sent unless isEmailEnabled(); with email off, the
-// alert run writes an in-app Notification and stamps lastFlaggedAt instead.
-model PriceAlert {
+model PriceAlert {                            // + finish; the unique key is widened; cardId is a plain productId (no FK)
   id                 String    @id @default(cuid())
-  email              String // lowercased; account email for signed-in watches
+  email              String
   userId             String?
   cardId             Int
-  market             String    @default("US") // US AU UK SG CA EU
+  finish             Int       @default(0) @db.SmallInt // EXPLICIT unit: set from the selected finish tab, or headFinish at creation, never "follow the headline"
+  market             String    @default("US")
   lastPriceCents     Int?
   lowestEmailedCents Int?
   targetCents        Int?
@@ -357,18 +177,17 @@ model PriceAlert {
   startPriceCents    Int?
   unsubToken         String
   createdAt          DateTime  @default(now())
-  lastNotifiedAt     DateTime? // set ONLY when an email was actually sent
-  lastFlaggedAt      DateTime? // set when an in-app Notification was written (email off)
-  confirmSentAt      DateTime? // outbox stamp for the anonymous confirmation
+  lastNotifiedAt     DateTime?
+  lastFlaggedAt      DateTime?
+  confirmSentAt      DateTime?
   soldOutAt          DateTime?
   soldOutRuns        Int?
   dropAnchorCents    Int?
   pendingLowCents    Int?
   snoozedUntil       DateTime?
-  card               Card      @relation(fields: [cardId], references: [id], onDelete: Cascade)
   user               User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([email, cardId, market])
+  @@unique([email, cardId, finish, market])
   @@index([cardId])
   @@index([email])
   @@index([unsubToken])
@@ -401,7 +220,6 @@ model SealedWatch {
   snoozedUntil     DateTime?
   createdAt        DateTime  @default(now())
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sealed           Sealed    @relation(fields: [sealedId], references: [id], onDelete: Cascade)
 
   @@unique([userId, sealedId, market])
   @@index([userId])
@@ -452,7 +270,8 @@ model Notification {
 model CollectionCard {
   id               String   @id @default(cuid())
   userId           String
-  cardId           Int
+  cardId           Int                                     // productId, no FK
+  setId            Int?                                    // denormalised from the plane at write time (the portfolio's per-set views filter on it)
   condition        String   @default("NM")
   isFoil           Boolean  @default(false)
   quantity         Int      @default(1)
@@ -462,11 +281,11 @@ model CollectionCard {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  card             Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
 
   @@unique([userId, cardId, condition, isFoil])
   @@index([userId])
   @@index([cardId])
+  @@index([userId, setId])
 }
 
 // Small named counters (support ticket numbers and the like).
@@ -506,20 +325,22 @@ model SetReleaseAlert {
   @@index([unsubToken])
 }
 
-// A deck list published to the deck library (/decks/leader/[leaderSlug]).
-model PublishedDeck {
+model PublishedDeck {                         // leader* -> commander*; colours -> identity mask; lines carry finish
   id              String   @id @default(cuid())
   slug            String   @unique
   userId          String?
   authorName      String?
   title           String
   description     String?
-  leaderCardId    Int
-  leaderName      String
-  leaderSlug      String // name + number
-  colors          String // "Red,Green"
+  format          String   @default("commander")      // FORMATS key or "casual"
+  commanderCardId Int
+  commanderName   String
+  commanderSlug   String                              // the commander's Oracle.slug
+  partnerCardId   Int?
+  partnerName     String?
+  identity        Int      @default(0) @db.SmallInt   // WUBRG mask of the commander(s)
   list            String
-  lines           Json
+  lines           Json                                // [{ cardId, qty, finish?: 0 | 1 }]
   cardIds         Int[]
   cardCount       Int
   publishedTotals Json
@@ -528,7 +349,7 @@ model PublishedDeck {
   createdAt       DateTime @default(now())
 
   @@index([status, createdAt])
-  @@index([leaderSlug])
+  @@index([commanderSlug])
   @@index([userId, createdAt])
 }
 
@@ -562,42 +383,89 @@ model SupportTicket {
   @@index([userId])
 }
 
-// The card page's eBay listings panel. Written ONLY by scripts/ebay.ts after a
-// COMPLETED search; pages read it through data.ts loaders. Never ranked against
-// stores, never in alerts or baskets.
-model EbayListing {
-  id            String   @id @default(cuid())
-  productId     Int
-  market        String
-  rank          Int
-  priceCents    Int
-  shippingCents Int?
-  currency      String
-  url           String
-  title         String
-  imageUrl      String?
-  updatedAt     DateTime
+// One row per run of a job, written LAST inside try/catch with a 10 second timeout (a Neon outage never fails an import). status.json.runs in the data repository is the source of truth for the admin's
+// "last import result"; this table keeps the long history and the per-store summary array (summary.stores[]) that /admin/store-health reads.
+model ImportRun {
+  id         Int       @id @default(autoincrement())
+  kind       String                           // "full" | "catalog" | "overlay" | "stores" | "ebay" | "bootstrap" | "squash"
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  ok         Boolean   @default(false)
+  summary    Json?                            // ImportSummaryV1 (6.1)
 
-  @@unique([productId, market, rank])
-  @@index([market, rank])
+  @@index([kind, finishedAt])
 }
 
-// Graded copies (PSA/BGS/CGC…) found by the same completed searches.
-model EbayGradedListing {
-  id            String   @id @default(cuid())
-  productId     Int
-  market        String
-  itemId        String
-  priceCents    Int
-  shippingCents Int?
-  currency      String
-  url           String
-  title         String
-  imageUrl      String?
-  grader        String
-  grade         String
-  updatedAt     DateTime
+model EbayTrack {                             // replaces EbayCheck. Unit of work = an ORACLE NAME (singles) or a sealed product
+  ref       String                            // "o:<oracleNo>" for a single's name (the plane's public oracle ordinal), "p:<productId>" for sealed, "n:<fold(name)>" for a product with no oracle
+  market    Int       @db.SmallInt
+  tier      Int       @db.SmallInt            // 0 C (no calls) 1 A 2 B 3 sealed 4 banner-only
+  score     Float     @db.Real
+  banner    Boolean   @default(false)         // in the chase pool
+  checkedAt DateTime?                         // set only after a COMPLETED search
+  dueAt     DateTime?
+  matched   Boolean   @default(false)
 
-  @@unique([itemId, market])
-  @@index([productId, market])
+  @@id([ref, market])
+  @@index([dueAt])
+}
+
+model EbayBest {                              // cheapest raw listing per tracked UNIT and market that the job matched. Display-only: never ranked, never in alerts or baskets
+  productId  Int
+  finish     Int      @db.SmallInt            // the unit the title was matched to (finish words); never inferred from the headline
+  market     Int      @db.SmallInt
+  priceCents Int                              // ITEM price; postage separate
+  shipCents  Int?
+  itemId     String                           // eBay item id digits; the URL is rebuilt with the current campaign at render
+  checkedAt  DateTime                         // age label source (licence: 6 h rule)
+
+  @@id([productId, finish, market])
+  @@index([checkedAt])
+}
+
+model EbayPanel {                             // the card page's listing panel: one row per (product, market); listings carry `finish`; slabs inside `graded`
+  productId Int
+  market    Int      @db.SmallInt
+  checkedAt DateTime
+  listings  Json                              // <= 8 entries { finish, priceCents, shipCents, currency, itemId, title, image, rank }
+  graded    Json?                             // <= 6 entries { grader, grade, ... }; never an Offer; never seller identity
+
+  @@id([productId, market])
+  @@index([checkedAt])
+}
+
+model EbayBanner {                            // ONE row: BannerPayloadV1, <= 100 KB, written only by the eBay job
+  key       String   @id                      // "v1"
+  payload   Json
+  updatedAt DateTime @updatedAt
+}
+
+model EbayLedger {                            // one row per quota window (ebay-brief section 7)
+  windowKey    String    @id                  // UTC date of the quota window START
+  cap          Int
+  claimed      Int       @default(0)
+  spent        Int       @default(0)
+  limit        Int?
+  resetAt      DateTime?
+  blockedUntil DateTime?
+  samples      Json?
+  runs         Json?
+  breakdown    Json?
+  config       Json?
+  updatedAt    DateTime  @updatedAt
+}
+
+// Popularity counters: the ONLY per-request write of public traffic. SAMPLED (1 in VIEW_BEACON_SAMPLE, default 10), batched in the instance, flushed at most every VIEW_FLUSH_MINUTES (default 30) in ONE statement,
+// never from a crawler, never awaited by a render (view-beacon.ts). Free-plan compute is 400 awake hours a month: every isolated burst of queries costs its 5-minute idle timeout. cardId is a productId (no table to point at).
+model CardStat {
+  cardId       Int       @id
+  searchCount  Int       @default(0)
+  viewCount    Int       @default(0)
+  lastViewedAt DateTime?
+}
+
+// One row per UTC day: the running totals of every card with activity at the end of that day ({ "<cardId>": [searches, views] }). Demand Finder and Rising Cards (Premium) read these; they are NEVER published (the OP design wrote them to the public data branch).
+model DemandDay {
+  day  String @id            // "2026-10-07"
+  data Json                  // top 3,000 cards by activity, about 40 KB a day
 }

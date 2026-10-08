@@ -1,3 +1,4 @@
+// src/lib/price.ts (owner WP02, FROZEN; MERGED text). OP's Priced, Headline, headline() and sortPrice() byte for byte (18 and 4 importers), plus the finish helpers. sortPrice ranks by the listing, else the MARKET-derived reference; a low-only unit has no market, so it has no reference.
 // What a tile or row shows as "the price" in a market, in one place:
 //   listing   — the cheapest open listing we track there (a real, buyable price:
 //               a store, TCGplayer or eBay); `stores` counts the real stores
@@ -30,3 +31,15 @@ export function sortPrice(p: Priced, country: Country): number | null {
   return p.low[country] ?? (p.marketUsd != null ? usdCentsToCountry(p.marketUsd, country) : null);
 }
 
+// ── ADDED for Magic (finish helpers): the draft claimed the OP block above was kept and then omitted it (critique 2) ──
+import type { Finish } from "./constants";
+import type { CardLite, Quote } from "./data/types";
+/** A quote of one finish (default: the headline finish). */
+export const finishPrice = (c: Pick<CardLite, "n" | "f" | "headFinish">, f: Finish = c.headFinish): Quote | null => (f === "N" ? c.n : c.f);
+/** The finish that is NOT the headline, when it has a quote: drives the muted "Foil $X" / "Non-foil $X" chip. */
+export function otherFinish(c: Pick<CardLite, "n" | "f" | "headFinish">): { finish: Finish; quote: Quote } | null {
+  const finish: Finish = c.headFinish === "N" ? "F" : "N"; const quote = finishPrice(c, finish);
+  return quote ? { finish, quote } : null;
+}
+/** The finish to preselect on a card page / QuickView / alert button: the first TRACKED unit in the order N, F; else the headline. */
+export function defaultFinish(c: Pick<CardLite, "tracked" | "headFinish">): Finish { return c.tracked & 1 ? "N" : c.tracked & 2 ? "F" : c.headFinish; }

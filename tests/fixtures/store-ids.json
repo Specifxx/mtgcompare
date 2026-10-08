@@ -1,0 +1,495 @@
+{
+ "comment": "APPEND-ONLY. The ids of the 67 seed stores of stores-brief Appendix A (in the brief's order) and the 13 ShadowPOS stores, assigned 2026-10-08. A new store takes max(id)+1; a removed store's id moves to RETIRED_STORE_IDS and is never reused. 8 and 9 are the public feeds (off, 10.11). tests/store-ids.test.ts (WP04) pins STORES against this file.",
+ "stores": [
+  {
+   "id": 8,
+   "key": "cardkingdom",
+   "kind": "feed"
+  },
+  {
+   "id": 9,
+   "key": "manapool",
+   "kind": "feed"
+  },
+  {
+   "id": 10,
+   "key": "rhysticnostalgiagaming",
+   "kind": "seed",
+   "market": "AU"
+  },
+  {
+   "id": 11,
+   "key": "goodgames",
+   "kind": "seed",
+   "market": "AU"
+  },
+  {
+   "id": 12,
+   "key": "spellroo",
+   "kind": "seed",
+   "market": "AU"
+  },
+  {
+   "id": 13,
+   "key": "eternalmagic",
+   "kind": "seed",
+   "market": "AU"
+  },
+  {
+   "id": 14,
+   "key": "elementalarcade",
+   "kind": "seed",
+   "market": "AU"
+  },
+  {
+   "id": 15,
+   "key": "mightycoolgames",
+   "kind": "seed",
+   "market": "AU"
+  },
+  {
+   "id": 16,
+   "key": "reefsidegames",
+   "kind": "seed",
+   "market": "AU"
+  },
+  {
+   "id": 17,
+   "key": "shuffleandcutgames",
+   "kind": "seed",
+   "market": "AU"
+  },
+  {
+   "id": 18,
+   "key": "millenniumcomics",
+   "kind": "seed",
+   "market": "AU"
+  },
+  {
+   "id": 19,
+   "key": "fabledgames",
+   "kind": "seed",
+   "market": "AU"
+  },
+  {
+   "id": 20,
+   "key": "manamarket",
+   "kind": "seed",
+   "market": "AU"
+  },
+  {
+   "id": 21,
+   "key": "ggmorley",
+   "kind": "seed",
+   "market": "AU"
+  },
+  {
+   "id": 22,
+   "key": "collectorsmith",
+   "kind": "seed",
+   "market": "AU"
+  },
+  {
+   "id": 23,
+   "key": "justcardstuff",
+   "kind": "seed",
+   "market": "AU"
+  },
+  {
+   "id": 24,
+   "key": "laboitemystere",
+   "kind": "seed",
+   "market": "CA"
+  },
+  {
+   "id": 25,
+   "key": "empiretradings",
+   "kind": "seed",
+   "market": "CA"
+  },
+  {
+   "id": 26,
+   "key": "boutiquelapioche",
+   "kind": "seed",
+   "market": "CA"
+  },
+  {
+   "id": 27,
+   "key": "gametime",
+   "kind": "seed",
+   "market": "CA"
+  },
+  {
+   "id": 28,
+   "key": "facetoface",
+   "kind": "seed",
+   "market": "CA"
+  },
+  {
+   "id": 29,
+   "key": "tabletopgiant",
+   "kind": "seed",
+   "market": "CA"
+  },
+  {
+   "id": 30,
+   "key": "kapescaping",
+   "kind": "seed",
+   "market": "CA"
+  },
+  {
+   "id": 31,
+   "key": "blackrosehobbies",
+   "kind": "seed",
+   "market": "CA"
+  },
+  {
+   "id": 32,
+   "key": "carddynasty",
+   "kind": "seed",
+   "market": "CA"
+  },
+  {
+   "id": 33,
+   "key": "fusiongamingonline",
+   "kind": "seed",
+   "market": "CA"
+  },
+  {
+   "id": 34,
+   "key": "obsidiangames",
+   "kind": "seed",
+   "market": "CA"
+  },
+  {
+   "id": 35,
+   "key": "lotuspetalgaming",
+   "kind": "seed",
+   "market": "CA"
+  },
+  {
+   "id": 36,
+   "key": "paradoxtcg",
+   "kind": "seed",
+   "market": "CA"
+  },
+  {
+   "id": 37,
+   "key": "cryptmtg",
+   "kind": "seed",
+   "market": "CA"
+  },
+  {
+   "id": 38,
+   "key": "hairytarantula",
+   "kind": "seed",
+   "market": "CA"
+  },
+  {
+   "id": 39,
+   "key": "lichcards",
+   "kind": "seed",
+   "market": "EU"
+  },
+  {
+   "id": 40,
+   "key": "timetwister",
+   "kind": "seed",
+   "market": "EU"
+  },
+  {
+   "id": 41,
+   "key": "trextcg",
+   "kind": "seed",
+   "market": "EU"
+  },
+  {
+   "id": 42,
+   "key": "magicianscircle",
+   "kind": "seed",
+   "market": "EU"
+  },
+  {
+   "id": 43,
+   "key": "battlebearkl",
+   "kind": "seed",
+   "market": "EU"
+  },
+  {
+   "id": 44,
+   "key": "brints",
+   "kind": "seed",
+   "market": "SG"
+  },
+  {
+   "id": 45,
+   "key": "hideoutsg",
+   "kind": "seed",
+   "market": "SG"
+  },
+  {
+   "id": 46,
+   "key": "livingrealms",
+   "kind": "seed",
+   "market": "UK"
+  },
+  {
+   "id": 47,
+   "key": "sidequestgames",
+   "kind": "seed",
+   "market": "UK"
+  },
+  {
+   "id": 48,
+   "key": "yardsgames",
+   "kind": "seed",
+   "market": "UK"
+  },
+  {
+   "id": 49,
+   "key": "evolutiontcg",
+   "kind": "seed",
+   "market": "UK"
+  },
+  {
+   "id": 50,
+   "key": "stylecreep",
+   "kind": "seed",
+   "market": "UK"
+  },
+  {
+   "id": 51,
+   "key": "impactleague",
+   "kind": "seed",
+   "market": "UK"
+  },
+  {
+   "id": 52,
+   "key": "collectbydesign",
+   "kind": "seed",
+   "market": "UK"
+  },
+  {
+   "id": 53,
+   "key": "gatheringpointgames",
+   "kind": "seed",
+   "market": "UK"
+  },
+  {
+   "id": 54,
+   "key": "dicesaloon",
+   "kind": "seed",
+   "market": "UK"
+  },
+  {
+   "id": 55,
+   "key": "boardsandswords",
+   "kind": "seed",
+   "market": "UK"
+  },
+  {
+   "id": 56,
+   "key": "thegrumpygoblin",
+   "kind": "seed",
+   "market": "UK"
+  },
+  {
+   "id": 57,
+   "key": "seventhcity",
+   "kind": "seed",
+   "market": "UK"
+  },
+  {
+   "id": 58,
+   "key": "trainerlegacy",
+   "kind": "seed",
+   "market": "UK"
+  },
+  {
+   "id": 59,
+   "key": "atomilicollectables",
+   "kind": "seed",
+   "market": "US"
+  },
+  {
+   "id": 60,
+   "key": "magicandmonsters",
+   "kind": "seed",
+   "market": "US"
+  },
+  {
+   "id": 61,
+   "key": "pokeboxusa",
+   "kind": "seed",
+   "market": "US"
+  },
+  {
+   "id": 62,
+   "key": "stompinggrounds",
+   "kind": "seed",
+   "market": "US"
+  },
+  {
+   "id": 63,
+   "key": "mightymeeple",
+   "kind": "seed",
+   "market": "US"
+  },
+  {
+   "id": 64,
+   "key": "mistymountain",
+   "kind": "seed",
+   "market": "US"
+  },
+  {
+   "id": 65,
+   "key": "cgrealm",
+   "kind": "seed",
+   "market": "US"
+  },
+  {
+   "id": 66,
+   "key": "gatorscardden",
+   "kind": "seed",
+   "market": "US"
+  },
+  {
+   "id": 67,
+   "key": "manyrealms",
+   "kind": "seed",
+   "market": "US"
+  },
+  {
+   "id": 68,
+   "key": "151collectables",
+   "kind": "seed",
+   "market": "US"
+  },
+  {
+   "id": 69,
+   "key": "cardboardanddie",
+   "kind": "seed",
+   "market": "US"
+  },
+  {
+   "id": 70,
+   "key": "grognardgames",
+   "kind": "seed",
+   "market": "US"
+  },
+  {
+   "id": 71,
+   "key": "mysterymtg",
+   "kind": "seed",
+   "market": "US"
+  },
+  {
+   "id": 72,
+   "key": "cardxcards",
+   "kind": "seed",
+   "market": "US"
+  },
+  {
+   "id": 73,
+   "key": "thegamecornergames",
+   "kind": "seed",
+   "market": "US"
+  },
+  {
+   "id": 74,
+   "key": "zulusgames",
+   "kind": "seed",
+   "market": "US"
+  },
+  {
+   "id": 75,
+   "key": "mythicstore",
+   "kind": "seed",
+   "market": "US"
+  },
+  {
+   "id": 76,
+   "key": "bardsandcards",
+   "kind": "seed",
+   "market": "US"
+  },
+  {
+   "id": 77,
+   "key": "lotusgamesct",
+   "kind": "shadowpos",
+   "market": "US"
+  },
+  {
+   "id": 78,
+   "key": "evolutiongamestx",
+   "kind": "shadowpos",
+   "market": "US"
+  },
+  {
+   "id": 79,
+   "key": "secondhandsoldiers",
+   "kind": "shadowpos",
+   "market": "US"
+  },
+  {
+   "id": 80,
+   "key": "jjaspertcg",
+   "kind": "shadowpos",
+   "market": "US"
+  },
+  {
+   "id": 81,
+   "key": "theorcslair",
+   "kind": "shadowpos",
+   "market": "US"
+  },
+  {
+   "id": 82,
+   "key": "spellboundtx",
+   "kind": "shadowpos",
+   "market": "US"
+  },
+  {
+   "id": 83,
+   "key": "metatcg",
+   "kind": "shadowpos",
+   "market": "US"
+  },
+  {
+   "id": 84,
+   "key": "gameandcompany",
+   "kind": "shadowpos",
+   "market": "US"
+  },
+  {
+   "id": 85,
+   "key": "feisgames",
+   "kind": "shadowpos",
+   "market": "US"
+  },
+  {
+   "id": 86,
+   "key": "koboldskeep",
+   "kind": "shadowpos",
+   "market": "US"
+  },
+  {
+   "id": 87,
+   "key": "haikugaming.com",
+   "kind": "shadowpos",
+   "market": "US"
+  },
+  {
+   "id": 88,
+   "key": "thecleverkobold.com",
+   "kind": "shadowpos",
+   "market": "US"
+  },
+  {
+   "id": 89,
+   "key": "darksidegames.com",
+   "kind": "shadowpos",
+   "market": "US"
+  }
+ ]
+}

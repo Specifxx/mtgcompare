@@ -1,0 +1,33 @@
+name: Demand snapshot
+
+# The ONLY job that reads Neon for the data plane (contract 12.3.4): it computes the FREE preview slices of the paid analytics (the top 10 most searched cards over 7 days; the top 3 rising picks per scope) from the private demand counters and
+# publishes them as an OVERLAY (pv/ only; the validator refuses an overlay that touches anything else). The counters themselves, and every full ranking, stay in Neon and are computed per request behind the entitlement gate.
+# It queues behind a running import in the same group. A failed run leaves yesterday's slices in place (PREVIEW_STALE after 48 hours).
+on:
+  schedule:
+    - cron: "40 22 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: data-publish
+  queue: max
+
+permissions:
+  contents: read
+
+jobs:
+  overlay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PLANE_REPO: ${{ vars.PLANE_REPO }}
+      DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      REVALIDATE_URL: ${{ vars.REVALIDATE_URL }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx tsx scripts/publish-demand.ts

@@ -1,18 +1,21 @@
 name: Production deploy
 
-# ONE Vercel production build a day (ported from RiftCompare). vercel.json's
-# ignoreCommand (scripts/vercel-ignore-build.sh) skips every push whose commit
-# SUBJECT lacks [deploy]; this workflow lands one empty commit
-# `release: scheduled production deploy [deploy]` on main at 08:00 UTC — after
-# the 07:07 UTC import — and Vercel builds that. "Run workflow" deploys now.
-# On a schedule, nothing new since the last release means no commit.
+# ONE Vercel production build a WEEK (owner, 2026-10-08; it was one a day in RiftCompare and OP Compare). The release ships CODE. Prices, stores, history, the
+# catalogue and every public view are DATA: the daily import publishes them to the data repository and moves one pointer (no purge, no deploy), so a week-old
+# deployment serves today's prices and nothing here is needed to make data appear (CLAUDE.md "Deploys are gated", contract section 13).
+#
+# vercel.json's ignoreCommand (scripts/vercel-ignore-build.sh) skips every push whose commit SUBJECT lacks [deploy]. This workflow lands one empty commit,
+# `release: weekly production deploy [deploy]`, on main every TUESDAY at 08:00 UTC, and Vercel builds that. "Run workflow" deploys now (an urgent release).
+# On a schedule, nothing new since the last release means no commit. The cron is the constant RELEASE_CRON in src/lib/release-schedule.ts; tests/deploy-cadence.test.ts pins the two together.
+#
+# Scheduled workflows run only from the repository's DEFAULT branch, and this one checks out `main`: keep main the default branch (docs/CHROME-SETUP-PROMPT.md).
 on:
   schedule:
-    - cron: "0 8 * * *"
+    - cron: "0 8 * * 2"
   workflow_dispatch:
     inputs:
       reason:
-        description: "Optional note for the release commit"
+        description: "Why an unscheduled release (it is written into the release commit body)"
         type: string
         required: false
 
@@ -39,7 +42,7 @@ jobs:
         run: |
           subject="$(git log -1 --format=%s)"
           if [ "$EVENT" = "schedule" ] && printf '%s' "$subject" | grep -qiF '[deploy]'; then
-            echo "Newest commit is already a release ($subject) — nothing to deploy."
+            echo "Newest commit is already a release ($subject) - nothing to deploy this week."
             echo "go=false" >> "$GITHUB_OUTPUT"
           else
             echo "go=true" >> "$GITHUB_OUTPUT"
@@ -54,6 +57,6 @@ jobs:
           if [ -n "$REASON" ]; then
             git commit --allow-empty -m "release: manual production deploy [deploy]" -m "$REASON"
           else
-            git commit --allow-empty -m "release: scheduled production deploy [deploy]"
+            git commit --allow-empty -m "release: weekly production deploy [deploy]"
           fi
           git push origin HEAD:main

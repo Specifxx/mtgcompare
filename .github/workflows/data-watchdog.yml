@@ -1,0 +1,46 @@
+name: Data watchdog
+
+# Hourly (minute 17). Reads the pointer, the manifest sample, the host probes, the repository size and the token expiry; writes status.json ONLY when an alarm or the day changed (so the hourly run is normally a no-op).
+# It is a writer of the data repository, so it is in the same concurrency group with `queue: max`: it can no longer cancel a pending squash or rollback (critique DP-10).
+# The `keepalive` job is separate and writes only the CODE repository: GitHub disables scheduled workflows of a public repository after 60 days without activity, and pushes to the private data repository do not count (critique DP-20).
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: data-publish
+      queue: max
+    env:
+      PLANE_REPO: ${{ vars.PLANE_REPO }}
+      DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+      SITE_URL: ${{ vars.REVALIDATE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx tsx scripts/data-watchdog.ts
+  keepalive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: main, fetch-depth: 1 }
+      - name: "Empty commit when main is older than 30 days (the subject carries no deploy marker, so the gate skips it)"
+        run: |
+          last=$(git log -1 --format=%ct); now=$(date +%s)
+          if [ $(( (now - last) / 86400 )) -ge 30 ]; then
+            git config user.name "github-actions"; git config user.email "actions@users.noreply.github.com"
+            git commit --allow-empty -m "chore: keep scheduled workflows enabled (no deploy)"
+            git push origin HEAD:main
+          fi

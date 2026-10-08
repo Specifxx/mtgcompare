@@ -57,3 +57,7 @@ export function isoCountry(c: Country): string {
   if (c === "EU") return "ES";
   return c;
 }
+
+// ── added by the MTG Compare contract (owner WP01a, FROZEN): the market index used by the published offer tuples (formats.ts) ──
+export const MARKET_INDEX: Record<Country, 0 | 1 | 2 | 3 | 4 | 5> = { US: 0, AU: 1, UK: 2, SG: 3, CA: 4, EU: 5 };
+export const marketFromIndex = (i: number): Country => MARKETS[i] ?? "US";
