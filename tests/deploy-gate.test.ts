@@ -1,4 +1,4 @@
-// The production deploy gate (scripts/vercel-ignore-build.sh): only a commit whose SUBJECT carries [deploy] builds production; previews always build. Owner WP21.
+// The production deploy gate (scripts/vercel-ignore-build.sh): only a commit whose SUBJECT carries [deploy] builds production; previews are OFF unless the subject carries [preview] (owner, 2026-10-08). Owner WP21.
 // The full behaviour (case, body, unknown environment, fail-open) and the WEEKLY cadence are pinned in tests/deploy-cadence.test.ts (WP19); this file is OP's small test, kept with its wording updated.
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -14,6 +14,10 @@ test("production builds only on a [deploy] subject", () => {
   assert.equal(run({ VERCEL_ENV: "production", VERCEL_GIT_COMMIT_MESSAGE: "Fix\n\nthis body mentions [deploy] in prose" }), 0);
 });
 
-test("previews are not gated", () => {
-  assert.equal(run({ VERCEL_ENV: "preview", VERCEL_GIT_COMMIT_MESSAGE: "anything" }), 1);
+test("previews are off: they build only on a [preview] subject, never on [deploy] or an unreadable message", () => {
+  for (const env of ["preview", "development"]) {
+    assert.equal(run({ VERCEL_ENV: env, VERCEL_GIT_COMMIT_MESSAGE: "anything" }), 0, env);
+    assert.equal(run({ VERCEL_ENV: env, VERCEL_GIT_COMMIT_MESSAGE: "Try the new card page [preview]" }), 1, env);
+    assert.equal(run({ VERCEL_ENV: env, VERCEL_GIT_COMMIT_MESSAGE: "release [deploy]" }), 0, env);
+  }
 });

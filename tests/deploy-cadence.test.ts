@@ -29,8 +29,16 @@ test("the gate SKIPS an ordinary production push; an unknown environment counts 
   assert.equal(runGate("Fix the thing\n\nLonger body.", "production").status, 0);
   assert.equal(runGate("Fix the thing", undefined).status, 0);
 });
-test("PREVIEW and DEVELOPMENT builds are never gated", () => {
-  for (const env of ["preview", "development"]) { const r = runGate("Fix the thing", env); assert.equal(r.status, 1); assert.match(r.out, /not gated/); }
+test("PREVIEW and DEVELOPMENT builds are OFF: skipped unless the subject carries [preview] (owner, 2026-10-08)", () => {
+  for (const env of ["preview", "development"]) {
+    const skip = runGate("Fix the thing", env);
+    assert.equal(skip.status, 0, env);
+    assert.match(skip.out, /previews are off/i);
+    assert.equal(runGate("Try the new card page [Preview]", env).status, 1, env);
+    assert.equal(runGate("Fix\n\nthe body mentions [preview] in prose", env).status, 0, env);
+    assert.equal(runGate(undefined, env).status, 0, `${env}: an unreadable message never builds a preview`);
+    assert.equal(runGate("release [deploy]", env).status, 0, `${env}: [deploy] is for production only`);
+  }
 });
 test("the gate BUILDS a production push whose SUBJECT carries the marker, case-insensitively", () => {
   for (const msg of [RELEASE_SUBJECT, "hotfix [Deploy] the checkout", "[DEPLOY]", `ship it ${MARKER}\n\nA body, which is ignored either way.`]) assert.equal(runGate(msg, "production").status, 1, msg);

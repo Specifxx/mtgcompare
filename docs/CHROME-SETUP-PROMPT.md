@@ -105,9 +105,11 @@ site does not depend on the database. Neon holds only accounts, billing, alerts 
 1. https://vercel.com/new: import **Specifxx/mtgcompare** into the **same team as RiftCompare**. Project name `mtgcompare`,
    framework Next.js, everything else default. Note the production URL Vercel assigns: that is SITE_URL
    (`https://mtgcompare.vercel.app`, or the variant Vercel chose). Then finish A2.3.
-2. "Build skipped" or "Canceled" on the first deployment is **normal and correct**: production builds only for a commit whose
-   subject line contains `[deploy]`, and nothing deploys until the site is ready. Do not "fix" it and do not trigger a deploy now.
-3. Settings, Environment Variables, for **Production and Preview** (names exact; secrets are never copied from any other project):
+2. "Build skipped" or "Canceled" on every deployment is **normal and correct**: production builds only on the weekly release
+   (Tuesday 08:00 UTC) or for a commit whose subject line contains `[deploy]`, and **preview deployments are off** (they build only for
+   a subject containing `[preview]`, which I add myself when I want one). Nothing deploys until the site is ready. Do not "fix" it,
+   do not trigger a deploy now, and do not enable preview deployments or create preview environment variables.
+3. Settings, Environment Variables, for the **Production** environment only (preview deployments are turned off for this project, so there is no Preview scope to fill; names exact; secrets are never copied from any other project):
    - `DATABASE_URL` = the Neon pooled string
    - `CRON_SECRET` = the same value as GitHub's
    - `AUTH_SECRET` = the same value as the GitHub secret of that name (A2.4)
@@ -136,7 +138,7 @@ site does not depend on the database. Neon holds only accounts, billing, alerts 
    app** (In production). If Google demands verification, make it a manual item and continue.
 3. Credentials, Create OAuth client ID, Web application "MTG Compare web": authorized JavaScript origin = SITE_URL; authorized
    redirect URI = `SITE_URL/api/auth/oauth/google/callback`.
-4. Put the client id and secret into Vercel as `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` (Production and Preview).
+4. Put the client id and secret into Vercel as `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` (Production).
 
 ### A5. Discord sign-in (optional but do it)
 1. discord.com/developers/applications: **New Application** "MTG Compare" (reuse if it exists).
@@ -148,7 +150,7 @@ site does not depend on the database. Neon holds only accounts, billing, alerts 
    **MTG Compare** inside it (reuse it if it exists). If the UI offers no organization option, use "New account" and tell me under
    PROBLEMS which one you used. Do NOT change anything in Rift Compare's own account.
 2. Stay in **test mode (sandbox)** for now: Developers, API keys, reveal the **test secret key** (`sk_test_...`) and put it in Vercel
-   as `STRIPE_SECRET_KEY` (Production and Preview) and in GitHub as the Actions secret `STRIPE_SECRET_KEY`.
+   as `STRIPE_SECRET_KEY` (Production) and in GitHub as the Actions secret `STRIPE_SECRET_KEY`.
 3. Settings: public business name "MTG Compare", statement descriptor `MTGCOMPARE`, support e-mail = my Google account's,
    brand colour `#9140da`, and Customer emails: turn on **successful payments** receipts. Skip anything that asks for identity, bank
    or tax details: that is **manual item "Activate payments on the MTG Compare Stripe account"** (leave that tab open on the

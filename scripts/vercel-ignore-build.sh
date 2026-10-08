@@ -16,29 +16,38 @@
 # commit subject, deploys now. The SUBJECT only — a body that discusses the marker
 # must not deploy.
 #
-# Preview and development builds are not gated. An unknown environment is
-# treated as production. If the commit message cannot be read at all, build
+# PREVIEW AND DEVELOPMENT BUILDS ARE OFF (owner, 2026-10-08): the only deployments are the weekly
+# production release, or one the owner asks for. A preview or development build happens only when the
+# commit SUBJECT carries the literal marker  [preview]  (any case), and then only because the owner
+# asked for a preview of that commit. An unreadable commit message never builds a preview. An unknown
+# environment is treated as production. If a PRODUCTION commit message cannot be read at all, build
 # (fail open: "never deploys" is worse than "deploys too often").
 set -u
 
 MARKER='[deploy]'
-
-env="${VERCEL_ENV:-}"
-if [ "$env" = "preview" ] || [ "$env" = "development" ]; then
-  echo "[vercel-ignore-build] VERCEL_ENV=$env — previews are not gated; building."
-  exit 1
-fi
+PREVIEW_MARKER='[preview]'
 
 msg="${VERCEL_GIT_COMMIT_MESSAGE:-}"
 if [ -z "$msg" ]; then
   msg="$(git log -1 --format=%B 2>/dev/null || true)"
 fi
+subject="$(printf '%s\n' "$msg" | head -n 1)"
+
+env="${VERCEL_ENV:-}"
+if [ "$env" = "preview" ] || [ "$env" = "development" ]; then
+  if [ -n "$subject" ] && printf '%s' "$subject" | grep -qiF -- "$PREVIEW_MARKER"; then
+    echo "[vercel-ignore-build] VERCEL_ENV=$env and '$PREVIEW_MARKER' in the commit subject — building the preview that was asked for."
+    exit 1
+  fi
+  echo "[vercel-ignore-build] VERCEL_ENV=$env — previews are off (owner decision): skipping. Add '$PREVIEW_MARKER' to the commit subject only when a preview was asked for. Production deploys weekly, Tuesday 08:00 UTC."
+  exit 0
+fi
+
 if [ -z "$msg" ]; then
   echo "[vercel-ignore-build] cannot read the commit message — building, to fail open."
   exit 1
 fi
 
-subject="$(printf '%s\n' "$msg" | head -n 1)"
 if printf '%s' "$subject" | grep -qiF -- "$MARKER"; then
   echo "[vercel-ignore-build] '$MARKER' in the commit subject — building."
   exit 1
