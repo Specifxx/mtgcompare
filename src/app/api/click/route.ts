@@ -30,6 +30,8 @@ export async function POST(req: Request) {
   const host = req.headers.get("host");
   if (!sameOrigin(req.headers.get("origin"), req.headers.get("referer"), host)) return noContent();
   if (!rateLimit(`click-ip:${ipKey(req)}`, CLICK_IP_LIMIT, 60 * 60 * 1000).ok) return noContent();
+  // A beacon body is a few hundred bytes: say no before reading anything bigger than the cap (the length is the client's word, text.length below is the truth).
+  if (Number(req.headers.get("content-length") ?? 0) > CLICK_BODY_MAX_BYTES) return noContent();
   let raw: unknown = null;
   try {
     const text = await req.text();

@@ -26,7 +26,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
 
   return (
     <html lang="en">
-      <body style={{ background: "#0a0c10", color: "#e2e8f0", fontFamily: "system-ui, sans-serif", margin: 0 }}>
+      <body style={{ background: "#0c0b14", color: "#e2e8f0", fontFamily: "system-ui, sans-serif", margin: 0 }}>
         <div style={{ maxWidth: 520, margin: "0 auto", padding: "64px 20px", textAlign: "center" }}>
           <div style={{ fontSize: 48 }} aria-hidden>🛠️</div>
           <h1 style={{ fontSize: 24, fontWeight: 800, color: "#fff", marginTop: 12 }}>
@@ -46,7 +46,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
             </button>
             <button
               onClick={() => window.location.reload()}
-              style={{ background: "transparent", color: "#e2e8f0", border: "1px solid #252b38", borderRadius: 10, padding: "10px 18px", fontWeight: 600, cursor: "pointer" }}
+              style={{ background: "transparent", color: "#e2e8f0", border: "1px solid #2a293e", borderRadius: 10, padding: "10px 18px", fontWeight: 600, cursor: "pointer" }}
             >
               Reload page
             </button>

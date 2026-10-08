@@ -16,6 +16,8 @@ const LEGACY: [string, RegExp][] = [
   ["OP set kinds", /kind\s*(?:===?|!==?)\s*["'](?:booster|extra|premium|starter|collection|event)["']|\[\s*["']booster["']\s*,\s*["']extra["']/],
   ["OP brand and game", OP_BRAND],
   ["OP card slot", /\bslot\s*[:=]\s*["']?(?:headline|alt|manga)|\.slot\b/],
+  // the example copy of the old site: characters and places of the series (the six OP colours are not scanned: Purple and Yellow appear in no quoted string of src today, and Red, Green, Blue, Black are Magic colours too)
+  ["OP characters and world", /\b(?:Luffy|Zoro|Sanji|Usopp|Shanks|Kaido|Straw Hats?|Going Merry|Thousand Sunny|Grand Line|Wano Country|Marineford|Whitebeard|Blackbeard|Devil Fruits?|Poneglyphs?|Celestial Dragons?|Monkey D\.|Roronoa|Trafalgar Law)\b/],
 ];
 // The blog posts are WP17's rewrite (wave 6): until then they are the One Piece posts of the baseline, so the ratchet leaves them out; the strict run (M2, Annex C check 19) and LEGACY_INCLUDE_POSTS=1 read them.
 const POSTS_IN = process.env.RATCHET_STRICT === "1" || process.env.LEGACY_INCLUDE_POSTS === "1";

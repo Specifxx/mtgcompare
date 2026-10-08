@@ -5,9 +5,9 @@ name: Egress audit
 #      session following the rule as written, and nothing counted them until someone ran `git log` by hand. More than two in seven days (the release plus one urgent) fails this job.
 #   2. NEON (needs DATABASE_URL): scripts/audit-egress.ts samples pg_stat_statements for N minutes and compares every statement shape with its budget (QUERY_BUDGETS). A statement above its budget, a table that left Postgres
 #      coming back (public data is files, C24), a full-table scan or an estimated day above the allowance fails the job (Annex C check 16). Neon holds PRIVATE state only, so the expected transfer is members, not pages.
-#   3. THE DATA REPOSITORY (needs PLANE_REPO and DATA_REPO_TOKEN): scripts/audit-publication.ts --remote reads the pointer, status.json, the repository size and the API quota (a few KB): freshness, size, growth, hosts.
+#   3. THE DATA REPOSITORY (needs PLANE_REPO and PLANE_TOKEN, the READ token: this job writes nothing and holds no write credential): scripts/audit-publication.ts --remote reads the pointer, status.json, the repository size and the API quota (a few KB): freshness, size, growth, hosts.
 #
-# GREEN WITHOUT ITS SECRETS: with no DATABASE_URL part 2 prints that and passes; with no data-repository secret part 3 does the same. A failed run posts to OPS_WEBHOOK_URL when that optional secret exists (scripts/ops-webhook.ts).
+# GREEN WITHOUT ITS SECRETS: with no DATABASE_URL part 2 prints that and passes; with no PLANE_REPO / PLANE_TOKEN part 3 does the same. A failed run posts to OPS_WEBHOOK_URL when that optional secret exists (scripts/ops-webhook.ts).
 #
 # WHEN. Sunday 03:00 UTC: no import (21:25-22:25), eBay pass (04:37), release (Tuesday 08:00), squash (Sunday 23:50) or alert job runs then. Weekly because the audit itself costs transfer; press "Run workflow" for an ad-hoc reading.
 # A sample taken while a publish, an eBay pass or an alert run is in flight measures that batch work, not a day's rate: the budgets that matter at a short window are rows per call, which do not depend on it.
@@ -98,23 +98,23 @@ jobs:
     timeout-minutes: 10
     env:
       PLANE_REPO: ${{ vars.PLANE_REPO }}
-      DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+      PLANE_TOKEN: ${{ secrets.PLANE_TOKEN }}
     steps:
       - name: No data repository configured
-        if: env.PLANE_REPO == '' || env.DATA_REPO_TOKEN == ''
-        run: echo "PLANE_REPO and DATA_REPO_TOKEN are not both set for Actions - nothing to audit (a green no-op)."
+        if: env.PLANE_REPO == '' || env.PLANE_TOKEN == ''
+        run: echo "PLANE_REPO and PLANE_TOKEN are not both set for Actions - nothing to audit (a green no-op)."
       - uses: actions/checkout@v4
-        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        if: env.PLANE_REPO != '' && env.PLANE_TOKEN != ''
       - uses: actions/setup-node@v4
-        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        if: env.PLANE_REPO != '' && env.PLANE_TOKEN != ''
         with:
           node-version: 22
           cache: npm
       - name: Install
-        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        if: env.PLANE_REPO != '' && env.PLANE_TOKEN != ''
         run: npm ci
       - name: Data repository size, freshness and quota
-        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        if: env.PLANE_REPO != '' && env.PLANE_TOKEN != ''
         run: |
           set -o pipefail
           npx tsx scripts/audit-publication.ts --remote | tee data.txt

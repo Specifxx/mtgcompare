@@ -55,7 +55,7 @@ export function TrendingChips({ cards }: { cards: TrendingCard[] }) {
   for (const c of six) counts.set(c.name, (counts.get(c.name) ?? 0) + 1);
   return (
     <div className="animate-fade-in [animation-delay:320ms] mx-auto mt-3 grid max-w-2xl grid-cols-2 gap-1.5 sm:grid-cols-3">
-      <span className="rb-eyebrow col-span-full text-center text-slate-600">Trending</span>
+      <span className="rb-eyebrow col-span-full text-center text-slate-600">Popular</span>
       {six.map((c) => (
         <TrendingChip key={c.id} c={c} showVariant={(counts.get(c.name) ?? 0) > 1} />
       ))}

@@ -10,6 +10,7 @@ import {
   canPair,
   checkDeck,
   commanderEligible,
+  commanderNeedsPrintings,
   copyLimitFromText,
   deckIdentity,
   entryKey,
@@ -272,6 +273,49 @@ test("the sideboard of a Commander list is no part of the deck: noted, not count
   assert.equal(withSide.counts.deck, 100);
   assert.deepEqual(codes(withSide), ["side-size"]);
   assert.equal(withSide.issues[0]!.level, "note");
+});
+
+// ══ Pauper Commander: the commander is the one card that may be printed at uncommon ════════════════════════════════════════════════════════════════════
+
+/** A Pauper Commander list: the commander and 99 cards of the colours it allows (a real Mind Stone, and basics for the rest). */
+const pdh = (commander: string, rarity: string | null, main: [string, number][]): DeckEntry[] => [
+  { key: entryKey(ruleOracle(commander), commander), name: commander, qty: 1, zone: "commander", oracle: ruleOracle(commander), rarity },
+  ...main.map(([n, qty]): DeckEntry => ({ key: entryKey(ruleOracle(n), n), name: n, qty, zone: "main", oracle: ruleOracle(n), rarity: null })),
+];
+
+test("Pauper Commander: Scryfall marks an uncommon-only creature not legal in the 99, yet it may lead: the commander slot is not judged by the legality of the 99", () => {
+  const chupacabra = ruleOracle("Ravenous Chupacabra");
+  assert.equal(legalityOf(chupacabra.legal, "paupercommander"), "not_legal", "the published fact: no common printing, so not legal in the 99");
+  const led = checkDeck("paupercommander", pdh("Ravenous Chupacabra", "U", [["Mind Stone", 1], ["Swamp", 98]]));
+  assert.equal(led.ok, true);
+  assert.deepEqual(led.issues, []);
+  assert.deepEqual(led.commanders, ["Ravenous Chupacabra"]);
+  assert.equal(led.identity, B);
+  assert.deepEqual(led.counts, { main: 99, side: 0, commander: 1, companion: 0, deck: 100 });
+});
+
+test("Pauper Commander: a commander that was never printed at uncommon or common, or one of the 99 that was only uncommon, is refused by name", () => {
+  const unknown = checkDeck("paupercommander", pdh("Ravenous Chupacabra", null, [["Mind Stone", 1], ["Swamp", 98]]));
+  assert.deepEqual(errors(unknown), ["not-legal", "bad-commander"], "no printing known: it cannot lead, and it is not legal in the 99 either");
+  assert.equal(unknown.issues.find((i) => i.code === "bad-commander")!.message, "Ravenous Chupacabra can't be a Pauper Commander commander.");
+  const mythic = checkDeck("paupercommander", pdh("Atraxa, Praetors' Voice", "M", [["Mind Stone", 1], ["Swamp", 98]]));
+  assert.ok(errors(mythic).includes("bad-commander") && errors(mythic).includes("not-legal"), "a mythic-only creature cannot lead");
+  const twice = checkDeck("paupercommander", pdh("Ravenous Chupacabra", "U", [["Ravenous Chupacabra", 1], ["Swamp", 98]]));
+  assert.deepEqual(errors(twice), ["not-legal", "copies"], "the same uncommon creature among the 99 is not legal there, and it is a second copy");
+  assert.deepEqual(named(twice, "not-legal"), ["Ravenous Chupacabra"]);
+  const bolt = checkDeck("paupercommander", pdh("Ravenous Chupacabra", "U", [["Lightning Bolt", 1], ["Swamp", 98]]));
+  assert.deepEqual(errors(bolt), ["identity"], "a red card under a black commander; Lightning Bolt itself is legal in Pauper Commander");
+});
+
+test("which commanders the rules must read the printings of: a Pauper Commander creature that is not legal in the 99, and nobody else", () => {
+  const as = (zone: DeckEntry["zone"], name: string): Pick<DeckEntry, "zone" | "oracle"> => ({ zone, oracle: ruleOracle(name) });
+  assert.equal(commanderNeedsPrintings("paupercommander", as("commander", "Ravenous Chupacabra")), true);
+  assert.equal(commanderNeedsPrintings("paupercommander", as("commander", "Atraxa, Praetors' Voice")), true, "asked, and the answer is no: only mythic printings");
+  assert.equal(commanderNeedsPrintings("paupercommander", as("commander", "Sakura-Tribe Elder")), false, "legal in the 99 (printed at common): nothing to ask");
+  assert.equal(commanderNeedsPrintings("paupercommander", as("commander", "Lightning Bolt")), false, "not a creature");
+  assert.equal(commanderNeedsPrintings("paupercommander", as("main", "Ravenous Chupacabra")), false, "the 99 are legal or they are not");
+  assert.equal(commanderNeedsPrintings("commander", as("commander", "Ravenous Chupacabra")), false);
+  assert.equal(commanderNeedsPrintings("paupercommander", { zone: "commander", oracle: null }), false);
 });
 
 // ══ partners ═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════

@@ -59,7 +59,7 @@ const COUNT_TAIL = /\s*[:(\[\-–—]?\s*[x×]?\d+\s*(?:cards?)?\s*[)\]]?\s*$/i;
 export function zoneHeaderOf(text: string): DeckZone | "neutral" | null {
   const t = text.trim();
   if (!t) return null;
-  if (/^total\b/i.test(t)) return "neutral";
+  if (/^total(?:\s+cards?)?\s*(?:[:(\[]|\d|$)/i.test(t)) return "neutral"; // "Total: 75 cards", "Total 60": not "Total War", a card
   const core = t.replace(/\s*:\s*$/, "").replace(COUNT_TAIL, "").replace(/\s*:\s*$/, "").trim();
   for (const [re, zone] of ZONE_HEADERS) if (re.test(core)) return zone;
   if (NEUTRAL_HEADER.test(core)) return "neutral";
@@ -84,12 +84,14 @@ const CATEGORY_ZONES: readonly (readonly [RegExp, DeckZone])[] = [
 ];
 const zoneOfCategory = (c: string): DeckZone | undefined => CATEGORY_ZONES.find(([re]) => re.test(c.trim()))?.[1];
 const NUMBER_TOKEN = /^[A-Za-z0-9★†*\-/]{1,14}$/;
+/** Set codes MTG Arena writes that Scryfall spells otherwise: Dominaria is "DAR" in an Arena export and "dom" everywhere else (the dataset has "dom" and no "dar"). */
+const ARENA_SET_CODES: Readonly<Record<string, string>> = { dar: "dom" };
 
 interface Parsed { qty: number; name: string; set?: string; number?: string; finish?: 0 | 1; etched?: boolean; productId?: number; zone?: DeckZone }
 
 function parseCardText(input: string): Parsed | null {
   let rest = input.trim();
-  let qty = 1, finish: 0 | 1 | undefined, etched = false, zone: DeckZone | undefined, set: string | undefined, number: string | undefined, productId: number | undefined;
+  let qty = 1, finish: 0 | 1 | undefined, etched = false, zone: DeckZone | undefined, set: string | undefined, number: string | undefined, productId: number | undefined, saidNormal = false;
 
   // "4 ", "4x ", "4 x ", "4xName" — but "4 Xenagos" is a quantity and a name
   const lead = /^(\d{1,3})(?:[xX×]\s*|\s+[xX×]\s+|\s+)(\S.*)$/.exec(rest);
@@ -125,6 +127,7 @@ function parseCardText(input: string): Parsed | null {
     if ((m = /\s*[(\[](foil etched|etched|foil|nonfoil|non-foil|normal)[)\]]\s*$/i.exec(rest))) {
       const k = m[1]!.toLowerCase();
       if (k.includes("etched")) { finish = 1; etched = true; } else if (k === "foil") finish = 1;
+      else saidNormal = true;
       rest = rest.slice(0, m.index);
       continue;
     }
@@ -145,8 +148,13 @@ function parseCardText(input: string): Parsed | null {
     set = sn[2]!.toLowerCase();
     number = sn[3]?.replace(/^#/, "");
   }
+  if (set) set = ARENA_SET_CODES[set] ?? set;
+  // "231★" is the star printing, the Foil unit of its product (contract 3.2 rule 4; 1,790 products of the dataset of 2026-10-07 have one, all Foil but five): a list that gives the number as the card shows it means the Foil
+  if (finish === undefined && !saidNormal && number?.includes("★")) finish = 1;
 
-  const name = rest.replace(/\s+/g, " ").replace(/^[\s\-–·|:,]+|[\s\-–·|:,]+$/g, "").trim();
+  // separators around the name go ("Lightning Bolt -", ", Lightning Bolt"); a hyphen with no space before it belongs to the name ("Bat-", "Half-Orc, Half-": Un-set cards)
+  let name = rest.replace(/\s+/g, " ").trim().replace(/^[\s\-–·|:,]+/, "");
+  for (let again = true; again;) { const t = name.replace(/(?:\s[\-–·|:,]+|[–·|:,])$/, "").trim(); again = t !== name; name = t; }
   if (!name && !productId) return null;
   return { qty: Math.min(QTY_CAP, Math.max(1, qty || 1)), name, set, number, finish, etched: etched || undefined, productId, zone };
 }

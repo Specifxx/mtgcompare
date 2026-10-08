@@ -180,7 +180,7 @@ jobs:
         env:
           PLANE_REPO: ${{ vars.PLANE_REPO }}
           PLANE_BRANCH: ${{ vars.PLANE_BRANCH }}
-          DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+          PLANE_TOKEN: ${{ secrets.PLANE_TOKEN }}
         run: |
           set -o pipefail
           npx tsx scripts/audit-publication.ts --remote | tee data.txt

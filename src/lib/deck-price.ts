@@ -13,7 +13,7 @@ import { CARD_FLAGS, CONDITIONS, PRICE_MASK, fold, finishLabel, nkey, tcgplayerU
 import { MARKETS, type Country } from "./country";
 import { canonicalQuery, getBrowseIndex, getCardLookup, getCardsByIds, getOracleBySlug, resolveBySetNumber, resolveOracles, type CardLite, type OracleDetail, type OracleMini } from "./data";
 import { planeSource } from "./data/plane/runtime";
-import { checkDeck, copyLimitFromText, entryKey, inferCommanders, inferredNote, isBasicLand, isCommanderFormat, type DeckEntry, type DeckReport, type DeckZone, DECK_FORMATS } from "./commander-rules";
+import { checkDeck, commanderNeedsPrintings, copyLimitFromText, entryKey, inferCommanders, inferredNote, isBasicLand, isCommanderFormat, type DeckEntry, type DeckReport, type DeckZone, DECK_FORMATS } from "./commander-rules";
 import {
   DECK_LINE_CAP,
   QTY_CAP,
@@ -240,9 +240,17 @@ export async function checkResolved(rows: readonly DeckRow[], format: Format, da
   for (const e of entries) if (wantsText(e) && e.oracle && slugsFor.size < DETAIL_CAP) { const s = slugOf.get(e.oracle.no); if (s) slugsFor.add(s); }
   const detail = slugsFor.size ? await data.details([...slugsFor]) : new Map<string, OracleDetail>();
   const bySlug = (e: DeckEntry): OracleDetail | undefined => (e.oracle ? detail.get(slugOf.get(e.oracle.no) ?? "") : undefined);
+  // Pauper Commander: a creature printed at uncommon is "not legal" in the 99 yet may lead the deck, and what a card was printed at is in its printings, not in its oracle row:
+  // the lowest of common and uncommon among them (at most DETAIL_CAP commanders are asked, normally one or two)
+  const printedAt = new Map<string, string>();
+  await Promise.all(entries.filter((e) => commanderNeedsPrintings(format, e)).slice(0, DETAIL_CAP).map(async (e) => {
+    const p = await data.printings(e.oracle!.no).catch(() => null);
+    const r = p?.cards.some((c) => c.rarity === "C") ? "C" : p?.cards.some((c) => c.rarity === "U") ? "U" : null;
+    if (r) printedAt.set(e.key, r);
+  }));
   const enriched = entries.map((e) => {
-    const d = bySlug(e);
-    return d ? { ...e, oracle: { ...e.oracle!, oracleText: d.oracleText, keywords: d.keywords }, copyLimit: copyLimitFromText(d.oracleText) } : e;
+    const d = bySlug(e), rarity = printedAt.get(e.key) ?? e.rarity;
+    return d ? { ...e, rarity, oracle: { ...e.oracle!, oracleText: d.oracleText, keywords: d.keywords }, copyLimit: copyLimitFromText(d.oracleText) } : { ...e, rarity };
   });
   const report = checkDeck(format, enriched);
   // the commanders were moved out of the sideboard before this check: say so, as checkDeck does when it moves them itself

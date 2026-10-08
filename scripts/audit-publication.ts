@@ -1,7 +1,7 @@
 // scripts/audit-publication.ts (owner WP19, parity P02 and addendum 9): the audit of the PUBLISHED DATA as an operator would read it: how big is it, how fast is the repository growing, how old is it, are the
 // hosts answering, how much API quota is left. The Neon half of the egress question is scripts/audit-egress.ts; this is the other half (the data repository is what public pages cost us now).
 //
-//   npx tsx scripts/audit-publication.ts --remote            pointer, status.json, repository size and the host probes over HTTPS (a few KB; needs PLANE_REPO and DATA_REPO_TOKEN)
+//   npx tsx scripts/audit-publication.ts --remote            pointer, status.json, repository size and the host probes over HTTPS (a few KB; needs PLANE_REPO and PLANE_TOKEN, the read token)
 //   npx tsx scripts/audit-publication.ts --dir .data         a CHECKOUT of the pointed commit (scripts/plane-checkout.sh .data): every file against its family budget, the manifest, the validator, history freshness
 //   PLANE_DIR=.data npx tsx scripts/audit-publication.ts     the same as --dir
 //   --json                                                   findings as JSON after the report
@@ -147,7 +147,8 @@ async function getJson<T>(url: string, token: string | undefined, f: typeof fetc
   } catch { return { ok: false, status: 0, body: null, headers: new Headers() }; }
 }
 export async function auditRemote(env: Record<string, string | undefined>, now: Date, f: typeof fetch = fetch): Promise<{ findings: Finding[]; lines: string[] } | null> {
-  const repo = env.PLANE_REPO, token = env.DATA_REPO_TOKEN, branch = env.PLANE_BRANCH || "data";
+  // the READ token (Contents: read) is enough: the pointer, status.json and the API quota are reads, and the repository size is also in status.json (the watchdog writes it). A job that holds the write token for another reason (a checkout) passes it too.
+  const repo = env.PLANE_REPO, token = env.PLANE_TOKEN || env.DATA_REPO_TOKEN, branch = env.PLANE_BRANCH || "data";
   if (!repo || !token) return null;
   const lines: string[] = []; const raw = `https://raw.githubusercontent.com/${repo}/${branch}`;
   const t0 = Date.now(), ptr = await getJson<PointerFile>(`${raw}/latest.json`, token, f), rawMs = Date.now() - t0;
@@ -190,7 +191,7 @@ export async function main(argv: readonly string[], env: Record<string, string |
     console.log(renderReport(`published tree ${root}`, [`${rep.files} files, ${(rep.bytes / 1e6).toFixed(1)} MB raw`, ptr ? `pointer seq ${ptr.seq} ${ptr.ref.slice(0, 7)} ${ptr.phase}, price day ${ptr.priceDay}, published ${ptr.publishedAt}` : "no latest.json"], rep.families, findings));
   } else {
     const r = await auditRemote(env, now);
-    if (!r) { console.log("PLANE_REPO and DATA_REPO_TOKEN are not both set: no data repository to audit (a green no-op)."); return 0; }
+    if (!r) { console.log("PLANE_REPO and PLANE_TOKEN (or DATA_REPO_TOKEN) are not both set: no data repository to audit (a green no-op)."); return 0; }
     findings = r.findings; console.log(renderReport("data repository", r.lines, [], findings));
   }
   for (const f of findings) if (f.level === "error") console.log(`::error title=Data publication (${f.code})::${f.message}`);

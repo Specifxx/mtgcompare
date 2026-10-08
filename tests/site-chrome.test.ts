@@ -176,3 +176,20 @@ test("the privacy-settings control exists in every region: a re-open button wher
   assert.match(src, /GIVE_UP_MS/, "the poll for googlefc ends");
   assert.doesNotMatch(codeOnly(src), /·/, "no middle-dot separator in the link row");
 });
+
+// ── the plan chip on the phone menu's active row ─────────────────────────────────────────────────────────────────────────────────────────────────────
+// Premium shows as a chip on the nav links of the paid tools (nav-groups.ts `plan`). The phone menu paints the CURRENT page's row with a solid amethyst fill (brand-500), where the brass
+// Premium chip (gold at 15% over the fill) is about 2.1:1, far under 4.5:1 for 10px text. The chip therefore turns white on a darkened fill on that row; the ratio is computed from the tokens.
+test("the plan chip stays readable on the phone menu's active row: brass would be 2.1:1 on the amethyst fill, white on the darkened chip is well over 4.5:1", () => {
+  const css = read("src/app/globals.css"), rgbOf = (name: string): [number, number, number] => { const m = new RegExp(`--c-${name}:\\s*(\\d+) (\\d+) (\\d+);`).exec(css); assert.ok(m, `--c-${name} (dark default)`); return [Number(m[1]), Number(m[2]), Number(m[3])]; };
+  const lin = (c: number): number => { const s = c / 255; return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4; };
+  const lum = ([r, g, b]: number[]): number => 0.2126 * lin(r!) + 0.7152 * lin(g!) + 0.0722 * lin(b!);
+  const ratio = (a: number[], b: number[]): number => { const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x); return (hi! + 0.05) / (lo! + 0.05); };
+  const over = (bg: number[], fg: number[], alpha: number): number[] => bg.map((v, i) => Math.round((1 - alpha) * v + alpha * fg[i]!));
+  const amethyst = [0x91, 0x40, 0xda], gold = rgbOf("gold"), ink = rgbOf("ink-950"), white = [255, 255, 255];
+  assert.ok(ratio(gold, over(amethyst, gold, 0.15)) < 3, "the default Premium chip is unreadable on the active fill: that is why the row overrides it");
+  assert.ok(ratio(white, over(amethyst, ink, 0.4)) > 4.5, "white on the amethyst darkened by ink-950 at 40%");
+  const menu = read("src/components/CinematicNavMenu.tsx");
+  assert.match(menu, /<TierBadge tier=\{l\.plan\} className=\{active \? "!bg-ink-950\/40 !text-white" : ""\} \/>/, "the override is exactly the pair computed above");
+  assert.match(read("src/app/globals.css"), /--c-ink-950:/);
+});

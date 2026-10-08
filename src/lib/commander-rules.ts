@@ -142,8 +142,9 @@ export function canPair(a: RuleOracle, b: RuleOracle): boolean {
 // ── who may lead the deck ────────────────────────────────────────────────────────────────────────────────────────────────────
 
 /** May this card be the (first) commander of a deck in this format? Commander, Duel Commander and PreDH: ORACLE_FLAGS.COMMANDER (a legendary creature, a legendary Vehicle or Spacecraft with power and toughness, or text that says so).
- *  Brawl: that, or any legendary creature or planeswalker. Oathbreaker: a planeswalker. Pauper Commander: a creature that is legal there, or restricted there (Scryfall's word for a
- *  card printed only at uncommon, which may lead but not fill the deck), or printed at uncommon or common. */
+ *  Brawl: that, or any legendary creature or planeswalker. Oathbreaker: a planeswalker. Pauper Commander: a creature that is legal there (it was printed at common) or that was printed at
+ *  uncommon: Scryfall marks an uncommon-only creature NOT legal in the 99 (no oracle of the data of 2026-10-07 is "restricted" there), so `rarity` is the lowest rarity the card was printed at
+ *  (commanderNeedsPrintings says when the caller must read the printings for it) and the line's own printing is the fallback. */
 export function commanderEligible(format: Format, o: RuleOracle, rarity?: string | null): boolean {
   const fam = DECK_FORMATS[format].family;
   if (fam === "oathbreaker") return isPlaneswalker(o);
@@ -151,6 +152,10 @@ export function commanderEligible(format: Format, o: RuleOracle, rarity?: string
   if (format === "paupercommander") { const s = legalityOf(o.legal, format); return isCreature(o) && (s === "legal" || s === "restricted" || rarity === "U" || rarity === "C"); }
   return (o.flags & ORACLE_FLAGS.COMMANDER) !== 0;
 }
+
+/** Whether the rules need the printings of this entry: a Pauper Commander commander that is a creature and not legal in the deck, which may lead only if it was printed at uncommon. The oracle row does not say what a card was printed at. */
+export const commanderNeedsPrintings = (format: Format, e: Pick<DeckEntry, "zone" | "oracle">): boolean =>
+  format === "paupercommander" && e.zone === "commander" && !!e.oracle && isCreature(e.oracle) && legalityOf(e.oracle.legal, format) !== "legal";
 
 /** The identity the deck is held to: every commander's colours together. */
 export const deckIdentity = (commanders: readonly Pick<RuleOracle, "identity">[]): number => commanders.reduce((m, c) => m | c.identity, 0);
@@ -246,8 +251,10 @@ export function checkDeck(format: Format, input: readonly DeckEntry[], opts: { i
     const e = g[0]!, qty = sum(g), o = e.oracle;
     if (!o) { unchecked.push(e.name); continue; }
     const status = legalityOf(o.legal, format);
+    // Pauper Commander: a creature printed at uncommon is not legal in the 99 but may lead the deck (only if every copy the list has is in the commander slot)
+    const leads = format === "paupercommander" && g.every((x) => x.zone === "commander") && commanderEligible(format, o, e.rarity);
     if (status === "banned") banned.push(e.name);
-    else if (status === "not_legal") notLegal.push(e.name);
+    else if (status === "not_legal" && !leads) notLegal.push(e.name);
     else if (status === "unknown") unchecked.push(e.name);
     if (status === "restricted" && !(format === "vintage" || format === "timeless")) restricted.push(e.name);
     const exception = g.map((x) => x.copyLimit).find((n) => n != null) ?? null;

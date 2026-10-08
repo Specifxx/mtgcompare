@@ -102,6 +102,9 @@ export function staticEntries(lastmod: string | undefined, extra: StaticExtras =
   return out;
 }
 
+/** An optional read of the static section: a rejection AND a throw before any promise exists both mean "nothing to add", so one failing source can never turn the whole section into a 503. */
+export const optionalRead = <T,>(read: () => Promise<T>, fallback: T): Promise<T> => Promise.resolve().then(read).catch(() => fallback);
+
 /** Hubs of the keyword glossary the sitemap lists: a keyword shared by fewer oracles is a thin page (REQ-WP15-6 asks the keyword pages for the same cut, so the map never lists a noindex URL). */
 export const KEYWORD_SITEMAP_MIN = 5;
 /** The deck library's paths: /decks itself only once a deck is live (an empty library is noindexed), then each deck and each commander's deck page. */

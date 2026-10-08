@@ -21,6 +21,7 @@ import { prepareDeckWith, publishDeck, publishError, publishesToday, type Prepar
 import { checkDeck } from "../src/lib/commander-rules";
 import { parseDeckList } from "../src/lib/deck";
 import { pricedCard } from "../src/lib/deck-price";
+import { deckPaths } from "../src/lib/sitemap-sections";
 import { DECKS, REAL_PRINTINGS, entriesFor, fixtureDeckData, realCard } from "./helpers/deck-watch-harness";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -342,12 +343,14 @@ test("the deck engine reads the published files and Neon's deck rows only: no ca
   assert.doesNotMatch(lib.replace(/\/\/.*$/gm, ""), /catch\s*\(/, "no try/catch inside the cached callbacks: a failed read throws");
 });
 
-test("deck pages: ISR, no build-time prewarming, SEO title, JSON-LD, noindex when empty", () => {
+test("deck pages: rendered per request (the library is Neon-backed), no ISR over data, no build-time prewarming, SEO title, JSON-LD, noindex when empty, listed in the sitemap", () => {
   for (const f of ["src/app/decks/page.tsx", "src/app/decks/[slug]/page.tsx", "src/app/decks/commander/[commander]/page.tsx"]) {
     const s = read(f);
-    assert.match(s, /export const revalidate = 3600;/, f);
-    // An EMPTY generateStaticParams is what makes a dynamic segment ISR; one
-    // that returns params would prewarm database-backed pages at build.
+    // A page that reaches the data barrel is force-dynamic and exports no revalidate: ISR over data is prerendered at `next build` (contract 12.7; tests/build-no-data.test.ts rules A and B);
+    // the CDN caches it through the headers of headers.json and publishing purges the tag.
+    assert.match(s, /^export const dynamic = "force-dynamic";/m, f);
+    assert.doesNotMatch(s, /^export const revalidate\b/m, `${f}: no ISR over data`);
+    // generateStaticParams, if there is one, returns nothing: params would prewarm database-backed pages at build.
     const gsp = /export async function generateStaticParams\(\) \{([\s\S]*?)\n\}/.exec(s);
     if (gsp) assert.match(gsp[1]!, /^\s*return \[\];\s*$/, f);
     assert.doesNotMatch(s, /from "@\/lib\/db"/, `${f} reads through data loaders`);
@@ -356,7 +359,9 @@ test("deck pages: ISR, no build-time prewarming, SEO title, JSON-LD, noindex whe
   assert.match(page, /deck — \$\{cost \? `\$\{cost\} to build` : deck\.title\} \| MTG Compare/);
   assert.match(page, /"@type": "CreativeWork"/);
   assert.match(read("src/app/decks/page.tsx"), /robots|noindex/i, "an empty library is noindexed");
-  assert.match(read("src/app/sitemap.ts"), /\/decks\/\$\{d\.slug\}/);
+  // the sitemap lists /decks once a deck is live, each commander's page (the path the publish routes purge) and each deck
+  assert.deepEqual(deckPaths([{ slug: "atraxa-counters-c123ff", commanderSlug: "atraxa-praetors-voice" }]), ["/decks", commanderDeckPath("atraxa-praetors-voice"), "/decks/atraxa-counters-c123ff"]);
+  assert.deepEqual(deckPaths([]), []);
 });
 
 test("/deck opens on the tool: the builder comes before the explanatory text", () => {

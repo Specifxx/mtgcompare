@@ -11,7 +11,6 @@
   "HISTORY_LOCAL_DIR": "PLANE_DIR",
   "HISTORY_RAW_BASE": "PLANE_REPO and PLANE_BRANCH (the reader is plane/runtime.ts)",
   "HISTORY_REF": "the pointer (latest.json) names the commit; nothing pins a ref by hand",
-  "PREMIUM_DATA_KEY": "nothing: nothing paid is a file (12.3), so there is no key to encrypt one with",
   "STRIPE_SITE": "a constant of plans.ts, not a variable"
  },
  "names": {
@@ -1782,9 +1781,13 @@
    "wp": "WP02",
    "default": "unset: reads are unauthenticated and a private repository answers 404 (the site serves its last good pointer and raises TOKEN_REJECTED)",
    "where": [
-    "src/lib/data/plane/runtime.ts"
+    "src/lib/data/plane/runtime.ts",
+    "scripts/audit-publication.ts"
    ],
-   "wf": [],
+   "wf": [
+    "egress-audit.yml",
+    "maintenance.yml"
+   ],
    "note": "fine-grained personal access token, Contents: read, on the data repository ONLY, at most 1 year (alarm 30 days before expiry). Part of the Data Cache key of every file: a rotation makes the cache cold and is followed by the data-hook workflow",
    "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
   },
@@ -1898,7 +1901,6 @@
     "data-hook.yml",
     "data-audit.yml",
     "db-audit.yml",
-    "egress-audit.yml",
     "maintenance.yml",
     "store-health.yml"
    ],

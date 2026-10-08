@@ -7,10 +7,11 @@ import { useEffect, useState } from "react";
 // "store and/or access information"); without one, it grants after a short
 // grace period (CMP_GRACE_MS), because the visitor is outside any CMP's scope.
 //
-// OP Compare runs no CMP today, so the no-CMP path is the live one. Unlike
-// RiftCompare it does NOT push a gtag consent update on that path: OP Compare's
-// GA defaults are region-scoped (lib/ga.ts — analytics denied in the EEA, the
-// UK and Switzerland, granted elsewhere) and must stand when no one was asked.
+// MTG Compare runs no CMP of its own, so the no-CMP path is the live one until
+// AdSense's consent message is on the page. Unlike RiftCompare it does NOT push
+// a gtag consent update on that path: MTG Compare's GA defaults are region-scoped
+// (lib/ga.ts — analytics denied in the EEA, the UK and Switzerland, granted
+// elsewhere) and must stand when no one was asked.
 // What the hook gates is Vercel Analytics (ConsentGatedAnalytics), which is
 // cookieless. When a CMP is added, its grant also updates GA, as on RiftCompare.
 export const CMP_GRACE_MS = 2500;

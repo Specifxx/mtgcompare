@@ -43,7 +43,7 @@ test("both header rows still go through HeaderSearchSlot", () => {
 });
 
 test("the desktop card search is wide, not the old max-w-sm", () => {
-  // OP Compare's search is CardSearch: it fills its slot (w-[36rem] from xl).
+  // MTG Compare's search is CardSearch: it fills its slot (w-[36rem] from xl).
   const search = codeOnly(read("src/components/CardSearch.tsx"));
   assert.match(search, /className="relative w-full"/, "the search fills the slack the left cluster has");
   const nav = codeOnly(read("src/components/Navbar.tsx"));

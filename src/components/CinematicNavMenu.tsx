@@ -76,7 +76,8 @@ function FeatureLink({ l, pathname, onClick }: { l: NavGroupLink; pathname: stri
   return (
     <Link href={l.href} onClick={onClick} aria-current={active ? "page" : undefined} className={className}>
       <span className="font-medium">{l.label}</span>
-      {l.plan ? <TierBadge tier={l.plan} /> : null}
+      {/* The active row is a solid amethyst fill: the brass Premium chip is 2.1:1 on it, so the chip turns white-on-dark there. */}
+      {l.plan ? <TierBadge tier={l.plan} className={active ? "!bg-ink-950/40 !text-white" : ""} /> : null}
     </Link>
   );
 }

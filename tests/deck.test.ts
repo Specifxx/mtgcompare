@@ -31,10 +31,10 @@ import {
   type DeckLine,
   type ResolvedLine,
 } from "../src/lib/deck";
-import { basketOffers, basketUnits, canonicalText, entriesOf, listingTuples, lineForSlug, loaderData, pinnedIds, priceDeck, resolveDeckLines, resolveDeckText, type DeckRow } from "../src/lib/deck-price";
+import { basketOffers, basketUnits, canonicalText, checkResolved, entriesOf, listingTuples, lineForSlug, loaderData, pinnedIds, priceDeck, resolveDeckLines, resolveDeckText, type DeckRow } from "../src/lib/deck-price";
 import { resetPlaneForTests } from "../src/lib/data/plane/runtime";
 import { getBrowseIndex, getCardsByIds } from "../src/lib/data";
-import { DECKS, servePlane } from "./helpers/deck-watch-harness";
+import { DECKS, fixtureDeckData, servePlane } from "./helpers/deck-watch-harness";
 
 // ══ real export strings ════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
@@ -130,6 +130,17 @@ test("finish words in the other spellings people paste: (foil), (etched), (Foil 
   assert.deepEqual(f("1 Sol Ring (C21) 263 (nonfoil)"), ["Sol Ring", null, false, "c21"]);
 });
 
+test("a star number is the Foil unit ('231★') unless the line says Normal, and Arena's 'DAR' is Scryfall's 'dom'", () => {
+  const f = (t: string) => { const l = parseDeckList(t)[0]!; return [l.name, l.set ?? null, l.number ?? null, l.finish ?? null]; };
+  assert.deepEqual(f("1 Birds of Paradise (7ED) 231★"), ["Birds of Paradise", "7ed", "231★", 1], "the star printing is the Foil of its product (3.2 rule 4)");
+  assert.deepEqual(f("1 Birds of Paradise (7ED) 231★ (nonfoil)"), ["Birds of Paradise", "7ed", "231★", null], "an explicit Normal wins");
+  assert.deepEqual(f("1 Birds of Paradise (7ED) 231"), ["Birds of Paradise", "7ed", "231", null], "no star, no inference");
+  assert.deepEqual(f("1 Etali, Primal Storm (PRIX) 100★ *F*"), ["Etali, Primal Storm", "prix", "100★", 1]);
+  assert.deepEqual(f("1 Llanowar Elves (DAR) 168"), ["Llanowar Elves", "dom", "168", null], "Dominaria is DAR in an Arena export");
+  assert.deepEqual(f("1 Llanowar Elves [DAR]"), ["Llanowar Elves", "dom", null, null]);
+  assert.deepEqual(f("1 Llanowar Elves (DOM) 168"), ["Llanowar Elves", "dom", "168", null], "and dom stays dom");
+});
+
 test("Archidekt: '1x', a lower-case set, [Category{...}] and ^tags^ after the number; a Maybeboard category is dropped, a Commander category sets the zone", () => {
   const text = [
     "1x Atraxa, Praetors' Voice (mul) 33 [Commander{top}]",
@@ -167,6 +178,13 @@ test("names that carry punctuation, accents or a parenthesis are kept whole", ()
   for (const n of names) assert.deepEqual(parseDeckList(`1 ${n}`).map((l) => l.name), [n], n);
   assert.deepEqual(parseDeckList("2 Hazmat Suit (Used)").map((l) => [l.name, l.set]), [["Hazmat Suit", "used"]], "a name that ends in a parenthesis reads as a set code: the resolver asks again with it put back");
   assert.deepEqual(parseDeckList("1 Delver of Secrets // Insectile Aberration (ISD) 51").map((l) => [l.name, l.set, l.number]), [["Delver of Secrets // Insectile Aberration", "isd", "51"]]);
+});
+
+test("a card whose name starts like a total or ends in a hyphen is a card: 'Total War', 'Half-Orc, Half-', 'Bat-'; a real total or a trailing separator still is not", () => {
+  assert.deepEqual(parseDeckList("1 Total War\nTotal War\nTotal: 60 cards\nTotal 75\nTotal cards (75)").map((l) => l.name), ["Total War", "Total War"], "'Total War' (Legends) is not a total");
+  assert.ok(isSectionHeader("Total: 60 cards") && isSectionHeader("Total 75") && isSectionHeader("Total cards (75)") && !isSectionHeader("Total War"));
+  assert.deepEqual(parseDeckList("1 Half-Orc, Half-\n2 Bat-\n1 Robo-").map((l) => l.name), ["Half-Orc, Half-", "Bat-", "Robo-"], "Un-set names end in a hyphen");
+  assert.deepEqual(parseDeckList("4 Lightning Bolt -\n4 Lightning Bolt –\n4 Lightning Bolt,\n4 Lightning Bolt - ").map((l) => l.name), Array(4).fill("Lightning Bolt"), "a separator after a space, or a comma, is not part of the name");
 });
 
 test("an exact printing: '#<product id>' wins over everything else on the line (what /deck writes when a set and a number are not enough)", () => {
@@ -390,6 +408,13 @@ test("resolve: a star twin shares one product: Birds of Paradise 7th Edition 231
   assert.deepEqual(rows.map((r) => r.card!.marketUsd), [2289, 398075]);
 });
 
+test("resolve: '231★' prices the star printing, the Foil unit: $3,980.75, not the $22.89 Normal", async () => {
+  const { rows } = await resolveDeckText("1 Birds of Paradise (7ED) 231★\n1 Birds of Paradise (7ED) 231");
+  assert.deepEqual(rows.map(shown), [[BIRDS, "F", "setnumber"], [BIRDS, "N", "setnumber"]]);
+  assert.deepEqual(rows.map((r) => r.card!.marketUsd), [398075, 2289]);
+  assert.ok(rows.every((r) => !r.finishAdjusted && !r.setMissed));
+});
+
 test("resolve: a bare name is the cheapest regular printing; a double-faced card is found by its front face, a split card by its whole name, and the same card twice is one line", async () => {
   const { rows } = await resolveDeckText("1 Fire // Ice\n1 Delver of Secrets\n1 Delver of Secrets // Insectile Aberration\n1 Brazen Borrower");
   assert.deepEqual(rows.map((r) => [r.card?.id ?? null, r.how, r.line.qty]), [[FIRE_ICE, "name", 1], [DELVER, "name", 2], [513650, "name", 1]]);
@@ -448,6 +473,23 @@ test("a name that ends in a parenthesis ('Hazmat Suit (Used)') reads like a set 
   assert.deepEqual(asked[0], ["hazmat suit", "counterspell"], "the bare names first");
   assert.deepEqual(asked[1], ["hazmat suit used"], "then the one line that found nothing and named a set");
   assert.equal(asked.length, 2);
+});
+
+test("the rules read a card's printings only for a Pauper Commander creature that leads: no other format asks for them", async () => {
+  let asked = 0;
+  const real = fixtureDeckData();
+  const spy = { ...real, printings: async (no: number, o?: { sc?: string }) => { asked++; return real.printings(no, o); } };
+  const { rows } = await resolveDeckLines(parseDeckList("Commander\n1 Atraxa, Praetors' Voice (MUL) 33\n\nDeck\n1 Sol Ring (FDC) 286"), spy, { options: false });
+  assert.equal(asked, 0, "set and number found both printings: none was listed");
+  await checkResolved(rows, "commander", spy);
+  assert.equal(asked, 0, "Commander never reads them");
+  const pdh = await checkResolved(rows, "paupercommander", spy);
+  assert.equal(asked, 1, "one creature in the commander slot, one read (Sol Ring is not a creature)");
+  assert.equal(pdh.commanders[0], "Atraxa, Praetors' Voice");
+  assert.ok(pdh.issues.some((i) => i.code === "bad-commander"), "its printings are mythic only, so it cannot lead");
+  asked = 0;
+  await checkResolved(rows.map((r) => ({ ...r, line: { ...r.line, zone: "main" as const } })), "paupercommander", spy);
+  assert.equal(asked, 0, "nobody leads: nothing to read");
 });
 
 // ── pricing ──
@@ -665,6 +707,54 @@ test("dataset: the three real decks judged in their formats: the sizes, the copi
     assert.equal(atraxa.check!.identity, 23);
     assert.deepEqual(atraxa.check!.commanders, ["Atraxa, Praetors' Voice"]);
     assert.equal(atraxa.lines[0]!.commander, true, "the commander is the first line");
+  });
+});
+
+test("dataset: every one of the 33,435 oracle names survives the parser, bare or decorated, with a trailing quantity or an 'SB:' prefix (only 'Hazmat Suit (Used)' reads as a name plus a set, and the resolver puts the parenthesis back)", { skip: labSkip }, () => {
+  const names: string[] = [];
+  const dir = path.join(LAB, "v1/or");
+  for (const f of fs.readdirSync(dir)) for (const r of (JSON.parse(fs.readFileSync(path.join(dir, f), "utf8")) as { o: [number, string, string, string][] }).o) names.push(r[3]);
+  assert.ok(names.length > 33_000, `${names.length} oracle names`);
+  const bad: string[] = [];
+  for (const n of names) {
+    if (n === "Hazmat Suit (Used)") continue;
+    const one = (text: string) => parseDeckList(text);
+    const a = one(`1 ${n}`), b = one(`2x ${n} (M11) 149 *F*`), c = one(`${n} x3`), d = one(`SB: 1 ${n}`), e = one(n);
+    const ok = a.length === 1 && a[0]!.name === n && !a[0]!.set && a[0]!.qty === 1
+      && b.length === 1 && b[0]!.name === n && b[0]!.set === "m11" && b[0]!.number === "149" && b[0]!.finish === 1 && b[0]!.qty === 2
+      && c.length === 1 && c[0]!.name === n && c[0]!.qty === 3
+      && d.length === 1 && d[0]!.name === n && d[0]!.zone === "side"
+      && e.length === 1 && e[0]!.name === n;
+    if (!ok) bad.push(n);
+  }
+  assert.deepEqual(bad, [], "names the parser changes");
+});
+
+test("dataset: Pauper Commander led by an uncommon creature named WITHOUT a printing: not legal in the 99 for Scryfall, a legal commander by its printings", { skip: labSkip }, async () => {
+  await onLab(async () => {
+    const led = await priceDeck("Commander\n1 Kor Firewalker\n\nDeck\n99 Plains", "US", { withOffers: false, format: "paupercommander" });
+    assert.deepEqual(led.check!.counts, { main: 99, side: 0, commander: 1, companion: 0, deck: 100 });
+    assert.deepEqual(led.check!.issues, [], "Kor Firewalker was printed at uncommon (three printings) and at rare (one); it may lead Pauper Commander");
+    assert.equal(led.check!.ok, true);
+    assert.equal(led.check!.identity, 1);
+    const inThe99 = await priceDeck("Commander\n1 Kor Firewalker\n\nDeck\n1 Kor Firewalker\n98 Plains", "US", { withOffers: false, format: "paupercommander" });
+    assert.deepEqual(inThe99.check!.issues.filter((i) => i.level === "error").map((i) => i.code), ["not-legal", "copies"]);
+    const mythic = await priceDeck("Commander\n1 Atraxa, Praetors' Voice\n\nDeck\n99 Island", "US", { withOffers: false, format: "paupercommander" });
+    assert.ok(mythic.check!.issues.some((i) => i.code === "bad-commander"), "printed at mythic only: it cannot lead");
+    const named = await priceDeck("Commander\n1 Kor Firewalker (DCI) 36\n\nDeck\n99 Plains", "US", { withOffers: false, format: "paupercommander" });
+    assert.deepEqual([named.lines[0]!.how, named.lines[0]!.card.rarity], ["setnumber", "R"], "the printing the line names is the rare DCI promo");
+    assert.equal(named.check!.ok, true, "a line that names a printing is judged by what the card was printed at (uncommon in Worldwake), not by that printing");
+  });
+});
+
+test("dataset: Arena's 'DAR' finds the Dominaria printing, and '231★' the star printing at its Foil price", { skip: labSkip }, async () => {
+  await onLab(async () => {
+    const { rows } = await resolveDeckText("1 Llanowar Elves (DAR) 168\n1 Birds of Paradise (7ED) 231★", loaderData, { options: false });
+    const elves = rows[0]!, birds = rows[1]!;
+    assert.deepEqual([elves.card?.setCode, elves.card?.number, elves.how, elves.setMissed], ["DOM", "168", "setnumber", false]);
+    assert.deepEqual([birds.card?.id, birds.finish, birds.how], [2831, "F", "setnumber"]);
+    const both = await getCardsByIds([2831]);
+    assert.equal(birds.card!.marketUsd, both.get(2831)!.f!.market, "the Foil market of the shared product");
   });
 });
 

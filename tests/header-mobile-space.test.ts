@@ -33,7 +33,7 @@ test("the notification bell is now removed from the header outright", () => {
 });
 
 test("with no bell, the account menu's dashboard row is where notifications are reached", () => {
-  // OP Compare never shipped RiftCompare's NotificationBell. In-app alerts
+  // MTG Compare never shipped RiftCompare's NotificationBell. In-app alerts
   // (the member and collection-alerts tracks) are read on the dashboard, which
   // the account menu links first.
   const code = readCode("src/components/UserMenu.tsx");
@@ -49,7 +49,7 @@ test("the profile avatar's tap target never shrinks below the site's own floor",
 test("only the visible circle shrinks on phones, not the accessible box around it", () => {
   const code = readCode("src/components/UserMenu.tsx");
   assert.match(code, /h-8 w-8[^>]*sm:h-9 sm:w-9/, "the drawn circle is smaller below sm, back to the original size from sm up");
-  // OP Compare signs in with OAuth only, so there is no unverified-email badge
+  // MTG Compare signs in with OAuth only, so there is no unverified-email badge
   // to anchor; the circle-sized wrapper is still the inner element.
   assert.ok(code.indexOf("relative grid h-8 w-8") > code.indexOf('aria-label="Account menu"'), "the circle sits inside the tap-sized button");
 });

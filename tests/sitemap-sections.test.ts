@@ -13,7 +13,7 @@ import { SITE_URL } from "../src/lib/site";
 import { getSitemapPlan, getSitemapSection, SITEMAP_SECTION_SIZE } from "../src/lib/data/sitemap";
 import { SITEMAP_SECTION } from "../src/lib/data/plane/shards";
 import {
-  KEYWORD_SITEMAP_MIN, SECTION_KINDS, deckPaths, inPlan, indexXml, isSafePath, isSafeSlug, parseSectionParam, sectionEntries, sectionFile, sectionRefs, sectionUrl, staticEntries, urlsetXml,
+  KEYWORD_SITEMAP_MIN, SECTION_KINDS, deckPaths, inPlan, indexXml, isSafePath, isSafeSlug, optionalRead, parseSectionParam, sectionEntries, sectionFile, sectionRefs, sectionUrl, staticEntries, urlsetXml,
 } from "../src/lib/sitemap-sections";
 
 const ROOT = process.cwd();
@@ -189,7 +189,13 @@ test("the routes are handlers under the CDN header, rendered per request: never 
   assert.match(section, /parseSectionParam\(params\.section\)/);
   assert.match(section, /status: 404/);
   assert.match(section, /inPlan\(plan, ref\.kind, ref\.index\)/, "an index past the plan is a 404, not an empty urlset");
-  assert.match(section, /getKeywordIndex\(\)\.catch\(\(\) => \[\]\)/, "a failing read adds nothing to the static section");
+  for (const loader of ["getKeywordIndex", "getLibraryDecks", "getStoreStats"]) assert.match(section, new RegExp(`optionalRead\\(\\(\\) => ${loader}\\(\\), \\[\\]\\)`), `${loader}: a failing read adds nothing to the static section`);
+});
+
+test("an optional read of the static section: a value passes, a rejection and a throw before any promise exists both give the fallback", async () => {
+  assert.deepEqual(await optionalRead(async () => ["flying"], []), ["flying"]);
+  assert.deepEqual(await optionalRead(async () => { throw new Error("host down"); }, []), []);
+  assert.deepEqual(await optionalRead((() => { throw new Error("not implemented"); }) as () => Promise<string[]>, []), [], "a loader that throws synchronously is the same as one that rejects");
 });
 
 test("robots and the news sitemap keep pointing at /sitemap.xml: the index URL did not move", () => {

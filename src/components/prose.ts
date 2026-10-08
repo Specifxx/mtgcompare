@@ -25,8 +25,8 @@ export const PAGE_PROSE =
 
 /**
  * A plain data table in RiftCompare's markup (`w-full text-sm`, an uppercase
- * slate-500 header row over a hairline, hairline rows). Replaces OP's old
- * `.data-table` class; th/td padding comes from the variants so existing
+ * slate-500 header row over a hairline, hairline rows). Replaces the baseline's
+ * old `.data-table` class; th/td padding comes from the variants so existing
  * table markup keeps its shape.
  */
 export const DATA_TABLE =

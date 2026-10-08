@@ -12,7 +12,7 @@ import type { MarketStat } from "@/lib/home";
 // RiftCompare's CinematicHero, markup and classes verbatim: a full-bleed band
 // (the breakout below starts it at x=0 under the fixed rail, and the rail is
 // reserved again inside), the logo row (sm+), the H1, the "best price" line,
-// the hero search (sm+; the header carries one below that), six Trending
+// the hero search (sm+; the header carries one below that), six Popular
 // chips, the stats line, "All N cards in the database →" and the market
 // toggle — each fading in on a short stagger (80–360ms).
 //

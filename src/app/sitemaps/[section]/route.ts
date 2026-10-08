@@ -2,7 +2,7 @@ import { AUTHORS, POSTS, postHref } from "@/lib/blog";
 import { getDataRef, getKeywordIndex, getLibraryDecks, getSitemapPlan, getSitemapSection, getStoreStats } from "@/lib/data";
 import { publicDataHeaders } from "@/lib/data/plane/headers";
 import { STORES } from "@/lib/stores";
-import { KEYWORD_SITEMAP_MIN, deckPaths, inPlan, parseSectionParam, sectionEntries, staticEntries, urlsetXml, type StaticExtras } from "@/lib/sitemap-sections";
+import { KEYWORD_SITEMAP_MIN, deckPaths, inPlan, optionalRead, parseSectionParam, sectionEntries, staticEntries, urlsetXml, type StaticExtras } from "@/lib/sitemap-sections";
 
 // /sitemaps/<kind>-<n>.xml: one child sitemap (contract 4.5), at most 10,000 URLs. The ".xml" lives in the dynamic param (a bracketed
 // segment cannot carry a literal extension), so the param arrives as "cards-3.xml". An unknown kind or an index past the plan is a 404
@@ -15,9 +15,9 @@ const KEEP_STORE_MIN_STOCK = 10;   // a store page is indexed once the store has
 
 async function extras(): Promise<StaticExtras> {
   const [keywords, decks, stats] = await Promise.all([
-    getKeywordIndex().catch(() => []),
-    getLibraryDecks().catch(() => []),                    // N: the one public Neon read the sitemap may make; [] when Neon is down
-    getStoreStats().catch(() => []),
+    optionalRead(() => getKeywordIndex(), []),
+    optionalRead(() => getLibraryDecks(), []),            // N: the one public Neon read the sitemap may make; [] when Neon is down
+    optionalRead(() => getStoreStats(), []),
   ]);
   const stocked = new Set(stats.filter((s) => s.inStock >= KEEP_STORE_MIN_STOCK).map((s) => s.source));
   let storeKeys: string[] = [];

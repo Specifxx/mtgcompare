@@ -166,10 +166,10 @@ export function SegmentedTabs({
                 onKeyDown={(e) => onKeyDown(e, i)}
                 // The active tab sits on the indicator, which is always the fixed
                 // bg-brand-500 fill (it does not theme), so its ink is fixed too:
-                // #0a0c10 is dark ink-950, the same rule as globals.css's "dark ink
-                // on bright fills" block. text-ink-950 inverted to #f4f6f8 in light,
-                // 2.91:1 on the green (2026-09-23); the fill is on a sibling span,
-                // so that block's .bg-brand-500.text-ink-950 selector never matched.
+                // a dark ink on the fill would invert with the theme (text-ink-950 turned
+                // light in the light theme, 2.91:1 on the old green, 2026-09-23), and the fill
+                // is on a sibling span, so globals.css's "dark ink on bright fills" selector
+                // never matched it.
                 // MTG Compare: the fill is the amethyst brand-500, which takes WHITE ink
                 // (5.3:1, brand spec 6.3), so the fixed ink is #ffffff.
                 className={`relative inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-xs font-bold uppercase tracking-wide transition-colors duration-fast ${
