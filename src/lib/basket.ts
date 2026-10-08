@@ -106,7 +106,7 @@ export interface BasketCard {
   qty: number;
   listings: BasketListing[]; // one (cheapest) listing per store that stocks it
   // The printing, when known, so a plan line can say which one it is: OP's set
-  // code ("OP01") and card number ("OP01-024").
+  // code ("M11") and collector number ("149").
   setCode?: string;
   collectorNumber?: string;
 }

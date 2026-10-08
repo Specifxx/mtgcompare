@@ -27,7 +27,7 @@ import { SITE_URL } from "@/lib/site";
 import { MineDeals } from "./MineDeals";
 
 export const metadata: Metadata = {
-  title: "One Piece Deal Finder — Underpriced vs TCGplayer & eBay",
+  title: "Magic: The Gathering Deal Finder — Underpriced vs TCGplayer & eBay",
   description:
     "Magic: The Gathering cards a store or eBay seller in your market sells for less than TCGplayer's market price, the cards whose cheapest copy is on eBay, and the cards a store sells for less than eBay. Direct links to each listing. Cheapest on eBay is free.",
   alternates: { canonical: "/tools/deal-finder" },
@@ -72,9 +72,9 @@ const MINE_CHIPS: { key: MineFilter | null; label: string }[] = [
 const PLUS_GATE_LINE = "Plus shows every one, with the store filter, sorting and your watchlist, and no ads.";
 
 const EBAY_SEARCHES = [
-  { label: "One Piece singles", query: "Magic: The Gathering singles" },
-  { label: "Parallels & alt arts", query: "Magic: The Gathering parallel alternate art" },
-  { label: "Manga rares", query: "Magic: The Gathering manga rare" },
+  { label: "Magic singles", query: "Magic: The Gathering singles" },
+  { label: "Foils & showcase", query: "Magic: The Gathering foil showcase" },
+  { label: "Commander staples", query: "Magic: The Gathering commander staples" },
   { label: "Booster boxes", query: "Magic: The Gathering booster box" },
 ];
 
@@ -159,7 +159,7 @@ export default async function DealFinderPage({ searchParams }: { searchParams: D
           {
             "@context": "https://schema.org",
             "@type": "WebApplication",
-            name: "One Piece Deal Finder",
+            name: "Magic: The Gathering Deal Finder",
             url: `${SITE_URL}/tools/deal-finder`,
             applicationCategory: "UtilitiesApplication",
             operatingSystem: "Web",
@@ -180,7 +180,7 @@ export default async function DealFinderPage({ searchParams }: { searchParams: D
           <RegionToggle />
         </div>
         <p className="mb-5 mt-3 max-w-3xl text-[15px] leading-relaxed text-slate-300">
-          One Piece cards you can buy for less than they usually go for. Each list sets the cheapest in-stock copy we track in {info.place}{" "}
+          Magic cards you can buy for less than they usually go for. Each list sets the cheapest in-stock copy we track in {info.place}{" "}
           against a reference — TCGplayer&apos;s market price, or the cheapest eBay listing — and links straight to that listing.
         </p>
 
@@ -471,7 +471,7 @@ function Locked({ country, count }: { country: Country; count: number }) {
         </div>
       </div>
       <div className="mt-4">
-        <EbaySearchPanel heading="Shop One Piece singles on eBay" sub="Searches your own eBay — no account needed." links={EBAY_SEARCHES} country={country} page="deal-finder" />
+        <EbaySearchPanel heading="Shop Magic singles on eBay" sub="Searches your own eBay — no account needed." links={EBAY_SEARCHES} country={country} page="deal-finder" />
       </div>
     </>
   );

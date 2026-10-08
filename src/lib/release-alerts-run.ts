@@ -1,5 +1,7 @@
 import { prisma } from "./db";
 import { MARKETS, type Country } from "./country";
+import { getBrowseIndex, getCardsByIds, getSealedBySet, getSets } from "./data";
+import { readSealedListings } from "./sealed-alert-read";
 import { emailShell, isEmailEnabled, sendEmail } from "./email";
 import {
   RELEASE_ALERT_SEND_CAP,
@@ -24,9 +26,9 @@ import { offerStock } from "./sealed-watch-run";
 // THE RELEASE-ALERT RUN — RiftCompare's lib/release-alerts-run.ts, ported in
 // wave 2 (2026-10-03) and generalised over every set that takes release alerts
 // (lib/release-alerts.ts releaseAlertSets: unreleased, or released within 30
-// days). Called by scripts/alerts.ts after each import (paid mode, so twice a
-// day). Reads are per-set and narrow: one Offer groupBy per set for the
-// singles counts, the few card-scoped cards, one set's presale products.
+// days). Called by scripts/alerts.ts after the daily import. Reads are per-set
+// and narrow: the browse index's store columns for the singles counts, the few
+// card-scoped cards, one set's presale products (their published detail files).
 //
 // EMAIL OFF: a release alert is an email (the signup is an address, often with
 // no account), so nothing is sent and no row is stamped — the alerts wait,
@@ -45,20 +47,52 @@ export interface ReleaseRunSummary {
   emailOn: boolean;
 }
 
-/** Single-store freshness, as everywhere: a row not refreshed for 72h is not in stock. */
-const FRESH_MS = 72 * 3600_000;
+/** The singles of a set that a real store lists in stock, per market: the browse index's store-only minimum (never TCGplayer's own low), over both finishes. Keyed `${market}:${productId}`. */
+export type SetSinglesReader = (setId: number, markets: readonly Country[]) => Promise<Map<string, number>>;
 
-export async function runReleaseAlerts(opts: { dryRun?: boolean; now?: Date; emailEnabled?: boolean } = {}): Promise<ReleaseRunSummary> {
+export const liveSetSingles: SetSinglesReader = async (setId, markets) => {
+  const ix = await getBrowseIndex({ withStores: true });
+  const out = new Map<string, number>();
+  for (let i = 0; i < ix.n; i++) {
+    if (ix.setId[i] !== setId) continue;
+    for (const m of markets) {
+      const mi = MARKETS.indexOf(m);
+      let best = -1;
+      for (const f of [0, 1]) {
+        const v = ix.smin[(i * 2 + f) * 6 + mi]!;
+        if (v > 0 && (best < 0 || v < best)) best = v;
+      }
+      if (best > 0) out.set(`${m}:${ix.id[i]}`, best);
+    }
+  }
+  return out;
+};
+
+export interface ReleaseRunIo {
+  singles?: SetSinglesReader;
+  /** Presale sealed products of a set: id and name. */
+  presale?: (setId: number) => Promise<{ id: number; name: string }[]>;
+  /** Real-store listings of products in a market (sealed-alert-read.ts). */
+  listings?: (ids: readonly number[], market: Country) => Promise<Map<number, { inStock: boolean; lastSeen: string }[]>>;
+}
+
+const livePresale: NonNullable<ReleaseRunIo["presale"]> = async (setId) => (await getSealedBySet(setId)).filter((p) => p.presale).map((p) => ({ id: p.id, name: p.name }));
+const liveListings: NonNullable<ReleaseRunIo["listings"]> = async (ids, market) => {
+  const read = await readSealedListings(null, ids.map((sealedId) => ({ sealedId, market })));
+  const out = new Map<number, { inStock: boolean; lastSeen: string }[]>();
+  for (const [id, ls] of read.get(market) ?? []) out.set(id, ls.map((l) => ({ inStock: l.inStock, lastSeen: l.lastSeen })));
+  return out;
+};
+
+export async function runReleaseAlerts(opts: { dryRun?: boolean; now?: Date; emailEnabled?: boolean; io?: ReleaseRunIo } = {}): Promise<ReleaseRunSummary> {
+  const io = opts.io ?? {};
   const now = opts.now ?? new Date();
   const today = now.toISOString().slice(0, 10);
   const emailOn = opts.emailEnabled ?? isEmailEnabled();
   const summary: ReleaseRunSummary = { sets: 0, pending: 0, sent: 0, failed: 0, held: 0, restocked: {}, emailOn };
 
   const sets = releaseAlertSets(
-    (await prisma.set.findMany({ where: { releasedOn: { not: null } }, select: { id: true, slug: true, name: true, releasedOn: true } })).map((s) => ({
-      ...s,
-      releasedOn: s.releasedOn ? s.releasedOn.toISOString().slice(0, 10) : null,
-    })),
+    (await getSets()).filter((s) => s.releasedOn != null).map((s) => ({ id: s.id, slug: s.slug, name: s.name, releasedOn: s.releasedOn!.slice(0, 10) as string | null })),
     today,
   );
   summary.sets = sets.length;
@@ -79,30 +113,22 @@ export async function runReleaseAlerts(opts: { dryRun?: boolean; now?: Date; ema
     );
     const live = rows.filter((r) => !muted.has(r.email));
     const markets = [...new Set(live.map((r) => r.market))].filter((m): m is Country => (MARKETS as string[]).includes(m));
-    const fresh = new Date(now.getTime() - FRESH_MS);
 
     // ── Singles facts: cards of the set with an in-stock store listing ──────
     const facts: SinglesFacts = { pricedCount: {}, cards: {} };
-    const setCards = await prisma.card.findMany({ where: { setId: set.id }, select: { id: true }, take: 3000 });
-    const ids = setCards.map((c) => c.id);
-    if (ids.length && markets.length) {
-      const grouped = await prisma.offer.groupBy({
-        by: ["market", "productId"],
-        where: { productId: { in: ids }, market: { in: markets }, inStock: true, priceCents: { gt: 0 }, updatedAt: { gt: fresh }, source: { startsWith: "store:" } },
-        _min: { priceCents: true },
-      });
-      const minBy = new Map<string, number>();
-      for (const g of grouped) {
-        facts.pricedCount[g.market as Country] = (facts.pricedCount[g.market as Country] ?? 0) + 1;
-        if (g._min.priceCents != null) minBy.set(`${g.market}:${g.productId}`, g._min.priceCents);
+    if (markets.length) {
+      const minBy = await (io.singles ?? liveSetSingles)(set.id, markets);
+      for (const k of minBy.keys()) {
+        const m = k.split(":")[0] as Country;
+        facts.pricedCount[m] = (facts.pricedCount[m] ?? 0) + 1;
       }
       const cardIds = [...new Set(live.filter((r) => r.scope !== "set" && !r.singlesNotifiedAt).map((r) => Number(r.scope)))].filter((n) => Number.isSafeInteger(n));
       if (cardIds.length) {
-        const cards = await prisma.card.findMany({ where: { id: { in: cardIds }, setId: set.id }, select: { id: true, slug: true, name: true, variant: true } });
-        for (const c of cards) {
+        for (const [id, c] of await getCardsByIds(cardIds)) {
+          if (c.setId !== set.id) continue;
           const price: Partial<Record<Country, number | null>> = {};
-          for (const m of markets) price[m] = minBy.get(`${m}:${c.id}`) ?? null;
-          facts.cards[String(c.id)] = { name: `${c.name}${c.variant ? ` (${c.variant})` : ""}`, href: `/card/${c.slug}`, price };
+          for (const m of markets) price[m] = minBy.get(`${m}:${id}`) ?? null;
+          facts.cards[String(id)] = { name: `${c.name}${c.variant ? ` (${c.variant})` : ""}`, href: `/card/${c.slug}`, price };
         }
       }
     }
@@ -111,16 +137,12 @@ export async function runReleaseAlerts(opts: { dryRun?: boolean; now?: Date; ema
     // ── Restock transitions (only while the set is unreleased) ─────────────
     const restockByMarket = new Map<Country, string[]>();
     if (isUnreleased(set.releasedOn, today)) {
-      const presale = await prisma.sealed.findMany({ where: { setId: set.id, presale: true }, select: { id: true, name: true }, take: 200 });
+      const presale = await (io.presale ?? livePresale)(set.id);
       for (const m of markets) {
         if (!presale.length || !live.some((r) => r.market === m && !r.restockNotifiedAt)) continue;
-        const offers = await prisma.offer.findMany({
-          where: { productId: { in: presale.map((p) => p.id) }, market: m, source: { startsWith: "store:" } },
-          select: { productId: true, inStock: true, updatedAt: true },
-          take: presale.length * 60,
-        });
+        const offers = await (io.listings ?? liveListings)(presale.map((p) => p.id), m);
         const products = presale.map((p) => {
-          const ls = offers.filter((o) => o.productId === p.id).map((o) => ({ inStock: o.inStock, lastSeen: o.updatedAt.toISOString() }));
+          const ls = offers.get(p.id) ?? [];
           const states = ls.map((l) => offerStock(l, now.getTime()));
           const state: OfferState = ls.length && states.every((s) => s === "soldout") ? "soldout" : states.includes("open") ? "open" : "other";
           return { key: String(p.id), name: p.name, state };

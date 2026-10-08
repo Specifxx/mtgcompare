@@ -25,7 +25,7 @@ import { formatMeasuredDate, marketHasZonePricing, marketMeasuredAt, marketMeasu
 
 export const dynamic = "force-dynamic";
 
-const TITLE = "Best Basket — Cheapest Way to Buy a One Piece Deck | MTG Compare";
+const TITLE = "Best Basket — Cheapest Way to Buy a Magic Deck | MTG Compare";
 const DESCRIPTION =
   "Paste a Magic: The Gathering decklist, or send your watchlist, and get the cheapest delivered way to buy it across stores — each store's measured postage included. A Premium tool: the store-by-store plan beside the best one-store and two-store orders, at the minimum condition you set.";
 
@@ -50,7 +50,7 @@ const FAQS = [
   },
   {
     q: "What can I paste in?",
-    a: `Any decklist or card list, one card per line — the exports of the common One Piece deck builders ("4xOP01-024"), plain quantities ("4 OP01-024"), names with numbers ("4 Monkey.D.Luffy (OP01-024)") or plain names. A card number picks that card's standard print; a "#" product id from /deck pins a Parallel or another printing. Section headers such as Leader, Characters and DON!! are skipped, and any line we can't match is listed back to you rather than dropped. A list is priced up to its first ${DECK_LINE_CAP} lines, and the page tells you when yours runs past that. Signed in, you can also send your watchlist.`,
+    a: `Any decklist or card list, one card per line — the exports of the common Magic deck builders ("4 Lightning Bolt (M11) 149"), plain quantities ("4 Lightning Bolt"), names with a set code ("1 Sol Ring (C21)") or plain names. A set and number pick that exact printing and a bare name is priced at its cheapest printing; a "#" product id from /deck pins a specific printing, and "*F*" marks a foil copy. Section headers such as Commander, Deck and Sideboard are understood (the maybeboard is left out), and any line we can't match is listed back to you rather than dropped. A list is priced up to its first ${DECK_LINE_CAP} lines, and the page tells you when yours runs past that. Signed in, you can also send your watchlist.`,
   },
   {
     q: "Is the cheapest split guaranteed to be the cheapest possible?",
@@ -161,7 +161,7 @@ export default async function BestBasketPage({ searchParams }: { searchParams: P
             {
               "@context": "https://schema.org",
               "@type": "WebApplication",
-              name: "One Piece Best Basket Optimiser",
+              name: "Magic Best Basket Optimiser",
               url: `${SITE_URL}/tools/best-basket`,
               applicationCategory: "UtilitiesApplication",
               operatingSystem: "Web",

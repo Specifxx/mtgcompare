@@ -3,16 +3,17 @@
 // and the one canonical query string they all write. The URL stays the only
 // source of truth; these are pure so tests/filter-chips.test.ts can pin them.
 //
-// Multi-value filters are written comma-separated (set=op01-romance-dawn,op02-…)
+// Multi-value filters are written comma-separated (set=mh3,one,color=white,blue)
 // but parseBrowse (lib/browse.ts) also reads repeated keys, so an old
-// "?color=red&color=blue" link still works and is rewritten on the next change.
-import { COLORS, PRINTINGS, RARITIES } from "./constants";
+// "?color=white&color=blue" link still works and is rewritten on the next change.
+import { COLORS, FORMAT_LABEL, PRIMARY_TYPE_LABEL, TREATMENT_BY_KEY, rarityLabel, type Format, type PrimaryType } from "./constants";
+import { keywordLabel } from "./keywords";
 
 /** The multi-value keys, in the order chips and the URL list them. */
-export const MULTI_KEYS = ["set", "color", "rarity", "type", "printing"] as const;
+export const MULTI_KEYS = ["set", "color", "rarity", "type", "treat"] as const;
 /** Every key the filter panel writes, in canonical URL order. */
-export const URL_ORDER = ["q", ...MULTI_KEYS, "priced", "min", "max", "sort", "per"] as const;
-export const BROWSE_DEFAULTS: Record<string, string> = { sort: "value", per: "48" };
+export const URL_ORDER = ["q", ...MULTI_KEYS, "cmode", "identity", "finish", "format", "keyword", "priced", "min", "max", "sort", "per"] as const;
+export const BROWSE_DEFAULTS: Record<string, string> = { sort: "value", per: "48", cmode: "any" };
 
 export type ParamsLike = { getAll(key: string): string[]; get(key: string): string | null };
 
@@ -44,7 +45,7 @@ export function canonical(sp: ParamsLike & { keys(): IterableIterator<string> },
   return out;
 }
 
-/** Flip one value of a multi-value key (case-insensitive match, as parseBrowse reads colours). */
+/** Flip one value of a multi-value key (case-insensitive match, as parseBrowse reads colours and rarities). */
 export function toggle(sp: URLSearchParams, key: string, value: string): URLSearchParams {
   const next = new URLSearchParams(sp);
   const cur = values(sp, key);
@@ -63,9 +64,9 @@ export interface Chip {
 }
 
 export interface ChipLabels {
-  /** set slug (or code) → "OP01 Romance Dawn" */
+  /** set slug (or code) → "Modern Horizons 3 (MH3)" */
   set?: (slug: string) => string | undefined;
-  /** "US$", "A$" … for the price chip */
+  /** "US$" for the price chip (the range is on TCGplayer's US market price) */
   symbol: string;
   /** "Australian", "US" … for the "has a listing" chip */
   adjective: string;
@@ -82,10 +83,19 @@ const title = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(
 export function activeChips(sp: ParamsLike, labels: ChipLabels): Chip[] {
   const chips: Chip[] = [];
   for (const v of values(sp, "set")) chips.push({ key: "set", value: v, label: labels.set?.(v) ?? v.toUpperCase() });
-  for (const v of values(sp, "color")) chips.push({ key: "color", value: v, label: COLORS[title(v) as keyof typeof COLORS]?.label ?? title(v) });
-  for (const v of values(sp, "rarity")) chips.push({ key: "rarity", value: v, label: RARITIES[v] ? `${RARITIES[v].label}${RARITIES[v].label === v ? "" : ` (${v})`}` : v });
-  for (const v of values(sp, "type")) chips.push({ key: "type", value: v, label: v });
-  for (const v of values(sp, "printing")) chips.push({ key: "printing", value: v, label: PRINTINGS[v]?.label ?? v });
+  for (const v of values(sp, "color")) chips.push({ key: "color", value: v, label: colorLabel(v) });
+  if (values(sp, "color").length > 1 && (sp.get("cmode") === "exact" || sp.get("cmode") === "within")) chips.push({ key: "cmode", value: "", label: sp.get("cmode") === "exact" ? "Exactly these colors" : "Only these colors" });
+  const id = values(sp, "identity")[0];
+  if (id) chips.push({ key: "identity", value: "", label: `Identity ${id.toLowerCase() === "c" ? "colorless" : id.toUpperCase()}` });
+  for (const v of values(sp, "rarity")) chips.push({ key: "rarity", value: v, label: rarityLabel(v.toUpperCase()) });
+  for (const v of values(sp, "type")) chips.push({ key: "type", value: v, label: PRIMARY_TYPE_LABEL[v.toLowerCase() as PrimaryType] ?? title(v) });
+  for (const v of values(sp, "treat")) chips.push({ key: "treat", value: v, label: TREATMENT_BY_KEY[v]?.label ?? v });
+  const finish = sp.get("finish");
+  if (finish === "foil" || finish === "nonfoil") chips.push({ key: "finish", value: "", label: finish === "foil" ? "Foil prices" : "Non-foil prices" });
+  const format = sp.get("format");
+  if (format) chips.push({ key: "format", value: "", label: `Playable in ${FORMAT_LABEL[format as Format] ?? title(format)}` });
+  const keyword = sp.get("keyword");
+  if (keyword) chips.push({ key: "keyword", value: "", label: keywordLabel(keyword) });
   if (sp.get("priced") === "1") chips.push({ key: "priced", value: "", label: `Has ${withArticle(labels.adjective)} listing` });
   const min = values(sp, "min")[0];
   const max = values(sp, "max")[0];
@@ -96,6 +106,13 @@ export function activeChips(sp: ParamsLike, labels: ChipLabels): Chip[] {
       label: min && max ? `${labels.symbol}${min}–${labels.symbol}${max}` : min ? `From ${labels.symbol}${min}` : `Up to ${labels.symbol}${max}`,
     });
   return chips;
+}
+
+/** "white" -> "White", "multicolor" -> "Multicolor", "w" -> "White". */
+function colorLabel(v: string): string {
+  const w = v.toLowerCase();
+  const named = Object.values(COLORS).find((c) => c.slug === w || c.letter.toLowerCase() === w);
+  return named?.label ?? (w === "colorless" || w === "c" ? "Colorless" : w === "multicolor" || w === "m" ? "Multicolor" : title(v));
 }
 
 /** The query after removing one chip. */

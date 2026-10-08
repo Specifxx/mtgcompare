@@ -12,7 +12,7 @@ import { DECK_WATCH_LIMIT, FREE_DEMAND_ROWS, FREE_PORTFOLIO_LIMIT, FREE_RISING_R
 import { FREE_DEAL_ROWS } from "@/lib/plans";
 
 // /tools — every MTG Compare tool in one place (RiftCompare's /tools hub, its
-// groups, names and FAQ, for One Piece). The badges state who can use each
+// groups, names and FAQ, for Magic). The badges state who can use each
 // tool, the same gating its own page applies. MTG Compare has Plus configured,
 // so RiftCompare's LIST_BADGE is "Plus" here: Deal Finder's full list is Plus;
 // Rising Cards' full list, Best Basket and the full Demand Finder are Premium
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
   alternates: { canonical: "/tools" },
-  keywords: ["magic the gathering tools", "magic the gathering card calculator", "one piece card value calculator", "one piece box ev"],
+  keywords: ["magic the gathering tools", "magic the gathering card calculator", "magic card value calculator", "magic booster box ev"],
   openGraph: pageOg("/tools", {
     title: "Free Magic: The Gathering Tools & Calculators",
     description: "Box EV, deck and list pricing and trade calculators free for everyone, plus Deal Finder, Rising Cards, Best Basket and Demand Finder.",
@@ -50,18 +50,18 @@ const FAQS = [
   },
   {
     q: "What does the Deal Finder do?",
-    a: `It lists every One Piece card a real store sells for less than TCGplayer's US market price, converted into your currency and ranked by how far below it is, and you can filter it by store and, with ${LIST_BADGE}, narrow it to only the cards on your watchlist. Signed out it shows nothing, a free account sees the top ${FREE_DEAL_ROWS}, and ${LIST_BADGE} shows every row.`,
+    a: `It lists every Magic card a real store sells for less than TCGplayer's US market price, converted into your currency and ranked by how far below it is, and you can filter it by store and, with ${LIST_BADGE}, narrow it to only the cards on your watchlist. Signed out it shows nothing, a free account sees the top ${FREE_DEAL_ROWS}, and ${LIST_BADGE} shows every row.`,
   },
   {
     q: "Do I need an account to use MTG Compare tools?",
     a: `Not for most of them. Browsing, comparing prices and running the calculators need no account. A free account adds a watchlist of up to ${FREE_WATCHLIST_LIMIT} cards with new-low alerts, a portfolio of up to ${FREE_PORTFOLIO_LIMIT} cards with a set checklist of what each set is missing, and the top rows of Deal Finder and Rising Cards. Plus adds an unlimited watchlist and portfolio (a whole set fits), every Deal Finder row, target-price alerts, sealed watches on up to ${SEALED_WATCH_LIMIT_PLUS} products (an alert when a box is back in stock or at RRP) and an ad-free site; Premium adds Best Basket (the store-by-store plan, at the minimum condition you set), every Rising Cards pick, the full Demand Finder and a deck price watch (a saved list re-priced delivered after every update, up to ${DECK_WATCH_LIMIT} lists).`,
   },
   {
-    q: "Which One Piece tool should I use to buy a whole decklist?",
+    q: "Which Magic tool should I use to buy a whole decklist?",
     a: "Best Basket. It searches store combinations for the lowest total including postage, and shows the best one-store and two-store orders beside it, with which store to buy each card from. It is a Premium tool.",
   },
   {
-    q: "Is a One Piece booster box worth opening?",
+    q: "Is a Magic booster box worth opening?",
     a: "Use the box EV calculator: it compares a sealed box's live price against the expected value of its pulls at current singles prices. Bandai publishes no pull rates, so its rates are community estimates set low on purpose, and you can change every one. As a rule, buying the singles you actually want is cheaper than opening product for them.",
   },
 ];

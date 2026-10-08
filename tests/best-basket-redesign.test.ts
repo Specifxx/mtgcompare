@@ -667,7 +667,7 @@ test("skipOwned subtracts owned copies (and doesn't apply to the binder itself),
     source: "watchlist", skipOwned: BASKET_COLLECTION_SOURCES, text: "", picked: [], ids: ["12", "13"], minCondition: "any", saveMinCondition: false,
     setSlug: "", scope: "base", rarity: null, maxPriceCents: null, after: null,
   });
-  assert.equal(parseBasketRequest({ source: "deck", skipOwned: true, text: "1 Nami" }).skipOwned, BASKET_COLLECTION_SOURCES);
+  assert.equal(parseBasketRequest({ source: "deck", skipOwned: true, text: "1 Sol Ring" }).skipOwned, BASKET_COLLECTION_SOURCES);
   assert.equal(parseBasketRequest({ source: "binder", skipOwned: true }).skipOwned, false, "the binder prices replacement; skip is ignored");
   assert.equal(parseBasketRequest({ source: "nonsense" }).source, "deck");
   assert.equal(parseBasketRequest(null).skipOwned, false);

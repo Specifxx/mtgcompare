@@ -92,6 +92,15 @@ export async function getDealList(country: Country, q: Partial<DealQuery>, who: 
   return { ...s, rows: s.rows.map(rowOf(country)) };
 }
 
+/** The 1-based position of each given unit in the DEFAULT ranking (default store set, sort "saving"); a unit that is not on the list is absent. Returns positions of the caller's own ids, never a row, a price or a gap
+ *  (REQ-WP18-1): premium-nudge.ts folds them into counts. Tier-neutral, so it takes no `who`. At most WATCH_LIST_CAP * 2 uids. */
+export async function getDealRanksOf(country: Country, uids: readonly number[]): Promise<Map<number, number>> {
+  const out = new Map<number, number>(); if (!uids.length) return out;
+  const want = new Set(uids), ranking = await rankingOf(country, "saving", undefined);
+  for (let i = 0; i < ranking.length && out.size < want.size; i++) if (want.has(ranking[i]![0])) out.set(ranking[i]![0], i + 1);
+  return out;
+}
+
 /** Free: the number only (the home page, the upsell line), from hm/home.json. */
 export async function getDealCount(country: Country): Promise<number> {
   const h = await planeJson<HomeFile>("hm/home.json"); return h.dealCounts[marketIndex(country)] ?? 0;

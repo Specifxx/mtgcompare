@@ -9,7 +9,7 @@ import { RelatedGuides } from "@/components/RelatedGuides";
 import { guidesForTool } from "@/lib/content/tool-guides";
 
 // /tools/selling-fees — net proceeds after marketplace fees (RiftCompare's
-// selling fee calculator, verbatim, for One Piece).
+// selling fee calculator, verbatim, for Magic).
 //
 // It replaces MTG Compare's wave-1 per-market fee schedules (wave-2 plan, Track 3
 // item 4). RiftCompare's rule stands: the tool never prints a "current"
@@ -17,7 +17,7 @@ import { guidesForTool } from "@/lib/content/tool-guides";
 // from their dashboard, and we do the stacked-fee math. Pure: no data reads.
 export const revalidate = 86400;
 
-const TITLE = "One Piece Selling Fee Calculator — Net Proceeds | MTG Compare";
+const TITLE = "Magic: The Gathering Selling Fee Calculator — Net Proceeds | MTG Compare";
 const DESCRIPTION =
   "Calculate your real net payout after TCGplayer or eBay fees on a Magic: The Gathering card sale — commission, payment processing and shipping, all stacked correctly.";
 
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "/tools/selling-fees" },
   openGraph: pageOg("/tools/selling-fees", {
-    title: "One Piece Selling Fee Calculator",
+    title: "Magic: The Gathering Selling Fee Calculator",
     description: "Real net payout after marketplace fees — commission, processing and shipping, stacked correctly.",
   }),
 };
@@ -61,7 +61,7 @@ export default function SellingFeesPage() {
   const appLd = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: "One Piece Selling Fee Calculator",
+    name: "Magic: The Gathering Selling Fee Calculator",
     url: `${SITE_URL}/tools/selling-fees`,
     applicationCategory: "UtilitiesApplication",
     operatingSystem: "Web",
@@ -82,7 +82,7 @@ export default function SellingFeesPage() {
 
       <Breadcrumbs trail={[{ href: "/tools", name: "Tools" }, { name: "Selling Fee Calculator" }]} />
       <div className="mb-5">
-        <h1 className="font-display text-2xl font-extrabold text-white sm:text-3xl">One Piece Selling Fee Calculator</h1>
+        <h1 className="font-display text-2xl font-extrabold text-white sm:text-3xl">Magic: The Gathering Selling Fee Calculator</h1>
         <HubIntro path="/tools/selling-fees" />
       </div>
 

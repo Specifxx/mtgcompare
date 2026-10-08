@@ -22,7 +22,7 @@ import {
 
 // scripts/probe-shipping-rates.ts measures real checkout postage per store
 // (RiftCompare's probe, after an Adelaide customer was shown $2 postage and
-// quoted $20, 2026-09-25; ported for OP Compare's stores). These pin the pure half.
+// quoted $20, 2026-09-25; ported for MTG Compare's stores). These pin the pure half.
 
 // ── Addresses and scenarios ─────────────────────────────────────────────────
 
@@ -209,31 +209,31 @@ const cand = (id: number, cents: number, tier: 0 | 1 = 0): CartCandidate => ({ i
 
 test("candidateTier: in-stock singles in, playsets as fallback, slabs/sealed/out-of-stock out", () => {
   const base = { available: true, priceCents: 99 };
-  assert.equal(candidateTier({ ...base, productTitle: "Nami - OP01-016 - Rare" }), 0);
-  assert.equal(candidateTier({ ...base, productTitle: "PLAYSET (4) 4x Nami OP01-016" }), 1);
-  assert.equal(candidateTier({ ...base, productTitle: "Shanks OP01-120 PSA 10" }), null);
-  assert.equal(candidateTier({ ...base, productTitle: "Romance Dawn Booster Box [OP-01]" }), null);
-  assert.equal(candidateTier({ ...base, available: false, productTitle: "Nami - OP01-016" }), null);
-  assert.equal(candidateTier({ ...base, priceCents: 0, productTitle: "Nami - OP01-016" }), null);
-  assert.equal(candidateTier({ ...base, requiresShipping: false, productTitle: "Nami - OP01-016" }), null);
+  assert.equal(candidateTier({ ...base, productTitle: "Lightning Bolt (M11) 149 - Common" }), 0);
+  assert.equal(candidateTier({ ...base, productTitle: "PLAYSET (4) 4x Counterspell (MH2) 267" }), 1);
+  assert.equal(candidateTier({ ...base, productTitle: "The One Ring (LTR) 246 PSA 10" }), null);
+  assert.equal(candidateTier({ ...base, productTitle: "Modern Horizons 2 Draft Booster Box" }), null);
+  assert.equal(candidateTier({ ...base, available: false, productTitle: "Sol Ring (C21) 263" }), null);
+  assert.equal(candidateTier({ ...base, priceCents: 0, productTitle: "Sol Ring (C21) 263" }), null);
+  assert.equal(candidateTier({ ...base, requiresShipping: false, productTitle: "Sol Ring (C21) 263" }), null);
   // Sealed titles without "box"/"pack": a parcel, not a card.
-  assert.equal(candidateTier({ ...base, productTitle: "One Piece Card Game - Starter Deck 01: Straw Hat Crew [ST-01]" }), null);
-  assert.equal(candidateTier({ ...base, productTitle: "One Piece Card Game Premium Card Collection - Best Selection Vol.2" }), null);
-  assert.equal(candidateTier({ ...base, productTitle: "One Piece Card Game - Double Pack Set Vol.5 [DP-05]" }), null);
-  assert.equal(candidateTier({ ...base, productTitle: "One Piece Card Game Gift Collection 2024" }), null);
-  // …but a single from a starter deck is still a single (it names its number).
-  assert.equal(candidateTier({ ...base, productTitle: "Monkey.D.Luffy - ST01-001 (Starter Deck 01) - NM" }), 0);
-  assert.equal(candidateTier({ ...base, productTitle: "Roronoa Zoro (Parallel) [Romance Dawn] OP01-025" }), 0);
+  assert.equal(candidateTier({ ...base, productTitle: "Magic: The Gathering - Commander Deck - Eldrazi Unbound" }), null);
+  assert.equal(candidateTier({ ...base, productTitle: "Magic: The Gathering Secret Lair Drop - Bob Ross" }), null);
+  assert.equal(candidateTier({ ...base, productTitle: "Magic: The Gathering - Intro Pack - Wilds of Eldraine" }), null);
+  assert.equal(candidateTier({ ...base, productTitle: "Magic: The Gathering Gift Collection 2024" }), null);
+  // …but a single from a commander deck is still a single (it names its set and number).
+  assert.equal(candidateTier({ ...base, productTitle: "Arcane Signet (C21) 235 (Commander Deck) - NM" }), 0);
+  assert.equal(candidateTier({ ...base, productTitle: "Birds of Paradise (Retro Frame) [7th Edition] (7ED) 231" }), 0);
   // Playmats, sleeves, dice, figures, Japanese cards and event entries.
-  assert.equal(candidateTier({ ...base, productTitle: "One Piece Card Game Official Playmat - Luffy" }), null);
-  assert.equal(candidateTier({ ...base, productTitle: "One Piece Official Sleeves - Zoro (70)" }), null);
+  assert.equal(candidateTier({ ...base, productTitle: "Magic: The Gathering Official Playmat - Jace" }), null);
+  assert.equal(candidateTier({ ...base, productTitle: "Magic: The Gathering Official Sleeves - Chandra (70)" }), null);
   assert.equal(candidateTier({ ...base, productTitle: "Mystery Dice Set – Random 7-Piece Polyhedral Dice with Dice Bag" }), null);
-  assert.equal(candidateTier({ ...base, productTitle: "Events - One Piece Store Treasure Cup - Saturday" }), null);
-  assert.equal(candidateTier({ ...base, productTitle: "Nami OP01-016 Japanese" }), null);
+  assert.equal(candidateTier({ ...base, productTitle: "Events - Friday Night Magic - Saturday" }), null);
+  assert.equal(candidateTier({ ...base, productTitle: "Lightning Bolt (STA) 42 Japanese" }), null);
   // EU stores' own words for playmats and sleeves.
-  assert.equal(candidateTier({ ...base, productTitle: "Tapete One Piece — Luffy", variantTitle: "English / Normal" }), null);
-  assert.equal(candidateTier({ ...base, productTitle: "Fundas One Piece (70) – Nami", variantTitle: "English / Normal" }), null);
-  assert.equal(candidateTier({ ...base, productTitle: "Nami (OP01-016) Near Mint Englisch" }), 0);
+  assert.equal(candidateTier({ ...base, productTitle: "Tapete Magic — Jace", variantTitle: "English / Normal" }), null);
+  assert.equal(candidateTier({ ...base, productTitle: "Fundas Magic (70) – Chandra", variantTitle: "English / Normal" }), null);
+  assert.equal(candidateTier({ ...base, productTitle: "Counterspell (MH2) 267 Near Mint Englisch" }), 0);
 });
 
 test("count scenarios take the cheapest distinct singles, playsets only when singles run out", () => {
@@ -340,12 +340,12 @@ test("summary ignores carts in the wrong currency and re-used carts", () => {
 
 // ── Discovery and politeness ────────────────────────────────────────────────
 
-test("sitemap fallback keeps One Piece singles handles only", () => {
-  assert.equal(isMagicSinglesHandle("one-piece-singles"), true);
-  assert.equal(isMagicSinglesHandle("one-piece-romance-dawn-singles"), true);
-  assert.equal(isMagicSinglesHandle("one-piece-booster-box"), false);
-  assert.equal(isMagicSinglesHandle("all-singles-one-piece-pokemon-riftbound"), false);
-  assert.equal(isMagicSinglesHandle("one-piece-starter-decks"), false);
+test("sitemap fallback keeps Magic singles handles only", () => {
+  assert.equal(isMagicSinglesHandle("magic-the-gathering-singles"), true);
+  assert.equal(isMagicSinglesHandle("mtg-singles-modern-horizons-2"), true);
+  assert.equal(isMagicSinglesHandle("magic-the-gathering-booster-box"), false);
+  assert.equal(isMagicSinglesHandle("all-singles-magic-pokemon-one-piece"), false);
+  assert.equal(isMagicSinglesHandle("mtg-commander-decks"), false);
   assert.equal(isMagicSinglesHandle("pokemon-paradox-rift"), false);
 });
 

@@ -19,7 +19,7 @@ export interface HomeDeal {
   slug: string;
   title: string;
   variant: string | null;
-  subtitle: string; // "OP05 · OP05-119"
+  subtitle: string; // "M11 · 149"
   hasImage: boolean;
   priceCents: number; // in the market's currency
   approx: boolean; // true when the price is TCGplayer's converted reference (no listing here)

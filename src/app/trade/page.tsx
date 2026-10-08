@@ -11,7 +11,7 @@ import { SITE_URL } from "@/lib/site";
 // description, intro and JSON-LD is what components/TradeCalculator.tsx does:
 // each card valued at the cheapest in-stock store price for the visitor's
 // market and currency, with a per-card override or a specific store's price.
-const TITLE = "One Piece Trade Calculator: Fair Trade Values";
+const TITLE = "Magic: The Gathering Trade Calculator: Fair Trade Values";
 const DESCRIPTION =
   "Compare Magic: The Gathering trade values: both sides priced at the cheapest in-stock store price in your market and currency, so you know a trade is fair.";
 
@@ -37,7 +37,7 @@ export default function TradePage() {
     description:
       "A free Magic: The Gathering trade calculator: add the cards on each side of a trade and compare their total value at the cheapest in-stock store price in your market and currency.",
     featureList: [
-      "Add One Piece cards to each side of a trade and compare the two totals",
+      "Add Magic cards to each side of a trade and compare the two totals",
       "Each card valued at the cheapest in-stock store price in your market",
       "Prices in USD, AUD, GBP, SGD, CAD or EUR",
       "Type your own value for any card, or pick a specific store's price",
@@ -47,7 +47,7 @@ export default function TradePage() {
     <div className="mx-auto max-w-4xl">
       <Breadcrumbs trail={[{ href: "/tools", name: "Tools" }, { name: "Trade Calculator" }]} />
       <header className="mb-5">
-        <h1 className="font-display text-3xl font-extrabold text-white">One Piece Trade Calculator</h1>
+        <h1 className="font-display text-3xl font-extrabold text-white">Magic: The Gathering Trade Calculator</h1>
         <p className="mt-1 text-slate-400">
           Trading cards at locals? Add each side&apos;s cards below to compare their total value at a glance. Every
           card is priced at the cheapest in-stock store price in your market and currency — tap a value to type your

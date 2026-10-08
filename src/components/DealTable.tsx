@@ -30,7 +30,7 @@ function CardCell({ card }: { card: DealCard }) {
           <span className="block truncate font-semibold text-white">{card.name}</span>
           {card.variant ? <span className="block truncate text-[11px] text-slate-400">{card.variant}</span> : null}
           <span className="block truncate text-[11px] text-slate-500">
-            {card.setCode} · {card.number ?? "DON!!"}
+            {card.setCode} · {card.number ?? "—"}
           </span>
         </span>
       </CardQuickLink>

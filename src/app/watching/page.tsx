@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth";
+import { currentEntitlement, getCurrentUser } from "@/lib/auth";
 import { Watchlist, LocalSealedSection } from "@/components/Watchlist";
 import { NavIcon } from "@/components/NavIcon";
 import { PremiumNudgeCard } from "@/components/PremiumNudgeCard";
@@ -10,7 +10,7 @@ import { isPremium, tierOf } from "@/lib/premium";
 import { DECK_WATCH_LIMIT, PLUS_TARGET_ALERT_LIMIT, SEALED_CHECK_CADENCE, SEALED_WATCH_LIMIT_PLUS, sealedWatchLimit } from "@/lib/alert-limits";
 import { getCountry } from "@/lib/get-country";
 import { FREE_WATCHLIST_LIMIT } from "@/lib/free-limits";
-import { getEmailStatus, getSealedCatalog } from "@/lib/data";
+import { getEmailStatus, getSealedByIds } from "@/lib/data";
 import { sealedWatchCount, watchedSealedIds } from "@/lib/sealed-watch";
 import { SealedWatchList, type SealedWatchName } from "@/components/SealedWatchList";
 import PlanButton from "@/components/PlanButton";
@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "My watchlist — cards you're tracking",
-  description: `Every One Piece Card Game card you're watching on ${SITE_NAME}, with the price you started tracking at.`,
+  description: `Every Magic: The Gathering card you're watching on ${SITE_NAME}, with the price you started tracking at.`,
   // Personal page: never indexed, and deliberately NOT disallowed in
   // robots.txt either — a Disallow would stop Google seeing this noindex.
   robots: { index: false, follow: false },
@@ -48,19 +48,19 @@ export default async function WatchingPage() {
   const emailOn = (await getEmailStatus()) === "on";
   // What Deal Finder says about THIS account's watched cards — a Plus upsell
   // for a free account, a link into the list for a member. Never fails the page.
-  const nudge = await getPremiumNudge(user.id, country).catch(() => null);
+  const nudge = await getPremiumNudge(user.id, country, await currentEntitlement()).catch(() => null);
   const nudgeCopy = nudge ? watchedNudgeCopy(nudge, "watched", member ? "member" : "free", emailOn) : null;
 
   // A LAPSED owner keeps their sealed watches (nothing is checked), and must
   // be able to see and stop them: one indexed count, only when not entitled.
   const lapsedSealed = member ? 0 : await sealedWatchCount(user.id);
-  // Names for the sealed watches, from the self-cached sealed catalogue
+  // Names for the sealed watches, from the published sealed lists
   // (called directly, never wrapped), limited to the products watched.
   const sealedNames: Record<number, SealedWatchName> = {};
   if (member || lapsedSealed > 0) {
-    const [ids, catalog] = await Promise.all([watchedSealedIds(user.id), getSealedCatalog().catch(() => [])]);
-    const want = new Set(ids);
-    for (const s of catalog) if (want.has(s.id)) sealedNames[s.id] = { name: s.name, slug: s.slug, low: s.low };
+    const ids = await watchedSealedIds(user.id);
+    const catalog = await getSealedByIds(ids).catch(() => new Map<number, { name: string; slug: string; low: SealedWatchName["low"] }>());
+    for (const [id, s] of catalog) sealedNames[id] = { name: s.name, slug: s.slug, low: s.low };
   }
   const sealedLimit = sealedWatchLimit(tier);
   const tell = emailOn ? "email you" : "tell you";

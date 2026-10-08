@@ -29,7 +29,7 @@ export default async function AdminEbay() {
         <h1 className="text-3xl text-white">eBay budget</h1>
         <Light level={level} />
       </div>
-      <p className="max-w-3xl text-sm text-slate-400">eBay prices are fetched script-side from GitHub Actions twice a day. They live in Neon only (never in the data repository) and are shown in their own labelled block.</p>
+      <p className="max-w-3xl text-sm text-slate-400">eBay prices are fetched script-side from GitHub Actions on a schedule (ebay-prices.yml). They live in Neon only (never in the data repository) and are shown in their own labelled block.</p>
       {error ? <EmptyState title="Couldn't load the ledger" body={error} /> : !b || !t ? <EmptyState title="No eBay run recorded yet" body="eBay is off until both client secrets exist in GitHub Actions; the first run writes the ledger." /> : (
         <>
           <Rows

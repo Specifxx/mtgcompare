@@ -68,22 +68,22 @@ export function tradeGremlin(giveCents: number, getCents: number, currency: stri
 const ROASTS: Record<TradeTone, ((amt: string) => string)[]> = {
   donation: [
     () => "One column's empty. That's not a trade, that's a birthday present. Put something on the other side before you hand anything over.",
-    () => "Nothing coming back? Even Buggy charges admission. Add their cards first, then we talk.",
+    () => "Nothing coming back? Even a Mox charges admission. Add their cards first, then we talk.",
   ],
   fair: [
     (amt) => `${amt} apart. The gremlin came here for drama and found a perfectly fair trade. Disappointing. Take it. 🤝`,
     (amt) => `Within ${amt} — that's a rounding error with a handshake. Nobody's getting robbed today. Take it.`,
-    (amt) => `Only ${amt} between you. Dead even, like a Leader mirror match. Shake on it.`,
+    (amt) => `Only ${amt} between you. Dead even, like a mirror match. Shake on it.`,
   ],
   robbed: [
-    (amt) => `You're ${amt} down and they're smiling like they've found the One Piece. Push for more or walk away. 🚨`,
-    (amt) => `${amt} out of your pocket? The gremlin has seen fairer deals from the Celestial Dragons. Make them sweeten it.`,
+    (amt) => `You're ${amt} down and they're smiling like they've found a Black Lotus. Push for more or walk away. 🚨`,
+    (amt) => `${amt} out of your pocket? The gremlin has seen fairer deals from a Goblin Welder. Make them sweeten it.`,
     (amt) => `This trade costs you ${amt}. Protect your binder — ask for another card or walk.`,
   ],
   winning: [
     (amt) => `You're ${amt} up. Sign it before they check the prices — the gremlin saw nothing. Take it. 💰`,
-    (amt) => `${amt} in your favour. That's a Treasure Rare of a deal. Take it, and maybe buy them a drink.`,
-    (amt) => `Up ${amt}. Nami would be proud. Take it before anyone opens a price guide.`,
+    (amt) => `${amt} in your favour. That's a Mythic Rare of a deal. Take it, and maybe buy them a drink.`,
+    (amt) => `Up ${amt}. Karn would be proud. Take it before anyone opens a price guide.`,
   ],
 };
 

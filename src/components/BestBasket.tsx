@@ -419,13 +419,13 @@ export function BestBasket({
                 setPasteText(e.target.value);
               }}
               rows={6}
-              placeholder={"4xOP01-024\n4 Nami (OP01-016)\nRoronoa Zoro"}
+              placeholder={"4 Lightning Bolt (M11) 149\n1 Sol Ring (C21) 263\n2 Counterspell"}
               className="input font-mono sm:text-sm"
             />
             {overCap && <CapNote lines={listLines} picked={picked.length} />}
 
             <label className="mb-1 mt-4 block text-xs font-medium text-slate-400">…or search for a card and add it</label>
-            <CardPicker placeholder="e.g. Monkey.D.Luffy or OP01-024" onPick={addCard} />
+            <CardPicker placeholder="e.g. Lightning Bolt or Sol Ring (C21)" onPick={addCard} />
             {picked.length > 0 && (
               <ul className="mt-3 divide-y divide-ink-800 rounded-lg border border-ink-800">
                 {picked.map((p) => (
@@ -1203,7 +1203,7 @@ function FullResultView({
               <span className="text-xs text-slate-400">
                 {fmt(s.subtotalCents)}
                 {s.freeShipping ? (
-                  <span className="ml-1 text-brand-400">+ {freePrefix(s.postage)}free postage</span>
+                  <span className="ml-1 text-emerald-400">+ {freePrefix(s.postage)}free postage</span>
                 ) : (
                   <span className="ml-1 text-slate-500">
                     + {postagePrefix(s.postage)}

@@ -12,7 +12,7 @@ import { money } from "@/lib/format";
 // per-market rows are the card page's own cheapest open offers. eBay rows are
 // left out of the picker: a trade is valued at store prices.
 
-/** "Monkey.D.Luffy (Parallel)": the printing in the name, so same-name cards are distinguishable. */
+/** "Lightning Bolt (Extended Art)": the printing in the name, so same-name cards are distinguishable. */
 function cardDisplayName(name: string, c: { variant?: string | null }): string {
   return c.variant ? `${name} (${c.variant})` : name;
 }
@@ -27,7 +27,7 @@ interface TradeCard {
   name: string;
   setCode: string;
   collectorNumber: string;
-  // The printing, so same-name cards (standard vs Parallel vs Manga) are
+  // The printing, so same-name cards (standard vs Extended Art vs Showcase) are
   // distinguishable in the name — see cardDisplayName().
   variant?: string | null;
   imageThumbUrl: string | null;

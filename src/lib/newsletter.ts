@@ -1,5 +1,7 @@
 import { randomUUID } from "crypto";
 import { prisma } from "./db";
+import { getCatalogStats, getHomeStats, getMovers, getNewestCards, getDemandStrip, getUpcomingSets } from "./data";
+import type { CardLite } from "./data/types";
 import { sendNewsletterDigestEmail, isEmailEnabled, escapeHtml, EMAIL_COLORS } from "./email";
 import { money, usd } from "./format";
 import { COUNTRIES, MARKETS, normalizeCountry, type Country } from "./country";
@@ -101,63 +103,29 @@ export function digestMovers(cards: readonly DigestCard[], take = 8): PriceMover
   return { spiking: spiking.filter((m) => m.pct !== 0), plummeting: plummeting.filter((m) => m.pct !== 0), value: value.filter((m) => m.pct !== 0) };
 }
 
-const CARD_SELECT = {
-  id: true,
-  slug: true,
-  name: true,
-  number: true,
-  variant: true,
-  marketUsd: true,
-  change7d: true,
-  high90Usd: true,
-  lowUS: true,
-  lowAU: true,
-  lowUK: true,
-  lowSG: true,
-  lowCA: true,
-  lowEU: true,
-  set: { select: { code: true } },
-} as const;
-
-type CardRow = {
-  id: number;
-  slug: string;
-  name: string;
-  number: string | null;
-  variant: string | null;
-  marketUsd: number | null;
-  change7d: number | null;
-  high90Usd: number | null;
-  set: { code: string };
-} & Record<`low${Country}`, number | null>;
-
-function toDigestCard(r: CardRow): DigestCard {
-  const low: Partial<Record<Country, number | null>> = {};
-  for (const m of MARKETS) low[m] = r[`low${m}`];
-  return { id: r.id, slug: r.slug, name: r.name, number: r.number, variant: r.variant, setCode: r.set.code, marketUsd: r.marketUsd, change7d: r.change7d, high90Usd: r.high90Usd, low };
+function toDigestCard(c: CardLite): DigestCard {
+  return { id: c.id, slug: c.slug, name: c.name, number: c.number, variant: c.variant, setCode: c.setCode, marketUsd: c.marketUsd, change7d: c.change7d, high90Usd: c.high90Usd, low: c.low };
 }
 
-/** The cards that can move: worth US$1+ with a 7-day change or a 90-day high. One narrow read per run. */
+/**
+ * The cards that can move: worth US$1+ with a 7-day change or a 90-day high.
+ * The published mover lists (up and down over 7 days, down over 30) cover the
+ * three digest sections; a card is kept once. The headline unit of each card.
+ */
 export async function loadDigestCards(): Promise<DigestCard[]> {
-  const rows = await prisma.card.findMany({
-    where: { marketUsd: { gte: MOVER_MIN_USD_CENTS }, OR: [{ change7d: { not: null } }, { high90Usd: { not: null } }] },
-    select: CARD_SELECT,
-    take: 20000,
-  });
-  return (rows as unknown as CardRow[]).map(toDigestCard);
+  const lists = await Promise.all([
+    getMovers({ dir: "up", window: 7, minCents: MOVER_MIN_USD_CENTS, n: 100 }),
+    getMovers({ dir: "down", window: 7, minCents: MOVER_MIN_USD_CENTS, n: 100 }),
+    getMovers({ dir: "down", window: 30, minCents: VALUE_MIN_USD_CENTS, n: 100 }),
+  ]);
+  const seen = new Map<number, CardLite>();
+  for (const c of lists.flat()) if (!seen.has(c.id)) seen.set(c.id, c);
+  return [...seen.values()].map(toDigestCard);
 }
 
-/** Cards TCGplayer listed for the first time in the last 7 days. */
-export async function recentNewCards(now = new Date()): Promise<DigestCard[]> {
-  const rows = await prisma.card
-    .findMany({
-      where: { firstSeen: { gte: new Date(now.getTime() - 7 * 86400_000) } },
-      orderBy: [{ marketUsd: { sort: "desc", nulls: "last" } }, { id: "asc" }],
-      take: 12,
-      select: CARD_SELECT,
-    })
-    .catch(() => []);
-  return (rows as unknown as CardRow[]).map(toDigestCard);
+/** The newest cards in the catalogue (the newest set first): what the digest calls new this week. */
+export async function recentNewCards(): Promise<DigestCard[]> {
+  return (await getNewestCards(12).catch(() => [] as CardLite[])).map(toDigestCard);
 }
 
 const C = EMAIL_COLORS;
@@ -292,31 +260,18 @@ function releasesSection(list: NonNullable<DigestExtras["releases"]>): string {
     .join("")}`;
 }
 
-const STORE_FRESH_MS = 72 * 3600_000;
-
 /** Load every extra section for one market. Each source fails on its own. */
 export async function loadDigestExtras(market: Country, now = new Date(), opts: { sponsor?: boolean } = {}): Promise<DigestExtras> {
   const quiet = <T,>(p: Promise<T>): Promise<T | null> => p.catch(() => null);
-  const lowKey = `low${market}` as const;
-  const [priced, stores, popular, sets] = await Promise.all([
-    quiet(prisma.card.count({ where: { [lowKey]: { not: null } } })),
-    quiet(
-      prisma.offer.groupBy({
-        by: ["source"],
-        where: { market, inStock: true, source: { startsWith: "store:" }, updatedAt: { gt: new Date(now.getTime() - STORE_FRESH_MS) } },
-      }),
-    ),
-    quiet(prisma.card.findMany({ where: { searchCount: { gt: 0 } }, orderBy: [{ searchCount: "desc" }, { id: "asc" }], take: 5, select: CARD_SELECT })),
-    quiet(prisma.set.findMany({ where: { releasedOn: { gte: now } }, orderBy: { releasedOn: "asc" }, take: 2, select: { name: true, slug: true, releasedOn: true } })),
-  ]);
+  const [catalog, home, popular, sets] = await Promise.all([quiet(getCatalogStats()), quiet(getHomeStats()), quiet(getDemandStrip().then((d) => d.rows.slice(0, 5).map((r) => r.card))), quiet(getUpcomingSets(2))]);
   const today = now.toISOString().slice(0, 10);
   return {
-    stats: priced != null ? { priced, liveStores: stores ? stores.length : null } : null,
-    popular: ((popular ?? []) as unknown as CardRow[]).map(toDigestCard),
+    stats: catalog ? { priced: catalog.pricedByMarket[market] ?? 0, liveStores: home ? home.liveStoresAll : null } : null,
+    popular: (popular ?? []).map(toDigestCard),
     releases: (sets ?? [])
       .filter((s) => s.releasedOn)
       .map((s) => {
-        const date = s.releasedOn!.toISOString().slice(0, 10);
+        const date = s.releasedOn!.slice(0, 10);
         return { name: s.name, date, daysAway: Math.round((Date.parse(`${date}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86400_000), href: `/sets/${s.slug}` };
       }),
     ...(opts.sponsor ? { sponsor: sponsorFor(market, now) ?? "house" } : {}),
@@ -382,7 +337,7 @@ export async function runNewsletterDigest(now = new Date()): Promise<NewsletterR
 
   // Movers and new cards are market-independent: read once per run.
   const movers = digestMovers(await loadDigestCards());
-  const newCards = await recentNewCards(now);
+  const newCards = await recentNewCards();
   const digests = new Map<Country, Digest | null>();
   for (const sub of due) {
     const market = normalizeCountry(sub.market);

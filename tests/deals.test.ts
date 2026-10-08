@@ -274,11 +274,11 @@ test("every deal cache entry stays well under the 2 MB Data Cache item ceiling",
   const mins = JSON.stringify(Array.from({ length: 15000 }, (_, i) => [600000 + i, 123456])).length;
   assert.ok(mins < 400_000, `getStoreMins at 15k cards is ${mins} bytes`);
   // getDealOffers: 25 cards × 80 listings (its take bound) with long URLs.
-  const url = "https://www.example-store.com.au/products/one-piece-card-game-op05-119-monkey-d-luffy-manga-alternate-art-secret-rare-english?variant=1234567890123";
+  const url = "https://www.example-store.com.au/products/magic-the-gathering-the-one-ring-lord-of-the-rings-tales-of-middle-earth-246-borderless-showcase-near-mint-english?variant=1234567890123";
   const offers = JSON.stringify(
     Array.from({ length: 25 }, (_, i) => ({
       id: 600000 + i,
-      tcgplayerUrl: "https://www.tcgplayer.com/product/600000/one-piece-card-game-awakening-of-the-new-era-monkey-d-luffy-119-manga",
+      tcgplayerUrl: "https://www.tcgplayer.com/product/600000/magic-the-gathering-lord-of-the-rings-tales-of-middle-earth-the-one-ring",
       stores: Array.from({ length: 80 }, (_, k) => ({ source: `store:somestore${k}`, priceCents: 123456, url, condition: "Lightly Played" })),
       ebay: [{ id: 600000 + i, priceCents: 1234, shippingCents: 500, url }],
     })),
