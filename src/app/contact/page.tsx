@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ContactForm } from "@/components/ContactForm";
 import { StaticPage } from "@/components/StaticPage";
-import { CONTACT_EMAIL } from "@/lib/site";
+import { CONTACT_EMAIL, SITE_NAME } from "@/lib/site";
+import { pageOg } from "@/lib/og/meta";
 
 export const metadata: Metadata = {
   title: "Contact & Feedback",
-  description: "Get in touch with OP Compare.",
+  description: `Get in touch with ${SITE_NAME}.`,
   alternates: { canonical: "/contact" },
+  openGraph: pageOg("/contact"),
 };
 
 export default function Contact() {
@@ -28,8 +30,8 @@ export default function Contact() {
       </p>
       <h2>Stores</h2>
       <p>
-        Stores on Shopify or ShadowPOS whose One Piece singles carry the card number in the
-        title (for example “OP01-120”) can usually be added within a day.{" "}
+        Online stores that sell Magic singles and name the set and collector number
+        in the product title or SKU can usually be added within a day.{" "}
         <Link href="/stores/suggest">Suggest a store</Link> with its address and
         the market it ships to.
       </p>

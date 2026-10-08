@@ -1,6 +1,7 @@
 import SealedQuickLink from "./SealedQuickLink";
 import type { Country } from "@/lib/country";
 import type { SealedLite } from "@/lib/data";
+import { tcgplayerImage } from "@/lib/images";
 import { money } from "@/lib/format";
 import { headline } from "@/lib/price";
 import { SealedWatchButton } from "./SealedWatchButton";
@@ -15,18 +16,14 @@ export function SealedTile({ s, country, setCode, soldOut = false }: { s: Sealed
         <span className="absolute right-2 top-2 z-[1]">
           <SealedWatchButton sealedId={s.id} slug={s.slug} name={s.name} compact />
         </span>
-        {s.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={s.imageUrl.replace("_in_1000x1000", "_400w")} alt={`${s.name} One Piece sealed product`} loading="lazy" className="mx-auto aspect-square w-full object-contain" />
-        ) : (
-          <div className="grid aspect-square place-items-center text-xs text-slate-500">No image</div>
-        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={tcgplayerImage(s.id, "400w")} alt={`${s.name} Magic: The Gathering sealed product`} loading="lazy" className="mx-auto aspect-square w-full object-contain" />
       </div>
       <div className="flex flex-1 flex-col gap-1 p-3">
         {soldOut ? <span className="chip w-fit bg-red-500/15 text-[10px] font-bold uppercase tracking-wide text-red-400">Sold out at every store we track</span> : null}
         <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-white">{s.name}</h3>
         <p className="text-xs text-slate-400">
-          {setCode ?? "One Piece"}
+          {setCode ?? "Magic"}
           {s.presale ? " · pre-order" : ""}
         </p>
         <div className="mt-auto flex items-end justify-between gap-2 pt-2">

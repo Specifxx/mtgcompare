@@ -12,7 +12,8 @@ import { InlineSignupPrompt } from "./InlineSignupPrompt";
 import { DATA_TABLE } from "./prose";
 import { COUNTRIES, MARKETS, type Country } from "@/lib/country";
 import { outboundRel } from "@/lib/affiliate";
-import { encodeDeckParam, formatDeckLine, DECK_LINE_CAP, DECK_SIZE, COPY_LIMIT, QTY_CAP } from "@/lib/deck";
+import { encodeDeckParam, formatDeckLine, formatDeckList, DECK_LINE_CAP, DECK_FORMATS, QTY_CAP } from "@/lib/deck";
+import { FORMAT_UI, type Format } from "@/lib/constants";
 import type { DeckPriceResult, DeckLineOut } from "@/lib/deck-price";
 import { money } from "@/lib/format";
 import { cardImage } from "@/lib/images";
@@ -20,46 +21,37 @@ import { usdCentsToCountry } from "@/lib/fx";
 import { trackEvent } from "@/lib/analytics";
 import { FREE_WATCHLIST_LIMIT } from "@/lib/free-limits";
 
-// The deck builder and list pricer — the free, no-account tool behind /deck
-// (RiftCompare's DeckBuilder, for One Piece). Since RiftCompare folded its
-// Premium Bulk Pricer into /deck (2026-09-25) this is also the site's bulk
-// price checker:
-//   • plain names without quantities ("Nami" = one copy), trailing "x3",
-//     section headers (Leader, Characters, Events, DON!!) skipped, never priced;
-//   • every line that couldn't be matched listed, with "Search for this";
-//   • quantity editing and remove on every line, and search-to-add;
-//   • each line resolved to a printing (a number means its standard print; a
-//     "#id" pin or the printing switch picks a Parallel, Manga or SP), a
-//     name-only line marked as a guess;
-//   • a shareable ?list= in UTF-8 base64 — the encoding Best Basket decodes —
-//     and "Buy this deck for less", which hands the list to Best Basket.
+// The deck builder and list pricer: the free, no-account tool behind /deck, and the site's bulk price checker:
+//   - plain names without quantities ("Sol Ring" = one copy), "4x" or "4" quantities, Arena/MTGO/Moxfield section headers (Commander, Companion,
+//     Deck, Sideboard) understood;
+//   - every line that couldn't be matched listed, with "Search for this";
+//   - quantity editing and remove on every line, and search-to-add;
+//   - each line resolved to a printing (a bare name prices the cheapest one; a set code, a set and number, a "#id" pin or the printing switch
+//     picks another), foil and etched copies priced as their own finish;
+//   - an optional format check (size, copies, bans, and for Commander the commander, singleton and colour identity), judged by lib/commander-rules;
+//   - a shareable ?list= in UTF-8 base64 (the encoding Best Basket decodes) and "Buy this deck for less", which hands the list to Best Basket.
 //
-// The paste box is the list: pricing resolves it on the server
-// (/api/deck/price) and rewrites it in canonical form ("4xOP01-016", "#id"
-// for another printing), so what you see is what the share link, the deck
-// watch, the deck library and Best Basket get.
+// The paste box is the list: pricing resolves it on the server (/api/deck/price) and rewrites it in canonical form ("4 Lightning Bolt (M11) 149",
+// " #id" for a pinned printing), so what you see is what the share link, the deck watch, the deck library and Best Basket get.
 
-export const SAMPLE = `Leader
-1xOP01-001
-Characters
-4xOP01-004
-4xOP01-005
-4xOP01-013
-2xOP01-014
-4xOP01-015
-4xOP01-016
-4xOP01-017
-4xOP01-021
-4xOP01-022
-4xOP01-024
-4xOP01-025
-Events
-4xOP01-026
-4xOP01-027
-DON!! x10`;
+export const SAMPLE = `Commander
+1 Atraxa, Praetors' Voice
 
-// deck_create fires on a user PRICING their own pasted list (RiftCompare's
-// rule): deck_id is a short, non-cryptographic hash of the list text.
+Deck
+1 Sol Ring
+1 Arcane Signet
+1 Command Tower
+1 Counterspell
+1 Swords to Plowshares
+1 Cultivate
+1 Doubling Season
+1 Deepglow Skate
+1 Evolution Sage
+1 Plains
+1 Island
+1 Forest`;
+
+// deck_create fires on a user PRICING their own pasted list rule: deck_id is a short, non-cryptographic hash of the list text.
 function shortHash(text: string): string {
   let h = 0;
   for (let i = 0; i < text.length; i++) h = (Math.imul(31, h) + text.charCodeAt(i)) | 0;
@@ -77,6 +69,8 @@ export function DeckBuilder({ initialList, emailOn = false }: { initialList: str
   const [error, setError] = useState<string | null>(null);
   const [shared, setShared] = useState<"copied" | "address-bar" | null>(null);
   const [preview, setPreview] = useState<DeckLineOut | null>(null);
+  // "" = judge by the list (Commander when it has a Commander section, else no verdict).
+  const [format, setFormat] = useState<Format | "">("");
   const lastPriced = useRef<{ text: string; country: Country } | null>(null);
 
   const price = useCallback(
@@ -85,7 +79,7 @@ export function DeckBuilder({ initialList, emailOn = false }: { initialList: str
       setLoading(true);
       setError(null);
       try {
-        const r = await fetch("/api/deck/price", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: list, add: opts.add }) });
+        const r = await fetch("/api/deck/price", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: list, add: opts.add, ...(format ? { format } : {}) }) });
         const j = await r.json();
         if (!r.ok) setError(j.error ?? "Couldn't price that list just now — try again in a moment.");
         else {
@@ -109,7 +103,7 @@ export function DeckBuilder({ initialList, emailOn = false }: { initialList: str
       }
       setLoading(false);
     },
-    [country],
+    [country, format],
   );
 
   // A shared link prices itself once; a market change re-prices what was priced.
@@ -120,15 +114,16 @@ export function DeckBuilder({ initialList, emailOn = false }: { initialList: str
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [country]);
 
-  const linesText = (lines: DeckLineOut[], unmatched: string[]) => [...lines.map((l) => l.text), ...unmatched].join("\n");
+  // The list back as text with its sections (Commander, Deck, Sideboard); a line that did not match has no zone and rides in the main deck.
+  const linesText = (lines: DeckLineOut[], unmatched: string[]) => formatDeckList([...lines.map((l) => ({ zone: l.zone, text: l.text })), ...unmatched.map((u) => ({ zone: "main" as const, text: u }))]);
   const switchPrinting = (line: DeckLineOut, id: number) => {
     if (!result) return;
-    price(linesText(result.lines.map((l) => (l === line ? { ...l, text: formatDeckLine(l.qty, { id, number: l.card.number }, true) } : l)), result.unmatched));
+    price(linesText(result.lines.map((l) => (l === line ? { ...l, text: formatDeckLine(l.qty, { id, name: l.card.name, number: null, setCode: "", flags: 0 }, { finish: l.finish }) } : l)), result.unmatched));
   };
   const setQty = (line: DeckLineOut, qty: number) => {
     if (!result) return;
     const q = Math.max(1, Math.min(QTY_CAP, qty));
-    price(linesText(result.lines.map((l) => (l === line ? { ...l, text: l.text.replace(/^\d+x/, `${q}x`) } : l)), result.unmatched));
+    price(linesText(result.lines.map((l) => (l === line ? { ...l, text: l.text.replace(/^\d+x?/, String(q)) } : l)), result.unmatched));
   };
   const removeLine = (line: DeckLineOut) => {
     if (!result) return;
@@ -193,10 +188,10 @@ export function DeckBuilder({ initialList, emailOn = false }: { initialList: str
   const fmt = (cents: number | null | undefined) => money(cents, country);
   const listParam = encodeDeckParam(listText);
   const hasList = !!result && (result.lines.length > 0 || result.unmatched.length > 0);
-  const firstName = result?.lines.find((l) => l.leader)?.card.name ?? result?.lines[0]?.card.name;
+  const firstName = result?.lines.find((l) => l.commander)?.card.name ?? result?.lines[0]?.card.name;
 
   return (
-    // 300px paste column from lg to xl, 380px from xl (RiftCompare's widths).
+    // 300px paste column from lg to xl, 380px from xl .
     <div className="grid gap-6 lg:grid-cols-[300px_1fr] xl:grid-cols-[380px_1fr]">
       {/* Input */}
       <div className="lg:sticky lg:top-36 lg:self-start xl:top-20">
@@ -205,9 +200,9 @@ export function DeckBuilder({ initialList, emailOn = false }: { initialList: str
             Paste your decklist or card list
           </label>
           <p className="mb-2 text-xs text-slate-500">
-            One card per line: <span className="font-mono">4xOP01-016</span>, <span className="font-mono">4 Nami (OP01-016)</span>, or just a name
-            for one copy. A card number picks the standard print; section headers like Leader, Characters and DON!! are skipped. (Deck builder
-            exports work as-is.)
+            One card per line: <span className="font-mono">4 Lightning Bolt</span>, <span className="font-mono">1 Sol Ring (C21) 263</span>, or just a
+            name for one copy. A bare name prices the cheapest printing; add <span className="font-mono">*F*</span> for foil. Commander, Deck and
+            Sideboard headers are understood. (Moxfield, Archidekt, Arena and MTGO exports work as-is.)
           </p>
           {/* sm:text-sm, not text-sm: .input is 16px below sm so iOS doesn't zoom the page on focus. */}
           <textarea
@@ -219,9 +214,20 @@ export function DeckBuilder({ initialList, emailOn = false }: { initialList: str
             }}
             rows={14}
             spellCheck={false}
-            placeholder={"Leader\n1xOP01-001\n4xOP01-016\n4 Nami (OP01-016)\n…"}
+            placeholder={"Commander\n1 Atraxa, Praetors' Voice\n\nDeck\n1 Sol Ring\n4 Lightning Bolt (M11) 149\n…"}
             className="input font-mono sm:text-sm"
           />
+          <label htmlFor="deck-format" className="mt-3 block text-xs font-medium text-slate-400">
+            Check the list against
+          </label>
+          <select id="deck-format" value={format} onChange={(e) => setFormat(e.target.value as Format | "")} className="input mt-1 w-full">
+            <option value="">Automatic (Commander if the list has a commander)</option>
+            {FORMAT_UI.map((f) => (
+              <option key={f} value={f}>
+                {DECK_FORMATS[f].label}
+              </option>
+            ))}
+          </select>
           <div className="mt-3 flex gap-2">
             <button type="button" onClick={() => price(text, { user: true })} disabled={loading || !text.trim()} className="btn-primary flex-1 disabled:opacity-60">
               {loading ? "Pricing…" : "Price this list"}
@@ -265,7 +271,7 @@ export function DeckBuilder({ initialList, emailOn = false }: { initialList: str
                 <div className="p-3">
                   <div className="text-sm font-bold text-white">
                     {preview.card.name}
-                    {preview.card.variant ? ` (${preview.card.variant})` : ""}
+                    {preview.card.variant ? ` (${preview.card.variant})` : ""}{preview.finishWord ? ` · ${preview.finishWord}` : ""}
                   </div>
                   <div className="text-[11px] text-slate-500">
                     {preview.card.setCode} · {preview.card.number}
@@ -319,7 +325,7 @@ export function DeckBuilder({ initialList, emailOn = false }: { initialList: str
 
         {/* Publish to the public deck library. */}
         {result && result.lines.length > 0 && (
-          <DeckPublishPanel listText={listText} loginHref={`/login?src=deck_publish&next=${encodeURIComponent(`/deck?list=${listParam}`)}`} />
+          <DeckPublishPanel listText={listText} format={result.format} loginHref={`/login?src=deck_publish&next=${encodeURIComponent(`/deck?list=${listParam}`)}`} />
         )}
 
         {error && (
@@ -355,7 +361,7 @@ export function DeckBuilder({ initialList, emailOn = false }: { initialList: str
               {result.lines.map((l) => {
                 const unit = l.card.low[country];
                 return (
-                  <li key={`${l.card.id}-${l.raw}`} onMouseEnter={() => setPreview(l)} className="flex flex-wrap items-center gap-3 p-3 transition-colors hover:bg-ink-900/50 sm:flex-nowrap">
+                  <li key={`${l.card.id}-${l.finish}-${l.raw}`} onMouseEnter={() => setPreview(l)} className="flex flex-wrap items-center gap-3 p-3 transition-colors hover:bg-ink-900/50 sm:flex-nowrap">
                     <QtyInput value={l.qty} onChange={(q) => setQty(l, q)} max={QTY_CAP} label={`Quantity for ${l.card.name}`} />
                     <CardQuickLink slug={l.card.slug} className="shrink-0">
                       {l.card.hasImage ? (
@@ -369,7 +375,9 @@ export function DeckBuilder({ initialList, emailOn = false }: { initialList: str
                       <CardQuickLink slug={l.card.slug} className="font-medium text-white hover:text-brand-400">
                         {l.card.name}
                       </CardQuickLink>
-                      {l.leader ? <span className="chip ml-2 border border-gold/40 text-[10px] text-gold">Leader</span> : null}
+                      {l.commander ? <span className="chip ml-2 border border-gold/40 text-[10px] text-gold">Commander</span> : null}
+                      {l.finishWord ? <span className="chip ml-2 border border-ink-700 text-[10px] text-slate-300">{l.finishWord}</span> : null}
+                      {l.zone === "side" ? <span className="chip ml-2 border border-ink-700 text-[10px] text-slate-400">Sideboard</span> : null}
                       <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-slate-500">
                         {l.options.length > 1 ? (
                           <>
@@ -397,12 +405,21 @@ export function DeckBuilder({ initialList, emailOn = false }: { initialList: str
                           </span>
                         )}
                       </div>
-                      {(l.fuzzyFrom || (l.how === "name" && l.ambiguous)) && (
+                      {l.how === "name" && l.ambiguous && (
                         <div className="text-xs text-gold">
-                          Guessed from “{l.fuzzyFrom ?? l.raw}” —{" "}
-                          <button type="button" onClick={() => lookFor(l.raw, l.fuzzyFrom ?? l.raw, "fuzzy")} className="underline hover:text-white">
+                          Matched from “{l.raw}” by name only —{" "}
+                          <button type="button" onClick={() => lookFor(l.raw, l.raw, "fuzzy")} className="underline hover:text-white">
                             not it? search
                           </button>
+                        </div>
+                      )}
+                      {(l.setMissed || l.etchedMissed || l.finishAdjusted) && (
+                        <div className="text-xs text-gold">
+                          {l.setMissed
+                            ? "That set or number didn't match: priced at the cheapest printing."
+                            : l.etchedMissed
+                              ? "No etched printing found: priced as a regular foil or non-foil."
+                              : "That printing doesn't come in the finish asked for."}
                         </div>
                       )}
                       <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs">
@@ -578,13 +595,25 @@ export function DeckBuilder({ initialList, emailOn = false }: { initialList: str
 }
 
 function DeckChecks({ result }: { result: DeckPriceResult }) {
-  const { leaders, mainCards, overLimit } = result.check;
-  const notes: string[] = [];
-  if (leaders !== 1) notes.push(leaders === 0 ? "No Leader in the list." : `${leaders} Leaders in the list; a deck has one.`);
-  if (mainCards !== DECK_SIZE) notes.push(`${mainCards} cards besides the Leader; a deck has ${DECK_SIZE}.`);
-  if (overLimit.length) notes.push(`More than ${COPY_LIMIT} copies of ${overLimit.join(", ")}.`);
-  if (!notes.length) return <p className="text-xs text-emerald-400">Deck shape checks out: one Leader and {DECK_SIZE} cards, at most {COPY_LIMIT} of each.</p>;
-  return <p className="text-xs text-slate-400">Pricing a list, not a deck? Fine. As a deck: {notes.join(" ")}</p>;
+  const check = result.check;
+  if (!check) return <p className="text-xs text-slate-500">Pick a format above to check the list as a deck. Pricing a list, not a deck? Fine.</p>;
+  const f = DECK_FORMATS[check.format];
+  if (!check.issues.length) return <p className="text-xs text-emerald-400">Looks legal for {f.label}: {check.counts.deck} cards{check.identity != null ? ", inside the commander's colour identity" : ""}.</p>;
+  return (
+    <div className="text-xs text-slate-400">
+      <p className={check.ok ? "text-emerald-400" : "text-slate-300"}>
+        {check.ok ? `Legal for ${f.label}, with notes:` : `As a ${f.label} deck:`}
+      </p>
+      <ul className="mt-1 list-disc space-y-0.5 pl-5">
+        {check.issues.map((i, n) => (
+          <li key={`${i.code}-${n}`} className={i.level === "error" ? "text-rose-300" : undefined}>
+            {i.message}
+            {i.names.length ? ` (${i.names.slice(0, 6).join(", ")}${i.names.length > 6 ? ", …" : ""})` : ""}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 function Sum({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {

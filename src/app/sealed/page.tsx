@@ -14,16 +14,16 @@ import { ebaySearchUrl, outboundRel } from "@/lib/affiliate";
 import { itemListLd } from "@/lib/jsonld";
 import { filterSealed, isSealedFiltered, parseSealedQuery, sortSealed, type SealedCtx } from "@/lib/sealed-query";
 import { COUNTRIES } from "@/lib/country";
-import { getCatalog, getSealedCatalog, getSealedSoldOut } from "@/lib/data";
+import { getSealedAll, getSealedSoldOut, getSets } from "@/lib/data";
 import { int } from "@/lib/format";
 import { getCountry } from "@/lib/get-country";
 import { newestBoosterSet } from "@/lib/selectors";
 import { pageOg } from "@/lib/og/meta";
 import { SITE_URL } from "@/lib/site";
 
-const TITLE = "One Piece Sealed Products — Booster Box & Deck Prices";
+const TITLE = "Magic: The Gathering Sealed Products — Booster Box & Bundle Prices";
 const DESCRIPTION =
-  "One Piece Card Game booster boxes, cases, packs, starter decks, double packs and collections, priced across the stores we track in six markets.";
+  "Magic: The Gathering Play Booster, Collector Booster and Draft Booster boxes, cases, bundles, Commander decks and prerelease packs, priced across the stores we track in six markets.";
 
 // A filtered /sealed is a thin slice of the same list: noindex, follow, with the
 // canonical on the unfiltered page (sort and layout alone do not count).
@@ -41,28 +41,29 @@ export function generateMetadata({ searchParams }: { searchParams: Record<string
 export default async function SealedPage({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
   const country = getCountry();
   const c = COUNTRIES[country];
-  const [cat, sealed, soldOutIds] = await Promise.all([getCatalog(), getSealedCatalog(), getSealedSoldOut().catch(() => null)]);
+  const [allSets, sealed, soldOutIds] = await Promise.all([getSets(), getSealedAll(), getSealedSoldOut().catch(() => null)]);
+  const setById = new Map(allSets.map((x) => [x.id, x] as const));
   const query = parseSealedQuery(searchParams);
   const filtered = isSealedFiltered(query);
   const ctx: SealedCtx = {
     country,
-    setSlugOf: (id) => (id != null ? cat.setById.get(id)?.slug : undefined),
-    setReleased: (id) => (id != null ? cat.setById.get(id)?.releasedOn ?? undefined : undefined),
+    setSlugOf: (id) => (id != null ? setById.get(id)?.slug : undefined),
+    setReleased: (id) => (id != null ? setById.get(id)?.releasedOn ?? undefined : undefined),
   };
   const rows = sortSealed(filterSealed(sealed, query, ctx), query.sort, ctx);
   const soldOut = new Set(soldOutIds?.[country] ?? []);
-  const newest = newestBoosterSet(cat.sets);
-  const sets = cat.sets
+  const newest = newestBoosterSet(allSets);
+  const sets = allSets
     .filter((s) => s.sealedCount > 0)
     .sort((a, b) => (b.releasedOn ?? "").localeCompare(a.releasedOn ?? ""))
     .map((s) => ({ slug: s.slug, code: s.code, name: s.name }));
   const types = SEALED_KINDS.filter((k) => sealed.some((s) => s.kind === k));
   const shown = rows.slice(0, 120);
   const families = [
-    { label: "Booster boxes", q: "One Piece Card Game booster box sealed" },
-    { label: "Starter decks", q: "One Piece Card Game starter deck sealed" },
-    { label: "Double pack sets", q: "One Piece Card Game double pack set" },
-    { label: "Premium boosters", q: "One Piece Card Game premium booster box" },
+    { label: "Play Booster boxes", q: "Magic The Gathering Play Booster box sealed" },
+    { label: "Collector Booster boxes", q: "Magic The Gathering Collector Booster box sealed" },
+    { label: "Commander decks", q: "Magic The Gathering Commander deck sealed" },
+    { label: "Bundles", q: "Magic The Gathering bundle sealed" },
   ];
 
   return (
@@ -70,7 +71,7 @@ export default async function SealedPage({ searchParams }: { searchParams: Recor
       {shown.length && !filtered ? (
         <JsonLd
           data={{
-            ...itemListLd("One Piece sealed products", "/sealed", shown.slice(0, 24).map((s) => ({ name: s.name, path: `/sealed/${s.slug}` }))),
+            ...itemListLd("Magic: The Gathering sealed products", "/sealed", shown.slice(0, 24).map((s) => ({ name: s.name, path: `/sealed/${s.slug}` }))),
             itemListElement: shown.slice(0, 24).map((s, i) => ({
               "@type": "ListItem",
               position: i + 1,
@@ -120,7 +121,7 @@ export default async function SealedPage({ searchParams }: { searchParams: Recor
           {rows.length ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
               {shown.map((s) => (
-                <SealedTile key={s.id} s={s} country={country} setCode={s.setId ? cat.setById.get(s.setId)?.code : null} soldOut={soldOut.has(s.id)} />
+                <SealedTile key={s.id} s={s} country={country} setCode={s.setId ? setById.get(s.setId)?.code : null} soldOut={soldOut.has(s.id)} />
               ))}
             </div>
           ) : (

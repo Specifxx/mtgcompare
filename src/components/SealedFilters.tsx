@@ -3,11 +3,11 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 
-// Faceted sidebar filter for /sealed (RiftCompare's SealedFilters) on OP's param
-// names: q, min, max, stock, promo, kind (repeated), set (csv of slugs). Every
+// Faceted sidebar filter for /sealed on the param
+// names: q, min, max, stock, lair, kind (repeated), set (csv of slugs). Every
 // change pushes the URL, so the page applies it instantly with no submit button;
 // the server (lib/sealed-query.ts) parses the same params back. "In stock at
-// MSRP" is omitted: OP has no verified MSRP table (lib/msrp.ts does not exist).
+// MSRP" is omitted: MTG Compare ships no unverified MSRP (lib/msrp.ts).
 // Options come from the server: only the types and sets that have sealed product.
 
 function Chevron({ open }: { open: boolean }) {
@@ -84,7 +84,7 @@ export function SealedFilters({ types, sets, currency }: { types: string[]; sets
       else p.delete("set");
     });
 
-  const activeCount = (sp.get("q") ? 1 : 0) + kinds.length + setSlugs.length + (sp.get("stock") ? 1 : 0) + (sp.get("promo") ? 1 : 0) + (sp.get("min") || sp.get("max") ? 1 : 0);
+  const activeCount = (sp.get("q") ? 1 : 0) + kinds.length + setSlugs.length + (sp.get("stock") ? 1 : 0) + (sp.get("lair") ? 1 : 0) + (sp.get("min") || sp.get("max") ? 1 : 0);
 
   return (
     <aside className="w-full shrink-0 xl:w-64">
@@ -137,7 +137,7 @@ export function SealedFilters({ types, sets, currency }: { types: string[]; sets
               Apply
             </button>
             <Check className="mt-2" checked={sp.get("stock") === "1"} onChange={() => update((p) => (p.get("stock") === "1" ? p.delete("stock") : p.set("stock", "1")))} label="In stock only" />
-            <Check className="mt-1" checked={sp.get("promo") === "1"} onChange={() => update((p) => (p.get("promo") === "1" ? p.delete("promo") : p.set("promo", "1")))} label="Include tournament promo packs" />
+            <Check className="mt-1" checked={sp.get("lair") === "1"} onChange={() => update((p) => (p.get("lair") === "1" ? p.delete("lair") : p.set("lair", "1")))} label="Include Secret Lair drops" />
           </Section>
 
           <Section title="Product type" defaultOpen>

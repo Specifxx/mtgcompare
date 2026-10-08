@@ -19,9 +19,9 @@ import { getEmailStatus } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
-const TITLE = "One Piece Deck Price Calculator — Price Any Decklist";
+const TITLE = "Magic Deck Price Calculator — Price Any Decklist";
 const DESC =
-  "Paste a One Piece Card Game decklist and price every card at the cheapest in-stock store in your market, with TCGplayer's market price, a total and a link to each store. Free, no account.";
+  "Paste a Magic: The Gathering decklist and price every card at the cheapest in-stock store in your market, with TCGplayer's market price, a total and a link to each store. Checks Commander legality and colour identity. Free, no account.";
 
 // ?list= is UTF-8 base64 (lib/deck.ts encodeList, the encoding Best Basket
 // decodes); a plain list from an older link still reads as itself.
@@ -30,7 +30,7 @@ function readList(sp: { list?: string | string[] }): string {
   return decodeList((v ?? "").slice(0, 12000));
 }
 
-// A shared list unfurls with its own total ("This One Piece deck costs $X"),
+// A shared list unfurls with its own total ("This Magic deck costs $X"),
 // priced exactly as the page prices it (each card's cached offers, stores and
 // TCGplayer only), so the unfurl and the page quote the same total. That is up
 // to DECK_DETAIL_CAP card loads per request, so it shares /api/deck/price's
@@ -45,8 +45,8 @@ export async function generateMetadata({ searchParams }: { searchParams: { list?
     const r = await priceDeck(list, country);
     const t = r.totals[country];
     if (!t.cents) return base;
-    const title = `This One Piece deck costs ${money(t.cents, country)}`;
-    const description = `${t.totalQty} cards, priced at the cheapest in-stock store in ${COUNTRIES[country].place} on OP Compare.`;
+    const title = `This Magic deck costs ${money(t.cents, country)}`;
+    const description = `${t.totalQty} cards, priced at the cheapest in-stock store in ${COUNTRIES[country].place} on MTG Compare.`;
     return { ...base, robots: { index: false, follow: true }, openGraph: pageOg("/deck", { title, description }), twitter: { card: "summary_large_image", title, description } };
   } catch {
     return base;
@@ -56,15 +56,19 @@ export async function generateMetadata({ searchParams }: { searchParams: { list?
 const FAQS = [
   {
     q: "Which decklist formats does the deck pricer read?",
-    a: "The exports of the common One Piece deck builders (4xOP01-016, as OPTCGSim, Egman and Limitless write them), plain quantities (4 OP01-016 or OP01-016 x4), names with numbers (4 Nami (OP01-016)) and names alone, which count as one copy. Section headers such as Leader, Characters, Events and DON!! are skipped, and DON!! cards are never priced. A line it cannot match is listed under the total with a search for it, never silently dropped. Up to 200 lines are priced.",
+    a: "The exports of the common Magic deck builders (Moxfield, Archidekt, MTG Arena, MTGO, Deckbox), plain quantities (4 Lightning Bolt or 4x Lightning Bolt), names with a set and number (1 Sol Ring (C21) 263) and names alone, which count as one copy. Section headers such as Commander, Companion, Deck and Sideboard are understood, and a Commander section sets the commander. A line it cannot match is listed under the total with a search for it, never silently dropped. Up to 200 lines are priced.",
   },
   {
     q: "Which printing does it price?",
-    a: "A card number on its own means the card's standard print. Every line has a printing switch, so you can price the Parallel, Manga, SP or a reprint instead; the switch is kept in the share link. A name without a number is matched to the card most printings share, and a name we could only match in part is marked as a guess with a search to fix it.",
+    a: "A bare card name is priced at its cheapest printing. Add a set code for the cheapest printing of that set, a set and number for one exact printing, or mark a line *F* (foil) or *E* (etched) to price that finish. Every line has a printing switch, and the choice is kept in the share link.",
+  },
+  {
+    q: "Does it check my deck is legal?",
+    a: "Pick a format and it checks the deck size, the copy limit, banned cards and, for Commander, the commander, the singleton rule and colour identity. Legality is Scryfall's. A card whose legality we do not know is left alone rather than called illegal.",
   },
   {
     q: "Where do the prices come from?",
-    a: "Each card is priced at its cheapest in-stock listing among the stores OP Compare reads in your market (TCGplayer's cheapest listing counts in the US), refreshed twice a day. TCGplayer's market price is shown beside it as a reference. Totals are item prices; postage is charged by each store.",
+    a: "Each card is priced at its cheapest in-stock listing among the stores MTG Compare reads in your market (TCGplayer's cheapest listing counts in the US), refreshed twice a day. TCGplayer's market price is shown beside it as a reference. A card with only a thin single listing is shown as low only. Totals are item prices; postage is charged by each store.",
   },
   {
     q: "Is it free?",
@@ -81,7 +85,7 @@ export default async function DeckPage({ searchParams }: { searchParams: { list?
         data={{
           "@context": "https://schema.org",
           "@type": "WebApplication",
-          name: "One Piece Deck Price Calculator",
+          name: "Magic Deck Price Calculator",
           url: `${SITE_URL}/deck`,
           applicationCategory: "UtilitiesApplication",
           operatingSystem: "Web",
@@ -96,9 +100,9 @@ export default async function DeckPage({ searchParams }: { searchParams: { list?
       <HubIntro path="/deck" className="mt-8 max-w-3xl space-y-2.5 text-sm leading-relaxed text-slate-400" />
       <div className="mt-6">
         <InShort>
-          Paste any One Piece decklist and every card is matched to its exact printing and priced at the cheapest in-stock store in {c.place}, with
-          a total, a link to each store and the same list priced in all six markets. Switch any line to its Parallel or Manga print, copy a link that
-          loads your list, or hand it to{" "}
+          Paste any Magic decklist and every card is matched to its printing and priced at the cheapest in-stock store in {c.place}, with a total,
+          a link to each store and the same list priced in all six markets. Switch any line to another printing or its foil, check the list against a
+          format, copy a link that loads your list, or hand it to{" "}
           <Link href="/tools/best-basket" className="text-brand-400 hover:underline">
             Best Basket
           </Link>{" "}

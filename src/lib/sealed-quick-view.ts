@@ -2,12 +2,21 @@
 // one product's facts and every market's offers, market-independent so one cached
 // response serves every visitor and a market switch needs no second request.
 // Links are affiliate-tagged HERE, on the server. Pure; tests/sealed-offers.test.ts.
-import { affiliateUrl, ebaySearchUrl, onePieceEbayQuery } from "./affiliate";
+import { affiliateUrl, ebaySearchUrl } from "./affiliate";
 import { retailerSubId } from "./board";
+import { tcgplayerUrl } from "./constants";
 import { COUNTRIES, MARKETS, type Country } from "./country";
 import type { SealedDetail } from "./data";
+import { tcgplayerImage } from "./images";
 import { isPreRelease } from "./quick-view";
 import { isEbaySource, sourceLabel } from "./stores";
+
+/** The keywords for an eBay search of a sealed product, with "Magic The Gathering" in it exactly once. Commas are dropped (eBay reads them as OR inside parentheses). */
+export function sealedEbayQuery(name: string): string {
+  const clean = name.replace(/,/g, " ").replace(/\s+/g, " ").trim();
+  if (!clean) return "Magic The Gathering sealed";
+  return /\b(magic the gathering|mtg)\b/i.test(clean) ? clean : `Magic The Gathering ${clean}`;
+}
 
 export interface SealedQvOffer {
   productId: number;
@@ -68,7 +77,7 @@ export function sealedQuickViewPayload(
           href: affiliateUrl(o.url, retailerSubId(o.source), loc),
           ebay: isEbaySource(o.source),
         })),
-      ebaySearch: ebaySearchUrl(m, onePieceEbayQuery(s.name), "sealed-quickview"),
+      ebaySearch: ebaySearchUrl(m, sealedEbayQuery(s.name), "sealed-quickview"),
     };
   }
   return {
@@ -76,13 +85,13 @@ export function sealedQuickViewPayload(
     slug: s.slug,
     name: s.name,
     kind: s.kind,
-    imageUrl: s.imageUrl,
+    imageUrl: tcgplayerImage(s.id, "400w"),
     packCount: s.packCount,
     presale: s.presale,
     preRelease: s.presale || isPreRelease(s.releasedOn, today),
     set,
     marketUsd: s.marketUsd,
-    tcgHref: affiliateUrl(s.tcgplayerUrl, "tcgplayer", loc),
+    tcgHref: affiliateUrl(tcgplayerUrl(s.id, "N"), "tcgplayer", loc),
     markets,
   };
 }

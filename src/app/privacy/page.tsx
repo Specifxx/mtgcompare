@@ -65,9 +65,9 @@ export default function Privacy() {
           in your currency (1 year).
         </li>
         <li>
-          <strong>oc_session</strong> (signed in only) — keeps you signed in (30
-          days, not readable by scripts); <strong>oc_auth</strong> — tells the
-          page that you are signed in; <strong>oc_adfree</strong> (members only)
+          <strong>mc_session</strong> (signed in only) — keeps you signed in (30
+          days, not readable by scripts); <strong>mc_auth</strong> — tells the
+          page that you are signed in; <strong>mc_adfree</strong> (members only)
           — hides ads before the page draws; <strong>oauth_state_*</strong> and{" "}
           <strong>oauth_next_*</strong> — protect a sign-in in progress and
           remember where to return (10 minutes).
@@ -78,19 +78,31 @@ export default function Privacy() {
           list of cards your watchlist page asks prices for.
         </li>
       </ul>
-      <h2>Analytics</h2>
+      <h2 id="advertising">Analytics and advertising</h2>
       <p>
         Vercel Web Analytics counts page views without cookies. Google Analytics
         4 measures visits and which store links are clicked; in the EEA, the UK
         and Switzerland it runs in Google&apos;s consent mode with analytics
-        cookies off, sending only cookieless, aggregated signals. Advertising
-        storage is off everywhere: no ad network runs here, and the boxes marked
-        &ldquo;Ad&rdquo; are plain affiliate links.
+        cookies off, sending only cookieless, aggregated signals. Boxes marked
+        &ldquo;Ad&rdquo; are either our own promotions or affiliate links; if an
+        advertising network is switched on, it is only on pages we allow to be
+        indexed and only after Google&apos;s consent message where the law
+        requires it. The &ldquo;Privacy settings&rdquo; link in the footer
+        re-opens that message where it applies; everywhere else it brings you
+        back to this section, and your browser&apos;s cookie controls and
+        Google&apos;s ad settings are the opt-outs.
       </p>
       <h2>Your location</h2>
       <p>
         On a first visit, your country is read from the request&apos;s IP-based
         location header to pick a market. It is not stored.
+      </p>
+      <h2>Where the card data comes from</h2>
+      <p>
+        Card data and images come from Scryfall and prices from TCGplayer and
+        public store listings, all gathered by us on the server before you load
+        a page. Your browser loads card images from those providers&apos; image
+        servers, which see the same request details any image request carries.
       </p>
       <h2>Links to stores</h2>
       <p>

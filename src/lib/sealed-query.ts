@@ -1,6 +1,5 @@
-// /sealed's query: parse, filter and sort, as one pure module (RiftCompare's
-// sealed filters and sort, on OP's param names: q, min, max, stock, promo, kind,
-// set, sort). Pure so tests/sealed-query.test.ts pins every rule, and the client
+// /sealed's query: parse, filter and sort, as one pure module (params: q, min,
+// max, stock, lair, kind, set, sort). Pure so tests/sealed-query.test.ts pins every rule, and the client
 // SealedFilters/SealedSort build URLs that this parses back.
 import { COUNTRIES, type Country } from "./country";
 import type { SealedLite } from "./data";
@@ -21,7 +20,8 @@ export interface SealedQuery {
   min: number | null;
   max: number | null;
   stock: boolean;
-  promo: boolean;
+  /** Secret Lair drops are 1,079 of the 3,700 sealed products, so they are hidden unless asked for or their kind is picked. */
+  lair: boolean;
   kinds: string[];
   /** Set slugs. */
   sets: string[];
@@ -46,7 +46,7 @@ export function parseSealedQuery(sp: SP): SealedQuery {
     min,
     max: max != null && min != null && max < min ? null : max,
     stock: first(sp.stock) === "1",
-    promo: first(sp.promo) === "1",
+    lair: first(sp.lair) === "1",
     kinds: [...new Set(list(sp.kind))],
     sets: [...new Set(list(sp.set))],
     sort: sort in SEALED_SORTS ? sort : "featured",
@@ -55,12 +55,12 @@ export function parseSealedQuery(sp: SP): SealedQuery {
 
 /** A filter that narrows the grid (the page is noindex,follow then; sort alone is not a filter). */
 export function isSealedFiltered(q: SealedQuery): boolean {
-  return Boolean(q.q || q.min != null || q.max != null || q.stock || q.promo || q.kinds.length || q.sets.length);
+  return Boolean(q.q || q.min != null || q.max != null || q.stock || q.lair || q.kinds.length || q.sets.length);
 }
 
 /** How many filters are active, for "Clear (N)". */
 export function sealedFilterCount(q: SealedQuery): number {
-  return (q.q ? 1 : 0) + (q.min != null || q.max != null ? 1 : 0) + (q.stock ? 1 : 0) + (q.promo ? 1 : 0) + q.kinds.length + q.sets.length;
+  return (q.q ? 1 : 0) + (q.min != null || q.max != null ? 1 : 0) + (q.stock ? 1 : 0) + (q.lair ? 1 : 0) + q.kinds.length + q.sets.length;
 }
 
 /** The query back into URL params (repeated `kind`, csv `set`), omitting defaults. */
@@ -70,16 +70,15 @@ export function sealedParams(q: SealedQuery): URLSearchParams {
   if (q.min != null) p.set("min", String(q.min));
   if (q.max != null) p.set("max", String(q.max));
   if (q.stock) p.set("stock", "1");
-  if (q.promo) p.set("promo", "1");
+  if (q.lair) p.set("lair", "1");
   for (const k of q.kinds) p.append("kind", k);
   if (q.sets.length) p.set("set", q.sets.join(","));
   if (q.sort !== "featured") p.set("sort", q.sort);
   return p;
 }
 
-const RETAIL_ORDER = [
-  "Booster Box", "Booster Case", "Booster Pack", "Sleeved Booster Pack", "Double Pack Set", "Starter Deck", "Display", "Display Case",
-  "Premium Collection", "Gift Collection", "Illustration Box", "Tin Pack Set", "Devil Fruits Collection", "DON!! Pack", "Collection",
+const RETAIL_ORDER: readonly string[] = [
+  "Booster Box", "Case", "Booster Pack", "Bundle", "Prerelease Pack", "Commander Deck", "Starter Product", "Tin & Box Set", "Collection & Gift", "Secret Lair Drop", "Other",
 ];
 const rank = (k: string) => (RETAIL_ORDER.indexOf(k) === -1 ? 99 : RETAIL_ORDER.indexOf(k));
 
@@ -100,7 +99,7 @@ export function filterSealed(rows: SealedLite[], q: SealedQuery, ctx: SealedCtx)
   const sets = new Set(q.sets);
   return rows.filter((s) => {
     // Tournament promo packs are hidden unless asked for, or their kind is picked.
-    if (s.kind === "Promo Pack" && !q.promo && !kinds.has("Promo Pack")) return false;
+    if (s.kind === "Promo Pack" && !q.lair && !kinds.has("Promo Pack")) return false;
     if (kinds.size && !kinds.has(s.kind)) return false;
     if (sets.size) {
       const slug = ctx.setSlugOf(s.setId);

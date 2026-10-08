@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Support",
-  description: "Get help with an OP Compare Plus or Premium payment, a subscription or your account: send a message and get a ticket number.",
+  description: "Get help with an MTG Compare Plus or Premium payment, a subscription or your account: send a message and get a ticket number.",
   alternates: { canonical: "/support" },
   openGraph: pageOg("/support"),
 };

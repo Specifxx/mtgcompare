@@ -1,12 +1,69 @@
 // owner: WP12
-// src/lib/data/sets.ts: C0 STUB (contract 9.3 step 2), the section "sets.ts" of api.ts. Every function below throws until WP12 implements it;
-// the names, arguments, result types, cache kinds and tags are FROZEN (contract 7.12): change the BODY only, add exports, never rename (requests/ protocol, 9.4).
-import type { Country } from "../country";
-import type { ChecklistCard } from "../set-scope";
+// src/lib/data/sets.ts: the section "sets.ts" of api.ts (contract 7.12). Set checklists, the upcoming sets, the set value stats and the Box EV pools. Every function reads PUBLISHED FILES through the PlaneSource of the
+// request (pinned to one data commit) and nothing else: no database, no unstable_cache (kind P of contract 7.5). The names, arguments, result types and cache kinds are FROZEN (7.12).
+import { PRICE_MASK, TREATMENT_BY_KEY, parseTreat, printingOf, treatmentLabel } from "../constants";
+import { MARKET_INDEX, type Country } from "../country";
+import { promoOutsideSet, type ChecklistCard } from "../set-scope";
+import { getSets } from "./catalog";
+import { miniFromBoard } from "./lite";
+import type { BoardFile, BoardRow, MarketFile } from "./plane/formats";
+import { optionalOf, planeSource } from "./plane/runtime";
+import type { PlaneSource } from "./plane/source";
+import { boardPath } from "./plane/shards";
 import type { CardMini, SetLite } from "./types";
 
 export const SET_CHECKLIST_CHUNK: 2000 = 2000;
-export function getSetChecklist(setId: number, market: Country): Promise<ChecklistCard[]> { throw new Error("not implemented: WP12"); }   // P st/<setId>[-k].json in collector order (nsort); <= 6,000 cards
-export function getUpcomingSets(n?: number): Promise<SetLite[]> { throw new Error("not implemented: WP12"); }                              // derived from getSets()
-export function getSetValueStats(): Promise<Map<number, { n: number; totalCents: number }>> { throw new Error("not implemented: WP12"); }  // from mk/overview.json
-export function getBoxPools(setId: number): Promise<CardMini[]> { throw new Error("not implemented: WP12"); }                              // P st/<setId>.json: the listed singles of the set with prices (Box EV)
+/** A board is at most 6,000 rows (three chunks); a runaway `chunks` field never loops. */
+const CHUNK_MAX = 4;
+
+/** Every chunk of a set's board, in collector order. [] for a set with no board file (unpriced or unreleased). */
+async function readBoard(src: PlaneSource, setId: number): Promise<BoardRow[]> {
+  const first = await optionalOf<BoardFile>(src, boardPath(setId));
+  if (!first) return [];
+  const more = await Promise.all(Array.from({ length: Math.max(0, Math.min(first.chunks, CHUNK_MAX) - 1) }, (_, k) => optionalOf<BoardFile>(src, boardPath(setId, k + 1))));
+  return [first, ...more].flatMap((f) => f?.c ?? []);
+}
+
+const z = <T>(v: T | 0 | "" | null | undefined): T | null => (v === 0 || v === "" || v == null ? null : v);
+
+/**
+ * P st/<setId>[-k].json in collector order. EVERY listed row of the set is a checklist card, THIN rows included (a set tracker is complete; a THIN page is noindex, not absent), and cards of class 0 only
+ * (tokens, art cards and helpers are other checklists). minCents / stores are the HEADLINE unit's aggregate in `market` (TCGplayer counts in the US); eBay is not published, so `otherSource` is false.
+ */
+export async function getSetChecklist(setId: number, market: Country): Promise<ChecklistCard[]> {
+  const { src } = await planeSource(), set = (await getSets()).find((s) => s.id === setId);
+  if (!set) return [];
+  const m = MARKET_INDEX[market] ?? 0;
+  return (await readBoard(src, setId))
+    .filter((r) => r[5] === 0 && (r[14] & PRICE_MASK.LISTED) !== 0)
+    .map((r): ChecklistCard => {
+      const treat = parseTreat(r[6]), lows = z(r[15]), counts = z(r[16]), low = lows?.[m] ?? null, stores = counts?.[m] ?? 0;
+      return {
+        id: r[0], slug: r[1], name: r[2], number: z(r[3]), variant: z(r[7]) ?? (treat.length ? treatmentLabel(treat) : null), printing: printingOf(treat), rarity: r[4] || null,
+        setCode: (z(r[9]) ?? set.tok).toUpperCase(), hasImage: true, isPromo: promoOutsideSet(treat.filter((k) => TREATMENT_BY_KEY[k]), set.kind),
+        minCents: low != null && low > 0 ? low : null, stores: low != null && low > 0 ? stores : 0, otherSource: false, thin: (r[14] & PRICE_MASK.THIN) !== 0,
+      };
+    });
+}
+
+/** Sets that have not released yet (a release date in the future), soonest first, derived from meta/sets.json. Kinds that are hidden from the site (Art Series, oversized) are left out. n defaults to 12. */
+export async function getUpcomingSets(n = 12): Promise<SetLite[]> {
+  const today = new Date().toISOString().slice(0, 10);
+  return (await getSets())
+    .filter((s) => s.releasedOn != null && s.releasedOn > today && s.kind !== "art-series" && s.kind !== "oversized")
+    .sort((a, b) => (a.releasedOn! < b.releasedOn! ? -1 : a.releasedOn! > b.releasedOn! ? 1 : a.id - b.id))
+    .slice(0, Math.max(0, Math.floor(n)));
+}
+
+/** P mk/overview.json: per set, how many of the basket's cards it holds and their market total in cents. Empty when the file is absent. */
+export async function getSetValueStats(): Promise<Map<number, { n: number; totalCents: number }>> {
+  const { src } = await planeSource(), f = await optionalOf<MarketFile>(src, "mk/overview.json");
+  return new Map((f?.sets ?? []).map(([setId, n, totalCents]) => [setId, { n, totalCents }] as const));
+}
+
+/** P st/<setId>.json: the listed singles of the set with their prices, for the Box EV pools (class 0, LISTED, every finish unit's headline). All chunks. */
+export async function getBoxPools(setId: number): Promise<CardMini[]> {
+  const { src } = await planeSource(), set = (await getSets()).find((s) => s.id === setId);
+  if (!set) return [];
+  return (await readBoard(src, setId)).filter((r) => r[5] === 0 && (r[14] & PRICE_MASK.LISTED) !== 0).map((r) => miniFromBoard(r, set));
+}

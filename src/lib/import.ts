@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
 import { createHash } from "node:crypto";
-import { CARD_CLASS, CARD_FLAGS, COLOR_BIT, GROUP_TREATMENTS, LINK, NOTPLAY_SET_KINDS, ORACLE_FLAGS, PRICE_MASK, PRIMARY_TYPES, SEALED_KINDS, STALE_HOURS, TREATMENTS, classifyGroup, colorMask, displayName, effectiveRarity, fold, isBucketGroup, joinTreat, legalString, nkey, nsort, oracleFlags, ptypeOf, reskinAlt, type SealedKind, type SetKind, type TreatmentKey } from "./constants";
+import { CARD_CLASS, printingOf, CARD_FLAGS, COLOR_BIT, GROUP_TREATMENTS, LINK, NOTPLAY_SET_KINDS, ORACLE_FLAGS, PRICE_MASK, PRIMARY_TYPES, SEALED_KINDS, STALE_HOURS, TREATMENTS, classifyGroup, colorMask, displayName, effectiveRarity, fold, isBucketGroup, joinTreat, legalString, nkey, nsort, oracleFlags, ptypeOf, reskinAlt, type SealedKind, type SetKind, type TreatmentKey } from "./constants";
 import { MARKETS, type Country } from "./country";
 import type { Finish, Rarity, UnitRef } from "./constants";
 import { TCGCSV_BASE, chooseSetToks, finishPrices, isSealedProduct, labelOf, oracleSlugOf, parseSealed, parseTcgName, productClass, sealedSlugOf, setCodeOf, setDisplayName, setSlugOf, slugBase, withProductSuffix, type ParsedName, type PriceRowLike, type TcgcsvGroup, type TcgcsvPrice, type TcgcsvProduct } from "./catalog";
@@ -26,7 +26,7 @@ import { BOARD_CHUNK, IX_CHUNK, IX_FLAT_CHUNK, NAME_CHUNK, SEALED_LIST_CHUNK, SI
 import { HIST_CUT_DAYS, isCutDay } from "./data/plane/publish-protocol";
 
 // ── the model: one row per catalogue object, in memory (never a table). The writers of plane/formats.ts turn them into files. ─────────────────────────────────────────────
-export interface SetRow { id: number; slug: string; tok: string; code: string; name: string; tcgName: string; kind: SetKind; releasedOn: string | null; bucket: boolean; scry: string | null }
+export interface SetRow { id: number; slug: string; tok: string; code: string; name: string; tcgName: string; kind: SetKind; releasedOn: string | null; bucket: boolean; scry: string | null; abbr?: string | null }
 export interface OracleRow { no: number; scryfallId: string; slug: string; name: string; nameKey: string; manaCost: string; manaValue: number; typeLine: string; colors: number; identity: number; legal: string; edhrecRank: number | null; flags: number; layout: string; pt: string | null; loyalty: string | null; oracleText: string | null; keywords: string; faces: number; nPrint: number }
 export interface CardRow { id: number; slug: string; name: string; alt: string | null; tcgName: string; setId: number; sc: string | null; number: string | null; tn: string | null; fnum: string | null; nkey: string | null; nsort: number; rarity: Rarity; cls: number; treat: string; label: string | null; flags: number; link: number; oracleNo: number | null; scryId: string | null; rootId: number | null; colors: number; mv: number; ptype: number }
 export interface CardPriceRow { cardId: number; marketN: number | null; marketF: number | null; lowN: number | null; lowF: number | null; mask: number }
@@ -350,7 +350,7 @@ export async function importCatalog(base: Pick<ImportContext, "log" | "cfg" | "p
     if (counts && !bucket) { const total = [...counts.values()].reduce((a, b) => a + b, 0); const [code, n] = [...counts].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))[0]!; if (n / total >= 0.6) scry = code; }
     let slug = prev.setSlugById.get(g.groupId); if (!slug) { slug = setSlugOf({ name: g.name, bucket }, tok); if (usedSetSlugs.has(slug)) slug = `${slug}-g${g.groupId}`; }
     usedSetSlugs.add(slug);
-    setRows.set(g.groupId, { id: g.groupId, slug, tok, code: setCodeOf(g, scry ? ({ code: scry } as never) : null), name: setDisplayName(g), tcgName: g.name, kind, releasedOn: bucket ? null : g.publishedOn?.slice(0, 10) ?? null, bucket, scry });
+    setRows.set(g.groupId, { id: g.groupId, slug, tok, code: setCodeOf(g, scry ? ({ code: scry } as never) : null), name: setDisplayName(g), tcgName: g.name, kind, releasedOn: bucket ? null : g.publishedOn?.slice(0, 10) ?? null, bucket, scry, abbr: g.abbreviation ? g.abbreviation.toLowerCase() : null });
   }
   const carriedSets: SetRow[] = carry.sets.filter((s) => !setRows.has(s.id));        // a group that left TCGCSV keeps its set row (sets are never deleted)
   lap("sets");
@@ -584,6 +584,9 @@ export async function importCatalog(base: Pick<ImportContext, "log" | "cfg" | "p
 }
 const takenByOther = (m: Map<string, OracleRow>, slug: string): boolean => { for (const r of m.values()) if (r.slug === slug) return true; return false; };
 
+/** The TCGplayer group abbreviation of a set, lower-cased, for MatchRow.abbr: the group's own value when the set came from TCGCSV this run, else the token when it was derived from the abbreviation (a `g<id>` token means it was not). */
+const abbrOfSet = (set: SetRow | undefined): string | null => (set ? (set.abbr !== undefined ? set.abbr : /^g\d+$/.test(set.tok) ? null : set.tok.toLowerCase()) : null);
+
 /** S7: one row per LISTED catalogue product the store matcher may emit. The folded name forms are the product's, its oracle's, each face and the printed name; the set names carry the prefix variants of the group name. */
 function matchRowsOf(snap: CatalogueSnapshot, singles: Single[], setRows: Map<number, SetRow>): MatchRow[] {
   const byId = new Map<number, Single>(singles.map((s) => [s.id, s])); const oracle = new Map<number, OracleRow>(snap.oracles.map((o) => [o.no, o]));
@@ -595,7 +598,7 @@ function matchRowsOf(snap: CatalogueSnapshot, singles: Single[], setRows: Map<nu
     add(c.name); add(c.alt); add(c.tcgName); add(o?.name); for (const part of (o?.name ?? c.name).split(" // ")) add(part); if (s?.row) { add(s.row.printedName); add(s.row.flavorName); for (const f of s.row.faces) add(f); }
     const setNames = new Set<string>(); const sn = (v: string | null | undefined): void => { const f = fold(v); if (f) setNames.add(f); };
     sn(s?.row?.setName); if (set) { sn(set.tcgName); for (const pre of ["Commander: ", "Universes Beyond: ", "Art Series: ", "Promo Pack: "]) if (set.tcgName.startsWith(pre)) sn(set.tcgName.slice(pre.length)); }
-    out.push({ id: c.id, groupId: c.setId, names: [...names], sc: c.sc ?? set?.scry ?? null, setNames: [...setNames], nkey: c.nkey, treat: c.treat ? (c.treat.split(" ") as TreatmentKey[]) : [], hasN: (p.mask & PRICE_MASK.HASN) !== 0, hasF: (p.mask & PRICE_MASK.HASF) !== 0, etched: (c.flags & CARD_FLAGS.ETCHED) !== 0, rootId: c.rootId, cls: c.cls });
+    out.push({ id: c.id, groupId: c.setId, names: [...names], sc: c.sc ?? set?.scry ?? null, setNames: [...setNames], nkey: c.nkey, treat: c.treat ? (c.treat.split(" ") as TreatmentKey[]) : [], hasN: (p.mask & PRICE_MASK.HASN) !== 0, hasF: (p.mask & PRICE_MASK.HASF) !== 0, etched: (c.flags & CARD_FLAGS.ETCHED) !== 0, rootId: c.rootId, cls: c.cls, label: c.label, abbr: abbrOfSet(set), scryId: s?.row?.id ?? c.scryId, starScryId: s?.starRow?.id ?? null });
   }
   return out;
 }
@@ -825,7 +828,8 @@ const currencyOfCountry = (c: Country): string => ({ US: "USD", AU: "AUD", UK: "
 function writeViews(w: Writer, t: TreeView, ctx: ImportContext, view: RowView[], listed: RowView[], repOf: Map<number, RowView>, un: Map<number, UnAgg>, stats: Map<number, UnitStat> | undefined, sealedRows: SealedRow[], at: string): void {
   const snap = ctx.snapshot; const setById = new Map(snap.sets.map((s) => [s.id, s]));
   const scOf = (r: RowView): string => ((r.c[5] as string | 0) || setById.get(r.c[4])?.tok || "");
-  const tile = (r: RowView): HomeTileRow => { const hf = headFinishOf(r.p[5]); return [r.c[0], r.c[1], r.c[2], scOf(r), r.c[6], r.c[8], r.c[12], hf, marketOfUnit(r.p, hf)]; };
+  // trailing elements are additive inside v1 (REQ-WP15-1): change7d, the printing label (0 for none) and the printing key
+  const tile = (r: RowView, c7: number | null = null): HomeTileRow => { const hf = headFinishOf(r.p[5]); return [r.c[0], r.c[1], r.c[2], scOf(r), r.c[6], r.c[8], r.c[12], hf, marketOfUnit(r.p, hf), c7, r.c[11], printingOf(r.c[10] ? (r.c[10].split(" ") as TreatmentKey[]) : [])] as unknown as HomeTileRow; };
   // movers: tracked class-0 units with a change figure
   interface U { r: RowView; f: 0 | 1; c7: number | null; c30: number | null; cents: number }
   const units: U[] = [];
@@ -893,20 +897,24 @@ function writeViews(w: Writer, t: TreeView, ctx: ImportContext, view: RowView[],
       rows.push({ id, uid, buy, pct, r: row });
     }
     rows.sort((a, b) => b.pct - a.pct || a.uid - b.uid); dealCounts.push(rows.length);
-    dealsFree.push(rows[0] ? [rows[0].id, rows[0].r.c[1], rows[0].r.c[2], rows[0].buy, rows[0].pct] : null);
+    dealsFree.push(rows[0] ? [rows[0].id, rows[0].r.c[1], rows[0].r.c[2], rows[0].buy, rows[0].pct, scOf(rows[0].r), rows[0].r.c[6], rows[0].r.c[12], headFinishOf(rows[0].r.p[5])] as unknown as NonNullable<HomeFile["dealsFree"][number]> : null);
   });
   // the home payload
   const reps = [...repOf.values()].filter((r) => r.c[9] === 0 && !(r.p[5] & PRICE_MASK.GONE));
   const byValue = [...reps].sort((a, b) => (topCents(b.p[1], b.p[2]) ?? 0) - (topCents(a.p[1], a.p[2]) ?? 0) || a.c[0] - b.c[0]);
   const edh = new Map<number, number>(); for (const o of snap.oracles) if (o.edhrecRank) edh.set(o.no, o.edhrecRank);
-  const byPopularity = reps.filter((r) => (topCents(r.p[1], r.p[2]) ?? 0) >= 100 && edh.has(r.c[14])).sort((a, b) => edh.get(a.c[14])! - edh.get(b.c[14])! || a.c[0] - b.c[0]);
+  // `popular` shows the printing a player buys (REQ-WP15-14): the cheapest plain Normal printing in a main set, the dearest only when the oracle has none; `chase` keeps the dearest
+  const plain = (r: RowView): boolean => r.c[9] === 0 && !r.c[10] && !(r.c[12] & (CARD_FLAGS.SERIAL | CARD_FLAGS.PROMO | CARD_FLAGS.ETCHED | CARD_FLAGS.FOILONLY)) && (r.p[5] & PRICE_MASK.HASN) !== 0 && (r.p[1] ?? 0) > 0 && !(r.p[5] & PRICE_MASK.GONE) && RELEASE_KINDS.includes(setById.get(r.c[4])?.kind ?? "");
+  const cheapestPlain = new Map<number, RowView>();
+  for (const r of view) { if (!r.c[14] || !(r.p[5] & PRICE_MASK.LISTED) || !plain(r)) continue; const cur = cheapestPlain.get(r.c[14]); if (!cur || r.p[1]! < cur.p[1]! || (r.p[1] === cur.p[1] && r.c[0] < cur.c[0])) cheapestPlain.set(r.c[14], r); }
+  const byPopularity = reps.filter((r) => (topCents(r.p[1], r.p[2]) ?? 0) >= 100 && edh.has(r.c[14])).sort((a, b) => edh.get(a.c[14])! - edh.get(b.c[14])! || a.c[0] - b.c[0]).map((r) => cheapestPlain.get(r.c[14]) ?? r);
   const sorted7 = headlineUnits.filter((u) => u.c7 != null).sort((a, b) => b.c7! - a.c7! || a.r.c[0] - b.r.c[0]);
   const releasedMain = snap.sets.filter((s) => s.releasedOn && RELEASE_KINDS.includes(s.kind));
   const home: HomeFile = {
     v: 1, at, stats: { cards: listed.filter((r) => r.c[9] === 0).length, tracked: units.length, sets: snap.sets.length, sealed: sealedRows.filter((s) => !(s[7] & SEALED_FLAGS.GONE)).length, oracles: new Set(view.map((r) => r.c[14]).filter(Boolean)).size },
     newest: releasedMain.filter((s) => s.releasedOn! <= ctx.day).sort((a, b) => (a.releasedOn! < b.releasedOn! ? 1 : a.releasedOn! > b.releasedOn! ? -1 : b.id - a.id)).slice(0, 6).map((s) => s.id),
     upcoming: releasedMain.filter((s) => s.releasedOn! > ctx.day).sort((a, b) => (a.releasedOn! < b.releasedOn! ? -1 : a.releasedOn! > b.releasedOn! ? 1 : a.id - b.id)).slice(0, 6).map((s) => s.id),
-    chase: byValue.slice(0, 64).map(tile), popular: byPopularity.slice(0, 12).map(tile), up: sorted7.filter((u) => u.c7! > 0).slice(0, 4).map((u) => tile(u.r)), down: [...sorted7].reverse().filter((u) => u.c7! < 0).slice(0, 4).map((u) => tile(u.r)), dealCounts, dealsFree,
+    chase: byValue.slice(0, 64).map(tile), popular: byPopularity.slice(0, 12).map(tile), up: sorted7.filter((u) => u.c7! > 0).slice(0, 4).map((u) => tile(u.r, u.c7)), down: [...sorted7].reverse().filter((u) => u.c7! < 0).slice(0, 4).map((u) => tile(u.r, u.c7)), dealCounts, dealsFree,
   };
   w.put("hm/home.json", j(home));
   // sitemap path lists (slugs; the route prefixes them), 10,000 a file
@@ -961,7 +969,7 @@ export function matchRowsFromTree(t: TreeView): MatchRow[] {
       add(c[2]); add(c[3]); add(c[17]); add(o?.name); for (const part of (o?.name ?? c[2]).split(" // ")) add(part);
       const setNames = new Set<string>(); const sn = (v: string | null | undefined): void => { const q = fold(v); if (q) setNames.add(q); };
       if (c[5]) sn(scry.get(String(c[5]))); if (set) { sn(set.tcgName); for (const pre of ["Commander: ", "Universes Beyond: ", "Art Series: ", "Promo Pack: "]) if (set.tcgName.startsWith(pre)) sn(set.tcgName.slice(pre.length)); }
-      out.push({ id: c[0], groupId: c[4], names: [...names], sc: (c[5] as string | 0) || set?.scry || null, setNames: [...setNames], nkey: nkey((c[6] as string | 0) || null), treat: c[10] ? (c[10].split(" ") as TreatmentKey[]) : [], hasN: (p[5] & PRICE_MASK.HASN) !== 0, hasF: (p[5] & PRICE_MASK.HASF) !== 0, etched: (c[12] & CARD_FLAGS.ETCHED) !== 0, rootId: (c[16] as number | 0) || null, cls: c[9] });
+      out.push({ id: c[0], groupId: c[4], names: [...names], sc: (c[5] as string | 0) || set?.scry || null, setNames: [...setNames], nkey: nkey((c[6] as string | 0) || null), treat: c[10] ? (c[10].split(" ") as TreatmentKey[]) : [], hasN: (p[5] & PRICE_MASK.HASN) !== 0, hasF: (p[5] & PRICE_MASK.HASF) !== 0, etched: (c[12] & CARD_FLAGS.ETCHED) !== 0, rootId: (c[16] as number | 0) || null, cls: c[9], label: (c[11] as string | 0) || null, abbr: abbrOfSet(set), scryId: (c[15] as string | 0) || null, starScryId: null });
     }
   }
   return out;

@@ -11,8 +11,8 @@ import { pageOg } from "@/lib/og/meta";
 
 // Topic clusters for the unfiltered view, matched by tag (first section wins).
 const GUIDE_SECTIONS: ArticleSection[] = [
-  { title: "Buying & value", accent: "#eab308", tags: ["buying", "stores", "market-data", "sealed", "booster box"] },
-  { title: "Collecting & card knowledge", accent: "#a855f7", tags: ["collecting", "rarity", "printings", "condition", "chase cards"] },
+  { title: "Buying & value", accent: "#eab308", tags: ["buying", "stores", "markets", "sealed", "booster box"] },
+  { title: "Collecting & card knowledge", accent: "#a855f7", tags: ["collecting", "rarity", "printings", "treatments", "condition", "chase cards"] },
   { title: "Getting started", accent: "#06b6d4", tags: ["beginners", "budget", "rules", "deckbuilding"] },
 ];
 
@@ -21,12 +21,12 @@ const TOOL_LINKS = [
   { href: "/tools/best-basket", label: "Best Basket" },
   { href: "/tools/box-ev", label: "Box EV calculator" },
   { href: "/movers", label: "Price movers" },
-  { href: "/market", label: "OP Compare Index" },
+  { href: "/market", label: "MTG Compare Index" },
 ];
 
 export const metadata: Metadata = {
-  title: "One Piece TCG Guides: Rarities, Where to Buy & More",
-  description: "Evergreen One Piece Card Game guides: what the rarities and printings mean, where to buy in each market, and how prices work, with live figures from OP Compare's own database.",
+  title: "Magic: The Gathering Guides: Rarities, Where to Buy & More",
+  description: "Evergreen Magic: The Gathering guides: what the rarities mean, where to buy in each market, and whether cards are cheaper abroad, with live figures from MTG Compare's own data.",
   alternates: { canonical: "/guides" },
   openGraph: pageOg("/guides"),
 };
@@ -46,15 +46,15 @@ export default async function GuidesPage() {
   }));
   return (
     <div>
-      <JsonLd data={itemListLd("One Piece guides", "/guides", items.map((i) => ({ name: i.title, path: i.href })))} />
+      <JsonLd data={itemListLd("Magic: The Gathering guides", "/guides", items.map((i) => ({ name: i.title, path: i.href })))} />
       <Breadcrumbs trail={[{ name: "Guides" }]} />
       <h1 className="text-2xl font-extrabold text-white">Guides</h1>
       <div className="mt-3 max-w-3xl space-y-2 text-[15px] leading-relaxed text-slate-300">
         <p>
-          Guides are the reference side of OP Compare: what the rarities and printings mean, how the markets we cover compare, and how to buy without overpaying. They are revised when the data changes rather than left to date, and most point you at the tool that does what the guide describes.
+          Guides are the reference side of MTG Compare: what the rarities mean, how the markets we cover compare, and how to buy without overpaying. They are revised when the data changes rather than left to date, and most point you at the tool that does what the guide describes.
         </p>
         <p>
-          Every figure in a guide is drawn from our own price database when the page loads. See{" "}
+          Every figure in a guide is drawn from our own price data when the page loads. See{" "}
           <Link href="/authors" className="text-brand-400 hover:underline">who writes them</Link>, our{" "}
           <Link href="/editorial-policy" className="text-brand-400 hover:underline">editorial policy</Link> and{" "}
           <Link href="/methodology" className="text-brand-400 hover:underline">how prices are collected</Link>. Looking for dated market analysis and set reviews? That is the{" "}

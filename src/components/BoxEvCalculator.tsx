@@ -18,20 +18,19 @@ import {
   verdictFor,
   DEFAULT_PACKS,
   POOL_LABEL,
-  POOL_RATE_KEY,
+  unvaluedSlots,
   type PoolKey,
 } from "@/lib/box-ev";
-import { PACK_SLOTS, PULL_RATES } from "@/lib/pack-composition";
+import { BOOSTER_TYPES, packSummary } from "@/lib/pack-composition";
 
-// The provenance note quotes the numbers the defaults are built from, never a
-// typed copy of them (lib/pack-composition.ts).
-const slots = (key: string) => PACK_SLOTS.find((s) => s.key === key)?.count ?? 0;
-const isEstimatedPool = (p: PoolKey) => POOL_RATE_KEY[p] != null || p === "Common" || p === "Uncommon" || p === "Rare";
+// The provenance note quotes the slot table the defaults are built from, never
+// a typed copy of it (lib/pack-composition.ts).
 
-// Box EV explorer (RiftCompare's BoxEvCalculator, for One Piece). OP Compare
-// supplies the half nobody else has — a real market price for every card in the
-// set, including the chase prints — and the player tunes the pull rates, which
-// are COMMUNITY ESTIMATES: Bandai publishes no pull rates (lib/pack-composition.ts).
+// Box EV explorer. MTG Compare supplies a real market price for every card in
+// the set, chase treatments included; the pack structure is the one Wizards of
+// the Coast publishes for the booster (lib/pack-composition.ts), and the player
+// can tune every rate. A slot Wizards publishes no split for is valued at zero
+// until the player sets one.
 //
 // EVERYTHING ARRIVES IN USD and is converted once, here, for display. The server
 // render is country-agnostic (that is what lets the page be ISR-cached), and
@@ -43,6 +42,8 @@ export interface PullCard {
   name: string;
   rarity: string | null;
   number: string | null;
+  /** Treatment words of the printing ("Borderless", "Extended Art"). */
+  label?: string | null;
   usdCents: number | null;
   hasImage: boolean;
 }
@@ -56,12 +57,19 @@ export interface BoxEvPool {
   top: PullCard[];
 }
 
+export interface BoxEvBooster {
+  /** BoosterType.key. */
+  key: string;
+  /** The box product's own pack count from the catalogue, else the booster's usual count. */
+  packs: number;
+}
+
 export interface BoxEvSet {
   setCode: string;
   setSlug: string;
   setName: string;
-  /** The box's own pack count from the catalogue, else 24. */
-  packs: number;
+  /** The booster boxes of the set that Wizards' published structures cover. */
+  boosters: BoxEvBooster[];
   pools: BoxEvPool[];
 }
 
@@ -82,8 +90,8 @@ export function BoxEvCalculator({ sets, offers = {} }: { sets: BoxEvSet[]; offer
   const { country } = useCountry();
   const currency = currencyOf(country);
   const [setCode, setSetCode] = useState(sets[0]?.setCode ?? "");
-  const firstPacks = sets[0]?.packs ?? DEFAULT_PACKS;
-  const [packs, setPacks] = useState(firstPacks);
+  const [boosterKey, setBoosterKey] = useState(sets[0]?.boosters[0]?.key ?? "play");
+  const [packs, setPacks] = useState(sets[0]?.boosters[0]?.packs ?? DEFAULT_PACKS);
   // null = "use the cheapest box we track" (see `offer` below); a string is what
   // the visitor typed, which wins until they switch set.
   const [typedPrice, setTypedPrice] = useState<string | null>(null);
@@ -91,6 +99,8 @@ export function BoxEvCalculator({ sets, offers = {} }: { sets: BoxEvSet[]; offer
   const [showRates, setShowRates] = useState(false);
 
   const set = sets.find((s) => s.setCode === setCode) ?? sets[0];
+  const boosterOpt = set?.boosters.find((b) => b.key === boosterKey) ?? set?.boosters[0];
+  const booster = BOOSTER_TYPES.find((b) => b.key === boosterOpt?.key) ?? null;
 
   // The price field starts at the cheapest in-stock Booster Box for this set in
   // the visitor's market, from /sealed's own data, in the market's currency.
@@ -109,14 +119,14 @@ export function BoxEvCalculator({ sets, offers = {} }: { sets: BoxEvSet[]; offer
     if (!set) return null;
     const stats = poolStatsFromPools(set.pools);
     const counts = new Map<PoolKey, number>(set.pools.map((p) => [p.pool, p.total]));
-    const base = derivedRates({ counts, packs });
+    const base = derivedRates({ counts, booster });
     const rates = { ...base, ...overrides };
     const priceCents = Math.round((parseFloat(boxPrice) || 0) * 100);
     // The box price is typed in the DISPLAY currency; the model works in USD, so
     // convert back rather than comparing two different currencies.
     const priceUsdCents = fx > 0 ? Math.round(priceCents / fx) : 0;
     return { ...computeEv({ stats, rates, packs, boxPriceCents: priceUsdCents }), rates, base };
-  }, [set, packs, overrides, boxPrice, fx]);
+  }, [set, booster, packs, overrides, boxPrice, fx]);
 
   if (!set || !calc) return null;
 
@@ -196,7 +206,7 @@ export function BoxEvCalculator({ sets, offers = {} }: { sets: BoxEvSet[]; offer
         </div>
 
         {/* Inputs */}
-        <div className="grid gap-3 p-5 sm:grid-cols-3">
+        <div className="grid gap-3 p-5 sm:grid-cols-4">
           <label className="block">
             <span className="mb-1 block text-xs font-medium text-slate-400">Set</span>
             <select
@@ -208,12 +218,29 @@ export function BoxEvCalculator({ sets, offers = {} }: { sets: BoxEvSet[]; offer
                 const next = sets.find((s) => s.setCode === e.target.value);
                 setSetCode(e.target.value);
                 setTypedPrice(null);
-                if (next) setPacks(next.packs);
+                setOverrides({});
+                const first = next?.boosters[0];
+                if (first) { setBoosterKey(first.key); setPacks(first.packs); }
               }}
               className="input"
             >
               {sets.map((s) => (
                 <option key={s.setCode} value={s.setCode}>{s.setName} ({s.setCode})</option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-slate-400">Booster</span>
+            <select
+              value={boosterOpt?.key ?? ""}
+              onChange={(e) => {
+                const next = set?.boosters.find((b) => b.key === e.target.value);
+                if (next) { setBoosterKey(next.key); setPacks(next.packs); setOverrides({}); }
+              }}
+              className="input"
+            >
+              {(set?.boosters ?? []).map((b) => (
+                <option key={b.key} value={b.key}>{BOOSTER_TYPES.find((t) => t.key === b.key)?.label ?? b.key}</option>
               ))}
             </select>
           </label>
@@ -328,8 +355,8 @@ export function BoxEvCalculator({ sets, offers = {} }: { sets: BoxEvSet[]; offer
       </div>
 
       {/* ── Pull rates ──────────────────────────────────────────────────────
-          Collapsed by default. Bandai publishes nothing, so this is the
-          assumption panel, and it says so plainly. */}
+          Collapsed by default. Wizards publishes slot structures, not every
+          rate, so this is the assumption panel, and it says so plainly. */}
       <div className="card-surface p-5">
         <button
           type="button"
@@ -339,7 +366,7 @@ export function BoxEvCalculator({ sets, offers = {} }: { sets: BoxEvSet[]; offer
         >
           <span>
             <span className="font-bold text-white">Pull rates</span>
-            <span className="ml-2 text-xs text-slate-500">community estimates, set low · tune the assumptions</span>
+            <span className="ml-2 text-xs text-slate-500">published pack structure · tune the assumptions</span>
           </span>
           <span className={`shrink-0 text-slate-500 transition-transform ${showRates ? "rotate-180" : ""}`} aria-hidden>▾</span>
         </button>
@@ -347,20 +374,30 @@ export function BoxEvCalculator({ sets, offers = {} }: { sets: BoxEvSet[]; offer
         {showRates && (
           <div className="mt-4 border-t border-ink-800 pt-4">
             <p className="text-[11px] leading-relaxed text-slate-500">
-              <strong className="text-gold">Bandai publishes no pull rates</strong> for the English One Piece Card
-              Game, so every rate here is a community estimate from box and case openings. A pack is{" "}
-              {slots("common")} common, {slots("uncommon")} uncommon and {slots("rare")} rare-or-better card plus one
-              more, and the per-box figures are the <strong className="text-gold">low end</strong> of what the
-              sources report — they are set low on purpose, so the expected value errs below what a box is likely
-              to return rather than above it. Every rate is editable; the sources are listed below.
+              <strong className="text-gold">Wizards of the Coast publishes the slot structure</strong> of its
+              boosters, not a probability for every card, so the rates here are built from that structure and
+              nothing else. {booster ? <>A {booster.label} is {packSummary(booster)}. </> : null}
+              {booster?.source ? (
+                <>Source:{" "}
+                  <a href={booster.source.url} target="_blank" rel="noopener noreferrer nofollow" className="text-brand-400 hover:underline">{booster.source.title}</a>.{" "}
+                </>
+              ) : null}
+              {booster?.sourceNote}{" "}
+              Where Wizards gives no split (the wildcard slots can be any rarity), the slot is
+              <strong className="text-gold"> valued at zero</strong> until you set a rate, so the expected value
+              errs below what a box is likely to return rather than above it. Every rate is editable.
             </p>
+            {unvaluedSlots(booster).length > 0 && (
+              <p className="mt-2 text-[11px] leading-relaxed text-gold">
+                Not valued: {unvaluedSlots(booster).map((sl) => `${sl.count} ${sl.label.toLowerCase()}`).join(", ")} per pack.
+              </p>
+            )}
 
             <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {calc.lines.map((l) => (
                 <label key={l.pool} className="block">
                   <span className="mb-1 block text-[11px] font-medium text-slate-400">
                     {POOL_LABEL[l.pool]}
-                    {isEstimatedPool(l.pool) && <span className="ml-1 text-brand-400">*</span>}
                   </span>
                   <input
                     type="number" min="0" step="0.0001"
@@ -378,25 +415,15 @@ export function BoxEvCalculator({ sets, offers = {} }: { sets: BoxEvSet[]; offer
             </div>
             <button
               type="button"
-              onClick={() => { setOverrides({}); setPacks(set.packs); }}
+              onClick={() => { setOverrides({}); setPacks(boosterOpt?.packs ?? DEFAULT_PACKS); }}
               className="mt-3 text-[11px] text-brand-400 hover:underline"
             >
               reset to defaults
             </button>
-            <p className="mt-2 text-[10px] text-slate-600">
-              <span className="text-brand-400">*</span> community estimate — Bandai has not published a rate.
-            </p>
-
             <ul className="mt-4 space-y-1.5 text-[11px] leading-relaxed text-slate-500">
-              {PULL_RATES.map((r) => (
-                <li key={r.key}>
-                  <strong className="text-slate-400">{r.label}:</strong> {r.frequency} by default (sources: {r.range}).{" "}
-                  {r.note}{" "}
-                  {r.sources.map((u, i) => (
-                    <a key={u} href={u} target="_blank" rel="noopener noreferrer nofollow" className="text-brand-400 hover:underline">
-                      [{i + 1}]
-                    </a>
-                  ))}
+              {(booster?.slots ?? []).map((sl) => (
+                <li key={sl.key}>
+                  <strong className="text-slate-400">{sl.count} × {sl.label}:</strong> {sl.note}{sl.sourced ? "" : " (structure not confirmed against a Wizards article)"}
                 </li>
               ))}
             </ul>
@@ -452,8 +479,8 @@ export function BoxEvCalculator({ sets, offers = {} }: { sets: BoxEvSet[]; offer
           )}
         </p>
         <p className="mt-2">
-          Every pull rate is a <strong className="text-slate-500">community estimate you control</strong>, set low on
-          purpose. EV is an average across many boxes: the distribution is heavily skewed by the chase tiers, so most
+          Every rate comes from the <strong className="text-slate-500">pack structure Wizards publishes</strong>, and
+          you control it; what Wizards does not publish is left at zero. EV is an average across many boxes: the distribution is heavily skewed by the chase tiers, so most
           boxes come in under it. It also assumes every card could be sold at market price, and bulk commons
           effectively cannot be. Want a specific card?{" "}
           <Link href="/browse" className="text-brand-400 hover:underline">Buying the single</Link> is the surer

@@ -25,7 +25,8 @@ export interface CheapestPrinting {
 
 export interface DeckViewLine {
   qty: number;
-  leader: boolean;
+  commander: boolean;
+  finish: "N" | "F";
   card: PricedCard & { id: number; href: string; name: string; number: string | null; variant: string | null; setCode: string };
   /** Cheapest in-stock store for THIS printing, per market (never eBay). */
   best: Partial<Record<Country, BestStore | null>>;
@@ -33,14 +34,16 @@ export interface DeckViewLine {
   cheapest: Partial<Record<Country, CheapestPrinting | null>>;
 }
 
-// A published deck (RiftCompare's PublishedDeckView): the full list, its
+// A published deck: the full list, its
 // CURRENT total in the viewer's market, the cheapest store per card, a
 // client-side Budget build that swaps each card for its cheapest printing,
 // the change since publishing, Best Basket, Mass Entry copy and share.
 export function PublishedDeckView(props: {
   title: string;
-  leaderName: string;
-  leaderSlug: string;
+  commanderName: string;
+  commanderSlug: string;
+  partnerName: string | null;
+  format: string;
   authorName: string | null;
   description: string | null;
   colors: string[];
@@ -87,9 +90,11 @@ export function PublishedDeckView(props: {
     <article>
       <header className="card-surface p-4 sm:p-5">
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-          <Link href={`/decks/leader/${props.leaderSlug}`} className="hover:text-slate-300">
-            {props.leaderName}
+          <Link href={`/decks/commander/${props.commanderSlug}`} className="hover:text-slate-300">
+            {props.commanderName}
           </Link>
+          {props.partnerName ? ` + ${props.partnerName}` : ""}
+          {` · ${props.format}`}
           {props.colors.length > 0 && ` · ${props.colors.join(" · ")}`}
         </p>
         <h1 className="mt-1 font-display text-2xl font-extrabold text-white">{props.title}</h1>
@@ -138,12 +143,13 @@ export function PublishedDeckView(props: {
         {priced.map(({ l, unit, swapped }) => {
           const best = l.best[country] ?? null;
           return (
-            <li key={l.card.id} className="flex items-start gap-3 p-3">
+            <li key={`${l.card.id}.${l.finish}`} className="flex items-start gap-3 p-3">
               <span className="num w-7 shrink-0 pt-0.5 text-right font-bold text-slate-300">{l.qty}×</span>
               <span className="min-w-0 flex-1">
                 <Link href={swapped ? swapped.href : l.card.href} className="block font-semibold text-white hover:text-brand-400">
                   {l.card.name}
-                  {l.leader ? <span className="chip ml-2 border border-gold/40 align-middle text-[10px] text-gold">Leader</span> : null}
+                  {l.commander ? <span className="chip ml-2 border border-gold/40 align-middle text-[10px] text-gold">Commander</span> : null}
+                  {l.finish === "F" ? <span className="chip ml-2 border border-ink-700 align-middle text-[10px] text-slate-300">Foil</span> : null}
                 </Link>
                 <span className="block text-xs text-slate-500">
                   {swapped ? `${swapped.label} (cheapest printing)` : `${l.card.setCode} · ${l.card.number ?? ""}${l.card.variant ? ` ${l.card.variant}` : ""}`}

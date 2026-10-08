@@ -1,32 +1,32 @@
-// Box EV model — RiftCompare's lib/box-ev.ts, for One Piece. The maths, with no
-// React and no Prisma, so it can be unit-tested without a database. The page
-// supplies rows; this decides pools, averages and EV.
+// Box EV model for Magic: The Gathering. The maths, with no React and no
+// database, so it can be unit-tested without either. The page supplies rows;
+// this decides pools, averages and EV.
 //
-// WHAT IT REPLACES. OP Compare's /tools/box-value summed ONE COPY OF EVERY
-// PRINTING in a set (Manga, SP, Treasure, Parallels and all) and set that
-// "set value" beside the box price. A box of 288 cards almost never holds the
-// chase prints that dominate such a sum, so it invited exactly the wrong
-// comparison (a $2,000 "set value" beside a $110 box). An expected value
-// weighs every pool by how often a box yields it.
+// An expected value weighs every pool by how often a box yields it. A box of
+// 360 cards almost never holds the chase cards that dominate a "set value" sum,
+// so the old comparison (a set's worth of cards beside one box price) is not
+// made here.
 //
-// TWO RULES CARRIED OVER FROM RIFTCOMPARE:
-//   • Chase prints are in the EV, in their OWN pools with their own rates —
-//     never averaged into a base rarity, never dropped.
-//   • Every value is the TCGplayer US market price (Card.marketUsd), converted
-//     for display: one consistent yardstick in every market. It is not local
-//     retail, and the page says so.
-//
-// THE RATES ARE COMMUNITY ESTIMATES (lib/pack-composition.ts): Bandai publishes
-// none. They are set LOW on purpose and every one is editable.
+// RULES:
+//   • Chase treatments (borderless, extended art, showcase, retro frame and the
+//     other frame and art treatments; special foils, etched and serialized
+//     cards) are in the EV in their OWN pools, never averaged into a base
+//     rarity and never dropped.
+//   • Every value is the TCGplayer US market price of the card's headline
+//     finish, converted for display: one consistent yardstick in every market.
+//     It is not local retail, and the page says so.
+//   • Slot counts come from the structures Wizards publishes
+//     (lib/pack-composition.ts). A slot with no published split adds nothing to
+//     the EV until the visitor sets a rate. No pull rate is invented.
 
-import { PACKS_PER_BOX, PACK_SLOTS, perBoxRate, type PullRate } from "./pack-composition";
+import { TREATMENT_BY_KEY } from "./constants";
+import type { BoosterType } from "./pack-composition";
 
 // ── Pools ────────────────────────────────────────────────────────────────────
-// A pool is a set of cards one pull can produce: the standard printing by
-// rarity, plus the four chase printings, each kept SEPARATE (a Manga averaged
-// with a Parallel would understate one and overstate the other).
-export const BASE_POOLS = ["Common", "Uncommon", "Rare", "Leader", "SuperRare", "SecretRare"] as const;
-export const CHASE_POOLS = ["Parallel", "SP", "Treasure", "Manga"] as const;
+// A pool is a set of cards one pull can produce: a standard-frame card by
+// rarity, plus the chase pools, each kept SEPARATE.
+export const BASE_POOLS = ["Common", "Uncommon", "Rare", "Mythic", "Land"] as const;
+export const CHASE_POOLS = ["AltCommon", "AltRare", "AltMythic", "SpecialFoil"] as const;
 export const POOL_ORDER = [...BASE_POOLS, ...CHASE_POOLS] as const;
 export type PoolKey = (typeof POOL_ORDER)[number];
 
@@ -34,47 +34,47 @@ export const POOL_LABEL: Record<PoolKey, string> = {
   Common: "Common",
   Uncommon: "Uncommon",
   Rare: "Rare",
-  Leader: "Leader",
-  SuperRare: "Super Rare",
-  SecretRare: "Secret Rare",
-  Parallel: "Parallel",
-  SP: "SP",
-  Treasure: "Treasure Rare",
-  Manga: "Manga",
+  Mythic: "Mythic rare",
+  Land: "Basic land",
+  AltCommon: "Booster Fun common/uncommon",
+  AltRare: "Booster Fun rare",
+  AltMythic: "Booster Fun mythic",
+  SpecialFoil: "Special foil, etched, serialized",
 };
 
 export const isChasePool = (k: PoolKey): boolean => (CHASE_POOLS as readonly string[]).includes(k);
 
-/** The minimum a card needs for us to classify it (data.ts CardLite satisfies it). */
+/** The minimum a card needs for us to classify it (data CardMini satisfies it). */
 export interface PoolCard {
-  printing: string;
   rarity: string | null;
+  /** TreatmentKey words of the card (CardMini.treat). */
+  treat: readonly string[];
 }
 
-const BASE_BY_RARITY: Record<string, PoolKey> = { C: "Common", UC: "Uncommon", R: "Rare", L: "Leader", SR: "SuperRare", SEC: "SecretRare" };
+const STD_BY_RARITY: Record<string, PoolKey> = { C: "Common", U: "Uncommon", R: "Rare", M: "Mythic", L: "Land" };
+const ALT_BY_RARITY: Record<string, PoolKey> = { C: "AltCommon", U: "AltCommon", R: "AltRare", M: "AltMythic" };
 
 /**
  * Which pool a card belongs to, or null if it is not a pack pull at all.
- * Promos, reprints, special foils and DON!! cards are not pulls from a set's
- * own booster packs (they come from events, tins, starter decks and other
- * products), so they are left out; a standard printing goes to its printed
- * rarity; the chase printings go to their own pools whatever their rarity.
+ * Promo-stamped cards (prerelease, Promo Pack, Buy-a-Box, The List, Secret Lair...),
+ * editions (Collector's, International), languages, tokens and specials come from
+ * other products, so they are left out. A foil pattern, etched or serialized
+ * treatment is the SpecialFoil pool whatever the rarity; a chase frame or art
+ * treatment goes to its rarity's Booster Fun pool; the rest to its printed rarity.
  */
 export function poolOf(card: PoolCard): PoolKey | null {
-  switch (card.printing) {
-    case "standard":
-      return card.rarity ? (BASE_BY_RARITY[card.rarity] ?? null) : null;
-    case "alt":
-      return "Parallel";
-    case "sp":
-      return "SP";
-    case "treasure":
-      return "Treasure";
-    case "manga":
-      return "Manga";
-    default:
-      return null; // promo, reprint, foil, don
+  const r = card.rarity ?? "";
+  if (!(r in STD_BY_RARITY)) return null;
+  let alt = false;
+  for (const k of card.treat) {
+    const t = TREATMENT_BY_KEY[k];
+    if (!t) continue;
+    if (t.kind === "foil" || t.kind === "serial") return "SpecialFoil";
+    if (t.kind === "promo" || t.kind === "edition" || t.kind === "language") return null;
+    if (t.chase) alt = true;
   }
+  if (alt) return r === "L" ? null : (ALT_BY_RARITY[r] ?? null);
+  return STD_BY_RARITY[r] ?? null;
 }
 
 // ── Pool statistics ──────────────────────────────────────────────────────────
@@ -121,58 +121,24 @@ export function poolStatsFromPools(pools: readonly { pool: PoolKey; avgUsdCents:
   return new Map(pools.map((p) => [p.pool, { avgCents: p.avgUsdCents, topCents: p.topUsdCents, priced: p.priced, total: p.total }]));
 }
 
+/** Packs in a box when the product does not say (a Play Booster Display holds 30 today). */
+export const DEFAULT_PACKS = 30;
+
 // ── Pull rates ───────────────────────────────────────────────────────────────
 // EXPECTED CARDS PER PACK, not probabilities. Expected value is linear, so the
-// rates need not form a distribution — E[pack] = Σ rate × mean holds whatever
-// they sum to, which is why the UI can expose them as free numbers. The UI
-// shows the implied cards per pack as a sanity check.
-//
-// Common and Uncommon are per-PACK slot counts. Every other pool is a per-BOX
-// estimate (PULL_RATES) divided by the box's packs, so a 20-pack box gets the
-// same hits per box. Rare is the rare slot less the Super and Secret Rares that
-// replace it: rare + SR + SEC = one rare-or-better card per pack (RiftCompare's
-// "Rare + Epic = the rare slots" rule).
-const slotCount = (key: string) => PACK_SLOTS.find((s) => s.key === key)?.count ?? 0;
+// rates need not form a distribution: E[pack] = Σ rate × mean holds whatever
+// they sum to, which is why the UI can expose them as free numbers.
 
-export const DEFAULT_PACKS = PACKS_PER_BOX;
-
-/** Per-box defaults for the pools priced from a per-box estimate. */
-export const PER_BOX_DEFAULTS: Record<Exclude<PoolKey, "Common" | "Uncommon" | "Rare">, number> = {
-  Leader: perBoxRate("leader"),
-  SuperRare: perBoxRate("sr"),
-  SecretRare: perBoxRate("sec"),
-  Parallel: perBoxRate("parallel"),
-  SP: perBoxRate("sp"),
-  Treasure: perBoxRate("treasure"),
-  Manga: perBoxRate("manga"),
-};
-
-/** Which PULL_RATES entry a pool's default comes from (for the provenance note). */
-export const POOL_RATE_KEY: Partial<Record<PoolKey, PullRate["key"]>> = {
-  Leader: "leader",
-  SuperRare: "sr",
-  SecretRare: "sec",
-  Parallel: "parallel",
-  SP: "sp",
-  Treasure: "treasure",
-  Manga: "manga",
-};
-
-/**
- * Expected cards per pack for every pool, for a box of `packs` packs. A pool
- * with no cards in this set gets 0 rather than a rate it can never pay out.
- */
-export function derivedRates(opts: { counts: Map<PoolKey, number>; packs: number }): Record<PoolKey, number> {
-  const { counts, packs } = opts;
-  const perPack = Math.max(1, packs);
-  const has = (p: PoolKey) => (counts.get(p) ?? 0) > 0;
-  const rates = {} as Record<PoolKey, number>;
-  rates.Common = has("Common") ? slotCount("common") : 0;
-  rates.Uncommon = has("Uncommon") ? slotCount("uncommon") : 0;
-  for (const p of Object.keys(PER_BOX_DEFAULTS) as (keyof typeof PER_BOX_DEFAULTS)[]) rates[p] = has(p) ? PER_BOX_DEFAULTS[p] / perPack : 0;
-  rates.Rare = has("Rare") ? Math.max(0, slotCount("rare") - rates.SuperRare - rates.SecretRare) : 0;
+/** Per-pack rate of every pool for a booster type, from its published slot table. A pool with no cards in this set gets 0 rather than a rate it can never pay out. */
+export function derivedRates(opts: { counts: Map<PoolKey, number>; booster: BoosterType | null }): Record<PoolKey, number> {
+  const rates = Object.fromEntries(POOL_ORDER.map((p) => [p, 0])) as Record<PoolKey, number>;
+  if (!opts.booster) return rates;
+  for (const slot of opts.booster.slots) for (const m of slot.pools) if ((opts.counts.get(m.pool) ?? 0) > 0) rates[m.pool] += slot.count * m.weight;
   return rates;
 }
+
+/** Slots of a booster whose split is unpublished: shown to the visitor as unvalued. */
+export const unvaluedSlots = (b: BoosterType | null) => (b ? b.slots.filter((s) => s.pools.length === 0) : []);
 
 /** "≈ 1 in N packs" for a per-pack rate below 1 — decimals like 0.0035 are unreadable. */
 export function oneInPacks(rate: number): string | null {
@@ -200,7 +166,7 @@ export interface EvResult {
   lines: EvLine[];
   evPackCents: number;
   evBoxCents: number;
-  /** Implied cards per pack across every pool — a sanity check on the rates. */
+  /** Implied valued cards per pack across every pool — a sanity check on the rates. */
   cardsPerPack: number;
   /** EV ÷ box price, or null when no price has been entered. */
   ratio: number | null;
@@ -248,16 +214,16 @@ export const VERDICT_MIN_PRICED_SHARE = 0.5;
 export const VERDICT_CHASE_HEAVY = 0.9;
 
 /**
- * Verdict shown against the box price (RiftCompare's thresholds). `ratio` is
+ * Verdict shown against the box price . `ratio` is
  * EV ÷ price, so below 1 the PRICE is above the EV.
  *
- * Two guards RiftCompare's page does not need but a One Piece set does:
+ * Two guards a Magic set needs:
  * - Unpriced cards count as worth nothing, so a set whose pools are mostly
  *   unpriced (a set that has only just come out) reads far below its box price.
  *   Under VERDICT_MIN_PRICED_SHARE that is "not enough data", never "price is
  *   well above EV".
- * - An EV driven by one or two chase cards (a US$4,800 Parallel in a pool
- *   opened once in twelve packs) is a mean no single box reaches. The positive
+ * - An EV driven by one or two chase cards (a US$4,000 borderless mythic in a pool
+ *   opened once in forty packs) is a mean no single box reaches. The positive
  *   verdicts say so when chase pools carry VERDICT_CHASE_HEAVY of the EV.
  */
 export function verdictFor(ratio: number | null, opts?: { pricedShare?: number | null; chaseShare?: number | null }) {
@@ -275,11 +241,11 @@ export function verdictFor(ratio: number | null, opts?: { pricedShare?: number |
 }
 
 // ── Which sets have a box to open ────────────────────────────────────────────
-// Only booster, extra and premium booster sets come in booster boxes; starter
-// and ultra decks, promos, events and collections are fixed products, so an
+// Only expansions, core sets and masters sets come in booster boxes; Commander
+// products, decks, promos and Secret Lair drops are fixed products, so an
 // "expected value of a box of random packs" describes nothing that exists. The
-// page also requires a Booster Box product in the catalogue for the set.
-export const BOOSTER_SET_KINDS: ReadonlySet<string> = new Set(["booster", "extra", "premium"]);
+// page also requires a Booster Box product with a modelled booster for the set.
+export const BOOSTER_SET_KINDS: ReadonlySet<string> = new Set(["expansion", "core", "masters"]);
 
 // ── The box price to start from ──────────────────────────────────────────────
 // The cheapest OPEN store offer (in stock, fresh, a tracked store — never a

@@ -1,6 +1,7 @@
-// FINISH THIS SET: the pure half — RiftCompare's lib/set-gap.ts, ported in wave 2
-// (2026-10-03). OP Compare's cards are Int ids with a "OP01-120" number and a
-// printing; the cursor carries all three so the rank can be recomputed. The
+// FINISH THIS SET: the pure half. A card is an Int id (the TCGplayer productId) with
+// a collector number ("146", "231★", "KHC-29") and a printing (its first treatment
+// word, "standard" for a plain one); the cursor carries all three so the rank can
+// be recomputed. The
 // tools track's /api/basket `source=set` branch reads this (shared edit).
 //
 // The set tracker (lib/set-scope.ts) says what a binder is missing from a set;
@@ -12,7 +13,7 @@
 //     the account owns (any finish, any condition: the tracker's own rule, so
 //     "missing" here is exactly what the checklist shows as missing);
 //   • one copy of each;
-//   • a card with no in-stock REAL-STORE listing (nothing anywhere, or eBay only)
+//   • a card with no in-stock REAL-STORE listing (nothing anywhere)
 //     is not priced: it is listed apart as "not stocked", never dropped;
 //   • RANKED AND CEILINGED ON WHAT THE PLAN BUYS. When the caller hands over
 //     `prices` (the cheapest copy at the member's minimum condition, at the

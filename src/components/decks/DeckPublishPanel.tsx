@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useMe } from "@/lib/use-me";
-import { DECK_DESC_MAX, DECK_TITLE_MAX } from "@/lib/published-decks";
+import type { Format } from "@/lib/constants";
+import { DECK_DESC_MAX, DECK_TITLE_MAX, DEFAULT_PUBLISH_FORMAT, isPublishFormat } from "@/lib/published-decks";
 
-// "Publish this deck" under the deck builder's results (RiftCompare's
-// DeckPublishPanel). Signed-in only; the server resolves the list the same way
-// the builder priced it and refuses anything that is not a real deck — one
-// Leader and 50 cards (lib/published-decks-server.ts).
-export function DeckPublishPanel({ listText, loginHref }: { listText: string; loginHref: string }) {
+// "Publish this deck" under the deck builder's results. Signed-in only; the server resolves the list the same way the builder priced it and refuses
+// anything that is not a real Commander-style deck: its commander, the format's size, singleton and colour identity (lib/published-decks-server.ts).
+// `format` is the format the builder judged the list against; a non-commander format publishes as Commander.
+export function DeckPublishPanel({ listText, loginHref, format }: { listText: string; loginHref: string; format?: Format | null }) {
   const { me, loaded } = useMe();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -57,7 +57,7 @@ export function DeckPublishPanel({ listText, loginHref }: { listText: string; lo
       const res = await fetch("/api/decks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description, text: listText, website }),
+        body: JSON.stringify({ title, description, text: listText, website, format: format && isPublishFormat(format) ? format : DEFAULT_PUBLISH_FORMAT }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return setState({ kind: "error", msg: data?.error ?? "Couldn't publish — please try again." });
@@ -72,7 +72,7 @@ export function DeckPublishPanel({ listText, loginHref }: { listText: string; lo
       <h2 className="font-bold text-white">Publish this deck</h2>
       <label className="block">
         <span className="mb-1 block text-sm font-semibold text-slate-200">Title</span>
-        <input required value={title} maxLength={DECK_TITLE_MAX} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Budget Red Luffy aggro" className="input w-full" />
+        <input required value={title} maxLength={DECK_TITLE_MAX} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Budget Atraxa superfriends" className="input w-full" />
       </label>
       <label className="block">
         <span className="mb-1 block text-sm font-semibold text-slate-200">
@@ -81,7 +81,7 @@ export function DeckPublishPanel({ listText, loginHref }: { listText: string; lo
         <textarea rows={3} value={description} maxLength={DECK_DESC_MAX} onChange={(e) => setDescription(e.target.value)} className="input w-full resize-y" />
       </label>
       <input type="text" name="website" value={website} onChange={(e) => setWebsite(e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
-      <p className="text-xs text-slate-500">Published under your display name. A deck is one Leader and 50 cards; the Leader comes from your list. Links aren&apos;t allowed.</p>
+      <p className="text-xs text-slate-500">Published under your display name. A published deck is a Commander-style deck: its commander, 100 cards, singleton, inside the commander&apos;s colour identity. The commander comes from your list. Links aren&apos;t allowed.</p>
       {state.kind === "error" && (
         <p role="alert" className="text-sm text-red-400">
           {state.msg}

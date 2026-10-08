@@ -1,14 +1,6 @@
-import type { CardLite, Catalog } from "../data";
+import type { CardLite } from "../data";
 
 export const monthYear = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
-
-/** Cards you can pull from retail product: not promos, DON!! or event prints. */
-export function packPullable(cat: Catalog): CardLite[] {
-  return cat.cards.filter((c) => {
-    const k = cat.setById.get(c.setId)?.kind;
-    return (k === "booster" || k === "extra" || k === "premium") && c.printing !== "promo" && c.printing !== "don";
-  });
-}
 
 export function byMarketDesc(a: CardLite, b: CardLite): number {
   return (b.marketUsd ?? -1) - (a.marketUsd ?? -1);
@@ -24,3 +16,6 @@ export function medianOf(xs: number[]): number | null {
 export function plural(n: number, one: string, many = `${one}s`): string {
   return `${n.toLocaleString("en-US")} ${n === 1 ? one : many}`;
 }
+
+/** A card's name with its label, as the posts print it ("Sol Ring (Borderless)"). */
+export const cardLabel = (c: Pick<CardLite, "name" | "variant">): string => (c.variant ? `${c.name} (${c.variant})` : c.name);

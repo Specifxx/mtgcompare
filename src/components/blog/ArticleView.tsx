@@ -10,7 +10,7 @@ import { EbayPicks } from "@/components/EbayPicks";
 import { EmailOnly } from "@/components/EmailOnly";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { plainIntroText } from "@/components/HubIntro";
-import { HatMark } from "@/components/Logo";
+import { LogoMark } from "@/components/Logo";
 import { ScrollDepthTracker } from "@/components/ScrollDepthTracker";
 import { ARTICLE_PROSE } from "@/components/prose";
 import { JsonLd } from "@/components/ui";
@@ -18,6 +18,7 @@ import { collectMentions } from "@/components/blog/mentions";
 import { ShareRow } from "@/components/blog/ShareRow";
 import { AUTHOR, POSTS, postHref } from "@/lib/blog";
 import { postContext } from "@/lib/blog/context";
+import { getCardLookup, getSealedDetail } from "@/lib/data";
 import type { Post } from "@/lib/blog/types";
 import { longDate, shortDate } from "@/lib/format";
 import { getCountry } from "@/lib/get-country";
@@ -44,14 +45,15 @@ export async function ArticleView({ post, section }: { post: Post; section: "blo
   // names, in order of first mention (components/blog/mentions.ts).
   const mentioned = collectMentions([...body.summary, body.lede, ...body.sections.map((x) => x.body)]);
   const shopSlugs = [...new Set([...body.heroCards.map((c) => c.slug), ...mentioned.cards])];
+  const [lookup, sealedDetails] = await Promise.all([
+    getCardLookup({ slugs: shopSlugs.slice(0, 12) }),
+    Promise.all(mentioned.sealed.slice(0, 6).map((slug) => getSealedDetail(slug))),
+  ]);
   const shopCards = shopSlugs
-    .map((slug) => ctx.cat.bySlug.get(slug))
+    .map((slug) => lookup.bySlug.get(slug))
     .filter((c): c is NonNullable<typeof c> => Boolean(c))
     .slice(0, 6);
-  const shopSealed = mentioned.sealed
-    .map((slug) => ctx.sealed.find((x) => x.slug === slug))
-    .filter((x): x is NonNullable<typeof x> => Boolean(x))
-    .slice(0, shopCards.length ? 2 : 4);
+  const shopSealed = sealedDetails.filter((x): x is NonNullable<typeof x> => Boolean(x)).slice(0, shopCards.length ? 2 : 4);
   return (
     <div>
       <JsonLd
@@ -183,7 +185,7 @@ export async function ArticleView({ post, section }: { post: Post; section: "blo
         <div className={`mt-8 ${ARTICLE_PROSE}`}>
           {body.lede}
           <ArticleSignupCta placement="article_intro" />
-          {post.marketData ? <ArticleMarketData stats={ctx.stats} /> : null}
+          {post.marketData ? <ArticleMarketData stats={ctx.site} /> : null}
           {body.sections.map((s) => (
             <section key={s.id} id={s.id} className="scroll-mt-24">
               <h2>{s.title}</h2>
@@ -198,7 +200,7 @@ export async function ArticleView({ post, section }: { post: Post; section: "blo
         <ArticleSignupCta placement="article_end" />
         <div className="mt-6 empty:hidden">
           <EmailOnly>
-            <NewsletterSignup siteName="OP Compare" source="article" variant="card" heading="Get the week's One Piece price moves by email" cta="Email me" />
+            <NewsletterSignup siteName="MTG Compare" source="article" variant="card" heading="Get the week's Magic price moves by email" cta="Email me" />
           </EmailOnly>
         </div>
 
@@ -207,7 +209,7 @@ export async function ArticleView({ post, section }: { post: Post; section: "blo
         <BlogShopStrip
           cards={shopCards}
           sealed={shopSealed}
-          setById={ctx.cat.setById}
+          setById={ctx.setById}
           country={country}
         />
 
@@ -228,7 +230,7 @@ export async function ArticleView({ post, section }: { post: Post; section: "blo
           className="card-surface mt-6 flex gap-4 p-5"
           aria-label="About the author"
         >
-          <HatMark size={44} className="shrink-0" />
+          <LogoMark size={44} className="shrink-0" />
           <div>
             <p className="font-semibold text-white">
               Written by{" "}
@@ -237,7 +239,7 @@ export async function ArticleView({ post, section }: { post: Post; section: "blo
               </Link>
             </p>
             <p className="mt-1 text-sm leading-relaxed text-slate-400">
-              {AUTHOR.bio} Prices refresh twice a day, so the tables above
+              {AUTHOR.bio} Prices refresh daily, so the tables above
               always match the price pages. Spotted a mistake?{" "}
               <Link href="/contact" className="text-brand-400 hover:underline">
                 Tell us

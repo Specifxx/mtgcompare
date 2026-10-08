@@ -10,31 +10,31 @@ type Ref = { slug: string; reason: string };
 
 export const CATALOGUE_GUIDES = {
   card: [
-    { slug: "one-piece-card-rarities-explained", reason: "What Leader, SR, SEC, Parallel, SP, Treasure and Manga printings are, and why they price so far apart" },
-    { slug: "where-to-buy-one-piece-cards", reason: "Which stores in your market carry One Piece singles, and how they compare" },
-    { slug: "are-one-piece-cards-cheaper-abroad", reason: "Whether a cross-market price gap survives postage and import tax" },
+    { slug: "magic-card-rarities-explained", reason: "What the rarities mean, and why they are a weak guide to price" },
+    { slug: "where-to-buy-magic-cards", reason: "Which stores in your market carry Magic singles, and how they compare" },
+    { slug: "are-magic-cards-cheaper-abroad", reason: "Whether a cross-market price gap survives postage and import tax" },
   ],
   sealed: [
-    { slug: "one-piece-booster-box-prices", reason: "What a booster box costs in each market, and where it is cheapest" },
-    { slug: "where-to-buy-one-piece-cards", reason: "How the stores we compare differ on price and stock" },
+    { slug: "magic-booster-box-prices", reason: "The dearest booster boxes, with the cheapest in-stock price in your market" },
+    { slug: "where-to-buy-magic-cards", reason: "How the stores we compare differ on price and stock" },
   ],
   sets: [
-    { slug: "one-piece-card-rarities-explained", reason: "What the rarities and special printings in a set mean for price" },
-    { slug: "most-expensive-one-piece-cards", reason: "The priciest cards right now, and what most of them have in common" },
-    { slug: "one-piece-booster-box-prices", reason: "What a booster box of a set costs, market by market" },
+    { slug: "magic-card-rarities-explained", reason: "What the rarities in a set mean for price" },
+    { slug: "most-expensive-magic-cards", reason: "The priciest cards right now, with the sets they come from" },
+    { slug: "magic-booster-box-prices", reason: "The dearest booster boxes, with the cheapest in-stock price in your market" },
   ],
   "price-guide": [
-    { slug: "one-piece-card-rarities-explained", reason: "Why printings of one card are priced so far apart" },
-    { slug: "most-expensive-one-piece-cards", reason: "The priciest One Piece cards and what drives them" },
-    { slug: "cheapest-one-piece-leaders", reason: "Budget Leaders to build around, priced in your market" },
+    { slug: "magic-card-rarities-explained", reason: "Why rarity is a weak guide to the price of a printing" },
+    { slug: "most-expensive-magic-cards", reason: "The priciest Magic cards, ranked by TCGplayer market price" },
+    { slug: "magic-set-value-concentration", reason: "Which sets hold the most value, and how much sits in their top cards" },
   ],
   market: [
-    { slug: "most-expensive-one-piece-cards", reason: "Which cards the index's top end is made of" },
-    { slug: "one-piece-card-rarities-explained", reason: "Why Parallel, Manga and SP printings move differently from standard prints" },
+    { slug: "most-expensive-magic-cards", reason: "Which cards make up the top end of the market" },
+    { slug: "magic-set-value-concentration", reason: "Which sets hold the most value, and how concentrated it is" },
   ],
   movers: [
-    { slug: "most-expensive-one-piece-cards", reason: "The priciest cards right now and what most of them have in common" },
-    { slug: "are-one-piece-cards-cheaper-abroad", reason: "Why a price gap between markets is not always a bargain" },
+    { slug: "most-expensive-magic-cards", reason: "The priciest cards right now, with the sets they come from" },
+    { slug: "are-magic-cards-cheaper-abroad", reason: "Why a price gap between markets is not always a bargain" },
   ],
 } as const satisfies Record<string, readonly Ref[]>;
 
@@ -48,7 +48,7 @@ export function guidesForCatalogue(route: CatalogueGuideRoute, limit = 3): Relat
     if (!p) continue;
     out.push({
       slug: p.slug,
-      title: p.title({ cat: { pricesAt: new Date().toISOString() } as never }),
+      title: p.title({ cat: { pricesAt: new Date().toISOString() } }),
       href: postHref(p),
       reason: g.reason,
     });

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { StaticPage } from "@/components/StaticPage";
-import { SITE_NAME } from "@/lib/site";
+import { DATA_ATTRIBUTION, FAN_CONTENT_DISCLAIMER, FAN_CONTENT_POLICY_URL, SITE_NAME, UNOFFICIAL_FAN_SITE_NOTICE } from "@/lib/site";
 import { pageOg } from "@/lib/og/meta";
 
 export const metadata: Metadata = {
@@ -14,7 +14,7 @@ export default function Terms() {
     <StaticPage title="Terms of service" crumb="Terms">
       <p>
         {SITE_NAME} is an information service. Prices come from public store
-        listings and TCGplayer data, are read twice a day and may have changed
+        listings and TCGplayer data, are published once a day and may have changed
         since: always confirm the price, condition, stock and postage on the
         retailer&apos;s own site before you buy. Purchases are made with the
         retailer, not with {SITE_NAME}.
@@ -66,10 +66,16 @@ export default function Terms() {
           may cancel and we will refund the unused part of the period.
         </li>
       </ul>
+      <h2>Data, trademarks and fan content</h2>
+      <p>{UNOFFICIAL_FAN_SITE_NOTICE}</p>
       <p>
-        {SITE_NAME} is not affiliated with Bandai, Eiichiro Oda, Shueisha or
-        Toei Animation. Trademarks and card images belong to their owners.
+        {FAN_CONTENT_DISCLAIMER}{" "}
+        <a href={FAN_CONTENT_POLICY_URL} rel="noopener noreferrer">
+          Fan Content Policy
+        </a>
+        .
       </p>
+      <p>{DATA_ATTRIBUTION} Card images are served from Scryfall and TCGplayer; trademarks, card names and artwork belong to their owners.</p>
     </StaticPage>
   );
 }

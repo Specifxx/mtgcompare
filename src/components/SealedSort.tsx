@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { SEALED_SORTS } from "@/lib/sealed-query";
 
-// The /sealed sort select (RiftCompare's SealedSort), on OP's `sort` values.
+// The /sealed sort select on the `sort` values.
 export function SealedSort() {
   const router = useRouter();
   const params = useSearchParams();

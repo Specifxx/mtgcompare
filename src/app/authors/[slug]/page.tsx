@@ -3,10 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { StaticPage } from "@/components/StaticPage";
 import { AUTHORS, POSTS, postHref } from "@/lib/blog";
-import { postContext } from "@/lib/blog/context";
+import { getCatalogStats } from "@/lib/data";
 import { shortDate } from "@/lib/format";
 import { pageOg } from "@/lib/og/meta";
-import { DEFAULT_COUNTRY } from "@/lib/country";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { JsonLd } from "@/components/ui";
 
@@ -24,7 +23,7 @@ export function generateMetadata({ params }: Props): Metadata {
   if (!a) return { title: "Author not found" };
   return {
     title: `${a.name}: Author at ${SITE_NAME}`,
-    description: `${a.name}, ${a.role}. Posts and guides written for ${SITE_NAME}, every figure drawn from its own price database.`,
+    description: `${a.name}, ${a.role}. Posts and guides written for ${SITE_NAME}, every figure drawn from its own price data.`,
     alternates: { canonical: `/authors/${a.slug}` },
     openGraph: pageOg(`/authors/${a.slug}`),
   };
@@ -33,7 +32,7 @@ export function generateMetadata({ params }: Props): Metadata {
 export default async function AuthorPage({ params }: Props) {
   const a = AUTHORS.find((x) => x.slug === params.slug);
   if (!a) notFound();
-  const ctx = await postContext(DEFAULT_COUNTRY);
+  const { pricesAt } = await getCatalogStats();
   return (
     <StaticPage title={a.name} crumb="Authors">
       <JsonLd data={{ "@context": "https://schema.org", "@type": "ProfilePage", mainEntity: { "@type": "Organization", name: a.name, url: `${SITE_URL}/authors/${a.slug}`, description: a.bio } }} />
@@ -47,7 +46,7 @@ export default async function AuthorPage({ params }: Props) {
       <ul>
         {POSTS.map((p) => (
           <li key={p.slug}>
-            <Link href={postHref(p)}>{p.title(ctx)}</Link> <span className="text-slate-500">· {p.category === "guide" ? "Guide" : "Post"} · {shortDate(p.date)}</span>
+            <Link href={postHref(p)}>{p.title({ cat: { pricesAt } })}</Link> <span className="text-slate-500">· {p.category === "guide" ? "Guide" : "Post"} · {shortDate(p.date)}</span>
           </li>
         ))}
       </ul>

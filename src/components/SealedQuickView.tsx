@@ -13,8 +13,8 @@ import { ReportPriceButton } from "./ReportPriceButton";
 import { SealedWatchButton } from "./SealedWatchButton";
 import { Dialog } from "./ui/Dialog";
 
-// Quick-view popup for sealed products (RiftCompare's SealedQuickView): a plain
-// left click on a SealedTile opens this instead of leaving /sealed. OP keeps its
+// Quick-view popup for sealed products a plain
+// left click on a SealedTile opens this instead of leaving /sealed. MTG Compare keeps its
 // /sealed/[slug] pages (SEO and the price chart), so the modal ends with "Open
 // full page". Data comes from GET /api/sealed/[slug] (one cached, market-
 // independent response); the click that opened it is a real <a href>, so
@@ -96,7 +96,7 @@ function SealedQuickViewModal({ slug, thumb, label, onClose }: { slug: string; t
           <div className="grid aspect-square w-28 shrink-0 place-items-center overflow-hidden rounded-lg border border-ink-800 bg-white p-2 sm:w-32">
             {(data?.imageUrl ?? thumb) ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={(data?.imageUrl ?? thumb)!.replace("_in_1000x1000", "_400w")} alt={`${name} One Piece sealed product`} className="max-h-full max-w-full object-contain" />
+              <img src={(data?.imageUrl ?? thumb)!.replace("_in_1000x1000", "_400w")} alt={`${name} Magic: The Gathering sealed product`} className="max-h-full max-w-full object-contain" />
             ) : (
               <span className="px-1 text-center text-xs font-bold text-slate-600">{data?.kind ?? ""}</span>
             )}

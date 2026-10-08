@@ -1,45 +1,48 @@
-// THE SET TRACKER'S PURE HALF — RiftCompare's lib/set-scope.ts, rewritten for
-// One Piece in wave 2 (2026-10-03; DECISIONS.md, "Set checklist").
+// THE SET TRACKER'S PURE HALF.
 //
-// A binder is diffed against a SET'S CATALOGUE: which cards of Romance Dawn
+// A binder is diffed against a SET'S CHECKLIST: which cards of Modern Horizons 3
 // does this account not hold, and what is the cheapest listing for each?
 // Everything that decides the answer lives here with no database, no React and
 // no Next, so the tracker page, the owned overlay and the tests all read one
 // definition and the numbers cannot drift apart:
 //
-//   • which printings count toward a set (two scopes, below);
-//   • which of a card's prices is a STORE listing and which is not;
-//   • progress and cost-to-finish, with eBay-only cards counted in neither total;
-//   • the pre-release rule: a set that has not released shows "N revealed" with
+//   * which printings count toward a set (two scopes, below);
+//   * which of a card's prices is a STORE listing and which is not;
+//   * progress and cost-to-finish, with unlisted cards counted in neither total;
+//   * the pre-release rule: a set that has not released shows "N revealed" with
 //     no denominator and no percentage;
-//   • the missing list as a Best Basket-ready text and as a CSV.
+//   * the missing list as a Best Basket-ready text and as a CSV.
 //
 // Client-safe: it imports only pure modules.
 //
-// WHAT COUNTS AS OWNED. Any condition: an LP copy fills the slot as well as an
-// NM one does. One copy is enough ("own" means "at least one copy"). A card is
-// ONE printing on OP Compare (Card.id, the TCGplayer productId), so owning the
-// standard Shanks OP01-120 does not tick its Parallel or its Manga.
+// WHAT COUNTS AS OWNED. Any condition and ANY FINISH: an LP copy fills the slot
+// as well as an NM one does, and so does a foil copy (the tracker asks "do I
+// have this printing", the binder's value is where the finish matters). One copy
+// is enough. A printing is one product (Card.id, the TCGplayer productId), so
+// owning the plain Sol Ring of a Commander set does not tick its Borderless one.
 //
-// WHAT COUNTS TOWARD A SET (the One Piece rule, not RiftCompare's variant /
-// overnumbered / Signature / Crystal Rose one):
-//   "base"  the standard prints — printing "standard", or "reprint" (a Premium
-//           Booster's reprints ARE its contents) — Leaders included, DON!!
-//           cards excluded. In a promo or event group, its promo prints.
-//   "all"   every printing we track: the base plus Parallels, Manga, SP,
-//           Treasure Rares, special foils and DON!! cards.
-// A PROMO printing inside a booster group (a stray TCGplayer listing) is in
-// neither: it is a different ownership question ("do I have the promo"). The
-// loader decides that once per card and sets `isPromo` (lib/data.ts
-// getSetChecklist). "Printings we track" is the honest label: the counts are
-// only as complete as our Card rows, never a typed-in total.
-import { PRINTINGS, RARITIES } from "./constants";
+// WHAT COUNTS TOWARD A SET:
+//   "base"  the plain printings of the set: no treatment word at all (no
+//           Borderless, Extended Art, Showcase, Retro, Foil Etched, stamp or
+//           language). A foil-only product with no treatment stays plain. In a
+//           promo set (Promo Pack, The List, Secret Lair) the promo word is the
+//           plain printing of that set.
+//   "all"   every printing the checklist carries: the base plus frames, art
+//           variants, foil patterns and editions. THIN rows (a single listing,
+//           noindex pages) are in the checklist and counted: a set tracker is
+//           complete.
+// A PROMO treatment (prerelease, bundle, Buy-a-Box, stamped ...) inside a set
+// that is not a promo set is in neither: it is a different ownership question
+// ("do I have the prerelease card"). The loader decides that once per card and
+// sets `isPromo` (lib/data/sets.ts getSetChecklist).
+import { PRINTINGS, RARITIES, TREATMENT_BY_KEY } from "./constants";
+import { formatDeckLine } from "./deck";
 
 export type SetScope = "base" | "all";
 
 export const SET_SCOPES: { key: SetScope; label: string; hint: string }[] = [
-  { key: "base", label: "Base set", hint: "The standard prints, Leaders included: no Parallels, Manga, SP, Treasure Rares, DON!! cards or promos." },
-  { key: "all", label: "Every printing we track", hint: "The base set plus Parallels, Manga, SP, Treasure Rares, special foils and DON!! cards. Promos are left out." },
+  { key: "base", label: "Base set", hint: "The plain printings: no Borderless, Extended Art, Showcase, Retro, Foil Etched, stamped or promo versions." },
+  { key: "all", label: "Every printing we list", hint: "The base set plus the frame and art variants, foil patterns and editions we list. Promos are left out." },
 ];
 
 /** A scope from a query string; anything else is the base set. */
@@ -50,28 +53,32 @@ export function parseScope(v: unknown): SetScope {
 
 /** The fields the scope rule reads. */
 export interface ScopeCard {
+  /** The first treatment key of the product ("borderless", "etched" ...), "standard" for a plain one (constants.printingOf). */
   printing: string;
   /** A promo print the set does not count (decided by the loader from the set's kind). */
   isPromo?: boolean | null;
 }
 
-const BASE_PRINTINGS = new Set(["standard", "reprint", "promo"]);
-
-/** Is this printing a special treatment of a card (Parallel, Manga, SP, Treasure, special foil, DON!!)? */
+/** Is this printing a treatment of a card (frame, art variant, foil pattern, edition, language, stamp)? */
 export function isSpecialPrinting(c: ScopeCard): boolean {
-  return !BASE_PRINTINGS.has(c.printing);
+  return c.printing !== "standard";
 }
 
 export function cardInScope(c: ScopeCard, scope: SetScope): boolean {
   if (c.isPromo) return false;
-  return scope === "all" ? true : !isSpecialPrinting(c);
+  // inside a promo set (isPromo false) the promo stamp IS the plain printing of that set
+  return scope === "all" ? true : !isSpecialPrinting(c) || isPromoTreatment(c.printing);
 }
 
-/** Set kinds whose cards ARE promos, so promo prints count there (lib/constants.ts SET_KINDS). */
-export const PROMO_SET_KINDS = new Set(["promo", "event"]);
+/** Set kinds whose cards ARE promos (or drops), so promo prints count there (lib/constants.ts SET_KINDS). */
+export const PROMO_SET_KINDS = new Set(["promo", "promo-pack", "list", "secret-lair"]);
 
-/** Is a printing a promo the set does NOT count? */
-export const promoOutsideSet = (printing: string, setKind: string): boolean => printing === "promo" && !PROMO_SET_KINDS.has(setKind);
+/** Is a treatment key a promo stamp or event (constants TREATMENTS kind "promo")? */
+export const isPromoTreatment = (key: string): boolean => TREATMENT_BY_KEY[key]?.kind === "promo";
+
+/** Is a printing (one treatment key, or the keys of a card) a promo the set does NOT count? */
+export const promoOutsideSet = (printing: string | readonly string[], setKind: string): boolean =>
+  !PROMO_SET_KINDS.has(setKind) && (typeof printing === "string" ? [printing] : printing).some(isPromoTreatment);
 
 // ── A card as the checklist carries it ───────────────────────────────────────
 
@@ -79,22 +86,24 @@ export interface ChecklistCard extends ScopeCard {
   id: number;
   slug: string;
   name: string;
-  /** "OP01-120"; null only for DON!! cards. */
+  /** The collector number as printed ("146", "231★", "KHC-29"); null for a few unnumbered products. */
   number: string | null;
   variant: string | null;
   rarity: string | null;
   setCode: string;
   hasImage: boolean;
   /**
-   * Cheapest in-stock listing at a REAL store (or TCGplayer, a US store) in the
-   * reader's market, cents, or null. Never Card.low<M>, which includes eBay
-   * and would let an eBay-only card read as available.
+   * Cheapest in-stock listing at a REAL store (TCGplayer counts in the US) in the
+   * reader's market, cents, or null: the aggregate of the card's headline unit
+   * from the published set board. eBay is never in it (eBay data is not published).
    */
   minCents: number | null;
   /** Distinct stores with that card in stock. 0 when minCents is null. */
   stores: number;
-  /** No store has it, but the market's own lowest-price column has one (eBay). */
+  /** Kept for the shape of the page: no published source other than stores exists, so the loader sets it false. */
   otherSource: boolean;
+  /** THIN: a single thin listing (noindex page). Counted and costed like any other row. */
+  thin?: boolean;
 }
 
 export type CardStock = "store" | "other" | "none";
@@ -197,22 +206,23 @@ export const parseSort = (v: unknown): SortKey => {
   return s === "dearest" || s === "number" ? s : "cheapest";
 };
 
-/** "OP01-120" → ["OP01", 120]; a DON!! card (no number) sorts last. */
-function numberOrder(number: string | null): [string, number] {
-  const m = number?.match(/^([A-Z]+\d*)-(\d+)/i);
-  return m ? [m[1].toUpperCase(), parseInt(m[2], 10)] : ["~", Number.MAX_SAFE_INTEGER];
+/** "146" -> ["", 146]; "231★" -> ["", 231]; "KHC-29" -> ["KHC", 29]; "029/281" -> ["", 29]; no number sorts last. */
+function numberOrder(number: string | null): [string, number, string] {
+  const m = number?.match(/^(?:([A-Za-z]+\d*)-)?0*(\d+)(.*)$/);
+  return m ? [(m[1] ?? "").toUpperCase(), parseInt(m[2]!, 10), m[3] ?? ""] : ["~", Number.MAX_SAFE_INTEGER, ""];
 }
 
-/** Card number (prefix, then numerically), then printing (standard first), then id. */
+/** Collector number (prefix, then numerically, then any suffix), then printing (standard first), then id. */
 export function compareByNumber(
   a: Pick<ChecklistCard, "number" | "printing" | "id">,
   b: Pick<ChecklistCard, "number" | "printing" | "id">,
 ): number {
-  const [ap, an] = numberOrder(a.number);
-  const [bp, bn] = numberOrder(b.number);
+  const [ap, an, as] = numberOrder(a.number);
+  const [bp, bn, bs] = numberOrder(b.number);
   return (
     (ap < bp ? -1 : ap > bp ? 1 : 0) ||
     an - bn ||
+    (as < bs ? -1 : as > bs ? 1 : 0) ||
     (PRINTINGS[a.printing]?.order ?? 99) - (PRINTINGS[b.printing]?.order ?? 99) ||
     a.id - b.id
   );
@@ -252,7 +262,7 @@ export function listRows(cards: readonly ChecklistCard[], owned: OwnedMap, opts:
   });
 }
 
-/** Rarities present in the scope, in One Piece order (L C UC R SR SEC TR PR DON!!), for the filter. */
+/** Rarities present in the scope, in the order of constants RARITIES (M R U C S P L T), for the filter. */
 export function raritiesIn(cards: readonly ChecklistCard[], scope: SetScope): string[] {
   const present = new Set(cards.filter((c) => cardInScope(c, scope) && c.rarity).map((c) => c.rarity as string));
   return [...present].sort((a, b) => (RARITIES[a]?.order ?? 99) - (RARITIES[b]?.order ?? 99) || a.localeCompare(b));
@@ -263,17 +273,13 @@ export function raritiesIn(cards: readonly ChecklistCard[], scope: SetScope): st
 const esc = (s: string) => (/[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s);
 
 /**
- * One line per card: `1 Shanks OP01-120` for a standard print and
- * `1 Shanks OP01-120 (Parallel) #512345` for any other. It pastes straight
- * into Best Basket, the deck pricer or the binder's paste import (lib/deck.ts
- * parseDeckList), and the `#id` pins the exact printing, so a Parallel is never
- * priced as its base card.
+ * One line per card: `1 Lightning Bolt (M11) 146` for a plain print and the same
+ * with ` #<productId>` for any other. It pastes straight into Best Basket, the deck
+ * pricer or the binder's paste import (lib/deck.ts parseDeckList), and the `#id`
+ * pins the exact printing, so a Borderless one is never priced as its plain card.
  */
-export function missingLine(c: Pick<ChecklistCard, "id" | "name" | "number" | "variant" | "printing">): string {
-  const special = c.printing !== "standard" && c.printing !== "reprint";
-  const label = c.variant ? ` (${c.variant})` : "";
-  if (!c.number) return `1 ${c.name}${label} #${c.id}`;
-  return `1 ${c.name} ${c.number}${label}${special ? ` #${c.id}` : ""}`;
+export function missingLine(c: Pick<ChecklistCard, "id" | "name" | "number" | "setCode" | "printing">): string {
+  return formatDeckLine(1, { id: c.id, name: c.name, number: c.number, setCode: c.setCode, flags: 0 }, c.printing !== "standard");
 }
 
 export function missingText(rows: readonly ChecklistCard[]): string {
@@ -298,9 +304,9 @@ export function missingCsv(rows: readonly ChecklistCard[], currency: string): st
   return [head, ...lines].join("\n");
 }
 
-/** What a card with no store listing says: on OP Compare the only other source is eBay. */
+/** What a card with no store listing but another source says. Nothing published carries one, so the tracker never shows it; the words stay for the shape of the page. */
 export function otherSourceLabel(_country?: string): string {
-  return "eBay only";
+  return "Other source only";
 }
 
 /**

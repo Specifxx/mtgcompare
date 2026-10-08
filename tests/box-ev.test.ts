@@ -3,152 +3,172 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
+  BOOSTER_SET_KINDS,
   CHASE_POOLS,
-  DEFAULT_PACKS,
-  PER_BOX_DEFAULTS,
   cheapestBoxOffer,
   computeEv,
   derivedRates,
   oneInPacks,
   poolOf,
   poolStats,
+  unvaluedSlots,
   verdictFor,
   type PoolKey,
 } from "../src/lib/box-ev";
-import { CARDS_PER_PACK, PACKS_PER_BOX, PACK_SLOTS, PULL_RATES, PACK_SOURCES } from "../src/lib/pack-composition";
+import { BOOSTER_TYPES, DRAFT_BOOSTER, PLAY_BOOSTER, boosterTypeOf, cardsInPack } from "../src/lib/pack-composition";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Box EV (RiftCompare's tests/box-ev.test.ts and tests/pack-composition.test.ts,
-// for One Piece). Bandai publishes no pull rates: every default is a community
-// estimate, marked unsourced with its pages listed, and set LOW on purpose.
+// Box EV for Magic. The slot structure is the one Wizards of the Coast
+// publishes (Play Booster); nothing is a community estimate. The cards below
+// are real Modern Horizons 3 products and their TCGplayer market prices in
+// cents (TCGCSV group 23444, 2026-10-07).
 // ─────────────────────────────────────────────────────────────────────────────
 
-const c = (printing: string, rarity: string | null, valueCents: number | null = null) => ({ printing, rarity, valueCents });
+const MH3 = {
+  mountain: { rarity: "L", treat: [], cents: 24 },                                // Mountain (0307)
+  ripple: { rarity: "L", treat: ["ripple"], cents: 22 },                          // Mountain (0503) (Ripple Foil), foil only
+  spawnToken: { rarity: "T", treat: [], cents: 35 },
+  flare: { rarity: "R", treat: [], cents: 362 },                                  // Flare of Denial
+  flareRetro: { rarity: "R", treat: ["retro"], cents: 658 },
+  flareBorderless: { rarity: "R", treat: ["borderless"], cents: 1024 },
+  nadu: { rarity: "R", treat: [], cents: 33 },                                    // Nadu, Winged Wisdom
+  naduBorderless: { rarity: "R", treat: ["borderless"], cents: 50 },
+  naduEtched: { rarity: "R", treat: ["etched"], cents: 229 },                     // foil-only product
+  labyrinth: { rarity: "M", treat: [], cents: 1319 },                             // Ugin's Labyrinth
+  labyrinthBorderless: { rarity: "M", treat: ["borderless"], cents: 2036 },
+  tower: { rarity: "M", treat: [], cents: 3049 },                                 // Phyrexian Tower
+  towerBorderless: { rarity: "M", treat: ["borderless"], cents: 4413 },
+  binding: { rarity: "M", treat: [], cents: 76 },                                 // Ugin's Binding
+} as const;
+const card = (k: keyof typeof MH3) => ({ rarity: MH3[k].rarity, treat: [...MH3[k].treat], valueCents: MH3[k].cents });
 const read = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
 
-test("a standard card lands in its printed rarity; chase printings get their own pools", () => {
-  assert.equal(poolOf(c("standard", "C")), "Common");
-  assert.equal(poolOf(c("standard", "UC")), "Uncommon");
-  assert.equal(poolOf(c("standard", "R")), "Rare");
-  assert.equal(poolOf(c("standard", "L")), "Leader");
-  assert.equal(poolOf(c("standard", "SR")), "SuperRare");
-  assert.equal(poolOf(c("standard", "SEC")), "SecretRare");
-  assert.equal(poolOf(c("alt", "SR")), "Parallel", "a Parallel of any rarity is the Parallel pool");
-  assert.equal(poolOf(c("alt", "L")), "Parallel");
-  assert.equal(poolOf(c("sp", "SR")), "SP");
-  assert.equal(poolOf(c("treasure", "TR")), "Treasure");
-  assert.equal(poolOf(c("manga", "SEC")), "Manga");
+test("a standard card lands in its printed rarity; chase treatments get their own pools", () => {
+  assert.equal(poolOf(card("flare")), "Rare");
+  assert.equal(poolOf(card("labyrinth")), "Mythic");
+  assert.equal(poolOf(card("mountain")), "Land");
+  assert.equal(poolOf({ rarity: "C", treat: [] }), "Common");
+  assert.equal(poolOf({ rarity: "U", treat: [] }), "Uncommon");
+  assert.equal(poolOf(card("flareRetro")), "AltRare", "a retro frame rare is a Booster Fun rare");
+  assert.equal(poolOf(card("flareBorderless")), "AltRare");
+  assert.equal(poolOf(card("labyrinthBorderless")), "AltMythic");
+  assert.equal(poolOf({ rarity: "U", treat: ["showcase"] }), "AltCommon");
+  assert.equal(poolOf(card("naduEtched")), "SpecialFoil", "etched is a foil-only product whatever its rarity");
+  assert.equal(poolOf(card("ripple")), "SpecialFoil");
+  assert.equal(poolOf({ rarity: "M", treat: ["serial"] }), "SpecialFoil");
 });
 
-test("promos, reprints, special foils and DON!! are not pulls from a set's packs", () => {
-  for (const p of ["promo", "reprint", "foil", "don"]) assert.equal(poolOf(c(p, "SR")), null, p);
-  assert.equal(poolOf(c("standard", "PR")), null, "a promo rarity on a standard printing is not a pack pool");
-  assert.equal(poolOf(c("standard", null)), null);
+test("tokens, promos, stamped cards, editions and specials are not pulls from a set's boosters", () => {
+  assert.equal(poolOf(card("spawnToken")), null);
+  assert.equal(poolOf({ rarity: "S", treat: [] }), null);
+  assert.equal(poolOf({ rarity: "P", treat: [] }), null);
+  for (const t of ["prerelease", "promopack", "thelist", "secretlair", "buyabox", "bundle"]) assert.equal(poolOf({ rarity: "R", treat: [t] }), null, t);
+  assert.equal(poolOf({ rarity: "R", treat: ["ce"] }), null, "a Collector's Edition card");
+  assert.equal(poolOf({ rarity: "R", treat: ["lang-ja"] }), null);
+  assert.equal(poolOf({ rarity: null, treat: [] }), null);
 });
 
 test("the average divides by EVERY card in the pool, not just the priced ones; no outlier cap", () => {
-  const s = poolStats([c("alt", "SR", 1000), c("alt", "R", null), c("alt", "C", 0), c("alt", "L", 3000)]);
-  const p = s.get("Parallel")!;
+  const s = poolStats([card("labyrinthBorderless"), card("towerBorderless"), { rarity: "M", treat: ["borderless"], valueCents: null }, { rarity: "M", treat: ["borderless"], valueCents: 0 }]);
+  const p = s.get("AltMythic")!;
   assert.equal(p.total, 4);
   assert.equal(p.priced, 2);
-  assert.equal(p.avgCents, 1000, "(1000 + 3000) / 4 — unpriced cards count as zero");
-  assert.equal(p.topCents, 3000);
-  const chase = poolStats([c("manga", "SEC", 500_000), c("manga", "SR", 1000)]).get("Manga")!;
-  assert.equal(chase.avgCents, 250_500, "the expensive chase card is the signal, not noise");
+  assert.equal(p.avgCents, Math.round((2036 + 4413) / 4), "unpriced cards count as zero");
+  assert.equal(p.topCents, 4413);
 });
 
-test("the defaults are the low end: Leader 5, SR 7, SEC 0.5, Parallel 2 a box; SP and Treasure 1 a case; Manga 1 per 3 cases", () => {
-  assert.equal(PER_BOX_DEFAULTS.Leader, 5);
-  assert.equal(PER_BOX_DEFAULTS.SuperRare, 7);
-  assert.equal(PER_BOX_DEFAULTS.SecretRare, 0.5);
-  assert.equal(PER_BOX_DEFAULTS.Parallel, 2);
-  assert.equal(PER_BOX_DEFAULTS.SP, 1 / 12);
-  assert.equal(PER_BOX_DEFAULTS.Treasure, 1 / 12);
-  assert.equal(PER_BOX_DEFAULTS.Manga, 1 / 36);
-  assert.equal(DEFAULT_PACKS, 24);
+test("the Play Booster table is the published structure: 14 cards, rare 6 in 7 and mythic 1 in 7", () => {
+  assert.equal(PLAY_BOOSTER.cardsPerPack, 14);
+  assert.equal(cardsInPack(PLAY_BOOSTER), 14);
+  assert.equal(PLAY_BOOSTER.source?.url, "https://magic.wizards.com/en/news/making-magic/nuts-and-bolts-16-play-boosters");
+  const rare = PLAY_BOOSTER.slots.find((s) => s.key === "rare")!;
+  assert.deepEqual(rare.pools, [{ pool: "Rare", weight: 6 / 7 }, { pool: "Mythic", weight: 1 / 7 }]);
+  for (const s of PLAY_BOOSTER.slots) {
+    assert.equal(s.sourced, true, s.key);
+    if (s.pools.length) assert.ok(Math.abs(s.pools.reduce((a, m) => a + m.weight, 0) - 1) < 1e-12, `${s.key} weights sum to 1`);
+  }
+  // The wildcard slots have no published split: listed, valued at nothing.
+  assert.deepEqual(unvaluedSlots(PLAY_BOOSTER).map((s) => s.key), ["wild", "foil"]);
+  // An unconfirmed structure says so.
+  assert.ok(DRAFT_BOOSTER.slots.every((s) => s.sourced === false));
+  assert.equal(DRAFT_BOOSTER.source, null);
+  assert.equal(cardsInPack(DRAFT_BOOSTER), 14, "ten commons, three uncommons, one rare slot as listed (the 15th card is the basic land slot of older sets)");
 });
 
-const ALL = new Map<PoolKey, number>([
-  ["Common", 40], ["Uncommon", 30], ["Rare", 20], ["Leader", 6], ["SuperRare", 12], ["SecretRare", 2],
-  ["Parallel", 25], ["SP", 6], ["Treasure", 1], ["Manga", 3],
-]);
+test("which sealed products have a modelled booster", () => {
+  assert.equal(boosterTypeOf("Modern Horizons 3 - Play Booster Display")?.key, "play");
+  assert.equal(boosterTypeOf("Modern Horizons 3 - Play Booster Pack")?.key, "play");
+  assert.equal(boosterTypeOf("Core Set 2021 - Draft Booster Display")?.key, "draft");
+  for (const n of ["Modern Horizons 3 - Collector Booster Display", "Modern Horizons 3 - Bundle", "Modern Horizons 3 - Prerelease Pack", "Foundations Jumpstart - Booster Display", "Modern Horizons 3 - Commander Deck - Eldrazi Incursion"]) assert.equal(boosterTypeOf(n), null, n);
+  assert.equal(BOOSTER_TYPES.length, 2);
+});
 
-test("rates: Common and Uncommon per pack; the rest per box over the box's packs; Rare + SR + SEC fill the one rare slot", () => {
-  const r = derivedRates({ counts: ALL, packs: 24 });
+const ALL = new Map<PoolKey, number>([["Common", 80], ["Uncommon", 100], ["Rare", 60], ["Mythic", 20], ["Land", 6], ["AltRare", 30], ["AltMythic", 10], ["SpecialFoil", 8]]);
+
+test("Play Booster rates per pack: slot count times weight; a pool with no cards in the set gets 0", () => {
+  const r = derivedRates({ counts: ALL, booster: PLAY_BOOSTER });
   assert.equal(r.Common, 7);
   assert.equal(r.Uncommon, 3);
-  assert.equal(r.Leader, 5 / 24);
-  assert.equal(r.SuperRare, 7 / 24);
-  assert.ok(Math.abs(r.Rare + r.SuperRare + r.SecretRare - 1) < 1e-12, "one rare-or-better card a pack");
-  assert.equal(r.Manga, 1 / 36 / 24);
-  // A 20-pack box gets the same hits per BOX.
-  const small = derivedRates({ counts: ALL, packs: 20 });
-  assert.ok(Math.abs(small.SuperRare * 20 - 7) < 1e-12);
-  assert.ok(Math.abs(small.Parallel * 20 - 2) < 1e-12);
-  // A pool with no cards in this set gets 0.
-  const none = derivedRates({ counts: new Map<PoolKey, number>([["Common", 5]]), packs: 24 });
-  for (const p of CHASE_POOLS) assert.equal(none[p], 0);
-  assert.equal(none.Rare, 0);
+  assert.equal(r.Rare, 6 / 7);
+  assert.equal(r.Mythic, 1 / 7);
+  assert.equal(r.Land, 1);
+  for (const p of CHASE_POOLS) assert.equal(r[p], 0, `${p}: Wizards publishes no split, so no value is assumed`);
+  const noMythic = derivedRates({ counts: new Map<PoolKey, number>([["Common", 5], ["Rare", 5]]), booster: PLAY_BOOSTER });
+  assert.equal(noMythic.Mythic, 0);
+  assert.equal(noMythic.Uncommon, 0);
+  assert.ok(Object.values(derivedRates({ counts: ALL, booster: null })).every((v) => v === 0));
 });
 
-test("a Manga card at $1,000 cannot dominate EV at a 1-in-36-boxes rate", () => {
-  const stats = poolStats([
-    ...Array.from({ length: 40 }, () => c("standard", "C", 10)),
-    ...Array.from({ length: 30 }, () => c("standard", "UC", 15)),
-    ...Array.from({ length: 20 }, () => c("standard", "R", 50)),
-    ...Array.from({ length: 12 }, () => c("standard", "SR", 500)),
-    ...Array.from({ length: 6 }, () => c("standard", "L", 100)),
-    ...Array.from({ length: 25 }, () => c("alt", "SR", 1500)),
-    c("manga", "SEC", 100_000),
-  ]);
-  const counts = new Map([...stats].map(([k, v]) => [k, v.total]));
-  const ev = computeEv({ stats, rates: derivedRates({ counts, packs: 24 }), packs: 24, boxPriceCents: 10_000 });
-  const manga = ev.lines.find((l) => l.pool === "Manga")!;
-  assert.ok(manga.share < 0.25, `Manga is ${(manga.share * 100).toFixed(1)}% of EV`);
-  // $1,000 at 1/36 a box is about $27.78 of a box's EV, not $1,000.
-  assert.ok(Math.abs(manga.contributionCents * 24 - 100_000 / 36) < 50);
-  assert.ok(ev.evBoxCents < 15_000, "a box of mostly bulk, not a set sum");
-});
-
-test("EV is rate × average, summed, then × packs; shares sum to 1; the ratio is EV over price", () => {
-  const stats = poolStats([c("standard", "C", 10), c("standard", "R", 100), c("alt", "SR", 2400)]);
-  const rates = { Common: 7, Rare: 1, Parallel: 2 / 24 };
-  const ev = computeEv({ stats, rates, packs: 24, boxPriceCents: 10_000 });
-  assert.equal(ev.evPackCents, Math.round(7 * 10 + 100 + (2 / 24) * 2400));
-  assert.equal(ev.evBoxCents, Math.round((7 * 10 + 100 + (2 / 24) * 2400) * 24));
+test("EV is rate x average, summed, then x packs; shares sum to 1; the ratio is EV over price", () => {
+  const stats = poolStats([card("flare"), card("nadu"), card("labyrinth"), card("tower"), card("binding"), card("mountain")]);
+  const rates = { Rare: 6 / 7, Mythic: 1 / 7, Land: 1 };
+  const ev = computeEv({ stats, rates, packs: 30, boxPriceCents: 20_000 });
+  const rareAvg = Math.round((362 + 33) / 2), mythAvg = Math.round((1319 + 3049 + 76) / 3);   // pool averages are whole cents
+  const pack = (6 / 7) * rareAvg + (1 / 7) * mythAvg + 24;
+  assert.equal(ev.evPackCents, Math.round(pack));
+  assert.equal(ev.evBoxCents, Math.round(pack * 30));
   assert.ok(Math.abs(ev.lines.reduce((a, l) => a + l.share, 0) - 1) < 1e-9);
-  assert.equal(ev.ratio, ev.evBoxCents / 10_000);
-  assert.equal(computeEv({ stats, rates: {}, packs: 24, boxPriceCents: 0 }).lines.every((l) => l.share === 0), true, "zero EV: shares of 0, not NaN");
-  assert.equal(computeEv({ stats, rates, packs: 24, boxPriceCents: 0 }).ratio, null);
+  assert.equal(ev.ratio, ev.evBoxCents / 20_000);
+  assert.equal(computeEv({ stats, rates: {}, packs: 30, boxPriceCents: 0 }).lines.every((l) => l.share === 0), true, "zero EV: shares of 0, not NaN");
+  assert.equal(computeEv({ stats, rates, packs: 30, boxPriceCents: 0 }).ratio, null);
+});
+
+test("a $44 borderless mythic cannot dominate at a rate no slot gives it", () => {
+  const stats = poolStats([card("towerBorderless"), card("labyrinthBorderless"), card("tower"), card("labyrinth"), card("flare"), card("mountain"), { rarity: "C", treat: [], valueCents: 10 }, { rarity: "U", treat: [], valueCents: 15 }]);
+  const counts = new Map([...stats].map(([k, v]) => [k, v.total]));
+  const ev = computeEv({ stats, rates: derivedRates({ counts, booster: PLAY_BOOSTER }), packs: 30, boxPriceCents: 15_000 });
+  assert.equal(ev.chaseShare, 0, "no published slot yields a Booster Fun pool");
+  // The visitor can give the wildcard a rate; the chase pool then shows up on its own line.
+  const withWild = computeEv({ stats, rates: { ...derivedRates({ counts, booster: PLAY_BOOSTER }), AltMythic: 0.02 }, packs: 30, boxPriceCents: 15_000 });
+  const alt = withWild.lines.find((l) => l.pool === "AltMythic")!;
+  assert.equal(alt.avgCents, Math.round((4413 + 2036) / 2));
+  assert.ok(alt.share > 0 && alt.chase);
 });
 
 test("no verdict when the paying pools are mostly unpriced; chase-heavy EV is not called positive", () => {
-  const unpriced = poolStats([c("standard", "C", null), c("standard", "C", null), c("standard", "C", null), c("standard", "R", 100)]);
-  const ev = computeEv({ stats: unpriced, rates: { Common: 7, Rare: 1 }, packs: 24, boxPriceCents: 10_000 });
+  const unpriced = poolStats([{ rarity: "C", treat: [], valueCents: null }, { rarity: "C", treat: [], valueCents: null }, { rarity: "C", treat: [], valueCents: null }, card("flare")]);
+  const ev = computeEv({ stats: unpriced, rates: { Common: 7, Rare: 1 }, packs: 30, boxPriceCents: 10_000 });
   assert.equal(ev.pricedShare, 0.25);
-  const v = verdictFor(ev.ratio, { pricedShare: ev.pricedShare, chaseShare: ev.chaseShare });
-  assert.match(v!.text, /Too few cards/);
-  assert.equal(verdictFor(0.2, { pricedShare: 0.25 })!.tone, "flat", "never 'price is well above EV' on missing prices");
-  // Every card priced: the usual verdicts apply.
+  assert.match(verdictFor(ev.ratio, { pricedShare: ev.pricedShare, chaseShare: ev.chaseShare })!.text, /Too few cards/);
+  assert.equal(verdictFor(0.2, { pricedShare: 0.25 })!.tone, "flat");
   assert.equal(verdictFor(0.5, { pricedShare: 1, chaseShare: 0.1 })!.tone, "down");
-  // A $4,800 Parallel carrying the EV: positive ratio, but not a green light.
-  const skew = poolStats([c("standard", "C", 10), c("alt", "SR", 480_000)]);
-  const sk = computeEv({ stats: skew, rates: { Common: 7, Parallel: 2 / 24 }, packs: 24, boxPriceCents: 10_000 });
+  const skew = poolStats([{ rarity: "C", treat: [], valueCents: 10 }, { rarity: "M", treat: ["borderless"], valueCents: 400_000 }]);
+  const sk = computeEv({ stats: skew, rates: { Common: 7, AltMythic: 1 / 40 }, packs: 30, boxPriceCents: 10_000 });
   assert.ok(sk.chaseShare >= 0.9 && sk.ratio! > 1.1);
   const sv = verdictFor(sk.ratio, { pricedShare: sk.pricedShare, chaseShare: sk.chaseShare })!;
   assert.equal(sv.tone, "flat");
   assert.match(sv.text, /handful of chase cards/);
 });
 
-test("verdicts at RiftCompare's thresholds; '1 in N packs' for fractional rates", () => {
+test("verdict thresholds; '1 in N packs' for fractional rates", () => {
   assert.equal(verdictFor(null), null);
   assert.equal(verdictFor(1.2)!.tone, "up");
   assert.equal(verdictFor(1.0)!.tone, "up");
   assert.equal(verdictFor(0.9)!.tone, "flat");
   assert.equal(verdictFor(0.5)!.tone, "down");
-  assert.match(verdictFor(0.5)!.text, /buying the singles you want is cheaper/);
   assert.equal(oneInPacks(1 / 288), "≈ 1 in 288 packs");
   assert.equal(oneInPacks(2), null);
+  assert.ok(BOOSTER_SET_KINDS.has("expansion") && BOOSTER_SET_KINDS.has("core") && !BOOSTER_SET_KINDS.has("commander"));
 });
 
 test("the box price starts at the cheapest in-stock tracked STORE offer: never a TCGplayer reference or eBay", () => {
@@ -163,29 +183,11 @@ test("the box price starts at the cheapest in-stock tracked STORE offer: never a
   assert.equal(cheapestBoxOffer(offers, "UK"), null);
 });
 
-test("pack composition: 12 cards, every estimate unsourced with its pages listed, never dressed up as published", () => {
-  assert.equal(CARDS_PER_PACK, 12);
-  assert.equal(PACKS_PER_BOX, 24);
-  for (const s of PACK_SLOTS) {
-    assert.equal(s.sourced, false, `${s.key}: Bandai publishes no pack contents`);
-    assert.ok(s.sources.length > 0);
-  }
-  for (const r of PULL_RATES) {
-    assert.equal(r.sourced, false, `${r.key}: Bandai publishes no rates`);
-    assert.ok(r.sources.length > 0 && r.sources.every((u) => /^https:\/\//.test(u)));
-    assert.ok(Math.abs(r.onePerPacks - 24 / r.perBox) < 0.01, `${r.key}: one in N packs matches its per-box figure`);
-  }
-  assert.ok(Object.values(PACK_SOURCES).some((u) => u.includes("tcgtalk.com")));
-  assert.ok(Object.values(PACK_SOURCES).some((u) => u.includes("slab-z.com")));
-  assert.ok(Object.values(PACK_SOURCES).some((u) => u.includes("bountytcg.app")));
-  assert.ok(Object.values(PACK_SOURCES).some((u) => u.includes("one-piece-tcg.com")));
-});
-
-test("the page and calculator say the rates are community estimates set low, and the old set-sum page redirects", () => {
-  const page = read("src/app/tools/box-ev/page.tsx");
-  assert.match(page, /export const revalidate = 86400/);
+test("the page and calculator say what is published and what is left at zero, and the old set-sum page redirects", () => {
+  assert.match(read("src/app/tools/box-ev/page.tsx"), /export const revalidate = 86400/);
   const calc = read("src/components/BoxEvCalculator.tsx");
-  assert.match(calc, /Bandai publishes no pull rates/);
-  assert.match(calc, /set low on purpose/);
+  assert.match(calc, /Wizards of the Coast publishes the slot structure/);
+  assert.match(calc, /valued at zero/);
+  assert.doesNotMatch(calc, /Bandai|One Piece|community estimate/);
   assert.match(read("next.config.js"), /source: "\/tools\/box-value", destination: "\/tools\/box-ev", permanent: true/);
 });

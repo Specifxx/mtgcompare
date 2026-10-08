@@ -7,8 +7,8 @@ import { adminDecks, type AdminDeckRow } from "@/lib/admin-decks";
 export const dynamic = "force-dynamic";
 export const generateMetadata = (): Promise<Metadata> => adminMetadata({ title: "Decks" });
 
-// Import tournament lists as JSON and hide or restore any published deck
-// (RiftCompare's /admin/decks).
+// Import tournament lists as JSON and hide or restore any published deck.
+
 export default async function AdminDecksPage() {
   await requireAdminPage();
   const decks: AdminDeckRow[] = await adminDecks().catch(() => []);
@@ -26,7 +26,7 @@ export default async function AdminDecksPage() {
                   {d.title}
                 </Link>
                 <span className="block text-xs text-slate-500">
-                  {d.leaderName} · {d.authorName ?? "—"} · {d.source} · {d.status} · {d.createdAt.toISOString().slice(0, 10)}
+                  {d.commanderName} · {d.format} · {d.authorName ?? "—"} · {d.source} · {d.status} · {d.createdAt.toISOString().slice(0, 10)}
                 </span>
               </span>
               <AdminDeckToggle id={d.id} status={d.status} />

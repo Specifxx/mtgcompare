@@ -9,9 +9,9 @@ import { shortDate } from "@/lib/format";
 import { pageOg } from "@/lib/og/meta";
 
 export const metadata: Metadata = {
-  title: "One Piece TCG Blog — Prices, Guides & Market Analysis",
+  title: "Magic: The Gathering Blog — Prices & Market Analysis",
   description:
-    "One Piece Card Game market analysis, buying guides and set reviews, with every figure drawn from OP Compare's own price database.",
+    "Magic: The Gathering market analysis and set reviews, with every figure drawn from MTG Compare's own price data.",
   alternates: {
     canonical: "/blog",
     types: { "application/rss+xml": "/feed.xml" },
@@ -32,10 +32,10 @@ export default async function BlogIndex() {
       <h1 className="text-2xl font-extrabold text-white">Blog</h1>
       <div className="mt-3 max-w-3xl space-y-3 text-[15px] leading-relaxed text-slate-300">
         <p>
-          Market analysis, buying guides and set reviews for the One Piece Card
-          Game. Every price and figure in a post comes from OP Compare&apos;s
-          own price database — the same one behind every comparison on the site
-          — and refreshes with it, so a post never quotes a stale number.
+          Market analysis and set reviews for Magic: The Gathering. Every price
+          and figure in a post comes from MTG Compare&apos;s own price data —
+          the same data behind every comparison on the site — and refreshes
+          with it, so a post never quotes a stale number.
         </p>
         <p>
           Who writes them and how is on the{" "}

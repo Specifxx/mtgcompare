@@ -116,8 +116,11 @@ export interface CollectionRowKey {
   isFoil: boolean;
 }
 
-/** The Prisma-backed store for one row. `note`, when given, is written with the add. */
-export function collectionRowStore(db: typeof prisma, key: CollectionRowKey, note?: string | null): AddCopiesStore {
+/**
+ * The Prisma-backed store for one row. `note`, when given, is written with the add. `setId` is the set of the card
+ * in the published data at the time of the write (the per-set views filter on the column; there is no foreign key).
+ */
+export function collectionRowStore(db: typeof prisma, key: CollectionRowKey, note?: string | null, setId?: number | null): AddCopiesStore {
   return {
     read: () =>
       db.collectionCard.findUnique({
@@ -128,7 +131,7 @@ export function collectionRowStore(db: typeof prisma, key: CollectionRowKey, not
     // create the row is an expected outcome here, not an error to log.
     async create(row) {
       const { count } = await db.collectionCard.createMany({
-        data: [{ ...key, ...row, note: note ?? null }],
+        data: [{ ...key, ...row, note: note ?? null, setId: setId ?? null }],
         skipDuplicates: true,
       });
       return count > 0;
@@ -136,7 +139,7 @@ export function collectionRowStore(db: typeof prisma, key: CollectionRowKey, not
     async update(guard, increment, cost) {
       const { count } = await db.collectionCard.updateMany({
         where: { ...key, ...guard },
-        data: { quantity: { increment }, ...(cost ?? {}), ...(note ? { note } : {}) },
+        data: { quantity: { increment }, ...(cost ?? {}), ...(note ? { note } : {}), ...(setId != null ? { setId } : {}) },
       });
       return count > 0;
     },

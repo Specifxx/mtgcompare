@@ -3,67 +3,66 @@ import Link from "next/link";
 import { HubFaq } from "@/components/HubFaq";
 import { SealedTile } from "@/components/SealedTile";
 import { Breadcrumbs, JsonLd } from "@/components/ui";
-import { getCatalog, getSealedCatalog } from "@/lib/data";
+import { getSealedPage, getSetIndex } from "@/lib/data";
 import { getCountry } from "@/lib/get-country";
-import { breadcrumbLd, faqLd } from "@/lib/jsonld";
+import { faqLd } from "@/lib/jsonld";
 import { pageOg } from "@/lib/og/meta";
 
 export const metadata: Metadata = {
-  title: "How to Play the One Piece Card Game: Rules Basics & Starter Decks",
-  description: "The basics of the One Piece Card Game: the deck, Leaders, DON!!, Life and the turn, then the starter decks to begin with at their live prices in your market.",
+  title: "How to Play Magic: The Gathering: Rules Basics & Starter Decks",
+  description: "The basics of Magic: The Gathering: the deck, lands and mana, card types, the turn and how you win, then Commander decks to begin with at their live prices in your market.",
   alternates: { canonical: "/learn" },
   openGraph: pageOg("/learn"),
 };
 
-// Written for One Piece, from the game's own published rules. It states the
-// basics only; Bandai's comprehensive rules are the authority for anything else,
-// and nothing here is a ruling on a specific card.
+// Written for Magic, from the game's published rules. It states the basics
+// only; the Magic Comprehensive Rules and each card's Oracle text are the
+// authority for anything else, and nothing here is a ruling on a specific card.
 const FAQ = [
-  { q: "How many cards are in a One Piece Card Game deck?", a: "A deck is exactly 50 cards plus one Leader, with no more than four copies of any card number. The ten DON!! cards sit in their own deck beside it and are not counted in the 50." },
-  { q: "How do you win?", a: "You win by dealing damage to your opponent's Leader when they have no Life cards left. Each time a Leader takes damage it loses one Life card, which goes to its owner's hand." },
-  { q: "What is DON!!?", a: "DON!! cards are the game's resource. You add them to your cost area each turn to pay for cards, and you can give them to a Leader or Character to raise its power by 1,000 each for that turn." },
-  { q: "What should a new player buy first?", a: "A starter deck: each is a complete, playable 50-card deck built around one Leader. The prices below are the cheapest in-stock offers we track in your market." },
-  { q: "Where do I look up a card's rules text?", a: "Every card page shows the printed text with its keywords explained. The [keywords](/keywords) pages list each one, and Bandai's rules are the final word." },
+  { q: "How many cards are in a Magic deck?", a: "In most formats a deck has at least 60 cards, with no more than four copies of any card except basic lands. Commander is different: exactly 100 cards, including your commander, and only one copy of any card except basic lands." },
+  { q: "How do you win?", a: "You win when your opponent's life total reaches 0 or less, when they have to draw from an empty library, or when they have ten or more poison counters. In Commander, a player who takes 21 or more combat damage from a single commander also loses. A card can also say you win or an opponent loses." },
+  { q: "What is mana?", a: "Mana is the resource that pays for spells. Lands produce it: you may play one land on each of your turns, and tap lands for mana of their colour. The five colours are white, blue, black, red and green, and some cards are colourless." },
+  { q: "What should a new player buy first?", a: "A Commander precon is a complete, ready-to-play 100-card deck. The prices below are the cheapest in-stock offers we track in your market. For a 60-card format, a theme or starter product is the usual first step." },
+  { q: "Where do I look up a card's rules text?", a: "Every card page shows the Oracle text, the current wording of the card. The [keywords](/keywords) pages explain each keyword ability, and the Comprehensive Rules are the final word." },
 ];
 
 const STEPS = [
-  { t: "Refresh", d: "Return all your rested cards and given DON!! to active." },
-  { t: "Draw", d: "Draw a card (the player going first skips this on turn one)." },
-  { t: "DON!!", d: "Add two DON!! cards from your DON!! deck to your cost area (one on the first player's first turn)." },
-  { t: "Main", d: "Play Characters, Events and Stages, give DON!! to your cards, and attack with active Leaders and Characters." },
-  { t: "End", d: "Your turn ends and your opponent's begins." },
+  { t: "Untap", d: "Untap all your tapped permanents." },
+  { t: "Upkeep", d: "Abilities that trigger at the start of your turn happen now." },
+  { t: "Draw", d: "Draw a card (the player who goes first skips this on their first turn in a two-player game)." },
+  { t: "First main phase", d: "Play a land (one per turn), cast creatures, artifacts, enchantments, planeswalkers and sorceries." },
+  { t: "Combat", d: "Attack with your creatures; the defending player chooses blockers; damage is dealt." },
+  { t: "Second main phase", d: "Play anything you held back, including the land if you have not played one." },
+  { t: "End", d: "Abilities that trigger at the end of the turn happen, then you discard down to seven cards in hand if you hold more." },
 ];
 
 export default async function LearnPage() {
   const country = getCountry();
-  const [cat, sealed] = await Promise.all([getCatalog(), getSealedCatalog()]);
-  const decks = sealed
-    .filter((s) => s.kind === "Starter Deck" && (s.low[country] != null || s.marketUsd != null))
-    .sort((a, b) => (b.releasedOn ?? "").localeCompare(a.releasedOn ?? "") || a.name.localeCompare(b.name))
-    .slice(0, 8);
+  const [page, setIndex] = await Promise.all([getSealedPage({ kind: "Commander Deck", presale: false, sort: "newest", page: 1, per: 24 }), getSetIndex()]);
+  const decks = page.items.filter((s) => s.low[country] != null || s.marketUsd != null).slice(0, 8);
   return (
     <div>
       <JsonLd data={faqLd(FAQ.map((f) => ({ q: f.q, a: f.a.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") })))} />
       <Breadcrumbs trail={[{ name: "Learn" }]} />
-      <h1 className="text-2xl font-extrabold text-white sm:text-3xl">How to play the One Piece Card Game</h1>
+      <h1 className="text-2xl font-extrabold text-white sm:text-3xl">How to play Magic: The Gathering</h1>
       <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-slate-300">
-        The basics in a few minutes: what is in a deck, what the Leader does, how DON!! and Life work, and what a turn looks like, then the starter decks to begin with and what they cost in your market. For anything more precise, Bandai&apos;s comprehensive rules are the authority.
+        The basics in a few minutes: what is in a deck, how lands and mana work, the kinds of card, what a turn looks like and how a game is won, then the Commander decks to begin with and what they cost in your market. For anything more precise, the Magic Comprehensive Rules are the authority.
       </p>
 
       <section className="mt-8 max-w-3xl space-y-3 text-[15px] leading-relaxed text-slate-300">
-        <h2 className="text-xl text-white">The deck and the Leader</h2>
+        <h2 className="text-xl text-white">The deck, lands and mana</h2>
         <p>
-          Every deck is built around one <strong className="text-white">Leader</strong>. The Leader starts the game in play, sets the deck&apos;s colours (you can only run cards of those colours) and its Life, and its effect shapes every other choice. Beside the Leader you build a 50-card deck of Characters, Events and Stages, with at most four copies of any card number, and a separate deck of ten DON!! cards.
+          Each player starts with a shuffled deck, called a library, draws seven cards and may mulligan: draw seven new cards, then put cards from the hand on the bottom of the library, one for each time you mulliganed. A deck is built from <strong className="text-white">lands</strong>, which produce mana, and spells, which you pay for with it. Mana comes in five colours (white, blue, black, red and green) and a card&apos;s cost shows which you need. You may play one land per turn.
         </p>
         <p>
-          <Link href="/leaders" className="text-brand-400 hover:underline">Browse every Leader</Link> with its price, or see the six <Link href="/colors" className="text-brand-400 hover:underline">colours</Link>. How a whole list prices out is one paste away in the <Link href="/deck" className="text-brand-400 hover:underline">deck calculator</Link>.
+          Players begin at 20 life (40 in Commander). Browse the <Link href="/colors" className="text-brand-400 hover:underline">colours</Link>, find a <Link href="/commanders" className="text-brand-400 hover:underline">commander</Link>, or see how a whole list prices out in the <Link href="/deck" className="text-brand-400 hover:underline">deck calculator</Link>.
         </p>
       </section>
 
       <section className="mt-8 max-w-3xl space-y-3 text-[15px] leading-relaxed text-slate-300">
-        <h2 className="text-xl text-white">Life and winning</h2>
+        <h2 className="text-xl text-white">Kinds of card</h2>
         <p>
-          At the start of the game each player sets aside Life cards face down equal to their Leader&apos;s Life. When a Leader is hit by an attack that gets through, it loses one Life card to its owner&apos;s hand (some cards deal two). You win by dealing damage when your opponent has no Life left. Cards with a <Link href="/keywords/trigger" className="text-brand-400 hover:underline">[Trigger]</Link> can take effect the moment they are revealed from Life.
+          <strong className="text-white">Creatures</strong> attack and block. <strong className="text-white">Instants</strong> and <strong className="text-white">sorceries</strong> have a one-time effect, and only instants can be cast at any time. <strong className="text-white">Artifacts</strong> and <strong className="text-white">enchantments</strong> stay in play with an ongoing effect. <strong className="text-white">Planeswalkers</strong> are allies you activate once a turn, and opponents can attack them. <strong className="text-white">Lands</strong> make mana. Keyword abilities such as <Link href="/keywords/flying" className="text-brand-400 hover:underline">flying</Link> and <Link href="/keywords/trample" className="text-brand-400 hover:underline">trample</Link> are explained on the keywords pages.
         </p>
       </section>
 
@@ -80,24 +79,31 @@ export default async function LearnPage() {
           ))}
         </ol>
         <p className="mt-3 text-sm leading-relaxed text-slate-400">
-          In the Main phase, a Character attacks by resting; the defender can block with a <Link href="/keywords/blocker" className="text-brand-400 hover:underline">[Blocker]</Link> or play a Counter from hand to add power, and the higher power wins the battle.
+          Spells and abilities go on the stack and resolve one at a time, last in first out, and each player gets the chance to respond before the top one resolves. Most game states you will meet are settled by that one rule.
+        </p>
+      </section>
+
+      <section className="mt-8 max-w-3xl space-y-3 text-[15px] leading-relaxed text-slate-300">
+        <h2 className="text-xl text-white">How you win</h2>
+        <p>
+          Reduce your opponent&apos;s life total to 0 with combat damage and spells. You also win if they must draw from an empty library, or if they have ten or more poison counters. In Commander, 21 combat damage from one commander is enough, and most games are multiplayer.
         </p>
       </section>
 
       {decks.length ? (
         <section className="mt-10">
-          <h2 className="mb-3 text-xl text-white">Starter decks to begin with</h2>
+          <h2 className="mb-3 text-xl text-white">Commander decks to begin with</h2>
           <p className="mb-3 max-w-3xl text-sm text-slate-400">
-            Each is a complete, playable deck built around one Leader. Prices are the cheapest in-stock offer we track in your market; tap a tile for every store.
+            Each is a complete, ready-to-play 100-card deck. Prices are the cheapest in-stock offer we track in your market; tap a tile for every store.
           </p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {decks.map((s) => (
-              <SealedTile key={s.id} s={s} country={country} setCode={s.setId ? cat.setById.get(s.setId)?.code : null} />
+              <SealedTile key={s.id} s={s} country={country} setCode={s.setId ? setIndex.byId.get(s.setId)?.code : null} />
             ))}
           </div>
           <p className="mt-3 text-sm">
-            <Link href="/sealed?kind=Starter+Deck" className="text-brand-400 hover:underline">
-              All starter decks →
+            <Link href="/sealed?kind=Commander+Deck" className="text-brand-400 hover:underline">
+              All Commander decks →
             </Link>
           </p>
         </section>

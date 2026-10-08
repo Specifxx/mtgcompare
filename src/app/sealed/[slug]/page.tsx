@@ -11,13 +11,16 @@ import { TcgMarketPrice } from "@/components/TcgMarketPrice";
 import { ShareButton } from "@/components/ShareButton";
 import { SealedWatchButton } from "@/components/SealedWatchButton";
 import { Breadcrumbs, Faq, JsonLd, SectionHeader } from "@/components/ui";
-import { affiliateUrl, onePieceEbayQuery } from "@/lib/affiliate";
+import { affiliateUrl } from "@/lib/affiliate";
+import { tcgplayerUrl } from "@/lib/constants";
+import { tcgplayerImage } from "@/lib/images";
+import { sealedEbayQuery } from "@/lib/sealed-quick-view";
 import { COUNTRIES, isoCountry } from "@/lib/country";
 import {
-  getCatalog,
-  getProductHistory,
-  getSealedCatalog,
+  getSealedAll,
   getSealedDetail,
+  getSets,
+  getUnitHistory,
 } from "@/lib/data";
 import { longDate, money, usd } from "@/lib/format";
 import { getCountry } from "@/lib/get-country";
@@ -37,7 +40,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const t = `${s.name} Price`;
   return {
     title: { absolute: t.length <= 60 ? t : `${s.name.slice(0, 50)} Price` },
-    description: `${s.name}: live One Piece Card Game sealed prices compared across stores in the US, Australia, the UK, Singapore, Canada and the EU${s.marketUsd ? `. TCGplayer market price ${usd(s.marketUsd)}` : ""}.`,
+    description: `${s.name}: live Magic: The Gathering sealed prices compared across stores in the US, Australia, the UK, Singapore, Canada and the EU${s.marketUsd ? `. TCGplayer market price ${usd(s.marketUsd)}` : ""}.`,
     alternates: { canonical: `/sealed/${s.slug}` },
     // No `images`: the sibling opengraph-image.tsx draws the 1200×630 share card.
     openGraph: pageOgOwnImage(`/sealed/${s.slug}`, {
@@ -49,19 +52,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function SealedDetailPage({ params }: Props) {
   const country = getCountry();
   const co = COUNTRIES[country];
-  const [s, cat, all] = await Promise.all([
+  const [s, sets, all] = await Promise.all([
     getSealedDetail(params.slug),
-    getCatalog(),
-    getSealedCatalog(),
+    getSets(),
+    getSealedAll(),
   ]);
   if (!s) notFound();
-  const history = await getProductHistory(s.id);
+  const setById = new Map(sets.map((x) => [x.id, x] as const));
+  const imageUrl = tcgplayerImage(s.id, "400w");
+  const history = await getUnitHistory({ id: s.id, finish: "N" }).catch(() => []);
   const vh = visitorHistory(history, country);
   const lite = all.find((x) => x.id === s.id);
   const h = lite
     ? headline(lite, country)
     : { kind: "none" as const, cents: null, stores: 0 };
-  const set = s.setId ? cat.setById.get(s.setId) : undefined;
+  const set = s.setId ? setById.get(s.setId) : undefined;
   const inMarket = s.offers.filter((o) => o.market === country && o.inStock);
   // "N stores" counts real stores only; the TCGplayer and eBay rows are listings, not stores.
   const inStores = inMarket.filter((o) => isStoreSource(o.source));
@@ -71,7 +76,7 @@ export default async function SealedDetailPage({ params }: Props) {
       : null;
   const sameSet = all
     .filter(
-      (x) => x.setId === s.setId && x.id !== s.id && x.kind !== "Promo Pack",
+      (x) => x.setId === s.setId && x.id !== s.id && x.kind !== "Secret Lair Drop",
     )
     .slice(0, 6);
   const sameKind = all
@@ -79,16 +84,16 @@ export default async function SealedDetailPage({ params }: Props) {
     .sort((a, b) =>
       (
         b.releasedOn ??
-        cat.setById.get(b.setId ?? 0)?.releasedOn ??
+        setById.get(b.setId ?? 0)?.releasedOn ??
         ""
       ).localeCompare(
-        a.releasedOn ?? cat.setById.get(a.setId ?? 0)?.releasedOn ?? "",
+        a.releasedOn ?? setById.get(a.setId ?? 0)?.releasedOn ?? "",
       ),
     )
     .slice(0, 6);
-  const ebayQ = onePieceEbayQuery(
-    `${s.name.replace(/\s+-\s+/, " ")} English`,
-  ).replace(/\bbooster box\b/i, "booster (box,display)");
+  const ebayQ = sealedEbayQuery(
+    s.name.replace(/\s+-\s+/, " "),
+  ).replace(/\b(booster box|booster display)\b/i, "booster (box,display)");
 
   const ebayLd = ebayJsonLdOffers(inMarket, co.currency, isoCountry(country));
   return (
@@ -98,8 +103,8 @@ export default async function SealedDetailPage({ params }: Props) {
           "@context": "https://schema.org",
           "@type": "Product",
           name: s.name,
-          image: s.imageUrl ?? undefined,
-          brand: { "@type": "Brand", name: "One Piece Card Game" },
+          image: imageUrl,
+          brand: { "@type": "Brand", name: "Magic: The Gathering" },
           url: `${SITE_URL}/sealed/${s.slug}`,
           ...(inMarket.length
             ? {
@@ -128,18 +133,12 @@ export default async function SealedDetailPage({ params }: Props) {
       />
       <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
         <div className="card-surface h-fit bg-white/95 p-4">
-          {s.imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={s.imageUrl}
-              alt={`${s.name} — One Piece Card Game sealed product`}
-              className="mx-auto aspect-square w-full object-contain"
-            />
-          ) : (
-            <div className="grid aspect-square place-items-center text-sm text-slate-500">
-              No image yet
-            </div>
-          )}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={imageUrl}
+            alt={`${s.name} — Magic: The Gathering sealed product`}
+            className="mx-auto aspect-square w-full object-contain"
+          />
         </div>
         <div className="min-w-0 space-y-6">
           <div className="card-surface p-5">
@@ -172,7 +171,7 @@ export default async function SealedDetailPage({ params }: Props) {
                       {set.name}
                     </Link>
                   ) : (
-                    "One Piece Card Game"
+                    "Magic: The Gathering"
                   )}
                   {s.releasedOn || set?.releasedOn
                     ? ` · released ${longDate(s.releasedOn ?? set?.releasedOn)}`
@@ -247,7 +246,7 @@ export default async function SealedDetailPage({ params }: Props) {
           <TcgMarketPrice
             marketUsd={s.marketUsd}
             country={country}
-            href={affiliateUrl(s.tcgplayerUrl, "tcgplayer", `/sealed/${s.slug}`)}
+            href={affiliateUrl(tcgplayerUrl(s.id, "N"), "tcgplayer", `/sealed/${s.slug}`)}
             page="sealed"
             card={s.slug}
           />
@@ -258,7 +257,7 @@ export default async function SealedDetailPage({ params }: Props) {
             </div>
             <LineChart
               series={[
-                { label: `Cheapest ${co.adjective} listing`, color: "#ff6b6b", points: vh.low.points },
+                { label: `Cheapest ${co.adjective} listing`, color: "#a259e6", points: vh.low.points },
                 { label: "TCGplayer market (converted)", color: "#e9b73a", points: vh.market.points, dashed: true },
               ]}
               format={(v) => money(Math.round(v), country)}
@@ -296,7 +295,7 @@ export default async function SealedDetailPage({ params }: Props) {
                 key={x.id}
                 s={x}
                 country={country}
-                setCode={x.setId ? cat.setById.get(x.setId)?.code : null}
+                setCode={x.setId ? setById.get(x.setId)?.code : null}
               />
             ))}
           </div>
@@ -318,7 +317,7 @@ export default async function SealedDetailPage({ params }: Props) {
               ? [
                   {
                     q: "How many packs are inside?",
-                    a: `${s.packCount} booster packs.${perPack ? ` At the cheapest ${co.adjective} price that is ${money(perPack, country)} a pack.` : ""}`,
+                    a: `${s.packCount} packs.${perPack ? ` At the cheapest ${co.adjective} price that is ${money(perPack, country)} a pack.` : ""}`,
                   },
                 ]
               : []),

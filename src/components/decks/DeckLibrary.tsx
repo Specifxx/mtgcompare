@@ -10,47 +10,46 @@ export interface LibraryDeck {
   slug: string;
   title: string;
   authorName: string | null;
-  leaderName: string;
-  leaderSlug: string;
+  commanderName: string;
+  commanderSlug: string;
   colors: string[];
   cardCount: number;
   createdAt: string;
   totals: MarketTotals;
 }
 
-// /decks' filters run in the browser over the ISR-cached list (RiftCompare's
-// DeckLibrary), so the page stays one cached render per hour however it is
-// filtered. Each tile's cost is the deck's CURRENT total in the viewer's market.
-export function DeckLibrary({ decks, leaders, colors }: { decks: LibraryDeck[]; leaders: { slug: string; name: string }[]; colors: string[] }) {
+// /decks' filters run in the browser over the cached list, so the page is one
+// cached render however it is filtered. Each tile's cost is the deck's CURRENT total in the viewer's market.
+export function DeckLibrary({ decks, commanders, colors }: { decks: LibraryDeck[]; commanders: { slug: string; name: string }[]; colors: string[] }) {
   const { country } = useCountry();
   const fmt = (c: number) => money(c, country);
-  const [leader, setLeader] = useState("");
+  const [commander, setCommander] = useState("");
   const [color, setColor] = useState("");
   const [band, setBand] = useState<PriceBand>("all");
   const [sort, setSort] = useState<"newest" | "cheapest">("newest");
 
   const shown = useMemo(() => {
-    const rows = decks.filter((d) => (!leader || d.leaderSlug === leader) && (!color || d.colors.includes(color)) && inPriceBand(totalFor(d.totals, country), band));
+    const rows = decks.filter((d) => (!commander || d.commanderSlug === commander) && (!color || d.colors.includes(color)) && inPriceBand(totalFor(d.totals, country), band));
     if (sort === "cheapest") rows.sort((a, b) => (totalFor(a.totals, country) ?? Infinity) - (totalFor(b.totals, country) ?? Infinity));
     return rows;
-  }, [decks, leader, color, band, sort, country]);
+  }, [decks, commander, color, band, sort, country]);
 
   const select = "input w-full cursor-pointer sm:w-auto";
   return (
     <div>
       <div className="flex flex-wrap gap-2">
-        {leaders.length > 0 && (
-          <select aria-label="Leader" value={leader} onChange={(e) => setLeader(e.target.value)} className={select}>
-            <option value="">All Leaders</option>
-            {leaders.map((l) => (
+        {commanders.length > 0 && (
+          <select aria-label="Commander" value={commander} onChange={(e) => setCommander(e.target.value)} className={select}>
+            <option value="">All commanders</option>
+            {commanders.map((l) => (
               <option key={l.slug} value={l.slug}>
                 {l.name}
               </option>
             ))}
           </select>
         )}
-        <select aria-label="Colour" value={color} onChange={(e) => setColor(e.target.value)} className={select}>
-          <option value="">All colours</option>
+        <select aria-label="Colour identity" value={color} onChange={(e) => setColor(e.target.value)} className={select}>
+          <option value="">Any identity</option>
           {colors.map((d) => (
             <option key={d} value={d}>
               {d}
@@ -84,7 +83,7 @@ export function DeckLibrary({ decks, leaders, colors }: { decks: LibraryDeck[]; 
             return (
               <li key={d.slug}>
                 <Link href={`/decks/${d.slug}`} className="card-surface flex h-full flex-col gap-1 p-4 transition-colors hover:border-brand-500/60">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{d.leaderName}</span>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">{d.commanderName}</span>
                   <span className="font-bold text-white">{d.title}</span>
                   <span className="text-xs text-slate-400">
                     {d.colors.join(" · ") || "—"} · {d.cardCount} cards{d.authorName ? ` · by ${d.authorName}` : ""}

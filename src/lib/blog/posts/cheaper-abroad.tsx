@@ -1,120 +1,90 @@
 import Link from "next/link";
 import { Callout, SimpleTable } from "@/components/blog/BlogBits";
-import { COUNTRIES, COUNTRY_LIST, MARKETS, type Country } from "../../country";
+import { COUNTRIES, COUNTRY_LIST, MARKETS } from "../../country";
 import { money } from "../../format";
-import { toUsdCents } from "../../fx";
 import type { Post } from "../types";
-import { byMarketDesc, medianOf } from "../util";
+import { cardLabel } from "../util";
 
 export const cheaperAbroad: Post = {
-  slug: "are-one-piece-cards-cheaper-abroad",
-  title: () => "Are One Piece Cards Cheaper Abroad? US vs AU, UK, CA, EU",
-  description: "The same One Piece cards priced in six markets and converted to US dollars: which market is cheapest for singles, and whether importing still saves money once postage is added.",
+  slug: "are-magic-cards-cheaper-abroad",
+  title: () => "Are Magic Cards Cheaper Abroad? The Biggest Cross-Market Gaps",
+  description: "The Magic cards with the biggest price gaps between markets today: where a store in another market undercuts your own after currency conversion, and whether importing survives postage.",
   tags: ["prices", "markets", "analysis"],
+  category: "guide",
   marketData: true,
-  date: "2026-10-03",
-  minutes: 6,
+  faq: [
+    { q: "Are Magic cards cheaper in another country?", a: "Sometimes, for particular cards. The gap table shows today's largest differences between a market's own stores and the cheapest store in another market, after currency conversion. Postage and import tax are not in those figures and often remove the saving." },
+    { q: "Do the gaps include TCGplayer?", a: "No. The cross-market comparison uses store listings only, so a gap is a real difference between stores and never a reference price converted from TCGplayer's US market." },
+    { q: "How are the exchange rates chosen?", a: "Conversions use indicative exchange rates, not what your bank or card charges. Treat any saving smaller than the likely fee as no saving." },
+  ],
+  date: "2026-10-08",
+  minutes: 5,
   related: [
     { href: "/methodology", label: "How we compare" },
     { href: "/stores", label: "Stores we track" },
     { href: "/price-guide", label: "Price guide" },
   ],
-  build: ({ cat }) => {
-    const usd = (c: (typeof cat.cards)[number], m: Country) => (c.low[m] != null ? toUsdCents(c.low[m]!, COUNTRIES[m].currency) : null);
-    // Cards with a US price and at least one other market, worth US$2+.
-    const comparable = cat.cards.filter((c) => c.low.US != null && c.low.US >= 200 && MARKETS.some((m) => m !== "US" && c.low[m] != null));
-    const rows = COUNTRY_LIST.filter((m) => m.code !== "US").map((m) => {
-      const ratios = comparable.filter((c) => c.low[m.code] != null).map((c) => usd(c, m.code)! / c.low.US!);
-      const r = medianOf(ratios);
-      const cheaper = ratios.filter((x) => x < 1).length;
-      return { m, n: ratios.length, r, cheaperShare: ratios.length ? cheaper / ratios.length : null };
-    });
-    const ranked = rows.filter((r) => r.r != null && r.n >= 50).sort((a, b) => a.r! - b.r!);
-    const examples = comparable.filter((c) => MARKETS.filter((m) => c.low[m] != null).length >= 4).sort(byMarketDesc).slice(0, 10);
+  build: ({ records, top }) => {
+    const sections = COUNTRY_LIST.map((m) => ({ m, gaps: records[m.code].gaps.slice(0, 5) })).filter((x) => x.gaps.length);
+    const all = sections.flatMap((x) => x.gaps.map((g) => ({ ...g, homeMarket: x.m })));
+    const biggest = [...all].sort((a, b) => b.pct - a.pct)[0];
     return {
-      heroCards: examples.slice(0, 3),
+      heroCards: all.slice(0, 3).map((g) => g.card).concat(top).slice(0, 3),
       summary: [
-        ranked[0] ? (
+        biggest ? (
           <>
-            <strong>{ranked[0].m.label}</strong> is the cheapest market for singles against the US: its typical card costs {ranked[0].r!.toFixed(2)}× the US price in
-            US dollars.
+            <strong>The widest gap today:</strong> <Link href={`/card/${biggest.card.slug}`}>{cardLabel(biggest.card)}</Link> costs {biggest.pct}% less at a store in{" "}
+            {COUNTRIES[biggest.away].label} than in {biggest.homeMarket.label}, before postage and tax.
           </>
         ) : null,
-        ranked.length > 1 ? (
-          <>
-            The dearest is <strong>{ranked[ranked.length - 1].m.label}</strong> at {ranked[ranked.length - 1].r!.toFixed(2)}×.
-          </>
-        ) : null,
-        <>A small saving per card rarely survives international postage and import tax — buy locally unless the order is large.</>,
-        <>Comparisons use each market&apos;s cheapest in-stock listing, converted at indicative exchange rates.</>,
+        <>A saving on one card rarely survives international postage and import tax: buy locally unless the order is large.</>,
+        <>Comparisons use store listings only, each market&apos;s cheapest in-stock store, converted at indicative exchange rates.</>,
       ].filter(Boolean),
       lede: (
         <p>
-          <strong>Is it cheaper to buy One Piece cards from another country?</strong> We took every card worth US$2 or more that is in stock in the US and in at
-          least one other market, converted each market&apos;s cheapest listing to US dollars, and compared. The answer changes card by card, but the typical
-          gaps are below.
+          <strong>Is it cheaper to buy Magic cards from another country?</strong> For each of our six markets we looked for cards where the cheapest store in another
+          market costs at least 15% less than the cheapest store at home, after converting currencies, and kept the five largest savings. The answer changes card by card;
+          today&apos;s biggest gaps are below.
         </p>
       ),
       sections: [
-        {
-          id: "by-market",
-          title: "Each market against the US",
+        ...sections.map(({ m, gaps }) => ({
+          id: `home-${m.code.toLowerCase()}`,
+          title: `If you buy in ${m.place}`,
           body: (
             <>
               <p>
-                “Typical price” is the median, across the cards compared, of the market&apos;s cheapest listing in US dollars divided by the cheapest US listing.
-                1.10× means a card typically costs 10% more there; 0.90×, 10% less.
+                Cards worth at least {money(500, m.code)} at the cheapest local store, with the cheapest store in another market and the saving in {m.currency}.
               </p>
               <SimpleTable
-                head={["Market", "Cards compared", "Typical price vs US", "Cards cheaper than US"]}
-                align={["l", "r", "r", "r"]}
-                rows={rows.map((r) => [
-                  `${r.m.flag} ${r.m.label}`,
-                  r.n.toLocaleString("en-US"),
-                  r.r != null && r.n >= 50 ? `${r.r.toFixed(2)}×` : "too few",
-                  r.cheaperShare != null && r.n >= 50 ? `${Math.round(r.cheaperShare * 100)}%` : "—",
+                head={["Card", `Local (${m.currency})`, "Cheaper in", "Converted", "Saving"]}
+                align={["l", "r", "l", "r", "r"]}
+                rows={gaps.map((g) => [
+                  <Link key="c" href={`/card/${g.card.slug}`}>
+                    {cardLabel(g.card)}
+                  </Link>,
+                  money(g.home, m.code),
+                  COUNTRIES[g.away].label,
+                  money(g.awayConverted, m.code),
+                  `${money(g.saving, m.code)} (${g.pct}%)`,
                 ])}
               />
             </>
           ),
-        },
-        ...(examples.length
-          ? [
-              {
-                id: "examples",
-                title: "Ten chase cards in every market",
-                body: (
-                  <>
-                    <p>The most valuable cards in stock in at least four markets, each market&apos;s cheapest listing shown in US dollars:</p>
-                    <SimpleTable
-                      head={["Card", ...MARKETS]}
-                      align={["l", "r", "r", "r", "r", "r", "r"]}
-                      rows={examples.map((c) => [
-                        <Link key="c" href={`/card/${c.slug}`}>
-                          {c.name}
-                          {c.variant ? ` (${c.variant})` : ""}
-                        </Link>,
-                        ...MARKETS.map((m) => (usd(c, m) != null ? money(usd(c, m), "US") : "—")),
-                      ])}
-                    />
-                  </>
-                ),
-              },
-            ]
-          : []),
+        })),
         {
           id: "postage",
           title: "Postage and import tax change the answer",
           body: (
             <>
               <p>
-                An item price is not a delivered price. Tracked international postage for a few singles commonly costs more than the saving on them, and
-                many countries add GST or VAT to imports. The cheaper market only wins for big orders or single expensive cards — and then customs and
-                insurance matter too.
+                An item price is not a delivered price. Tracked international postage for a few singles commonly costs more than the saving on them, and many countries add
+                GST or VAT to imports. A cheaper market only wins for big orders or single expensive cards, and then customs and insurance matter too. We list {MARKETS.length}{" "}
+                markets and keep each store&apos;s prices in its own currency; the conversion here is for comparison only.
               </p>
               <Callout title="How to check a specific card">
-                Open the card on OP Compare and switch market with the flag in the header: each market&apos;s board shows its own stores in its own currency.
-                The cheapest-elsewhere line under an empty board lists the other markets&apos; cheapest prices.
+                Open the card on MTG Compare and switch market with the flag in the header: each market&apos;s board shows its own stores in its own currency. Best Basket
+                prices a whole order with each store&apos;s postage.
               </Callout>
             </>
           ),

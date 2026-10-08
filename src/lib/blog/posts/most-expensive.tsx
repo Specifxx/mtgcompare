@@ -1,124 +1,122 @@
 import Link from "next/link";
 import { CardTable, Callout } from "@/components/blog/BlogBits";
-import { PRINTINGS } from "../../constants";
+import { CARD_FLAGS, treatmentLabel } from "../../constants";
 import { money } from "../../format";
 import type { Post } from "../types";
-import { byMarketDesc, monthYear, packPullable } from "../util";
+import { cardLabel, monthYear } from "../util";
 
 export const mostExpensive: Post = {
-  slug: "most-expensive-one-piece-cards",
-  title: ({ cat }) => `Most Expensive One Piece Cards (${monthYear(cat.pricesAt)})`,
-  description: "The priciest One Piece Card Game cards right now, in a table drawn from our own price data — the chase cards you can pull from packs, and the promos you can't.",
+  slug: "most-expensive-magic-cards",
+  title: ({ cat }) => `Most Expensive Magic: The Gathering Cards (${monthYear(cat.pricesAt)})`,
+  description: "The priciest Magic: The Gathering cards right now, ranked by TCGplayer market price from our own data: the dearest printings overall, the dearest foils, and which sets they come from.",
   tags: ["prices", "chase cards", "market"],
-  date: "2026-10-03",
+  date: "2026-10-08",
   minutes: 6,
   related: [
     { href: "/price-guide", label: "Price guide" },
     { href: "/movers", label: "Weekly movers" },
-    { href: "/market", label: "OP Compare Index" },
+    { href: "/market", label: "MTG Compare Index" },
   ],
-  build: ({ cat, country }) => {
-    const pullable = packPullable(cat).filter((c) => c.marketUsd != null).sort(byMarketDesc);
-    const top = pullable.slice(0, 20);
-    const promos = cat.cards.filter((c) => c.printing === "promo" && c.marketUsd != null).sort(byMarketDesc).slice(0, 10);
-    const first = top[0];
-    const set = (id: number) => cat.setById.get(id);
-    const byPrinting = new Map<string, number>();
-    for (const c of top) byPrinting.set(c.printing, (byPrinting.get(c.printing) ?? 0) + 1);
-    const mix = [...byPrinting.entries()].sort((a, b) => b[1] - a[1]);
+  build: ({ top, topFoil, setById, country, stats }) => {
+    const list = top.slice(0, 20);
+    const first = list[0];
+    const set = (id: number) => setById.get(id);
     const setsInTop = new Map<number, number>();
-    for (const c of top) setsInTop.set(c.setId, (setsInTop.get(c.setId) ?? 0) + 1);
+    for (const c of list) setsInTop.set(c.setId, (setsInTop.get(c.setId) ?? 0) + 1);
     const topSet = [...setsInTop.entries()].sort((a, b) => b[1] - a[1])[0];
-    const tenth = top[9];
-    const thousandPlus = pullable.filter((c) => (c.marketUsd ?? 0) >= 100000).length;
-    const hundredPlus = pullable.filter((c) => (c.marketUsd ?? 0) >= 10000).length;
+    const foilTreat = list.filter((c) => c.treat.length > 0).length;
+    const tenth = list[9];
+    const over = (usd: number) => top.filter((c) => (c.marketUsd ?? 0) >= usd * 100).length;
+    const notPlay = list.filter((c) => (c.flags & CARD_FLAGS.NOTPLAY) !== 0).length;
     return {
-      heroCards: top.slice(0, 3),
+      heroCards: list.slice(0, 3),
       summary: [
         first ? (
           <>
-            <strong>The most expensive card you can pull from a pack</strong> is <Link href={`/card/${first.slug}`}>{first.name}{first.variant ? ` (${first.variant})` : ""}</Link> from{" "}
-            {set(first.setId)?.name}, at {money(first.marketUsd, "US")} on TCGplayer.
+            <strong>The most expensive Magic card on TCGplayer</strong> is <Link href={`/card/${first.slug}`}>{cardLabel(first)}</Link> from {set(first.setId)?.name}, at{" "}
+            {money(first.marketUsd, "US")} market.
           </>
         ) : null,
-        mix[0] ? (
+        tenth ? <>It takes {money(tenth.marketUsd, "US")} to make the top ten, and {money(list[19]?.marketUsd ?? null, "US")} to make the top twenty.</> : null,
+        topSet ? (
           <>
-            <strong>{mix[0][1]} of the top 20</strong> are {PRINTINGS[mix[0][0]]?.label ?? mix[0][0]} printings — value sits in alternate art, not in rarity alone.
+            <strong>{set(topSet[0])?.name}</strong> has the most cards in the top 20, with {topSet[1]}.
           </>
         ) : null,
         <>
-          <strong>{hundredPlus.toLocaleString("en-US")} pack-pullable printings</strong> are worth US$100 or more{thousandPlus ? `, and ${thousandPlus} are worth US$1,000+` : ""}.
+          Of the {stats.units.toLocaleString("en-US")} priced units we track, the dearest 100 start at {money(top[99]?.marketUsd ?? null, "US")}; {over(1000)} of them are
+          worth US$1,000 or more.
         </>,
-        <>Prices are TCGplayer market prices in US dollars, refreshed twice a day; open any card for every store&apos;s live price in your market.</>,
       ].filter(Boolean),
       lede: (
         <p>
-          <strong>The One Piece Card Game&apos;s most expensive cards are almost all alternate-art printings</strong> — Manga rares, SP cards, Treasure Rares and
-          Parallels of the game&apos;s most popular characters. This list ranks them by TCGplayer&apos;s market price, what each printing has recently sold for, so
-          one stray high listing cannot put a card at the top. It is rebuilt from OP Compare&apos;s price database every time the page is generated.
+          <strong>The most expensive Magic cards are almost all old, scarce or both.</strong> This list ranks printings by TCGplayer&apos;s market price, which is what
+          each has recently sold for, so one stray high listing cannot put a card at the top. Each printing is its own entry: a card appears once per printing, in its
+          headline finish (non-foil first). It is rebuilt from MTG Compare&apos;s price data every time the page is generated.
         </p>
       ),
       sections: [
         {
           id: "top-20",
-          title: "The 20 most expensive cards you can pull",
+          title: "The 20 most expensive cards",
           body: (
             <>
               <p>
-                Cards from booster sets, extra boosters and premium boosters only — the cards you can actually open. Promos and prize cards have their own
-                table below. “Cheapest here” is the lowest in-stock listing we track in your market today.
+                Ranked by market price. “Cheapest here” is the lowest in-stock listing we track in your market today; when no store has the card it is shown as a
+                reference converted from the US price.
               </p>
-              <CardTable cards={top} setById={cat.setById} country={country} />
-              {tenth ? (
+              <CardTable cards={list} setById={setById} country={country} />
+              {foilTreat ? (
                 <p>
-                  The cut-off for the top ten is {money(tenth.marketUsd, "US")}: {tenth.name}
-                  {tenth.variant ? ` (${tenth.variant})` : ""}. {topSet ? `${set(topSet[0])?.name} has the most cards in the top 20, with ${topSet[1]}.` : ""}
+                  {foilTreat} of these 20 are a special treatment, such as {treatmentLabel(list.find((c) => c.treat.length)!.treat).toLowerCase()}, rather than the
+                  original frame.{notPlay ? ` ${notPlay} are not tournament-legal as printed (collector's, international or gold-border editions).` : ""}
                 </p>
               ) : null}
             </>
           ),
         },
+        ...(topFoil.length
+          ? [
+              {
+                id: "foils",
+                title: "The 10 most expensive foils",
+                body: (
+                  <>
+                    <p>The same ranking, looking only at each card&apos;s foil price. A foil is its own product with its own price, often several times the non-foil.</p>
+                    <CardTable cards={topFoil.slice(0, 10)} setById={setById} country={country} />
+                  </>
+                ),
+              },
+            ]
+          : []),
         {
           id: "why",
           title: "Why these cards cost so much",
           body: (
             <>
               <p>
-                Three things put a One Piece card at the top of this list, and the cards above usually have all three. The first is the printing: a Manga or SP
-                version of a card is printed in far smaller numbers than its standard print, and the same card number can cost a hundred times more in its
-                scarcest art. The second is the character — Luffy, Shanks, Zoro, Nami and the Emperors draw collectors who never play. The third is
-                playability: a Leader or staple that every deck of its colour runs keeps demand up for the standard print as well.
+                Three things recur. Scarcity: the oldest sets were printed in small numbers and many copies have not survived in playable condition. The Reserved List:
+                Wizards of the Coast has promised never to reprint a fixed list of cards, so their supply can only shrink. And demand from play: a card that every
+                Vintage or Commander deck wants keeps its price even when it is not scarce.
               </p>
-              <Callout title="One card, several prices">
-                Every printing has its own page on OP Compare. If a card in this table also exists as a standard print, its page lists the other printings with
-                their prices — the difference is usually the clearest lesson in what drives One Piece prices.
+              <Callout title="One card, many prices">
+                Every printing, finish and treatment has its own page on MTG Compare. If a card in this table also exists in a cheaper printing, its page lists the other
+                printings with their prices, which is usually the quickest way to the version you actually want.
               </Callout>
             </>
           ),
         },
         {
-          id: "promos",
-          title: "The most expensive promos and prize cards",
-          body: (
-            <>
-              <p>
-                Tournament prizes, championship cards and other promos cannot be pulled from packs. Many exist in tiny numbers, so their market prices rest on
-                very few sales and move sharply — treat them as a guide, not a quote.
-              </p>
-              <CardTable cards={promos} setById={cat.setById} country={country} />
-            </>
-          ),
-        },
-        {
           id: "buying",
-          title: "Buying a chase card without overpaying",
+          title: "Buying an expensive card without overpaying",
           body: (
             <ul>
-              <li>Compare every store before you buy: the gap between the cheapest and dearest in-stock listing for the same chase card is often hundreds of dollars.</li>
-              <li>Check the condition and the exact printing on the store&apos;s page — a standard print listed under a Manga card&apos;s name is a common mistake.</li>
-              <li>For cards over a few hundred dollars, graded copies (PSA, BGS, CGC) trade at their own prices; our comparison covers raw cards only.</li>
+              <li>Compare every store before you buy: the gap between the cheapest and dearest in-stock listing for the same card can be hundreds of dollars.</li>
+              <li>Check the condition and the exact printing on the store&apos;s page. Near mint and lightly played copies of an expensive card are priced far apart.</li>
+              <li>Above a few hundred dollars, graded copies trade at their own prices; our comparison covers raw cards only.</li>
               <li>
-                Watch a card from its page and check <Link href="/movers">this week&apos;s movers</Link> before buying: new-set hype often cools within weeks.
+                Watch a card from its page and look at <Link href="/movers">this week&apos;s movers</Link> before buying: spikes after a ban, a reprint rumour or a new
+                set often cool within weeks.
               </li>
             </ul>
           ),

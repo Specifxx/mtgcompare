@@ -42,15 +42,15 @@
 // daily snapshots since 2026-10-03 one would now mean what it says.
 import { dayIso, type IndexRow, type Point } from "./history";
 
-// ── OP Compare (wave 2, 2026-10-03) ──────────────────────────────────────────
-// Ported from RiftCompare's lib/portfolio-performance.ts. What differs is the
-// INPUT: OP's public history is daily from 2026-10-03, US only, in the history
-// files on the `data` branch (lib/history.ts) — TCGplayer's market price and the
-// cheapest US listing per card per day. The binder is valued in the visitor's
-// market, so the chart uses those US prices as RATIOS only: the like-for-like
-// steps below are computed on them, and the series is then anchored at today's
-// real total in the visitor's currency (scaleSeries). OP has had no methodology
-// break, so METHODOLOGY_BREAKS is empty. Card ids are numbers (Card.id).
+// ── The input (Magic) ────────────────────────────────────────────────────────
+// A holding is a UNIT: a product in one finish (constants UnitKey "<productId>.<0|1>"),
+// because a Foil copy and a Normal copy of one card have their own history. The
+// series are the plane's market-price histories (getRecentHistory: day ms to US
+// cents, a day without a market price is absent). The binder is valued in the
+// visitor's market, so the chart uses those US prices as RATIOS only: the
+// like-for-like steps below are computed on them, and the series is then anchored
+// at today's real total in the visitor's currency (scaleSeries). There has been no
+// methodology break, so METHODOLOGY_BREAKS is empty.
 
 /** One value per snapshot day: `t` is the day's UTC midnight in ms, `v` cents. */
 export interface PricePoint {
@@ -58,26 +58,10 @@ export interface PricePoint {
   v: number;
 }
 
-/** OP Compare's history has no methodology break (RiftCompare's 2026-09-23 re-basing is its own). */
+/** The published history has no methodology break. */
 export const METHODOLOGY_BREAKS: readonly PerfBreak[] = [];
 
 const dayMsOf = (n: number) => Date.parse(`${dayIso(n)}T00:00:00Z`);
-
-/**
- * One card's history as {day ms → cents}: its TCGplayer market prices, or — for
- * a card TCGplayer never priced — its cheapest US listing. Never a mix of the
- * two within one card: a step from one to the other would read as a move.
- */
-export function priceMapFromPoints(points: readonly Point[] | undefined): Map<number, number> {
-  const out = new Map<number, number>();
-  if (!points?.length) return out;
-  const col = points.some((p) => p[1] != null && p[1] > 0) ? 1 : 2;
-  for (const p of points) {
-    const v = p[col];
-    if (v != null && v > 0) out.set(dayMsOf(p[0] as number), v);
-  }
-  return out;
-}
 
 /**
  * Re-anchor a ratio series (US cents) at today's real total in the visitor's
@@ -91,7 +75,7 @@ export function scaleSeries(series: readonly PricePoint[], totalCents: number): 
 }
 
 /**
- * The OP Compare Index's move over `days`: today's value against the latest
+ * The market index's move over `days`: today's value against the latest
  * row at least that far back. null without such a row. Rounded to 0.1%.
  */
 export function indexChange(rows: readonly Pick<IndexRow, "day" | "value">[], days: number): number | null {
@@ -104,7 +88,8 @@ export function indexChange(rows: readonly Pick<IndexRow, "day" | "value">[], da
 }
 
 export interface PerfHolding {
-  cardId: number;
+  /** The key of the holding's series in the map: a UnitKey ("2831.1") for a binder row; a plain id in the unit tests. */
+  cardId: number | string;
   quantity: number;
   /** Condition multiplier (CONDITION_MULTIPLIER), 1 for NM. */
   multiplier: number;
@@ -130,7 +115,7 @@ const DAY_MS = 86400_000;
 
 export function portfolioPerformance(
   holdings: readonly PerfHolding[],
-  byCard: ReadonlyMap<number, ReadonlyMap<number, number>>,
+  byCard: ReadonlyMap<number | string, ReadonlyMap<number, number>>,
   breaks: readonly PerfBreak[] = [],
 ): PortfolioPerformance {
   const daySet = new Set<number>();

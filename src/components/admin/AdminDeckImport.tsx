@@ -4,14 +4,15 @@ import { useState } from "react";
 
 const EXAMPLE = `[
   {
-    "title": "Red Luffy — 1st, Example Regional",
+    "title": "Atraxa Superfriends — Example Regional",
     "author": "Player name",
     "description": "Optional notes.",
-    "list": "1xOP01-001\\n4xOP01-016\\n..."
+    "format": "commander",
+    "list": "Commander\\n1 Atraxa, Praetors' Voice\\n\\nDeck\\n1 Sol Ring\\n1 Counterspell\\n..."
   }
 ]`;
 
-// /admin/decks' JSON import (RiftCompare's AdminDeckImport). Each item runs
+// /admin/decks' JSON import. Each item runs
 // through the same resolution and checks as a player's publish; the results
 // say which imported and why any did not.
 export function AdminDeckImport() {

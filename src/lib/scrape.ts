@@ -1,14 +1,17 @@
 // Outbound scraping helpers, ported from RiftCompare's lib/scrape-http.ts:
-// realistic browser UA + From header, a polite per-store delay, 429 backoff and
-// a robots.txt check that fails OPEN (a parsing gap can never block a store
-// that was working; it can only under-enforce).
+// an honest User-Agent that names the site and where to read about it, a From
+// header when a real contact address is configured, a polite per-store delay,
+// 429 backoff and a robots.txt check that fails OPEN (a parsing gap can never
+// block a store that was working; it can only under-enforce).
 import { CONTACT_EMAIL } from "./site";
 
+export const SCRAPE_USER_AGENT = "MTGCompare/1.0 (+https://github.com/Specifxx/mtgcompare; price comparison)";
+
 export const SCRAPE_HEADERS: Record<string, string> = {
-  "User-Agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+  "User-Agent": SCRAPE_USER_AGENT,
   Accept: "application/json, text/plain, */*",
-  From: CONTACT_EMAIL,
+  // The placeholder contact address ends in .invalid: never send it.
+  ...(CONTACT_EMAIL.endsWith(".invalid") ? {} : { From: CONTACT_EMAIL }),
 };
 
 export const REQUEST_DELAY_MS = 300;

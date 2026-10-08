@@ -8,24 +8,23 @@ import { DeckLibrary } from "@/components/decks/DeckLibrary";
 import { libraryRows } from "@/lib/deck-library";
 import { guidesForTool } from "@/lib/content/tool-guides";
 import { getLibraryDecks, type LibraryDeckRow } from "@/lib/data";
+import { commanderDeckPath } from "@/lib/published-decks";
 import { pageOg } from "@/lib/og/meta";
 
-// The public deck library (RiftCompare's /decks). ISR: one render an hour, and
-// publishing revalidates it on demand. Filters and sort run client-side.
-export const revalidate = 3600;
+// The public deck library. Rendered per request (the library is Neon-backed: one cached entry under the decks tag, purged on publish); the CDN caches the
+// page. Filters and sort run client-side.
+export const dynamic = "force-dynamic";
 
-// One read per render, shared by generateMetadata and the page (React's request
-// cache over the self-cached loader — not a second data cache). A failed read
-// is null, not an empty library: the page stays indexable on a blip.
+// One read per render, shared by generateMetadata and the page (React's request cache over the self-cached loader, not a second data cache). A failed
+// read is null, not an empty library: the page stays indexable on a blip.
 const loadDecks = cache(async (): Promise<LibraryDeckRow[] | null> => getLibraryDecks().catch(() => null));
 
-// Noindexed while the library is empty: with no decks it is a heading, an
-// intro and a button. The first published deck makes it indexable.
+// Noindexed while the library is empty: with no decks it is a heading, an intro and a button. The first published deck makes it indexable.
 export async function generateMetadata(): Promise<Metadata> {
   const decks = await loadDecks();
   return {
-    title: "One Piece Decks — Player Decklists Priced Across Stores",
-    description: "One Piece Card Game decks published by players, each priced card by card at the cheapest store in your market. Filter by Leader, colour and budget.",
+    title: "Magic Decks — Commander Decklists Priced Across Stores",
+    description: "Magic: The Gathering Commander decks published by players, each priced card by card at the cheapest store in your market. Filter by commander, colour identity and budget.",
     alternates: { canonical: "/decks" },
     openGraph: pageOg("/decks"),
     ...(decks !== null && decks.length === 0 ? { robots: { index: false, follow: true } } : {}),
@@ -34,13 +33,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function DecksPage() {
   const rows = await libraryRows((await loadDecks()) ?? []);
-  const leaders = [...new Map(rows.map((d) => [d.leaderSlug, { slug: d.leaderSlug, name: d.leaderName }])).values()].sort((a, b) => a.name.localeCompare(b.name));
+  const commanders = [...new Map(rows.map((d) => [d.commanderSlug, { slug: d.commanderSlug, name: d.commanderName }])).values()].sort((a, b) => a.name.localeCompare(b.name));
   const colors = [...new Set(rows.flatMap((d) => d.colors))].sort();
 
   return (
     <div>
       <Breadcrumbs trail={[{ name: "Decks" }]} />
-      <h1 className="font-display text-2xl font-extrabold text-white sm:text-3xl">One Piece decks</h1>
+      <h1 className="font-display text-2xl font-extrabold text-white sm:text-3xl">Magic decks</h1>
       <HubIntro path="/decks" />
 
       {rows.length === 0 ? (
@@ -53,15 +52,15 @@ export default async function DecksPage() {
         </section>
       ) : (
         <>
-          <nav aria-label="Decks by Leader" className="mt-4 flex flex-wrap gap-2">
-            {leaders.map((l) => (
-              <Link key={l.slug} href={`/decks/leader/${l.slug}`} className="chip border border-ink-700 hover:border-brand-500">
+          <nav aria-label="Decks by commander" className="mt-4 flex flex-wrap gap-2">
+            {commanders.map((l) => (
+              <Link key={l.slug} href={commanderDeckPath(l.slug)} className="chip border border-ink-700 hover:border-brand-500">
                 {l.name} decks
               </Link>
             ))}
           </nav>
           <div className="mt-5">
-            <DeckLibrary decks={rows} leaders={leaders} colors={colors} />
+            <DeckLibrary decks={rows} commanders={commanders} colors={colors} />
           </div>
           <p className="mt-6 text-sm text-slate-400">
             Got a list?{" "}

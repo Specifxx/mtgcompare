@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { StaticPage } from "@/components/StaticPage";
 import { getSiteStats } from "@/lib/data";
+import { RELEASE_COPY } from "@/lib/release-schedule";
+import { DATA_ATTRIBUTION, SCRYFALL_URL, SITE_NAME } from "@/lib/site";
 import { USD_TO } from "@/lib/fx";
 import { pageOg } from "@/lib/og/meta";
 
 export const metadata: Metadata = {
-  title: "How We Compare One Piece Card Prices",
-  description:
-    "Where OP Compare's prices come from, how listings are matched to printings, how markets and currencies work, and what the reference prices mean.",
+  title: "How We Compare Magic Card Prices",
+  description: `Where ${SITE_NAME}'s prices come from, how listings are matched to printings and finishes, how markets and currencies work, and what the reference prices mean.`,
   alternates: { canonical: "/methodology" },
   openGraph: pageOg("/methodology"),
 };
@@ -22,14 +23,20 @@ export default async function Methodology() {
       <ul>
         <li>
           <strong>Stores.</strong> The public product listings of every store on{" "}
-          <Link href="/stores">our stores page</Link>, read at 07:00 and 19:00
-          UTC, in each store&apos;s own market and currency.
+          <Link href="/stores">our stores page</Link>, read once a day in each
+          store&apos;s own market and currency. A listing that has not been
+          refreshed for 72 hours counts as sold out.
         </li>
         <li>
           <strong>TCGplayer.</strong> Its catalogue (every printing, set and
-          card detail) and two prices per printing: the cheapest listing, shown
-          as a US offer, and the market price, shown everywhere as a reference.
-          Read daily from TCGCSV&apos;s public mirror of TCGplayer&apos;s data.
+          card detail) and two prices per printing and finish: the cheapest
+          listing, shown as a US offer, and the market price, shown everywhere
+          as a reference. Read daily from TCGCSV&apos;s public mirror of
+          TCGplayer&apos;s data.
+        </li>
+        <li>
+          <strong>Scryfall.</strong> Card names, rules text, legalities and
+          card art come from <a href={SCRYFALL_URL}>Scryfall</a>. {DATA_ATTRIBUTION}
         </li>
         {ebayLive ? (
           <li>
@@ -51,14 +58,16 @@ export default async function Methodology() {
       </ul>
       <h2>Matching a listing to a printing</h2>
       <p>
-        One card number can be several printings worth very different amounts —
-        OP01-120 Shanks is a standard print, a Parallel and a Manga art. A store
-        listing is matched only when exactly one printing fits it: the card
-        number (or TCGplayer&apos;s exact name and set), the card&apos;s name,
-        and the printing words in the title (Parallel, alternate art, Manga, SP,
-        Treasure Rare, special foils, event stamps such as Pre-Release or
-        Release Event). Anything ambiguous is left out. Graded slabs, playsets,
-        lots, live breaks and non-English cards are never matched.
+        One card name can be dozens of printings worth very different amounts —
+        Lightning Bolt has been printed in set after set, in normal and foil,
+        with borderless and showcase frames. A price belongs to a printing and
+        a finish together. A store listing is matched only when exactly one
+        printing and finish fit it: the set and collector number (from the SKU
+        or the title), the card&apos;s name, the finish, and the treatment words
+        in the title (borderless, extended art, showcase, surge foil, etched,
+        prerelease and other stamps). Anything ambiguous is left out. Graded
+        slabs, lots, sealed-product contents and non-English cards are never
+        matched to a card.
       </p>
       <p>
         A matched listing far under or far over the printing&apos;s TCGplayer
@@ -78,6 +87,10 @@ export default async function Methodology() {
         the best condition the store has in stock (Near Mint first). Sold-out
         listings are folded below the comparison and never set a headline price.
       </p>
+      <h2>When things update</h2>
+      <p>
+        {RELEASE_COPY}
+      </p>
       <h2>Markets and currency</h2>
       <p>
         Each market shows its own stores in its own currency: US$, A$, £, S$, C$
@@ -90,21 +103,11 @@ export default async function Methodology() {
       </p>
       <h2>History, movers and the index</h2>
       <p>
-        Every printing&apos;s TCGplayer market price and cheapest US listing are
-        recorded once a day. Weekly moves compare a card with itself about seven
-        days earlier; the <Link href="/market">OP Compare Index</Link> chains
-        day-to-day changes across every single worth US$1 or more.
-      </p>
-      <p>
-        The whole history is open data: every day&apos;s prices, each
-        product&apos;s series and the index are published as JSON files in{" "}
-        <a
-          href="https://github.com/Specifxx/OpCompare/tree/data/history"
-          rel="noopener"
-        >
-          our GitHub repository
-        </a>
-        , updated with every import.
+        Every printing&apos;s TCGplayer market price is recorded once a day.
+        Weekly moves compare a card with itself about seven days earlier; the{" "}
+        <Link href="/market">{SITE_NAME} Index</Link> chains day-to-day changes
+        across every single worth US$1 or more. A price that rests on a single
+        thin listing is shown as &ldquo;low only&rdquo; and never ranked.
       </p>
     </StaticPage>
   );
