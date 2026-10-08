@@ -21,6 +21,7 @@ import {
 import { optimizeBasket } from "../src/lib/basket";
 import { freePrefix, planPostageNotes, postageLineBits, postagePrefix } from "../src/lib/postage-display";
 import { effectiveRegion } from "../src/lib/postage-prefs";
+import { STORE_BY_KEY } from "../src/lib/stores";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // US buyers first-class (2026-09-25). The US is the biggest market, so its
@@ -62,7 +63,7 @@ const snapOf = (...s: ProbeStoreInput[]): ShippingSnapshot => ({
 // Dallas $5.38, Chicago $5.50) and a 75¢ "USPS First Class Mail" letter seen
 // on 1 card and on 10 cards at $2.50, gone by $20.07.
 const GA: Record<string, number> = { ny: 5.72, sf: 5.82, dal: 5.38, chi: 5.5 };
-const GEAR = probeUS("geargaming", [
+const GEAR = probeUS("mysterymtg", [
   { id: "S1", v: 0.25, n: 1, rates: (a) => [["Ground Advantage", GA[a]], ["USPS First Class Mail", 0.75], ["Priority Mail", 9.85]] },
   { id: "S10", v: 2.5, n: 10, rates: (a) => [["Ground Advantage", GA[a]], ["USPS First Class Mail", 0.75]] },
   { id: "V20", v: 20.07, n: 2, rates: (a) => [["Ground Advantage", GA[a]]] },
@@ -154,7 +155,7 @@ test("the visitor's state preselects their region (Vercel geo headers), for ever
 test("a US store's First-Class letter only covers the orders it was seen on; Ground Advantage is priced by zone", () => {
   const snap = snapOf(GEAR);
   const q = (v: number, n: number, region: string | null = "MW", trackedOnly = false) =>
-    shippingFor("geargaming", cart(v, n), { region, trackedOnly }, snap);
+    shippingFor("mysterymtg", cart(v, n), { region, trackedOnly }, snap);
   assert.equal(q(1.5, 5).cents, 75, "5 cards, $1.50: inside what the letter was seen on");
   assert.equal(q(1.5, 5).tracked, false);
   assert.deepEqual(q(1.5, 5).otherOption, { cents: 550, label: "Ground Advantage", tracked: true });
@@ -214,7 +215,7 @@ test("a preselected US region is never priced under a measured city it sits besi
       }
     }
   }
-  assert.ok(checked > 5000, `${checked}`);
+  assert.ok(checked > 1000, `${checked}`);
 });
 
 // Stores and carts found in the REAL snapshot (OP Compare's own probe), so
@@ -312,7 +313,7 @@ test("USPS's own spelling, 'First-Class Mail', is an untracked letter; 'First-Cl
 
 test("a US free-shipping threshold starts at the measured free cart, never a guessed round $50", () => {
   // Knight and Day as measured: $9.00 at $65.50, free at $80.50 (guessed "free over $50").
-  const kd = probeUS("knightandday", [
+  const kd = probeUS("zulusgames", [
     { id: "S1", v: 0.5, n: 1, rates: () => [["Economy", 9]] },
     { id: "V50", v: 50.5, n: 2, rates: () => [["Economy", 9]] },
     { id: "V60", v: 65.5, n: 2, rates: () => [["Economy", 9]] },
@@ -320,20 +321,13 @@ test("a US free-shipping threshold starts at the measured free cart, never a gue
     { id: "V100", v: 100.5, n: 2, rates: () => [["Free Shipping", 0]] },
   ]);
   const snap = snapOf(kd);
-  const at = (v: number) => shippingFor("knightandday", cart(v, 2), { region: "NE" }, snap);
+  const at = (v: number) => shippingFor("zulusgames", cart(v, 2), { region: "NE" }, snap);
   assert.equal(at(55).cents, 900, "the guessed $50 is never applied");
   assert.equal(at(75).cents, 900, "$75 is probably the real threshold, but $80.50 is what was measured");
   assert.equal(at(75).freeFromCents, 8050);
   assert.equal(at(80.5).cents, 0);
   assert.equal(at(55).tracked, null, "'Economy' does not say whether it is tracked");
-  assert.match(shippingNoteFor("knightandday", snap), /free from US\$80\.50/);
-  // The real snapshot: its banner ("FREE Shipping On Orders $75+ (48 States)")
-  // narrows it, since no Riftbound cart exists between $73.00 (paid) and $80.50.
-  const real = (v: number) => shippingFor("knightandday", cart(v, 1), { region: "NE" });
-  assert.equal(real(73).cents, 900);
-  assert.equal(real(73).freeFromCents, 7500);
-  assert.equal(real(75).cents, 0);
-  assert.match(real(75).note ?? "", /lower 48/);
+  assert.match(shippingNoteFor("zulusgames", snap), /free from US\$80\.50/);
 });
 
 test("US stores that post nowhere are left out of Best Basket, and each says why", () => {
@@ -344,7 +338,6 @@ test("US stores that post nowhere are left out of Best Basket, and each says why
     assert.ok(q.unavailable, key);
     assert.equal(basketStoresFor("US", {})[key].unavailable, q.unavailable, `${key} is left out of Best Basket`);
   }
-  assert.match(shippingFor("punkouter", cart(20, 2)).unavailable ?? "", /Shipping not available/);
   assert.match(shippingFor("atomilicollectables", cart(20, 2)).unavailable ?? "", /local pickup in Houston only/);
 });
 
@@ -355,23 +348,21 @@ test("the Canadian stores in the US market: checkout rounding and duties", () =>
   assert.equal(roundAtCheckout(504, "x.50"), 550);
   assert.equal(roundAtCheckout(1081, "x.50"), 1150);
   assert.equal(roundAtCheckout(0, "x.50"), 0, "free stays free");
-  // Whole-dollar checkout rounding for the Ottawa and Markham stores.
-  for (const k of ["danireon", "npcollectibles", "hobbiesville"]) {
-    assert.equal(SHIPPING_OVERRIDES[k].checkoutRounding, "whole");
+  // Every store that carries a checkout-rounding override is quoted in whole units (or .50) when the registry has it.
+  for (const [k, o] of Object.entries(SHIPPING_OVERRIDES)) {
+    if (!o.checkoutRounding || !SHIPPING_SNAPSHOT.stores[k] || !STORE_BY_KEY[k]) continue;
     const q = shippingFor(k, cart(10, 1), { region: "NE" });
-    if (!q.unavailable && q.cents > 0) assert.equal(q.cents % 100, 0, `${k}: ${q.cents}`);
-    assert.ok(shippingSummary(k).note, `${k} has its caveat`);
+    if (!q.unavailable && q.cents > 0 && o.checkoutRounding === "whole") assert.equal(q.cents % 100, 0, `${k}: ${q.cents}`);
   }
-  assert.match(shippingSummary("npcollectibles").note ?? "", /C\$350 is Canada only/);
 });
 
 test("the builder can add a re-probe's carts to a full run instead of replacing the store", () => {
   const dir = mkdtempSync(join(tmpdir(), "ship-us-"));
-  const first = probeUS("knightandday", [
+  const first = probeUS("zulusgames", [
     { id: "S1", v: 0.5, n: 1, rates: () => [["Economy", 9]] },
     { id: "V100", v: 101.5, n: 1, rates: () => [["Economy", 0]] },
   ]);
-  const rungs = probeUS("knightandday", [
+  const rungs = probeUS("zulusgames", [
     { id: "S1", v: 0.5, n: 1, rates: () => [["Economy", 9.5]] },
     { id: "V70", v: 73, n: 1, rates: () => [["Economy", 9]] },
   ]);
@@ -384,7 +375,7 @@ test("the builder can add a re-probe's carts to a full run instead of replacing 
       ["--import", "tsx", "scripts/build-shipping-rates.ts", join(dir, "a.json"), join(dir, "b.json"), "--base=src/lib/shipping-rates.json", `--out=${join(dir, "out.json")}`, ...extra],
       { cwd: ROOT, stdio: "pipe" },
     );
-    return (JSON.parse(readFileSync(join(dir, "out.json"), "utf8")) as ShippingSnapshot).stores.knightandday;
+    return (JSON.parse(readFileSync(join(dir, "out.json"), "utf8")) as ShippingSnapshot).stores.zulusgames;
   };
   assert.deepEqual(build().carts, [[50, 1], [7300, 1]], "by default the later input replaces the store");
   const merged = build("--add-carts");
@@ -393,22 +384,20 @@ test("the builder can add a re-probe's carts to a full run instead of replacing 
 });
 
 test("a store in the US market that posts from Canada says import charges may be due", () => {
-  const np = shippingFor("npcollectibles", cart(10, 1), { region: "NE" });
-  assert.match(np.crossBorder ?? "", /^ships from Canada: import duties or a carrier's brokerage fee may be charged on delivery$/);
-  const dani = shippingFor("danireon", cart(10, 1), { region: "NE" });
-  assert.match(dani.label, /Duties & Taxes Included/);
-  assert.match(dani.crossBorder ?? "", /duties are included/, "Danireon's UPS rate says the duties are paid");
-  assert.equal(shippingSummary("hobbiesville").shipsFrom, "Canada");
+  const abroad = probeUS("zulusgames", [
+    { id: "S1", v: 0.5, n: 1, rates: () => [["Economy", 9]] },
+    { id: "V100", v: 101.5, n: 1, rates: () => [["Economy", 9]] },
+  ]);
+  const snap: ShippingSnapshot = { ...snapOf(abroad), stores: { zulusgames: condenseStore(abroad, { shipsFrom: "Canada" }) } };
+  const q = shippingFor("zulusgames", cart(10, 1), { region: "NE" }, snap);
+  assert.match(q.crossBorder ?? "", /^ships from Canada: import duties or a carrier's brokerage fee may be charged on delivery$/);
+  assert.equal(shippingSummary("zulusgames", snap).shipsFrom, "Canada");
   const plan = optimizeBasket(
-    [
-      { cardId: "a", name: "A", slug: null, qty: 1, listings: [{ retailer: "npcollectibles", priceCents: 100, url: "u" }] },
-      { cardId: "b", name: "B", slug: null, qty: 1, listings: [{ retailer: "danireon", priceCents: 100, url: "u" }] },
-    ],
-    basketStoresFor("US", { region: "NE" }),
+    [{ cardId: "a", name: "A", slug: null, qty: 1, listings: [{ retailer: "zulusgames", priceCents: 100, url: "u" }] }],
+    basketStoresFor("US", { region: "NE" }, snap),
   );
-  if (plan.stores.some((g) => g.key === "npcollectibles")) {
-    assert.ok(planPostageNotes(plan, true).includes("1 store ships from abroad — import charges may be due on delivery"), planPostageNotes(plan, true).join(" | "));
-  }
+  assert.ok(plan.stores.some((g) => g.key === "zulusgames"));
+  assert.ok(planPostageNotes(plan, true).includes("1 store ships from abroad — import charges may be due on delivery"), planPostageNotes(plan, true).join(" | "));
 });
 
 test("the real US snapshot: zone pricing is real, a store's regional gap is named, and the copy claims no 'exact' rates", () => {

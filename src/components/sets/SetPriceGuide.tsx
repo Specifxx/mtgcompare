@@ -6,8 +6,8 @@ import { money } from "@/lib/format";
 import type { SetPriceGuideRow } from "@/lib/set-price-guide";
 
 // Server-rendered price list for every card in a set, dearest first, under the
-// H2 "{Set} price guide" (#price-guide). RiftCompare's SetPriceGuide: a sticky
-// header over a scroll box, one row per printing, nothing client-side.
+// H2 "{Set} price guide" (#price-guide): a sticky header over a scroll box, one
+// row per printing, nothing client-side.
 export function SetPriceGuide({ setName, rows, country, adjective, currency }: { setName: string; rows: SetPriceGuideRow[]; country: Country; adjective: string; currency: string }) {
   if (!rows.length) return null;
   const priced = rows.filter((r) => r.priceCents != null).length;
@@ -18,7 +18,7 @@ export function SetPriceGuide({ setName, rows, country, adjective, currency }: {
           {setName} price guide
         </h2>
         <p className="mt-1 text-sm text-slate-400">
-          All {rows.length} {setName} printings, most expensive first: the cheapest in-stock price we track in {currency}, from {adjective} stores or eBay ({priced} with a live price today). Updated twice a day.
+          All {rows.length} {setName} printings, most expensive first: the cheapest in-stock price we track in {currency}, from {adjective} stores ({priced} with a live price today). Prices are those of each printing&apos;s headline version (Normal first).
         </p>
       </div>
       <div className="max-h-[70vh] overflow-auto">

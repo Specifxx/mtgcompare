@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 // Copy the missing list, or download it as a CSV (2026-09-29, set tracker).
-// The text is one `1 Shanks OP01-120 (Parallel) #id` line per card, each naming its exact
+// The text is one `1 Stingcaster Mage (FRA) 457 #692998` line per card, each naming its exact
 // printing, so it pastes straight into Best Basket or the deck pricer
 // (lib/set-scope.ts missingText). Both strings are built on the server from the
 // rows the page is showing, so the export is exactly the visible list.

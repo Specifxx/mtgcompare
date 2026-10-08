@@ -1,5 +1,6 @@
 "use client";
 
+import { FINISH_INDEX, type Finish } from "@/lib/constants";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { COUNTRIES, type Country } from "@/lib/country";
@@ -7,7 +8,7 @@ import { ISSUE_LABELS, LIMITS, REPORT_ISSUES, type ReportIssue } from "@/lib/inb
 
 // "Spotted a wrong price?" under a price board. The price we showed is NOT
 // sent: the server reads it from the Offer row. Sign-in is optional.
-export function ReportPriceButton({ productId, market, offers }: { productId: number; market: Country; offers: { source: string; label: string }[] }) {
+export function ReportPriceButton({ productId, market, offers, finish = "N" }: { productId: number; market: Country; offers: { source: string; label: string }[]; finish?: Finish }) {
   const page = (usePathname() ?? "").slice(0, 200) || undefined;
   const [open, setOpen] = useState(false);
   const [source, setSource] = useState(offers[0]?.source ?? "");
@@ -27,7 +28,7 @@ export function ReportPriceButton({ productId, market, offers }: { productId: nu
       const res = await fetch("/api/price-report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, source, market, issue, claimedCents, note, page, website }),
+        body: JSON.stringify({ productId, finish: FINISH_INDEX[finish], source, market, issue, claimedCents, note, page, website }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       setState(res.ok ? { status: "done" } : { status: "error", error: data.error ?? "Something went wrong. Try again later." });

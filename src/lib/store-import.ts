@@ -1,6 +1,6 @@
 // Reading Magic: The Gathering listings from the stores in lib/stores.ts (S8 of the import, contract 6.1). Network only: what a title MEANS is decided in lib/match.ts.
 // The Shopify reader is ported from RiftCompare's price-import.ts (collection discovery, ?country= pricing, the retry and "a failed collection keeps yesterday's rows" rules), widened for Magic-sized
-// collections (the biggest singles collection is 170,000 products, an order of magnitude past One Piece); the other platforms' readers live beside it (lib/shadowpos.ts, ecwid.ts, bigcommerce.ts,
+// collections (the biggest singles collection is 170,000 products); the other platforms' readers live beside it (lib/shadowpos.ts, ecwid.ts, bigcommerce.ts,
 // nopcommerce.ts, woocommerce.ts) and fetchStoreListings() picks one per store. Every reader returns the Shopify product shape plus the listing's own URL, so ONE path (matchListings) runs the matcher,
 // the best in-stock variant, the currency and the plausibility rule for all of them.
 //
@@ -15,6 +15,8 @@ import { bestVariant, anyVariant, buildCardIndex, buildNameIndex, collapseOffers
 import { fetchBigCommerceStore } from "./bigcommerce";
 import { CONDITIONS, sealedKind, uidOf, type Finish } from "./constants";
 import { MARKET_INDEX, currencyOf, isoCountry, type Country } from "./country";
+import type { PxRow, SealedListFile, SetsFile } from "./data/plane/formats";
+import { SEALED_FLAGS } from "./data/plane/formats";
 import { fetchEcwidStore } from "./ecwid";
 import { toUsdCents } from "./fx";
 import type { ImportContext } from "./import";
@@ -247,17 +249,32 @@ export interface StageIndex {
   sealedMarketOf(id: number): number | null;
   tracked: ReadonlySet<number>;
 }
-export function buildStageIndex(ctx: Pick<ImportContext, "match" | "snapshot" | "tracked">): StageIndex {
-  const snap = ctx.snapshot;
-  const setCode = new Map<number, string>(snap.sets.map((s) => [s.id, s.code]));
-  const sealedRows = snap.sealed.filter((s) => !s.gone);
-  const sealed: SealedRef[] = sealedRows.map((s) => ({ id: s.id, name: s.name, setCode: s.setId != null ? setCode.get(s.setId) ?? null : null, kind: sealedKind(s.name) }));
-  const unit = new Map<number, number>();
-  for (const p of snap.prices) {
-    if (p.marketN != null) unit.set(p.cardId * 2, p.marketN);
-    if (p.marketF != null) unit.set(p.cardId * 2 + 1, p.marketF);
+/**
+ * Built from `ctx.match` (the cards) and the work tree (sealed products, their sets and the TCGplayer market prices): phase 2 starts from a published tree, so ctx.snapshot carries identities only and the
+ * tree is the one place both phases agree on. A file that is missing or unreadable is empty, never a throw: the stage then matches cards and sealed words without a plausibility reference.
+ */
+export function buildStageIndex(ctx: Pick<ImportContext, "match" | "work" | "tracked">): StageIndex {
+  const t = ctx.work;
+  const json = <T,>(rel: string): T | null => { try { return t.has(rel) ? (JSON.parse(t.read(rel)) as T) : null; } catch { return null; } };
+  const setCode = new Map<number, string>((json<SetsFile>("meta/sets.json")?.sets ?? []).map((r) => [r[0], r[3]]));
+  const sealed: SealedRef[] = [];
+  const sealedMarket = new Map<number, number | null>();
+  for (const f of t.files()) {
+    if (!/^sl\/list-\d+\.json$/.test(f)) continue;
+    for (const r of json<SealedListFile>(f)?.s ?? []) {
+      if (r[7] & SEALED_FLAGS.GONE) continue;
+      sealed.push({ id: r[0], name: r[2], setCode: r[3] ? setCode.get(r[3]) ?? null : null, kind: sealedKind(r[2]) });
+      sealedMarket.set(r[0], r[8]);
+    }
   }
-  const sealedMarket = new Map<number, number | null>(sealedRows.map((s) => [s.id, s.marketUsd]));
+  const unit = new Map<number, number>();
+  for (const f of t.files()) {
+    if (!f.startsWith("px/")) continue;
+    for (const r of json<{ p: PxRow[] }>(f)?.p ?? []) {
+      if (r[1] != null) unit.set(r[0] * 2, r[1]);
+      if (r[2] != null) unit.set(r[0] * 2 + 1, r[2]);
+    }
+  }
   const rows: MatchRow[] = ctx.match;
   return { ix: { cards: buildCardIndex(rows), names: buildNameIndex(rows), sealed }, marketOf: (u) => unit.get(u) ?? null, sealedMarketOf: (id) => sealedMarket.get(id) ?? null, tracked: ctx.tracked };
 }
@@ -272,6 +289,14 @@ export interface StoreTally {
 export const newTally = (): StoreTally => ({ products: 0, matched: 0, misses: {}, drafts: [] });
 
 const bump = (t: StoreTally, k: string): void => void (t.misses[k] = (t.misses[k] ?? 0) + 1);
+
+/** The offer ONE (product, finish) of a listing makes: the best in-stock variant (best condition, then cheapest), or the cheapest variant at all as an out-of-stock offer. null when no variant has a price. A sealed product carries no condition. */
+export function offerDraftOf(productId: number, finish: Finish, variants: readonly ShopifyVariant[], path: string, sealed = false): OfferDraft | null {
+  const best = bestVariant([...variants]);
+  const price = best?.priceCents ?? anyVariant([...variants]);
+  if (price == null) return null;
+  return { productId, finish, priceCents: price, inStock: best !== null, condition: sealed ? null : best?.condition ?? null, path };
+}
 
 /**
  * The offers of ONE listing: the matcher answers once per VARIANT (a product with Normal and Foil variants answers with both finishes), the variants that answered the same (product, finish) compete (best
@@ -309,16 +334,15 @@ export function matchListing(store: StoreInfo, p: StoreListing, si: StageIndex, 
   const cur = currencyOf(store.country);
   for (const g of groups.values()) {
     if (!g.sealed && !si.tracked.has(uidOf(g.id, g.finish))) continue; // aggregate drops an untracked unit: do not carry it
-    const best = bestVariant(g.variants);
-    const price = best?.priceCents ?? anyVariant(g.variants);
-    if (price == null) continue;
-    const usd = toUsdCents(price, cur);
+    const draft = offerDraftOf(g.id, g.sealed ? "N" : g.finish, g.variants, path, g.sealed);
+    if (!draft) continue;
+    const usd = toUsdCents(draft.priceCents, cur);
     const ok = g.sealed ? plausibleSealedPrice(usd, si.sealedMarketOf(g.id)) : plausibleSinglePrice(usd, si.marketOf(uidOf(g.id, g.finish)));
     if (!ok) {
       bump(tally, "implausible-price");
       continue;
     }
-    tally.drafts.push({ productId: g.id, finish: g.sealed ? "N" : g.finish, priceCents: price, inStock: best !== null, condition: g.sealed ? null : best?.condition ?? null, path });
+    tally.drafts.push(draft);
   }
 }
 
@@ -436,7 +460,7 @@ async function readFeed(store: StoreInfo, match: readonly MatchRow[]): Promise<{
 // ── The stage ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 /** Shopify states the currency it charges in /meta.json. null = unreadable (not a refusal). */
-async function shopifyCurrency(store: StoreInfo): Promise<string | null> {
+export async function shopifyCurrency(store: StoreInfo): Promise<string | null> {
   const t = await fetchText(`${store.base}/meta.json`);
   if (!t) return null;
   try { const c = (JSON.parse(t) as { currency?: unknown }).currency; return typeof c === "string" && c ? c.toUpperCase() : null; } catch { return null; }

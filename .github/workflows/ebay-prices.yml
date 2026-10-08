@@ -1,33 +1,33 @@
 name: eBay prices
 
-# The twice-daily eBay pass (scripts/ebay.ts): searches OP Compare's OWN eBay
-# application's Browse API for the (product, market) pairs that are due, and
-# writes each pair's row as soon as its search completes.
-#   05:37 UTC — done by ~06:20, before the 07:07 import aggregates, records history
-#               and revalidates with the fresh eBay rows
-#   17:37 UTC — the same before the 19:07 import
-# Each run spends at most min(EBAY_MAX_CALLS, liveRemaining − EBAY_QUOTA_RESERVE).
+# THE ONLY EBAY WORKFLOW (scripts/ebay.ts). Four runs a day, all AFTER RiftCompare's big jobs, because MTG Compare shares RiftCompare's eBay keyset (EBAY_KEYSET_MODE=shared: 5,000 Browse calls
+# a day for both sites, Rift first):
+#   04:37  banner only   the chase pool's US names (the strip is refreshed every 6 hours)
+#   10:37  banner only
+#   16:37  banner only   before Rift's 19:00 evening refresh
+#   23:37  MAIN          the chase pool in every market, tier A (daily), tier B (every 72 h), sealed; after Rift's 19:00 job, the 20:00 auction sweep, the 21:47 sibling run and MTG's own import
+# Minute 37 keeps clear of the top-of-hour pile-up that delays Rift's jobs. Nothing is scheduled between 21:05 and 23:30 UTC, the import window (src/lib/schedule.ts IMPORT_WINDOW_UTC); a manual
+# run should avoid it too, because the quiet check waits for the quota to stop moving.
 #
-# OFF until the repository secrets EBAY_CLIENT_ID and EBAY_CLIENT_SECRET hold OP
-# Compare's own App ID and Cert ID (never RiftCompare's, never on Vercel): the
-# gate job then skips the eBay job and the run is green. Set but refused
-# by eBay → the run fails red after zero Browse calls; searches failing without
-# a 429 (an outage, a keyset not approved for Browse) stop the run after 10 in
-# a row and fail it red (lib/ebay-plan.ts FailureBreaker).
+# Each run spends at most min(the day's ledger allowance, the live remaining count minus RiftCompare's reserve, the run's share, max_calls). It reads the live quota first and fails CLOSED:
+# an unreadable quota, an unreachable ledger, a 429 or a kill switch (EBAY_API_ENABLED=0) means zero Browse calls and a green run with the reason on the run page. EBAY_OBSERVE_ONLY=1 (the default
+# for the first week) reads and records the quota and makes no Browse call at all.
 #
-# The `ebay` job shares the import's concurrency group, so the two never
-# overlap. A GitHub group holds one running and ONE pending run, and a newly
-# queued run cancels the pending one: never dispatch this within 07:00–08:10 or
-# 19:00–20:10 UTC, or it can cancel an import waiting behind it (docs/SETUP.md).
-# The `gate` job is outside the group, so an unconfigured run never enters it.
+# It READS a checkout of the pointed data commit (scripts/plane-checkout.sh) and writes NEON ONLY: eBay data never reaches GitHub (licence). It never pushes and never writes the data repository,
+# so it shares no concurrency group with the import.
+#
+# OFF until the repository secrets EBAY_CLIENT_ID and EBAY_CLIENT_SECRET exist (the gate job then skips the eBay job and the run is green). Keys set but refused by eBay: the run fails red after
+# zero Browse calls. Searches failing without a 429 (an outage, a keyset not approved for Browse) stop the run after 10 in a row and fail it red (lib/ebay-plan.ts FailureBreaker).
 on:
   schedule:
-    - cron: "37 5 * * *"
-    - cron: "37 17 * * *"
+    - cron: "37 4 * * *"
+    - cron: "37 10 * * *"
+    - cron: "37 16 * * *"
+    - cron: "37 23 * * *"
   workflow_dispatch:
     inputs:
       force:
-        description: "EBAY_FORCE=1: re-search every eligible pair (tick after a matching change). Never dispatch 07:00–08:10 or 19:00–20:10 UTC."
+        description: "EBAY_FORCE=1: a main pass that re-searches every eligible pair (tick after a matching change). Avoid 21:05 to 23:30 UTC."
         type: boolean
         default: false
       only_market:
@@ -35,18 +35,16 @@ on:
         type: string
         required: false
       max_calls:
-        description: "Lower the run's budget to N calls (smoke test: 50). Can never raise it."
+        description: "A main pass capped at N Browse calls (smoke test: 50). Can never raise the budget; the ledger and the live quota still apply."
         type: string
         required: false
 
-# Never pushes: the store import owns the data branch.
+# Never pushes.
 permissions:
   contents: read
 
 jobs:
-  # Decides whether there is anything to do. It holds no concurrency group, so
-  # while eBay is off (no secrets) a scheduled run never enters the import's
-  # group and can never cancel an import waiting there.
+  # Decides whether there is anything to do. While eBay is off (no secrets) a scheduled run does nothing and is green.
   gate:
     runs-on: ubuntu-latest
     outputs:
@@ -60,7 +58,7 @@ jobs:
           EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
         run: |
           if [ -z "$DATABASE_URL" ] || [ -z "$EBAY_CLIENT_ID" ] || [ -z "$EBAY_CLIENT_SECRET" ]; then
-            echo "eBay not configured (or no DATABASE_URL) — skipping (0 calls)."
+            echo "eBay not configured (or no DATABASE_URL), skipping (0 calls)."
             echo "run=false" >> "$GITHUB_OUTPUT"
           else
             echo "run=true" >> "$GITHUB_OUTPUT"
@@ -72,13 +70,16 @@ jobs:
     if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    # The import's group, so the two never overlap (see the header).
+    # Its own group: two eBay runs never overlap (a second waits), and nothing here touches the data repository.
     concurrency:
-      group: import-prices
+      group: ebay-mtg
       cancel-in-progress: false
-    # No secret at job level: npm ci's install scripts never see one. Each step
-    # gets only what it needs.
+    # No secret at job level: npm ci's install scripts never see one. Each step gets only what it needs.
     env:
+      EBAY_API_ENABLED: ${{ vars.EBAY_API_ENABLED }}
+      EBAY_DAILY_CALL_BUDGET: ${{ vars.EBAY_DAILY_CALL_BUDGET }}
+      EBAY_KEYSET_MODE: ${{ vars.EBAY_KEYSET_MODE }}
+      EBAY_OBSERVE_ONLY: ${{ vars.EBAY_OBSERVE_ONLY }}
       EBAY_QUOTA_RESERVE: ${{ vars.EBAY_QUOTA_RESERVE }}
       EBAY_MAX_CALLS: ${{ vars.EBAY_MAX_CALLS }}
       EBAY_MIN_VALUE_CENTS: ${{ vars.EBAY_MIN_VALUE_CENTS }}
@@ -98,10 +99,20 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: bash scripts/db-push-safe.sh && npx prisma generate
+      # The tree of the POINTED commit of the private data repository, read-only. Without it (variables unset, the repository unreachable) the pass still reads and records the quota and
+      # leaves the tiers as they were: a missing checkout never fails the run and never spends a call.
+      - name: Read the published data
+        continue-on-error: true
+        env:
+          PLANE_REPO: ${{ vars.PLANE_REPO }}
+          DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+        run: bash scripts/plane-checkout.sh .data
       - name: eBay pass
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
           EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
-          EBAY_AFFILIATE_CAMPAIGN: ${{ secrets.EBAY_AFFILIATE_CAMPAIGN }}
-        run: npx tsx scripts/ebay.ts
+          NEXT_PUBLIC_EBAY_CAMPAIGN_ID: ${{ vars.NEXT_PUBLIC_EBAY_CAMPAIGN_ID }}
+          REVALIDATE_URL: ${{ vars.REVALIDATE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: npx tsx scripts/ebay.ts .data

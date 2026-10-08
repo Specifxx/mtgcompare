@@ -41,9 +41,10 @@ export function CheapestOnEbay({ rows, country, positionOffset = 0 }: { rows: Eb
                 <span className="block truncate text-sm font-semibold text-white">
                   {d.card.name}
                   {d.card.variant ? <span className="font-normal text-slate-400"> · {d.card.variant}</span> : null}
+                  {d.card.finish === "F" ? <span className="font-normal text-slate-400"> · Foil</span> : null}
                 </span>
                 <span className="block truncate text-[11px] text-slate-500">
-                  {d.card.setCode} · {d.card.number ?? "DON!!"} · <span className="num font-semibold text-up">{money(d.gapCents, country)}</span> below the
+                  {d.card.setCode}{d.card.number ? ` · ${d.card.number}` : ""} · <span className="num font-semibold text-up">{money(d.gapCents, country)}</span> below the
                   cheapest {country === "US" ? "store or TCGplayer listing" : "store"}
                 </span>
               </span>
@@ -56,7 +57,7 @@ export function CheapestOnEbay({ rows, country, positionOffset = 0 }: { rows: Eb
         ))}
       </ol>
       <p className="mt-1 px-1 text-[11px] text-slate-500">
-        As an eBay Partner Network affiliate, OP Compare earns from qualifying purchases, at no extra cost to you.
+        As an eBay Partner Network affiliate, MTG Compare earns from qualifying purchases, at no extra cost to you.
       </p>
     </section>
   );

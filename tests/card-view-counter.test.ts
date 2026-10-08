@@ -68,7 +68,7 @@ test("storage trouble fails open: the view is sent and the server limit is the b
 });
 
 const req = (id: string, ua: string | null, ip = "203.0.113.7", search = false) =>
-  new Request(`https://opcompare.test/api/card/${id}/view${search ? "?source=search" : ""}`, {
+  new Request(`https://mtgcompare.test/api/card/${id}/view${search ? "?source=search" : ""}`, {
     method: "POST",
     headers: { ...(ua != null ? { "user-agent": ua } : {}), "x-forwarded-for": ip },
   });
@@ -128,6 +128,6 @@ test("every client beacon goes through the once-a-day guard", () => {
   assert.match(code("src/app/card/[slug]/page.tsx"), /<CardViewBeacon slug=\{card\.slug\}/);
 });
 
-test("the counter is OP Compare's own key in the browser", () => {
-  assert.match(code("src/lib/card-views.ts"), /CARD_VIEWS_KEY = "oc_card_views"/);
+test("the counter is MTG Compare's own key in the browser", () => {
+  assert.match(code("src/lib/card-views.ts"), /CARD_VIEWS_KEY = "mc_card_views"/);
 });

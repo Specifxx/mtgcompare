@@ -8,16 +8,17 @@ import { useMe } from "@/lib/use-me";
 import { Spinner } from "./ui/Skeleton";
 import { PortfolioLimitNotice as FreeLimitPanel } from "./PortfolioLimitNotice";
 
-// "＋ Add to collection" — RiftCompare's QuickView addToCollection block, as one
-// component so QuickView and the card page share it (wave 2, 2026-10-03).
+// "＋ Add to collection": the QuickView addToCollection block as one component so
+// QuickView and the card page share it.
 // States: saving / added (with "Add another +1") / sign-in / limit (the free
 // portfolio's upgrade panel, inline) / full (999 copies already) / error.
-// No foil toggle: on OP Compare a foil finish is its own TCGplayer product, so
-// the route takes the card's own finish.
+// `foil` is the finish the page is showing (its selected tab): a Foil copy is the
+// Foil unit of the product, valued at its own price. Left out it adds a Normal
+// copy; the route forces the only finish a product has (track.ts normalizeFoil).
 //
 // btn-ghost, not btn-primary: the buy buttons above are the page's only filled
 // CTA — this is a secondary action and shouldn't compete with them.
-export function AddToCollectionButton({ cardId, cardPath, src = "quickview" }: { cardId: number; cardPath: string; src?: string }) {
+export function AddToCollectionButton({ cardId, cardPath, src = "quickview", foil }: { cardId: number; cardPath: string; src?: string; foil?: boolean }) {
   const [coll, setColl] = useState<"idle" | "saving" | "added" | "full" | "signin" | "error">("idle");
   // The free portfolio limit, when "Add to collection" hit it (lib/free-limits.ts).
   const [collLimit, setCollLimit] = useState<FreeLimitBody | null>(null);
@@ -34,7 +35,7 @@ export function AddToCollectionButton({ cardId, cardPath, src = "quickview" }: {
       const res = await fetch("/api/collection", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cardId }),
+        body: JSON.stringify(foil === undefined ? { cardId } : { cardId, isFoil: foil }),
       });
       if (res.status === 401) return setColl("signin");
       // A new card on a free account at its portfolio limit: nothing was

@@ -1,17 +1,19 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import type { Country } from "../src/lib/country";
 import { elsewhereLine, hasNoRetailChannel, lastSeen, priceState } from "../src/lib/card-price-state";
 
-const o = (market: string, currency: string, source: string, inStock: boolean, priceCents = 100, updatedAt = "2026-10-01T00:00:00Z") => ({ market, currency, source, inStock, priceCents, updatedAt });
+const o = (market: Country, currency: string, source: string, inStock: boolean, priceCents = 100, updatedAt = "2026-10-01T00:00:00Z") => ({ market, currency, source, inStock, priceCents, updatedAt });
 
 test("promo and event printings have no retail channel", () => {
-  assert.equal(hasNoRetailChannel("event", "standard"), true);
-  assert.equal(hasNoRetailChannel("booster", "promo"), true);
-  assert.equal(hasNoRetailChannel("booster", "alt"), false);
+  assert.equal(hasNoRetailChannel("promo", "standard"), true);
+  assert.equal(hasNoRetailChannel("expansion", "gameday"), true);
+  assert.equal(hasNoRetailChannel("expansion", "prerelease"), true);
+  assert.equal(hasNoRetailChannel("expansion", "borderless"), false);
 });
 
 test("state: in market, elsewhere, empty", () => {
-  const s = priceState([o("AU", "AUD", "store:a", true), o("UK", "GBP", "ebay", true)], "US", { marketUsd: null, setKind: "booster", printing: "standard" });
+  const s = priceState([o("AU", "AUD", "store:a", true), o("UK", "GBP", "ebay", true)], "US", { marketUsd: null, setKind: "expansion", printing: "standard" });
   assert.equal(s.inMarket, false);
   assert.equal(s.hasListings, true);
   assert.equal(s.otherMarketStores, 1); // eBay is not a store
@@ -20,7 +22,7 @@ test("state: in market, elsewhere, empty", () => {
   const e = priceState([], "US", { marketUsd: null, setKind: "promo", printing: "promo" });
   assert.equal(e.isEmpty, true);
   assert.equal(e.noRetailChannel, true);
-  assert.equal(priceState([], "US", { marketUsd: 5, setKind: "booster", printing: "standard" }).isEmpty, false);
+  assert.equal(priceState([], "US", { marketUsd: 5, setKind: "expansion", printing: "standard" }).isEmpty, false);
 });
 
 test("last seen is the newest sold-out non-eBay row in the market's currency", () => {

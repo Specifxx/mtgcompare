@@ -1,3 +1,5 @@
+import { finishFromIndex, unitKey } from "./constants";
+import { liveAlertCards, type AlertCardLoader } from "./alert-price";
 import type { prisma } from "./db";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -37,7 +39,7 @@ export interface AlertEmailSummary {
 }
 
 // Mask an email for display on the (public, token-addressed) page so the full
-// address is never echoed back. "bill.jyang101@gmail.com" → "bi***@gmail.com".
+// address is never echoed back. "someone@example.com" → "so***@example.com".
 export function maskEmail(email: string): string {
   const [local = "", domain] = email.split("@");
   if (!domain) return "your email";
@@ -54,31 +56,35 @@ async function addressFor(db: AlertMuteDb, token: string): Promise<string | null
   return row?.email ?? null;
 }
 
-export async function alertEmailSummary(db: AlertMuteDb, token: string): Promise<AlertEmailSummary> {
+export async function alertEmailSummary(db: AlertMuteDb, token: string, loadCards: AlertCardLoader = liveAlertCards): Promise<AlertEmailSummary> {
   if (!token) return { active: false, paused: false, count: 0, cards: [] };
   const rows = await db.priceAlert.findMany({
     where: { unsubToken: token },
     orderBy: { createdAt: "desc" },
     // The subscribe route caps one request at 500 cards; this is a page, not an export.
     take: 500,
-    select: { id: true, email: true, market: true, snoozedUntil: true, card: { select: { name: true, variant: true, number: true, set: { select: { code: true } } } } },
+    select: { id: true, email: true, market: true, snoozedUntil: true, cardId: true, finish: true },
   });
   if (rows.length === 0) return { active: false, paused: false, count: 0, cards: [] };
   const email = rows[0]!.email;
   const mute = await db.alertMute.findUnique({ where: { email }, select: { email: true } });
+  const known = await loadCards(rows.map((r) => ({ id: r.cardId, finish: finishFromIndex(r.finish) })));
   return {
     active: true,
     email: maskEmail(email),
     paused: mute != null,
     count: rows.length,
-    cards: rows.map((r) => ({
-      id: r.id,
-      name: `${r.card.name}${r.card.variant ? ` (${r.card.variant})` : ""}`,
-      setCode: r.card.set.code,
-      number: r.card.number,
-      market: r.market,
-      snoozedUntil: r.snoozedUntil ? r.snoozedUntil.toISOString() : null,
-    })),
+    cards: rows.map((r) => {
+      const c = known.get(unitKey(r.cardId, finishFromIndex(r.finish)));
+      return {
+        id: r.id,
+        name: c ? `${c.name}${c.variant ? ` (${c.variant})` : ""}` : "A card no longer in the catalogue",
+        setCode: c?.setCode ?? "",
+        number: c?.number ?? null,
+        market: r.market,
+        snoozedUntil: r.snoozedUntil ? r.snoozedUntil.toISOString() : null,
+      };
+    }),
   };
 }
 

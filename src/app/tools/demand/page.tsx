@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getCurrentUser } from "@/lib/auth";
-import { isPremium, tierOf } from "@/lib/premium";
+import { currentEntitlement } from "@/lib/auth";
 import { getTopDemand, type DemandPick } from "@/lib/data";
+import { FEATURE_RULES, accessFor, rowLimit } from "@/lib/premium-gates";
 import {
   DEMAND_WINDOWS,
   FREE_DEMAND_ROWS,
@@ -17,9 +17,9 @@ import {
 import { getCountry } from "@/lib/get-country";
 import { type Country } from "@/lib/country";
 import { money } from "@/lib/format";
-import { cardImage } from "@/lib/images";
+import { imageFor } from "@/lib/images";
 import { cardDisplayName } from "@/lib/rise-predictor";
-import { SITE_URL } from "@/lib/site";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { pageOg } from "@/lib/og/meta";
 import PlanButton from "@/components/PlanButton";
 import { HubIntro } from "@/components/HubIntro";
@@ -27,30 +27,28 @@ import { RelatedGuides } from "@/components/RelatedGuides";
 import { guidesForTool } from "@/lib/content/tool-guides";
 import { MoveBadge } from "@/components/MoveBadge";
 
-// Demand Finder (RiftCompare's /tools/demand, for One Piece). Reads the
-// viewer's session, so it renders per request. The ranking itself is one
-// self-cached, day-keyed loader (lib/data.ts getTopDemand, over the demand
-// snapshot files on the data branch), called here at the top level, never
-// inside another cache.
+// Demand Finder (RiftCompare's /tools/demand, for Magic: The Gathering). Reads the viewer's session, so it renders per request. PREMIUM, gated at
+// the data boundary (contract 14): the page asks premium-gates.ts how many rows its visitor may have and getTopDemand (lib/data/demand.ts) returns
+// no more: below Premium it is the clear 7-day strip of /movers, searches only. The ranking itself is one tier-neutral, day-keyed cache entry over
+// the private counters in Neon, cut for the viewer in the loader, called here at the top level, never inside another cache.
 export const dynamic = "force-dynamic";
 
-// Demand Finder is Premium (RiftCompare, 2026-09-25). It describes what
-// players are searching for and looking at — no "what to buy", prediction or
-// investing language.
-const TITLE = "Demand Finder — Most Searched & Viewed One Piece Cards | OP Compare";
-const DESCRIPTION = `The One Piece Card Game cards players are searching for and opening on OP Compare, over the last 7 or 30 days. The top ${FREE_DEMAND_ROWS} most searched this week are free; Premium shows the top ${PREMIUM_DEMAND_ROWS} by searches and by card views.`;
+// Demand Finder is Premium (RiftCompare, 2026-09-25). It describes what players are searching for and looking at — no "what to buy", prediction
+// or investing language.
+const TITLE = `Demand Finder — Most Searched & Viewed Magic Cards | ${SITE_NAME}`;
+const DESCRIPTION = `The Magic: The Gathering cards players are searching for and opening on ${SITE_NAME}, over the last 7 or 30 days. The top ${FREE_DEMAND_ROWS} most searched this week are free; Premium shows the top ${PREMIUM_DEMAND_ROWS} by searches and by card views.`;
 export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
-  keywords: ["one piece most searched cards", "one piece popular cards", "one piece most viewed cards", "one piece card demand"],
+  keywords: ["mtg most searched cards", "magic popular cards", "mtg most viewed cards", "mtg card demand"],
   alternates: { canonical: "/tools/demand" },
-  openGraph: pageOg("/tools/demand", { title: "Demand Finder — most searched & viewed One Piece cards", description: DESCRIPTION }),
+  openGraph: pageOg("/tools/demand", { title: "Demand Finder — most searched & viewed Magic cards", description: DESCRIPTION }),
 };
 
 const DEMAND_FAQS = [
   {
     q: "What is Demand Finder?",
-    a: "A leaderboard of the One Piece cards OP Compare visitors are searching for and opening, counted from real traffic. Searches count a card picked from the search box; views count a card page opened. It is raw attention, not a score.",
+    a: "A leaderboard of the Magic cards MTG Compare visitors are searching for and opening, counted from real traffic. Searches count a card picked from the search box; views count a card page opened. It is raw attention, not a score.",
   },
   {
     q: "What is free, and what needs Premium?",
@@ -62,7 +60,7 @@ const DEMAND_FAQS = [
   },
   {
     q: "What do the 7-day and 30-day windows mean?",
-    a: "The counters are running totals, so a window is measured against a daily snapshot taken that many days ago: the activity since then. If the snapshots don't reach back that far yet, the page says so instead of showing a shorter window under the longer label. The daily snapshots are published with OP Compare's price history.",
+    a: "The counters are running totals, so a window is measured against a daily snapshot taken that many days ago: the activity since then. If the snapshots don't reach back that far yet, the page says so instead of showing a shorter window under the longer label. The daily snapshots are kept privately, with the counters: nothing demand-shaped is published.",
   },
   {
     q: "How is this different from Rising Cards?",
@@ -101,7 +99,7 @@ function DemandRow({
           <span className="h-10 w-7 shrink-0 overflow-hidden rounded-sm bg-ink-900">
             {p.card.hasImage && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={cardImage.thumb(p.card.id)} alt={`${p.card.name}${p.card.number ? ` ${p.card.number}` : ""} card`} width={28} height={39} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+              <img src={imageFor(p.card, "thumb") ?? ""} alt={`${p.card.name}${p.card.number ? ` ${p.card.number}` : ""} card`} width={28} height={39} loading="lazy" decoding="async" className="h-full w-full object-cover" />
             )}
           </span>
           <span className="min-w-0">
@@ -126,25 +124,23 @@ function DemandRow({
 }
 
 export default async function DemandFinderPage({ searchParams }: { searchParams: { view?: string; range?: string } }) {
-  const user = await getCurrentUser();
-  // THE GATE: Premium only (never the Plus default of isPremium).
-  const premium = isPremium(user, "premium");
-  const access: DemandAccess = premium ? "full" : "free";
-  const tier = tierOf(user);
+  // THE GATE: Premium only (never the Plus default). The viewer comes from the session on the server; accessFor decides, rowLimit says how many rows.
+  const who = await currentEntitlement();
+  const gate = accessFor("demand", who.viewer), limit = rowLimit("demand", gate, who.viewer);
+  const access: DemandAccess = gate === "full" ? "full" : "free";
   const country = getCountry();
 
-  // Below Premium the window and list are fixed to the /movers strip's (7 days,
-  // most searched), whatever the query string says, and the loader is asked
-  // for FREE_DEMAND_ROWS rows only — lib/demand-view.ts.
+  // Below Premium the window and list are fixed to the /movers strip's (7 days, most searched), whatever the query string says, and the loader is
+  // asked for FREE_DEMAND_ROWS rows only (lib/demand-view.ts); it enforces the same bound itself.
   const days = access === "full" ? parseDemandWindow(searchParams.range) : 7;
   const list: DemandList = access === "full" ? parseDemandList(searchParams.view) : "searched";
   const query = demandQueryFor(access, days);
-  const result = await getTopDemand(query.days, query.limit);
+  const result = await getTopDemand(query.days, who, Math.min(query.limit, limit || query.limit));
   const rows = visibleDemandRows(result, access, list);
   const showViews = access === "full";
   const covered = result.coveredDays && result.coveredDays > 0 ? result.coveredDays : days;
   // Rank movement against the equal-length period before the window, when the
-  // daily snapshots reach back that far (lib/demand.ts, 2026-09-28).
+  // daily snapshots reach back that far.
   const previous = result.previous ?? null;
   const showMove = !!previous;
   const dayFmt = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
@@ -267,7 +263,7 @@ export default async function DemandFinderPage({ searchParams }: { searchParams:
       {access === "free" && !result.failed && (
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gold/30 bg-gold/5 px-4 py-3">
           <p className="text-sm text-slate-300">
-            {tier === "plus" ? (
+            {who.tier === "plus" ? (
               <>
                 <strong className="text-white">Demand Finder is part of Premium.</strong> Your Plus plan includes the free top{" "}
                 {FREE_DEMAND_ROWS}; Premium adds the top {PREMIUM_DEMAND_ROWS} by searches and by card views, over 7 or 30 days.
@@ -280,8 +276,8 @@ export default async function DemandFinderPage({ searchParams }: { searchParams:
             )}
           </p>
           <div className="flex flex-wrap items-center gap-2">
-            {user ? (
-              <PlanButton surface="gate:demand" tier="premium" />
+            {who.viewer.signedIn ? (
+              <PlanButton surface={FEATURE_RULES.demand.surface} tier="premium" />
             ) : (
               <Link href="/login?next=/tools/demand&src=tool_gate" rel="nofollow" className="btn-primary text-sm">Sign in</Link>
             )}
@@ -329,11 +325,11 @@ export default async function DemandFinderPage({ searchParams }: { searchParams:
             {
               "@context": "https://schema.org",
               "@type": "WebApplication",
-              name: "One Piece Demand Finder",
+              name: "Magic Demand Finder",
               url: `${SITE_URL}/tools/demand`,
               applicationCategory: "UtilitiesApplication",
               operatingSystem: "Web",
-              description: "A leaderboard of the One Piece Card Game cards most searched and most viewed on OP Compare over the last 7 or 30 days.",
+              description: "A leaderboard of the Magic: The Gathering cards most searched and most viewed on MTG Compare over the last 7 or 30 days.",
             },
           ]),
         }}

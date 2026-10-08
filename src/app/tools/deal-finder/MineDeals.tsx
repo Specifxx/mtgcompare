@@ -14,11 +14,11 @@ type Result =
   | { state: "ok"; watched: number; slugs: number; view: "tcg"; list: DealList<TcgDealRow> }
   | { state: "ok"; watched: number; slugs: number; view: "vs-ebay"; list: DealList<VsEbayDealRow> };
 
-// "Only my cards" for Plus members. The watchlist lives in this browser
-// (components/WatchButton.tsx), so the server cannot filter by it on its own:
-// this island sends the watched card slugs to /api/deal-finder, which runs the
-// same ranking over the same cached inputs with the filter applied BEFORE
-// paging, and renders the same table the server page renders.
+// "Only my cards" for Plus and Premium. The watchlist of a signed-out browser lives
+// in localStorage (components/WatchButton.tsx), so this island sends the watched
+// card slugs to /api/deal-finder; the server adds the account's own alerts (or its
+// binder for ?mine=binder), applies the filter BEFORE paging inside the loader and
+// renders the same table the server page renders.
 export function MineDeals({ params, country, buy }: { params: DealFinderParams; country: Country; buy: string[] | null }) {
   const [res, setRes] = useState<Result>({ state: "loading" });
   const view = params.view === "vs-ebay" ? "vs-ebay" : "tcg";
@@ -34,7 +34,7 @@ export function MineDeals({ params, country, buy }: { params: DealFinderParams; 
     fetch("/api/deal-finder", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ view, sort, page, buy: buyKey == null ? null : buyKey ? buyKey.split(",") : [], slugs }),
+      body: JSON.stringify({ view, mine: params.mine, sort, page, buy: buyKey == null ? null : buyKey ? buyKey.split(",") : [], slugs }),
     })
       .then(async (r) => {
         const j = await r.json().catch(() => ({}));
@@ -46,12 +46,12 @@ export function MineDeals({ params, country, buy }: { params: DealFinderParams; 
     return () => {
       live = false;
     };
-  }, [view, sort, page, buyKey]);
+  }, [view, sort, page, buyKey, params.mine]);
 
   if (res.state === "loading") {
     return (
       <div className="card-surface p-4" aria-busy="true">
-        <p className="text-sm text-slate-400">Checking your watchlist…</p>
+        <p className="text-sm text-slate-400">Checking your cards…</p>
         <ul className="mt-3 space-y-2" aria-hidden>
           {[0, 1, 2].map((i) => (
             <li key={i} className="h-10 animate-pulse rounded bg-ink-800" />
@@ -68,7 +68,11 @@ export function MineDeals({ params, country, buy }: { params: DealFinderParams; 
     return (
       <div className="card-surface grid place-items-center p-10 text-center text-sm text-slate-400">
         {res.slugs === 0 ? (
-          <>You aren&apos;t watching any cards yet — tap the heart on any card to add it to your watchlist.</>
+          params.mine === "binder" ? (
+          <>Your binder is empty. Add cards to your collection and they show up here.</>
+        ) : (
+          <>You aren&apos;t watching any cards yet. Tap the heart on any card to add it to your watchlist.</>
+        )
         ) : res.watched === 1 ? (
           <>Your watched card isn&apos;t {what} right now.</>
         ) : (
@@ -85,7 +89,7 @@ export function MineDeals({ params, country, buy }: { params: DealFinderParams; 
   return (
     <>
       <p className="mb-2 text-xs text-slate-500">
-        Checking the {res.watched.toLocaleString("en-US")} cards on your watchlist in this browser.
+        {params.mine === "binder" ? <>Checking the {res.watched.toLocaleString("en-US")} cards in your binder.</> : <>Checking the {res.watched.toLocaleString("en-US")} cards on your watchlist.</>}
       </p>
       <div className="card-surface overflow-x-auto">
         {res.view === "vs-ebay" ? <VsEbayTable rows={res.list.rows} country={country} /> : <TcgDealTable rows={res.list.rows} country={country} />}

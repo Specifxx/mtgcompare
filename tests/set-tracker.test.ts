@@ -6,8 +6,7 @@ import { FREE_LIMIT_STATUS, FREE_PORTFOLIO_LIMIT, freeLimitBody, parseFreeLimit 
 import { portfolioAllowance, type PortfolioLimitDb } from "../src/lib/collection-server";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// THE SET TRACKER'S WIRING — RiftCompare's tests/set-tracker.test.ts, ported in
-// wave 2 (2026-10-03): the public /sets/[slug] page reads neither cookies nor
+// THE SET TRACKER'S WIRING: the public /sets/[slug] page reads neither cookies nor
 // the user, the tick is the existing add path with its 402, an unreleased set
 // shows "N revealed", and the set view carries no P&L wording.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -94,8 +93,8 @@ test("an unreleased set: 'N revealed' with no denominator, percentage, bar or co
 test("the checklist states the footer verbatim and names its scopes as printings we track", () => {
   const c = code("src/components/SetTracker.tsx");
   assert.match(c, /\{SET_FOOTER_COPY\}/);
-  assert.match(c, /Counts are printings in our catalogue\./);
-  assert.match(c, /filename=\{`opcompare-\$\{setSlug\}-missing\.csv`\}/);
+  assert.match(c, /Counts are the printings in our price data\./);
+  assert.match(c, /filename=\{`mtgcompare-\$\{setSlug\}-missing\.csv`\}/);
 });
 
 test("no P&L, value, prediction or urgency words anywhere in the set view", () => {
@@ -127,6 +126,6 @@ test("the tracker pages are noindex, per-request and never call notFound (a load
 test("/portfolio links to the checklist, and promos and events sit behind a toggle", () => {
   assert.match(code("src/app/portfolio/page.tsx"), /href="\/portfolio\/sets"/);
   const idx = code("src/app/portfolio/sets/page.tsx");
-  assert.match(idx, /const MAIN_KINDS = \["booster", "extra", "premium", "starter"\]/);
-  assert.match(idx, /\?promos=1/);
+  assert.match(idx, /const MAIN_KINDS = \["expansion", "core", "masters", "commander"\]/);
+  assert.match(idx, /\?more=1/);
 });

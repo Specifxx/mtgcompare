@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { readDataModule } from "./helpers/data-source";
 
 const read = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
 const codeOnly = (src: string) => src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
@@ -9,18 +10,16 @@ const codeOnly = (src: string) => src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/
 const SRC = "src/lib/collection-server.ts";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// RiftCompare's tests/portfolio-orphaned-card.test.ts and
-// portfolio-history-date-rehydrate.test.ts, ported in wave 2 (2026-10-03).
-//
-// A live RiftCompare /portfolio crash (2026-09-01): a collection row whose card
-// no longer resolves made ONE bad row 500 the entire page. OP Compare reads the
-// rows with no card join and resolves each against the cached catalogue, so a
-// card TCGplayer withdrew (or a restore that did not carry every Card row)
-// comes back as `card: null` — and must be dropped before use, everywhere.
+// A live /portfolio crash on a sister site (2026-09-01): a collection row whose
+// card no longer resolves made ONE bad row 500 the entire page. The binder reads
+// the rows with no card join and resolves each against the published data
+// (getCardsByIds), so a product TCGplayer withdrew (or a restore that did not
+// carry every row) comes back as `card: null` — and must be dropped before use,
+// everywhere.
 //
 // The history read is from JSON files, so days arrive as YYYYMMDD numbers, never
-// Dates: priceMapFromPoints turns them into ms at the one place they are read,
-// so no caller trusts a Date a cache could have turned into a string.
+// Dates: the plane loader (lib/data/history.ts) turns them into ms at the one place
+// they are read, so no caller trusts a Date a cache could have turned into a string.
 // ─────────────────────────────────────────────────────────────────────────────
 
 test("getPortfolio filters out rows whose card didn't resolve, before using them", () => {
@@ -46,9 +45,8 @@ test("every other binder read drops a row whose card is gone", () => {
 });
 
 test("history days are re-hydrated from numbers at the one place they are read", () => {
-  const perf = codeOnly(read("src/lib/portfolio-performance.ts"));
-  assert.match(perf, /const dayMsOf = \(n: number\) => Date\.parse\(`\$\{dayIso\(n\)\}T00:00:00Z`\)/);
-  const data = codeOnly(read("src/lib/data.ts"));
+  const data = codeOnly(readDataModule("history"));
+  assert.match(data, /const dayMsOf = |dayMsOf\(/, "the loader turns the numeric days into ms once");
   const block = data.slice(data.indexOf("export async function getRecentHistory"));
   assert.doesNotMatch(block.slice(0, block.indexOf("\n}\n")), /unstable_cache/, "the history read is fetch-cached, never an unstable_cache entry");
 });

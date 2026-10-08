@@ -5,7 +5,7 @@ import { ipKey, rateLimit, tooManyRequests } from "@/lib/rate-limit";
 export const dynamic = "force-dynamic";
 
 // /api/trade-roast — the trade calculator's "Roast this trade" (RiftCompare's
-// route, for One Piece). RULES-ONLY: OP Compare has no language-model key, so
+// route, for One Piece). RULES-ONLY: MTG Compare has no language-model key, so
 // the reply is a canned line chosen by lib/trade-gremlin.ts tradeRoast() and
 // says so (`source: "rules"`); the calculator discloses it. Rate-limited per IP
 // all the same, so the route can't be used as a free hammer. No database, no

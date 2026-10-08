@@ -5,8 +5,7 @@ import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { addToCollection, collectionItems } from "@/lib/collection-server";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// The signed-in account's binder ("My Collection"; RiftCompare's
-// /api/collection, ported in wave 2, 2026-10-03). Every database read and write
+// The signed-in account's binder ("My Collection"). Every database read and write
 // is in lib/collection-server.ts; this file keeps the session read, the
 // same-origin check, the rate limit and the response. Session cookie ⇒ never
 // cacheable.

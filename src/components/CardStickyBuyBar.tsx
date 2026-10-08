@@ -5,7 +5,7 @@ import { outboundRel } from "@/lib/affiliate";
 import { PriceWatchButton } from "./PriceWatchButton";
 import { TOP_BUY_ATTR } from "./CardTopBuy";
 
-// The card page's phone buy path, bottom half (RiftCompare's CardStickyBuyBar):
+// The card page's phone buy path, bottom half :
 // below lg, once the top buy block has scrolled away, "<price> at <store> ·
 // ♥ · Buy →" pins to the bottom of the screen; it hides again while the price
 // comparison itself is on screen. Props are pre-resolved on the server
@@ -17,6 +17,9 @@ export function CardStickyBuyBar({
   href,
   retailer,
   ebay,
+  tcgHref,
+  ebayHref,
+  ebayName = "eBay",
   page,
   slug,
   name,
@@ -26,12 +29,16 @@ export function CardStickyBuyBar({
   cardId?: number;
   /** The price board's element id. */
   boardId: string;
-  /** Formatted item price. */
-  price: string;
-  store: string;
-  href: string;
-  retailer: string;
-  ebay: boolean;
+  /** Formatted item price, when a store has one. */
+  price?: string;
+  store?: string;
+  href?: string;
+  retailer?: string;
+  ebay?: boolean;
+  /** The TCGplayer product link and the eBay search link (both affiliate-tagged by the page): the pair that is on every card. */
+  tcgHref: string;
+  ebayHref: string;
+  ebayName?: string;
   page: string;
   slug: string;
   name: string;
@@ -86,21 +93,27 @@ export function CardStickyBuyBar({
     >
       <div className="mx-auto flex max-w-xl items-center gap-2">
         <p className="min-w-0 flex-1 truncate text-sm">
-          <span className="num font-bold text-white">{price}</span>
-          <span className="text-slate-400"> at {store}</span>
+          {price ? (
+            <>
+              <span className="num font-bold text-white">{price}</span>
+              <span className="text-slate-400"> at {store}</span>
+            </>
+          ) : (
+            <span className="text-slate-300">{name}</span>
+          )}
         </p>
         {cardId != null ? <PriceWatchButton cardId={cardId} slug={slug} name={name} /> : null}
-        <a
-          href={href}
-          target="_blank"
-          rel={outboundRel()}
-          data-retailer={retailer}
-          data-page={page}
-          data-card={slug}
-          data-surface="sticky_buy_bar"
-          className={`${ebay ? "btn-ebay" : "btn-primary"} shrink-0`}
-        >
-          Buy →
+        {href && !ebay && retailer !== "tcgplayer" ? (
+          <a href={href} target="_blank" rel={outboundRel()} data-retailer={retailer} data-page={page} data-card={slug} data-surface="sticky_buy_bar" className="btn-primary shrink-0">
+            Buy →
+          </a>
+        ) : (
+          <a href={tcgHref} target="_blank" rel={outboundRel()} data-retailer="tcgplayer" data-page={page} data-card={slug} data-surface="sticky_buy_bar" className="btn-primary shrink-0">
+            TCGplayer →
+          </a>
+        )}
+        <a href={ebayHref} target="_blank" rel={outboundRel()} data-retailer="ebay_search" data-page={page} data-card={slug} data-surface="sticky_buy_bar_ebay" className="btn-ebay shrink-0">
+          {ebayName} →
         </a>
       </div>
     </div>

@@ -4,8 +4,8 @@ import { SuggestStoreForm } from "@/components/SuggestStoreForm";
 import { Breadcrumbs } from "@/components/ui";
 
 export const metadata: Metadata = {
-  title: "Suggest a One Piece Card Store",
-  description: "Tell OP Compare about a One Piece Card Game store to compare: Shopify, ShadowPOS and other stores selling English singles with card numbers in their titles.",
+  title: "Suggest a Magic Card Store",
+  description: "Tell MTG Compare about a Magic: The Gathering store to compare: Shopify, ShadowPOS and other stores selling English singles with the set and collector number in their SKU or title.",
   alternates: { canonical: "/stores/suggest" },
 };
 
@@ -20,7 +20,7 @@ export default function SuggestStorePage() {
           <li>
             Its catalogue is public and readable: Shopify and ShadowPOS stores are the easiest; Ecwid, BigCommerce and WooCommerce stores often work too.
           </li>
-          <li>It sells English One Piece Card Game singles, with the card number in each title (for example &ldquo;OP01-120&rdquo;).</li>
+          <li>It sells English Magic: The Gathering singles, with the set and collector number in each SKU or title (for example &ldquo;MH2-176&rdquo; or &ldquo;Sylvan Anthem [MH2 - 176]&rdquo;).</li>
           <li>It prices in its own market&apos;s currency: US dollars, Australian dollars, pounds, Singapore dollars, Canadian dollars or euros.</li>
         </ul>
         <p>

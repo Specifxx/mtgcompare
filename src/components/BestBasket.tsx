@@ -87,7 +87,7 @@ const TABS: { key: BasketSource; label: string }[] = [
   { key: "set", label: "Finish a set" },
 ];
 
-// The Best Basket tool (RiftCompare's BestBasket, for OP Compare). One list in
+// The Best Basket tool (RiftCompare's BestBasket, for MTG Compare). One list in
 // — pasted (or searched card by card) or your watchlist — and the cheapest
 // delivered way to buy it out.
 //
@@ -213,7 +213,7 @@ export function BestBasket({
   // The list as text, for "Watch this list": cards added by search first
   // (as pinned lines), then the paste — the order the route prices them in.
   const watchListText = useMemo(
-    () => [...picked.map((p) => formatDeckLine(p.qty, p.card, true)), pasteText.trim()].filter(Boolean).join("\n"),
+    () => [...picked.map((p) => formatDeckLine(p.qty, { id: p.card.id, name: p.card.name, number: p.card.number, setCode: p.card.set, flags: 0 }, true)), pasteText.trim()].filter(Boolean).join("\n"),
     [picked, pasteText],
   );
   const watchDefaultName = watch?.name ?? (picked[0] ? `${picked[0].card.name} deck` : (parseDeckList(pasteText)[0]?.name || "My list").slice(0, 60));

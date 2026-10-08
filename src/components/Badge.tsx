@@ -64,10 +64,10 @@ export function RarityBadge({ rarity }: { rarity: string }) {
 const PRINTING_CHIP: Record<string, { bg: string; ink: string; mark: string } | undefined> = {
   showcase: { bg: "#a259e6", ink: "#fff", mark: "◆ " },
   borderless: { bg: "#f5a524", ink: "#1a1206", mark: "" },
-  extendedart: { bg: "#0891b2", ink: "#04222a", mark: "" },
-  serialized: { bg: "#e11d48", ink: "#fff", mark: "★ " },
+  extended: { bg: "#0891b2", ink: "#04222a", mark: "" },
+  serial: { bg: "#e11d48", ink: "#fff", mark: "★ " },
   retro: { bg: "#b45309", ink: "#fff", mark: "" },
-  promo: { bg: "#0891b2", ink: "#04222a", mark: "✦ " },
+  prerelease: { bg: "#0891b2", ink: "#04222a", mark: "✦ " },
 };
 
 /** The chip text: the label's first part ("Borderless", "Showcase"), else the treatment's name. */

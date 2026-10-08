@@ -25,7 +25,7 @@ const UNITS: { key: "days" | "hours" | "minutes" | "seconds"; label: string }[] 
 /**
  * Live Days/Hours/Minutes/Seconds countdown — the segmented-block style every
  * movie/game release countdown site (the brief's reference: avengerscountdown.com)
- * uses, in OP Compare's own voice: `.num`, the tabular JetBrains Mono class
+ * uses, in the site's own voice: `.num`, the tabular JetBrains Mono class
  * already carrying every price and stat on the site, not a font invented for
  * this one page.
  *

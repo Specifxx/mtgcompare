@@ -6,7 +6,7 @@ import type { WeekAgoRanking } from "./rise-predictor";
 // place against the SAME RANKING A WEEK AGO.
 // ─────────────────────────────────────────────────────────────────────────────
 // The week-ago ranking is rebuilt from the data as it stood then
-// (lib/rise-predictor.ts getRisingWeekAgo — demand snapshots, price history,
+// (lib/data/demand.ts getRisingWeekAgo — demand snapshots, weekly closes,
 // today's stock), so it exists for every market from the first day and
 // depends on nothing the owner mints or deletes.
 //
@@ -22,7 +22,7 @@ import type { WeekAgoRanking } from "./rise-predictor";
 export type { WeekAgoRanking };
 
 /** Movement for a ranking (card ids in rank order) against the week-ago ranking; null without one. */
-export function movementAgainst(order: readonly string[], weekAgo: WeekAgoRanking | null): Map<string, Movement> | null {
+export function movementAgainst(order: readonly number[], weekAgo: WeekAgoRanking | null): Map<number, Movement> | null {
   return weekAgo ? movementFromRanks(order, new Map(weekAgo.ranks)) : null;
 }
 

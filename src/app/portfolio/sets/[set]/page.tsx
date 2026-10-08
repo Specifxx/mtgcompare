@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getCountry } from "@/lib/get-country";
 import { COUNTRIES } from "@/lib/country";
-import { getCatalog, getSetChecklist } from "@/lib/data";
+import { getSetBySlug, getSetChecklist } from "@/lib/data";
 import { ownedBySet, ownedDb } from "@/lib/set-owned";
 import type { ChecklistCard, OwnedMap } from "@/lib/set-scope";
 import { FREE_PORTFOLIO_LIMIT } from "@/lib/free-limits";
@@ -20,18 +20,16 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-// ONE SET'S CHECKLIST — RiftCompare's /portfolio/sets/[set], ported in wave 2
-// (2026-10-03; DECISIONS.md, "Set checklist").
+// ONE SET'S CHECKLIST.
 //
 // It takes no query string and never throws a not-found (a loading boundary
 // sits above /portfolio): scope, filters and sort live in the client component
-// and an unknown set bounces to the index. The catalogue is lib/data.ts
-// getSetChecklist's cached entry; the only per-request read is the account's
+// and an unknown set bounces to the index. The checklist is lib/data/sets.ts
+// getSetChecklist (the published set board, every listed printing, THIN included); the only per-request read is the account's
 // owned cards for THIS set, one narrow groupBy. Called directly, never inside
 // an unstable_cache.
 export default async function SetChecklistPage({ params }: { params: { set: string } }) {
-  const cat = await getCatalog();
-  const set = cat.setBySlug.get(params.set);
+  const set = await getSetBySlug(params.set);
   if (!set) redirect("/portfolio/sets");
   const user = await getCurrentUser();
   if (!user) redirect(`/login?next=/portfolio/sets/${set.slug}`);
@@ -75,7 +73,7 @@ export default async function SetChecklistPage({ params }: { params: { set: stri
         </p>
       ) : cards.length === 0 ? (
         <p className="card-surface p-6 text-center text-sm text-slate-400">
-          There are no {set.name} cards in our catalogue yet. <Link href="/portfolio/sets" className="text-brand-400 hover:underline">Back to the checklist</Link>
+          There are no {set.name} cards in our price data yet. <Link href="/portfolio/sets" className="text-brand-400 hover:underline">Back to the checklist</Link>
         </p>
       ) : (
         <SetOwnedProvider setSlug={set.slug} initial={owned}>

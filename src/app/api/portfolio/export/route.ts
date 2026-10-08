@@ -8,9 +8,8 @@ import { collectionCsv, exportFilename } from "@/lib/collection-csv";
 
 export const dynamic = "force-dynamic";
 
-// The binder as a CSV download (RiftCompare's /api/portfolio/export, wave 2):
-// one row per entry in the visitor's currency, with the printing and the
-// TCGplayer product id, so the file imports straight back (lib/collection-csv.ts).
+// The binder as a CSV download: one row per entry in the visitor's currency,
+// with the finish (Foil, Etched or blank) and the TCGplayer product id, so the file imports straight back (lib/collection-csv.ts).
 export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Sign in" }, { status: 401 });

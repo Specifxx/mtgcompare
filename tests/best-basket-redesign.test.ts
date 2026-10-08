@@ -634,25 +634,24 @@ test("the owned and binder reads are per-user, selected and capped; listings com
   const code = readCode(READS);
   const owned = code.slice(code.indexOf("export async function loadOwnedQty"), code.indexOf("for (const r of rows) owned.set"));
   assert.match(owned, /where: \{ userId, cardId: \{ in: ids \} \}/);
-  assert.match(owned, /select: \{ cardId: true, quantity: true \}/);
+  assert.match(owned, /select: \{ cardId: true, isFoil: true, quantity: true \}/, "owned copies are summed per unit (card + finish)");
   assert.match(owned, /take: 400/);
   const binder = code.slice(code.indexOf("export async function loadBinderHoldings"));
   assert.match(binder, /where: \{ userId \}/);
   assert.match(binder, /take: BINDER_ROW_CAP/);
-  // The listings are the data.ts loader's (cached per market and 32-id bucket), injectable for the watch run.
+  // The listings are the data loader's (published offer files of the page's own units), injectable for the watch run.
   assert.match(code, /read: BasketListingReader = getBasketListings/);
-  const loader = read("src/lib/data.ts").slice(read("src/lib/data.ts").indexOf("const loadBasketBucket"));
-  assert.match(loader, /condition: true/, "condition is selected so every line can show it");
-  assert.match(loader, /OR: \[\{ source: \{ startsWith: "store:" \} \}, \{ source: "tcgplayer" \}\]/, "stores and TCGplayer's listing, never eBay");
+  const loader = read("src/lib/data/deals.ts").slice(read("src/lib/data/deals.ts").indexOf("export async function getBasketListings"));
+  assert.match(loader, /includeTcgplayer: true/, "stores and, in the US, TCGplayer's own listing, never eBay");
+  assert.match(loader, /slice\(0, 60\)/, "the cheapest 60 listings per unit");
 });
 
-test("the basket listings cache is keyed on a market and an id bucket, never on the caller's list", () => {
-  const data = read("src/lib/data.ts");
-  const cached = data.slice(data.indexOf("const loadBasketBucket = unstable_cache("));
-  assert.match(cached, /async \(country: Country, bucket: number\)/, "the cached function's arguments are fixed units");
-  assert.match(cached, /productId: \{ gte: bucket \* BASKET_ID_BUCKET, lt: \(bucket \+ 1\) \* BASKET_ID_BUCKET \}/);
-  assert.doesNotMatch(cached.slice(0, cached.indexOf("export async function getBasketListings")), /ids: number\[\]/);
-  assert.match(data, /export async function getBasketListings\(country: Country, ids: number\[\]\)/, "the wrapper is not itself cached");
+test("the basket listings are read for at most one chunk of units a call, never cached by the caller's list", () => {
+  const data = read("src/lib/data/deals.ts");
+  const loader = data.slice(data.indexOf("export async function getBasketListings"));
+  assert.match(loader, /slice\(0, BASKET_ID_CHUNK\)/, "at most 40 units a call");
+  assert.match(data, /export const BASKET_ID_CHUNK: 40 = 40;/);
+  assert.doesNotMatch(loader.slice(0, loader.indexOf("\n}\n")), /unstable_cache/, "the listing read is not itself cached: the instance's file cache serves a re-run");
 });
 
 test("nothing per-user in Best Basket is cached; the shared listings are a data.ts loader", () => {
@@ -689,12 +688,11 @@ test("picked cards: clamped 1-99 on the server and resolved by exact id, never b
   assert.equal(parseBasketRequest({ lines: Array.from({ length: 500 }, (_, i) => ({ cardId: String(i + 1), qty: 1 })) }).picked.length, 200);
   const code = readCode(ROUTE);
   assert.match(code, /const add = \(cardId: string, qty: number\) => wanted\.set\(cardId, clampQty\(/, "a summed quantity is clamped too");
-  assert.match(code, /for \(const l of picked\) add\(l\.cardId, clampQty\(l\.qty\)\)/, "each pick goes in by its own id, clamped");
-  // Bare ids (picker, watchlist) get their names by id lookup only, from the cached catalogue.
-  const at = code.indexOf("const missing = [...wanted.keys()].filter((id) => !info.has(id))");
+  assert.match(code, /add\(u\.uid, clampQty\(l\.qty\)\)/, "each pick goes in by its own unit, clamped");
+  // Bare ids (picker, watchlist) become units by id lookup only (the card's headline finish), named from the published catalogue.
+  const at = code.indexOf("const pickedUnits = await unitsFor(picked.map((l) => l.cardId))");
   assert.ok(at > 0);
-  const byId = code.slice(at, code.indexOf("basketStoresFor(country, postageOpts)", at));
-  assert.match(byId, /cardInfoFor\(missing\)/);
+  const byId = code.slice(at, code.indexOf("const lines = parseDeckList", at));
   assert.doesNotMatch(byId, /resolveDeck|parseDeckList/, "a chosen printing is never re-resolved by name");
   // The page sends picks as ids, not as text.
   assert.match(read("src/components/BestBasket.tsx"), /lines: picked\.map\(\(p\) => \(\{ cardId: String\(p\.card\.id\), qty: p\.qty \}\)\)/);

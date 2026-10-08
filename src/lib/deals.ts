@@ -1,5 +1,5 @@
 // Deal Finder's rules, pure (no Prisma, no Next): RiftCompare's three views
-// (src/lib/arbitrage.ts there), ported onto OP Compare's data. Client-safe, so
+// (src/lib/arbitrage.ts there), ported onto MTG Compare's data. Client-safe, so
 // the "only my cards" island and the homepage read the same definitions.
 //
 //   tcg      "Underpriced vs TCGplayer" (default): a STORE or an eBay seller in

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-// "Replacement cost" on /portfolio: RiftCompare's panel, delivered. What it pins:
+// "Replacement cost" on /portfolio: the panel. What it pins:
 //   • the headline stays an item price: the replacement figure is a separate
 //     panel and never folded into "Collection value";
 //   • the heavy listing read stays behind a button, scoped and rate-limited;

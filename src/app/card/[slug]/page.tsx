@@ -5,7 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CardArt, CardTile } from "@/components/CardTile";
 import { CardStickyBuyBar } from "@/components/CardStickyBuyBar";
-import { CardTopBuy } from "@/components/CardTopBuy";
+import { CardBuyPair, CardTopBuy } from "@/components/CardTopBuy";
 import { EbayBuyCta } from "@/components/EbayBuyCta";
 import { EbayCardBanner } from "@/components/EbayCardBanner";
 import { TcgMarketPrice } from "@/components/TcgMarketPrice";
@@ -36,15 +36,34 @@ import {
   SectionHeader,
   StatTile,
 } from "@/components/ui";
-import { affiliateUrl, cardEbayQuery, outboundRel } from "@/lib/affiliate";
-import { rarityLabel, SET_KINDS } from "@/lib/constants";
+import { affiliateUrl, cardEbayQuery, ebayLabel, ebaySearchUrl, outboundRel } from "@/lib/affiliate";
+import {
+  availableFinishes,
+  colorMask,
+  colorsOfMask,
+  COLORS,
+  finishLabel,
+  FORMAT_LABEL,
+  FORMAT_UI,
+  legalityOf,
+  ORACLE_FLAGS,
+  parseFinishParam,
+  PRIMARY_TYPES,
+  PRIMARY_TYPE_LABEL,
+  rarityLabel,
+  SET_KINDS,
+  tcgplayerUrl,
+  trackedBits,
+  type Finish,
+} from "@/lib/constants";
 import { COUNTRIES, isoCountry } from "@/lib/country";
-import { getCardDetail, getCatalog, getEmailStatus, getProductHistory } from "@/lib/data";
+import { getCardDetail, getCardPage, getEmailStatus, getUnitHistory, type CardLite, type HistoryPoint } from "@/lib/data";
 import { longDate, money, usd } from "@/lib/format";
 import { getCountry } from "@/lib/get-country";
 import { cardImage } from "@/lib/images";
+import { cardImageAlt } from "@/lib/image-alt";
 import { ReleaseAlertSlot } from "@/components/ReleaseAlertSlot";
-import { headline } from "@/lib/price";
+import { finishPrice, headline } from "@/lib/price";
 import { pageOgOwnImage } from "@/lib/og/meta";
 import { cheapestBuyRow, isPreRelease } from "@/lib/quick-view";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
@@ -62,18 +81,28 @@ import { marketPriceListSentence, compareMarkets } from "@/lib/market-comparison
 import { KEYWORDS, KEYWORD_BY_SLUG, cardKeywords } from "@/lib/keywords";
 import { marketRows } from "@/lib/quick-view";
 import { MARKETS } from "@/lib/country";
-import { facetBySlug, PRINTING_FACETS, RARITY_FACETS, TYPE_FACETS, leaderSlug } from "@/lib/facets";
-import { COLORS } from "@/lib/constants";
+import { facetBySlug, PRINTING_FACETS, RARITY_FACETS, TYPE_FACETS } from "@/lib/facets";
 import { ago } from "@/lib/format";
 
-type Props = { params: { slug: string } };
+type Props = { params: { slug: string }; searchParams?: { finish?: string } };
 
-function displayTitle(c: {
-  name: string;
-  variant: string | null;
-  number: string | null;
-}): string {
+// The published data is read per request (force-dynamic): a build prerenders no card page.
+export const dynamic = "force-dynamic";
+
+function displayTitle(c: { name: string; variant: string | null; number: string | null }): string {
   return `${c.name}${c.variant ? ` (${c.variant})` : ""}${c.number ? ` ${c.number}` : ""}`;
+}
+
+const NO_LOW = { US: null, AU: null, UK: null, CA: null, EU: null, SG: null } as const;
+const NO_STORES = { US: 0, AU: 0, UK: 0, CA: 0, EU: 0, SG: 0 } as const;
+
+/** A list loader that fails closed: an empty list, never a broken page. */
+async function safe<T>(p: Promise<T>, empty: T): Promise<T> {
+  try {
+    return await p;
+  } catch {
+    return empty;
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -81,8 +110,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!c) return { title: "Card not found" };
   const t = displayTitle(c);
   const title = cardTitle({ name: c.name, variant: c.variant, number: c.number, setName: c.set.name, setCode: c.set.code, printing: c.printing, hasPrice: c.marketUsd != null || c.offers.some((o) => o.inStock) });
-  const cat = await getCatalog();
-  const lite = cat.bySlug.get(c.slug);
   const description = cardMetaDescription({
     displayName: t,
     number: c.number,
@@ -92,80 +119,94 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     rarity: c.rarity,
     cardType: c.cardType,
     colors: c.colors,
-    textBit: c.effect ? c.effect.split("\n")[0].slice(0, 110) : null,
+    textBit: c.oracle?.oracleText ? c.oracle.oracleText.split("\n")[0]!.slice(0, 110) : null,
     marketUsd: c.marketUsd,
-    lowUsCents: lite?.low.US ?? null,
+    lowUsCents: c.low.US ?? null,
     aliases: aliasesFor(c.slug),
   });
   return {
     title: { absolute: title },
     description,
     alternates: { canonical: `/card/${c.slug}` },
+    // A THIN page (a price under the index floor) stays reachable and out of search results.
+    ...(c.thin ? { robots: { index: false, follow: true } } : {}),
     // No `images`: the sibling opengraph-image.tsx draws the 1200×630 share card.
     openGraph: pageOgOwnImage(`/card/${c.slug}`, { title: `${t} | ${SITE_NAME}` }),
   };
 }
 
-export default async function CardPage({ params }: Props) {
+export default async function CardPage({ params, searchParams }: Props) {
   const country = getCountry();
   const co = COUNTRIES[country];
-  const [card, cat] = await Promise.all([
-    getCardDetail(params.slug),
-    getCatalog(),
-  ]);
+  const card = await getCardDetail(params.slug);
   if (!card) notFound();
-  const history = await getProductHistory(card.id);
-  const lite = cat.bySlug.get(card.slug);
-  const h = lite
-    ? headline(lite, country)
-    : { kind: "none" as const, cents: null, stores: 0 };
-  const siblings = card.number
-    ? cat.cards
-        .filter((x) => x.number === card.number && x.id !== card.id)
-        .sort((a, b) => (b.marketUsd ?? 0) - (a.marketUsd ?? 0))
-    : [];
-  const fromSet = cat.cards
-    .filter(
-      (x) =>
-        x.setId === card.set.id && x.id !== card.id && x.number !== card.number,
-    )
-    .sort((a, b) => (b.marketUsd ?? 0) - (a.marketUsd ?? 0))
-    .slice(0, 6);
+
+  // The unit on show: a price belongs to a (product, finish). ?finish= picks the tab; the default is the headline unit.
+  const finishes: Finish[] = availableFinishes(card.mask).length ? availableFinishes(card.mask) : [card.headFinish];
+  const asked = parseFinishParam(searchParams?.finish)?.finish;
+  const finish: Finish = asked && finishes.includes(asked) ? asked : card.headFinish;
+  const quote = finishPrice(card, finish);
+  const unit = card.units.find((u) => u.finish === finish);
+  const unitLow = unit?.low ?? (finish === card.headFinish ? card.low : NO_LOW);
+  const unitStores = unit?.stores ?? (finish === card.headFinish ? card.stores : NO_STORES);
+  const marketUsd = quote?.market ?? null;
+  const lowOnlyUsd = marketUsd == null ? (quote?.low ?? null) : null;
+  const unitChange7d = finish === card.headFinish ? card.change7d : (unit?.change7d ?? null);
+  const unitChange30d = finish === card.headFinish ? card.change30d : (unit?.change30d ?? null);
+  const unitHigh90 = finish === card.headFinish ? card.high90Usd : unit?.high90 != null ? unit.high90 : null;
+  const h = headline({ low: unitLow as CardLite["low"], stores: unitStores as CardLite["stores"], marketUsd }, country);
+  const offers = card.offers.filter((o) => o.finish === finish);
+
+  const oracle = card.oracle;
+  const trackedFinish = (trackedBits(card.mask) & (finish === "N" ? 1 : 2)) !== 0;
+  const mask = colorMask(card.colors);
+  const typeKey = PRIMARY_TYPES[card.ptype];
+  const cheaperMax = marketUsd != null ? marketUsd - 1 : null;
+  const [history, printingsPage, setTopPage, cheaperPage] = await Promise.all([
+    trackedFinish ? safe(getUnitHistory({ id: card.id, finish }, 365), [] as HistoryPoint[]) : Promise.resolve([] as HistoryPoint[]),
+    card.oracleNo != null ? safe(getCardPage({ oracleNo: card.oracleNo, sort: "value", per: 48 }), null) : Promise.resolve(null),
+    safe(getCardPage({ setIds: [card.set.id], sort: "value", per: 24 }), null),
+    cheaperMax != null && cheaperMax > 0 && typeKey && typeKey !== "other"
+      ? safe(getCardPage({ setIds: [card.set.id], types: [typeKey], colors: { mask, mode: mask === 0 ? "colorless" : "exact" }, maxCents: cheaperMax, sort: "value", per: 24 }), null)
+      : Promise.resolve(null),
+  ]);
+  const printings: CardLite[] = printingsPage?.items ?? [];
+  const siblings = printings.filter((x) => x.id !== card.id && x.setId === card.set.id);
+  const fromSet = (setTopPage?.items ?? []).filter((x) => x.id !== card.id && x.slug !== card.slug).slice(0, 6);
   const title = displayTitle(card);
   const vh = visitorHistory(history, country);
-  const leader = card.cardType === "Leader";
-  const stats: { label: string; value: string | number }[] = [];
-  if (leader && card.life != null)
-    stats.push({ label: "Life", value: card.life });
-  else if (card.cost != null) stats.push({ label: "Cost", value: card.cost });
-  if (card.power != null)
-    stats.push({ label: "Power", value: card.power.toLocaleString("en-US") });
-  if (card.counter != null)
-    stats.push({
-      label: "Counter",
-      value: `+${card.counter.toLocaleString("en-US")}`,
-    });
-  const inMarket = card.offers.filter((o) => o.market === country && o.inStock);
-  // "N stores" counts real stores only; the TCGplayer and eBay rows are listings, not stores.
+
+  const stats: { label: string; value: string }[] = [];
+  if (oracle?.manaCost) stats.push({ label: "Mana cost", value: oracle.manaCost });
+  else if (card.cost != null && card.cost > 0) stats.push({ label: "Mana value", value: String(card.cost) });
+  if (oracle?.pt) stats.push({ label: "Power / toughness", value: oracle.pt });
+  if (oracle?.loyalty) stats.push({ label: "Loyalty", value: oracle.loyalty });
+  const identity = oracle ? colorsOfMask(oracle.identity) : [];
+  const isCommander = oracle ? (oracle.flags & ORACLE_FLAGS.COMMANDER) !== 0 : false;
+  // A legality of "?" (no oracle join) renders as nothing, never as "not legal".
+  const legalities = oracle ? FORMAT_UI.map((f) => ({ f, s: legalityOf(oracle.legal, f) })).filter((x) => x.s !== "unknown") : [];
+  const legalIn = legalities.filter((x) => x.s === "legal" || x.s === "restricted").map((x) => FORMAT_LABEL[x.f]);
+
+  const inMarket = offers.filter((o) => o.market === country && o.inStock);
+  // "N stores" counts real stores only; the TCGplayer row is a listing, not a store.
   const inStores = inMarket.filter((o) => isStoreSource(o.source));
   // The buy surfaces (top block, sticky bar, TCGplayer reference) tag their
   // links with the card's own path, like the board's rows ("-card" sub-ids).
   const loc = `/card/${card.slug}`;
-  const best = cheapestBuyRow(card.offers, country, loc);
-  const tcgHref = affiliateUrl(card.tcgplayerUrl, "tcgplayer", loc);
+  const best = cheapestBuyRow(offers, country, loc);
+  const tcgHref = affiliateUrl(tcgplayerUrl(card.id, finish), "tcgplayer", loc);
   const preRelease = isPreRelease(card.set.releasedOn, new Date().toISOString().slice(0, 10));
   // Alert copy promises an email only once a mailer is configured (cached Meta flag).
   const emailOn = (await getEmailStatus()) === "on";
-  const noListingAnywhere = !card.offers.some((o) => o.inStock);
-  const ebayQuery = cardEbayQuery(card);
-  const cardText = card.effect ? (
+  const noListingAnywhere = !offers.some((o) => o.inStock);
+  const ebayQuery = cardEbayQuery({ name: card.name, setName: card.set.name, variant: card.label, number: card.label ? card.number : null, foil: finish === "F" });
+  const ebayBuyHref = ebaySearchUrl(country, ebayQuery, "card-buy-pair");
+  const imageAlt = cardImageAlt({ name: card.name, variant: card.label, setName: card.set.name, setCode: card.set.code, number: card.number, finish, finishWord: finishLabel(card, finish) === "Non-foil" ? null : finishLabel(card, finish) });
+  const cardText = oracle?.oracleText ? (
     <div className="card-surface p-4">
       <p className="rb-eyebrow text-slate-500 mb-2">Card text</p>
-      {card.effect.split("\n").map((l, i) => (
-        <p
-          key={i}
-          className="mb-2 text-sm leading-relaxed text-slate-200 last:mb-0"
-        >
+      {oracle.oracleText.split("\n").map((l, i) => (
+        <p key={i} className="mb-2 text-sm leading-relaxed text-slate-200 last:mb-0">
           <KeywordText text={l} />
         </p>
       ))}
@@ -173,15 +214,13 @@ export default async function CardPage({ params }: Props) {
   ) : null;
 
   // ── Price state, narrative, FAQ, cross-links ──
-  const state = priceState(card.offers, country, { marketUsd: card.marketUsd, setKind: card.set.kind, printing: card.printing });
-  const seen = lastSeen(card.offers, country);
+  const state = priceState(offers, country, { marketUsd, setKind: card.set.kind, printing: card.printing });
+  const seen = lastSeen(offers, country);
   const elsewhere = elsewhereLine(state);
   const today = new Date().toISOString().slice(0, 10);
-  const keys = cardKeywords(card.effect).map((sl) => KEYWORD_BY_SLUG.get(sl)).filter((k): k is NonNullable<typeof k> => !!k);
-  const setPriced = cat.cards.filter((x) => x.setId === card.set.id && (x.marketUsd ?? 0) > 0);
-  const sortedPrices = setPriced.map((x) => x.marketUsd as number).sort((a, b) => a - b);
+  const keys = cardKeywords(oracle?.keywords ?? []).map((sl) => KEYWORD_BY_SLUG.get(sl)).filter((k): k is NonNullable<typeof k> => !!k);
   const marketViews = MARKETS.map((m) => {
-    const rows = marketRows(card.offers, m);
+    const rows = marketRows(offers, m);
     return {
       country: m,
       place: COUNTRIES[m].place,
@@ -195,7 +234,7 @@ export default async function CardPage({ params }: Props) {
   const baseSibling = siblings.find((x) => x.printing === "standard");
   const narrative = buildNarrative({
     name: card.name,
-    variant: card.variant,
+    variant: card.label,
     number: card.number,
     printing: card.printing,
     setName: card.set.name,
@@ -205,30 +244,26 @@ export default async function CardPage({ params }: Props) {
     today,
     rarity: card.rarity,
     cardType: card.cardType,
+    typeLine: oracle?.typeLine ?? null,
     colors: card.colors,
-    cost: card.cost,
-    power: card.power,
-    counter: card.counter,
-    life: card.life,
-    attribute: card.attribute,
-    subtypes: card.subtypes,
-    keywords: keys.filter((k) => k.kind === "keyword").map((k) => k.name),
-    timings: keys.filter((k) => k.kind === "timing").map((k) => k.name),
-    hasText: !!card.effect,
-    marketUsd: card.marketUsd,
-    change7d: card.change7d,
-    change30d: card.change30d,
-    high90Usd: lite?.high90Usd ?? null,
+    manaCost: oracle?.manaCost || null,
+    manaValue: oracle ? oracle.manaValue : null,
+    pt: oracle?.pt ?? null,
+    loyalty: oracle?.loyalty ?? null,
+    keywords: keys.map((k) => k.name),
+    legalIn,
+    commander: isCommander,
+    marketUsd,
+    change7d: unitChange7d,
+    change30d: unitChange30d,
+    high90Usd: unitHigh90,
     baseline: marketViews.find((m) => m.country === country)!,
     markets: marketViews,
     printings: siblings.map((x) => ({ label: PRINTING_SHORT[x.printing] ?? "Other", marketUsd: x.marketUsd })),
-    setContext:
-      card.marketUsd != null && setPriced.length >= 10
-        ? { pricedInSet: setPriced.length, cheaperThan: sortedPrices.filter((v) => v < card.marketUsd!).length, medianUsd: sortedPrices[Math.floor(sortedPrices.length / 2)] ?? null }
-        : null,
-    sameNameElsewhere: lite ? sameNameCount(lite, cat.cards) : 0,
+    setContext: null,
+    sameNameElsewhere: sameNameCount(card, printings),
   });
-  const cmpHere = compareMarkets(card.offers, co.currency);
+  const cmpHere = compareMarkets(offers, co.currency);
   const faqs = buildCardFaqs({
     name: card.name,
     displayName: title,
@@ -243,16 +278,16 @@ export default async function CardPage({ params }: Props) {
     lowest: h.kind === "listing" ? h.cents : null,
     stores: h.kind === "listing" ? h.stores : 0,
     printingCount: siblings.length,
-    marketUsd: card.marketUsd,
+    marketUsd,
     baseMarketUsd: baseSibling?.marketUsd ?? null,
     currencyAnswer: cmpHere.quotes.length >= 2 ? marketPriceListSentence(cmpHere) : null,
     preRelease,
   });
-  const cheaper = lite ? cheaperAlternatives(lite, cat.cards) : [];
-  const sameChar = lite ? sameCharacter(lite, cat.cards) : [];
-  const tools = priceToolChips({ cardType: card.cardType, name: card.name, setSlug: card.set.slug, hasSealed: card.set.sealedCount > 0, priced: state.hasListings || card.marketUsd != null });
+  const cheaper = cheaperPage ? cheaperAlternatives(card, cheaperPage.items) : [];
+  const sameChar = sameCharacter(card, printings);
+  const tools = priceToolChips({ cardType: card.cardType, name: card.name, setSlug: card.set.slug, hasSealed: card.set.sealedCount > 0, priced: state.hasListings || marketUsd != null });
   const inStockPrintings = siblings.filter((x) => Object.values(x.low).some((v) => v != null)).length;
-  const typeFacet = card.cardType ? facetBySlug(TYPE_FACETS, card.cardType.toLowerCase()) : undefined;
+  const typeFacet = typeKey && typeKey !== "other" ? facetBySlug(TYPE_FACETS, typeKey) : undefined;
   const rarityFacet = card.rarity ? RARITY_FACETS.find((f) => f.key === card.rarity) : undefined;
   const printingFacet = PRINTING_FACETS.find((f) => f.key === card.printing);
   const guides = guidesForCatalogue("card");
@@ -265,9 +300,9 @@ export default async function CardPage({ params }: Props) {
           "@context": "https://schema.org",
           "@type": "Product",
           name: title,
-          sku: card.number ?? String(card.id),
+          sku: String(card.id),
           image: card.hasImage ? cardImage.large(card.id) : undefined,
-          brand: { "@type": "Brand", name: "One Piece Card Game" },
+          brand: { "@type": "Brand", name: "Magic: The Gathering" },
           category: "Trading card",
           url: `${SITE_URL}/card/${card.slug}`,
           ...(inMarket.length
@@ -305,7 +340,7 @@ export default async function CardPage({ params }: Props) {
             <CardArt
               id={card.id}
               hasImage={card.hasImage}
-              alt={`${title} — One Piece Card Game`}
+              alt={imageAlt}
               size="large"
             />
           </div>
@@ -319,24 +354,26 @@ export default async function CardPage({ params }: Props) {
               {card.colors.map((c) => (
                 <ColorBadge key={c} color={c} />
               ))}
+              {isCommander ? <span className="chip border border-amber-400/40 bg-amber-400/10 text-amber-200">Commander</span> : null}
               <RarityBadge rarity={card.rarity} />
               {card.cardType ? (
                 <span className="chip border border-ink-700 bg-ink-850 text-slate-200">
-                  {card.cardType}
+                  {PRIMARY_TYPE_LABEL[typeKey ?? "other"] ?? card.cardType}
                 </span>
               ) : null}
-              <PrintingBadge printing={card.printing} variant={card.variant} />
+              <PrintingBadge printing={card.printing} variant={card.label} />
             </div>
             <div className="mt-2 flex flex-wrap items-start justify-between gap-3 sm:mt-3">
               <div className="min-w-0 flex-[1_1_12rem]">
                 <h1 className="text-xl font-extrabold leading-tight text-white sm:text-2xl">
                   {card.name}
-                  {card.variant ? (
+                  {card.label ? (
                     <span className="block text-lg font-bold text-slate-300 sm:text-xl">
-                      {card.variant}
+                      {card.label}
                     </span>
                   ) : null}
                 </h1>
+                {oracle?.typeLine ? <p className="mt-1 text-sm text-slate-300">{oracle.typeLine}</p> : null}
                 <p className="num mt-1 text-sm text-slate-400">
                   <Link
                     href={`/sets/${card.set.slug}`}
@@ -358,6 +395,30 @@ export default async function CardPage({ params }: Props) {
               </div>
             </div>
             {aliasesFor(card.slug).length ? <p className="mt-2 text-sm text-slate-400">Also known as {aliasesFor(card.slug).map((a) => `“${a}”`).join(", ")}</p> : null}
+            {finishes.length > 1 ? (
+              <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Finish">
+                {finishes.map((f) => (
+                  <Link
+                    key={f}
+                    href={f === card.headFinish ? `/card/${card.slug}` : `/card/${card.slug}?finish=${f === "F" ? "foil" : "nonfoil"}`}
+                    role="tab"
+                    aria-selected={f === finish}
+                    scroll={false}
+                    className={`chip min-h-9 border px-3 ${f === finish ? "border-brand-400 bg-brand-400/15 text-white" : "border-ink-700 bg-ink-850 text-slate-300 hover:text-white"}`}
+                  >
+                    {f === "N" ? "Non-foil" : finishLabel(card, "F")}
+                    <span className="num ml-2 text-slate-400">
+                      {(() => {
+                        const q = finishPrice(card, f);
+                        const v = q?.market ?? q?.low ?? null;
+                        return v != null ? usd(v) : "";
+                      })()}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+            <CardBuyPair tcgHref={tcgHref} ebayHref={ebayBuyHref} ebayName={ebayLabel(country)} preRelease={preRelease} page="card" slug={card.slug} />
             <CardTopBuy best={best} country={country} page="card" slug={card.slug} />
             <PriceDropAlertCta
               cardId={card.id}
@@ -369,6 +430,12 @@ export default async function CardPage({ params }: Props) {
               preorder={preRelease}
               emailOn={emailOn}
             />
+            {oracle ? (
+              <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                <span className="font-semibold uppercase tracking-wider">Colour identity</span>
+                {identity.length ? identity.map((c) => <ColorBadge key={c} color={c} />) : <span className="text-slate-300">Colourless</span>}
+              </div>
+            ) : null}
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
@@ -437,7 +504,8 @@ export default async function CardPage({ params }: Props) {
 
           <PriceBoard
             productId={card.id}
-            offers={card.offers}
+            finish={finish}
+            offers={offers}
             country={country}
             ebayQuery={ebayQuery}
             page="card"
@@ -450,10 +518,26 @@ export default async function CardPage({ params }: Props) {
           {/* Under the comparison, never in it: TCGplayer's market price as a
               reference with its affiliate button, then the card's eBay banner
               and TCGplayer's (ads: hidden for Plus and Premium members). */}
-          <TcgMarketPrice marketUsd={card.marketUsd} country={country} href={tcgHref} page="card" card={card.slug} />
+          <TcgMarketPrice marketUsd={marketUsd} country={country} href={tcgHref} page="card" card={card.slug} />
           <EbayCardBanner country={country} query={ebayQuery} name={title} page="card" card={card.slug} />
           <TcgplayerBanner country={country} page="card" card={card.slug} />
           {cardText ? <div className="lg:hidden">{cardText}</div> : null}
+
+          {legalities.length ? (
+            <section className="card-surface p-5" aria-label="Format legality">
+              <h2 className="text-lg text-white">Format legality</h2>
+              <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm sm:grid-cols-3">
+                {legalities.map(({ f, s }) => (
+                  <li key={f} className="flex items-center justify-between gap-2 border-b border-ink-800 py-1">
+                    <span className="text-slate-300">{FORMAT_LABEL[f]}</span>
+                    <span className={s === "legal" ? "font-semibold text-emerald-400" : s === "restricted" ? "font-semibold text-amber-300" : s === "banned" ? "font-semibold text-red-400" : "text-slate-500"}>
+                      {s === "not_legal" ? "Not legal" : s === "legal" ? "Legal" : s === "banned" ? "Banned" : "Restricted"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
           <section className="card-surface p-5">
             <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
@@ -464,11 +548,11 @@ export default async function CardPage({ params }: Props) {
             </div>
             <LineChart
               series={[
-                { label: `Cheapest ${co.adjective} listing`, color: "#ff6b6b", points: vh.low.points },
+                { label: `Cheapest ${co.adjective} listing`, color: "#a259e6", points: vh.low.points },
                 { label: "TCGplayer market (converted)", color: "#e9b73a", points: vh.market.points, dashed: true },
               ]}
               format={(v) => money(Math.round(v), country)}
-              empty={`Price history starts ${history[0] ? longDate(history[0].day) : "with the first import"} — the chart draws once there are two days of prices.`}
+              empty={trackedFinish ? `Price history starts ${history[0] ? longDate(history[0].day) : "with the first import"} — the chart draws once there are two days of prices.` : "This card is not price-tracked yet, so there is no history chart. TCGplayer and eBay buy links above are live."}
             />
           </section>
 
@@ -481,19 +565,14 @@ export default async function CardPage({ params }: Props) {
               {narrative.paragraphs.map((p, i) => (
                 <p key={i}>{p}</p>
               ))}
-              {card.effect ? (
+              {oracle?.oracleText ? (
                 <p className="text-slate-400">
-                  <KeywordText text={card.effect.replace(/\n+/g, " ")} />
+                  <KeywordText text={oracle.oracleText.replace(/\n+/g, " ")} />
                 </p>
               ) : null}
             </div>
-            {card.subtypes.length || keys.length ? (
+            {keys.length ? (
               <div className="mt-4 flex flex-wrap gap-2">
-                {card.subtypes.map((t) => (
-                  <Link key={t} href={`/browse?q=${encodeURIComponent(t)}`} className="chip bg-ink-800 text-slate-400 transition-colors hover:bg-ink-700 hover:text-slate-200">
-                    {t}
-                  </Link>
-                ))}
                 {keys.map((k) => (
                   <Link key={k.slug} href={`/keywords/${k.slug}`} className="chip bg-ink-800 text-slate-400 transition-colors hover:bg-ink-700 hover:text-slate-200">
                     [{k.name}]
@@ -525,8 +604,8 @@ export default async function CardPage({ params }: Props) {
                   </Link>
                 ) : null,
               )}
-              {card.cardType === "Leader" && card.number ? (
-                <Link href={`/leaders/${leaderSlug(card.name, card.number)}`} className="chip bg-ink-800 text-slate-400 transition-colors hover:bg-ink-700 hover:text-slate-200">
+              {isCommander && oracle ? (
+                <Link href={`/commanders/${oracle.slug}`} className="chip bg-ink-800 text-slate-400 transition-colors hover:bg-ink-700 hover:text-slate-200">
                   {card.name} decks and cards →
                 </Link>
               ) : null}
@@ -545,7 +624,7 @@ export default async function CardPage({ params }: Props) {
             </dl>
           </section>
 
-          <CardMarketsTable offers={card.offers} name={card.name} country={country} />
+          <CardMarketsTable offers={offers} name={card.name} country={country} />
           <AdSlot slot="card" thin={!state.hasListings && card.marketUsd == null} />
 
           <section className="card-surface p-5" aria-label="Do more with this price">
@@ -577,15 +656,14 @@ export default async function CardPage({ params }: Props) {
                   "Rarity",
                   `${rarityLabel(card.rarity)}${card.rarity && card.rarity !== rarityLabel(card.rarity) ? ` (${card.rarity})` : ""}`,
                 ],
-                ["Printing", card.variant ?? "Standard"],
-                ["Card type", card.cardType ?? "—"],
-                ["Colour", card.colors.join(" / ") || "—"],
+                ["Printing", card.label ?? "Standard"],
+                ["Type line", oracle?.typeLine ?? card.cardType ?? "—"],
+                ["Colour", card.colors.join(" / ") || (oracle ? "Colourless" : "—")],
+                ["Colour identity", oracle ? identity.join(" / ") || "Colourless" : "—"],
                 ...stats.map(
                   (s) => [s.label, String(s.value)] as [string, string],
                 ),
-                ["Attribute", card.attribute ?? "—"],
-                ["Types", card.subtypes.join(", ") || "—"],
-                ["Finish", card.finish ?? "—"],
+                ["Finish", finishLabel(card, finish)],
               ].map(([k, v]) => (
                 <div
                   key={k}
@@ -614,22 +692,22 @@ export default async function CardPage({ params }: Props) {
           </section>
 
           {/* The last in-column section: captured eBay listings and slabs. */}
-          <EbayCardPanel productId={card.id} country={country} query={ebayQuery} name={title} card={card.slug} rawCents={lite?.low[country] ?? null} preRelease={preRelease} />
+          <EbayCardPanel productId={card.id} country={country} query={ebayQuery} name={title} card={card.slug} rawCents={unitLow[country] ?? null} preRelease={preRelease} />
         </div>
       </div>
 
       {siblings.length ? (
         <section id="printings" className="mt-10 scroll-mt-20">
           <SectionHeader
-            title={`Other printings of ${card.number}`}
-            sub={`The same card in other art, finishes and promo releases — priced in ${co.place}.`}
+            title={`Other printings of ${card.name} in ${card.set.name}`}
+            sub={`The same card in other art and frames from this set — priced in ${co.place}.`}
           />
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {siblings.slice(0, 12).map((s) => (
               <CardTile
                 key={s.id}
                 card={s}
-                setCode={cat.setById.get(s.setId)?.code ?? ""}
+                setCode={s.setCode}
                 country={country}
               />
             ))}
@@ -639,7 +717,7 @@ export default async function CardPage({ params }: Props) {
 
       {cheaper.length ? (
         <section className="mt-10">
-          <SectionHeader title={`Cheaper ${card.colors[0] ?? ""} ${card.cardType ?? "card"}s in ${card.set.name}`.replace(/\s+/g, " ")} sub="Same set, colour and type, strictly cheaper on TCGplayer." />
+          <SectionHeader title={`Cheaper ${card.colors[0] ?? ""} ${(card.cardType ?? "card").toLowerCase()}s in ${card.set.name}`.replace(/\s+/g, " ")} sub="Same set, colour and type, strictly cheaper on TCGplayer." />
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {cheaper.map((s) => (
               <CardTile key={s.id} card={s} setCode={card.set.code} country={country} />
@@ -650,10 +728,10 @@ export default async function CardPage({ params }: Props) {
 
       {sameChar.length ? (
         <section className="mt-10">
-          <SectionHeader title={`More ${card.name} cards`} sub="Every other card with this name, across sets." />
+          <SectionHeader title={`${card.name} in other sets`} sub="Every other printing with this name, one per set." />
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {sameChar.map((s) => (
-              <CardTile key={s.id} card={s} setCode={cat.setById.get(s.setId)?.code ?? ""} country={country} />
+              <CardTile key={s.id} card={s} setCode={s.setCode} country={country} />
             ))}
           </div>
         </section>
@@ -685,23 +763,24 @@ export default async function CardPage({ params }: Props) {
       <DecksUsingCard cardId={card.id} />
 
       <CardViewBeacon slug={card.slug} cardId={card.id} cardName={card.name} rarity={card.rarity} />
-      <RecentlyViewed className="mt-10" record={{ slug: card.slug, name: card.name, variant: card.variant, setCode: card.set.code, number: card.number, img: card.hasImage ? cardImage.thumb(card.id) : null }} />
+      <RecentlyViewed className="mt-10" record={{ slug: card.slug, name: card.name, variant: card.label, setCode: card.set.code, number: card.number, img: card.hasImage ? cardImage.thumb(card.id) : null }} />
 
       <RelatedGuides guides={guides} className="card-surface mt-10 p-5" />
-      {best ? (
-        <CardStickyBuyBar
-          boardId="price-comparison"
-          price={money(best.priceCents, country)}
-          store={best.label}
-          href={best.href}
-          retailer={best.retailer}
-          ebay={best.ebay}
-          page="card"
-          slug={card.slug}
-          name={title}
-          cardId={card.id}
-        />
-      ) : null}
+      <CardStickyBuyBar
+        boardId="price-comparison"
+        price={best ? money(best.priceCents, country) : undefined}
+        store={best?.label}
+        href={best?.href}
+        retailer={best?.retailer}
+        ebay={best?.ebay}
+        tcgHref={tcgHref}
+        ebayHref={ebayBuyHref}
+        ebayName={ebayLabel(country)}
+        page="card"
+        slug={card.slug}
+        name={title}
+        cardId={card.id}
+      />
     </div>
   );
 }

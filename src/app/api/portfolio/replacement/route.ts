@@ -10,11 +10,10 @@ import { basketStoresFor, postageContextFor, postageOptionsFrom } from "@/lib/sh
 
 export const dynamic = "force-dynamic";
 
-// What it would cost to BUY this collection again today, delivered —
-// RiftCompare's /api/portfolio/replacement.
+// What it would cost to BUY this collection again today, delivered.
 //
-// "Collection value" on /portfolio is the lowest in-stock ITEM price in the
-// viewer's market, condition-adjusted. Postage is not in it, and the cheapest
+// "Collection value" on /portfolio is the TCGplayer MARKET price of the finish held,
+// converted to the viewer's currency and condition-adjusted. Postage is not in it, and the cheapest
 // copy of a card is often one far-off store, so this answers the OTHER question
 // (replacement cost) and leaves the headline alone.
 //

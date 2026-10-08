@@ -99,7 +99,10 @@ site does not depend on the database. Neon holds only accounts, billing, alerts 
 5. Same page, **Variables**: `SITE_URL` = SITE_URL and `REVALIDATE_URL` = SITE_URL (both set after A3 knows the Vercel URL; come back
    and set them), `PLANE_REPO` = `Specifxx/mtgcompare-data`, `NEXT_PUBLIC_EBAY_CAMPAIGN_ID` = `5339155912`,
    `INDEXNOW_KEY` = `43ac93dd97a44d4894bedf52d621c57c`.
-6. Do NOT create a `main` branch now (that happens in B1).
+6. OPTIONAL, skip unless I ask: Actions secret `OPS_WEBHOOK_URL` (a Discord or Slack webhook for freshness and failure alerts; alerts only print in
+   the log without it) and Actions secret `TARGET_DATABASE_URL` (only when a Neon project must be replaced: the `migrate-database` maintenance task is a
+   green no-op without it; never a Vercel variable). `PLANE_BRANCH` defaults to `data`: leave it unset.
+7. Do NOT create a `main` branch now (that happens in B1).
 
 ### A3. Vercel: new project
 1. https://vercel.com/new: import **Specifxx/mtgcompare** into the **same team as RiftCompare**. Project name `mtgcompare`,
@@ -157,7 +160,7 @@ make it a manual item and continue.
 2. Stay in **test mode (sandbox)** for now: Developers, API keys, reveal the **test secret key** (`sk_test_...`) and put it in Vercel
    as `STRIPE_SECRET_KEY` (Production) and in GitHub as the Actions secret `STRIPE_SECRET_KEY`.
 3. Settings: public business name "MTG Compare", statement descriptor `MTGCOMPARE`, support e-mail = my Google account's,
-   brand colour `#9140da`, and Customer emails: turn on **successful payments** receipts. Skip anything that asks for identity, bank
+   brand colour `#9140da` and icon `SITE_URL/icon-512.png` (Settings, Branding; the setup script only reads these and prints what is off), and Customer emails: turn on **successful payments** receipts. Skip anything that asks for identity, bank
    or tax details: that is **manual item "Activate payments on the MTG Compare Stripe account"** (leave that tab open on the
    activation page). Live-mode keys come after activation (see the end of phase C).
 4. The products, prices and webhook are created in phase B (they need the code).

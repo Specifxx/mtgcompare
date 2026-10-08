@@ -1,4 +1,6 @@
 import { prisma } from "./db";
+import { getSealedByIds, getSets } from "./data";
+import type { SealedKind } from "./constants";
 import { COUNTRIES, currencyOf, type Country } from "./country";
 import { isPremium, tierOf, type EntitlementFields } from "./premium";
 import { adminEmails, isAdminEmail } from "./admin-emails";
@@ -38,10 +40,10 @@ import { readSealedListings, type SealedListing } from "./sealed-alert-read";
 //                     ≥ SEALED_DROP_MIN_CENTS) under the reference.
 // All-unknown listings decide nothing (a feed outage is not a sell-out).
 //
-// CADENCE: OP Compare's store import runs twice a day (07:07 and 19:07 UTC),
-// so the watches are "checked twice a day" (SEALED_CHECK_CADENCE) and the
-// restock gap is RiftCompare's original 20h-era rule at a 5h floor — a
-// sell-out seen at one run and a restock at the next is 12h, well past it.
+// CADENCE: the store import runs once a day (src/lib/schedule.ts), so the
+// watches are checked once a day (SEALED_CHECK_CADENCE) and the restock gap
+// is a 5h floor — a sell-out seen at one run and a restock at the next is a
+// day apart, well past it.
 //
 // EMAIL OFF (isEmailEnabled false): a trigger is delivered in-app — one
 // Notification (notify(), the member track's contract) and lastFlaggedAt —
@@ -139,12 +141,24 @@ export type SealedWatchDb = {
   priceAlert: Pick<typeof prisma.priceAlert, "groupBy">;
   deckWatch: Pick<typeof prisma.deckWatch, "findMany">;
   alertMute: Pick<typeof prisma.alertMute, "findMany">;
-  offer: Pick<typeof prisma.offer, "findMany">;
   $transaction: typeof prisma.$transaction;
+};
+
+/** What the email names a watched product by, read from the published catalogue (a watch row holds only the plain product id). */
+export interface SealedInfo { slug: string; name: string; kind: SealedKind; releasedOn: Date | null; setCode: string | null }
+export type SealedInfoLoader = (ids: readonly number[]) => Promise<Map<number, SealedInfo>>;
+
+export const liveSealedInfo: SealedInfoLoader = async (ids) => {
+  const [sealed, sets] = await Promise.all([getSealedByIds(ids), getSets()]);
+  const setById = new Map(sets.map((x) => [x.id, x] as const));
+  const out = new Map<number, SealedInfo>();
+  for (const [id, x] of sealed) out.set(id, { slug: x.slug, name: x.name, kind: x.kind, releasedOn: x.releasedOn ? new Date(x.releasedOn) : null, setCode: x.setId != null ? setById.get(x.setId)?.code ?? null : null });
+  return out;
 };
 
 export interface SealedWatchRunDeps {
   db?: SealedWatchDb;
+  sealedInfo?: SealedInfoLoader;
   now?: Date;
   sendSealedWatchEmail?: typeof sendSealedWatchEmailImpl;
   notify?: (userId: string, type: string, title: string, body: string, href?: string | null) => Promise<void>;
@@ -248,14 +262,14 @@ export async function runSealedWatches(deps: SealedWatchRunDeps = {}): Promise<S
       snoozedUntil: true,
       createdAt: true,
       user: { select: { email: true, isAdmin: true, premiumUntil: true, premiumTier: true } },
-      sealed: { select: { id: true, slug: true, name: true, kind: true, releasedOn: true, set: { select: { code: true } } } },
     },
   });
   summary.watches = rows.length;
 
   // Entitlement and the Plus cap (oldest first).
   const perUser = new Map<string, number>();
-  const live: ((typeof rows)[number] & { market: Country })[] = [];
+  const live: ((typeof rows)[number] & { market: Country; sealed: SealedInfo })[] = [];
+  const info = await (deps.sealedInfo ?? liveSealedInfo)([...new Set(rows.map((w) => w.sealedId))]);
   for (const w of rows) {
     const user: EntitlementFields = { ...w.user, isAdmin: w.user.isAdmin || isAdminEmail(w.user.email) };
     if (!isPremium(user)) {
@@ -272,7 +286,12 @@ export async function runSealedWatches(deps: SealedWatchRunDeps = {}): Promise<S
       summary.legacyMarket++;
       continue;
     }
-    live.push(w as (typeof rows)[number] & { market: Country });
+    const sealed = info.get(w.sealedId);
+    if (!sealed) {
+      summary.missing++; // a product the catalogue no longer lists cannot be named
+      continue;
+    }
+    live.push({ ...w, market: w.market, sealed });
   }
 
   // The store listings, one bounded read. A failed read throws out of the
@@ -376,7 +395,7 @@ export async function runSealedWatches(deps: SealedWatchRunDeps = {}): Promise<S
         slug: w.sealed.slug,
         name: w.sealed.name,
         productType: w.sealed.kind,
-        setCode: w.sealed.set?.code ?? null,
+        setCode: w.sealed.setCode,
         market: w.market,
         currency: currencyOf(w.market),
         priceCents: price,

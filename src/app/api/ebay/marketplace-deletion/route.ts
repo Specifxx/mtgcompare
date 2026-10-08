@@ -2,9 +2,11 @@ import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 
 // eBay Marketplace Account Deletion / Closure notifications. Required to enable
-// PRODUCTION keys for OP Compare's eBay application. OP Compare stores no eBay
-// USER data (Offer holds a listing's price, title and url — no seller id,
-// username or EIAS token), so there is nothing to delete: we answer eBay's
+// PRODUCTION keys for the eBay application MTG Compare uses (its own or, in
+// EBAY_KEYSET_MODE=shared, RiftCompare's: the notification is per keyset). MTG
+// Compare stores no eBay USER data (EbayBest, EbayPanel and EbayBanner hold a
+// listing's item id, price, title and image — no seller id, username or EIAS
+// token), so there is nothing to delete: we answer eBay's
 // validation challenge and acknowledge notifications. If anything ever stores
 // seller.username or seller.userId, POST must start deleting by it.
 //
@@ -14,7 +16,7 @@ import { NextResponse } from "next/server";
 //
 // Portal: Application Keys → Notifications → Alerts and Notifications →
 // Marketplace Account Deletion. Endpoint = EBAY_DELETION_ENDPOINT (exactly
-// https://opcompare.app/api/ebay/marketplace-deletion — apex, no trailing slash;
+// https://mtgcompare.app/api/ebay/marketplace-deletion — apex, no trailing slash;
 // it is part of the hash and www. redirects), token = EBAY_VERIFICATION_TOKEN.
 // Both are read inside the handlers (Vercel, Production).
 export const dynamic = "force-dynamic";

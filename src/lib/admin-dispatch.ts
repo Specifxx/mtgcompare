@@ -8,7 +8,7 @@ export const DEFAULT_REPO = "Specifxx/mtgcompare";
 /** owner/repo, validated: it is put into a URL path. */
 export function repoSlug(env: Record<string, string | undefined> = process.env): string {
   const v = (env.NEXT_PUBLIC_GITHUB_REPO ?? "").trim();
-  return /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(v) ? v : DEFAULT_REPO;
+  return /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(v) && v.split("/").every((p) => !/^\.+$/.test(p)) ? v : DEFAULT_REPO;
 }
 export const workflowUrl = (file: string, env: Record<string, string | undefined> = process.env): string => `https://github.com/${repoSlug(env)}/actions/workflows/${file}`;
 export const dispatchConfigured = (env: Record<string, string | undefined> = process.env): boolean => (env.GITHUB_DISPATCH_TOKEN ?? "").length >= 20;

@@ -132,9 +132,10 @@ test("a listing with stated postage wins whenever its delivered price is no high
     { cents: 500, url: "unknown", postageKnown: false },
     "a cheaper item price with unstated postage is kept, flagged",
   );
-  // The cached SQL applies the same order.
-  const data = read("src/lib/data.ts");
-  assert.match(data, /ORDER BY id, p \+ COALESCE\(s, 0\) ASC, \(s IS NULL\) ASC/);
+  // The loader prices an eBay row at item + stated postage, from the one EbayBest row per unit; Canada never claims known postage.
+  const data = read("src/lib/data/deals.ts");
+  assert.match(data, /cents: r\.priceCents \+ \(known \? r\.shippingCents! : 0\)/);
+  assert.match(data, /known = !cross && r\.shippingCents != null/);
 });
 
 test("the cached tuple never claims known postage for Canada, and keeps TCGplayer's low only in the US", () => {
@@ -368,7 +369,9 @@ test("unentitled and unknown parameters resolve safely", () => {
   const dflt = { view: "tcg", buy: null, sort: "saving", page: 1, mine: null };
   assert.deepEqual(parseDealFinderParams({ view: "nonsense" }, { allowMine: true }), dflt);
   assert.equal(parseDealFinderParams({ mine: "watch" }, { allowMine: false }).mine, null, "free and signed-out: ?mine= is ignored");
-  assert.equal(parseDealFinderParams({ mine: "own" }, { allowMine: true }).mine, null, "OP has no binder");
+  assert.equal(parseDealFinderParams({ mine: "binder" }, { allowMine: true }).mine, "binder", "'only my binder' (parity P29)");
+  assert.equal(parseDealFinderParams({ mine: "binder" }, { allowMine: false }).mine, null, "…at full access only");
+  assert.equal(parseDealFinderParams({ mine: "own" }, { allowMine: true }).mine, null, "an unknown value is ignored");
   assert.deepEqual(parseDealFinderParams({ buy: "" }, { allowMine: true }).buy, [], "buy= is the explicit None");
   assert.deepEqual(parseDealFinderParams({ buy: ["a,b", "c"], page: ["2", "9"] }, { allowMine: true }), { ...dflt, buy: ["a", "b"], page: 2 });
 });
@@ -379,14 +382,18 @@ test("every Deal Finder link goes through hrefFor, and the gates are in the quer
   const page = read("src/app/tools/deal-finder/page.tsx");
   assert.doesNotMatch(page, /["`']\/tools\/deal-finder\?/, "no hand-built Deal Finder query string");
   assert.match(page, /const params = parseDealFinderParams\(searchParams, \{ allowMine: member \}\);/);
-  assert.match(page, /const member = isPremium\(user\);/);
+  assert.match(page, /const access: Access = accessFor\("deal-finder", viewer\);/);
+  assert.match(page, /const member = access === "full";/);
+  assert.match(page, /rowLimit\("deal-finder", access, viewer\)/);
+  assert.doesNotMatch(page, /isPremium|tierOf|dealAccess/, "the tier is never compared on the page: the gate is premium-gates and the loader");
   assert.match(page, /href=\{hrefFor\(params, \{ mine: c\.key, page: 1 \}\)\}/);
   assert.match(page, /linkFor=\{\(s\) => hrefFor\(params, \{ sort: s, page: 1 \}\)\}/);
   assert.match(page, /linkFor=\{\(p\) => hrefFor\(params, \{ page: p \}\)\}/);
   assert.match(page, /<StorePicker sources=\{sources\} buy=\{buy\} defaultBuy=\{defaultBuy\} params=\{params\} \/>/);
   assert.match(page, /href=\{`\/market\/records\?market=\$\{country\}#gaps`\}/);
-  // Free accounts: the DEFAULT ranking, three rows.
-  assert.match(page, /getTcgDeals\(country, \{ buy: defaultBuy, sort: "saving", page: 1, pageSize: FREE_DEAL_ROWS \}\)/);
+  // Below full access the loader serves the DEFAULT ranking, three rows; the page asks with the session's Entitlement and nothing else.
+  assert.match(page, /getTcgDeals\(country, \{ buy: params\.buy === null \? undefined : buy, sort, page, pageSize: DEAL_PAGE_SIZE \}, who\)/);
+  assert.match(page, /view !== "tcg" \|\| island \|\| rows === 0/, "a signed-out visitor's ranking is not even queried");
   assert.match(page, /PlanButton surface="gate:deal-finder" tier="plus"/);
   for (const header of ["Best price", "TCGplayer market", "Below market", "% below"]) {
     assert.ok(read("src/components/DealTable.tsx").includes(`>${header}</th>`), `missing the "${header}" column`);
@@ -396,16 +403,20 @@ test("every Deal Finder link goes through hrefFor, and the gates are in the quer
 
 test("only my cards is Plus-only on the server too", () => {
   const route = read("src/app/api/deal-finder/route.ts");
-  assert.match(route, /if \(!isPremium\(user\)\) return NextResponse\.json/);
+  assert.match(route, /if \(!allowsRefinement\(access\)\)/);
+  assert.match(route, /status: 402/);
   assert.match(route, /onlyIds/);
+  assert.match(route, /body\.mine === "binder"/, "the binder half of 'only my cards'");
 });
 
-test("the deal loaders live in one block at the end of data.ts, and nothing else caches", () => {
-  const data = read("src/lib/data.ts");
-  const at = data.indexOf("// ---- deals track loaders ----");
-  assert.ok(at > 0);
-  for (const name of ["getDealInputs", "getStoreMins", "getDealOffers"]) assert.ok(data.indexOf(`export const ${name} = unstable_cache(`) > at, `${name} is in the block`);
-  assert.match(data, /source LIKE 'store:%'/, "the store side is stores only");
+test("the deal loaders live in src/lib/data/deals.ts: one ranking cache, tier-neutral, and nothing else caches", () => {
+  const data = read("src/lib/data/deals.ts");
+  assert.equal((data.match(/unstable_cache\(/g) ?? []).length, 1, "the ranking is the only cache");
+  assert.match(data, /rankKey\("deal-rank-v1", ptr\.ref, country, sort, buyKeysHash\(keys\)\)/);
+  assert.match(data, /accessOf\("deal-finder", who\)/);
+  assert.match(data, /sliceRanking\("deal-finder", who, ranking, q\)/);
+  assert.doesNotMatch(data.replace(/\/\/[^\n]*/g, ""), /\.tier\b|isPremium/, "the loader never compares a tier");
+  assert.match(data, /source: sourceOfStoreId\(t\[5\]\) \?\? ""|sourceOfStoreId\(t\[5\]\)/);
   for (const f of ["src/lib/deal-pages.ts", "src/lib/top-deals.ts", "src/lib/deals.ts"]) {
     assert.doesNotMatch(read(f).replace(/\/\/[^\n]*/g, ""), /unstable_cache\(/, `${f} must not add a cache layer`);
   }
@@ -424,10 +435,12 @@ test("the old Card.low<M> deal ranking is retired", () => {
 test("the homepage's Plus savings rows are limited on the server, never hidden in the browser", () => {
   const lib = read("src/lib/top-deals.ts");
   assert.match(lib, /export const FREE_SAVINGS_ROWS = 1;/);
-  assert.match(lib, /savings: savingsRows\(cat, ranked, FREE_SAVINGS_ROWS\)/);
+  assert.match(lib, /getDealList\(country, \{ sort: "pct", page: 1, pageSize: 25 \}, who\)/);
+  assert.match(lib, /if \(list\.locked\) return \[\]/, "below full access this door returns no row");
   const route = read("src/app/api/top-deals/savings/route.ts");
-  assert.match(route, /if \(!isPremium\(user\)\) return NextResponse\.json/);
-  assert.match(route, /getMemberSavings\(country\)/);
+  assert.match(route, /accessOf\("deal-finder", who\) !== "full"/);
+  assert.match(route, /status: signedIn \? 402 : 401/);
+  assert.match(route, /getMemberSavings\(country, who\)/);
   const ui = read("src/components/TodaysTopDeals.tsx");
   assert.doesNotMatch(ui, /items\.slice\(0, 1\)/, "no client-side hiding of rows the server sent");
   assert.match(ui, /\/api\/top-deals\/savings/);

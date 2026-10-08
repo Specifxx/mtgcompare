@@ -19,7 +19,7 @@ import { pageOgOwnImage } from "@/lib/og/meta";
 
 export const dynamic = "force-dynamic";
 
-// The PUBLIC face of a minted OP Compare Hot 40 snapshot (RiftCompare's
+// The PUBLIC face of a minted MTG Compare Hot 40 snapshot (RiftCompare's
 // /rising/[token]). Read through the cached data.ts loader getRisingSnapshot —
 // a frozen row, so a widely shared link costs one cached read. No account, no subscription, no
 // paywall of any kind — that is the entire point of the feature (owner,
@@ -27,7 +27,7 @@ export const dynamic = "force-dynamic";
 // cards at the time of generation so they don't need premium").
 //
 // NOINDEX, and not as an afterthought. This is a capability URL: unguessable
-// token, shared deliberately. Indexing it would (a) put a paid (Plus) tool's output
+// token, shared deliberately. Indexing it would (a) put a paid (Premium) tool's output
 // in the search results the Premium page itself competes for, and (b) make the
 // "special link" meaningless, since the whole value is that the holder was
 // given it. robots.ts does not cover /rising/*, so the page declares it here.
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: { params: { token: string } }
   // No `images` key: the sibling opengraph-image.tsx is picked up by the route
   // automatically, and the key alone would block it (pageOgOwnImage).
   return {
-    title: { absolute: snap?.title ?? "OP Compare Hot 40" },
+    title: { absolute: snap?.title ?? "MTG Compare Hot 40" },
     robots: { index: false, follow: false },
     openGraph: pageOgOwnImage(`/rising/${params.token}`),
   };
@@ -158,7 +158,7 @@ export default async function RisingSnapshotPage({ params }: { params: { token: 
           HOT_LIST_BRAND comment for why, and why the number is the real count
           rather than a flat 40 on a thin run. */}
       <p className="text-[11px] font-bold uppercase tracking-wide text-brand-400">
-        {data.picks.length > 0 ? hotListName(data.picks.length) : "OP Compare Hot 40"} · snapshot
+        {data.picks.length > 0 ? hotListName(data.picks.length) : "MTG Compare Hot 40"} · snapshot
       </p>
       <h1 className="mt-1 text-2xl font-extrabold leading-tight text-white sm:text-3xl">{snap.title}</h1>
       <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">{generateRisingSubtitle(data)}</p>
@@ -255,8 +255,8 @@ export default async function RisingSnapshotPage({ params }: { params: { token: 
         <p className="text-sm font-bold text-white">These numbers stopped moving when this snapshot was taken.</p>
         <p className="mt-1 text-sm leading-relaxed text-slate-300">
           Rising Cards re-ranks with every price import as search demand and stock change; its price signals read one
-          price a week. Every price on OP Compare is free to browse, a free account shows the top three picks, and the
-          full list is part of Plus, which also removes ads from every page.
+          price a week. Every price on MTG Compare is free to browse, a free account shows the top three picks, and the
+          full list is part of Premium, which also removes ads from every page.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Link href="/tools/rising" className="btn-primary text-sm">See today&apos;s rising cards →</Link>

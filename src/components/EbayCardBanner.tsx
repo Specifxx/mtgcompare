@@ -21,7 +21,7 @@ export function EbayCardBanner({
   className = "",
 }: {
   country: Country;
-  /** eBay keywords (cardEbayQuery / onePieceEbayQuery: "One Piece" exactly once). */
+  /** eBay keywords (cardEbayQuery / magicEbayQuery: the game named exactly once). */
   query: string;
   /** What the banner says it finds: the card's display name. */
   name: string;
@@ -52,7 +52,7 @@ export function EbayCardBanner({
         <span className="shrink-0 rounded-md bg-[#0064d2]/20 px-2.5 py-1 text-[11px] font-bold text-sky-300">Search eBay →</span>
       </a>
       <p className="mt-1.5 max-w-2xl text-center text-[11px] text-slate-500">
-        As an eBay Partner Network affiliate, OP Compare earns from qualifying purchases.
+        As an eBay Partner Network affiliate, MTG Compare earns from qualifying purchases.
       </p>
     </div>
   );

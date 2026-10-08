@@ -51,9 +51,10 @@ const nextConfig = {
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "X-Frame-Options", value: "SAMEORIGIN" },
         ],
       },
+      // Framing: every page is SAMEORIGIN except the embeds (/embed/**), which exist to be framed and say so with their own `frame-ancestors *` (src/lib/embed-html.ts).
+      { source: "/((?!embed(?:/|$)).*)", headers: [{ key: "X-Frame-Options", value: "SAMEORIGIN" }] },
       // Share PNGs are not pages: keep them out of search results.
       { source: "/opengraph-image:suffix(.*)", headers: [{ key: "X-Robots-Tag", value: "noindex" }] },
       { source: "/:path*/opengraph-image:suffix(.*)", headers: [{ key: "X-Robots-Tag", value: "noindex" }] },

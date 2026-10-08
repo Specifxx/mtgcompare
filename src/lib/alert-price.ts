@@ -1,10 +1,15 @@
-import type { prisma } from "./db";
+import { FINISH_INDEX, finishLabel, unitKey, type Finish, type UnitRef } from "./constants";
+import type { Country } from "./country";
+import { getCardsByIds, getSets } from "./data";
+import { planeSource } from "./data/plane/runtime";
+import { readLiveOffers, type LiveOffer } from "./offer-read";
 import { sourceLabel } from "./stores";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // THE ALERT PRICE — what a price alert compares, and the stores it names.
-// RiftCompare's lib/alert-price.ts, ported over OP Compare's Offer table in
-// wave 2 (2026-10-03).
+// RiftCompare's lib/alert-price.ts, ported over the published offer files:
+// the rows come from the shared live-offer reader (offer-read.ts), one
+// (product, finish) unit at a time.
 // ─────────────────────────────────────────────────────────────────────────────
 // Card.low<M> is the cheapest open listing ANYWHERE in a market — eBay
 // included — so an alert never reads it. The alert price is narrower, by
@@ -15,7 +20,7 @@ import { sourceLabel } from "./stores";
 //     and CLAUDE.md keeps eBay out of alerts);
 //   • in stock, Near Mint or no stated condition (alertConditionRank 0);
 //   • refreshed within ALERT_FRESH_MS (36h: every eligible source rewrites
-//     its rows on each of the two daily imports).
+//     its rows on the daily import, so a day-old row is current).
 //
 // STATE, not just a number:
 //   • "priced"  — at least one eligible fresh copy; the cheapest is the price.
@@ -28,12 +33,13 @@ import { sourceLabel } from "./stores";
 //                 as sold out, or an outage would send "back in stock" when
 //                 the feed recovers.
 //
-// ONE bounded query for every watched (card, market) pair: grouped by market
-// (at most six OR branches of `productId IN (…)`), in-stock rows refreshed in
-// the last 72h, narrow columns, capped at ALERT_ROWS_PER_PAIR a pair. Plus,
-// only when some pair reads sold out, one more bounded read of those pairs'
-// older rows. Called from the alert run (scripts/alerts.ts, GitHub Actions),
-// never from a page and never inside an unstable_cache.
+// ONE read per market for every watched (product, finish) pair: the live
+// offers of the units (a handful of bucket files and ss/runs.json). The reader
+// marks a row out of stock when its store run is older than 72h or failed, so
+// a row last refreshed 36h-14d ago that the reader no longer calls in stock is
+// treated as a row that still claims stock ("unknown"), never as a sell-out.
+// Called from the alert run (scripts/alerts.ts, GitHub Actions), never from a
+// page and never inside an unstable_cache.
 
 export const ALERT_FRESH_MS = 36 * 60 * 60 * 1000;
 export const ALERT_LOOKBACK_MS = 72 * 60 * 60 * 1000;
@@ -46,9 +52,10 @@ export const ALERT_ROWS_PER_PAIR = 40;
 
 export type AlertPriceState = "priced" | "soldout" | "unknown";
 
-/** One Offer row as the alert query selects it. */
+/** One live offer as the alert price reads it. */
 export interface AlertPriceRow {
   productId: number;
+  finish?: Finish;
   market: string;
   source: string;
   priceCents: number;
@@ -76,7 +83,7 @@ export interface AlertPrice {
   stores: AlertOffer[]; // up to ALERT_STORE_LIMIT, one per source, cheapest first
 }
 
-export const alertPairKey = (market: string, cardId: number) => `${market}:${cardId}`;
+export const alertPairKey = (market: string, cardId: number, finish: Finish) => `${market}:${cardId}.${FINISH_INDEX[finish]}`;
 
 /**
  * Alert eligibility of a condition label: 0 = Near Mint, Mint or unstated (may
@@ -147,7 +154,12 @@ export function alertPriceFromRows(rows: readonly AlertPriceRow[], now: Date): A
   return { state: "priced", priceCents: lead.priceCents, condition: lead.condition, checkedAt: lead.lastSeen, stores };
 }
 
-export type AlertPriceDb = { offer: Pick<typeof prisma.offer, "findMany"> };
+/** How a run reads the live offers of some units in one market. The default is the published files (liveAlertReader); a test injects a stand-in. */
+export type AlertOfferReader = (units: readonly UnitRef[], market: Country) => Promise<LiveOffer[]>;
+export const liveAlertReader = (): AlertOfferReader => async (units, market) => {
+  const { src } = await planeSource();
+  return readLiveOffers(src, { units, market, includeTcgplayer: true });
+};
 
 /**
  * The baseline a NEW watch starts from: the alert price when the pair is
@@ -163,77 +175,81 @@ export function alertBaselineSeed(p: AlertPrice | undefined): {
   return { lastPriceCents: cents, startPriceCents: cents, dropAnchorCents: cents };
 }
 
-const ELIGIBLE_SOURCE = { OR: [{ source: { startsWith: "store:" } }, { source: "tcgplayer" }] };
+/** A live offer as an alert row. A row the reader calls out of stock but whose store last ran 36h-14d ago still claims stock for the "unknown" rule. */
+export function alertRowOf(o: LiveOffer, now: Date): AlertPriceRow {
+  const age = now.getTime() - o.refreshedAt.getTime();
+  const claimsStock = o.inStock || (age > ALERT_FRESH_MS && age <= ALERT_OUTAGE_MAX_MS);
+  return { productId: o.productId, finish: o.finish, market: o.market, source: o.source, priceCents: o.priceCents, condition: o.condition, url: o.url, inStock: claimsStock, updatedAt: o.refreshedAt };
+}
 
 /**
- * The alert price for every watched (card, market) pair, in ONE query. A pair
+ * The alert price for every watched (product, finish, market) pair. A pair
  * with no rows at all comes back "soldout". Throws if the read fails: with no
  * prices there is nothing safe to compare, and the caller must not read that
  * as every card selling out.
  */
 export async function computeAlertPrices(
-  db: AlertPriceDb,
-  pairs: readonly { cardId: number; market: string }[],
+  read: AlertOfferReader,
+  pairs: readonly { cardId: number; finish: Finish; market: string }[],
   now: Date,
-  opts: { slim?: boolean } = {},
 ): Promise<Map<string, AlertPrice>> {
-  const byMarket = new Map<string, Set<number>>();
+  const byMarket = new Map<string, Map<number, UnitRef>>();
   for (const p of pairs) {
-    const ids = byMarket.get(p.market) ?? new Set<number>();
-    ids.add(p.cardId);
-    byMarket.set(p.market, ids);
+    const units = byMarket.get(p.market) ?? new Map<number, UnitRef>();
+    units.set(p.cardId * 2 + FINISH_INDEX[p.finish], { id: p.cardId, finish: p.finish });
+    byMarket.set(p.market, units);
   }
   const out = new Map<string, AlertPrice>();
-  if (!byMarket.size) return out;
-  const pairCount = [...byMarket.values()].reduce((n, s) => n + s.size, 0);
-  const rows = await db.offer.findMany({
-    where: {
-      inStock: true,
-      updatedAt: { gte: new Date(now.getTime() - ALERT_LOOKBACK_MS) },
-      AND: [ELIGIBLE_SOURCE, { OR: [...byMarket].map(([market, ids]) => ({ market, productId: { in: [...ids] } })) }],
-    },
-    select: { productId: true, market: true, source: true, priceCents: true, condition: true, url: !opts.slim, inStock: true, updatedAt: true },
-    // Cheapest first, so a (never expected) truncation drops the dearest rows.
-    orderBy: { priceCents: "asc" },
-    take: pairCount * ALERT_ROWS_PER_PAIR,
-  });
-  const grouped = new Map<string, AlertPriceRow[]>();
-  for (const r of rows) {
-    const k = alertPairKey(r.market, r.productId);
-    const row: AlertPriceRow = { ...r, url: (r as { url?: string }).url ?? "" };
-    const list = grouped.get(k);
-    if (list) list.push(row);
-    else grouped.set(k, [row]);
-  }
-  for (const [market, ids] of byMarket) for (const cardId of ids) out.set(alertPairKey(market, cardId), alertPriceFromRows(grouped.get(alertPairKey(market, cardId)) ?? [], now));
-
-  // A pair with nothing eligible inside 72h is "soldout" only if no OLDER
-  // in-stock eligible row (up to ALERT_OUTAGE_MAX_MS) survives from a source
-  // whose imports keep failing.
-  const soldOut = new Map<string, Set<number>>();
-  for (const [market, ids] of byMarket) {
-    for (const cardId of ids) {
-      if (out.get(alertPairKey(market, cardId))?.state !== "soldout") continue;
-      const set = soldOut.get(market) ?? new Set<number>();
-      set.add(cardId);
-      soldOut.set(market, set);
+  for (const [market, units] of byMarket) {
+    const offers = await read([...units.values()], market as Country);
+    const grouped = new Map<string, AlertPriceRow[]>();
+    for (const o of offers) {
+      if (!isAlertEligibleSource(o.source)) continue;
+      const row = alertRowOf(o, now);
+      const k = alertPairKey(o.market, o.productId, o.finish);
+      const list = grouped.get(k);
+      if (list) list.push(row);
+      else grouped.set(k, [row]);
     }
-  }
-  if (soldOut.size) {
-    const soldOutCount = [...soldOut.values()].reduce((n, s) => n + s.size, 0);
-    const old = await db.offer.findMany({
-      where: {
-        inStock: true,
-        updatedAt: { gte: new Date(now.getTime() - ALERT_OUTAGE_MAX_MS), lt: new Date(now.getTime() - ALERT_LOOKBACK_MS) },
-        AND: [ELIGIBLE_SOURCE, { OR: [...soldOut].map(([market, ids]) => ({ market, productId: { in: [...ids] } })) }],
-      },
-      select: { productId: true, market: true, source: true, priceCents: true, condition: true, inStock: true, updatedAt: true },
-      take: soldOutCount * ALERT_ROWS_PER_PAIR,
-    });
-    for (const r of old) {
-      if (!soldOut.get(r.market)?.has(r.productId)) continue;
-      if (isAlertEligibleRow({ ...r, url: "" }, now, ALERT_OUTAGE_MAX_MS)) out.set(alertPairKey(r.market, r.productId), { state: "unknown", ...NO_PRICE, stores: [] });
+    for (const u of units.values()) {
+      const k = alertPairKey(market, u.id, u.finish);
+      const rows = grouped.get(k) ?? [];
+      let price = alertPriceFromRows(rows, now);
+      // Nothing eligible inside 72h, but an older row still claims stock from a feed that keeps failing: unknown.
+      if (price.state === "soldout" && rows.some((r) => isAlertEligibleRow(r, now, ALERT_OUTAGE_MAX_MS))) price = { state: "unknown", ...NO_PRICE, stores: [] };
+      out.set(k, price);
     }
   }
   return out;
 }
+
+/** What an alert run names a card by: the unit's own card row (name, treatment, set, number, market price), read from the published catalogue. */
+export interface AlertCard {
+  id: number;
+  finish: Finish;
+  name: string;
+  variant: string | null; // the treatment label and, for a foil unit, its finish word
+  slug: string;
+  number: string | null;
+  setCode: string;
+  releasedOn: Date | null;
+  marketUsd: number | null; // the unit's TCGplayer MARKET price in USD cents (the below-market reference)
+  low: Record<Country, number | null>;
+}
+/** Keyed by unitKey(id, finish). A product the catalogue no longer has is absent. */
+export type AlertCardLoader = (units: readonly UnitRef[]) => Promise<Map<string, AlertCard>>;
+
+export const liveAlertCards: AlertCardLoader = async (units) => {
+  const out = new Map<string, AlertCard>();
+  const sets = new Map((await getSets()).map((x) => [x.id, x] as const));
+  for (const finish of ["N", "F"] as const) {
+    const ids = [...new Set(units.filter((u) => u.finish === finish).map((u) => u.id))];
+    if (!ids.length) continue;
+    for (const [id, c] of await getCardsByIds(ids, { unit: finish })) {
+      const released = sets.get(c.setId)?.releasedOn ?? null;
+      const variant = [c.label, finish === "F" ? finishLabel(c, "F") : null].filter(Boolean).join(", ") || null;
+      out.set(unitKey(id, finish), { id, finish, name: c.name, variant, slug: c.slug, number: c.number, setCode: c.setCode, releasedOn: released ? new Date(released) : null, marketUsd: c.marketUsd, low: c.low });
+    }
+  }
+  return out;
+};

@@ -1,5 +1,5 @@
-// The demand counter's two guards (RiftCompare's lib/card-views.ts, 2026-09-25).
-// Card.searchCount / viewCount feed Rising Cards, Demand Finder and the free
+// The demand counter's two guards.
+// CardStat.searchCount / viewCount feed Rising Cards, Demand Finder and the free
 // "Most searched this week" strip on /movers — an unauthenticated POST with no
 // limit would let a loop of `curl -X POST /api/card/<slug>/view?source=search`
 // put any card at #1 on all three.

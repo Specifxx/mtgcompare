@@ -7,10 +7,12 @@ import { int } from "@/lib/format";
 import { STORES } from "@/lib/stores";
 import { DATA_TABLE } from "@/components/prose";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
-  title: "One Piece Card Stores We Track — US, AU, UK, SG, CA, EU",
+  title: "Magic Card Stores We Track — US, AU, UK, SG, CA, EU",
   description:
-    "Every store OP Compare reads One Piece Card Game prices from, by market, with how many of their listings we match today.",
+    "Every store MTG Compare reads Magic: The Gathering prices from, by market, with how many of their listings we match today.",
   alternates: { canonical: "/stores" },
 };
 
@@ -24,16 +26,18 @@ export default async function StoresPage() {
       <Breadcrumbs trail={[{ name: "Stores we track" }]} />
       <h1 className="text-2xl font-extrabold text-white sm:text-3xl">Stores we track</h1>
       <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-slate-300">
-        OP Compare reads the public product listings of every store below twice
-        a day and matches each listing to the exact One Piece printing it is —
-        by card number, and by the printing words in its title (Parallel, Manga,
-        SP…). A listing we cannot place with certainty is left out rather than
-        guessed. TCGplayer&apos;s cheapest listing is added in the US.
+        MTG Compare reads the public product listings of every store below once
+        a day and matches each listing to the exact Magic printing and finish it
+        is — by the set code and collector number in its SKU or title, or by its
+        name and set (Borderless, Showcase, Foil, Etched…). A listing we cannot
+        place with certainty is left out rather than guessed. TCGplayer&apos;s
+        cheapest listing is added in the US.
       </p>
       <div className="mt-6">
         <InShort>
-          Want your store listed? Stores on Shopify or ShadowPOS with card
-          numbers in their product titles can usually be added in a day —{" "}
+          Want your store listed? Stores on Shopify or ShadowPOS that print the
+          set and card number in their SKU or product titles can usually be added
+          in a day —{" "}
           <Link href="/stores/suggest" className="text-brand-400 hover:underline">
             suggest a store
           </Link>
@@ -41,7 +45,7 @@ export default async function StoresPage() {
         </InShort>
       </div>
       {COUNTRY_LIST.map((c) => {
-        const list = STORES.filter((s) => s.country === c.code)
+        const list = STORES.filter((s) => s.country === c.code && s.platform !== "feed")
           .map((s) => ({ s, st: by.get(`store:${s.key}|${c.code}`) }))
           .sort((a, b) => (b.st?.offers ?? 0) - (a.st?.offers ?? 0));
         const tcg = c.code === "US" ? by.get("tcgplayer|US") : undefined;

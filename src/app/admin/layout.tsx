@@ -4,7 +4,7 @@ import { AdminNoAnalytics } from "@/components/admin/AdminNoAnalytics";
 import { adminMetadata, isAdminViewer } from "@/lib/admin";
 
 export const dynamic = "force-dynamic";
-export const generateMetadata = (): Promise<Metadata> => adminMetadata({ title: { default: "Admin · OP Compare", template: "%s · Admin" } });
+export const generateMetadata = (): Promise<Metadata> => adminMetadata({ title: { default: "Admin · MTG Compare", template: "%s · Admin" } });
 
 // Chrome only, and never the gate: EVERY page calls requireAdminPage() itself
 // (a layout is not re-run on client navigation between sibling pages). For a

@@ -108,7 +108,7 @@ export function roundAtCheckout(cents: number, rounding: ShippingOverride["check
 
 // Facts the probe cannot read from /cart/shipping_rates.json, each checked by
 // hand on 2026-09-25 for RiftCompare and recorded in its probe runs' notes. A
-// store's postage is the store's, whatever game is in the cart, so OP Compare
+// store's postage is the store's, whatever game is in the cart, so MTG Compare
 // keeps the entries for the stores it also tracks (same key, same domain) and
 // drops the rest (2026-10-03). A rebuild keeps them.
 export const SHIPPING_OVERRIDES: Record<string, ShippingOverride> = {

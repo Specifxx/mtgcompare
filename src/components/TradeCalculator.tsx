@@ -37,7 +37,7 @@ interface TradeCard {
 }
 
 type Side = "yours" | "theirs";
-const STORAGE_KEY = "oc_trade";
+const STORAGE_KEY = "mc_trade";
 
 // What we keep from an /api/search card hit.
 type SearchResult = Omit<TradeCard, "qty">;
@@ -306,7 +306,7 @@ export function TradeCalculator() {
               <span className="text-base">🤖</span>
               <span className="text-[11px] font-bold uppercase tracking-wide text-slate-300">Trade Gremlin</span>
               {/* The roast is a canned line (/api/trade-roast is rules-only on
-                  OP Compare); the footer below says so. */}
+                  MTG Compare); the footer below says so. */}
               <button
                 onClick={getRoast}
                 disabled={roasting}
@@ -320,7 +320,7 @@ export function TradeCalculator() {
         )}
 
         <p className="text-[11px] text-slate-600">
-          Values start from OP Compare&apos;s lowest live store price (tap a price to type your own or pick a store).
+          Values start from MTG Compare&apos;s lowest live store price (tap a price to type your own or pick a store).
           Each side has its own value % for cash settlement. A guide for fair trades — always agree the final deal yourselves.
           {gremlin && " The Trade Gremlin's commentary is a set of canned jokes picked by the size of the gap, not written by AI — the values above are real, its opinion isn't advice."}
         </p>

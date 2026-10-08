@@ -1,6 +1,6 @@
 "use client";
 
-import { ebayLabel, ebaySearchUrl, onePieceEbayQuery, outboundRel } from "@/lib/affiliate";
+import { ebayLabel, ebaySearchUrl, magicEbayQuery, outboundRel } from "@/lib/affiliate";
 import { EbayWordmark } from "./AffiliateAds";
 import { useCountry } from "./CountryProvider";
 
@@ -10,7 +10,7 @@ import { useCountry } from "./CountryProvider";
 // that has not released. A buy path, not an ad (no "Ad" label, shown to members
 // too), and it never outranks a store: it sits beside the comparison, not in it.
 //
-// Copy follows RiftCompare's rules: a visitor's own words get "Search eBay for
+// Copy follows the sister sites' rules: a visitor's own words get "Search eBay for
 // “q”", never "Buy q"; a pre-release card says nothing ships yet; nothing claims
 // eBay has a listing. A client component so the market label follows the
 // visitor's market on pages that stay cookie-free. Carries its own disclosure.
@@ -50,19 +50,19 @@ export function EbayBuyCta({
 }) {
   const { country } = useCountry();
   const label = ebayLabel(country);
-  const href = ebaySearchUrl(country, query ? onePieceEbayQuery(query) : "One Piece Card Game singles", source ?? (query ? "card-cta" : "shop-all"));
+  const href = ebaySearchUrl(country, magicEbayQuery(query ?? "singles"), source ?? (query ? "card-cta" : "shop-all"));
   const short = query ? truncate(name ?? query, 40) : "";
   const title =
     heading ??
     (!query
-      ? "Shop One Piece singles on eBay"
+      ? "Shop Magic singles on eBay"
       : preRelease || freeText
         ? `Search ${label} for ${freeText ? `“${short}”` : short}`
         : `Buy ${short} on eBay`);
   const line =
     sub ??
     (!query
-      ? `One Piece Card Game singles from eBay sellers on ${label}.`
+      ? `Magic: The Gathering singles from eBay sellers on ${label}.`
       : preRelease
         ? "This set hasn't released yet — eBay sellers set their own dispatch dates, so check each listing."
         : freeText
@@ -91,7 +91,7 @@ export function EbayBuyCta({
           {preRelease || freeText ? "Search eBay →" : "Shop on eBay →"}
         </span>
       </a>
-      <p className="mt-1.5 text-[11px] text-slate-500">As an eBay Partner Network affiliate, OP Compare earns from qualifying purchases.</p>
+      <p className="mt-1.5 text-[11px] text-slate-500">As an eBay Partner Network affiliate, MTG Compare earns from qualifying purchases.</p>
     </div>
   );
 }

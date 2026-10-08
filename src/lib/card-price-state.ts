@@ -11,11 +11,13 @@ import type { OfferRow } from "./data";
 import { isStoreSource } from "./stores";
 
 /** Set kinds distributed through events and promotions rather than retail packs. */
-const NO_RETAIL_KINDS = new Set(["promo", "event"]);
+const NO_RETAIL_KINDS = new Set(["promo", "promo-pack"]);
+/** Treatments only ever handed out at events or in promo kits (constants.ts TREATMENTS, kind "promo"). */
+const HANDED_OUT = new Set(["prerelease", "promopack", "gameday", "fnm", "judge", "arenaleague", "wpn", "datestamped", "launch"]);
 
 /** This printing is only ever handed out (events, pre-releases, promo kits), never sold in a shop. */
 export function hasNoRetailChannel(setKind: string, printing: string): boolean {
-  return NO_RETAIL_KINDS.has(setKind) || printing === "promo";
+  return NO_RETAIL_KINDS.has(setKind) || HANDED_OUT.has(printing);
 }
 
 export interface CardPriceState {

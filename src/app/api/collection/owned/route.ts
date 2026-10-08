@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { getCatalog } from "@/lib/data";
+import { getSetBySlug } from "@/lib/data";
 import { ownedBySet, ownedDb } from "@/lib/set-owned";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/collection/owned?set=op-01 — which cards of ONE set the signed-in
-// account holds, as {cardId: copies} (any condition). RiftCompare's route,
-// wave 2.
+// GET /api/collection/owned?set=mh3 — which cards of ONE set the signed-in
+// account holds, as {cardId: copies} (any condition, any finish).
 //
 // The set page's client overlay reads this (components/SetOwned.tsx) instead of
 // the page reading the session: the public /sets/[slug] page is shared by every
@@ -23,7 +22,7 @@ export async function GET(req: Request) {
   if (!user) return NextResponse.json({ error: "Sign in" }, { status: 401, headers: NO_STORE });
 
   const slug = new URL(req.url).searchParams.get("set")?.trim().toLowerCase() ?? "";
-  const set = slug ? (await getCatalog()).setBySlug.get(slug) : undefined;
+  const set = slug ? await getSetBySlug(slug) : null;
   if (!set) return NextResponse.json({ error: "Unknown set" }, { status: 400, headers: NO_STORE });
 
   try {

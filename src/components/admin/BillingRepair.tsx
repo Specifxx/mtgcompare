@@ -69,7 +69,7 @@ export function BillingRepair() {
     setSync({
       ok: true,
       text: stamped || unmatched.length ? `Checked ${Number(data.seen ?? 0)} · ${stamped} updated` : "Everything already in sync",
-      notes: unmatched.length ? [`No OP Compare account for: ${unmatched.join(", ")}`] : undefined,
+      notes: unmatched.length ? [`No MTG Compare account for: ${unmatched.join(", ")}`] : undefined,
     });
     router.refresh();
   };

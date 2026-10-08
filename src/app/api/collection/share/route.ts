@@ -4,8 +4,7 @@ import { sameOrigin } from "@/lib/admin-guard";
 import { collectionShareToken, disableCollectionShare, enableCollectionShare, rotateCollectionShare, shareUrlForCollection } from "@/lib/collection-share";
 import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 
-// The binder's public link (/c/<token>) — RiftCompare's /api/collection/share,
-// wave 2. The token lives on User.collectionShareId (lib/collection-share.ts).
+// The binder's public link (/c/<token>). The token lives on User.collectionShareId (lib/collection-share.ts).
 export const dynamic = "force-dynamic";
 
 const noStore = { "Cache-Control": "private, no-store" };

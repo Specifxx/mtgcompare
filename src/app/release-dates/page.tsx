@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Breadcrumbs, InShort, SectionHeader } from "@/components/ui";
-import { SET_KINDS } from "@/lib/constants";
-import { getCatalog } from "@/lib/data";
+import { RELEASE_SET_KINDS, SET_KINDS } from "@/lib/constants";
+import { getSets } from "@/lib/data";
 import { int, longDate } from "@/lib/format";
 import { pageOg } from "@/lib/og/meta";
 import { DATA_TABLE } from "@/components/prose";
 import { ReleaseCountdownTimer } from "@/components/ReleaseCountdownTimer";
 import { ReleaseAlertSlot } from "@/components/ReleaseAlertSlot";
 
+// Every route that reaches the published data is dynamic: a build reads no data host (CLAUDE.md, contract C26).
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
-  title: "One Piece TCG Release Dates — Next Set & Every Past Set",
+  title: "Magic: The Gathering Release Dates — Next Set & Every Past Set",
   description:
-    "When the next One Piece Card Game set comes out, and the English release date of every booster set, extra booster, premium booster and starter deck.",
+    "When the next Magic: The Gathering set comes out, and the release date of every expansion, core set, masters set and Commander product, with the announced sets still to come.",
   alternates: { canonical: "/release-dates" },
   openGraph: pageOg("/release-dates"),
 };
@@ -22,13 +25,8 @@ function daysUntil(iso: string): number {
 }
 
 export default async function ReleaseDates() {
-  const cat = await getCatalog();
   const today = new Date().toISOString().slice(0, 10);
-  const main = cat.sets.filter(
-    (s) =>
-      ["booster", "extra", "premium", "starter"].includes(s.kind) &&
-      s.releasedOn,
-  );
+  const main = (await getSets()).filter((s) => RELEASE_SET_KINDS.includes(s.kind) && s.releasedOn);
   const upcoming = main
     .filter((s) => s.releasedOn! > today)
     .sort((a, b) => a.releasedOn!.localeCompare(b.releasedOn!));
@@ -40,13 +38,14 @@ export default async function ReleaseDates() {
     <div>
       <Breadcrumbs trail={[{ name: "Release dates" }]} />
       <h1 className="font-display text-3xl font-extrabold text-white sm:text-4xl">
-        One Piece TCG release dates
+        Magic: The Gathering release dates
       </h1>
       <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-slate-300">
-        The English release date of every One Piece Card Game booster set, extra
-        booster, premium booster and starter deck, newest first, with the
-        announced sets still to come. Dates are TCGplayer&apos;s listing dates
-        for the English product.
+        The release date of every Magic expansion, core set, masters set and
+        Commander product, newest first, with the announced sets still to come.
+        Dates are the sets&apos; release dates as published by Scryfall and
+        TCGplayer for the English product; a set can ship to stores or
+        pre-release events a week or so before its street date.
       </p>
       {next ? (
         <div className="mt-6">

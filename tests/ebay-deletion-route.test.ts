@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { GET, POST } from "../src/app/api/ebay/marketplace-deletion/route";
 
-const URL_BASE = "https://opcompare.app/api/ebay/marketplace-deletion";
+const URL_BASE = "https://mtgcompare.app/api/ebay/marketplace-deletion";
 const TOKEN = "test_verification-token_0123456789abcdefABCDEF";
 const saved = { t: process.env.EBAY_VERIFICATION_TOKEN, e: process.env.EBAY_DELETION_ENDPOINT };
 afterEach(() => {

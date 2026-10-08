@@ -121,7 +121,7 @@ function sentences(...fragments: (string | null | undefined | false)[]): string 
 }
 
 // ── Printing is not rarity ───────────────────────────────────────────────────
-// `Card.variant` is TCGplayer's own suffix ("Parallel", "Manga · Alternate Art",
+// `Card.variant` is TCGplayer's own suffix ("Borderless", "Extended Art",
 // "SP") and `printing` is our bucket for it. Prose uses the bucket, never the
 // raw suffix, so the page cannot call one printing two things.
 /** Prose names come from the closed treatment vocabulary; "standard" is the plain frame. */

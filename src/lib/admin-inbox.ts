@@ -1,6 +1,7 @@
 // /admin/inbox reads and mutations. Uncached (owner-only traffic). Each list
 // loads under its own try/catch so one failing table never sinks the page.
 import { loadAppearances } from "./admin-health";
+import { getCardsByIds, getSealedByIds } from "./data";
 import { prisma } from "./db";
 import type { FeedbackAction, ReportStatus, SuggestionStatus, ContactStatus } from "./inbox-rules";
 import { shouldNotifyReporter } from "./inbox-rules";
@@ -23,15 +24,14 @@ const settle = async <T>(p: Promise<T>): Promise<{ ok: true; data: T } | { ok: f
 async function loadReports() {
   const rows = await prisma.priceReport.findMany({ orderBy: { createdAt: "desc" }, take: INBOX_CAPS.reports });
   const ids = [...new Set(rows.map((r) => r.productId))];
-  const [cards, sealed] = ids.length
-    ? await Promise.all([
-        prisma.card.findMany({ where: { id: { in: ids } }, select: { id: true, slug: true, name: true } }),
-        prisma.sealed.findMany({ where: { id: { in: ids } }, select: { id: true, slug: true, name: true } }),
-      ])
-    : [[], []];
+  // Products are published data, not Neon rows: resolve the ids through the plane loaders (a card first, then a sealed product for what is left).
   const product = new Map<number, { name: string; href: string }>();
-  for (const c of cards) product.set(c.id, { name: c.name, href: `/card/${c.slug}` });
-  for (const s of sealed) product.set(s.id, { name: s.name, href: `/sealed/${s.slug}` });
+  if (ids.length) {
+    const cards = await getCardsByIds(ids).catch(() => new Map<number, { name: string; slug: string }>());
+    for (const [id, c] of cards) product.set(id, { name: c.name, href: `/card/${c.slug}` });
+    const rest = ids.filter((id) => !product.has(id));
+    if (rest.length) for (const [id, s] of await getSealedByIds(rest).catch(() => new Map<number, { name: string; slug: string }>())) product.set(id, { name: s.name, href: `/sealed/${s.slug}` });
+  }
   return rows.map((r) => ({ ...r, product: product.get(r.productId) ?? null }));
 }
 

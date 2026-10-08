@@ -133,7 +133,7 @@ export function quickViewPayload(
   finish: Finish = c.headFinish,
 ): QuickViewPayload {
   const loc = `/card/${c.slug}`;
-  const query = cardEbayQuery({ ...c, foil: finish === "F" });
+  const query = cardEbayQuery({ name: c.name, setName: c.set.name, variant: c.label, number: c.label ? c.number : null, foil: finish === "F" });
   const offers = c.offers.filter((o) => o.finish === finish);
   const markets = {} as Record<Country, QuickViewMarket>;
   for (const m of MARKETS) {

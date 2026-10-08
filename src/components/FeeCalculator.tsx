@@ -7,7 +7,7 @@ import { formatMoney } from "@/lib/format-currency";
 import { currencyOf } from "@/lib/country";
 import { computeFees, parseRate, type CommissionBase } from "@/lib/selling-fees";
 
-// A net-proceeds calculator for selling One Piece Card Game singles on a marketplace like
+// A net-proceeds calculator for selling Magic: The Gathering singles on a marketplace like
 // TCGplayer or eBay. DELIBERATELY has no baked-in "current" commission or
 // processing rate: both marketplaces run tiered, frequently-changing fee
 // schedules (see TCGplayer's own fee page), and printing a specific percentage here

@@ -128,14 +128,14 @@ export async function getDealOffers(country: Country, uids: readonly number[]): 
 }
 
 export type BasketListingTuple = [uid: number, source: string, priceCents: number, condition: number | null, url: string];
-/** The cheapest 60 live store listings per unit for at most 40 units (never TCGplayer's own row, never eBay), in the market's currency. */
+/** The cheapest 60 live listings per unit for at most 40 units: the stores plus, in the US, TCGplayer's own lowest listing (a buyable price); never eBay. In the market's currency. */
 export async function getBasketListings(country: Country, uids: readonly number[]): Promise<BasketListingTuple[]> {
   const want = [...new Set(uids)].slice(0, BASKET_ID_CHUNK); if (!want.length) return [];
   const { src } = await planeSource();
-  const live = await readLiveOffers(src, { units: want.map((u) => ({ id: u >> 1, finish: (u & 1 ? "F" : "N") as Finish })), market: country });
+  const live = await readLiveOffers(src, { units: want.map((u) => ({ id: u >> 1, finish: (u & 1 ? "F" : "N") as Finish })), market: country, includeTcgplayer: true });
   const by = new Map<number, BasketListingTuple[]>();
   for (const o of live) {
-    if (!o.inStock || o.source === "tcgplayer") continue;
+    if (!o.inStock) continue;
     const uid = o.productId * 2 + (o.finish === "F" ? 1 : 0), ci = o.condition ? CONDITIONS.indexOf(o.condition) : -1;
     const arr = by.get(uid) ?? []; arr.push([uid, o.source, o.priceCents, ci < 0 ? null : ci, o.url]); by.set(uid, arr);
   }

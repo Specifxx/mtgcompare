@@ -13,13 +13,13 @@ import { SITE_URL } from "@/lib/site";
 // market and currency, with a per-card override or a specific store's price.
 const TITLE = "One Piece Trade Calculator: Fair Trade Values";
 const DESCRIPTION =
-  "Compare One Piece Card Game trade values: both sides priced at the cheapest in-stock store price in your market and currency, so you know a trade is fair.";
+  "Compare Magic: The Gathering trade values: both sides priced at the cheapest in-stock store price in your market and currency, so you know a trade is fair.";
 
 export const metadata: Metadata = {
-  title: { absolute: `${TITLE} | OP Compare` },
+  title: { absolute: `${TITLE} | MTG Compare` },
   description: DESCRIPTION,
   alternates: { canonical: "/trade" },
-  openGraph: pageOg("/trade", { title: `${TITLE} | OP Compare`, description: DESCRIPTION }),
+  openGraph: pageOg("/trade", { title: `${TITLE} | MTG Compare`, description: DESCRIPTION }),
 };
 
 // Static shell; the calculator itself is client-side (reads the market from the
@@ -29,13 +29,13 @@ export default function TradePage() {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     "@id": `${SITE_URL}/trade#app`,
-    name: "OP Compare Trade Calculator",
+    name: "MTG Compare Trade Calculator",
     url: `${SITE_URL}/trade`,
     applicationCategory: "UtilitiesApplication",
     operatingSystem: "Web",
     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
     description:
-      "A free One Piece Card Game trade calculator: add the cards on each side of a trade and compare their total value at the cheapest in-stock store price in your market and currency.",
+      "A free Magic: The Gathering trade calculator: add the cards on each side of a trade and compare their total value at the cheapest in-stock store price in your market and currency.",
     featureList: [
       "Add One Piece cards to each side of a trade and compare the two totals",
       "Each card valued at the cheapest in-stock store price in your market",

@@ -2,39 +2,46 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Breadcrumbs, JsonLd } from "@/components/ui";
 import { SET_KINDS } from "@/lib/constants";
-import { getCatalog } from "@/lib/data";
+import { getSets, type SetLite } from "@/lib/data";
 import { galleryDescription, galleryTitle } from "@/lib/gallery-seo";
 import { int, longDate } from "@/lib/format";
 import { breadcrumbLd, itemListLd } from "@/lib/jsonld";
 import { pageOg } from "@/lib/og/meta";
 
+// Every route that reaches the published data is dynamic: a build reads no data host (CLAUDE.md, contract C26).
+export const dynamic = "force-dynamic";
+
 // The gallery hub: every set with cards, newest first, each linking to its own
-// gallery (/sets/[slug]/gallery). Reads the cached catalogue only.
+// gallery (/sets/[slug]/gallery). Reads the published set list only.
+async function gallerySets(): Promise<{ sets: SetLite[]; total: number }> {
+  // the hidden kinds (Art Series, oversized) keep their own pages but are not part of the hub
+  const sets = (await getSets()).filter((s) => s.cardCount > 0 && !SET_KINDS[s.kind]?.hidden);
+  return { sets, total: sets.reduce((n, s) => n + s.cardCount, 0) };
+}
+
 export async function generateMetadata(): Promise<Metadata> {
-  const cat = await getCatalog();
-  const sets = cat.sets.filter((s) => cat.cards.some((c) => c.setId === s.id));
+  const { sets, total } = await gallerySets();
   const names = [...sets].sort((a, b) => (a.releasedOn ?? "").localeCompare(b.releasedOn ?? "")).map((s) => s.name);
   return {
-    title: galleryTitle(cat.cards.length),
-    description: galleryDescription(cat.cards.length, names),
+    title: galleryTitle(total),
+    description: galleryDescription(total, names),
     alternates: { canonical: "/gallery" },
     openGraph: pageOg("/gallery"),
   };
 }
 
 export default async function GalleryHub() {
-  const cat = await getCatalog();
-  const counts = new Map<number, number>();
-  for (const c of cat.cards) counts.set(c.setId, (counts.get(c.setId) ?? 0) + 1);
-  const sets = cat.sets.filter((s) => counts.has(s.id)).sort((a, b) => (b.releasedOn ?? "").localeCompare(a.releasedOn ?? "") || a.code.localeCompare(b.code));
+  const { sets: listed, total } = await gallerySets();
+  const counts = new Map(listed.map((s) => [s.id, s.cardCount] as const));
+  const sets = [...listed].sort((a, b) => (b.releasedOn ?? "").localeCompare(a.releasedOn ?? "") || a.code.localeCompare(b.code));
   const kinds = Object.entries(SET_KINDS).sort((a, b) => a[1].order - b[1].order);
   return (
     <div>
-      <JsonLd data={itemListLd("One Piece card galleries", "/gallery", sets.map((s) => ({ name: `${s.name} gallery`, path: `/sets/${s.slug}/gallery` })))} />
+      <JsonLd data={itemListLd("Magic card galleries", "/gallery", sets.map((s) => ({ name: `${s.name} gallery`, path: `/sets/${s.slug}/gallery` })))} />
       <Breadcrumbs trail={[{ name: "Gallery" }]} />
-      <h1 className="text-2xl font-extrabold text-white sm:text-3xl">One Piece card gallery</h1>
+      <h1 className="text-2xl font-extrabold text-white sm:text-3xl">Magic: The Gathering card gallery</h1>
       <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-slate-300">
-        Every One Piece Card Game card as art, set by set: {int(cat.cards.length)} printings across {int(sets.length)} sets. Pick a set to filter its gallery by colour, rarity or printing; each card opens its live prices. Looking for prices first? The{" "}
+        Every Magic card as art, set by set: {int(total)} printings across {int(sets.length)} sets. Pick a set to filter its gallery by colour, rarity or treatment (Borderless, Extended Art, Showcase, foil patterns); each card opens its live prices. Looking for prices first? The{" "}
         <Link href="/price-guide" className="text-brand-400 hover:underline">
           price guide
         </Link>{" "}

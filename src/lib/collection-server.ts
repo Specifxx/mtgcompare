@@ -129,6 +129,12 @@ export function collectionRows(userId: string, take = COLLECTION_TAKE): Promise<
   return prisma.collectionCard.findMany({ where: { userId }, orderBy: { updatedAt: "desc" }, take, select: ROW_SELECT });
 }
 
+/** The distinct product ids in one account's binder, capped at the binder's row cap: what the premium nudge ranks (lib/premium-nudge.ts, REQ-WP12-1). */
+export async function ownedCardIds(userId: string): Promise<number[]> {
+  const rows = await prisma.collectionCard.findMany({ where: { userId }, take: COLLECTION_TAKE, select: { cardId: true } });
+  return [...new Set(rows.map((r) => r.cardId))];
+}
+
 export type CollectionItem = CollectionRow & { card: CollectionCardInfo };
 
 /** The editor's list: rows with their card from the catalogue; a row whose card is gone is dropped. */

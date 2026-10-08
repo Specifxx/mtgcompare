@@ -3,8 +3,10 @@ import type { Metadata } from "next";
 import { adminMetadata, requireAdminPage } from "@/lib/admin";
 import { formatMoney } from "@/lib/format-currency";
 import { currencyOf, COUNTRY_LIST } from "@/lib/country";
-import { getCachedRisingCards, getRisingWeekAgo } from "@/lib/data";
-import { parseRiseScope, type RisePick, type RiseComponents, type RiseScope } from "@/lib/rise-predictor";
+import { currentEntitlement } from "@/lib/auth";
+import { getCachedRisingCards, getRisingTeaser, getRisingWeekAgo } from "@/lib/data";
+import { FEATURE_RULES, gateMatrix } from "@/lib/premium-gates";
+import { emptyAnalysis, parseRiseScope, type RisePick, type RiseComponents, type RiseScope } from "@/lib/rise-predictor";
 import { RisingSnapshotPanel } from "@/components/admin/RisingSnapshotPanel";
 import { MoveBadge } from "@/components/MoveBadge";
 import { movementAgainst, weekAgoLabel } from "@/lib/rising-movement";
@@ -12,9 +14,11 @@ import { movementAgainst, weekAgoLabel } from "@/lib/rising-movement";
 export const dynamic = "force-dynamic";
 export const generateMetadata = (): Promise<Metadata> => adminMetadata({ title: "Rising" });
 
-// RiftCompare's /admin/rising, for OP Compare: the full Rising Cards ranking
-// with its signal breakdown, the validation tiles, and the Hot 40 snapshot
-// panel. requireAdminPage first (fails closed with a 404).
+// RiftCompare's /admin/rising, for MTG Compare: the full Rising Cards ranking
+// with its signal breakdown, the validation tiles, what each tier would see
+// beside it, and the Hot 40 snapshot panel. requireAdminPage first (fails
+// closed with a 404). The ranking is read through the same gated loader as the
+// public tool: an admin counts as Premium, so the cut leaves every pick.
 
 // Tiny server-rendered price sparkline (no client JS) from a cents series.
 function Spark({ values, w = 96, h = 28 }: { values: number[]; w?: number; h?: number }) {
@@ -83,15 +87,20 @@ export default async function AdminRisingPage({ searchParams }: { searchParams: 
   const scope: RiseScope = parseRiseScope(searchParams.country, "GLOBAL");
   const isGlobal = scope === "GLOBAL";
 
-  // The same loaders /tools/rising and the homepage read (weekly history,
-  // daily operational inputs — rise-predictor.ts), so an admin load never
-  // triggers a second copy of the scan under its own key.
+  // The same loaders /tools/rising and the homepage read (weekly closes, the
+  // daily demand inputs — lib/data/demand.ts), so an admin load never triggers
+  // a second copy of the scan under its own key. An admin is Premium, so the
+  // gate leaves every pick; anything else would be a failed session read and
+  // is shown as the failure it is.
   //
-  // Last week's chart for this scope (lib/rising-movement.ts): the most recent
-  // Hot 40 snapshot at least six days old — what next week's snapshot will be
-  // compared with too. None → no Move column, and the panel above says so.
-  const [analysis, weekAgo] = await Promise.all([getCachedRisingCards(scope), getRisingWeekAgo(scope)]);
+  // Last week's chart for this scope (lib/rising-movement.ts): the ranking
+  // rebuilt as of 7 days ago from the demand snapshots and the weekly closes.
+  // None → no Move column, and the panel above says so.
+  const who = await currentEntitlement();
+  const [result, weekAgo, published] = await Promise.all([getCachedRisingCards(scope, who), getRisingWeekAgo(scope, who), getRisingTeaser(scope).catch(() => [])]);
+  const analysis = result.access === "full" ? result.analysis : emptyAnalysis(scope, true);
   const moves = movementAgainst(analysis.picks.map((p) => p.id), weekAgo);
+  const matrix = gateMatrix().find((g) => g.feature === "rising")!;
 
   const bt = analysis.backtest;
 
@@ -147,6 +156,21 @@ export default async function AdminRisingPage({ searchParams }: { searchParams: 
         )}
       </p>
 
+      {/* What each tier gets of this list (contract 14.3), and the preview the data repository holds right now (pv/rising.json, written by the
+          demand-snapshot job) against the live top of the list: a stale preview shows here before a visitor sees it. */}
+      <div className="mb-6 rounded-xl border border-ink-700 bg-ink-850 px-4 py-3 text-xs leading-relaxed text-slate-400">
+        <p>
+          <strong className="text-slate-200">Who sees what:</strong> signed out {matrix.signedOut} picks, a free account {matrix.free}, Plus {matrix.plus}, Premium {matrix.premium === "all" ? "every pick" : matrix.premium}.
+          Admins count as Premium. Gate: <code>{FEATURE_RULES.rising.surface}</code>.
+        </p>
+        <p className="mt-1">
+          <strong className="text-slate-200">Published preview for {scope}:</strong>{" "}
+          {published.length ? published.map((p) => p.name).join(" · ") : "none (the demand-snapshot job has not written one for this scope)"}.{" "}
+          <strong className="text-slate-200">Live top {Math.min(published.length || matrix.free, analysis.picks.length)}:</strong>{" "}
+          {analysis.picks.slice(0, published.length || matrix.free).map((p) => p.displayName).join(" · ") || "none"}.
+        </p>
+      </div>
+
       {/* Validation + status tiles */}
       <div className="mb-6 grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
         {/* `qualifying` is cards with ENOUGH points to score, not cards with any
@@ -198,8 +222,8 @@ export default async function AdminRisingPage({ searchParams }: { searchParams: 
             <>
               <p className="font-semibold text-white">No price history in {isGlobal ? "any market" : scope} yet</p>
               <p className="mt-1">
-                Nothing has been recorded for these cards. Check that the price import is running and publishing
-                history/rising.json to the data branch.
+                Nothing has been recorded for these cards. Check that the import is publishing the weekly closes
+                (hist/w) and that the demand-snapshot job is writing DemandDay rows.
               </p>
             </>
           ) : (

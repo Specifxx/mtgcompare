@@ -3,12 +3,12 @@
 // both ranked by the SAME rule.
 //
 // Pure — no database. lib/demand-snapshot.ts supplies both periods' rows
-// (getDemandWindow(days, { previous: true })); this module only ranks them.
+// (demandWindowOrThrow(days, deps, { previous: true })); this module only ranks them.
 
 export type DemandMetric = "searches" | "views";
 
 export interface DemandCounts {
-  cardId: string;
+  cardId: number;
   searches: number;
   views: number;
 }
@@ -27,7 +27,7 @@ export type Movement =
 export function compareDemand(metric: DemandMetric) {
   const other: DemandMetric = metric === "searches" ? "views" : "searches";
   return (a: DemandCounts, b: DemandCounts): number =>
-    b[metric] - a[metric] || b[other] - a[other] || (a.cardId < b.cardId ? -1 : a.cardId > b.cardId ? 1 : 0);
+    b[metric] - a[metric] || b[other] - a[other] || (a.cardId - b.cardId);
 }
 
 /**
@@ -35,7 +35,7 @@ export function compareDemand(metric: DemandMetric) {
  * field is ranked, not just the displayed top N, so a card climbing from #73 to
  * #40 shows ▲33 rather than a vague "new to the chart".
  */
-export function rankBy(rows: readonly DemandCounts[], metric: DemandMetric): Map<string, number> {
+export function rankBy(rows: readonly DemandCounts[], metric: DemandMetric): Map<number, number> {
   const ranked = rows.filter((r) => r[metric] > 0).sort(compareDemand(metric));
   return new Map(ranked.map((r, i) => [r.cardId, i + 1]));
 }
@@ -53,16 +53,16 @@ export function movementFor(rank: number, prevRank: number | undefined): Movemen
  * Hot 40, whose previous chart is a frozen snapshot that only holds its own
  * picks, so "new" there means "not on that chart" (it may have ranked lower).
  */
-export function movementFromRanks(order: readonly string[], prevRanks: ReadonlyMap<string, number>): Map<string, Movement> {
+export function movementFromRanks(order: readonly number[], prevRanks: ReadonlyMap<number, number>): Map<number, Movement> {
   return new Map(order.map((id, i) => [id, movementFor(i + 1, prevRanks.get(id))]));
 }
 
 /** Movement for each card in this period's displayed list (already in rank order). */
 export function chartMovement(
-  currentOrder: readonly string[],
+  currentOrder: readonly number[],
   previousRows: readonly DemandCounts[],
   metric: DemandMetric,
-): Map<string, Movement> {
+): Map<number, Movement> {
   const prev = rankBy(previousRows, metric);
   return new Map(currentOrder.map((id, i) => [id, movementFor(i + 1, prev.get(id))]));
 }

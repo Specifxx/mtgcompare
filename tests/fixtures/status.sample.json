@@ -1,0 +1,18 @@
+{
+  "v": 1,
+  "at": "2026-10-08T22:41:09Z",
+  "by": "publish",
+  "pointer": { "seq": 41, "ref": "4f9c2e1ab07d3c58e6a1f0d92b7c4e83a5d6f101", "prev": "9ab81c0de4f2736518a0c9d4e7b3f2a16c58d0e7", "publishedAt": "2026-10-08T22:38:00Z", "priceDay": "2026-10-08", "phase": "full", "tcgcsv": "2026-10-08T20:05:11Z", "scryfall": "2026-10-08T09:12:30Z", "format": "v1", "manifestSha256": "0000000000000000000000000000000000000000000000000000000000000000", "repo": "Specifxx/mtgcompare-data", "histCut": "2026-07-10", "pvAt": null },
+  "counts": { "cards": 98796, "listed": 65156, "thin": 33640, "tracked": 28538, "oracles": 33429, "sets": 454, "sealed": 3712, "offers": 412000, "files": 9488, "bytesRaw": 160518144, "bytesGz": 56415436 },
+  "families": [["cat", 700, 40000000, 9000000], ["px", 120, 9000000, 2000000], ["hist/p", 400, 30000000, 9000000], ["of", 900, 28000000, 6000000], ["st", 30, 400000, 90000], ["pv", 2, 90000, 20000]],
+  "config": { "trackConfigHash": "c0ffee", "guardTrips": { "flagChange": 0 }, "catalogFloorCents": 1, "indexFloorCents": 50 },
+  "groups": [],
+  "guards": { "flagChange": null, "groupHold": [], "storeHold": ["cardkingdom-us"], "configChanged": false, "countsOk": true },
+  "previous": { "files": 9490, "cards": 98790, "listed": 65150, "tracked": 28530, "oracles": 33429 },
+  "refusals": [],
+  "runs": [{ "at": "2026-10-08T22:38:00Z", "startedAt": "2026-10-08T21:25:00Z", "kind": "full", "ok": true, "seconds": 4380, "note": "published" }],
+  "repo": { "kb": 410000, "at": "2026-10-08T06:00:00Z", "trend": [["2026-10-04", 380000], ["2026-10-05", 388000], ["2026-10-06", 395000], ["2026-10-07", 402000], ["2026-10-08", 410000]], "isPrivate": true, "lastSquashAt": "2026-10-01T05:00:00Z" },
+  "token": { "expiresAt": "2027-01-06T00:00:00Z", "daysLeft": 90, "checkedAt": "2026-10-08T06:00:00Z" },
+  "hosts": null,
+  "alarms": []
+}

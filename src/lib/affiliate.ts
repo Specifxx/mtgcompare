@@ -123,7 +123,7 @@ export function ebayLabel(country: Country): string {
 export function magicEbayQuery(query: string): string {
   const clean = query.replace(/,/g, " ").replace(/\s+/g, " ").trim();
   if (!clean) return "Magic The Gathering cards";
-  return /\b(?:mtg|magic(?:\s+the\s+gathering)?)\b/i.test(clean) ? clean : `MTG ${clean}`;
+  return /\b(?:mtg|magic:?\s+the\s+gathering)\b/i.test(clean) ? clean : `MTG ${clean}`;
 }
 
 /** A card's eBay query: name, collector number and the printing words sellers use (foil, borderless...). */

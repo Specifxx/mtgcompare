@@ -1,66 +1,68 @@
-// The import's tools step (wave 2): today's demand snapshot and the Rising
-// Cards feed, written beside the price history on the `data` branch — never a
-// Prisma table (CLAUDE.md, "Price history lives in GitHub"). Called by
-// scripts/import.ts right after recordHistory, so the bucket files it reads
-// already hold today's prices. Server-only (Prisma and the local history
-// checkout). Best-effort: the caller never fails the import over it.
+// The database half of the demand tools (contract 14.5): the DemandDay snapshots and the live counters. Server-only (Prisma). The counters (CardStat) and the daily snapshots of them (DemandDay) are PRIVATE, paid-product data: they live in Neon, are read per
+// request behind the entitlement gate (src/lib/data/demand.ts) and are never written to a file. The only demand-derived files are the two clear preview slices, written by scripts/publish-demand.ts through the publisher's overlay mode.
+//
+// OP Compare wrote the daily snapshot and a "rising feed" of weekly series to its public data branch at the end of the import. Here the importer reads nothing from Neon and writes nothing demand-shaped: the demand-snapshot job calls
+// recordDemandDay once a day, and the weekly closes Rising Cards ranks on are the public hist/w files the importer already publishes.
 import { prisma } from "./db";
-import { bucketOf } from "./history";
-import { readBucket, readDemandDay, readDemandDays, writeDemandDay, writeDemandDays, writeRiseFile } from "./history-store";
-import { buildDemandDay, dayMinus, utcDayKey, withDemandDay, type DemandDayFile } from "./demand-snapshot";
-import { buildRiseFile, HISTORY_DAYS, RISE_FEED_CARDS, VELOCITY_DAYS, WEEK_AGO_DAYS } from "./rise-predictor";
-import type { Point } from "./history";
+import { DEMAND_DAY_CARDS, buildDemandDay, dayMinus, utcDayKey, type DemandDayFile } from "./demand-snapshot";
 
-type Log = (...a: unknown[]) => void;
+/** Rows of snapshots kept: Demand Finder's 30-day window and its previous period (60), Rising Cards' velocity window and the week-ago rebuild (30), with room to spare. */
+export const DEMAND_KEEP_DAYS = 120;
 
-export interface ToolsHistoryResult {
-  day: string;
-  demandCards: number;
-  snapshotDays: number;
-  risingSeries: number;
+export interface Counter { id: number; searchCount: number; viewCount: number }
+/** What the demand code needs of the database, narrow enough to stand in for it in a test. */
+export interface DemandStore {
+  /** The busiest cards by running totals (the top `n` by searches, merged with the top `n` by views). */
+  counters(n: number): Promise<Counter[]>;
+  /** The days a snapshot exists for. */
+  days(): Promise<string[]>;
+  /** One day's snapshot; null when there is none. A failed read throws. */
+  readDay(day: string): Promise<DemandDayFile | null>;
+  writeDay(file: DemandDayFile): Promise<void>;
+  /** Deletes snapshots older than `day`. */
+  pruneBefore(day: string): Promise<number>;
 }
 
-export async function recordToolsHistory(log: Log, today: string = utcDayKey()): Promise<ToolsHistoryResult> {
-  // 1. Today's demand snapshot: the running totals of every card with any
-  //    activity (id + two integers each), replacing a same-day run's file.
-  const counted = await prisma.card.findMany({
-    where: { OR: [{ searchCount: { gt: 0 } }, { viewCount: { gt: 0 } }] },
-    select: { id: true, searchCount: true, viewCount: true },
-  });
-  const dayFile = buildDemandDay(today, counted);
-  writeDemandDay(dayFile);
-  const index = withDemandDay(readDemandDays(), today);
-  writeDemandDays(index);
+const busy = () => ({ OR: [{ searchCount: { gt: 0 } }, { viewCount: { gt: 0 } }] });
+const SELECT = { cardId: true, searchCount: true, viewCount: true } as const;
+/** DemandDay.data is `{ "<productId>": [searches, views] }`; anything else in the column is ignored rather than trusted. */
+function pairsOf(json: unknown): DemandDayFile["p"] {
+  const p: DemandDayFile["p"] = {};
+  if (json && typeof json === "object" && !Array.isArray(json)) for (const [id, v] of Object.entries(json as Record<string, unknown>)) if (Array.isArray(v) && typeof v[0] === "number" && typeof v[1] === "number") p[id] = [v[0], v[1]];
+  return p;
+}
 
-  // 2. history/rising.json: the weekly series over HISTORY_DAYS (from the
-  //    bucket files recordHistory just wrote) of the RISE_FEED_CARDS most
-  //    searched cards — Rising Cards ranks only searched cards, and the cap
-  //    keeps the file (and its cache entry) to a few hundred KB — plus demand
-  //    velocity now and demand as it stood a week ago (the local day files).
-  const searched = counted
-    .filter((c) => c.searchCount > 0)
-    .sort((a, b) => b.searchCount - a.searchCount || b.viewCount - a.viewCount || a.id - b.id)
-    .slice(0, RISE_FEED_CARDS);
-  const byBucket = new Map<string, number[]>();
-  for (const c of searched) (byBucket.get(bucketOf(c.id)) ?? byBucket.set(bucketOf(c.id), []).get(bucketOf(c.id))!).push(c.id);
-  const series = new Map<string, Point[]>();
-  for (const [b, ids] of byBucket) {
-    const file = readBucket(b);
-    for (const id of ids) {
-      const s = file.p[String(id)];
-      if (s?.length) series.set(String(id), s);
-    }
-  }
-  const from = dayMinus(today, VELOCITY_DAYS + WEEK_AGO_DAYS + 1);
-  const files: DemandDayFile[] = index.days
-    .filter((d) => d >= from && d <= today)
-    .map((d) => (d === today ? dayFile : readDemandDay(d)))
-    .filter((f): f is DemandDayFile => !!f);
-  const rise = buildRiseFile(today, series, files, index.days.length, new Set(searched.map((c) => String(c.id))));
-  writeRiseFile(rise);
-  log(
-    `Tools history: demand snapshot of ${Object.keys(dayFile.p).length} cards for ${today} (${index.days.length} days on record); ` +
-      `rising feed with ${Object.keys(rise.series).length} weekly series over ${HISTORY_DAYS} days`,
-  );
-  return { day: today, demandCards: Object.keys(dayFile.p).length, snapshotDays: index.days.length, risingSeries: Object.keys(rise.series).length };
+export function prismaDemandStore(): DemandStore {
+  return {
+    async counters(n) {
+      const [bySearch, byView] = await Promise.all([
+        prisma.cardStat.findMany({ where: busy(), orderBy: [{ searchCount: "desc" }, { viewCount: "desc" }, { cardId: "asc" }], take: n, select: SELECT }),
+        prisma.cardStat.findMany({ where: busy(), orderBy: [{ viewCount: "desc" }, { searchCount: "desc" }, { cardId: "asc" }], take: n, select: SELECT }),
+      ]);
+      const merged = new Map<number, Counter>();
+      for (const r of [...bySearch, ...byView]) merged.set(r.cardId, { id: r.cardId, searchCount: r.searchCount, viewCount: r.viewCount });
+      return [...merged.values()];
+    },
+    async days() { return (await prisma.demandDay.findMany({ select: { day: true }, orderBy: { day: "asc" } })).map((r) => r.day); },
+    async readDay(day) {
+      const row = await prisma.demandDay.findUnique({ where: { day }, select: { data: true } });
+      return row ? { v: 1, day, p: pairsOf(row.data) } : null;
+    },
+    async writeDay(file) {
+      const data = file.p as unknown as object;
+      await prisma.demandDay.upsert({ where: { day: file.day }, create: { day: file.day, data }, update: { data } });
+    },
+    async pruneBefore(day) { return (await prisma.demandDay.deleteMany({ where: { day: { lt: day } } })).count; },
+  };
+}
+
+export interface DemandDayResult { day: string; cards: number; snapshotDays: number; pruned: number }
+/** Today's snapshot of the running totals (a same-day re-run replaces the day), and the old rows pruned. Called by the demand-snapshot job, once a day, before the preview slices are computed. */
+export async function recordDemandDay(store: DemandStore, today: string = utcDayKey()): Promise<DemandDayResult> {
+  const counters = await store.counters(DEMAND_DAY_CARDS);
+  const file = buildDemandDay(today, counters);
+  await store.writeDay(file);
+  const pruned = await store.pruneBefore(dayMinus(today, DEMAND_KEEP_DAYS));
+  const snapshotDays = (await store.days()).length;
+  return { day: today, cards: Object.keys(file.p).length, snapshotDays, pruned };
 }

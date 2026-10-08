@@ -11,7 +11,7 @@ const tooMany = (retryAfter: number) => new NextResponse(null, { status: 429, he
 // Card slugs are [a-z0-9-]; anything else can't be a card.
 const CARD_KEY = /^[a-z0-9-]{1,160}$/;
 
-// Record a card view (RiftCompare's /api/card/[id]/view). Fire-and-forget from
+// Record a card view Fire-and-forget from
 // the client (lib/card-views.ts sendCardView). ?source=search marks it as a
 // SEARCH pick (the demand signal behind Rising Cards, Demand Finder and the
 // /movers "Most searched" strip); any other open bumps the view count.

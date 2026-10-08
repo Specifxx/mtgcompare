@@ -7,8 +7,7 @@ import type { Country } from "@/lib/country";
 import type { CardLite } from "@/lib/data";
 import { galleryFacets, galleryFilter, gallerySort, type GalleryFilters } from "@/lib/gallery-seo";
 
-// Client-side filter + sort over a set's gallery (RiftCompare's
-// FilterableCardGallery): every printing is rendered server-side and passed in,
+// Client-side filter + sort over a set's gallery: every printing is rendered server-side and passed in,
 // so crawlers still see every card and link; this only shows or hides tiles in
 // the browser. Facet options come from the cards actually present, so an empty
 // facet never appears. `initialCount` COLLAPSES (the `hidden` class), never
@@ -70,7 +69,7 @@ export function FilterableCardGallery({ cards, country, setCode, initialCount }:
         <div className="mt-2 flex flex-col gap-2 rounded-lg border border-ink-700 bg-ink-900/60 p-3">
           <FacetRow label="Colour" items={facets.colors} active={f.color} onPick={(v) => setF({ ...f, color: v })} dot={(k) => COLORS[k as keyof typeof COLORS]?.hex} />
           <FacetRow label="Rarity" items={facets.rarities} active={f.rarity} onPick={(v) => setF({ ...f, rarity: v })} text={(k) => RARITIES[k]?.label ?? k} />
-          <FacetRow label="Printing" items={facets.printings} active={f.printing} onPick={(v) => setF({ ...f, printing: v })} text={(k) => PRINTINGS[k]?.label ?? k} dot={(k) => PRINTINGS[k]?.dot} />
+          <FacetRow label="Treatment" items={facets.printings} active={f.printing} onPick={(v) => setF({ ...f, printing: v })} text={(k) => PRINTINGS[k]?.label ?? k} dot={(k) => PRINTINGS[k]?.dot} />
         </div>
       ) : null}
 

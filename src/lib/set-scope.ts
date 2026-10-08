@@ -310,7 +310,7 @@ export function otherSourceLabel(_country?: string): string {
 }
 
 /**
- * The footer under every cost to finish, verbatim (RiftCompare's owner-approved
+ * The footer under every cost to finish, verbatim (the owner-approved
  * wording): the figure is the cheapest listing, item price only, and delivery
  * is priced by Best Basket. One constant so the page and its test read the same words.
  */

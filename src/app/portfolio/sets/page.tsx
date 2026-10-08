@@ -5,8 +5,8 @@ import { getCurrentUser } from "@/lib/auth";
 import { getCountry } from "@/lib/get-country";
 import { COUNTRIES } from "@/lib/country";
 import { SET_KINDS } from "@/lib/constants";
-import { getCatalog, getSetChecklist, type SetLite } from "@/lib/data";
-import { ownedBySet, ownedDb, ownedTakeFor } from "@/lib/set-owned";
+import { getSets, getSetChecklist, type SetLite } from "@/lib/data";
+import { ownedBySet, ownedCardsBySet, ownedDb } from "@/lib/set-owned";
 import { PROMO_SET_KINDS, preReleaseLine, summarise, summarisePreRelease, type ChecklistCard, type OwnedMap } from "@/lib/set-scope";
 import { FREE_PORTFOLIO_LIMIT } from "@/lib/free-limits";
 import { NavIcon } from "@/components/NavIcon";
@@ -19,34 +19,43 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-// THE SET TRACKER'S INDEX — RiftCompare's /portfolio/sets, ported in wave 2
-// (2026-10-03; DECISIONS.md, "Set checklist"): one bar per set, grouped by kind
-// (booster, extra, premium, starter; promo and event groups behind
-// ?promos=1). Each set's catalogue is lib/data.ts getSetChecklist's own cached
-// entry (not per-request work); the only per-request read is the account's
-// owned cards for the listed sets, one narrow groupBy (lib/set-owned.ts). A set
-// that has not released shows "N cards revealed so far" and no bar, fraction or
-// percentage. No P&L anywhere on this page.
-const MAIN_KINDS = ["booster", "extra", "premium", "starter"];
+// THE SET TRACKER'S INDEX: the sets the account holds cards from get a bar each
+// (their checklist is the published set board, read through getSetChecklist);
+// every other set is a link. Magic has hundreds of sets, so the page never reads
+// a board it has no use for: the only per-request database read is one narrow
+// groupBy of the account's owned (set, card) pairs (lib/set-owned.ts). The
+// default groups are the main sets and the Commander products; Secret Lair,
+// The List, decks and promos sit behind ?more=1. A set that has not released
+// shows "N cards revealed so far" and no bar, fraction or percentage. No P&L
+// anywhere on this page.
+const MAIN_KINDS = ["expansion", "core", "masters", "commander"];
+const MORE_KINDS = ["deck", "secret-lair", "list", ...PROMO_SET_KINDS].filter((k, i, a) => a.indexOf(k) === i && !MAIN_KINDS.includes(k));
+/** Sets whose board is read for a bar on one page view. */
+const BAR_CAP = 40;
 
-export default async function SetChecklistIndex({ searchParams }: { searchParams: { promos?: string } }) {
+export default async function SetChecklistIndex({ searchParams }: { searchParams: { more?: string } }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login?next=/portfolio/sets");
 
   const country = getCountry();
   const info = COUNTRIES[country];
   const today = new Date().toISOString().slice(0, 10);
-  const withPromos = searchParams.promos === "1";
+  const more = searchParams.more === "1";
 
-  const cat = await getCatalog();
-  const kinds = withPromos ? [...MAIN_KINDS, ...PROMO_SET_KINDS] : MAIN_KINDS;
-  const sets = cat.sets
+  const kinds = more ? [...MAIN_KINDS, ...MORE_KINDS] : MAIN_KINDS;
+  const sets = (await getSets())
     .filter((s) => kinds.includes(s.kind) && s.cardCount > 0)
     .sort((a, b) => (SET_KINDS[a.kind]?.order ?? 9) - (SET_KINDS[b.kind]?.order ?? 9) || (b.releasedOn ?? "9999").localeCompare(a.releasedOn ?? "9999"));
 
   let failed = false;
+  const ownedIds = await ownedCardsBySet(await ownedDb(), user.id).catch(() => {
+    failed = true;
+    return new Map<number, number[]>();
+  });
+  // Sets with a card in the binder, the fullest first: those get a bar.
+  const held = sets.filter((s) => ownedIds.has(s.id)).sort((a, b) => ownedIds.get(b.id)!.length - ownedIds.get(a.id)!.length).slice(0, BAR_CAP);
   const lists = await Promise.all(
-    sets.map(async (set) => ({
+    held.map(async (set) => ({
       set,
       cards: await getSetChecklist(set.id, country).catch((): ChecklistCard[] => {
         failed = true;
@@ -55,15 +64,13 @@ export default async function SetChecklistIndex({ searchParams }: { searchParams
     })),
   );
   const shown = lists.filter((l) => l.cards.length > 0);
-  const owned: OwnedMap = shown.length
-    ? await ownedBySet(await ownedDb(), user.id, shown.map((l) => l.set.id), ownedTakeFor(shown.map((l) => l.cards.length))).catch(() => {
-        failed = true;
-        return {};
-      })
-    : {};
+  const owned: Record<string, number> = {};
+  for (const l of shown) for (const id of ownedIds.get(l.set.id) ?? []) owned[String(id)] = 1;
+  const heldIds = new Set(held.map((s) => s.id));
+  const others = sets.filter((s) => !heldIds.has(s.id));
 
   const groups = kinds
-    .map((k) => ({ kind: k, label: SET_KINDS[k]?.plural ?? k, items: shown.filter((l) => l.set.kind === k) }))
+    .map((k) => ({ kind: k, label: SET_KINDS[k]?.plural ?? k, items: others.filter((s) => s.kind === k) }))
     .filter((g) => g.items.length);
 
   return (
@@ -87,30 +94,42 @@ export default async function SetChecklistIndex({ searchParams }: { searchParams
         </p>
       )}
 
-      {shown.length === 0 && !failed ? (
-        <p className="card-surface p-6 text-center text-sm text-slate-400">No set has cards in our catalogue yet.</p>
-      ) : (
-        groups.map((g) => (
-          <section key={g.kind} aria-labelledby={`kind-${g.kind}`}>
-            <h2 id={`kind-${g.kind}`} className="mb-3 text-lg font-extrabold text-white">{g.label}</h2>
-            <ul className="grid gap-4 sm:grid-cols-2">
-              {g.items.map(({ set, cards }) => (
-                <SetCard key={set.id} set={set} cards={cards} owned={owned} pre={!!set.releasedOn && set.releasedOn > today} />
-              ))}
-            </ul>
-          </section>
-        ))
+      {shown.length > 0 && (
+        <section aria-labelledby="kind-yours">
+          <h2 id="kind-yours" className="mb-3 text-lg font-extrabold text-white">Sets in your binder</h2>
+          <ul className="grid gap-4 sm:grid-cols-2">
+            {shown.map(({ set, cards }) => (
+              <SetCard key={set.id} set={set} cards={cards} owned={owned} pre={!!set.releasedOn && set.releasedOn > today} />
+            ))}
+          </ul>
+        </section>
       )}
 
+      {groups.map((g) => (
+        <section key={g.kind} aria-labelledby={`kind-${g.kind}`}>
+          <h2 id={`kind-${g.kind}`} className="mb-3 text-lg font-extrabold text-white">{g.label}</h2>
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {g.items.map((set) => (
+              <li key={set.id}>
+                <Link href={`/portfolio/sets/${set.slug}`} className="card-surface block p-3 hover:border-ink-600">
+                  <span className="block text-sm font-semibold text-white">{set.name}</span>
+                  <span className="num block text-xs text-slate-400">{set.code} · {set.cardCount} cards{set.releasedOn && set.releasedOn > today ? " · not released" : ""}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+
       <p className="text-xs text-slate-500">
-        <Link href={withPromos ? "/portfolio/sets" : "/portfolio/sets?promos=1"} className="font-semibold text-brand-400 hover:underline">
-          {withPromos ? "Hide promos & events" : "Show promos & events"}
+        <Link href={more ? "/portfolio/sets" : "/portfolio/sets?more=1"} className="font-semibold text-brand-400 hover:underline">
+          {more ? "Hide decks, Secret Lair, The List and promos" : "Show decks, Secret Lair, The List and promos"}
         </Link>
       </p>
 
       <p className="text-xs text-slate-500">
-        Any condition counts as owned, and each printing is its own card. Prices are the cheapest in-stock listing at a store in{" "}
-        {info.place}, before postage. To bring in a whole binder, import a CSV (a TCGplayer export, or a card number and printing) from{" "}
+        Any condition and any finish counts as owned, and each printing is its own card (a Borderless one is not its plain print). Prices are the cheapest in-stock listing at a store in{" "}
+        {info.place}, before postage. To bring in a whole binder, import a CSV (a TCGplayer, Moxfield, Deckbox or ManaBox export) from{" "}
         <Link href="/portfolio#collection" className="text-brand-400 hover:underline">My binder</Link>.
       </p>
     </div>
@@ -154,7 +173,7 @@ function SetCard({ set, cards, owned, pre }: { set: SetLite; cards: ChecklistCar
         <div className="h-full rounded-full bg-brand-500" style={{ width: `${base.percent ?? 0}%` }} />
       </div>
       <p className="text-xs text-slate-500">
-        Every printing we track: {all.owned} of {all.total}. Counts are printings in our catalogue.
+        Every printing we list: {all.owned} of {all.total}. Counts are the printings in our price data.
       </p>
       <Link href={href} className="mt-auto pt-2 text-sm font-semibold text-brand-300 hover:underline">
         {base.missing > 0 || all.missing > 0 ? "See what's missing →" : "Open the checklist →"}

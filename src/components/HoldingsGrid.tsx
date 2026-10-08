@@ -7,8 +7,9 @@ import CardQuickLink from "./CardQuickLink";
 // Visual showcase of a collection: the actual card art, big, in a responsive grid,
 // with quantity, live value and profit/loss read straight off each card. Dearest
 // first (holdings already arrive sorted), so a collection leads with its best cards.
-// RiftCompare's HoldingsGrid; OP Compare (wave 2) shows the card number and a
-// printing dot for a non-standard printing (Parallel, Manga, SP…).
+// Shows the card number, a treatment dot for a non-plain printing (Borderless,
+// Extended Art…) and a Foil badge: a Foil copy is the Foil unit of the product,
+// valued at its own price.
 export function HoldingsGrid({ holdings, country }: { holdings: Holding[]; country: Country }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -24,7 +25,7 @@ export function HoldingsGrid({ holdings, country }: { holdings: Holding[]; count
             <div className="relative aspect-[5/7]">
               {h.img ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={h.img} alt={`${h.name} ${h.number ?? ""} One Piece card`} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                <img src={h.img} alt={`${h.name} ${h.number ?? ""} Magic card`} loading="lazy" decoding="async" className="h-full w-full object-cover" />
               ) : (
                 <div className="grid h-full w-full place-items-center bg-ink-850 text-xs text-slate-600">No image</div>
               )}
@@ -35,9 +36,11 @@ export function HoldingsGrid({ holdings, country }: { holdings: Holding[]; count
                   ×{h.quantity}
                 </span>
               )}
-              {/* No foil mark: a holding's isFoil is the card's own TCGplayer finish
-                  (there is no foil toggle on OP Compare), and TCGplayer lists most
-                  standard One Piece cards as Foil, so the mark said nothing. */}
+              {h.finishLabel && (
+                <span className="absolute left-1.5 top-1.5 rounded-md bg-ink-950/85 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand-200 shadow">
+                  {h.finishLabel}
+                </span>
+              )}
 
               {/* gradient footer with name + value + P&L */}
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink-950 via-ink-950/85 to-transparent px-2 pb-2 pt-7">

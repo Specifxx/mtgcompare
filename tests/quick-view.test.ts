@@ -10,10 +10,16 @@ import type { CardDetail, OfferRow } from "../src/lib/data";
 import { cardDisplayName, cheapestBuyRow, isPreRelease, marketRows, quickViewHistory, quickViewPayload, QUICKVIEW_ROWS } from "../src/lib/quick-view";
 import { planBasket } from "../src/lib/basket";
 
+// Placeholder partner ids: the builder reads NEXT_PUBLIC_* at call time and has no default (unset, links stay plain).
+process.env.NEXT_PUBLIC_EBAY_CAMPAIGN_ID = "1000000001";
+process.env.NEXT_PUBLIC_TCGPLAYER_IMPACT_LINK = "https://partner.tcgplayer.com/c/1000001/2000002/3000003";
+
 const ROOT = path.resolve(__dirname, "..");
 const read = (p: string) => fs.readFileSync(path.join(ROOT, p), "utf8");
 
 const offer = (o: Partial<OfferRow> & Pick<OfferRow, "source" | "market" | "priceCents">): OfferRow => ({
+  finish: "N",
+  storeId: 10,
   currency: { US: "USD", AU: "AUD", UK: "GBP", SG: "SGD", CA: "CAD", EU: "EUR" }[o.market] ?? "USD",
   url: `https://shop.example/${o.source}`,
   inStock: true,
@@ -23,35 +29,35 @@ const offer = (o: Partial<OfferRow> & Pick<OfferRow, "source" | "market" | "pric
   ...o,
 });
 
+// Sol Ring, Commander Masters #270 (TCGplayer product 535325 in the fixtures' style): the real names, invented nothing but the store rows.
 function card(offers: OfferRow[], over: Partial<CardDetail> = {}): CardDetail {
   return {
-    id: 453506,
-    slug: "shanks-op01-120-parallel",
-    name: "Shanks",
-    tcgName: "Shanks (Parallel)",
-    number: "OP01-120",
-    rarity: "SEC",
-    variant: "Parallel",
-    printing: "alt",
-    colors: ["Red"],
-    cardType: "Character",
-    cost: 10,
-    power: 12000,
-    counter: null,
-    life: null,
-    attribute: "Slash",
-    subtypes: ["Red-Haired Pirates"],
-    effect: "Long effect text that the popup never needs.",
-    finish: null,
+    id: 535325,
+    slug: "cmm-sol-ring-270",
+    name: "Sol Ring",
+    tcgName: "Sol Ring",
+    number: "270",
+    rarity: "U",
+    variant: null,
+    label: null,
+    printing: "standard",
+    colors: [],
+    cardType: "Artifact",
     hasImage: true,
-    tcgplayerUrl: "https://www.tcgplayer.com/product/453506",
+    headFinish: "N",
+    mask: 1,
+    tracked: 1,
+    n: { market: 9999, low: 9000 },
+    f: null,
     marketUsd: 9999,
     change7d: 4.2,
     change30d: null,
-    set: { id: 1, slug: "romance-dawn", code: "OP01", name: "Romance Dawn", kind: "booster", releasedOn: "2022-12-02", cardCount: 121, sealedCount: 4 },
+    units: [],
+    set: { id: 1, slug: "cmm-commander-masters", tok: "cmm", code: "CMM", name: "Commander Masters", tcgName: "Commander Masters", kind: "masters", releasedOn: "2023-08-04", bucket: false, cardCount: 1000, trackedCount: 900, sealedCount: 4 },
+    oracle: null,
     offers,
     ...over,
-  };
+  } as unknown as CardDetail;
 }
 
 test("marketRows: in stock, the market's own currency, cheapest by item price (the board's rule)", () => {
@@ -81,7 +87,7 @@ test("the payload covers all six markets, top rows only, with tagged links and p
   assert.equal(us.rows.length, QUICKVIEW_ROWS);
   assert.equal(us.rows[0].source, "tcgplayer");
   assert.equal(us.rows[0].label, "TCGplayer");
-  assert.match(us.rows[0].href, /^https:\/\/partner\.tcgplayer\.com\/.*sharedid=oc-tcgplayer-card/);
+  assert.match(us.rows[0].href, /^https:\/\/partner\.tcgplayer\.com\/.*sharedid=mc-tcgplayer-card/);
   assert.equal(us.rows[1].href, "https://shop.example/store:s0", "a store's own URL is untouched");
   assert.equal(us.ebayRow, false);
   const uk = p.markets.UK;
@@ -91,8 +97,8 @@ test("the payload covers all six markets, top rows only, with tagged links and p
   assert.match(uk.rows[0].href, /campid=/);
   assert.equal(new URL(p.markets.AU.ebaySearch).hostname, "www.ebay.com.au");
   assert.equal(new URL(p.markets.EU.ebaySearch).hostname, "www.ebay.es");
-  assert.match(new URL(p.markets.AU.ebaySearch).searchParams.get("customid") ?? "", /^oc-au-quickview-search$/);
-  assert.equal(new URL(p.markets.AU.ebaySearch).searchParams.get("_nkw"), "One Piece Shanks OP01-120 Parallel");
+  assert.match(new URL(p.markets.AU.ebaySearch).searchParams.get("customid") ?? "", /^mc-au-quickview-search$/);
+  assert.equal(new URL(p.markets.AU.ebaySearch).searchParams.get("_nkw"), "MTG Sol Ring Commander Masters");
   assert.equal(p.markets.AU.count, 0);
   assert.match(p.tcgHref, /^https:\/\/partner\.tcgplayer\.com\//);
   assert.equal(p.preRelease, false);
@@ -111,7 +117,7 @@ test("pre-release: a set dated after today", () => {
   assert.equal(isPreRelease("2026-11-07", "2026-10-03"), true);
   assert.equal(isPreRelease("2026-10-03", "2026-10-03"), false);
   assert.equal(isPreRelease(null, "2026-10-03"), false);
-  const p = quickViewPayload(card([], { set: { id: 9, slug: "op-14", code: "OP14", name: "Next", kind: "booster", releasedOn: "2026-11-07", cardCount: 0, sealedCount: 0 } }), "2026-10-03");
+  const p = quickViewPayload(card([], { set: { id: 9, slug: "next", tok: "nxt", code: "NXT", name: "Next", tcgName: "Next", kind: "expansion", releasedOn: "2026-11-07", bucket: false, cardCount: 0, trackedCount: 0, sealedCount: 0 } }), "2026-10-03");
   assert.equal(p.preRelease, true);
 });
 
@@ -123,7 +129,7 @@ test("cheapestBuyRow is the board's #1 row (CardTopBuy and the sticky bar agree 
   assert.equal(best?.retailer, "ebay_us");
   assert.equal(best?.ebay, true);
   assert.equal(cheapestBuyRow(offers, "SG", "/card/x"), null);
-  assert.equal(cardDisplayName({ name: "Shanks", variant: "Parallel", number: "OP01-120" }), "Shanks (Parallel) OP01-120");
+  assert.equal(cardDisplayName({ name: "Sol Ring", variant: "Borderless", number: "270" }), "Sol Ring (Borderless) 270");
 });
 
 test("Best Basket links: TCGplayer through Impact, stores untouched", () => {
@@ -152,8 +158,8 @@ test("wiring: the provider sits in the root layout, which still reads no session
 });
 
 test("wiring: the card tile opens QuickView on a plain click and keeps the card page as its href", () => {
-  // RiftCompare's CardTile (design track): its own click handler, with the drag
-  // and modifier-key guards, instead of a CardQuickLink wrapper.
+  // The tile has its own click handler, with the drag and modifier-key guards,
+  // instead of a CardQuickLink wrapper.
   const tile = read("src/components/CardTileClient.tsx");
   assert.match(tile, /href=\{`\/card\/\$\{card\.slug\}`\}/);
   assert.match(tile, /e\.metaKey \|\| e\.ctrlKey \|\| e\.shiftKey \|\| e\.altKey \|\| e\.button !== 0/);
@@ -167,8 +173,8 @@ test("wiring: every card surface this track owns links through CardQuickLink", (
     "src/app/sets/[slug]/page.tsx",
     "src/app/cards/all/page.tsx",
     "src/app/colors/[color]/page.tsx",
-    // /leaders rows open each Leader's own page (tools track); its card links are CardQuickLinks.
-    "src/app/leaders/[slug]/page.tsx",
+    // /commanders rows open each commander's own page; its card links are CardQuickLinks.
+    "src/app/commanders/[slug]/page.tsx",
     "src/components/BoxEvCalculator.tsx",
     "src/components/blog/ArticleView.tsx",
     "src/components/blog/BlogBits.tsx",
@@ -216,7 +222,7 @@ test("the payload carries the trimmed history, and none when the loader gave non
     { day: "2026-10-01", marketUsd: 9999, lowUsd: 9000 },
   ]);
   assert.deepEqual(p.history, [{ day: "2026-10-01", marketUsd: 9999, lowUsd: 9000 }]);
-  assert.match(read("src/app/api/card/[slug]/route.ts"), /getProductHistory/);
+  assert.match(read("src/app/api/card/[slug]/route.ts"), /getUnitHistory/);
 });
 
 test("card search opens a card hit in the QuickView; the TCGplayer banner is an ad members never see", () => {

@@ -7,12 +7,13 @@ import { SetOwnedProvider, SetOwnedStatus, SetTickLayer } from "@/components/Set
 import { FREE_PORTFOLIO_LIMIT } from "@/lib/free-limits";
 import { EbaySearchPanel } from "@/components/EbaySearchPanel";
 import { SealedTile } from "@/components/SealedTile";
-import { cardEbayQuery, onePieceEbayQuery } from "@/lib/affiliate";
+import { cardEbayQuery, magicEbayQuery } from "@/lib/affiliate";
 import { ReleaseAlertSlot } from "@/components/ReleaseAlertSlot";
 import { Breadcrumbs, InShort, SectionHeader, StatTile } from "@/components/ui";
-import { SET_KINDS } from "@/lib/constants";
+import { PRIMARY_TYPES, SET_KINDS, TREATMENT_BY_KEY, colorMask, isRarity, type Rarity } from "@/lib/constants";
 import { COUNTRIES } from "@/lib/country";
-import { getCatalog, getSealedCatalog } from "@/lib/data";
+import { getCardPage, getSealedBySet, getSetBySlug, getSetChecklist, getSetHighlights, getSets, getSetValueStats, type CardQuery } from "@/lib/data";
+import { toUsdCents } from "@/lib/fx";
 import { int, longDate, money } from "@/lib/format";
 import { getCountry } from "@/lib/get-country";
 import { withArticle } from "@/lib/filter-chips";
@@ -26,21 +27,43 @@ import { RelatedGuides } from "@/components/RelatedGuides";
 import { SetGridControls } from "@/components/sets/SetGridControls";
 import { SetPriceGuide } from "@/components/sets/SetPriceGuide";
 import { JsonLd } from "@/components/ui";
-import { browseHref, parseBrowse, runBrowse, type SearchParams } from "@/lib/browse";
+import { parseBrowse, type BrowseQuery, type SearchParams } from "@/lib/browse";
 import { guidesForCatalogue } from "@/lib/content/catalogue-guides";
 import { buildCollectionNarrative } from "@/lib/content/collection-narrative";
-import { setPriceGuideRows } from "@/lib/set-price-guide";
+import { checklistGuideRows } from "@/lib/set-price-guide";
+
+// Every route that reaches the published data is dynamic: a build reads no data host (CLAUDE.md, contract C26).
+export const dynamic = "force-dynamic";
 
 type Props = { params: { slug: string }; searchParams: SearchParams };
 
+/** The page's filters as a loader query: this set, the visitor's market currency turned back into the US cents the index prices in. */
+function setQuery(bq: BrowseQuery, setId: number, currency: string, country: ReturnType<typeof getCountry>): Partial<CardQuery> {
+  const types = bq.types.map((t) => t.toLowerCase()).filter((t) => (PRIMARY_TYPES as readonly string[]).includes(t));
+  return {
+    q: bq.q || undefined,
+    setIds: [setId],
+    rarities: bq.rarities.filter(isRarity) as Rarity[],
+    types,
+    treats: bq.printings.filter((k) => TREATMENT_BY_KEY[k]),
+    colors: bq.colors.length ? { mask: colorMask(bq.colors), mode: "any" } : undefined,
+    minCents: bq.min != null ? toUsdCents(bq.min, currency) : null,
+    maxCents: bq.max != null ? toUsdCents(bq.max, currency) : null,
+    pricedIn: bq.priced ? country : undefined,
+    includeUnlisted: false,
+    sort: bq.sort,
+    page: bq.page,
+    per: bq.per as 24 | 48 | 100,
+  };
+}
+
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
-  const cat = await getCatalog();
-  const s = cat.setBySlug.get(params.slug);
+  const s = await getSetBySlug(params.slug);
   if (!s) return { title: "Set not found" };
   const t = `${s.name} (${s.code}) Card List & Prices`;
   return {
     title: { absolute: t.length <= 60 ? t : `${s.code} Card List & Prices` },
-    description: `Every card in One Piece ${s.name} (${s.code}) with live prices compared across stores in six markets — the full card list, the chase cards and the set's sealed product.`,
+    description: `Every card in Magic: The Gathering ${s.name} (${s.code}) with live prices compared across stores in six markets: the full card list, Normal and Foil prices, the chase cards and the set's sealed product.`,
     alternates: { canonical: `/sets/${s.slug}` },
     openGraph: pageOgOwnImage(`/sets/${s.slug}`),
     // A filtered, sorted or paged grid is a slice of the same list: noindex, follow.
@@ -51,33 +74,33 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 export default async function SetPage({ params, searchParams }: Props) {
   const country = getCountry();
   const c = COUNTRIES[country];
-  const [cat, sealed] = await Promise.all([getCatalog(), getSealedCatalog()]);
-  const set = cat.setBySlug.get(params.slug);
+  const set = await getSetBySlug(params.slug);
   if (!set) notFound();
-  const cards = cat.cards.filter((x) => x.setId === set.id);
   const bq = { ...parseBrowse(searchParams), sets: [set.slug] };
-  const grid = runBrowse(cat.cards, cat.sets, cat.setById, { ...bq, per: bq.per }, country);
+  // The checklist is EVERY listed printing of the set (THIN rows included), already priced in the visitor's market.
+  const [sets, grid, checklist, highlights, setSealed, valueStats] = await Promise.all([
+    getSets(),
+    getCardPage(setQuery(bq, set.id, c.currency, country)),
+    getSetChecklist(set.id, country),
+    getSetHighlights(set.id, 1),
+    getSealedBySet(set.id),
+    getSetValueStats(),
+  ]);
   const page = Math.min(bq.page, grid.pages);
   const narrative = buildCollectionNarrative({
     kind: "set",
     label: `${set.name} (${set.code})`,
     currency: c.currency,
     place: c.place,
-    members: cards.map((x) => ({ name: x.name, priceCents: x.low[country], setCode: set.code, rarity: x.rarity ?? undefined, collectorNumber: x.number ?? undefined })),
-    siteMedianCents: median(cat.cards.map((x) => x.low[country]).filter((v): v is number => v != null)),
+    members: checklist.map((x) => ({ name: x.name, priceCents: x.minCents, setCode: set.code, rarity: x.rarity ?? undefined, collectorNumber: x.number ?? undefined })),
   });
-  const guideRows = setPriceGuideRows(cards, country);
+  const guideRows = checklistGuideRows(checklist);
   const guides = guidesForCatalogue("sets");
-  const setsByCode = Object.fromEntries(cat.sets.flatMap((x) => [[x.slug, `${x.name} (${x.code})`], [x.code.toLowerCase(), `${x.name} (${x.code})`]]));
-  const priced = cards.filter((x) => x.low[country] != null);
-  const med = median(priced.map((x) => x.low[country]!));
-  const top = [...cards].sort(
-    (a, b) => (b.marketUsd ?? 0) - (a.marketUsd ?? 0),
-  )[0];
-  const setSealed = sealed
-    .filter((s) => s.setId === set.id)
-    .sort((a, b) => (b.marketUsd ?? 0) - (a.marketUsd ?? 0));
-  const marketTotal = cards.reduce((a, x) => a + (x.marketUsd ?? 0), 0);
+  const setsByCode = Object.fromEntries(sets.flatMap((x) => [[x.slug, `${x.name} (${x.code})`], [x.code.toLowerCase(), `${x.name} (${x.code})`]]));
+  const priced = checklist.filter((x) => x.minCents != null);
+  const med = median(priced.map((x) => x.minCents!));
+  const top = highlights[0];
+  const marketTotal = valueStats.get(set.id)?.totalCents ?? 0;
   const kind = SET_KINDS[set.kind]?.label ?? "Set";
   const future =
     set.releasedOn && set.releasedOn > new Date().toISOString().slice(0, 10);
@@ -98,9 +121,10 @@ export default async function SetPage({ params, searchParams }: Props) {
           {set.name} ({set.code}){" "}
           {future ? "is listed for release on" : "was released on"}{" "}
           {longDate(set.releasedOn) || "a date not yet announced"}. It has{" "}
-          {int(cards.length)} printings on TCGplayer — every rarity and every
-          Parallel, Manga, SP and promo version counted separately, because each
-          is priced separately.
+          {int(checklist.length)} printings on TCGplayer: every rarity and every
+          Borderless, Extended Art, Showcase or foil-pattern version counted
+          separately, because each is priced separately, and each has a Normal and
+          a Foil price of its own.
         </p>
         <p>
           Each card below shows the cheapest in-stock listing we track in{" "}
@@ -118,15 +142,15 @@ export default async function SetPage({ params, searchParams }: Props) {
       <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile
           label="Printings"
-          value={int(cards.length)}
+          value={int(checklist.length)}
           sub={`${int(set.sealedCount)} sealed products`}
         />
         <StatTile
           label={`Priced in ${c.code}`}
           value={int(priced.length)}
           sub={
-            cards.length
-              ? `${Math.round((priced.length / cards.length) * 100)}% have ${withArticle(c.adjective)} listing`
+            checklist.length
+              ? `${Math.round((priced.length / checklist.length) * 100)}% have ${withArticle(c.adjective)} listing`
               : undefined
           }
         />
@@ -142,7 +166,7 @@ export default async function SetPage({ params, searchParams }: Props) {
             top ? (
               <CardQuickLink slug={top.slug} className="text-brand-400 hover:underline">
                 {top.name}
-                {top.variant ? ` (${top.variant})` : ""}
+                {top.label ? ` (${top.label})` : ""}
               </CardQuickLink>
             ) : undefined
           }
@@ -152,17 +176,17 @@ export default async function SetPage({ params, searchParams }: Props) {
       {marketTotal ? (
         <div className="mt-6">
           <InShort>
-            Every printing in {set.code} together is worth about{" "}
+            The {set.code} cards worth a dollar or more together are worth about{" "}
             <span className="num font-semibold text-white">
               {money(marketTotal, "US")}
             </span>{" "}
-            at TCGplayer&apos;s market prices — and{" "}
+            at TCGplayer&apos;s market prices
             {top?.marketUsd
-              ? `${Math.round(((top.marketUsd ?? 0) / marketTotal) * 100)}%`
-              : "a large share"}{" "}
-            of that is its single most valuable card, {top?.name}. Value in One
-            Piece sets sits in a handful of Manga, SP and Parallel arts; most of
-            the list costs well under a dollar.
+              ? `, and ${Math.round(((top.marketUsd ?? 0) / marketTotal) * 100)}% of that is its single most valuable card, ${top.name}`
+              : ""}
+            . Value in a set sits in a handful of chase cards and their
+            Borderless, Showcase and foil versions; most of the list costs well
+            under a dollar.
           </InShort>
         </div>
       ) : null}
@@ -173,26 +197,26 @@ export default async function SetPage({ params, searchParams }: Props) {
           country={country}
           page="set"
           links={[
-            ...(["booster", "extra", "premium"].includes(set.kind)
+            ...(["expansion", "core", "masters"].includes(set.kind)
               ? [
                   {
                     label: `${set.code} booster box`,
-                    query: onePieceEbayQuery(
-                      `${set.name} ${set.code} booster box English`,
+                    query: magicEbayQuery(
+                      `${set.name} ${set.code} booster box`,
                     ),
                   },
                 ]
               : []),
             {
               label: `${set.code} singles`,
-              query: onePieceEbayQuery(`${set.code} ${set.name}`),
+              query: magicEbayQuery(`${set.code} ${set.name}`),
             },
-            ...[...cards]
-              .sort((a, b) => (b.marketUsd ?? 0) - (a.marketUsd ?? 0))
+            ...[...checklist]
+              .sort((a, b) => (b.minCents ?? 0) - (a.minCents ?? 0))
               .slice(0, 4)
               .map((c) => ({
                 label: `${c.name}${c.variant ? ` (${c.variant.split(" · ")[0]})` : ""}`,
-                query: cardEbayQuery(c),
+                query: cardEbayQuery({ name: c.name, number: c.number, variant: c.variant, setName: set.name }),
               })),
           ]}
         />
@@ -218,7 +242,7 @@ export default async function SetPage({ params, searchParams }: Props) {
         <SetPriceGuide setName={set.name} rows={guideRows} country={country} adjective={c.adjective} currency={c.currency} />
       </div>
 
-      <EbayPicks country={country} setId={set.id} className="mt-10" page="set" fallbackQuery={onePieceEbayQuery(`${set.name} ${set.code}`)} />
+      <EbayPicks country={country} setId={set.id} className="mt-10" page="set" fallbackQuery={magicEbayQuery(`${set.name} ${set.code}`)} />
 
       <section id="cards" className="mt-10 scroll-mt-20">
         <SectionHeader
@@ -237,13 +261,13 @@ export default async function SetPage({ params, searchParams }: Props) {
               Filters
             </label>
             <div className="mt-3 hidden peer-checked:block lg:mt-0 lg:block">
-              <BrowseFilters q={bq} sets={cat.sets} country={country} action={`/sets/${set.slug}`} hide={["set"]} />
+              <BrowseFilters q={bq} sets={sets} country={country} action={`/sets/${set.slug}`} hide={["set"]} />
             </div>
           </aside>
           <div className="min-w-0">
             <FilterChips basePath={`/sets/${set.slug}`} sets={setsByCode} symbol={c.symbol} adjective={c.adjective} />
             <SetGridControls basePath={`/sets/${set.slug}`} sort={bq.sort} per={bq.per} />
-            {/* The owned overlay (collection-alerts, wave 2): a client island that
+            {/* The owned overlay (a client island that
                 learns the visitor from /api/me; the page reads no session. */}
             <SetOwnedProvider setSlug={set.slug} enabled={!future}>
               <SetOwnedStatus setName={set.name} trackerHref={`/portfolio/sets/${set.slug}`} freeLimit={FREE_PORTFOLIO_LIMIT} />

@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { cardEbayQuery, ebayLabel, ebaySearchUrl, onePieceEbayQuery, outboundRel } from "@/lib/affiliate";
+import { cardEbayQuery, ebayLabel, ebaySearchUrl, magicEbayQuery, outboundRel } from "@/lib/affiliate";
 import { COUNTRIES, type Country } from "@/lib/country";
 import type { CardLite, SealedLite, SetLite } from "@/lib/data";
 import { money } from "@/lib/format";
-import { cardImage } from "@/lib/images";
+import { cardImageAlt } from "@/lib/image-alt";
+import { cardImage, tcgplayerImage } from "@/lib/images";
 import { headline } from "@/lib/price";
 import CardQuickLink from "./CardQuickLink";
 
@@ -67,7 +68,7 @@ export function BlogShopStrip({
               <CardQuickLink slug={card.slug} className="group flex min-w-0 flex-1 basis-56 items-center gap-3">
                 {card.hasImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={cardImage.thumb(card.id)} alt="" loading="lazy" className="h-14 w-10 shrink-0 rounded-sm bg-ink-800 object-cover" />
+                  <img src={cardImage.thumb(card.id)} alt={cardImageAlt({ name: card.name, variant: card.label, setCode: card.setCode, number: card.number })} loading="lazy" className="h-14 w-10 shrink-0 rounded-sm bg-ink-800 object-cover" />
                 ) : (
                   <span className="h-14 w-10 shrink-0 rounded-sm bg-ink-800" />
                 )}
@@ -95,12 +96,8 @@ export function BlogShopStrip({
           return (
             <li key={`s-${s.id}`} className={row}>
               <Link href={`/sealed/${s.slug}`} className="group flex min-w-0 flex-1 basis-56 items-center gap-3">
-                {s.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={s.imageUrl.replace("_in_1000x1000", "_200w")} alt="" loading="lazy" className="h-14 w-10 shrink-0 rounded-sm bg-white object-contain" />
-                ) : (
-                  <span className="h-14 w-10 shrink-0 rounded-sm bg-ink-800" />
-                )}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={tcgplayerImage(s.id, "200w")} alt={`${s.name}, sealed Magic: The Gathering product`} loading="lazy" className="h-14 w-10 shrink-0 rounded-sm bg-white object-contain" />
                 <span className="min-w-0">
                   <span className="block truncate text-[15px] font-semibold text-white group-hover:text-brand-400">{s.name}</span>
                   <span className="block truncate text-xs text-slate-500">{s.kind}</span>
@@ -110,7 +107,7 @@ export function BlogShopStrip({
                 <span className="num block font-semibold text-accent">{p.text}</span>
                 <span className="block text-[11px] text-slate-500">{p.note}</span>
               </span>
-              {ebayBtn(onePieceEbayQuery(s.name), s.name)}
+              {ebayBtn(magicEbayQuery(s.name), s.name)}
             </li>
           );
         })}

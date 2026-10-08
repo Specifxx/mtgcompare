@@ -5,9 +5,7 @@ import { join } from "node:path";
 import { collectionPostText, isShareToken, newShareToken } from "../src/lib/collection-share";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Public share links for a binder (/c/<token>) — RiftCompare's
-// tests/share-links.test.ts (the collection half), ported in wave 2
-// (2026-10-03). A token is a CAPABILITY: unguessable, never derived from an
+// Public share links for a binder (/c/<token>). A token is a CAPABILITY: unguessable, never derived from an
 // id, revoked by rotation; the public projection never carries what the owner
 // paid; the page is never indexed and has no share image of its own.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -108,7 +106,7 @@ test("there is no second source of truth for 'is this shared'", () => {
 
 test("the shared page uses the root share image, and its CTA carries the signup source", () => {
   const { existsSync } = require("node:fs") as typeof import("node:fs");
-  assert.equal(existsSync(join(process.cwd(), "src/app/c/[token]/opengraph-image.tsx")), false, "share images read only data.ts loaders; a binder is per-user");
+  assert.equal(existsSync(join(process.cwd(), "src/app/c/[token]/opengraph-image.tsx")), false, "share images read only data/ loaders; a binder is per-user");
   const page = read(COLLECTION_PAGE);
   assert.match(page, /\/login\?next=\/portfolio&src=shared_collection/);
   assert.match(page, /nocache: true/);
@@ -123,17 +121,30 @@ test("the share route is same-origin, rate-limited at 20 an hour, and answers no
 
 test("the post text is plain, one fact a line, in the viewer's currency", () => {
   const t = collectionPostText({
-    ownerName: "Nami",
+    ownerName: "Jace",
     distinctCards: 3,
     totalCopies: 5,
     totalCents: 123456,
     country: "AU",
-    top: [{ card: { name: "Shanks", variant: "Parallel" }, unitCents: 40000 }, { card: { name: "Roronoa Zoro", variant: null }, unitCents: null }],
-    url: "https://opcompare.app/c/abc",
+    top: [
+      { card: { name: "Stingcaster Mage", variant: "Borderless · Facet Foil" }, isFoil: true, unitCents: 29800 },
+      { card: { name: "Counterspell", variant: null }, unitCents: 394 },
+      { card: { name: "Black Lotus", variant: null }, unitCents: null },
+    ],
+    url: "https://mtgcompare.app/c/abc",
   });
   assert.equal(
     t,
-    "Nami's One Piece collection — 3 cards (5 copies), A$1,235 at today's prices\n· Shanks (Parallel) — A$400.00\n· Roronoa Zoro\nhttps://opcompare.app/c/abc",
+    "Jace's Magic collection — 3 cards (5 copies), A$1,235 at today's prices\n· Stingcaster Mage (Borderless · Facet Foil) (foil) — A$298.00\n· Counterspell — A$3.94\n· Black Lotus\nhttps://mtgcompare.app/c/abc",
   );
   assert.doesNotMatch(t, /[*_`#]/, "no markdown");
+});
+
+test("a shared holding carries its finish, valued as that finish", () => {
+  const src = read(SHARE);
+  const type = src.slice(src.indexOf("export type SharedHolding"), src.indexOf("export type SharedCollection"));
+  assert.match(type, /isFoil: boolean/);
+  const fn = codeOnly(src.slice(src.indexOf("export async function getSharedCollection")));
+  assert.match(fn, /copyValueCents\(c, r\.isFoil, r\.condition, country\)/, "the Foil copy is valued at the Foil unit's price");
+  assert.match(fn, /getCardsByIds\(/, "cards come from the published data, not a table");
 });

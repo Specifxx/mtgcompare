@@ -30,12 +30,11 @@ import { OwnedTick, SetLimitPanel, useSetOwned } from "./SetOwned";
 import { SetMissingActions } from "./SetMissingActions";
 import { PrintingChip } from "./MyCollection";
 
-// THE SET CHECKLIST (/portfolio/sets/[set]) — RiftCompare's SetTracker, ported
-// in wave 2 (2026-10-03; DECISIONS.md, "Set checklist"): what a binder is
-// missing from one set, and the cheapest listing for each missing card. One
-// Piece rows carry the card number and a printing chip (Parallel, Manga…).
+// THE SET CHECKLIST (/portfolio/sets/[set]): what a binder is missing from one
+// set, and the cheapest listing for each missing card. Rows carry the collector
+// number and a treatment chip (Borderless, Extended Art, Foil Etched…).
 //
-// A client component on purpose. The page hands over the set's cached catalogue
+// A client component on purpose. The page hands over the set's published checklist
 // and the account's owned map once; scope, filters, sort, the progress numbers,
 // the cost to finish and the missing-list export all follow from those with the
 // pure functions in lib/set-scope.ts, so a tick updates every number at once with
@@ -143,7 +142,7 @@ export function SetTracker({
             </button>
           ))}
         </div>
-        <p className="mt-2 text-xs text-slate-500">{scopeInfo.hint} Counts are printings in our catalogue.</p>
+        <p className="mt-2 text-xs text-slate-500">{scopeInfo.hint} Counts are the printings in our price data.</p>
 
         <h2 id="set-progress-h" className="mt-4 font-display text-2xl font-extrabold text-white">
           {s.owned} of {s.total} {s.total === 1 ? "card" : "cards"}
@@ -161,7 +160,7 @@ export function SetTracker({
         </div>
 
         {s.missing === 0 ? (
-          <p className="mt-3 text-sm text-slate-300">Every printing we track in this list is ticked.</p>
+          <p className="mt-3 text-sm text-slate-300">Every printing we list in this set is ticked.</p>
         ) : (
           <div className="mt-3 text-sm text-slate-300" data-set-cost>
             <p>
@@ -221,7 +220,7 @@ export function SetTracker({
           <SetMissingActions
             text={missingText(missingNow)}
             csv={missingCsv(missingNow, currency)}
-            filename={`opcompare-${setSlug}-missing.csv`}
+            filename={`mtgcompare-${setSlug}-missing.csv`}
             count={missingNow.length}
           />
         </div>
@@ -361,14 +360,14 @@ function Notes({ setSlug, setName, freeLimit }: { setSlug: string; setName: stri
   return (
     <div className="text-xs leading-relaxed text-slate-500">
       <p>
-        Any condition counts as owned, one copy is enough, each printing is its own card (a Parallel is not its standard print),
+        Any condition and any finish counts as owned, one copy is enough, each printing is its own card (a Borderless one is not its plain print),
         and promos are not part of the list. A free account
         tracks up to {freeLimit} cards; if you already hold more you keep all of them, and a paid plan has no limit.
       </p>
       <p className="mt-1">
         Ticked a card by mistake? Change its quantity in <Link href="/portfolio#collection" className="text-brand-400 hover:underline">My binder</Link>.
-        Bringing in a whole binder? Import a CSV (a TCGplayer export with its Product ID, or a card number and printing) from the same
-        place: it keeps the printing and tells you what it skipped. To price the delivered order for what&apos;s missing, use &quot;Plan the purchase&quot; at the bottom of the missing list, or paste the copied list into{" "}
+        Bringing in a whole binder? Import a CSV (a TCGplayer, Moxfield, Deckbox or ManaBox export) from the same
+        place: it keeps the printing and the finish and tells you what it skipped. To price the delivered order for what&apos;s missing, use &quot;Plan the purchase&quot; at the bottom of the missing list, or paste the copied list into{" "}
         <Link href="/tools/best-basket" className="text-brand-400 hover:underline">Best Basket</Link>.
       </p>
       <p className="mt-1">

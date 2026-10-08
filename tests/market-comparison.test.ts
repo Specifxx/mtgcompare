@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { compareMarkets, convertCents, marketPriceListSentence, marketSpreadSentence } from "../src/lib/market-comparison";
 import type { OfferRow } from "../src/lib/data";
 
-const o = (market: string, currency: string, priceCents: number, source = "store:x", extra: Partial<OfferRow> = {}): OfferRow => ({
-  source, market, priceCents, currency, url: "https://x", inStock: true, condition: "NM", shippingCents: null, updatedAt: "2026-10-04T00:00:00Z", ...extra,
+const o = (market: OfferRow["market"], currency: string, priceCents: number, source = "store:x", extra: Partial<OfferRow> = {}): OfferRow => ({
+  finish: "N", storeId: 10, source, market, priceCents, currency, url: "https://x", inStock: true, condition: "NM", shippingCents: null, updatedAt: "2026-10-04T00:00:00Z", ...extra,
 });
 
 test("cheapest open listing per market, ranked in the visitor's currency", () => {

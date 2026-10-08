@@ -1,7 +1,8 @@
 import { prisma } from "./db";
 import { isCountry, type Country } from "./country";
 import { SITE_URL } from "./site";
-import { alertPairKey, computeAlertPrices, type AlertPriceDb } from "./alert-price";
+import { finishFromIndex, unitKey, type Finish } from "./constants";
+import { alertPairKey, computeAlertPrices, liveAlertCards, liveAlertReader, type AlertCardLoader, type AlertOfferReader } from "./alert-price";
 import { CONFIRMATION_CARD_ROWS, sendAlertConfirmationEmail, type AlertConfirmationCard } from "./email";
 
 // THE WATCH CONFIRMATION — RiftCompare's lib/alert-confirmations.ts, ported in
@@ -67,18 +68,18 @@ export async function claimConfirmationSlot(db: ConfirmationDb, now: Date = new 
 // ── What the confirmation lists ──────────────────────────────────────────────
 // The cards being watched, each with TODAY'S ALERT PRICE (lib/alert-price.ts:
 // cheapest in-stock Near Mint or unstated-condition copy at a store, never
-// eBay) and that copy's condition. One bounded query for at most
+// eBay) and that copy's condition. One read of the live offers for at most
 // CONFIRMATION_CARD_ROWS cards, reached only by a confirmation about to be sent.
 export async function confirmationCards(
-  db: AlertPriceDb,
-  cards: readonly { id: number; name: string; slug: string; setCode: string; number: string | null }[],
+  readOffers: AlertOfferReader,
+  cards: readonly { id: number; finish: Finish; name: string; slug: string; setCode: string; number: string | null }[],
   market: Country,
   now: Date = new Date(),
 ): Promise<AlertConfirmationCard[]> {
   const shown = cards.slice(0, CONFIRMATION_CARD_ROWS);
-  const read = shown.length ? await computeAlertPrices(db, shown.map((c) => ({ cardId: c.id, market })), now, { slim: true }).catch(() => null) : null;
+  const read = shown.length ? await computeAlertPrices(readOffers, shown.map((c) => ({ cardId: c.id, finish: c.finish, market })), now).catch(() => null) : null;
   return shown.map((c) => {
-    const p = read?.get(alertPairKey(market, c.id));
+    const p = read?.get(alertPairKey(market, c.id, c.finish));
     const priced = p?.state === "priced";
     return {
       name: c.name,
@@ -113,7 +114,7 @@ export interface ConfirmationRunSummary {
  * per heart-click. Claim-before-send under CONFIRMATION_DAILY_CAP; a failed
  * send leaves the rows unstamped for the next hour.
  */
-export async function drainConfirmations(now: Date = new Date(), send = sendAlertConfirmationEmail): Promise<ConfirmationRunSummary> {
+export async function drainConfirmations(now: Date = new Date(), send = sendAlertConfirmationEmail, io: { readOffers?: AlertOfferReader; cards?: AlertCardLoader } = {}): Promise<ConfirmationRunSummary> {
   const summary: ConfirmationRunSummary = { pending: 0, sent: 0, stamped: 0, capped: 0, failed: 0 };
   const pending = await prisma.priceAlert.groupBy({
     by: ["email"],
@@ -134,7 +135,7 @@ export async function drainConfirmations(now: Date = new Date(), send = sendAler
       where: { email },
       orderBy: { createdAt: "asc" },
       take: 200,
-      select: { market: true, unsubToken: true, card: { select: { id: true, name: true, variant: true, slug: true, number: true, set: { select: { code: true } } } } },
+      select: { market: true, unsubToken: true, cardId: true, finish: true },
     });
     if (!rows.length) continue;
     if (!(await claimConfirmationSlot(prisma, now))) {
@@ -143,12 +144,12 @@ export async function drainConfirmations(now: Date = new Date(), send = sendAler
     }
     const market: Country = isCountry(rows[0].market) ? rows[0].market : "US";
     const inMarket = rows.filter((r) => r.market === market);
-    const cards = await confirmationCards(
-      prisma,
-      inMarket.map((r) => ({ id: r.card.id, name: `${r.card.name}${r.card.variant ? ` (${r.card.variant})` : ""}`, slug: r.card.slug, setCode: r.card.set.code, number: r.card.number })),
-      market,
-      now,
-    );
+    const known = await (io.cards ?? liveAlertCards)(inMarket.map((r) => ({ id: r.cardId, finish: finishFromIndex(r.finish) })));
+    const named = inMarket.flatMap((r) => {
+      const c = known.get(unitKey(r.cardId, finishFromIndex(r.finish)));
+      return c ? [{ id: c.id, finish: c.finish, name: `${c.name}${c.variant ? ` (${c.variant})` : ""}`, slug: c.slug, setCode: c.setCode, number: c.number }] : [];
+    });
+    const cards = await confirmationCards(io.readOffers ?? liveAlertReader(), named, market, now);
     const ok = await send(email, cards, inMarket.length, rows[0].unsubToken, true);
     if (!ok) {
       summary.failed++;

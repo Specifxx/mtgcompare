@@ -10,9 +10,8 @@ import { FREE_LIMIT_STATUS, parseFreeLimit, type FreeLimitBody } from "@/lib/fre
 import type { OwnedMap } from "@/lib/set-scope";
 import { PortfolioLimitNotice as FreeLimitPanel } from "./PortfolioLimitNotice";
 
-// THE SET TRACKER'S OWNED OVERLAY — RiftCompare's SetOwned, ported in wave 2
-// (2026-10-03; DECISIONS.md, "Set checklist"). OP Compare's card ids are
-// numbers (Card.id) and a set is named by its slug ("op-01").
+// THE SET TRACKER'S OWNED OVERLAY. Card ids are numbers (Card.id, the TCGplayer
+// productId) and a set is named by its slug ("modern-horizons-3").
 //
 // A one-tap "I own this" tick on a released /sets/[slug] page's tiles, and on
 // the /portfolio/sets/[set] list. It adds ONE copy at Near
@@ -321,7 +320,7 @@ export function SetTickLayer({ tileIds, rowIds, scanKey }: { tileIds: number[]; 
     const found: TickHost[] = [];
     const tiles = Array.from(document.querySelector("[data-tick-grid]")?.children ?? []) as HTMLElement[];
     if (tiles.length === tileIds.length) {
-      // OP Compare's CardTile is one link; its first child is the art box
+      // The CardTile is one link; its first child is the art box
       // (relative), which the tick sits in, bottom-left of the art.
       tiles.forEach((el, i) =>
         found.push({ el: (el.firstElementChild as HTMLElement | null) ?? el, id: tileIds[i], tile: true, name: el.querySelector("h3")?.textContent?.trim() || "this card" }),

@@ -167,3 +167,21 @@ export function buildCardFaqs(c: FaqContext): { q: string; a: string }[] {
   }
   return faqs.map((f) => ({ q: tidy(f.q), a: tidy(f.a) })).filter((f) => f.a.length > 0);
 }
+
+// ── /card/<set code>/<collector number> ───────────────────────────────────────
+/**
+ * What the set-and-number door does with the cards the lookup returned: none is
+ * a 404, one is a permanent redirect to the card's own page, several (a card
+ * and its foil-only or etched twin, a reused number) are LISTED so the visitor
+ * picks. Never a guess (contract 4: an ambiguous lookup is shown, not resolved).
+ */
+export type SetNumberOutcome<T extends { slug: string }> =
+  | { kind: "missing" }
+  | { kind: "redirect"; to: string }
+  | { kind: "choose"; cards: T[] };
+
+export function setNumberOutcome<T extends { slug: string }>(cards: readonly T[] | undefined | null): SetNumberOutcome<T> {
+  if (!cards || cards.length === 0) return { kind: "missing" };
+  if (cards.length === 1) return { kind: "redirect", to: `/card/${cards[0]!.slug}` };
+  return { kind: "choose", cards: [...cards] };
+}

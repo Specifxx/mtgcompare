@@ -1,6 +1,5 @@
 // Store data health report: the same rules as /admin/store-health, printed for
-// the import log. Run by .github/workflows/import-prices.yml after each import
-// (continue-on-error), or by hand:
+// the log. Run daily by .github/workflows/store-health.yml after the publish, or by hand:
 //
 //   npm run health:stores
 //
@@ -11,9 +10,11 @@ import fs from "node:fs";
 import { prisma } from "../src/lib/db";
 import { loadStoreHealthInputs } from "../src/lib/admin-health";
 import { computeStoreHealth } from "../src/lib/store-health";
-import { STORES } from "../src/lib/stores";
+import { STORES, enabledFeeds, platformOf } from "../src/lib/stores";
 
 const MAX_WARNINGS = 20;
+// The stores the import reads: the registry, and a public feed only while FEED_SOURCES switches it on.
+const stores = STORES.filter((s) => platformOf(s) !== "feed" || enabledFeeds().includes(s));
 const cell = (s: string) => s.replace(/\|/g, "\\|").replace(/\n/g, " ");
 
 async function main() {
@@ -22,10 +23,10 @@ async function main() {
     return;
   }
   const { history, offers } = await loadStoreHealthInputs();
-  const health = computeStoreHealth(STORES, history, offers);
+  const health = computeStoreHealth(stores, history, offers);
   const alerting = health.filter((h) => h.alerts.length).sort((a, b) => b.alerts.length - a.alerts.length || a.name.localeCompare(b.name));
   const total = alerting.reduce((a, h) => a + h.alerts.length, 0);
-  console.log(`Store health: ${STORES.length} stores, ${alerting.length} alerting, ${total} alerts.`);
+  console.log(`Store health: ${stores.length} stores, ${alerting.length} alerting, ${total} alerts.`);
   for (const h of alerting) console.log(`  ${h.country} ${h.name} (${h.key}, ${h.platform}): ${h.alerts.map((a) => a.text).join("; ")}`);
 
   let n = 0;
@@ -38,7 +39,7 @@ async function main() {
 
   const summaryFile = process.env.GITHUB_STEP_SUMMARY;
   if (summaryFile) {
-    const lines = [`## Store health`, ``, `${STORES.length} stores · ${alerting.length} alerting · ${total} alerts`, ``];
+    const lines = [`## Store health`, ``, `${stores.length} stores · ${alerting.length} alerting · ${total} alerts`, ``];
     if (alerting.length) {
       lines.push(`| Store | Market | Platform | Latest products / matched | Alerts |`, `|---|---|---|---|---|`);
       for (const h of alerting) {

@@ -1,4 +1,4 @@
-// /admin/subscriptions reads: every OP Compare subscription in Stripe (the
+// /admin/subscriptions reads: every MTG Compare subscription in Stripe (the
 // metrics' source of truth) and how many accounts the DB currently entitles.
 // Uncached; calling Stripe on an ADMIN page view is fine (the no-Stripe-on-
 // page-load rule is about public pages).
@@ -9,7 +9,7 @@ import { ourRows, type SubRow } from "./subscription-metrics";
 
 export const MAX_SUBSCRIPTION_PAGES = 20;
 
-/** Pages through the account (100 per page, ≤ 20 pages) and keeps only site=opcompare subscriptions. */
+/** Pages through the account (100 per page, ≤ 20 pages) and keeps only site=mtgcompare subscriptions. */
 export async function fetchSubscriptionRows(maxPages = MAX_SUBSCRIPTION_PAGES): Promise<{ rows: SubRow[]; capped: boolean }> {
   const subs: Stripe.Subscription[] = [];
   let startingAfter: string | undefined;

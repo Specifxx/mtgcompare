@@ -1,4 +1,4 @@
-import test from "node:test";
+import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -18,18 +18,24 @@ import { parseBasketRequest } from "../src/lib/basket-request";
 import { basketPreview, optimizeBasket, type BasketCard } from "../src/lib/basket";
 import { basketStoresFor, postageOptionsFrom } from "../src/lib/shipping";
 import { createDeckWatch, priceDeckList, updateDeckWatch, type DeckWatchRouteDb } from "../src/lib/deck-watch";
-import { NOW, deckHarness, deckRow, fixtureSource, plus, premium, type StoreRow } from "./helpers/deck-watch-harness";
+import { BIRDS, COUNTERSPELL, NOW, deckHarness, deckRow, fixtureSource, plus, premium, servePlane, uidOf, type StoreRow } from "./helpers/deck-watch-harness";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MINIMUM CONDITION (RiftCompare's tests/min-condition.test.ts, for OP Compare).
+// MINIMUM CONDITION (RiftCompare's tests/min-condition.test.ts, for MTG Compare).
 // Best Basket and the deck price watch price only listings at or above the
-// member's floor, filtered INSIDE loadStoreListings. OP Compare keeps ONE row
+// member's floor, filtered INSIDE loadStoreListings. MTG Compare keeps ONE row
 // per (product, store, market) — the store's best-condition copy — so a floor
 // can only drop a store's row, never swap it for a better copy.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const read = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
-const STORES = ["danireon", "capefear"];
+// Two real stores of this market's basket map (the registry, never a hand-typed name).
+const [S1, S2] = Object.keys(basketStoresFor("US", {})).filter((k) => k !== "tcgplayer");
+const STORES = [S1!, S2!];
+const stop = servePlane();
+after(stop);
+const BIRDS_UID = uidOf(BIRDS), COUNTER_UID = uidOf(COUNTERSPELL);
+const [NM, LP, MP, HP] = [0, 1, 2, 3];   // CONDITIONS indexes
 
 test("grades: NM/Mint and an unstated condition are Near Mint; LP passes 'LP or better' but not 'NM only'; MP and worse pass neither", () => {
   for (const c of ["Near Mint", "NM", "Mint", null, undefined, "", "Default Title"]) {
@@ -47,48 +53,48 @@ test("grades: NM/Mint and an unstated condition are Near Mint; LP passes 'LP or 
 
 test("the floor filters each store's row before the per-store reduction; eBay and unknown sources never enter", async () => {
   const rows: StoreRow[] = [
-    { cardId: 101, source: "store:danireon", priceCents: 500, condition: "HP" },
-    { cardId: 101, source: "store:capefear", priceCents: 700, condition: "LP" },
-    { cardId: 101, source: "ebay", priceCents: 100, condition: null },
-    { cardId: 101, source: "ebay_us", priceCents: 90, condition: null },
-    { cardId: 101, source: "store:notastore", priceCents: 50, condition: null },
+    { uid: BIRDS_UID, source: `store:${S1}`, priceCents: 500, condition: HP },
+    { uid: BIRDS_UID, source: `store:${S2}`, priceCents: 700, condition: LP },
+    { uid: BIRDS_UID, source: "ebay", priceCents: 100, condition: null },
+    { uid: BIRDS_UID, source: "ebay_us", priceCents: 90, condition: null },
+    { uid: BIRDS_UID, source: "store:notastore", priceCents: 50, condition: null },
   ];
   const src = fixtureSource(rows);
-  const at = async (floor: "any" | "lp" | "nm") => (await loadStoreListings(["101"], "US", STORES, floor, src.listings)).get("101") ?? [];
-  assert.deepEqual((await at("any")).map((l) => [l.retailer, l.priceCents]).sort(), [["capefear", 700], ["danireon", 500]]);
-  assert.deepEqual((await at("lp")).map((l) => [l.retailer, l.priceCents]), [["capefear", 700]], "the HP-only store leaves at LP or better");
+  const at = async (floor: "any" | "lp" | "nm") => (await loadStoreListings([String(BIRDS_UID)], "US", STORES, floor, src.listings)).get(String(BIRDS_UID)) ?? [];
+  assert.deepEqual((await at("any")).map((l) => [l.retailer, l.priceCents]).sort(), [[S1, 500], [S2, 700]].sort());
+  assert.deepEqual((await at("lp")).map((l) => [l.retailer, l.priceCents]), [[S2, 700]], "the HP-only store leaves at LP or better");
   assert.deepEqual(await at("nm"), [], "nothing at NM: not covered");
 });
 
 test("a card with nothing at the floor is not covered: no listing, never a played copy in its place", async () => {
   const src = fixtureSource([
-    { cardId: 102, source: "store:danireon", priceCents: 300, condition: "HP" },
-    { cardId: 102, source: "store:capefear", priceCents: 400, condition: "MP" },
+    { uid: COUNTER_UID, source: `store:${S1}`, priceCents: 300, condition: HP },
+    { uid: COUNTER_UID, source: `store:${S2}`, priceCents: 400, condition: MP },
   ]);
-  const map = await loadStoreListings(["102"], "US", STORES, "lp", src.listings);
-  assert.equal(map.has("102"), false);
+  const map = await loadStoreListings([String(COUNTER_UID)], "US", STORES, "lp", src.listings);
+  assert.equal(map.has(String(COUNTER_UID)), false);
   const stores = basketStoresFor("US", postageOptionsFrom("US", null, null));
-  const card: BasketCard = { cardId: "102", name: "Beta", slug: "beta", qty: 2, listings: map.get("102") ?? [] };
+  const card: BasketCard = { cardId: String(COUNTER_UID), name: "Counterspell", slug: "counterspell-mh2-267", qty: 2, listings: map.get(String(COUNTER_UID)) ?? [] };
   const plan = optimizeBasket([card], stores);
   assert.equal(plan.coveredCopies, 0);
-  assert.deepEqual(plan.unbuyable, [{ name: "Beta", qty: 2 }]);
-  const anyMap = await loadStoreListings(["102"], "US", STORES, "any", src.listings);
-  assert.equal(anyMap.get("102")?.length, 2, "…while 'Anything' still finds them");
+  assert.deepEqual(plan.unbuyable, [{ name: "Counterspell", qty: 2 }]);
+  const anyMap = await loadStoreListings([String(COUNTER_UID)], "US", STORES, "any", src.listings);
+  assert.equal(anyMap.get(String(COUNTER_UID))?.length, 2, "…while 'Anything' still finds them");
 });
 
 test("the floor adds no reads: one cached listing read per 40-card chunk whatever the floor", async () => {
-  const src = fixtureSource([{ cardId: 101, source: "store:danireon", priceCents: 1000, condition: "NM" }]);
-  await loadStoreListings(["101"], "US", STORES, "nm", src.listings);
-  await loadStoreListings(["101"], "US", STORES, "any", src.listings);
-  assert.deepEqual(src.reads, [[101], [101]]);
-  const ids = Array.from({ length: 95 }, (_, i) => String(i + 1));
+  const src = fixtureSource([{ uid: BIRDS_UID, source: `store:${S1}`, priceCents: 1000, condition: NM }]);
+  await loadStoreListings([String(BIRDS_UID)], "US", STORES, "nm", src.listings);
+  await loadStoreListings([String(BIRDS_UID)], "US", STORES, "any", src.listings);
+  assert.deepEqual(src.reads, [[BIRDS_UID], [BIRDS_UID]]);
+  const ids = Array.from({ length: 95 }, (_, i) => String((i + 1) * 2));
   const src2 = fixtureSource([]);
   await loadStoreListings(ids, "US", STORES, "any", src2.listings);
   assert.deepEqual(src2.reads.map((r) => r.length), [40, 40, 15], "sorted 40-id chunks, so a list re-priced hits the same cache entries");
 });
 
 test("the request: the floor defaults to 'any' so every existing caller is unchanged; junk is 'any'", () => {
-  assert.equal(parseBasketRequest({ source: "deck", text: "3 Alpha" }).minCondition, "any");
+  assert.equal(parseBasketRequest({ source: "deck", text: "3 Birds of Paradise" }).minCondition, "any");
   assert.equal(parseBasketRequest(null).minCondition, "any");
   assert.equal(parseBasketRequest({ minCondition: "lp" }).minCondition, "lp");
   assert.equal(parseBasketRequest({ minCondition: "nm" }).minCondition, "nm");
@@ -111,45 +117,45 @@ test("the floor is Premium's: the route prices a non-Premium request at 'any' an
 
 test("the free total says how many played copies it includes, from the plan's lines only (a count, no store)", async () => {
   const src = fixtureSource([
-    { cardId: 101, source: "store:danireon", priceCents: 500, condition: "HP" },
-    { cardId: 102, source: "store:danireon", priceCents: 800, condition: "LP" },
+    { uid: BIRDS_UID, source: `store:${S1}`, priceCents: 500, condition: HP },
+    { uid: COUNTER_UID, source: `store:${S1}`, priceCents: 800, condition: LP },
   ]);
-  const listings = await loadStoreListings(["101", "102"], "US", STORES, "any", src.listings);
+  const listings = await loadStoreListings([String(BIRDS_UID), String(COUNTER_UID)], "US", STORES, "any", src.listings);
   const cards: BasketCard[] = [
-    { cardId: "101", name: "Alpha", slug: "alpha", qty: 3, listings: listings.get("101") ?? [] },
-    { cardId: "102", name: "Beta", slug: "beta", qty: 1, listings: listings.get("102") ?? [] },
+    { cardId: String(BIRDS_UID), name: "Birds of Paradise", slug: "birds-of-paradise-7ed-231", qty: 3, listings: listings.get(String(BIRDS_UID)) ?? [] },
+    { cardId: String(COUNTER_UID), name: "Counterspell", slug: "counterspell-mh2-267", qty: 1, listings: listings.get(String(COUNTER_UID)) ?? [] },
   ];
   const plan = optimizeBasket(cards, basketStoresFor("US", postageOptionsFrom("US", null, null)));
   const preview = basketPreview(plan);
   assert.equal(preview.playedCopies, 3, "only the three HP copies are below LP");
   assert.equal(playedCopiesNote(3), "Includes 3 played copies (below Lightly Played)");
   assert.equal(playedCopiesNote(1), "Includes 1 played copy (below Lightly Played)");
-  assert.doesNotMatch(JSON.stringify(preview), /danireon|https?:/i, "no store name or link in the preview");
+  assert.doesNotMatch(JSON.stringify(preview), new RegExp(`${S1}|https?:`, "i"), "no store name or link in the preview");
   assert.equal(playedCopyCount([{ qty: 2, condition: null }, { qty: 1, condition: "LP" }]), 0);
 });
 
 test("the page and the watch agree: the same list at the same floor is the same delivered total", async () => {
   const rows: StoreRow[] = [
-    { cardId: 101, source: "store:danireon", priceCents: 500, condition: "HP" },
-    { cardId: 101, source: "store:capefear", priceCents: 1000, condition: "NM" },
-    { cardId: 102, source: "store:capefear", priceCents: 2000, condition: "NM" },
+    { uid: BIRDS_UID, source: `store:${S1}`, priceCents: 500, condition: HP },
+    { uid: BIRDS_UID, source: `store:${S2}`, priceCents: 1000, condition: NM },
+    { uid: COUNTER_UID, source: `store:${S2}`, priceCents: 2000, condition: NM },
   ];
   const src = fixtureSource(rows);
   const stores = basketStoresFor("US", postageOptionsFrom("US", null, null));
   for (const floor of ["any", "lp", "nm"] as const) {
-    const watch = await priceDeckList(src, { listText: "3xOP01-016\n1xOP01-024", market: "US", region: null, trackedOnly: null, minCondition: floor });
+    const watch = await priceDeckList(src, { listText: "3 Birds of Paradise (7ED) 231\n1 Counterspell (MH2) 267", market: "US", region: null, trackedOnly: null, minCondition: floor });
     assert.ok(watch, floor);
-    const listings = await loadStoreListings(["101", "102"], "US", Object.keys(stores), floor, src.listings);
+    const listings = await loadStoreListings([String(BIRDS_UID), String(COUNTER_UID)], "US", Object.keys(stores), floor, src.listings);
     const page = optimizeBasket(
       [
-        { cardId: "101", name: "Alpha", slug: "alpha", qty: 3, listings: listings.get("101") ?? [] },
-        { cardId: "102", name: "Beta", slug: "beta", qty: 1, listings: listings.get("102") ?? [] },
+        { cardId: String(BIRDS_UID), name: "Birds of Paradise", slug: "birds-of-paradise-7ed-231", qty: 3, listings: listings.get(String(BIRDS_UID)) ?? [] },
+        { cardId: String(COUNTER_UID), name: "Counterspell", slug: "counterspell-mh2-267", qty: 1, listings: listings.get(String(COUNTER_UID)) ?? [] },
       ],
       stores,
     );
     assert.equal(watch.plan.totalCents, page.totalCents, `floor ${floor}: page and watch totals equal`);
   }
-  const lp = await priceDeckList(src, { listText: "3xOP01-016\n1xOP01-024", market: "US", region: null, trackedOnly: null, minCondition: "lp" });
+  const lp = await priceDeckList(src, { listText: "3 Birds of Paradise (7ED) 231\n1 Counterspell (MH2) 267", market: "US", region: null, trackedOnly: null, minCondition: "lp" });
   assert.equal(lp!.plan.itemsCents, 3 * 1000 + 2000, "LP or better: the NM copies");
   assert.equal(lp!.complete, true);
 });
@@ -180,20 +186,20 @@ const me = (id: string, tier: typeof premium) => ({ ...tier, id, email: `${id}@e
 
 test("a NEW deck watch starts on 'LP or better'; 'anything' is stored as null; a bad value is a 400", async () => {
   const { db, rows } = routeDb();
-  assert.equal((await createDeckWatch(db, me("o", premium), { listText: "3xOP01-016" }, "US")).status, 201);
+  assert.equal((await createDeckWatch(db, me("o", premium), { listText: "3 Birds of Paradise (7ED) 231" }, "US")).status, 201);
   assert.equal(rows[0]!.minCondition, "lp", "the new-watch default");
-  assert.equal((await createDeckWatch(db, me("o", premium), { listText: "3xOP01-016", minCondition: "nm" }, "US")).status, 201);
+  assert.equal((await createDeckWatch(db, me("o", premium), { listText: "3 Birds of Paradise (7ED) 231", minCondition: "nm" }, "US")).status, 201);
   assert.equal(rows[1]!.minCondition, "nm");
-  assert.equal((await createDeckWatch(db, me("o", premium), { listText: "3xOP01-016", minCondition: "any" }, "US")).status, 201);
+  assert.equal((await createDeckWatch(db, me("o", premium), { listText: "3 Birds of Paradise (7ED) 231", minCondition: "any" }, "US")).status, 201);
   assert.equal(rows[2]!.minCondition, null, "'any' is null");
-  assert.equal((await createDeckWatch(db, me("o", premium), { listText: "3xOP01-016", minCondition: "pristine" }, "US")).status, 400);
+  assert.equal((await createDeckWatch(db, me("o", premium), { listText: "3 Birds of Paradise (7ED) 231", minCondition: "pristine" }, "US")).status, 400);
   assert.equal(storedMinCondition(null), "any");
   assert.equal(toStoredMinCondition("any"), null);
 });
 
 test("changing a watch's floor re-baselines it and never alerts a false drop", async () => {
   const { db, rows } = routeDb([
-    { id: "d1", userId: "o", market: "US", name: "Deck", listText: "3xOP01-016", minCondition: "lp", targetCents: null, lastTotalCents: 10_000, lastEmailedCents: 9_800, lastNotifiedAt: NOW, snoozedUntil: null },
+    { id: "d1", userId: "o", market: "US", name: "Deck", listText: "3 Birds of Paradise (7ED) 231", minCondition: "lp", targetCents: null, lastTotalCents: 10_000, lastEmailedCents: 9_800, lastNotifiedAt: NOW, snoozedUntil: null },
   ]);
   assert.equal((await updateDeckWatch(db, me("o", premium), "d1", { minCondition: "lp" }, NOW)).status, 200);
   assert.equal(rows[0]!.lastTotalCents, 10_000, "the same floor keeps its baseline");
@@ -204,8 +210,8 @@ test("changing a watch's floor re-baselines it and never alerts a false drop", a
   assert.equal(rows[0]!.lastTotalCents, null, "re-baselined");
   assert.equal(rows[0]!.lastEmailedCents, null);
   const listings: StoreRow[] = [
-    { cardId: 101, source: "store:danireon", priceCents: 500, condition: "HP" },
-    { cardId: 102, source: "store:danireon", priceCents: 2000, condition: "NM" },
+    { uid: BIRDS_UID, source: `store:${S1}`, priceCents: 500, condition: HP },
+    { uid: COUNTER_UID, source: `store:${S1}`, priceCents: 2000, condition: NM },
   ];
   const h = deckHarness([deckRow("d1", premium, { minCondition: null })], listings);
   const s = await h.run();

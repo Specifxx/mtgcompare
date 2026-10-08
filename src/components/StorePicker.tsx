@@ -11,7 +11,7 @@ import { hrefFor, type DealFinderParams } from "@/lib/deal-finder-href";
 // selectable: every row is measured against TCGplayer's market price, and
 // TCGplayer is never on the list. Ticking changes a local draft; nothing
 // reloads until Apply. "only" beside a source applies that one at once. All /
-// None set the draft. OP Compare tracks up to ~50 stores in a market, so the
+// None set the draft. MTG Compare tracks up to ~40 stores in a market, so the
 // list scrolls inside the panel.
 //
 // The URL is built by hrefFor() from the page's FULL parameter set, so applying

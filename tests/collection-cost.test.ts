@@ -11,19 +11,18 @@ const readCode = (p: string) =>
   read(p).replace(/(^|[^:])\/\/.*$/gm, "$1").replace(/\/\*[\s\S]*?\*\//g, "");
 
 // ─────────────────────────────────────────────────────────────────────────────
-// RiftCompare's tests/collection-cost.test.ts, ported in wave 2 (2026-10-03).
-// The arithmetic is unchanged; the source-reading checks follow OP Compare's
-// layout (the routes' logic lives in src/lib/collection-server.ts).
+// The cost-basis arithmetic and the source-reading checks (the routes' logic
+// lives in src/lib/collection-server.ts).
 //
-// Reported 2026-09-10 through RiftCompare's /portfolio feedback form:
+// Reported 2026-09-10 through a sister site's /portfolio feedback form:
 //
-//   "Added $770 paid to Akali ON - pulled one, paid for the other… Same issue
-//    with Arise where I paid 20 each for two and 25 for the third"
+//   "Added $770 paid to a card - pulled one, paid for the other… Same issue
+//    with another where I paid 20 each for two and 25 for the third"
 //
 // A CollectionCard is unique per (user, card, condition, foil), so every copy of
 // one card in one condition shared ONE cost figure, and that figure could only
 // mean "per copy". $770 against two copies was therefore read as $770 EACH and
-// the portfolio reported $1,540 invested; three Arise bought at 20/20/25 had no
+// the portfolio reported $1,540 invested; three copies bought at 20/20/25 had no
 // single per-copy number to type at all. Both produced a profit-and-loss figure
 // the owner could see was wrong.
 //
@@ -35,11 +34,11 @@ const row = (quantity: number, costBasisCents: number | null, costBasisIsTotal =
   ({ quantity, costBasisCents, costBasisIsTotal });
 
 test("the reported cases produce the right invested figure", () => {
-  // Akali: two copies, $770 paid for the pair (the other was pulled).
+  // Two copies, $770 paid for the pair (the other was pulled).
   assert.equal(investedCents(row(2, 77_000, true)), 77_000);
   // …which is exactly what the old per-unit-only reading got wrong.
   assert.equal(investedCents(row(2, 77_000, false)), 154_000);
-  // Arise: three copies, 20 + 20 + 25 = 65.
+  // Three copies, 20 + 20 + 25 = 65.
   assert.equal(investedCents(row(3, 6_500, true)), 6_500);
 });
 
@@ -136,7 +135,7 @@ test("a row with no recorded cost stays unknown — never a cost of zero", () =>
 });
 
 test("a total sent with the add is summed with what was already paid, never written over it", () => {
-  // Arise: $40 for the first two, then a third for $25 → $65 across three.
+  // $40 for the first two, then a third for $25 → $65 across three.
   assert.deepEqual(
     costAfterAdd(row(2, 4_000, true), { quantity: 1, costBasisCents: 2_500, costBasisIsTotal: true }),
     { costBasisCents: 6_500, costBasisIsTotal: true },
@@ -162,8 +161,8 @@ test("both add paths go through addCopies, reading the row with one narrow cappe
   const post = lib.slice(lib.indexOf("export async function addToCollection"), lib.indexOf("export interface PatchBody"));
   assert.match(post, /addCopies\(store,/, "POST must add through the guarded writer");
   assert.doesNotMatch(post, /priorPaid \?\? 0/, "an unknown earlier cost is not zero");
-  const imp = lib.slice(lib.indexOf("async function writeWants"), lib.indexOf("async function finishes"));
-  assert.match(imp, /addCopies\(collectionRowStore\(prisma, key\), \{ quantity: m\.qty \}, \{ existing:/, "the import must rescale too, from its batch read");
+  const imp = lib.slice(lib.indexOf("async function writeWants"), lib.indexOf("const csvData"));
+  assert.match(imp, /addCopies\(collectionRowStore\(prisma, key, undefined, m\.setId\), \{ quantity: m\.qty \}, \{ existing:/, "the import must rescale too, from its batch read");
   // One read for the whole import, not one per line.
   assert.match(imp, /collectionCard\.findMany\(\{[\s\S]*?take: ids\.length \* ROWS_PER_PORTFOLIO_CARD/);
   for (const src of [post, imp]) {

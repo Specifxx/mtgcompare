@@ -11,25 +11,25 @@ import { withArticle } from "@/lib/filter-chips";
 import { StorePicker } from "@/components/StorePicker";
 import { Breadcrumbs, JsonLd } from "@/components/ui";
 import { ViewTabs } from "@/components/ViewTabs";
-import { getCurrentUser } from "@/lib/auth";
+import { currentEntitlement } from "@/lib/auth";
 import { COUNTRIES, type Country } from "@/lib/country";
-import { getSiteStats } from "@/lib/data";
+import { getDealCount, getSiteStats } from "@/lib/data";
 import { getCountry } from "@/lib/get-country";
 import { getCheapestOnEbayDeals, getTcgDeals, getVsEbayDeals } from "@/lib/deal-pages";
 import { hrefFor, parseDealFinderParams, type DealFinderParams, type DealFinderSearchParams, type MineFilter } from "@/lib/deal-finder-href";
 import { DEAL_PAGE_SIZE, EBAY_FEED, dealFinderSources, defaultBuyKeys, resolveBuyKeys, type DealSort } from "@/lib/deals";
+import { FREE_DEAL_ROWS } from "@/lib/tier-limits";
 import { money } from "@/lib/format";
 import { USD_TO } from "@/lib/fx";
 import { pageOg } from "@/lib/og/meta";
-import { FREE_DEAL_ROWS, dealAccess } from "@/lib/plans";
-import { isPremium, tierOf } from "@/lib/premium";
+import { accessFor, rowLimit, type Access } from "@/lib/premium-gates";
 import { SITE_URL } from "@/lib/site";
 import { MineDeals } from "./MineDeals";
 
 export const metadata: Metadata = {
   title: "One Piece Deal Finder — Underpriced vs TCGplayer & eBay",
   description:
-    "One Piece Card Game cards a store or eBay seller in your market sells for less than TCGplayer's market price, the cards whose cheapest copy is on eBay, and the cards a store sells for less than eBay. Direct links to each listing. Cheapest on eBay is free.",
+    "Magic: The Gathering cards a store or eBay seller in your market sells for less than TCGplayer's market price, the cards whose cheapest copy is on eBay, and the cards a store sells for less than eBay. Direct links to each listing. Cheapest on eBay is free.",
   alternates: { canonical: "/tools/deal-finder" },
   openGraph: pageOg("/tools/deal-finder"),
 };
@@ -46,14 +46,15 @@ export const dynamic = "force-dynamic";
 //            row is an eBay affiliate link to the cheapest copy we track.
 //   vs-ebay  "Underpriced vs eBay": the mirror. Gated like tcg.
 //
-// ACCESS (lib/plans.ts dealAccess): full (Plus/Premium) — every row, filters,
-// pages; top3 (signed-in free) — the first FREE_DEAL_ROWS rows of the DEFAULT
-// ranking, limited in the query (only those rows are detailed and rendered),
-// then the real count of the rest; none (signed out) — NO query on the gated
-// views, a prop-less locked preview and an eBay search beside it.
+// ACCESS (lib/premium-gates.ts accessFor, rowLimit): full (Plus/Premium) — every
+// row, filters, pages, "only my cards" (watchlist or binder); preview (signed-in
+// free) — the first FREE_DEAL_ROWS rows of the DEFAULT ranking, limited in the
+// loader (getDealList cuts the ranking once, for the session's Entitlement), then
+// the real count of the rest; none (signed out) — NO ranking query on the gated
+// views, a locked preview that shows the real count and no row, and an eBay
+// search beside it.
 //
 // Every link on the page is built by hrefFor() from ONE parsed parameter set.
-type ToolAccess = "full" | "top3" | "none";
 
 const SORTS: { key: DealSort; label: string }[] = [
   { key: "saving", label: "Most below market" },
@@ -66,14 +67,15 @@ const VS_EBAY_SORTS: { key: DealSort; label: string }[] = [
 const MINE_CHIPS: { key: MineFilter | null; label: string }[] = [
   { key: null, label: "All cards" },
   { key: "watch", label: "My watchlist" },
+  { key: "binder", label: "My binder" },
 ];
 const PLUS_GATE_LINE = "Plus shows every one, with the store filter, sorting and your watchlist, and no ads.";
 
 const EBAY_SEARCHES = [
-  { label: "One Piece singles", query: "One Piece Card Game singles" },
-  { label: "Parallels & alt arts", query: "One Piece Card Game parallel alternate art" },
-  { label: "Manga rares", query: "One Piece Card Game manga rare" },
-  { label: "Booster boxes", query: "One Piece Card Game booster box" },
+  { label: "One Piece singles", query: "Magic: The Gathering singles" },
+  { label: "Parallels & alt arts", query: "Magic: The Gathering parallel alternate art" },
+  { label: "Manga rares", query: "Magic: The Gathering manga rare" },
+  { label: "Booster boxes", query: "Magic: The Gathering booster box" },
 ];
 
 // Visible AND as FAQPage JSON-LD from the same array, so the two never drift.
@@ -105,39 +107,37 @@ const DEAL_FAQS = [
 ];
 
 export default async function DealFinderPage({ searchParams }: { searchParams: DealFinderSearchParams }) {
-  const user = await getCurrentUser();
-  const member = isPremium(user);
-  const access: ToolAccess = dealAccess(Boolean(user), tierOf(user));
+  const who = await currentEntitlement();
+  const viewer = who.viewer;
+  const access: Access = accessFor("deal-finder", viewer);
+  const member = access === "full";
+  const rows = rowLimit("deal-finder", access, viewer); // 0 = the ranking is not even queried
   const country = getCountry();
   const info = COUNTRIES[country];
   // The picker's sources: every store and eBay, never TCGplayer (the reference side).
-  const sources = dealFinderSources(country);
-  const defaultBuy = defaultBuyKeys(country);
+  const sources = dealFinderSources(country).filter((x) => !x.isEbay); // eBay is never on the TCGplayer comparison's buy side
+  const defaultBuy = defaultBuyKeys(country).filter((k) => sources.some((x) => x.key === k));
   // ?mine= is honoured only for a real Plus+ member; anyone else's is ignored.
   const params = parseDealFinderParams(searchParams, { allowMine: member });
   const { view, sort, page, mine } = params;
-  const buy = params.buy === null ? defaultBuy : resolveBuyKeys(country, params.buy);
-  const island = access === "full" && mine === "watch";
+  const buy = params.buy === null ? defaultBuy : resolveBuyKeys(country, params.buy).filter((k) => defaultBuy.includes(k));
+  const island = access === "full" && mine !== null;
 
   // Each view queries only its own list. Signed out runs nothing on the gated
   // views; a free account gets the first rows of the DEFAULT ranking only.
   const stats = await getSiteStats();
   const tcg =
-    view !== "tcg" || island
+    view !== "tcg" || island || rows === 0
       ? null
-      : access === "none" ? null
-        : access === "full"
-          ? await getTcgDeals(country, { buy, sort, page, pageSize: DEAL_PAGE_SIZE })
-          : await getTcgDeals(country, { buy: defaultBuy, sort: "saving", page: 1, pageSize: FREE_DEAL_ROWS });
+      : await getTcgDeals(country, { buy: params.buy === null ? undefined : buy, sort, page, pageSize: DEAL_PAGE_SIZE }, who);
   const vsEbay =
-    view !== "vs-ebay" || island
+    view !== "vs-ebay" || island || rows === 0
       ? null
-      : access === "none" ? null
-        : access === "full"
-          ? await getVsEbayDeals(country, { sort, page, pageSize: DEAL_PAGE_SIZE })
-          : await getVsEbayDeals(country, { sort: "saving", page: 1, pageSize: FREE_DEAL_ROWS });
+      : await getVsEbayDeals(country, { sort, page, pageSize: DEAL_PAGE_SIZE }, who);
   // Free for everyone: the same page for every visitor.
   const cheapest = view === "ebay" ? await getCheapestOnEbayDeals(country, { page, pageSize: DEAL_PAGE_SIZE }) : null;
+  // The signed-out preview shows the REAL count of today's deals and no row.
+  const dealCount = view !== "ebay" && access === "none" ? await getDealCount(country).catch(() => 0) : 0;
 
   const gatedLocked = view !== "ebay" && access === "none";
   const priceLine = gatedLocked ? null : (
@@ -164,7 +164,7 @@ export default async function DealFinderPage({ searchParams }: { searchParams: D
             applicationCategory: "UtilitiesApplication",
             operatingSystem: "Web",
             description:
-              "One Piece Card Game cards underpriced against TCGplayer's market price or against eBay in the buyer's market, and the cards whose cheapest copy is an eBay listing, in the buyer's currency.",
+              "Magic: The Gathering cards underpriced against TCGplayer's market price or against eBay in the buyer's market, and the cards whose cheapest copy is an eBay listing, in the buyer's currency.",
           },
           {
             "@context": "https://schema.org",
@@ -206,7 +206,7 @@ export default async function DealFinderPage({ searchParams }: { searchParams: D
             {island ? (
               <MineDeals params={params} country={country} buy={params.buy === null ? null : buy} />
             ) : tcg === null ? (
-              <Locked country={country} />
+              <Locked country={country} count={dealCount} />
             ) : tcg.rows.length === 0 ? (
               <Empty>
                 {buy.length === 0 ? (
@@ -297,7 +297,7 @@ export default async function DealFinderPage({ searchParams }: { searchParams: D
             ) : island ? (
               <MineDeals params={params} country={country} buy={null} />
             ) : vsEbay === null ? (
-              <Locked country={country} />
+              <Locked country={country} count={dealCount} />
             ) : !ebayAvailable ? (
               <Empty>
                 <NoEbayComparison country={country} live={stats.ebayLive} />
@@ -333,7 +333,7 @@ export default async function DealFinderPage({ searchParams }: { searchParams: D
           ranks the biggest price gaps between the markets we track, free.
         </p>
         <p className="mt-2 text-center text-[11px] text-slate-500">
-          Affiliate links: as an eBay Partner Network affiliate and a TCGplayer affiliate, OP Compare earns from qualifying purchases — at no extra
+          Affiliate links: as an eBay Partner Network affiliate and a TCGplayer affiliate, MTG Compare earns from qualifying purchases — at no extra
           cost to you. Store links are plain links.
         </p>
 
@@ -434,7 +434,7 @@ function Empty({ children }: { children: React.ReactNode }) {
 // SIGNED OUT, on a gated view: placeholder bars and the ask. NOTHING REAL IS
 // RENDERED — no props, no rows — and an eBay search beside it so a shopper who
 // doesn't want an account still has somewhere to buy.
-function Locked({ country }: { country: Country }) {
+function Locked({ country, count }: { country: Country; count: number }) {
   return (
     <>
       <div className="card-surface relative overflow-hidden">
@@ -453,7 +453,9 @@ function Locked({ country }: { country: Country }) {
         <div className="absolute inset-0 flex items-center justify-center bg-ink-950/70 p-4">
           <div className="mx-auto max-w-sm rounded-lg border border-ink-700 bg-ink-900 p-5 text-center">
             <Icon name="lock" className="mx-auto h-5 w-5 text-gold" />
-            <h3 className="mt-1 text-base font-bold text-white">See today&apos;s top {FREE_DEAL_ROWS} deals, free</h3>
+            <h3 className="mt-1 text-base font-bold text-white">
+              {count > 0 ? `${count.toLocaleString("en-US")} deals today. See the top ${FREE_DEAL_ROWS}, free` : `See today's top ${FREE_DEAL_ROWS} deals, free`}
+            </h3>
             <p className="mx-auto mt-1 max-w-xs text-xs leading-relaxed text-slate-400">
               A free account shows the top three cards on this list. {PLUS_GATE_LINE}
             </p>

@@ -6,9 +6,7 @@ import { CopyPostButton } from "./CopyPostButton";
 type State = { shared: boolean; url: string | null };
 
 /**
- * RiftCompare's CollectionShare, ported for OP Compare (wave 2, 2026-10-03).
- *
- * Opt-in public link for the signed-in user's collection.
+  * Opt-in public link for the signed-in user's collection.
  *
  * Three deliberate choices, all about the fact that a shared URL cannot be
  * un-shared once it is in somebody else's chat log:

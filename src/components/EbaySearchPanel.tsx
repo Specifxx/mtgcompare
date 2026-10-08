@@ -34,7 +34,7 @@ export function EbaySearchPanel({ heading, sub, links, country, page }: { headin
           </a>
         ))}
       </div>
-      <p className="mt-2 text-[11px] text-slate-500">Searches {ebayLabel(country)}. As an eBay Partner Network affiliate, OP Compare earns from qualifying purchases.</p>
+      <p className="mt-2 text-[11px] text-slate-500">Searches {ebayLabel(country)}. As an eBay Partner Network affiliate, MTG Compare earns from qualifying purchases.</p>
     </aside>
   );
 }

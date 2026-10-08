@@ -39,15 +39,17 @@ test("labels name the market's eBay; derived CA rows say eBay US", () => {
   assert.match("ebay_us", SOURCE_RE);
 });
 
-test("links re-tag at render as oc-<mkt>-ebay-<page>-product", () => {
-  const stored = "https://www.ebay.co.uk/itm/123?mkevt=1&mkcid=1&mkrid=710-53481-19255-0&campid=5339155912&customid=oc-uk-product&toolid=10001";
+process.env.NEXT_PUBLIC_EBAY_CAMPAIGN_ID = "1000000001";   // placeholder: the builder reads NEXT_PUBLIC_* at call time and has no default
+
+test("links re-tag at render as mc-<mkt>-ebay-<page>-product", () => {
+  const stored = "https://www.ebay.co.uk/itm/123?mkevt=1&mkcid=1&mkrid=710-53481-19255-0&campid=1000000001&customid=mc-uk-product&toolid=10001";
   const uk = new URL(affiliateUrl(stored, retailerSubId("ebay"), "card"));
-  assert.equal(uk.searchParams.get("customid"), "oc-uk-ebay-card-product");
-  assert.equal(uk.searchParams.get("campid"), "5339155912");
+  assert.equal(uk.searchParams.get("customid"), "mc-uk-ebay-card-product");
+  assert.equal(uk.searchParams.get("campid"), "1000000001");
   const us = new URL(affiliateUrl("https://www.ebay.com/itm/9", retailerSubId("ebay"), "sealed"));
-  assert.equal(us.searchParams.get("customid"), "oc-us-ebay-sealed-product");
+  assert.equal(us.searchParams.get("customid"), "mc-us-ebay-sealed-product");
   const ca = new URL(affiliateUrl("https://www.ebay.com/itm/9", retailerSubId("ebay_us"), "card"));
-  assert.equal(ca.searchParams.get("customid"), "oc-us-ebay_us-card-product");
+  assert.equal(ca.searchParams.get("customid"), "mc-us-ebay_us-card-product");
   assert.equal(ebayRetailer("ebay", "UK"), "ebay_uk");
   assert.equal(ebayRetailer("ebay_us", "CA"), "ebay_us");
 });

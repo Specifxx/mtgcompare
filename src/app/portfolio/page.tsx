@@ -3,6 +3,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { isPremium, tierOf } from "@/lib/premium";
+import { getPremiumNudge, nudgeCopy } from "@/lib/premium-nudge";
+import { PremiumNudgeCard } from "@/components/PremiumNudgeCard";
+import { getEmailStatus } from "@/lib/data";
 import { getPortfolio, PORTFOLIO_FREE, type Portfolio } from "@/lib/collection-server";
 import { getCountry } from "@/lib/get-country";
 import { COUNTRIES, type Country } from "@/lib/country";
@@ -20,17 +23,15 @@ import { FREE_PORTFOLIO_LIMIT } from "@/lib/free-limits";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "My binder — track your One Piece collection",
+  title: "My binder — track your Magic collection",
   robots: { index: false, follow: false }, // personal page, never indexed
 };
 
-// RiftCompare's /portfolio, ported for OP Compare in wave 2 (2026-10-03). Every
-// read is per-user and uncached through lib/collection-server.ts (CLAUDE.md, the
-// accounts exception); cards and prices come from the cached catalogue, and the
-// value history from the history files on the `data` branch (US TCGplayer
-// market-price ratios, anchored at today's total in the visitor's currency).
-//
-// RiftCompare's notes on the page follow.
+// Every read is per-user and uncached through lib/collection-server.ts (CLAUDE.md,
+// the accounts exception); cards and prices come from the published data (a binder
+// row is a product in a finish, valued at that finish's TCGplayer market price) and
+// the value history from the published history files (US market-price ratios per
+// unit, anchored at today's total in the visitor's currency).
 //
 // ── Why this page stopped talking like a trading desk (2026-09-16) ───────────
 // It was "My portfolio", with Profit & Loss, Invested, Return and holdings. That
@@ -63,7 +64,7 @@ const pctText = (p: number | null) => (p == null ? "—" : `${p > 0 ? "+" : ""}$
 const pctClass = (p: number | null) => (p == null || p === 0 ? "text-slate-300" : p > 0 ? "text-brand-400" : "text-rose-400");
 
 // The "Since you bought" panel: cost-basis P&L for the cards with a recorded
-// price, and the portfolio's move beside the OP Compare Index over the same windows.
+// price, and the portfolio's move beside the MTG Compare Index over the same windows.
 function PnlView({
   pnl,
   index,
@@ -95,7 +96,7 @@ function PnlView({
       </div>
       {index && (index.d7 != null || index.d30 != null) && (
         <div className="rounded-lg border border-ink-700 bg-ink-900/60 p-3 text-sm">
-          <div className="mb-1 text-[11px] font-bold uppercase tracking-wide text-slate-500">vs the market (OP Compare Index)</div>
+          <div className="mb-1 text-[11px] font-bold uppercase tracking-wide text-slate-500">vs the market (MTG Compare Index)</div>
           <div className="grid grid-cols-2 gap-3">
             {[
               { w: "7-day", port: d7, idx: index.d7 },
@@ -137,9 +138,12 @@ export default async function PortfolioPage() {
   // Portfolio analytics are free (PORTFOLIO_FREE); `pro` gates the
   // value-history chart, P&L panel and CSV export so re-gating is one flag.
   const pro = premium || PORTFOLIO_FREE;
-  // RiftCompare also shows the owned-cards Rising picks nudge here
-  // (PremiumNudgeCard, surface "nudge:portfolio"); it arrives with the member
-  // and tools tracks' premium-nudge and Rising Cards ports.
+  // The owned-cards Rising picks nudge (surface "nudge:portfolio"): a Premium
+  // upsell for a free account, a link into the list for a member. It renders only
+  // when there is something true and specific to say, and never fails the page.
+  const emailOn = (await getEmailStatus().catch(() => "off")) === "on";
+  const nudge = await getPremiumNudge(user.id, country).catch(() => null);
+  const ownedNudge = nudge ? nudgeCopy(nudge, "owned", premium ? "member" : "free", emailOn) : null;
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6">
@@ -150,7 +154,7 @@ export default async function PortfolioPage() {
             My binder
           </h1>
           <p className="mt-1 text-sm text-slate-400">
-            Your cards, and what they&apos;d cost at today&apos;s lowest {info.adjective} prices, adjusted for condition.
+            Your cards, valued at TCGplayer&apos;s market price for the finish you hold (Normal or Foil) in {info.currency}, adjusted for condition.
             {!premium && (
               <> A free account tracks up to {FREE_PORTFOLIO_LIMIT} cards; if you already have more, you keep them all.</>
             )}{" "}
@@ -169,10 +173,12 @@ export default async function PortfolioPage() {
         </div>
       </div>
 
+      {ownedNudge && <PremiumNudgeCard {...ownedNudge} member={premium} surface="nudge:portfolio" />}
+
       {/* Headline value — always shown, even before the first card is added,
           so a brand-new free account has a reason to come back. */}
       {/* overflow-hidden only once there are holdings: the zero state's quick-add
-          suggestions drop below the card, and RiftCompare's clipped them. */}
+          suggestions drop below the card. */}
       <section className={`card-surface ${portfolio.holdings.length > 0 ? "overflow-hidden " : ""}bg-gradient-to-br from-brand-600/15 via-ink-850 to-gold/10 p-5`}>
         {portfolio.holdings.length > 0 ? (
           <>
@@ -198,15 +204,15 @@ export default async function PortfolioPage() {
                 {portfolio.series.length >= 2 ? (
                   <>
                     <LineChart
-                      series={[{ label: "Your binder", color: "#ff6b6b", points: portfolio.series.map((p) => ({ x: new Date(p.t).toISOString().slice(0, 10), y: p.v })) }]}
+                      series={[{ label: "Your binder", color: "#a259e6", points: portfolio.series.map((p) => ({ x: new Date(p.t).toISOString().slice(0, 10), y: p.v })) }]}
                       format={(v) => money(Math.round(v), country)}
                       height={220}
                     />
                     <p className="mt-2 text-[11px] text-slate-500">
-                      Your cards at each daily price snapshot (daily since 2026-10-03). The movement comes from TCGplayer market prices (US),
+                      Your cards at each daily price snapshot (daily since 2026-10-03), each copy in its own finish. The movement comes from TCGplayer market prices (US),
                       shown in your currency and anchored at today&apos;s value. A card starts counting toward a move once it has a price at
                       both ends of a step, so a newly priced card never shows up as a gain, as on the{" "}
-                      <Link href="/market" className="text-brand-400 hover:underline">OP Compare Index</Link>.
+                      <Link href="/market" className="text-brand-400 hover:underline">MTG Compare Index</Link>.
                     </p>
                   </>
                 ) : (
@@ -269,7 +275,7 @@ export default async function PortfolioPage() {
             </div>
             <HoldingsGrid holdings={portfolio.holdings} country={country} />
             <p className="mt-3 text-[11px] text-slate-600">
-              Values are the live lowest in-stock price in your market × the standard condition multiplier
+              Values are TCGplayer&apos;s market price for the finish you hold (a card with no market price, only a thin listing, is not valued) × the standard condition multiplier
               ({Object.entries(CONDITION_MULTIPLIER).map(([k, v]) => `${k} ${Math.round(v * 100)}%`).join(" · ")}).
               The green/red chip shows how a card has moved since you paid for it, where you&apos;ve recorded that.
             </p>

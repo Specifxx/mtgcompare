@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-// Mints a public OP Compare Hot 40 snapshot and lists the ones already minted
+// Mints a public MTG Compare Hot 40 snapshot and lists the ones already minted
 // (RiftCompare's RisingSnapshotPanel). Every call is same-origin JSON through
 // /api/admin/rising-snapshot (requireAdminApi); deleting is a POST too.
 //

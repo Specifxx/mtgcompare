@@ -134,22 +134,22 @@ export interface CartLine {
 const MULTI = /\b(playset|lot|lots|bundle|joblot|job lot|x\s*\d+|\d+\s*x|set of|complete set|full set|bulk)\b/i;
 // Never in a probe cart: a slab or sealed product ships as a parcel whatever
 // the store charges for a card, so it would measure the wrong thing.
-const NOT_A_CARD = /\b(psa|bgs|cgc|beckett|graded|slab|booster|display|box|pack|sleeves?|playmats?|deck\s*box|binder|pre-?order|dice|tickets?|japanese|chinese|figure|plush|manga\s*vol(ume)?)\b/i;
+const NOT_A_CARD = /\b(psa|bgs|cgc|beckett|graded|slab|booster|display|box|pack|sleeves?|playmats?|deck\s*box|binder|pre-?order|dice|tickets?|japanese|chinese|figure|plush)\b/i;
 // The same, in the languages EU stores title accessories in (RiftCompare's
 // first EU run put Spanish playmats and sleeves into its €20/€50/€100 rungs,
 // and the cross-border quote rose with them).
 const NOT_A_CARD_EU = /\b(tapetes?|fundas?|tappetin[oi]|bustine|spielmatten?|h(ü|ue)llen|tapis|protège-cartes)\b/i;
-// A store's "one-piece" collection can hold event entries next to its cards
-// (store championships, treasure cups), which ship nothing. Tested against the
+// A store's Magic collection can hold event entries next to its cards
+// (Friday Night Magic, prerelease entries), which ship nothing. Tested against the
 // product title alone.
 const EVENT_LISTING = /^\s*events?\b|\b(entry\s*fee|tournament\s*entry)\b/i;
 // Sealed products whose titles carry none of the words above (kept in step
-// with lib/match.ts sealedKindOfTitle by hand): a starter or premium deck, a
-// double pack, a gift or premium collection, a tin, an illustration box. A
-// title with a One Piece card number (OP01-016, ST10-005, EB01-001, P-001) or a
-// condition is a single even so ("Nami (OP01-016) - NM").
-const SEALED_NAME = /starter\s*decks?|ultra\s*decks?|premium\s*(booster|collection|card\s*collection)|double\s*packs?|gift\s*(collection|box)|illustration\s*box|\btin\b|(event|pre-?release)\s*kits?|uncut\s*sheet/i;
-const SINGLE_TELL = /\b(?:OP|ST|EB|PRB)\s?-?\d{2}\s?-?\s?\d{3}\b|\bP-\d{3}\b|\b(nm|lp|mp|hp)\b|near\s*mint|lightly\s*played/i;
+// with lib/match.ts by hand): a theme, commander or challenger deck, an intro
+// pack, a bundle, a fat pack, a tin, a Secret Lair drop, a prerelease kit. A
+// title with a set code or collector number ("Lightning Bolt (M11) 149") or a
+// condition is a single even so ("Sol Ring (C21) 263 - NM").
+const SEALED_NAME = /(starter|theme|commander|challenger|planeswalker|duel)\s*decks?|intro\s*packs?|bundles?|fat\s*packs?|gift\s*(collection|box)|\btin\b|(event|pre-?release)\s*kits?|secret\s*lair|scene\s*box|uncut\s*sheet/i;
+const SINGLE_TELL = /\([a-z0-9]{2,6}\)|\b\d{1,4}\/\d{1,4}\b|\b(nm|lp|mp|hp)\b|near\s*mint|lightly\s*played/i;
 
 /**
  * Where a variant stands as a probe-cart candidate: 0 a plain single, 1 a
@@ -489,14 +489,14 @@ export function summarizeStore(
 }
 
 // ── Collection discovery (sitemap fallback) ─────────────────────────────────
-// Kept in step with SKIP_HANDLE in lib/store-import.ts: a One Piece handle that
+// Kept in step with SKIP_HANDLE in lib/store-import.ts: a Magic handle that
 // is not sealed/accessories and names no rival game.
-const NON_SINGLE_HANDLE = /sealed|booster|box|bundle|preorder|pre-order|accessor|playmat|sleeve|merch|deck-?box|gift|case|tin|blister|collection-box|starter|double-pack|manga|figure|anime|plush|poster/i;
+const NON_SINGLE_HANDLE = /sealed|booster|box|bundle|preorder|pre-order|accessor|playmat|sleeve|merch|deck-?box|gift|case|tin|blister|collection-box|starter|theme-?deck|commander-?deck|secret-?lair|figure|anime|plush|poster|token|proxy/i;
 const OTHER_TCG_HANDLE =
-  /pokemon|riftbound|magic-the-gathering|\bmtg\b|yu-?gi-?oh|flesh-?and-?blood|digimon|lorcana|gundam|dragon-?ball|weiss|star-?wars|sorcery|vanguard|metazoo|union-?arena/i;
+  /pokemon|riftbound|one-?piece|yu-?gi-?oh|flesh-?and-?blood|digimon|lorcana|gundam|dragon-?ball|weiss|star-?wars|sorcery|vanguard|metazoo|union-?arena/i;
 
-export function isOnePieceSinglesHandle(h: string): boolean {
-  return /one-?piece/i.test(h) && !NON_SINGLE_HANDLE.test(h) && !OTHER_TCG_HANDLE.test(h) && !/\.(jpe?g|png|gif|webp|svg)$/i.test(h);
+export function isMagicSinglesHandle(h: string): boolean {
+  return /magic|\bmtg\b/i.test(h) && !NON_SINGLE_HANDLE.test(h) && !OTHER_TCG_HANDLE.test(h) && !/\.(jpe?g|png|gif|webp|svg)$/i.test(h);
 }
 
 // ── Politeness ──────────────────────────────────────────────────────────────

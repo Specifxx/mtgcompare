@@ -11,9 +11,11 @@
 // whatever the finish and the condition (a Foil copy fills the slot too).
 // The result is one {cardId, quantity} per OWNED card, capped (OWNED_TAKE),
 // scoped by userId first (the (userId) index), so it can never return another
-// account's rows and its size follows the set, not the account. OP Compare's
-// set is Card.setId (an Int), so the filter is a relation filter on it.
+// account's rows and its size follows the set, not the account. 
 import type { OwnedMap } from "./set-scope";
+
+/** Rows one whole-binder read may return: the binder holds at most 2,000 rows (collection-server COLLECTION_TAKE), so a distinct (set, card) list is never longer. */
+export const OWNED_ALL_TAKE = 2000;
 
 /** Distinct owned cards returned for ONE set. A set is a few hundred; this is a backstop. */
 export const OWNED_TAKE = 1500;
@@ -56,8 +58,28 @@ export async function ownedBySet(db: OwnedDb, userId: string, setIds: number | n
   return out;
 }
 
+type GroupedBySet = { setId: number | null; cardId: number };
+export type OwnedAllDb = {
+  collectionCard: {
+    groupBy: (args: {
+      by: ["setId", "cardId"];
+      where: { userId: string; setId: { not: null } };
+      orderBy: [{ setId: "asc" }, { cardId: "asc" }];
+      take: number;
+    }) => PromiseLike<GroupedBySet[]>;
+  };
+};
+
+/** Distinct owned cards across the whole binder, by set: one groupBy on (setId, cardId), scoped by userId, capped at the binder's own row cap. A card counts once whatever its finishes and conditions. */
+export async function ownedCardsBySet(db: OwnedAllDb, userId: string, take: number = OWNED_ALL_TAKE): Promise<Map<number, number[]>> {
+  const rows = await db.collectionCard.groupBy({ by: ["setId", "cardId"], where: { userId, setId: { not: null } }, orderBy: [{ setId: "asc" }, { cardId: "asc" }], take });
+  const out = new Map<number, number[]>();
+  for (const r of rows) if (r.setId != null) (out.get(r.setId) ?? out.set(r.setId, []).get(r.setId)!).push(r.cardId);
+  return out;
+}
+
 /** The Prisma client as an OwnedDb (lazy, so the pure half loads without a database). */
-export async function ownedDb(): Promise<OwnedDb> {
+export async function ownedDb(): Promise<OwnedDb & OwnedAllDb> {
   const { prisma } = await import("./db");
-  return prisma as unknown as OwnedDb;
+  return prisma as unknown as OwnedDb & OwnedAllDb;
 }

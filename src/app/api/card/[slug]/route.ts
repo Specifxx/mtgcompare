@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { availableFinishes, parseFinishParam } from "@/lib/constants";
 import { getCardDetail, getEbayPanel, getUnitHistory } from "@/lib/data";
+import { itemUrl } from "@/lib/listing-panel";
 import { quickViewPayload } from "@/lib/quick-view";
 
 // The card QuickView's data (components/QuickView.tsx): one card's facts, every
@@ -23,7 +24,7 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
   const finish = asked && availableFinishes(card.mask).includes(asked) ? asked : card.headFinish;
   const history = card.tracked ? await getUnitHistory({ id: card.id, finish }, 90).catch(() => []) : [];
   const panel = card.tracked ? await getEbayPanel(card.id).catch(() => ({ listings: [], graded: [] })) : { listings: [], graded: [] };
-  return NextResponse.json(quickViewPayload(card, undefined, history, panel.graded, finish), {
+  return NextResponse.json(quickViewPayload(card, undefined, history, panel.graded.map((g) => ({ market: g.market, grader: g.grader, grade: g.grade, priceCents: g.priceCents, currency: g.currency, url: itemUrl(g.market, g.itemId) })), finish), {
     headers: { "Cache-Control": "public, s-maxage=600, stale-while-revalidate=3600" },
   });
 }

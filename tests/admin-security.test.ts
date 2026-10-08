@@ -48,8 +48,8 @@ test("contact email: no mailto: parameter smuggling", () => {
 });
 
 test("the inbox Reply link encodes the address and refuses a bad one", () => {
-  assert.equal(replyMailto("nami@example.com", "Billing"), "mailto:nami@example.com?subject=Re%3A%20Billing");
-  assert.equal(replyMailto("nami+op@example.com", null), "mailto:nami%2Bop@example.com?subject=Re%3A%20your%20message%20to%20OP%20Compare");
+  assert.equal(replyMailto("jace@example.com", "Billing"), "mailto:jace@example.com?subject=Re%3A%20Billing");
+  assert.equal(replyMailto("jace+mtg@example.com", null), "mailto:jace%2Bmtg@example.com?subject=Re%3A%20your%20message%20to%20MTG%20Compare");
   // A row stored before the tighter rule gets no link at all.
   assert.equal(replyMailto("qa-sec@example.com?cc=attacker%40evil.example&body=PHISH", "Hi"), null);
   const page = read("src/app/admin/inbox/page.tsx");

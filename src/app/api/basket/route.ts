@@ -3,15 +3,15 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { isPremium } from "@/lib/premium";
 import { getCountry } from "@/lib/get-country";
-import { DECK_LINE_CAP, mergeLines, parseDeckList, resolveDeck } from "@/lib/deck";
-import { deckIndex } from "@/lib/deck-price";
+import { DECK_LINE_CAP, parseDeckList } from "@/lib/deck";
+import { basketUnits, deckCardName, loaderData, resolveDeckLines } from "@/lib/deck-price";
 import { BASKET_COLLECTION_SOURCES, clampQty, parseBasketRequest, type BasketRequest } from "@/lib/basket-request";
 import { rateLimit } from "@/lib/rate-limit";
 import type { Country } from "@/lib/country";
 import { basketPreview, optimizeBasket, planBasket, type BasketCard, type PreviewRegion } from "@/lib/basket";
 import {
   basketCardName,
-  cardInfoFor,
+  unitsFor,
   loadBinderHoldings,
   loadOwnedQty,
   loadSetGapLines,
@@ -28,7 +28,8 @@ export const dynamic = "force-dynamic";
 
 // Best Basket: turn a list into the cheapest delivered order across this
 // market's stores (RiftCompare's /api/basket, lib/basket.ts's open-store
-// search).
+// search). A basket item is a UNIT (a card in one finish): its key is the uid
+// productId * 2 + finish, so a Foil and a Normal copy are two lines.
 //
 // WHO GETS WHAT. Premium only since 2026-10-07 (owner): anyone else gets a 403
 // with premium: "required". The tiered preview below is kept for the code path
@@ -82,7 +83,7 @@ export async function POST(req: Request) {
   if (!user) return NextResponse.json({ error: "Sign in first" }, { status: 401 });
   // PREMIUM ONLY (owner, 2026-10-07): no free or Plus totals any more.
   if (!isPremium(user, "premium")) {
-    return NextResponse.json({ error: "Best Basket is part of OP Compare Premium.", premium: "required" }, { status: 403 });
+    return NextResponse.json({ error: "Best Basket is part of MTG Compare Premium.", premium: "required" }, { status: 403 });
   }
   const full = true;
   const rl = rateLimit(`basket-premium:${user.id}`, 30, HOUR);
@@ -130,7 +131,14 @@ async function buildBasket(
 
     if (source === "watchlist") {
       if (!ids.length) return fail("Your watchlist has no cards yet.", 400);
-      for (const id of ids) add(id, 1);
+      // The watchlist holds card ids; each is bought in its headline finish.
+      const units = await unitsFor(ids);
+      for (const id of ids) {
+        const u = units.get(id);
+        if (!u) continue; // an id that is not a card (stale watch, bad client) is dropped
+        add(u.uid, 1);
+        info.set(u.uid, u);
+      }
     } else if (source === "set") {
       // Ranked and ceilinged on what THIS plan buys: the stores that post to this
       // buyer, at this floor (lib/set-gap.ts), not the checklist's any-condition price.
@@ -152,16 +160,18 @@ async function buildBasket(
         );
       }
       // The gap already excludes what is owned, so step 2 below is not run for a set.
+      const units = await unitsFor(plan.chunk.map((c) => String(c.id)));
       for (const c of plan.chunk) {
-        const id = String(c.id);
-        wanted.set(id, 1);
-        info.set(id, { name: basketCardName(c), slug: c.slug, setCode: c.setCode, collectorNumber: c.number ?? "" });
+        const u = units.get(String(c.id));
+        if (!u) continue;
+        wanted.set(u.uid, 1);
+        info.set(u.uid, u);
       }
       skippedOwned = s.ownedInScope;
       setGap = {
         summary: s,
         setName,
-        notStocked: plan.notStocked.slice(0, NOT_STOCKED_LIST_CAP).map((c) => ({ name: basketCardName(c), setCode: c.setCode, number: c.number })),
+        notStocked: plan.notStocked.slice(0, NOT_STOCKED_LIST_CAP).map((c) => ({ name: `${c.name} (${c.setCode})${c.number ? ` ${c.number}` : ""}`, setCode: c.setCode, number: c.number })),
       };
     } else if (source === "binder") {
       const binder = await loadBinderHoldings(userId, country);
@@ -172,22 +182,28 @@ async function buildBasket(
       }
       skippedHoldings = binder.skipped;
     } else {
-      for (const l of picked) add(l.cardId, clampQty(l.qty));
-      // The pasted lines fill what the picked cards leave of the line cap.
+      // Picked cards carry product ids: each is bought in its headline finish.
+      const pickedUnits = await unitsFor(picked.map((l) => l.cardId));
+      for (const l of picked) {
+        const u = pickedUnits.get(l.cardId);
+        if (!u) continue;
+        add(u.uid, clampQty(l.qty));
+        info.set(u.uid, u);
+      }
+      // The pasted lines fill what the picked cards leave of the line cap. One resolver for /deck, the published decks, the deck watch and this
+      // page (lib/deck-price.ts), so a pasted list is priced exactly as the watch re-prices it. A basket buys every zone but the maybeboard.
       const lines = parseDeckList(text).slice(0, Math.max(0, DECK_LINE_CAP - picked.length));
       if (lines.length) {
-        const { cat, idx } = await deckIndex();
-        for (const r of mergeLines(resolveDeck(lines, idx))) {
-          if (!r.card) {
-            unmatched.push({ raw: r.line.raw, qty: r.line.qty });
-            continue;
-          }
-          const id = String(r.card.id);
-          add(id, r.line.qty);
-          info.set(id, { name: basketCardName(r.card), slug: r.card.slug, setCode: cat.setById.get(r.card.setId)?.code ?? "", collectorNumber: r.card.number ?? "" });
-          // A line matched by name alone, or by a part of a name, is a guess the page shows.
-          if (r.how === "name" && (r.ambiguous || r.fuzzy)) fuzzy.push({ raw: r.line.raw, matchedAs: basketCardName(r.card) });
+        const { rows } = await resolveDeckLines(lines, loaderData, { options: false });
+        const resolved = basketUnits(rows);
+        for (const [uid, qty] of resolved.wanted) add(uid, qty);
+        for (const [uid, r] of resolved.info) {
+          const c = r.card;
+          info.set(uid, { name: deckCardName(c, r.finish), slug: c.slug, setCode: c.setCode, collectorNumber: c.number ?? "" });
+          // A bare name is priced at the CHEAP printing; a set or number that did not resolve, a finish the printing lacks and an etched ask we could not honour are guesses the page shows.
+          if (r.how === "name" || r.setMissed || r.finishAdjusted || r.etchedMissed) fuzzy.push({ raw: r.line.raw, matchedAs: deckCardName(c, r.finish) });
         }
+        for (const r of resolved.unmatched) unmatched.push({ raw: r.line.raw, qty: r.line.qty });
       }
       if (!wanted.size && !unmatched.length) return fail("Paste a list or add a card first.", 400);
     }
@@ -203,19 +219,6 @@ async function buildBasket(
         else wanted.set(id, qty - have);
       }
       if (!wanted.size && !unmatched.length) return fail("You already own every card on this list.", 400);
-    }
-
-    // 3. Names for cards that arrived as bare ids (picker, watchlist), from the
-    // cached catalogue. An id that isn't a card (stale watch, bad client) is dropped.
-    const missing = [...wanted.keys()].filter((id) => !info.has(id));
-    if (missing.length) {
-      const named = await cardInfoFor(missing);
-      for (const id of missing) {
-        const c = named.get(id);
-        if (c) info.set(id, c);
-        else wanted.delete(id);
-      }
-      if (!wanted.size && !unmatched.length) return fail(source === "watchlist" ? "Your watchlist has no cards yet." : "Paste a list or add a card first.", 400);
     }
 
     // 4. This market's stores, each with its measured postage for this buyer,

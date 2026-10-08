@@ -3,14 +3,14 @@
 // Shared by the calculator (instant, free) and /api/trade-roast.
 //
 // RiftCompare's lib/trade-gremlin.ts, for One Piece. One difference, on
-// purpose: OP Compare has NO language-model key, so "Roast this trade" is
+// purpose: MTG Compare has NO language-model key, so "Roast this trade" is
 // RULES-ONLY (wave-2 plan, Track 3 item 4). tradeRoast() below picks a spicier
 // canned line for the same verdict, and the calculator discloses that the
 // commentary is canned, not written by a model.
 import { formatMoney } from "./format-currency";
 
 // Every currency the trade calculator can show, i.e. what /api/trade-roast must
-// accept: one per OP Compare market (lib/country.ts). An arbitrary string must
+// accept: one per MTG Compare market (lib/country.ts). An arbitrary string must
 // never be formatted into a reply.
 export const TRADE_CURRENCIES = ["AUD", "USD", "GBP", "CAD", "EUR", "SGD"] as const;
 

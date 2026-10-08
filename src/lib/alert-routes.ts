@@ -10,6 +10,9 @@
 // only from those routes and pages, never from a cached loader or the layout.
 import { randomUUID } from "crypto";
 import { prisma } from "./db";
+import { finishFromIndex, unitKey } from "./constants";
+import { getCardsByIds, getSealedByIds, getSetBySlug, getSets } from "./data";
+import { liveAlertCards, type AlertCardLoader } from "./alert-price";
 import { normalizeCountry, type Country } from "./country";
 import { RELEASE_ALERT_SOURCES, isUnreleased, releaseAlertSets, type ReleaseAlertSource } from "./release-alerts";
 import { isPremium } from "./premium";
@@ -50,8 +53,8 @@ export async function releaseAlertsForToken(token: string): Promise<ReleaseToken
   if (!token || token.length > 200) return { active: false, sets: [] };
   const rows = await prisma.setReleaseAlert.findMany({ where: { unsubToken: token }, select: { setSlug: true, scope: true }, take: 100 });
   if (!rows.length) return { active: false, sets: [] };
-  const sets = await prisma.set.findMany({ where: { slug: { in: [...new Set(rows.map((r) => r.setSlug))] } }, select: { slug: true, name: true } });
-  const name = new Map(sets.map((s) => [s.slug, s.name]));
+  const wanted = new Set(rows.map((r) => r.setSlug));
+  const name = new Map((await getSets()).filter((s) => wanted.has(s.slug)).map((s) => [s.slug, s.name] as const));
   return { active: true, sets: rows.map((r) => ({ setSlug: r.setSlug, setName: name.get(r.setSlug) ?? r.setSlug, scope: r.scope })) };
 }
 
@@ -94,13 +97,13 @@ export function parseReleaseBody(body: unknown): ReleaseSignupBody | null {
  * unsubscribe stops every release alert for that address. Nothing is sent here.
  */
 export async function subscribeRelease(body: ReleaseSignupBody, now = new Date()): Promise<{ status: number; body: Record<string, unknown> }> {
-  const set = await prisma.set.findUnique({ where: { slug: body.setSlug }, select: { id: true, releasedOn: true } });
+  const set = await getSetBySlug(body.setSlug);
   const today = now.toISOString().slice(0, 10);
-  const releasedOn = set?.releasedOn ? set.releasedOn.toISOString().slice(0, 10) : null;
+  const releasedOn = set?.releasedOn ? set.releasedOn.slice(0, 10) : null;
   if (!set || !releaseAlertSets([{ releasedOn }], today).length) return { status: 400, body: { error: "Unknown set." } };
   let scope = "set";
   if (body.cardId != null) {
-    const card = await prisma.card.findUnique({ where: { id: body.cardId }, select: { setId: true } });
+    const card = (await getCardsByIds([body.cardId])).get(body.cardId);
     if (card?.setId !== set.id) return { status: 400, body: { error: "Unknown card." } };
     scope = String(body.cardId);
   }
@@ -135,7 +138,7 @@ export interface CardActionContext {
 }
 
 /** One primary-key read of the watch a signed token names (a card watch). */
-export async function cardActionContext(id: string): Promise<CardActionContext | null> {
+export async function cardActionContext(id: string, loadCards: AlertCardLoader = liveAlertCards): Promise<CardActionContext | null> {
   const row = await prisma.priceAlert
     .findUnique({
       where: { id },
@@ -144,18 +147,22 @@ export async function cardActionContext(id: string): Promise<CardActionContext |
         targetCents: true,
         snoozedUntil: true,
         user: { select: { email: true, isAdmin: true, premiumUntil: true, premiumTier: true } },
-        card: { select: { slug: true, name: true, variant: true } },
+        cardId: true,
+        finish: true,
       },
     })
     .catch(() => null);
   if (!row) return null;
   const entitled = !!row.user && isPremium({ ...row.user, isAdmin: row.user.isAdmin || isAdminEmail(row.user.email) });
+  const unit = { id: row.cardId, finish: finishFromIndex(row.finish) };
+  const card = (await loadCards([unit]).catch(() => new Map())).get(unitKey(unit.id, unit.finish));
+  if (!card) return null;
   return {
     market: row.market,
     targetCents: row.targetCents,
     snoozedUntil: row.snoozedUntil,
     entitled,
-    card: { slug: row.card.slug, name: `${row.card.name}${row.card.variant ? ` (${row.card.variant})` : ""}` },
+    card: { slug: card.slug, name: `${card.name}${card.variant ? ` (${card.variant})` : ""}` },
   };
 }
 
@@ -163,7 +170,11 @@ export async function cardActionContext(id: string): Promise<CardActionContext |
 export async function watchActionContext(kind: "deck" | "sealed", id: string): Promise<{ name: string; snoozedUntil: Date | null } | null> {
   if (kind === "deck") return prisma.deckWatch.findUnique({ where: { id }, select: { name: true, snoozedUntil: true } }).catch(() => null);
   return prisma.sealedWatch
-    .findUnique({ where: { id }, select: { snoozedUntil: true, sealed: { select: { name: true } } } })
-    .then((r) => (r ? { name: r.sealed.name, snoozedUntil: r.snoozedUntil } : null))
+    .findUnique({ where: { id }, select: { snoozedUntil: true, sealedId: true } })
+    .then(async (r) => {
+      if (!r) return null;
+      const sealed = (await getSealedByIds([r.sealedId])).get(r.sealedId);
+      return sealed ? { name: sealed.name, snoozedUntil: r.snoozedUntil } : null;
+    })
     .catch(() => null);
 }

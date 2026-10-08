@@ -15,8 +15,8 @@ export const generateMetadata = (): Promise<Metadata> => adminMetadata({ title: 
 // metric) and viewCount (any open) Admin-only
 // (requireAdminPage) and uncached (lib/admin-demand.ts).
 //
-// Searches and views are cumulative counters windowed against the daily demand
-// snapshot FILES on the data branch (lib/demand-snapshot.ts), so they are
+// Searches and views are cumulative counters (CardStat, Neon) windowed against the
+// daily demand snapshots (DemandDay, Neon; lib/demand-snapshot.ts), so they are
 // daily-resolution and only as deep as the snapshots reach. Demand Finder (/tools/demand) is the public,
 // Premium version of the same signals, scoped to what a member wants.
 export default async function AdminDemandPage({ searchParams }: { searchParams: { country?: string; range?: string } }) {
@@ -43,7 +43,7 @@ export default async function AdminDemandPage({ searchParams }: { searchParams: 
     return `/admin/demand${qs ? `?${qs}` : ""}`;
   }
 
-  const CardTable = ({ rows, metric, moves }: { rows: AdminDemandCard[]; metric: "searchCount" | "viewCount"; moves: Map<string, Movement> | null }) => (
+  const CardTable = ({ rows, metric, moves }: { rows: AdminDemandCard[]; metric: "searchCount" | "viewCount"; moves: Map<number, Movement> | null }) => (
     <div className="overflow-x-auto rounded-xl border border-ink-700 bg-ink-850">
       <table className="w-full text-sm">
         <thead>
@@ -72,7 +72,7 @@ export default async function AdminDemandPage({ searchParams }: { searchParams: 
         </thead>
         <tbody>
           {rows.map((c, i) => {
-            const m = moves?.get(String(c.id));
+            const m = moves?.get(c.id);
             const low = c.low[country];
             return (
               <tr key={c.id} className="border-b border-ink-800 last:border-0 hover:bg-ink-800/60">
@@ -193,9 +193,9 @@ export default async function AdminDemandPage({ searchParams }: { searchParams: 
             <>
               <span className="font-semibold">Showing all-time searches and views.</span>{" "}
               {data.windowFailed
-                ? "The demand snapshot files couldn't be read just now."
+                ? "The demand snapshots couldn't be read just now."
                 : demandWindow && demandWindow.totalDays === 0
-                  ? "No daily demand snapshots exist yet — the price import writes one a day to the history branch, so a window becomes available once two have run."
+                  ? "No daily demand snapshots exist yet — the demand-snapshot job writes one a day, so a window becomes available once two have run."
                   : `Daily snapshots only go back ${demandWindow?.totalDays ?? 0} day${demandWindow?.totalDays === 1 ? "" : "s"}, which doesn't cover a ${range.days}-day window.`}{" "}
             </>
           )}

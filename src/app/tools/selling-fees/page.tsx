@@ -11,22 +11,22 @@ import { guidesForTool } from "@/lib/content/tool-guides";
 // /tools/selling-fees — net proceeds after marketplace fees (RiftCompare's
 // selling fee calculator, verbatim, for One Piece).
 //
-// It replaces OP Compare's wave-1 per-market fee schedules (wave-2 plan, Track 3
+// It replaces MTG Compare's wave-1 per-market fee schedules (wave-2 plan, Track 3
 // item 4). RiftCompare's rule stands: the tool never prints a "current"
 // commission percentage that can go stale — the seller types their own rate
 // from their dashboard, and we do the stacked-fee math. Pure: no data reads.
 export const revalidate = 86400;
 
-const TITLE = "One Piece Selling Fee Calculator — Net Proceeds | OP Compare";
+const TITLE = "One Piece Selling Fee Calculator — Net Proceeds | MTG Compare";
 const DESCRIPTION =
-  "Calculate your real net payout after TCGplayer or eBay fees on a One Piece Card Game card sale — commission, payment processing and shipping, all stacked correctly.";
+  "Calculate your real net payout after TCGplayer or eBay fees on a Magic: The Gathering card sale — commission, payment processing and shipping, all stacked correctly.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
   keywords: [
     "TCGplayer fee calculator",
-    "One Piece TCG selling fees",
+    "Magic: The Gathering selling fees",
     "TCGplayer net proceeds",
     "eBay trading card fees",
     "how much does TCGplayer take",

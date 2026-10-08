@@ -42,8 +42,7 @@ export function unitValue(price: number | null | undefined, condition: string): 
 }
 
 // Normalise a free-text condition (a CSV column, a store's variant title) into
-// one of the five grades, or null when it genuinely can't be told — RiftCompare's
-// normaliseCondition, minus its eBay vocabulary (OP's binder never reads eBay).
+// one of the five grades, or null when it genuinely can't be told (the binder never reads eBay).
 export function normaliseCondition(raw: string | null | undefined): keyof typeof CONDITIONS | null {
   const t = (raw ?? "").trim().toLowerCase();
   if (!t || t === "default title") return null;
@@ -77,4 +76,17 @@ export function finishMarketCents(card: FinishQuotes, isFoil: boolean): number |
 export function copyValueCents(card: FinishQuotes, isFoil: boolean, condition: string, country: Country): number | null {
   const usd = finishMarketCents(card, isFoil);
   return usd == null ? null : Math.round(usdCentsToCountry(usd, country) * (CONDITION_MULTIPLIER[condition] ?? 1));
+}
+
+/** The finish facts of a binder row's card as the editor and the share page carry them (collection-server CollectionCardInfo): the US market price of each finish, null = no row of that finish or low-only. */
+export interface FinishInfo {
+  hasN: boolean;
+  hasF: boolean;
+  marketN: number | null;
+  marketF: number | null;
+}
+
+/** copyValueCents for a card already reduced to its FinishInfo (client components). */
+export function infoCopyValueCents(info: FinishInfo, isFoil: boolean, condition: string, country: Country): number | null {
+  return copyValueCents({ n: info.hasN ? { market: info.marketN, low: null } : null, f: info.hasF ? { market: info.marketF, low: null } : null }, isFoil, condition, country);
 }

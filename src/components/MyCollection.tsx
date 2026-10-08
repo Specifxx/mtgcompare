@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { CONDITIONS, CONDITION_KEYS, unitValue } from "@/lib/collection-conditions";
+import { CONDITIONS, CONDITION_KEYS, infoCopyValueCents } from "@/lib/collection-conditions";
 import { PRINTINGS } from "@/lib/constants";
 import { QUANTITY_CAP } from "@/lib/collection-cost";
 import { money } from "@/lib/format";
@@ -15,13 +15,12 @@ import { FREE_LIMIT_STATUS, freeLimitCounterText, parseFreeLimit, showFreeLimitC
 import type { Country } from "@/lib/country";
 import { PortfolioLimitNotice as FreeLimitPanel } from "./PortfolioLimitNotice";
 
-// OP Compare (wave 2, 2026-10-03): RiftCompare's MyCollection with One Piece
-// cards. A card is ONE printing (Card.id, the TCGplayer productId), so each row
-// shows its printing chip; the price is the market's Card.low<M> from the
-// cached catalogue (lib/collection-server.ts collectionItems). TCGplayer sells
-// a foil finish as its own product, so there is no foil toggle: a row's foil
-// badge follows the card's own finish. The search reads the header's
-// /api/search, whose hits carry the card id.
+// "My Collection". A row is a UNIT: a product (Card.id, the TCGplayer productId)
+// in a finish. Each row shows its treatment chip and a Normal / Foil switch when the
+// product has both finishes (a Foil copy is valued at the Foil price, a product that
+// has only one finish shows it as a fixed chip: lib/collection-server.ts
+// collectionItems, track.ts normalizeFoil on every write). The search reads the
+// header's /api/search, whose hits carry the card id.
 type CollCard = {
   id: number;
   name: string;
@@ -32,7 +31,11 @@ type CollCard = {
   printing: string;
   rarity: string | null;
   img: string | null;
-  low: Record<Country, number | null>;
+  hasN: boolean;
+  hasF: boolean;
+  foilLabel: string;
+  marketN: number | null;
+  marketF: number | null;
 };
 type Item = {
   id: string;
@@ -46,16 +49,16 @@ type Item = {
   card: CollCard;
 };
 
-// A copy's value is unitValue (lib/collection-conditions.ts): the live lowest
-// price × the condition multiplier, rounded per copy — the exact rule
-// getPortfolio values the /portfolio headline and holdings grid with
-// (RiftCompare's 2026-09-25 audit: a list that skipped the multiplier disagreed
-// with the headline above it by up to 60% for a played copy).
+// A copy's value is infoCopyValueCents (lib/collection-conditions.ts): the finish's
+// TCGplayer market price converted to the visitor's currency × the condition
+// multiplier, rounded per copy — the exact rule getPortfolio values the /portfolio
+// headline and holdings grid with (a list that skipped the multiplier disagreed with
+// the headline above it by up to 60% for a played copy).
 
-/** "Shanks (Parallel)". */
+/** "Stingcaster Mage (Borderless · Facet Foil)". */
 const shown = (c: { name: string; variant: string | null }) => `${c.name}${c.variant ? ` (${c.variant})` : ""}`;
 
-/** The printing chip a non-standard printing carries (Parallel, Manga, SP…). */
+/** The treatment chip a non-plain printing carries (Borderless, Extended Art, Foil Etched…). */
 export function PrintingChip({ printing }: { printing: string }) {
   if (printing === "standard") return null;
   const p = PRINTINGS[printing];
@@ -84,7 +87,7 @@ const PAGE_REFRESH_DEBOUNCE_MS = 1500;
 export function MyCollection({ refreshPage = false }: { refreshPage?: boolean } = {}) {
   const { country } = useCountry();
   const fmt = useCallback((c: number) => money(c, country), [country]);
-  const price = useCallback((c: CollCard) => c.low?.[country] ?? null, [country]);
+  const unitOf = useCallback((it: Item) => infoCopyValueCents(it.card, it.isFoil, it.condition, country), [country]);
   const router = useRouter();
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const changed = useCallback(() => {
@@ -130,11 +133,11 @@ export function MyCollection({ refreshPage = false }: { refreshPage?: boolean } 
     let total = 0, value = 0, priced = false;
     for (const it of items) {
       total += it.quantity;
-      const unit = unitValue(price(it.card), it.condition);
+      const unit = unitOf(it);
       if (unit != null) { value += unit * it.quantity; priced = true; }
     }
     return { distinct: items.length, total, value, priced };
-  }, [items, price]);
+  }, [items, unitOf]);
 
   async function patch(id: string, body: Record<string, unknown>) {
     setBusy(id);
@@ -239,14 +242,14 @@ export function MyCollection({ refreshPage = false }: { refreshPage?: boolean } 
       {items != null && items.length > 0 && (
         <ul className="mt-4 divide-y divide-ink-800">
           {items.map((it) => {
-            const unit = unitValue(price(it.card), it.condition);
+            const unit = unitOf(it);
             const cond = CONDITIONS[it.condition];
             return (
               <li key={it.id} className="flex items-center gap-3 py-3">
                 <Link href={`/card/${it.card.slug}`} className="h-14 w-10 shrink-0 overflow-hidden rounded bg-ink-900">
                   {it.card.img && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={it.card.img} alt={`${shown(it.card)} ${it.card.number ?? ""} One Piece card`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                    <img src={it.card.img} alt={`${shown(it.card)} ${it.card.number ?? ""} Magic card`} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                   )}
                 </Link>
 
@@ -257,6 +260,7 @@ export function MyCollection({ refreshPage = false }: { refreshPage?: boolean } 
                   <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
                     <span>{it.card.setCode}{it.card.number ? ` · ${it.card.number}` : ""}</span>
                     <PrintingChip printing={it.card.printing} />
+                    {it.isFoil && !(it.card.hasN && it.card.hasF) && <span className="chip bg-ink-800 text-slate-300">{it.card.foilLabel}</span>}
                     {unit != null && <span>· {fmt(unit)} ea</span>}
                   </div>
 
@@ -279,9 +283,16 @@ export function MyCollection({ refreshPage = false }: { refreshPage?: boolean } 
                         <option key={k} value={k} className="bg-ink-900 text-white">{CONDITIONS[k].full}</option>
                       ))}
                     </select>
-                    {/* No foil toggle: on OP Compare a foil finish is its own
-                        TCGplayer product (its own row), so the badge above
-                        follows the card and there is nothing to switch. */}
+                    {/* The finish switch, only for a product that has both: the Foil
+                        copy is its own price and its own history. A product with a
+                        single finish is stored in it (normalizeFoil), so there is
+                        nothing to switch. */}
+                    {it.card.hasN && it.card.hasF && (
+                      <div className="flex items-center overflow-hidden rounded-md border border-ink-700" role="group" aria-label="Finish">
+                        <button onClick={() => !it.isFoil || patch(it.id, { isFoil: false })} disabled={busy === it.id} aria-pressed={!it.isFoil} className={`px-2 py-1 text-xs ${!it.isFoil ? "bg-brand-500/20 font-semibold text-brand-200" : "text-slate-400 hover:bg-ink-800"}`}>Normal</button>
+                        <button onClick={() => it.isFoil || patch(it.id, { isFoil: true })} disabled={busy === it.id} aria-pressed={it.isFoil} className={`px-2 py-1 text-xs ${it.isFoil ? "bg-brand-500/20 font-semibold text-brand-200" : "text-slate-400 hover:bg-ink-800"}`}>{it.card.foilLabel}</button>
+                      </div>
+                    )}
                     <div className="flex items-center overflow-hidden rounded-md border border-ink-700">
                       <button onClick={() => patch(it.id, { quantity: Math.max(0, it.quantity - 1) })} disabled={busy === it.id} className="px-2 py-1 text-sm text-slate-300 hover:bg-ink-800" aria-label="Decrease quantity">−</button>
                       <span className="min-w-8 px-2 text-center text-sm font-semibold text-white">{it.quantity}</span>
@@ -414,7 +425,7 @@ export function CollectionSearch({ onAdded }: { onAdded: () => void | Promise<vo
               >
                 {c.img && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={c.img} alt={`${shown(c)} One Piece card`} width={28} height={39} loading="lazy" decoding="async" className="h-10 w-7 shrink-0 rounded-sm object-cover" />
+                  <img src={c.img} alt={`${shown(c)} Magic card`} width={28} height={39} loading="lazy" decoding="async" className="h-10 w-7 shrink-0 rounded-sm object-cover" />
                 )}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium text-white">{shown(c)}</span>
@@ -433,9 +444,10 @@ export function CollectionSearch({ onAdded }: { onAdded: () => void | Promise<vo
   );
 }
 
-// Bulk import: paste a list ("4 Monkey.D.Luffy" per line) to add many cards at
-// once. Matches by name or card number; reports how many were added and anything
-// it couldn't find.
+// Bulk import: paste a list ("4 Lightning Bolt (M11) 146" per line) to add many cards at
+// once. A line is matched by product id or by set and collector number (never by a bare
+// name: a binder holds what you own); reports how many were added and anything it
+// couldn't find.
 function BulkImport({ onDone }: { onDone: (res: unknown) => Promise<unknown> }) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -455,6 +467,9 @@ function BulkImport({ onDone }: { onDone: (res: unknown) => Promise<unknown> }) 
     skippedCount?: number;
     skipped?: { line: number; reason: string; text: string }[];
     conditionDefaulted?: number;
+    // CSV lines whose finish could not be kept (Etched with no etched twin, Foil with no Foil row).
+    warningCount?: number;
+    warnings?: string[];
     failed?: string[];
     failedCount?: number;
   } | null>(null);
@@ -492,16 +507,16 @@ function BulkImport({ onDone }: { onDone: (res: unknown) => Promise<unknown> }) 
   return (
     <div className="mt-4 rounded-xl border border-ink-700 bg-ink-900/60 p-4">
       <label className="mb-1 block text-xs font-medium text-slate-400">
-        Paste a list — one card per line, e.g. <span className="text-slate-300">4 OP01-003 Monkey.D.Luffy</span> or{" "}
-        <span className="text-slate-300">1 OP01-120 Shanks (Parallel)</span>. Or import a CSV (a TCGplayer export with its
-        Product ID, or a card number and printing) to keep the exact printing.
+        Paste a list — one card per line with its set and number, e.g. <span className="text-slate-300">4 Lightning Bolt (M11) 146</span> or{" "}
+        <span className="text-slate-300">1 Sol Ring (C21) 263 *F*</span> (<span className="text-slate-300">*F*</span> is a Foil copy, <span className="text-slate-300">*E*</span> Foil Etched).
+        Or import a CSV (a TCGplayer, Moxfield, Deckbox or ManaBox export) to keep the exact printing and finish.
       </label>
       {/* sm:text-sm, not text-sm: .input is 16px below sm so iOS doesn't zoom the page on focus (2026-09-23). */}
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={5}
-        placeholder={"4 OP01-003 Monkey.D.Luffy\n1 OP01-120 Shanks (Parallel)\n2 ST01-012"}
+        placeholder={"4 Lightning Bolt (M11) 146\n1 Sol Ring (C21) 263 *F*\n2 Counterspell (MH2) 267"}
         className="input font-mono sm:text-sm"
       />
       <div className="mt-2 flex items-center gap-2">
@@ -552,6 +567,16 @@ function BulkImport({ onDone }: { onDone: (res: unknown) => Promise<unknown> }) 
           )}
           {result.format === "csv" && result.copies != null && result.copies > 0 && (
             <p className="mt-1 text-xs text-slate-400">{result.copies} {result.copies === 1 ? "copy" : "copies"} in all, each at the printing and condition the file named.</p>
+          )}
+          {result.warnings && result.warnings.length > 0 && (
+            <div className="mt-1 text-slate-500">
+              <p>Imported with a different finish ({result.warningCount ?? result.warnings.length}):</p>
+              <ul className="list-disc pl-5">
+                {result.warnings.slice(0, 10).map((w, i) => (
+                  <li key={i}>{w}</li>
+                ))}
+              </ul>
+            </div>
           )}
           {result.skipped && result.skipped.length > 0 && (
             <div className="mt-1 text-xs text-amber-300/90">

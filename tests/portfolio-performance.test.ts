@@ -3,14 +3,14 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { indexChange, METHODOLOGY_BREAKS, portfolioPerformance, priceMapFromPoints, scaleSeries, type PerfHolding } from "../src/lib/portfolio-performance";
-import { recentOf, RECENT_DAYS } from "../src/lib/history-store";
-import type { BucketFile, Point } from "../src/lib/history";
+import { indexChange, METHODOLOGY_BREAKS, portfolioPerformance, scaleSeries, type PerfHolding } from "../src/lib/portfolio-performance";
+import { unitKey } from "../src/lib/constants";
+import { readDataModule } from "./helpers/data-source";
 
-// RiftCompare's tests/portfolio-performance.test.ts, ported in wave 2
-// (2026-10-03) with numeric card ids (A=1, B=2, C=3). RiftCompare's own
-// 2026-09-23 methodology break is supplied inline where a test needs one: OP
-// Compare has none (METHODOLOGY_BREAKS is empty).
+// The binder's like-for-like moves, on synthetic series keyed by plain numbers
+// (A=1, B=2, C=3) and, below, by the unit keys the binder uses. A methodology
+// break is supplied inline where a test needs one: the published history has
+// none (METHODOLOGY_BREAKS is empty).
 const RC_BREAK = [{ from: Date.parse("2026-09-23T00:00:00Z"), to: Date.parse("2026-10-01T00:00:00Z") }];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -120,7 +120,7 @@ test("a steady binder charts exactly its raw value — nothing changes when noth
 const codeOnly = (p: string) =>
   readFileSync(join(process.cwd(), p), "utf8").replace(/\{?\/\*[\s\S]*?\*\/\}?/g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 
-test("OP Compare has no methodology break", () => {
+test("the published history has no methodology break", () => {
   assert.deepEqual([...METHODOLOGY_BREAKS], []);
 });
 
@@ -137,16 +137,20 @@ test("/portfolio has no '1 day' chip, says the history is daily, and the series 
   assert.match(lib, /scaleSeries\(perf\.series, totalCents\)/, "the US ratios are anchored at today's local total");
 });
 
-// ── The history read (OP Compare) ───────────────────────────────────────────
+// ── The history read ────────────────────────────────────────────────────────
 
-test("a card's series is its market price, or its cheapest US listing when it has none — never a mix", () => {
-  const pts: Point[] = [[20261001, 1000, 900], [20261002, null, 800], [20261003, 1200, 1100]];
-  const m = priceMapFromPoints(pts);
-  assert.deepEqual([...m.values()], [1000, 1200], "a day without a market price is skipped, not filled from the low");
-  const lowOnly = priceMapFromPoints([[20261001, null, 500], [20261002, null, 550]]);
-  assert.deepEqual([...lowOnly.values()], [500, 550]);
-  assert.equal([...m.keys()][0], Date.parse("2026-10-01T00:00:00Z"), "days are UTC midnights in ms");
-  assert.equal(priceMapFromPoints(undefined).size, 0);
+test("a Foil copy and a Normal copy of one card are two units with their own series", () => {
+  // Birds of Paradise (2831): Normal and Foil market histories move independently; the binder holds one of each.
+  const byUnit = new Map([
+    [unitKey(2831, "N"), series({ "2026-10-01": 2000, "2026-10-08": 2200 })], // +10%
+    [unitKey(2831, "F"), series({ "2026-10-01": 400000, "2026-10-08": 360000 })], // -10%
+  ]);
+  const both = portfolioPerformance([{ cardId: unitKey(2831, "N"), quantity: 1, multiplier: 1 }, { cardId: unitKey(2831, "F"), quantity: 1, multiplier: 1 }], byUnit);
+  assert.equal(both.series.at(-1)!.v, 362200, "the total is each finish at its own price");
+  const normalOnly = portfolioPerformance([{ cardId: unitKey(2831, "N"), quantity: 1, multiplier: 1 }], byUnit);
+  assert.equal(normalOnly.change(7), 10);
+  const foilOnly = portfolioPerformance([{ cardId: unitKey(2831, "F"), quantity: 1, multiplier: 1 }], byUnit);
+  assert.equal(foilOnly.change(7), -10);
 });
 
 test("the ratio series is anchored at today's real total in the visitor's currency", () => {
@@ -168,24 +172,11 @@ test("the Index benchmark reads today against the latest row a full window back"
   assert.equal(indexChange([], 7), null);
 });
 
-test("the recent history file keeps the last 120 days of every series and drops empty ones", () => {
-  const file: BucketFile = {
-    v: 1,
-    p: {
-      "1": [[20260101, 100, 90], [20260901, 200, 190], [20261003, 210, 200]],
-      "2": [[20250101, 50, 40]],
-    },
-  };
-  const r = recentOf(file, 20261003);
-  assert.equal(RECENT_DAYS, 120);
-  assert.deepEqual(r.p["1"], [[20260901, 200, 190], [20261003, 210, 200]]);
-  assert.equal(r.p["2"], undefined, "a card with nothing recent has no entry");
-  assert.deepEqual(recentOf(file, 20261003, 400).p["2"], undefined);
-});
-
-test("the import writes the recent file beside the bucket on every run", () => {
-  const imp = codeOnly("src/lib/import.ts");
-  assert.match(imp, /writeBucket\(b, file\);\s*writeRecentBucket\(b, recentOf\(file, dn\)\)/);
-  const data = codeOnly("src/lib/data.ts");
-  assert.match(data, /historyFile<BucketFile>\(`recent\/\$\{b\}\.json`\)\) \?\? \(await historyFile<BucketFile>\(`products\/\$\{b\}\.json`\)\)/, "falls back to the full bucket before the first recent file");
+test("the binder reads the plane's recent market history by unit, and the days stay numbers until the one place they become ms", () => {
+  const lib = codeOnly("src/lib/collection-server.ts");
+  assert.match(lib, /getRecentHistory\(units\)/, "one series per (product, finish)");
+  assert.match(lib, /unitKey\(h\.cardId, h\.finish\)/);
+  const hist = readDataModule("history").replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  assert.match(hist, /const dayMsOf|dayMsOf\(/, "the plane loader re-hydrates its days once");
+  assert.doesNotMatch(hist.slice(hist.indexOf("export async function getRecentHistory"), hist.indexOf("export async function getIndexSeries")), /unstable_cache/, "the history read is fetch-cached, never an unstable_cache entry");
 });

@@ -6,6 +6,7 @@ import { COUNTRIES, MARKETS } from "@/lib/country";
 import { ebayAffiliateUrl, ebayLabel, isPaidLink, outboundRel } from "@/lib/affiliate";
 import { ago, money, usd } from "@/lib/format";
 import { usdCentsToCountry } from "@/lib/fx";
+import { cardImageAlt, FALLBACK_ALT } from "@/lib/image-alt";
 import { cardImage } from "@/lib/images";
 import type { QuickViewPayload } from "@/lib/quick-view";
 import { pushRecentCard } from "@/lib/recently-viewed";
@@ -123,7 +124,7 @@ export function QuickView({
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={cardImage.large(data.id)}
-                alt={`${name ?? "Card"} — Magic: The Gathering card`}
+                alt={data ? cardImageAlt({ name: data.name, variant: data.variant, setName: data.set.name, setCode: data.set.code, number: data.number, finish: data.finish }) : FALLBACK_ALT}
                 width={300}
                 height={419}
                 className="aspect-[300/419] w-full rounded-md bg-ink-800 object-cover"
@@ -314,7 +315,7 @@ export function QuickView({
                 ) : null}
                 {m.rows.length ? (
                   <div className="mt-1 text-center">
-                    <ReportPriceButton productId={data.id} market={country} offers={m.rows.map((r) => ({ source: r.source, label: r.label }))} />
+                    <ReportPriceButton productId={data.id} finish={data.finish} market={country} offers={m.rows.map((r) => ({ source: r.source, label: r.label }))} />
                   </div>
                 ) : null}
               </div>

@@ -25,9 +25,9 @@ import { formatMeasuredDate, marketHasZonePricing, marketMeasuredAt, marketMeasu
 
 export const dynamic = "force-dynamic";
 
-const TITLE = "Best Basket — Cheapest Way to Buy a One Piece Deck | OP Compare";
+const TITLE = "Best Basket — Cheapest Way to Buy a One Piece Deck | MTG Compare";
 const DESCRIPTION =
-  "Paste a One Piece Card Game decklist, or send your watchlist, and get the cheapest delivered way to buy it across stores — each store's measured postage included. A Premium tool: the store-by-store plan beside the best one-store and two-store orders, at the minimum condition you set.";
+  "Paste a Magic: The Gathering decklist, or send your watchlist, and get the cheapest delivered way to buy it across stores — each store's measured postage included. A Premium tool: the store-by-store plan beside the best one-store and two-store orders, at the minimum condition you set.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
 const FAQS = [
   {
     q: "Is Best Basket free?",
-    a: "No. Best Basket is an OP Compare Premium tool: the delivered total, the store-by-store plan with a link for every card, and the best one-store and two-store orders beside it. The deck and list pricer at /deck stays free and shows every card's cheapest price.",
+    a: "No. Best Basket is an MTG Compare Premium tool: the delivered total, the store-by-store plan with a link for every card, and the best one-store and two-store orders beside it. The deck and list pricer at /deck stays free and shows every card's cheapest price.",
   },
   {
     q: "Does it account for shipping?",
@@ -85,7 +85,7 @@ function selfHref(sp: Params): string {
     q.set("source", "set");
     q.set("set", sp.set);
     if (typeof sp.scope === "string") q.set("scope", sp.scope);
-    if (typeof sp.rarity === "string" && RARITY_KEYS.includes(sp.rarity)) q.set("rarity", sp.rarity);
+    if (typeof sp.rarity === "string" && (RARITY_KEYS as readonly string[]).includes(sp.rarity)) q.set("rarity", sp.rarity);
   }
   if (sp.skipOwned === "1") q.set("skipOwned", "1");
   const qs = q.toString();
@@ -123,7 +123,7 @@ export default async function BestBasketPage({ searchParams }: { searchParams: P
       ? {
           slug: startSet.slug,
           scope: parseScope(searchParams.scope),
-          rarity: typeof searchParams.rarity === "string" && RARITY_KEYS.includes(searchParams.rarity) ? searchParams.rarity : null,
+          rarity: typeof searchParams.rarity === "string" && (RARITY_KEYS as readonly string[]).includes(searchParams.rarity) ? searchParams.rarity : null,
         }
       : null;
   const initialSource: BasketSource = watchRow
@@ -165,7 +165,7 @@ export default async function BestBasketPage({ searchParams }: { searchParams: P
               url: `${SITE_URL}/tools/best-basket`,
               applicationCategory: "UtilitiesApplication",
               operatingSystem: "Web",
-              description: "Find the cheapest delivered way to buy a whole One Piece Card Game deck or card list across stores — each store's measured postage included.",
+              description: "Find the cheapest delivered way to buy a whole Magic: The Gathering deck or card list across stores — each store's measured postage included.",
             },
             faqLd(FAQS),
           ]),
@@ -231,7 +231,7 @@ export default async function BestBasketPage({ searchParams }: { searchParams: P
         <div className="card-surface p-6 text-center">
           <h2 className="text-lg font-extrabold text-white">Sign in to use Best Basket</h2>
           <p className="mx-auto mt-1 max-w-md text-sm text-slate-400">
-            Best Basket is part of OP Compare Premium: the cheapest delivered order for your whole list, store by store, postage included.
+            Best Basket is part of MTG Compare Premium: the cheapest delivered order for your whole list, store by store, postage included.
           </p>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
             <Link href={`/login?next=${encodeURIComponent(selfHref(searchParams))}&src=tool_gate`} rel="nofollow" className="btn-primary text-sm">

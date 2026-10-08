@@ -5,10 +5,15 @@ import { movementFromRanks, type Movement } from "./demand-movement";
 // ─────────────────────────────────────────────────────────────────────────────
 // A shareable, frozen copy of one Rising Cards run — the payload and its title.
 // ─────────────────────────────────────────────────────────────────────────────
-// RiftCompare's lib/rising-snapshot.ts, for OP Compare (wave 2). OP Compare
-// mints only version-2 payloads; the legacy reader stays so the shape rules
-// read exactly as RiftCompare's do. The "Cheapest on eBay" freeze is not
-// carried over: OP Compare's snapshot shows store prices only.
+// RiftCompare's lib/rising-snapshot.ts, for MTG Compare. MTG Compare mints
+// only version-2 payloads; the legacy reader stays so the shape rules read
+// exactly as RiftCompare's do. The "Cheapest on eBay" freeze is not carried
+// over: the snapshot shows store prices only (eBay data never leaves Neon).
+//
+// A snapshot is the one place a Premium ranking becomes public, and only because
+// the OWNER mints it (an admin route behind requireAdminApi): it is a frozen page
+// anyone with the link may read, not a paid read. It is stored in Neon
+// (RisingSnapshot), never in the data repository.
 //
 // Owner (RiftCompare), 2026-09-22: "add a new admin feature that generates an actual useful
 // title for rising cards, and gives a special link for public users to view a
@@ -51,7 +56,7 @@ import { movementFromRanks, type Movement } from "./demand-movement";
 
 /** One card, flattened to what the public snapshot page draws. */
 export interface RisingSnapshotPick {
-  id: string;
+  id: number;
   slug: string | null;
   displayName: string;
   setCode: string;
@@ -141,7 +146,7 @@ export function rankedFromCount(data: RisingSnapshotData): number {
 // rows would be the one kind of claim this file exists to avoid. So the name
 // takes the count: forty cards make the Hot 40, twelve make the Hot 12. The
 // brand reads the same and the number stays true.
-export const HOT_LIST_BRAND = "OP Compare Hot";
+export const HOT_LIST_BRAND = "MTG Compare Hot";
 export function hotListName(count: number): string {
   return `${HOT_LIST_BRAND} ${count}`;
 }
@@ -186,7 +191,7 @@ export function generateRisingTitle(data: RisingSnapshotData, now = new Date()):
   if (!top || n === 0) {
     // No list, so no list name — naming a "Hot 0" would be absurd, and this
     // branch exists precisely to stay honest on a run with nothing in it.
-    return `One Piece rising cards — no ranked cards on ${date}`;
+    return `Magic rising cards — no ranked cards on ${date}`;
   }
 
   const name = hotListName(n);
@@ -214,7 +219,7 @@ export function generateRisingTitle(data: RisingSnapshotData, now = new Date()):
   // Only when the pick HAS a range: a v2 pick without price signals carries a
   // neutral 0.5, which says nothing.
   if (top.priceSignals !== false && top.posPct <= 0.33) {
-    return `${name}: ${top.displayName} leads ${n} One Piece ${plural} near their range low (${market}, ${date})`;
+    return `${name}: ${top.displayName} leads ${n} Magic ${plural} near their range low (${market}, ${date})`;
   }
 
   // 3. No single leader, but breadth.

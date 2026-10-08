@@ -1,6 +1,6 @@
 "use client";
 
-import { ebayLabel, ebaySearchUrl, onePieceEbayQuery, outboundRel } from "@/lib/affiliate";
+import { ebayLabel, ebaySearchUrl, magicEbayQuery, outboundRel } from "@/lib/affiliate";
 import { useCountry } from "./CountryProvider";
 
 // "Search eBay: A → · B →" under a movers panel (RiftCompare's EbayCardSearchRow):
@@ -18,7 +18,7 @@ export function EbayCardSearchRow({ names, source, page }: { names: string[]; so
       {uniq.map((n, i) => (
         <span key={n}>
           {i ? <span className="mx-1 text-slate-600">·</span> : null}
-          <a href={ebaySearchUrl(country, onePieceEbayQuery(n), source)} target="_blank" rel={outboundRel()} data-retailer="ebay_search" data-page={page} data-surface="ebay_row" className="text-sky-300 hover:underline">
+          <a href={ebaySearchUrl(country, magicEbayQuery(n), source)} target="_blank" rel={outboundRel()} data-retailer="ebay_search" data-page={page} data-surface="ebay_row" className="text-sky-300 hover:underline">
             {n.length > 24 ? `${n.slice(0, 23)}…` : n} →
           </a>
         </span>

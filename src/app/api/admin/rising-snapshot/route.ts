@@ -3,13 +3,14 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { adminJsonBody, adminLog, requireAdminApi } from "@/lib/admin";
 import { SITE_URL } from "@/lib/site";
 import { getCachedRisingCards, getRisingWeekAgo, RISING_SNAPSHOTS_TAG } from "@/lib/data";
+import { entitlementOf } from "@/lib/premium";
 import { parseRiseScope } from "@/lib/rise-predictor";
 import { generateRisingTitle, toSnapshotData } from "@/lib/rising-snapshot";
 import { createRisingSnapshot, deleteRisingSnapshot, listRisingSnapshots } from "@/lib/admin-rising";
 
 export const dynamic = "force-dynamic";
 
-// The OP Compare Hot 40 snapshots (RiftCompare's /api/admin/rising-snapshot).
+// The MTG Compare Hot 40 snapshots (RiftCompare's /api/admin/rising-snapshot).
 // Admin only through requireAdminApi (session or the ADMIN_TOKEN header, never
 // a query string). Mutations are POST + same-origin + JSON and log with
 // adminLog:
@@ -48,17 +49,20 @@ export async function POST(req: Request) {
   // The SAME cached analysis /tools/rising and the admin page read — minting
   // never starts a second scan (getCachedRisingCards caches itself, so it is
   // called directly and never wrapped).
-  const analysis = await getCachedRisingCards(scope);
+  // The admin gate above is the authority; an admin counts as Premium, so the
+  // loader serves the full analysis (nothing here compares a tier).
+  const who = entitlementOf({ isAdmin: true, premiumUntil: null, premiumTier: "premium" });
+  const result = await getCachedRisingCards(scope, who);
   // A FAILED LOAD IS NEVER MINTED: frozen, it would be a permanent public page
   // presenting a blip as a fact about the market.
-  if (analysis.failed) {
+  if (result.failed || result.locked) {
     return NextResponse.json({ error: "Rising Cards failed to load, so nothing was minted. Try again in a few minutes." }, { status: 409 });
   }
   const now = new Date();
   // The ranking a week ago, for the movement frozen into this one. Never a
   // reason not to mint: null means the snapshot carries no arrows.
-  const weekAgo = await getRisingWeekAgo(scope);
-  const data = toSnapshotData(analysis, scope, now, weekAgo);
+  const weekAgo = await getRisingWeekAgo(scope, who);
+  const data = toSnapshotData(result.analysis, scope, now, weekAgo);
   // An empty run is still mintable, deliberately: a link that says so honestly
   // beats a 400 that leaves the admin guessing whether the feature broke.
   const snap = await createRisingSnapshot(scope, generateRisingTitle(data, now), data);

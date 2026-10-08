@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getCurrentUser } from "@/lib/auth";
-import { isPremium } from "@/lib/premium";
+import { currentEntitlement } from "@/lib/auth";
 import { getCachedRisingCards, getRisingWeekAgo } from "@/lib/data";
+import { FEATURE_RULES, accessFor, rowLimit } from "@/lib/premium-gates";
 import { parseRiseScope, growthSpanLabel, MARKET_PREF, type RisePick, type RiseScope } from "@/lib/rise-predictor";
 import { movementAgainst, weekAgoLabel } from "@/lib/rising-movement";
 import type { Movement } from "@/lib/demand-movement";
@@ -14,40 +14,39 @@ import PlanButton from "@/components/PlanButton";
 import { HubIntro } from "@/components/HubIntro";
 import { RelatedGuides } from "@/components/RelatedGuides";
 import { guidesForTool } from "@/lib/content/tool-guides";
-import { SITE_URL } from "@/lib/site";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { planPrice } from "@/lib/plans";
 import { pageOg } from "@/lib/og/meta";
 import { FREE_RISING_ROWS } from "@/lib/tier-limits";
 
 export const dynamic = "force-dynamic";
 
-// Rising Cards (RiftCompare's /tools/rising, for One Piece). No
-// "backtested"/"validated" claim and no investing or price-prediction
-// keywords: no track record is on the page, and the site's position is buying
-// well, not speculating.
-const TITLE = "Rising Cards — One Piece Cards With Rising Demand | OP Compare";
+// Rising Cards (RiftCompare's /tools/rising, for Magic: The Gathering). PREMIUM, gated at the data boundary (contract 14): the page asks
+// premium-gates.ts how many rows its visitor may have and the loader (getCachedRisingCards) returns no more; below full access there is no
+// `analysis` to render, only the clear preview slice. No "backtested"/"validated" claim and no investing or price-prediction keywords: no
+// track record is on the page, and the site's position is buying well, not speculating.
+const TITLE = `Rising Cards — Magic Cards With Rising Demand | ${SITE_NAME}`;
 const DESCRIPTION =
-  "One Piece Card Game cards ranked by demand and price-timing signals: search interest that is high or rising on cards whose price hasn't moved up yet, with the reason for every pick. Free accounts see the top three; Premium shows every pick. Not financial advice.";
+  "Magic: The Gathering cards ranked by demand and price-timing signals: search interest that is high or rising on cards whose price hasn't moved up yet, with the reason for every pick. Free accounts see the top three; Premium shows every pick. Not financial advice.";
 export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
-  keywords: ["one piece rising cards", "one piece card demand", "one piece cards going up", "one piece trending cards"],
+  keywords: ["magic the gathering rising cards", "mtg card demand", "mtg cards going up", "mtg trending cards"],
   alternates: { canonical: "/tools/rising" },
-  openGraph: pageOg("/tools/rising", { title: "Rising Cards — One Piece cards with rising demand", description: DESCRIPTION }),
+  openGraph: pageOg("/tools/rising", { title: "Rising Cards — Magic cards with rising demand", description: DESCRIPTION }),
 };
 
-// How many ranked picks a signed-in FREE account sees (lib/tier-limits.ts).
-// Premium sees all of them (Plus no longer does: owner, 2026-10-07).
+// How many ranked picks a signed-in FREE or Plus account sees (lib/tier-limits.ts); the number the loader enforces is rowLimit("rising", ...).
 const FREE_PREVIEW_ROWS = FREE_RISING_ROWS;
 
 const RISING_FAQS = [
   {
     q: "What is Rising Cards?",
-    a: "A screener that ranks One Piece Card Game cards by demand and price-timing signals: search interest that is high or rising on cards whose price hasn't moved up yet (low in their own recent range, few stores with it in stock, not already spiking). Every input is real OP Compare data, and every pick shows the plain reason it ranks where it does.",
+    a: "A screener that ranks Magic: The Gathering cards by demand and price-timing signals: search interest that is high or rising on cards whose price hasn't moved up yet (low in their own recent range, few stores with it in stock, not already spiking). Every input is real MTG Compare data, and every pick shows the plain reason it ranks where it does.",
   },
   {
     q: "What signals does the ranking use?",
-    a: "How often a card is picked from OP Compare search and whether that is rising, where today's TCGplayer market price sits in the card's own recent range, how many tracked stores have it in stock, and how its price compares with last week. Cards already up sharply on last week are marked down, not rewarded. A card with too few weekly prices is ranked on demand and supply alone.",
+    a: "How often a card is picked from MTG Compare search and whether that is rising, where today's TCGplayer market price sits in the card's own recent range, how many tracked stores have it in stock, and how its price compares with last week. Cards already up sharply on last week are marked down, not rewarded. A card with too few weekly prices is ranked on demand and supply alone.",
   },
   {
     q: "Is this financial advice?",
@@ -55,11 +54,11 @@ const RISING_FAQS = [
   },
   {
     q: "Do I need Premium?",
-    a: `Not to start. A free account shows the top ${FREE_PREVIEW_ROWS} ranked picks with their reasons. Premium (${planPrice("premium", "month")}/month) shows every ranked pick, in every market or Global.`,
+    a: `Not to start. A free account shows the top ${FREE_PREVIEW_ROWS} ranked picks with their reasons. Plus keeps the same three. Premium (${planPrice("premium", "month")}/month) shows every ranked pick, in every market or Global.`,
   },
   {
     q: "How often does it update?",
-    a: "Demand and stock update with every price import; the price signals read one price a week. Demand velocity needs a few days of daily demand snapshots before it counts for a card — until then the ranking leans on overall search volume.",
+    a: "Demand and stock update with every price import; the price signals read one price a week (the Sunday close). Demand velocity needs a few days of daily demand snapshots before it counts for a card — until then the ranking leans on overall search volume.",
   },
 ];
 
@@ -199,37 +198,28 @@ function TableHead({ priceLabel, showMove }: { priceLabel: string; showMove: boo
 }
 
 export default async function RisingPage({ searchParams }: { searchParams: { scope?: string } }) {
-  const user = await getCurrentUser();
-  // PREMIUM ONLY (owner, 2026-10-07): Plus no longer unlocks the full list.
-  const premium = isPremium(user, "premium");
-  // THREE LEVELS (RiftCompare, 2026-09-23). Premium sees every pick; a
-  // signed-in FREE or Plus account sees the top FREE_PREVIEW_ROWS; signed out sees no
-  // pick, only the ask for a free account. The slice happens HERE, on the
-  // server: only the rows a visitor is entitled to are rendered, and nothing
-  // below passes `analysis` to a client component, so the rest of the ranking
-  // never reaches the HTML or the RSC payload.
-  const access: "full" | "top3" | "none" = premium ? "full" : user ? "top3" : "none";
+  // THE GATE (contract 14): who the visitor is, how many rows the gate module lets them have, and a loader that returns no more. PREMIUM ONLY (owner,
+  // 2026-10-07): Plus no longer unlocks the full list. Three levels: Premium and admins see every pick; a signed-in FREE or Plus account sees the top
+  // FREE_PREVIEW_ROWS of its own market with the reason of each; signed out sees no pick, only the ask for a free account. The cut happens in the loader:
+  // only the rows a visitor is entitled to are rendered, and nothing below passes `analysis` to a client component, so the rest of the ranking never
+  // reaches the HTML or the RSC payload.
+  const who = await currentEntitlement();
+  const access = accessFor("rising", who.viewer), limit = rowLimit("rising", access, who.viewer);
   const country = getCountry();
 
-  // The visitor's own market by default (2026-09-25; it was Global priced in
-  // AUD for everyone, and the homepage column it links from is per-market).
-  // Members can switch to any market or Global; every COUNTRY_LIST code parses
-  // (SG, CA and EU used to fall back to Global silently). A free account's
-  // top three stay in its own market.
+  // The visitor's own market by default (it was Global for everyone once, and the homepage column it links from is per-market). Members can switch to
+  // any market or Global; every COUNTRY_LIST code parses. Switching scope is a refinement, so below full access it is answered with the default view.
   const scope: RiseScope = access === "full" ? parseRiseScope(searchParams.scope, country) : country;
   const isGlobal = scope === "GLOBAL";
   const where = isGlobal ? "" : ` in ${COUNTRIES[scope].place}`;
   const priceLabel = isGlobal ? "Price" : `Price (${currencyOf(scope)})`;
 
-  // Self-caching loaders and an in-process assembly (lib/data.ts
-  // getCachedRisingCards over lib/rise-predictor.ts). Shared with /admin/rising
-  // and the snapshot mint, so any of them warms the rest. The ranking rebuilt
-  // as of a week ago gives the movement; none → no movement column.
-  const [analysis, weekAgo] = await Promise.all([getCachedRisingCards(scope), getRisingWeekAgo(scope)]);
-  const moves = movementAgainst(analysis.picks.map((p) => p.id), weekAgo);
-  const visible = access === "full" ? analysis.picks : access === "top3" ? analysis.picks.slice(0, FREE_PREVIEW_ROWS) : [];
-  const hiddenCount = Math.min(40, analysis.picks.length) - visible.length;
-  const rebuilding = analysis.picks.length > 0 && analysis.qualifying === 0;
+  // getCachedRisingCards computes the tier-neutral ranking once per data commit and day and cuts it for `who` (lib/data/demand.ts); shared with
+  // /admin/rising and the snapshot mint. The ranking rebuilt as of a week ago gives the movement; none gives no movement column.
+  const [result, weekAgo] = await Promise.all([getCachedRisingCards(scope, who), getRisingWeekAgo(scope, who)]);
+  const analysis = result.access === "full" ? result.analysis : null;
+  const moves = analysis ? movementAgainst(analysis.picks.map((p) => p.id), weekAgo) : null;
+  const rebuilding = !!analysis && analysis.picks.length > 0 && analysis.qualifying === 0;
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -261,10 +251,7 @@ export default async function RisingPage({ searchParams }: { searchParams: { sco
             </div>
           )}
         </div>
-        {/* The four signals and their cadence, above the access split so a
-            signed-out visitor and a crawler get them (2026-09-26, "Blog and
-            tools, joined up"): lib/content/hub-intros.ts, in place of a
-            one-paragraph lede. */}
+        {/* The four signals and their cadence, above the access split so a signed-out visitor and a crawler get them: lib/content/hub-intros.ts. */}
         <HubIntro path="/tools/rising" />
         <p className="mt-2 max-w-3xl text-xs leading-relaxed text-slate-500">
           Not financial advice. Looking for boxes and packs instead?{" "}
@@ -272,43 +259,19 @@ export default async function RisingPage({ searchParams }: { searchParams: { sco
         </p>
       </div>
 
-      {/* ORDER MATTERS: the empty states below are checked FIRST, so a free
-          visitor on a scope with no ranked picks is told the truth rather than
-          shown a locked preview of a list that does not exist.
-
-          SIGNED OUT, NOTHING REAL IS RENDERED; A FREE ACCOUNT GETS THE TOP
-          FREE_PREVIEW_ROWS (see `access` above). The page keeps its intro, its
-          "How Rising Cards works" FAQ and its FAQPage schema either way, which
-          is what keeps it from being a thin page when gated. */}
-      {analysis.picks.length === 0 ? (
+      {/* ORDER MATTERS: a failed load is told first (never as "no history yet"), then the access split. SIGNED OUT, NOTHING REAL IS RENDERED: placeholder bars and the
+          ask for an account. A FREE OR PLUS ACCOUNT GETS THE CLEAR PREVIEW (its market's top FREE_PREVIEW_ROWS picks and why). The page keeps its intro, its
+          "How Rising Cards works" FAQ and its FAQPage schema either way, which keeps it from being a thin page when gated. */}
+      {result.failed ? (
         <div className="card-surface grid place-items-center p-12 text-center text-sm text-slate-400">
-          {analysis.failed ? (
-            // A failed load is never presented as "no history yet" (it was, for
-            // up to a day, while a failure sat in the cache as an empty result).
-            <div>
-              <p className="font-semibold text-white">Rising Cards is temporarily unavailable</p>
-              <p className="mx-auto mt-1 max-w-lg">We couldn&apos;t load the latest data. Try again in a few minutes.</p>
-            </div>
-          ) : analysis.withAnyHistory > 0 ? (
-            <div>
-              <p className="font-semibold text-white">Signals are still building</p>
-              <p className="mx-auto mt-1 max-w-lg">
-                We track {analysis.withAnyHistory.toLocaleString()} cards&apos; prices{where}, but ranking them needs{" "}
-                {analysis.minPointsRequired} weekly prices per card and we have {analysis.deepestSeries} so far.
-              </p>
-            </div>
-          ) : (
-            <div>
-              <p className="font-semibold text-white">No ranked cards yet{where}</p>
-              <p className="mt-1">Picks appear once cards here have search activity and a live price.</p>
-            </div>
-          )}
+          <div>
+            <p className="font-semibold text-white">Rising Cards is temporarily unavailable</p>
+            <p className="mx-auto mt-1 max-w-lg">We couldn&apos;t load the latest data. Try again in a few minutes.</p>
+          </div>
         </div>
-      ) : access === "none" ? (
+      ) : result.access === "none" ? (
         <div className="card-surface relative overflow-hidden">
-          {/* Placeholder bars only — no pick, no card, no score. aria-hidden
-              because they carry no information; the heading and CTA below are
-              the real content of this state. */}
+          {/* Placeholder bars only — no pick, no card, no score. aria-hidden because they carry no information; the heading and CTA below are the real content of this state. */}
           <ul className="divide-y divide-ink-800" aria-hidden>
             {[0, 1, 2, 3, 4].map((i) => (
               <li key={i} className="flex items-center gap-2.5 px-4 py-3 opacity-40">
@@ -325,8 +288,7 @@ export default async function RisingPage({ searchParams }: { searchParams: { sco
             <div>
               <p className="text-sm font-bold text-white">See the top {FREE_PREVIEW_ROWS} rising cards, free</p>
               <p className="mx-auto mt-0.5 max-w-sm text-xs text-slate-400">
-                A free account shows the {FREE_PREVIEW_ROWS} highest-ranked picks and why each one ranks. Premium shows all{" "}
-                {Math.min(40, analysis.picks.length)}, in every market or Global.
+                A free account shows the {FREE_PREVIEW_ROWS} highest-ranked picks in your market and why each one ranks. Premium shows every pick, in every market or Global.
               </p>
               <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
                 <Link href="/login?next=/tools/rising&src=tool_preview" rel="nofollow" className="btn-primary text-sm">Create a free account</Link>
@@ -335,7 +297,57 @@ export default async function RisingPage({ searchParams }: { searchParams: { sco
             </div>
           </div>
         </div>
-      ) : (
+      ) : result.access === "preview" ? (
+        <>
+          {result.preview.length ? (
+            <ol className="card-surface divide-y divide-ink-800">
+              {result.preview.map((p, i) => (
+                <li key={p.id} className="flex items-start gap-3 px-4 py-3">
+                  <span className="num w-5 shrink-0 pt-0.5 text-right text-slate-500">{i + 1}</span>
+                  <Link href={`/card/${p.slug}`} prefetch={false} className="min-w-0">
+                    <span className="block truncate font-semibold text-white">{p.name}</span>
+                    <span className="mt-0.5 block text-[11px] leading-snug text-slate-400">{p.reason}</span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <div className="card-surface grid place-items-center p-12 text-center text-sm text-slate-400">
+              <div>
+                <p className="font-semibold text-white">No ranked cards yet{where}</p>
+                <p className="mt-1">Picks appear once cards here have search activity and a live price.</p>
+              </div>
+            </div>
+          )}
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gold/30 bg-gold/5 px-4 py-3">
+            <p className="text-sm text-slate-300">
+              <strong className="text-white">This is the top {limit} for your market.</strong>{" "}
+              Premium shows every ranked pick, in every market or Global, with the price, the range, the searches and the movement against last week.
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <PlanButton tier="premium" surface={FEATURE_RULES.rising.surface} />
+              <Link href="/movers" className="btn-ghost text-sm">Free price movers →</Link>
+            </div>
+          </div>
+        </>
+      ) : analysis && analysis.picks.length === 0 ? (
+        <div className="card-surface grid place-items-center p-12 text-center text-sm text-slate-400">
+          {analysis.withAnyHistory > 0 ? (
+            <div>
+              <p className="font-semibold text-white">Signals are still building</p>
+              <p className="mx-auto mt-1 max-w-lg">
+                We track {analysis.withAnyHistory.toLocaleString()} cards&apos; prices{where}, but ranking them needs{" "}
+                {analysis.minPointsRequired} weekly prices per card and we have {analysis.deepestSeries} so far.
+              </p>
+            </div>
+          ) : (
+            <div>
+              <p className="font-semibold text-white">No ranked cards yet{where}</p>
+              <p className="mt-1">Picks appear once cards here have search activity and a live price.</p>
+            </div>
+          )}
+        </div>
+      ) : analysis ? (
         <>
           {rebuilding && (
             <div className="mb-3 rounded-lg border border-ink-700 bg-ink-900 px-4 py-3 text-xs leading-relaxed text-slate-400">
@@ -348,15 +360,15 @@ export default async function RisingPage({ searchParams }: { searchParams: { sco
             <table className="w-full text-sm sm:min-w-[760px]">
               <TableHead priceLabel={priceLabel} showMove={!!moves} />
               <tbody className="divide-y divide-ink-800">
-                {visible.map((p, i) => <RisingRow key={p.id} p={p} rank={i + 1} move={moves ? moves.get(p.id) ?? null : undefined} />)}
+                {analysis.picks.map((p, i) => <RisingRow key={p.id} p={p} rank={i + 1} move={moves ? moves.get(p.id) ?? null : undefined} />)}
               </tbody>
             </table>
             <p className="p-3 text-[11px] leading-relaxed text-slate-600">
               {isGlobal
                 ? `Global shows each card's price in the first market that sells it (${MARKET_PREF.join(", ")}, in that order), in that market's currency. `
                 : `Price is the cheapest in-stock listing in ${COUNTRIES[scope].place}. `}
-              &ldquo;vs last week&rdquo;, the range and the 16-week chart follow TCGplayer&apos;s US market price
-              {isGlobal ? "" : ", converted"} — one price a week from the history OP Compare records — with today&apos;s price as the newest point. Ranked among the{" "}
+              &ldquo;vs last week&rdquo;, the range and the 16-week chart follow the TCGplayer US market price of the card&apos;s headline version (non-foil first)
+              {isGlobal ? "" : ", converted"} — one price a week, the Sunday close, from the history {SITE_NAME} records — with today&apos;s price as the newest point. Ranked among the{" "}
               {analysis.universeSize} most-searched priced cards{where}. A research signal, not financial advice — check a card&apos;s own
               price history before you buy.
               {weekAgo && (
@@ -370,20 +382,8 @@ export default async function RisingPage({ searchParams }: { searchParams: { sco
               )}
             </p>
           </div>
-          {access === "top3" && hiddenCount > 0 && (
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gold/30 bg-gold/5 px-4 py-3">
-              <p className="text-sm text-slate-300">
-                <strong className="text-white">{hiddenCount} more ranked picks</strong>
-                {where} — Premium shows every one, in every market or Global.
-              </p>
-              <div className="flex flex-wrap items-center gap-2">
-                <PlanButton tier="premium" surface="gate:rising" />
-                <Link href="/movers" className="btn-ghost text-sm">Free price movers →</Link>
-              </div>
-            </div>
-          )}
         </>
-      )}
+      ) : null}
 
       {/* The guides behind the signals, after the list and outside the access
           split, so a signed-out visitor gets them too. */}
@@ -424,11 +424,11 @@ export default async function RisingPage({ searchParams }: { searchParams: { sco
             {
               "@context": "https://schema.org",
               "@type": "WebApplication",
-              name: "One Piece Rising Cards",
+              name: "Magic Rising Cards",
               url: `${SITE_URL}/tools/rising`,
               applicationCategory: "UtilitiesApplication",
               operatingSystem: "Web",
-              description: "Ranks One Piece Card Game cards by demand and price-timing signals, with a plain reason for each pick.",
+              description: "Ranks Magic: The Gathering cards by demand and price-timing signals, with a plain reason for each pick.",
             },
           ]),
         }}

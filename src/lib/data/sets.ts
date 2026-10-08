@@ -1,7 +1,7 @@
 // owner: WP12
 // src/lib/data/sets.ts: the section "sets.ts" of api.ts (contract 7.12). Set checklists, the upcoming sets, the set value stats and the Box EV pools. Every function reads PUBLISHED FILES through the PlaneSource of the
 // request (pinned to one data commit) and nothing else: no database, no unstable_cache (kind P of contract 7.5). The names, arguments, result types and cache kinds are FROZEN (7.12).
-import { PRICE_MASK, TREATMENT_BY_KEY, parseTreat, printingOf, treatmentLabel } from "../constants";
+import { PRICE_MASK, RELEASE_SET_KINDS, TREATMENT_BY_KEY, parseTreat, printingOf, treatmentLabel } from "../constants";
 import { MARKET_INDEX, type Country } from "../country";
 import { promoOutsideSet, type ChecklistCard } from "../set-scope";
 import { getSets } from "./catalog";
@@ -46,11 +46,11 @@ export async function getSetChecklist(setId: number, market: Country): Promise<C
     });
 }
 
-/** Sets that have not released yet (a release date in the future), soonest first, derived from meta/sets.json. Kinds that are hidden from the site (Art Series, oversized) are left out. n defaults to 12. */
+/** Sets that have not released yet (a release date in the future), soonest first, derived from meta/sets.json. Only the kinds the release calendar shows (constants RELEASE_SET_KINDS: expansion, core, masters, Commander); promos and drops are not announcements. n defaults to 12. */
 export async function getUpcomingSets(n = 12): Promise<SetLite[]> {
   const today = new Date().toISOString().slice(0, 10);
   return (await getSets())
-    .filter((s) => s.releasedOn != null && s.releasedOn > today && s.kind !== "art-series" && s.kind !== "oversized")
+    .filter((s) => s.releasedOn != null && s.releasedOn > today && RELEASE_SET_KINDS.includes(s.kind))
     .sort((a, b) => (a.releasedOn! < b.releasedOn! ? -1 : a.releasedOn! > b.releasedOn! ? 1 : a.id - b.id))
     .slice(0, Math.max(0, Math.floor(n)));
 }
@@ -66,4 +66,10 @@ export async function getBoxPools(setId: number): Promise<CardMini[]> {
   const { src } = await planeSource(), set = (await getSets()).find((s) => s.id === setId);
   if (!set) return [];
   return (await readBoard(src, setId)).filter((r) => r[5] === 0 && (r[14] & PRICE_MASK.LISTED) !== 0).map((r) => miniFromBoard(r, set));
+}
+
+/** REQ-WP09-1. P st/<setId>.json: the Foil MARKET (cents) of every listed class-0 single of the set, by product id; null when the product has no Foil row or its Foil has no market (a low-only unit is not a price). All chunks. */
+export async function getBoxPoolsFoil(setId: number): Promise<Map<number, number | null>> {
+  const { src } = await planeSource();
+  return new Map((await readBoard(src, setId)).filter((r) => r[5] === 0 && (r[14] & PRICE_MASK.LISTED) !== 0).map((r) => [r[0], (r[14] & PRICE_MASK.HASF) !== 0 && r[11] != null && r[11] > 0 ? r[11] : null] as const));
 }

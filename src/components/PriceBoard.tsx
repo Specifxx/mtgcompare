@@ -1,3 +1,4 @@
+import type { Finish } from "@/lib/constants";
 import Link from "next/link";
 import { COUNTRIES, MARKETS, type Country } from "@/lib/country";
 import type { OfferRow } from "@/lib/data";
@@ -29,8 +30,11 @@ export function PriceBoard({
   slug,
   name,
   preRelease = false,
+  finish = "N",
 }: {
   productId: number;
+  /** The unit the offers belong to (a price is per product and finish); report-a-price sends it. */
+  finish?: Finish;
   offers: OfferRow[];
   country: Country;
   ebayQuery: string;
@@ -148,7 +152,7 @@ export function PriceBoard({
       )}
       {open.length ? (
         <div className="border-t border-ink-800">
-          <ReportPriceButton productId={productId} market={country} offers={open.map((o) => ({ source: o.source, label: sourceLabel(o.source, country) }))} />
+          <ReportPriceButton productId={productId} finish={finish} market={country} offers={open.map((o) => ({ source: o.source, label: sourceLabel(o.source, country) }))} />
         </div>
       ) : null}
 

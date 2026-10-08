@@ -1,39 +1,39 @@
 import { COUNTRY_LIST, currencyOf, type Country } from "./country";
 import { usdCentsToCountry } from "./fx";
-import { dayIso, type Point } from "./history";
-import { demandAsOf, dayMinus, type DemandAsOfCard, type DemandDayFile, type DemandVelocity } from "./demand-snapshot";
+import { type DemandAsOfCard, type DemandVelocity } from "./demand-snapshot";
 import { clamp, mean, median, percentileRanks, spearman, zScores } from "./stats";
 
-// ── Rise predictor (RiftCompare's lib/rise-predictor.ts, for OP Compare) ─────
+// ── Rise predictor (RiftCompare's lib/rise-predictor.ts, for MTG Compare) ────
 // Ranks cards by demand + price-timing signals: search interest that is high or
 // rising on a card whose price has not re-rated yet (low in its own recent
 // range, thin supply, not already spiking). Every input is a real, quoted data
 // field and the score is a transparent weighted sum of cross-sectional z-scores.
 //
-// THE INPUTS ON OP COMPARE (wave-2 plan, Track 3 item 7):
-//   • demand: Card.searchCount / viewCount (lib/card-views.ts), and its
-//     velocity from the daily demand snapshot FILES (lib/demand-snapshot.ts);
-//   • price: the GLOBAL basis is Card.marketUsd, TCGplayer's US market price —
-//     the series the import records (lib/history.ts) — and today's marketUsd
-//     is the newest point; a single market converts it to its own currency;
-//   • supply: Card.stores<MKT>, the in-stock tracked stores in that market (a
-//     TCGplayer reference row or eBay is never a store); GLOBAL sums them;
-//   • the price shown: Card.low<MKT>, the cheapest in-stock listing there.
+// THE INPUTS ON MTG COMPARE (contract 14, addendum 10):
+//   • demand: CardStat.searchCount / viewCount (plane/view-beacon.ts, Neon) and
+//     its velocity from the DemandDay snapshots (lib/demand-snapshot.ts). The
+//     counters are NEVER published: this is the Premium signal;
+//   • price: the market price of the card's headline unit (Normal first),
+//     TCGplayer's US market in cents. The weekly series is hist/w, the public
+//     weekly closes (every Sunday) the importer already publishes, and today's
+//     market price is appended as the newest point; a single market converts
+//     it to its own currency;
+//   • supply: CardLite.stores<MKT>, the in-stock tracked stores in that market
+//     (a TCGplayer reference row or eBay is never a store); GLOBAL sums them;
+//   • the price shown: CardLite.low<MKT>, the cheapest in-stock listing there.
 //
-// THIS MODULE IS PURE. The import builds history/rising.json (buildRiseFile,
-// via lib/tools-history.ts): each card's weekly series, today's demand
-// velocity and the demand as it stood a week ago, so a page never reads more
-// than one small file. lib/data.ts caches the operational half and assembles
-// here, in-process, uncached (getCachedRisingCards).
+// THIS MODULE IS PURE. src/lib/data/demand.ts resolves the plane data (the
+// browse index, hist/w) and reads the counters, then assembles here, inside the
+// tier-neutral ranking cache (getCachedRisingCards).
 //
 // HONEST LIMITS (surfaced in the UI): (1) demand VELOCITY needs a few days of
 // demand snapshots — until then that component is 0 and only demand LEVEL is
-// used. (2) The price-timing half reads WEEKLY points (one per week, the week's
-// lowest, as RiftCompare does), so it moves once a week; today's price is
-// appended as the newest point. (3) Price-timing signals need MIN_POINTS weekly
-// points: until a card has them it is ranked on demand and supply alone, and
-// says so. (4) No track record is published, so nothing may call the ranking
-// "backtested" or "validated". Not financial advice.
+// used. (2) The price-timing half reads WEEKLY points (one per week, the
+// Sunday close), so it moves once a week; today's price is appended as the
+// newest point. (3) Price-timing signals need MIN_POINTS weekly points: until a
+// card has them it is ranked on demand and supply alone, and says so. (4) No
+// track record is published, so nothing may call the ranking "backtested" or
+// "validated". Not financial advice.
 
 // Scope: a single market, or GLOBAL. Demand is market-agnostic; so is the price
 // series. A single-market scope decides the universe (cards priced there), the
@@ -41,8 +41,8 @@ import { clamp, mean, median, percentileRanks, spearman, zScores } from "./stats
 // basis-market price.
 export type RiseScope = Country | "GLOBAL";
 
-// Reference order for a GLOBAL card's displayed price: OP Compare's home market
-// first, then the rest as COUNTRY_LIST orders them. Must cover EVERY market.
+// Reference order for a GLOBAL card's displayed price: the US first (TCGplayer's
+// market), then the rest as COUNTRY_LIST orders them. Must cover EVERY market.
 export const MARKET_PREF: Country[] = COUNTRY_LIST.map((c) => c.code);
 
 // Every scope a URL may ask for. The tool and /admin/rising both parse through here.
@@ -54,8 +54,7 @@ export function parseRiseScope(value: string | null | undefined, fallback: RiseS
 }
 
 export const SCAN = 400; // universe per scope: most-searched cards priced in it
-export const HISTORY_DAYS = 120;
-export const MAX_WEEKS = 18; // weekly points kept per card in rising.json
+export const MAX_WEEKS = 18; // weekly closes hist/w carries per tracked unit
 const GROWTH_MIN_DAYS = 7;
 const SPARK_DAYS = 16 * 7; // the "16 wk" sparkline
 const MIN_POINTS = 5; // clean weekly points (live price included) needed to trust the price-timing signals
@@ -65,8 +64,6 @@ const MIN_BACKTEST_N = 20;
 export const DISPLAY = 40;
 const DAY_MS = 86400_000;
 export const VELOCITY_DAYS = 21;
-/** Cards whose weekly series rising.json carries: the most searched, as many as the feed ranks from. */
-export const RISE_FEED_CARDS = 2000;
 
 // Component weights (transparent, tunable) — RiftCompare's.
 const W = { demand: 1.0, velocity: 1.4, room: 1.1, scarcity: 0.7, momentum: 0.5, volatility: 0.25, overheat: 0.8 };
@@ -81,7 +78,7 @@ export interface RiseComponents {
 }
 
 export interface RisePick {
-  id: string;
+  id: number;
   slug: string;
   displayName: string;
   setCode: string;
@@ -145,7 +142,7 @@ export interface RiseAnalysis {
 
 /** One card of the universe: the catalogue's facts and prices, and its demand totals. */
 export type UniverseCard = {
-  id: string;
+  id: number;
   slug: string;
   name: string;
   setCode: string;
@@ -163,33 +160,20 @@ export type UniverseCard = {
 /** The operational half: the scope's universe, supply, demand velocity. Plain objects. */
 export type RiseInputs = {
   universe: UniverseCard[];
-  supply: Record<string, number>;
-  velocity: Record<string, DemandVelocity>;
+  supply: Record<number, number>;
+  velocity: Record<number, DemandVelocity>;
   snapshotDays: number;
 };
 
-/** The weekly history half, scope-independent: cardId → [epochDay, GLOBAL USD cents][] (oldest first, one per week). */
-export type RiseHistory = { series: Record<string, [number, number][]> };
-
-/** history/rising.json — written by the import, read by lib/data.ts getRiseFeed. */
-export interface RiseFile {
-  v: 1;
-  day: string;
-  series: RiseHistory["series"];
-  /** Demand velocity over the last VELOCITY_DAYS of snapshots, per card. */
-  velocity: Record<string, DemandVelocity>;
-  /** Demand as it stood a week ago, for the week-ago ranking; null with no snapshots that old. */
-  weekAgo: DemandWeekAgo | null;
-  /** Distinct demand snapshot days on record. */
-  snapshotDays: number;
-}
+/** The weekly history half, scope-independent: product id → [epochDay, GLOBAL USD cents][] of the card's headline unit (oldest first, one per week). */
+export type RiseHistory = { series: Record<number, [number, number][]> };
 
 /** "Displayed name": the printing in the name, so same-name cards are distinguishable. */
 export function cardDisplayName(name: string, c: { variant?: string | null }): string {
   return c.variant ? `${name} (${c.variant})` : name;
 }
 
-/** A card's cheapest in-stock listing in a market (Card.low<MKT>). */
+/** A card's cheapest in-stock listing in a market (CardLite.low). */
 export function pickPrice(card: Pick<UniverseCard, "low">, c: Country): number | null {
   return card.low[c] ?? null;
 }
@@ -245,76 +229,25 @@ export function computeSignals(points: PricePoint[]): Signals {
   };
 }
 
-// ── Building history/rising.json (the import) ────────────────────────────────
+// ── The weekly series (hist/w) ───────────────────────────────────────────────
 
-/** The Monday (UTC) of an epoch day's week, as an epoch day. */
-const weekOf = (epochDay: number) => epochDay - ((new Date(epochDay * DAY_MS).getUTCDay() + 6) % 7);
-
-/**
- * A card's weekly GLOBAL series from its recorded history points
- * ([YYYYMMDD, market cents, low cents]): the market price over the last
- * HISTORY_DAYS, one point per week — the week's LOWEST, RiftCompare's
- * collapseToWeekly rule — at most MAX_WEEKS of them, oldest first.
- */
-export function weeklySeries(points: readonly Point[], today: string): [number, number][] {
-  const todayEpoch = Math.round(Date.parse(`${today}T00:00:00Z`) / DAY_MS);
-  const from = todayEpoch - HISTORY_DAYS;
-  const byWeek = new Map<number, [number, number]>();
-  for (const [dn, market] of points) {
-    if (market == null || market <= 0) continue;
-    const day = Math.round(Date.parse(`${dayIso(dn as number)}T00:00:00Z`) / DAY_MS);
-    if (day < from || day > todayEpoch) continue;
-    const w = weekOf(day);
-    const cur = byWeek.get(w);
-    if (!cur || market < cur[1]) byWeek.set(w, [day, market]);
-  }
-  return [...byWeek.values()].sort((a, b) => a[0] - b[0]).slice(-MAX_WEEKS);
+/** hist/w holds 18 weekly closes per tracked unit, oldest first, taken on SUNDAYS and ending on `end` (YYYY-MM-DD); 0 is a week with no price. Points as [epoch day, USD cents], the unit's market price. */
+export function weeklyPoints(closes: readonly number[], end: string): [number, number][] {
+  const last = Math.round(Date.parse(`${end}T00:00:00Z`) / DAY_MS), out: [number, number][] = [];
+  closes.forEach((cents, i) => { if (cents > 0) out.push([last - (closes.length - 1 - i) * 7, cents]); });
+  return out.slice(-MAX_WEEKS);
 }
 
 export const WEEK_AGO_DAYS = 7;
 
-/** Demand as it stood a week ago (the import builds it from the local day files). */
-export type DemandWeekAgo = { asOf: string; cards: Record<string, DemandAsOfCard> };
-
-/**
- * history/rising.json from the cards' recorded series and the demand day files
- * on disk (oldest first). Pure: lib/tools-history.ts reads and writes the files.
- */
-export function buildRiseFile(
-  today: string,
-  seriesById: ReadonlyMap<string, readonly Point[]>,
-  demandFiles: readonly DemandDayFile[],
-  snapshotDays: number,
-  /** The cards the feed carries (default: those with a series). */
-  ids: ReadonlySet<string> = new Set(seriesById.keys()),
-): RiseFile {
-  const series: RiseFile["series"] = {};
-  for (const [id, pts] of seriesById) {
-    const w = weeklySeries(pts, today);
-    if (w.length) series[id] = w;
-  }
-  // Demand for the same cards only (the ones the feed can rank).
-  const keep = (rec: Record<string, DemandAsOfCard>) => Object.fromEntries(Object.entries(rec).filter(([id]) => ids.has(id)));
-  const now = keep(demandAsOf(demandFiles, today, VELOCITY_DAYS));
-  const velocity: RiseFile["velocity"] = {};
-  for (const [id, d] of Object.entries(now)) if (d.velocity) velocity[id] = d.velocity;
-  const asOf = dayMinus(today, WEEK_AGO_DAYS);
-  const hasThen = demandFiles.some((f) => f.day <= asOf);
-  return {
-    v: 1,
-    day: today,
-    series,
-    velocity,
-    weekAgo: hasThen ? { asOf, cards: keep(demandAsOf(demandFiles, asOf, VELOCITY_DAYS)) } : null,
-    snapshotDays,
-  };
-}
+/** Demand as it stood a week ago (read from the DemandDay snapshots; lib/data/demand.ts). */
+export type DemandWeekAgo = { asOf: string; cards: Record<number, DemandAsOfCard> };
 
 // ── Backtest (admin only) ────────────────────────────────────────────────────
 // Lookahead-free backtest of the reconstructable price-timing signal ("room to
 // run" = 1 − position-in-range at T−lag) vs realised forward return over the
 // lag. Directional evidence for ONE component, not a track record.
-export function backtest(seriesById: Map<string, PricePoint[]>): RiseBacktest | null {
+export function backtest(seriesById: Map<number, PricePoint[]>): RiseBacktest | null {
   const lagMs = BACKTEST_LAG_DAYS * DAY_MS;
   const sig: number[] = [];
   const fwd: number[] = [];
@@ -375,10 +308,10 @@ export function supplyOf(card: Pick<UniverseCard, "stores">, scope: RiseScope): 
  * The scope's inputs from the searched cards (most searched first) and today's
  * velocity: the SCAN most-searched cards priced in the scope, and their supply.
  */
-export function riseInputsFor(scope: RiseScope, searched: readonly UniverseCard[], velocity: Record<string, DemandVelocity>, snapshotDays: number): RiseInputs {
+export function riseInputsFor(scope: RiseScope, searched: readonly UniverseCard[], velocity: Record<number, DemandVelocity>, snapshotDays: number): RiseInputs {
   const universe = searched.filter((c) => c.searchCount > 0 && pricedIn(c, scope)).slice(0, SCAN);
-  const supply: Record<string, number> = {};
-  const vel: Record<string, DemandVelocity> = {};
+  const supply: Record<number, number> = {};
+  const vel: Record<number, DemandVelocity> = {};
   for (const c of universe) {
     supply[c.id] = supplyOf(c, scope);
     if (velocity[c.id]) vel[c.id] = velocity[c.id];
@@ -408,7 +341,7 @@ export function assembleRisingCards(
   // Series per card: its recorded weekly GLOBAL prices, plus today's live
   // market price as the newest point. Only cards with at least one RECORDED
   // point are in the map, so withAnyHistory still means "has price history".
-  const seriesById = new Map<string, PricePoint[]>();
+  const seriesById = new Map<number, PricePoint[]>();
   for (const card of universe) {
     const recorded = history.series[card.id];
     if (!recorded?.length) continue;
@@ -564,8 +497,8 @@ export function assembleRisingCards(
 
 // ── The ranking a week ago ───────────────────────────────────────────────────
 // RiftCompare's rule (2026-09-28): rebuild the same ranking over the inputs as
-// they stood WEEK_AGO_DAYS ago — demand totals and velocity then (rising.json's
-// weekAgo, from the demand snapshot files), the weekly series cut off at that
+// they stood WEEK_AGO_DAYS ago — demand totals and velocity then (read from the
+// DemandDay snapshots), the weekly series cut off at that
 // day with its last point standing in for the live price, and TODAY's store
 // counts (nothing records those historically). Same method on both sides, so a
 // move is the market's, not a methodology's.
@@ -573,14 +506,14 @@ export function assembleRisingCards(
 /** Every card's place in the ranking rebuilt as of `asOf`. Plain JSON. */
 export interface WeekAgoRanking {
   asOf: string; // the day it is rebuilt as of, YYYY-MM-DD
-  ranks: [cardId: string, rank: number][];
+  ranks: [cardId: number, rank: number][];
 }
 
 /** Pure: the ranking rebuilt as of `past.asOf`. Null when nothing had demand then. */
 export function weekAgoRanks(scope: RiseScope, inputs: RiseInputs, history: RiseHistory, past: DemandWeekAgo, now: number): WeekAgoRanking | null {
   const asOfEpochDay = Math.round(Date.parse(`${past.asOf}T00:00:00Z`) / DAY_MS);
   const universe: UniverseCard[] = [];
-  const velocity: Record<string, DemandVelocity> = {};
+  const velocity: Record<number, DemandVelocity> = {};
   const series: RiseHistory["series"] = {};
   for (const card of inputs.universe) {
     const d = past.cards[card.id];

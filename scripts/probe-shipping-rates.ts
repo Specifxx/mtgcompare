@@ -1,5 +1,5 @@
 // Measure what each tracked store REALLY charges for postage, from its own
-// checkout — RiftCompare's probe, ported 2026-10-03 for OP Compare's stores
+// checkout — RiftCompare's probe, ported 2026-10-03 for MTG Compare's stores
 // (lib/stores.ts), so Best Basket prices delivery from measured rates.
 //
 // WHY (RiftCompare, 2026-09-25): a customer in Adelaide ran Best Basket, was
@@ -7,8 +7,8 @@
 // was a hand-typed guess. A store's postage depends on zone, card count and
 // order value; only its own checkout knows.
 //
-// HOW (Shopify only — every OP Compare store is Shopify):
-//   1. read the store's One Piece singles feed (products.json?country=XX, the
+// HOW (Shopify only — every MTG Compare store is Shopify):
+//   1. read the store's Magic singles feed (products.json?country=XX, the
 //      same market context the importer uses) for cheap IN-STOCK variants;
 //   2. per scenario, with a FRESH cookie jar, POST /cart/add.js?country=XX
 //      (the ?country= puts the cart in the market's currency — verified: Cherry
@@ -56,7 +56,7 @@ import {
   PROBE_MARKETS,
   backoffMs,
   candidateTier,
-  isOnePieceSinglesHandle,
+  isMagicSinglesHandle,
   parseShippingRates,
   planCart,
   priceToCents,
@@ -231,7 +231,7 @@ async function sitemapHandles(client: StoreClient): Promise<string[]> {
   for (const sm of maps.slice(0, 3)) {
     const r = await client.fetch(sm).catch(() => null);
     if (!r || r.status !== 200) continue;
-    for (const m of r.text.matchAll(/\/collections\/([^<\/?#"]+)/g)) if (isOnePieceSinglesHandle(m[1])) handles.add(m[1]);
+    for (const m of r.text.matchAll(/\/collections\/([^<\/?#"]+)/g)) if (isMagicSinglesHandle(m[1])) handles.add(m[1]);
   }
   return [...handles];
 }
@@ -494,7 +494,7 @@ async function probeStore(store: StoreInfo, market: ProbeMarket, specs: Scenario
     if (note) out.notes.push(note);
     log(`${candidates.length} in-stock candidates from ${handles.join(", ") || "no collection"}`);
     if (!candidates.length) {
-      out.error = "no in-stock One Piece singles found";
+      out.error = "no in-stock Magic singles found";
       return out;
     }
     // Settle the canonical host BEFORE the first cart. Shopify serves a POST

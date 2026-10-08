@@ -32,7 +32,7 @@ export function AccountsExport({ rows }: { rows: ExportUser[] }) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "opcompare-users.csv";
+    a.download = "mtgcompare-users.csv";
     a.click();
     URL.revokeObjectURL(url);
   };

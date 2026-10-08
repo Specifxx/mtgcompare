@@ -6,7 +6,7 @@ import type { BuyRow } from "@/lib/quick-view";
 /** Marks the top buy block for CardStickyBuyBar's observer. */
 export const TOP_BUY_ATTR = "data-top-buy";
 
-// The card page's phone buy path, top half (RiftCompare's CardTopBuy): below lg
+// The card page's phone buy path, top half : below lg
 // the comparison starts well below the first screen, so the cheapest open
 // listing in the visitor's market and its Buy button sit right under the card's
 // name. The row comes from cheapestBuyRow (lib/quick-view.ts), the board's own
@@ -33,6 +33,40 @@ export function CardTopBuy({ best, country, page, slug }: { best: BuyRow | null;
         className={`${best.ebay ? "btn-ebay" : "btn-primary"} shrink-0`}
       >
         Buy →
+      </a>
+    </div>
+  );
+}
+
+/**
+ * The two buy paths of a card, together, at every width: the TCGplayer product
+ * page (Impact-tagged) and the highlighted eBay button (an EPN-tagged search on
+ * the visitor's own eBay). Server-rendered; both links are built by the page.
+ * A search says "Search" before release and "Buy" after: eBay is the live-listing
+ * door, never a claim that a listing exists.
+ */
+export function CardBuyPair({
+  tcgHref,
+  ebayHref,
+  ebayName,
+  preRelease = false,
+  page,
+  slug,
+}: {
+  tcgHref: string;
+  ebayHref: string;
+  ebayName: string;
+  preRelease?: boolean;
+  page: string;
+  slug: string;
+}) {
+  return (
+    <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2" data-buy-pair="">
+      <a href={tcgHref} target="_blank" rel={outboundRel()} data-retailer="tcgplayer" data-page={page} data-card={slug} data-surface="card_buy_pair" className="btn-primary min-h-11">
+        Buy on TCGplayer →
+      </a>
+      <a href={ebayHref} target="_blank" rel={outboundRel()} data-retailer="ebay_search" data-page={page} data-card={slug} data-surface="card_buy_pair_ebay" className="btn-ebay min-h-11">
+        {preRelease ? `Search ${ebayName} →` : `Buy on ${ebayName} →`}
       </a>
     </div>
   );

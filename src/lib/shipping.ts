@@ -1,7 +1,7 @@
 // What a store will REALLY charge to post an order — read from each store's own
 // checkout (the snapshot in shipping-rates.json), not guessed.
 //
-// RiftCompare's lib/shipping.ts, ported 2026-10-03 for OP Compare's stores
+// RiftCompare's lib/shipping.ts, ported 2026-10-03 for MTG Compare's stores
 // (lib/stores.ts). Why it exists there: on 2026-09-25 an Adelaide customer ran
 // Best Basket, was shown $2 postage for a store and was quoted $20 at its
 // checkout. The $2 was a hand-typed guess in RiftCompare's retailers.ts. The
@@ -56,7 +56,7 @@
 //     quoted untracked postage is then left out, with that reason.
 //   * A store the probe could not measure is charged the market's dearest
 //     measured one-card tracked rate, flagged basis "estimate" and never shown
-//     as measured. OP Compare has no per-store guesses at all (RiftCompare's
+//     as measured. MTG Compare has no per-store guesses at all (RiftCompare's
 //     erred cheap almost everywhere), and an estimate must never be the reason
 //     the optimiser picks a store. TCGplayer (US only: its cheapest listing,
 //     many sellers, postage per seller) is always on the estimate.
@@ -80,7 +80,7 @@ function isEuIso(v: string): boolean {
   return up !== "EU" && up !== "US" && normalizeCountry(up) === "EU";
 }
 
-// The basket's stores in every market: OP Compare's Shopify stores, plus
+// The basket's stores in every market: MTG Compare's Shopify stores, plus
 // TCGplayer in the US (its cheapest listing — a real buyable price — priced on
 // the estimate: postage is each TCGplayer seller's own). eBay is never one.
 export const TCGPLAYER_BASKET_KEY = "tcgplayer";

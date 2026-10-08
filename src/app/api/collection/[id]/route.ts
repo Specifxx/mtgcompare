@@ -4,8 +4,8 @@ import { sameOrigin } from "@/lib/admin-guard";
 import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { deleteCollectionRow, patchCollectionRow } from "@/lib/collection-server";
 
-// One binder entry (RiftCompare's /api/collection/[id], wave 2). PATCH edits
-// quantity / condition / foil / what was paid / the note — quantity 0 deletes,
+// One binder entry. PATCH edits
+// quantity / condition / finish / what was paid / the note — quantity 0 deletes,
 // a condition clash merges the two rows and their costs (lib/collection-server.ts).
 export const dynamic = "force-dynamic";
 

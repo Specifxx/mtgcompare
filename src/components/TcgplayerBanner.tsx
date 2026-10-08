@@ -2,7 +2,7 @@ import { affiliateUrl, outboundRel } from "@/lib/affiliate";
 import type { Country } from "@/lib/country";
 
 // The TCGplayer house banner (RiftCompare's TcgplayerAd), second under the price
-// comparison after the card's eBay banner: "Shop One Piece singles & sealed" on
+// comparison after the card's eBay banner: "Shop Magic singles & sealed" on
 // TCGplayer through the Impact link. Labelled "Ad" and marked
 // data-ad-placement, so Plus and Premium members (ad-free) never see it. Fixed
 // heights, so it never shifts the page. The TcgMarketPrice block above already

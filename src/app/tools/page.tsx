@@ -11,9 +11,9 @@ import { guidesForTool } from "@/lib/content/tool-guides";
 import { DECK_WATCH_LIMIT, FREE_DEMAND_ROWS, FREE_PORTFOLIO_LIMIT, FREE_RISING_ROWS, FREE_WATCHLIST_LIMIT, SEALED_CHECK_CADENCE, SEALED_WATCH_LIMIT_PLUS } from "@/lib/tier-limits";
 import { FREE_DEAL_ROWS } from "@/lib/plans";
 
-// /tools — every OP Compare tool in one place (RiftCompare's /tools hub, its
+// /tools — every MTG Compare tool in one place (RiftCompare's /tools hub, its
 // groups, names and FAQ, for One Piece). The badges state who can use each
-// tool, the same gating its own page applies. OP Compare has Plus configured,
+// tool, the same gating its own page applies. MTG Compare has Plus configured,
 // so RiftCompare's LIST_BADGE is "Plus" here: Deal Finder's full list is Plus;
 // Rising Cards' full list, Best Basket and the full Demand Finder are Premium
 // (owner, 2026-10-07).
@@ -24,17 +24,17 @@ const LIST_BADGE = "Plus";
 
 export const revalidate = 86400;
 
-const TITLE = "Free One Piece TCG Tools & Calculators | OP Compare";
+const TITLE = "Free Magic: The Gathering Tools & Calculators | MTG Compare";
 const DESCRIPTION =
-  "Every OP Compare tool in one place: box EV, deck and list pricing and trade calculators free for everyone, plus Deal Finder, Rising Cards, Best Basket for buying a whole list for less, and Demand Finder for what players are searching for.";
+  "Every MTG Compare tool in one place: box EV, deck and list pricing and trade calculators free for everyone, plus Deal Finder, Rising Cards, Best Basket for buying a whole list for less, and Demand Finder for what players are searching for.";
 
 export const metadata: Metadata = {
   title: { absolute: TITLE },
   description: DESCRIPTION,
   alternates: { canonical: "/tools" },
-  keywords: ["one piece tcg tools", "one piece card game calculator", "one piece card value calculator", "one piece box ev"],
+  keywords: ["magic the gathering tools", "magic the gathering card calculator", "one piece card value calculator", "one piece box ev"],
   openGraph: pageOg("/tools", {
-    title: "Free One Piece TCG Tools & Calculators",
+    title: "Free Magic: The Gathering Tools & Calculators",
     description: "Box EV, deck and list pricing and trade calculators free for everyone, plus Deal Finder, Rising Cards, Best Basket and Demand Finder.",
   }),
 };
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
 // rich result.
 const FAQS = [
   {
-    q: "Are the OP Compare tools free?",
+    q: "Are the MTG Compare tools free?",
     a: `Most of them. The box EV calculator, deck builder and list pricer, trade calculator, selling fee calculator and sealed prices need no account at all. Deal Finder and Rising Cards show nothing when you're signed out, the top ${FREE_DEAL_ROWS} deals and top ${FREE_RISING_ROWS} rising cards with a free account; every Deal Finder row comes with ${LIST_BADGE}, which is also ad-free, and every Rising Cards pick with Premium. Best Basket is a Premium tool. Demand Finder shows everyone the top ${FREE_DEMAND_ROWS} most searched cards of the week; its full most-searched and most-viewed lists are part of Premium.`,
   },
   {
@@ -53,7 +53,7 @@ const FAQS = [
     a: `It lists every One Piece card a real store sells for less than TCGplayer's US market price, converted into your currency and ranked by how far below it is, and you can filter it by store and, with ${LIST_BADGE}, narrow it to only the cards on your watchlist. Signed out it shows nothing, a free account sees the top ${FREE_DEAL_ROWS}, and ${LIST_BADGE} shows every row.`,
   },
   {
-    q: "Do I need an account to use OP Compare tools?",
+    q: "Do I need an account to use MTG Compare tools?",
     a: `Not for most of them. Browsing, comparing prices and running the calculators need no account. A free account adds a watchlist of up to ${FREE_WATCHLIST_LIMIT} cards with new-low alerts, a portfolio of up to ${FREE_PORTFOLIO_LIMIT} cards with a set checklist of what each set is missing, and the top rows of Deal Finder and Rising Cards. Plus adds an unlimited watchlist and portfolio (a whole set fits), every Deal Finder row, target-price alerts, sealed watches on up to ${SEALED_WATCH_LIMIT_PLUS} products (an alert when a box is back in stock or at RRP) and an ad-free site; Premium adds Best Basket (the store-by-store plan, at the minimum condition you set), every Rising Cards pick, the full Demand Finder and a deck price watch (a saved list re-priced delivered after every update, up to ${DECK_WATCH_LIMIT} lists).`,
   },
   {
@@ -160,14 +160,14 @@ export default function ToolsHubPage() {
   const collectionLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: "One Piece TCG Tools & Calculators",
+    name: "Magic: The Gathering Tools & Calculators",
     url: `${SITE_URL}/tools`,
-    description: "Every OP Compare tool and calculator for One Piece Card Game players, buyers and collectors.",
-    isPartOf: { "@type": "WebSite", name: "OP Compare", url: SITE_URL },
+    description: "Every MTG Compare tool and calculator for Magic: The Gathering players, buyers and collectors.",
+    isPartOf: { "@type": "WebSite", name: "MTG Compare", url: SITE_URL },
   };
   const ld = [
     collectionLd,
-    itemListLd("OP Compare Tools & Calculators", "/tools", tools.map((t) => ({ name: t.title, path: t.href }))),
+    itemListLd("MTG Compare Tools & Calculators", "/tools", tools.map((t) => ({ name: t.title, path: t.href }))),
     faqLd(FAQS),
   ];
 
@@ -178,7 +178,7 @@ export default function ToolsHubPage() {
 
       <h1 className="text-2xl font-extrabold text-white sm:text-3xl">Tools &amp; calculators</h1>
       <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
-        Every OP Compare tool in one place. Price-check a card, work out whether a box is worth ripping, and build or
+        Every MTG Compare tool in one place. Price-check a card, work out whether a box is worth ripping, and build or
         price decks for less — most need no sign-up at all. A free account adds a watchlist of up to{" "}
         {FREE_WATCHLIST_LIMIT} cards, a portfolio of up to {FREE_PORTFOLIO_LIMIT} and the top rows of each deal list;{" "}
         Plus lifts those limits and shows every deal with no ads, and{" "}

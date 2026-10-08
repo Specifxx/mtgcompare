@@ -17,7 +17,7 @@
 // endpoints"; with daily snapshots it is several, like d30. Over several steps, a
 // card first priced inside the window never contributes its debut; it joins from
 // its second price, so a real move on a card you hold still counts. This is the
-// RiftCompare Index's own method (chainLinkSeries in its market-index.ts), and the
+// market index's own method (lib/history.ts), and the
 // portfolio is benchmarked against that Index on the same page, so the two are
 // measured the same way.
 //

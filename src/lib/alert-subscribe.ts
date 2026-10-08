@@ -17,7 +17,9 @@ import { prisma } from "./db";
 import { isCountry, type Country } from "./country";
 import { canonicalWatchEmail, checkFreeAllowance, freeLimitBody, FREE_LIMIT_STATUS, type HoldingsCounter } from "./free-limits";
 import { isPremium, type EntitlementFields } from "./premium";
-import { alertBaselineSeed, alertPairKey, computeAlertPrices, type AlertPrice } from "./alert-price";
+import { FINISH_INDEX, type Finish } from "./constants";
+import { getCardsByIds } from "./data";
+import { alertBaselineSeed, alertPairKey, computeAlertPrices, liveAlertReader, type AlertOfferReader, type AlertPrice } from "./alert-price";
 
 /** Most cards one request may watch (one request stays cheap). */
 export const SUBSCRIBE_CARD_CAP = 500;
@@ -28,6 +30,14 @@ export interface SubscribeBody {
   email: string;
   cardIds: number[];
   market: Country;
+  /** The finish every posted card is watched in; absent = each card's headline finish (Normal first). */
+  finish: Finish | null;
+}
+
+/** Where a subscribe reads the catalogue and the live offers from; tests pass stand-ins. */
+export interface SubscribeIo {
+  catalog?: (ids: readonly number[]) => Promise<Map<number, { headFinish: Finish }>>;
+  readOffers?: AlertOfferReader;
 }
 
 /** RiftCompare's zod schema, written out. null = 400. The address is trimmed and lowercased. */
@@ -46,7 +56,13 @@ export function parseSubscribeBody(raw: unknown): SubscribeBody | null {
   }
   const market = b.market === undefined ? "US" : b.market;
   if (!isCountry(market)) return null;
-  return { email, cardIds: [...new Set(cardIds)], market };
+  let finish: Finish | null = null;
+  if (b.finish !== undefined && b.finish !== null) {
+    if (b.finish === 0 || b.finish === "N") finish = "N";
+    else if (b.finish === 1 || b.finish === "F") finish = "F";
+    else return null;
+  }
+  return { email, cardIds: [...new Set(cardIds)], market, finish };
 }
 
 /** Is the email-only door open? Both: email on, and the owner's switch. */
@@ -101,12 +117,18 @@ export async function subscribeAddress(
   body: SubscribeBody,
   session: (EntitlementFields & { id: string; email: string }) | null,
   now: Date = new Date(),
+  io: SubscribeIo = {},
 ): Promise<SubscribeResult> {
   const { email, market } = body;
   const userId = session && session.email.toLowerCase() === email ? session.id : null;
 
-  // Only watch cards that exist.
-  const cards = await prisma.card.findMany({ where: { id: { in: body.cardIds } }, select: { id: true }, take: SUBSCRIBE_CARD_CAP });
+  // Only watch cards that exist in the published catalogue; each is watched in
+  // the posted finish, else its headline finish. The id is a plain product id.
+  const known = await (io.catalog ?? getCardsByIds)(body.cardIds.slice(0, SUBSCRIBE_CARD_CAP));
+  const cards = body.cardIds.flatMap((id) => {
+    const c = known.get(id);
+    return c ? [{ id, finish: body.finish ?? c.headFinish }] : [];
+  });
   if (!cards.length) return { status: 400, body: { error: "No matching cards" } };
 
   // One unsubscribe token per address: reuse it so a single link covers every card.
@@ -114,9 +136,9 @@ export async function subscribeAddress(
   const unsubToken = existing?.unsubToken ?? randomUUID();
 
   const already = existing
-    ? await prisma.priceAlert.findMany({ where: { email, market, cardId: { in: cards.map((c) => c.id) } }, select: { cardId: true }, take: SUBSCRIBE_CARD_CAP })
+    ? await prisma.priceAlert.findMany({ where: { email, market, cardId: { in: cards.map((c) => c.id) } }, select: { cardId: true, finish: true }, take: SUBSCRIBE_CARD_CAP * 2 })
     : [];
-  const watched = new Set(already.map((r) => r.cardId));
+  const watched = new Set(already.map((r) => `${r.cardId}.${r.finish}`));
 
   // THE FREE WATCHLIST LIMIT, here too, so the email-only door is no way around
   // it — unless the address (or the inbox it aliases) is a paying member's.
@@ -133,7 +155,7 @@ export async function subscribeAddress(
     }
   }
   const allowedIds = new Set(allowance.allowed);
-  const fresh = cards.filter((c) => !watched.has(c.id) && allowedIds.has(c.id));
+  const fresh = cards.filter((c) => !watched.has(`${c.id}.${FINISH_INDEX[c.finish]}`) && allowedIds.has(c.id));
   if (allowance.blocked.length && fresh.length === 0) {
     return { status: FREE_LIMIT_STATUS, body: { ...freeLimitBody("watchlist", allowance.count ?? allowance.limit), signedIn: userId != null } };
   }
@@ -143,13 +165,13 @@ export async function subscribeAddress(
   // A failed read saves nothing: a guessed baseline sends wrong alerts.
   let prices: Map<string, AlertPrice>;
   try {
-    prices = fresh.length ? await computeAlertPrices(prisma, fresh.map((c) => ({ cardId: c.id, market })), now, { slim: true }) : new Map();
+    prices = fresh.length ? await computeAlertPrices(io.readOffers ?? liveAlertReader(), fresh.map((c) => ({ cardId: c.id, finish: c.finish, market })), now) : new Map();
   } catch {
     return { status: 503, body: { error: "Couldn't read today's prices. Please try again." } };
   }
 
   const result = await prisma.priceAlert.createMany({
-    data: fresh.map((c) => ({ email, userId, cardId: c.id, market, unsubToken, confirmSentAt: null, ...alertBaselineSeed(prices.get(alertPairKey(market, c.id))) })),
+    data: fresh.map((c) => ({ email, userId, cardId: c.id, finish: FINISH_INDEX[c.finish], market, unsubToken, confirmSentAt: null, ...alertBaselineSeed(prices.get(alertPairKey(market, c.id, c.finish))) })),
     skipDuplicates: true,
   });
   const total = await prisma.priceAlert.count({ where: { email, market } });

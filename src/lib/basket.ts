@@ -1,4 +1,4 @@
-// RiftCompare's lib/basket.ts, ported verbatim for OP Compare (2026-10-03);
+// RiftCompare's lib/basket.ts, ported verbatim for MTG Compare (2026-10-03);
 // only the store source differs (lib/stores.ts and TCGplayer's US listing, via
 // lib/basket-server.ts). Card ids are strings here, as there: an OP Card.id
 // (TCGplayer productId) travels as its decimal string.

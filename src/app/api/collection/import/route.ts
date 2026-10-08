@@ -11,9 +11,9 @@ export const dynamic = "force-dynamic";
 // mid-file with the response lost.
 export const maxDuration = 60;
 
-// Bulk-add cards from a pasted list ("4 Monkey.D.Luffy", "4xOP01-016") or a
-// printing-aware CSV (a TCGplayer export's Product ID, or a number and a
-// printing) — RiftCompare's /api/collection/import, wave 2. Every read and
+// Bulk-add cards from a pasted list ("4 Lightning Bolt (M11) 146 *F*") or a
+// binder CSV (a TCGplayer, Moxfield, Deckbox or ManaBox export, or ours: a
+// Product ID, or a set and a number, and a finish). Every read and
 // write is in lib/collection-server.ts importCollection.
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return NextResponse.json({ error: "Cross-site request refused." }, { status: 403 });

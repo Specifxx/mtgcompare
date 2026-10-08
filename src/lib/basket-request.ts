@@ -11,7 +11,7 @@ import { parseScope, type SetScope } from "./set-scope";
 // only the ANSWER — the store-by-store plan needs Premium, everyone else gets
 // their own total (app/api/basket/route.ts).
 //
-// OP Compare differences:
+// MTG Compare differences:
 //   • "watchlist" carries the watched card ids in the body (`ids`, from the
 //     shared watchlist store, lib/use-watchlist.ts): signed in that is the
 //     account list, signed out there is no basket at all.
@@ -66,7 +66,7 @@ export function parseBasketRequest(raw: unknown): BasketRequest {
   // it prices only what is missing, so skipping copies you own is locked ON.
   const skipOwned = BASKET_COLLECTION_SOURCES && (source === "set" ? true : body.skipOwned === true && source !== "binder");
   const setSlug = typeof body.set === "string" && /^[a-z0-9-]{1,80}$/i.test(body.set) ? body.set.toLowerCase() : "";
-  const rarity = typeof body.rarity === "string" && RARITY_KEYS.includes(body.rarity) ? body.rarity : null;
+  const rarity = typeof body.rarity === "string" && (RARITY_KEYS as readonly string[]).includes(body.rarity) ? body.rarity : null;
   const ceiling = typeof body.maxPriceCents === "number" && Number.isFinite(body.maxPriceCents) ? Math.floor(body.maxPriceCents) : 0;
   const text = typeof body.text === "string" ? body.text.slice(0, 20_000) : "";
   const picked: PickedLine[] = Array.isArray(body.lines)

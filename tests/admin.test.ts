@@ -84,8 +84,8 @@ test("the token comparison is constant-time over digests", () => {
 });
 
 test("sameOrigin: our origin or Sec-Fetch-Site same-origin; nothing else", () => {
-  const req = (h: Record<string, string>) => new Request("https://opcompare.app/api/admin/x", { method: "POST", headers: h });
-  assert.equal(sameOrigin(req({ origin: "https://opcompare.app" })), true);
+  const req = (h: Record<string, string>) => new Request("https://mtgcompare.app/api/admin/x", { method: "POST", headers: h });
+  assert.equal(sameOrigin(req({ origin: "https://mtgcompare.app" })), true);
   assert.equal(sameOrigin(req({ origin: "https://evil.example" })), false);
   assert.equal(sameOrigin(req({})), false, "no Origin and no Sec-Fetch-Site");
   assert.equal(sameOrigin(req({ "sec-fetch-site": "same-origin" })), true);
@@ -93,11 +93,11 @@ test("sameOrigin: our origin or Sec-Fetch-Site same-origin; nothing else", () =>
   const dev = { NODE_ENV: "development" };
   const prod = { NODE_ENV: "production" };
   assert.equal(sameOrigin(req({ origin: "https://preview.vercel.app", host: "preview.vercel.app" }), dev), true, "outside production, the request's own host");
-  assert.equal(sameOrigin(req({ origin: "https://evil.example", host: "opcompare.app" }), dev), false);
+  assert.equal(sameOrigin(req({ origin: "https://evil.example", host: "mtgcompare.app" }), dev), false);
   // Production trusts only SITE_URL (+ the explicit allowlist), never the client's Host header.
   assert.equal(sameOrigin(req({ origin: "https://evil.example", host: "evil.example" }), prod), false, "a forged Host is not an origin");
   assert.equal(sameOrigin(req({ origin: "http://localhost:3106", host: "localhost:3106" }), prod), false);
-  assert.equal(sameOrigin(req({ origin: "https://opcompare.app", host: "evil.example" }), prod), true);
+  assert.equal(sameOrigin(req({ origin: "https://mtgcompare.app", host: "evil.example" }), prod), true);
   assert.equal(sameOrigin(req({ origin: "https://preview.example", host: "preview.example" }), { ...prod, ADMIN_EXTRA_ORIGINS: "https://a.example, https://preview.example" }), true);
 });
 
@@ -148,7 +148,8 @@ test("no admin file reads a token from the environment, a query string or a body
 
 test("indexing: robots disallows /admin, the sitemap never lists it, headers say noindex", () => {
   assert.match(read("src/app/robots.ts"), /"\/admin"/);
-  assert.doesNotMatch(read("src/app/sitemap.ts"), /"\/admin/);
+  // Sitemaps are route handlers over src/lib/sitemap-sections.ts since WP15 deleted src/app/sitemap.ts.
+  for (const f of ["src/app/sitemap.xml/route.ts", "src/app/sitemaps/[section]/route.ts", "src/lib/sitemap-sections.ts"]) assert.doesNotMatch(read(f), /"\/admin/, f);
   const cfg = read("next.config.js");
   assert.match(cfg, /source: "\/admin\/:path\*"[\s\S]*?X-Robots-Tag/);
   assert.match(cfg, /source: "\/admin"[\s\S]*?X-Robots-Tag/);

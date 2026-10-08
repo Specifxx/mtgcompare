@@ -1,5 +1,6 @@
 "use client";
 
+import { cardImageAlt } from "@/lib/image-alt";
 import { useRef } from "react";
 import Link from "next/link";
 import type { Country } from "@/lib/country";
@@ -70,7 +71,7 @@ export function CardTile({ card, setCode, country: fixed, priority = false }: { 
             id={card.id}
             hasImage={card.hasImage}
             priority={priority}
-            alt={`${label} ${card.number ?? ""} Magic card`.trim()}
+            alt={cardImageAlt({ name: card.name, variant: card.variant, setCode, number: card.number })}
             className="h-full w-full transition-transform duration-slow ease-out motion-safe:group-hover:scale-[1.03]"
           />
           <div className="absolute left-2 right-12 top-2 z-20 flex flex-col items-start gap-1 [&>*]:max-w-full [&>*]:truncate">

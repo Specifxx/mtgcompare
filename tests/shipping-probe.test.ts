@@ -8,7 +8,7 @@ import {
   candidateTier,
   cheapestRate,
   classifyRate,
-  isOnePieceSinglesHandle,
+  isMagicSinglesHandle,
   parseShippingRates,
   planCart,
   priceToCents,
@@ -341,12 +341,12 @@ test("summary ignores carts in the wrong currency and re-used carts", () => {
 // ── Discovery and politeness ────────────────────────────────────────────────
 
 test("sitemap fallback keeps One Piece singles handles only", () => {
-  assert.equal(isOnePieceSinglesHandle("one-piece-singles"), true);
-  assert.equal(isOnePieceSinglesHandle("one-piece-romance-dawn-singles"), true);
-  assert.equal(isOnePieceSinglesHandle("one-piece-booster-box"), false);
-  assert.equal(isOnePieceSinglesHandle("all-singles-one-piece-pokemon-riftbound"), false);
-  assert.equal(isOnePieceSinglesHandle("one-piece-starter-decks"), false);
-  assert.equal(isOnePieceSinglesHandle("pokemon-paradox-rift"), false);
+  assert.equal(isMagicSinglesHandle("one-piece-singles"), true);
+  assert.equal(isMagicSinglesHandle("one-piece-romance-dawn-singles"), true);
+  assert.equal(isMagicSinglesHandle("one-piece-booster-box"), false);
+  assert.equal(isMagicSinglesHandle("all-singles-one-piece-pokemon-riftbound"), false);
+  assert.equal(isMagicSinglesHandle("one-piece-starter-decks"), false);
+  assert.equal(isMagicSinglesHandle("pokemon-paradox-rift"), false);
 });
 
 test("backoff honours Retry-After, else grows exponentially with a cap", () => {

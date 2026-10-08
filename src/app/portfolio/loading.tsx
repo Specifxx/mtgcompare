@@ -2,8 +2,8 @@ import { Skeleton } from "@/components/ui/Skeleton";
 
 // SCOPED DELIBERATELY — never move this to src/app/loading.tsx: a loading.tsx
 // streams its subtree, so a notFound() below it would answer 200. /portfolio has
-// no dynamic child that calls notFound(). (RiftCompare's PortfolioSkeleton is in
-// the design track's RouteLoading.tsx; the integrator may swap it in.)
+// no dynamic child that calls notFound(). (A PortfolioSkeleton could
+// replace this when the shell has one.)
 export default function Loading() {
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6" aria-busy="true" aria-label="Loading your binder">

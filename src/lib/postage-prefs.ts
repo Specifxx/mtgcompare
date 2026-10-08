@@ -16,9 +16,9 @@ export interface PostagePrefs {
   trackedOnly: boolean;
 }
 
-// OP Compare's keys (RiftCompare's are rc:postage-region:<market> and
-// rc:postage-tracked-only): one oc_postage prefix for both.
-export const POSTAGE_PREFS_KEY = "oc_postage";
+// MTG Compare's keys (RiftCompare's are rc:postage-region:<market> and
+// rc:postage-tracked-only): one mc_postage prefix for both.
+export const POSTAGE_PREFS_KEY = "mc_postage";
 const regionKey = (market: string) => `${POSTAGE_PREFS_KEY}:region:${market}`;
 const TRACKED_KEY = `${POSTAGE_PREFS_KEY}:tracked-only`;
 

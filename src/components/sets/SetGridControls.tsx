@@ -3,8 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { SORTS } from "@/lib/browse";
 
-// Sort and page size for a set's card grid, as URL state like the filters
-// (RiftCompare's SortSelect / PageSizeSelect on the set page).
+// Sort and page size for a set's card grid, as URL state like the filters.
 export function SetGridControls({ basePath, sort, per }: { basePath: string; sort: string; per: number }) {
   const router = useRouter();
   const params = useSearchParams();

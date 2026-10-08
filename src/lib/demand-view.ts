@@ -1,24 +1,23 @@
-// WHO SEES WHAT ON DEMAND FINDER (RiftCompare's lib/demand-view.ts) — pure, no database, so the entitlement can
-// be tested by running it (tests/demand-finder.test.ts) rather than by reading
-// the page's source.
+// THE SHAPE OF A DEMAND FINDER REQUEST (RiftCompare's lib/demand-view.ts) — pure, no database. WHO may see how many rows is decided once, in src/lib/premium-gates.ts (feature "demand") and
+// applied at the data boundary by getTopDemand (src/lib/data/demand.ts); this module only parses the query string and picks the list a viewer asked for, so a test can run it
+// (tests/demand-finder.test.ts) rather than read the page's source.
 //
-// Demand Finder (/tools/demand) is Premium (isPremium(user, "premium"); owner,
-// 2026-09-25: Plus was "not much different to premium"). Anyone below that —
+// Demand Finder (/tools/demand) is Premium (owner, 2026-09-25: Plus was "not much different to premium"; kept for MTG Compare, addendum 10). Anyone below that —
 // signed out, a free account or Plus — gets EXACTLY the free "Most searched
 // this week" strip that /movers shows every visitor: the top FREE_DEMAND_ROWS
 // by searches over 7 days, searches only. Never the most-viewed list, the
-// 30-day window, the view counts or a deeper list. The page asks the loader
-// for no more than that, so the rest never reaches the HTML or RSC payload.
+// 30-day window, the view counts or a deeper list. The loader returns no more
+// than that, so the rest never reaches the HTML or RSC payload.
 
-// The windows anyone can ask for. A fixed set, so the loader's cache holds at
+// The windows anyone can ask for. A fixed set, so the ranking cache holds at
 // most two entries a day, whatever a query string says.
 export const DEMAND_WINDOWS = [7, 30] as const;
 export type DemandWindowDays = (typeof DEMAND_WINDOWS)[number];
 
 // The free strip's size — on /movers and on /tools/demand alike — and
-// Demand Finder's full lists (Premium). OP Compare keeps every tier number in
-// lib/tier-limits.ts (wave-2 plan §1: import, never redeclare); re-exported
-// here so the pure who-sees-what rules read as RiftCompare's do.
+// Demand Finder's full lists (Premium). Every tier number lives in
+// lib/tier-limits.ts (import, never redeclare); re-exported here so the pure
+// request rules read as RiftCompare's do.
 import { FREE_DEMAND_ROWS, PREMIUM_DEMAND_ROWS } from "./tier-limits";
 export { FREE_DEMAND_ROWS, PREMIUM_DEMAND_ROWS };
 

@@ -16,12 +16,16 @@ import {
   STALE_HOURS,
   computeStoreHealth,
   groupAppearances,
+  isMildAlert,
   median,
   storeAlerts,
   type OfferStat,
   type StoreAppearance,
 } from "../src/lib/store-health";
-import type { StoreInfo } from "../src/lib/stores";
+import { offerStatsOf } from "../src/lib/admin-health";
+import { STALE_HOURS as CONSTANT_STALE_HOURS } from "../src/lib/constants";
+import { storeByKey, type StoreInfo } from "../src/lib/stores";
+import type { StoreRunsFile } from "../src/lib/data/plane/formats";
 
 const NOW = new Date("2026-10-03T12:00:00Z");
 const H = 3600 * 1000;
@@ -33,8 +37,7 @@ const kinds = (h: StoreAppearance[], o = offers()) => storeAlerts(h, o, NOW).map
 test("thresholds are what the admin page and the import report promise", () => {
   assert.equal(STALE_ALERT_HOURS, 30);
   assert.equal(STALE_HOURS, 72);
-  const importSrc = fs.readFileSync(path.resolve(__dirname, "../src/lib/import.ts"), "utf8");
-  assert.match(importSrc, new RegExp(`STALE_HOURS = ${STALE_HOURS}\\b`), "mirrors lib/import.ts");
+  assert.equal(CONSTANT_STALE_HOURS, STALE_HOURS, "the one constant aggregate() and the offer reader use");
   assert.equal(FAILING_STREAK, 2);
   assert.equal(MIN_TREND_APPEARANCES, 3);
   assert.equal(LISTINGS_DROP_RATIO, 0.7);
@@ -102,8 +105,8 @@ test("currency-skip: shows the skip reason", () => {
 });
 
 const STORES: StoreInfo[] = [
-  { key: "a", name: "A", base: "https://a.example", country: "US", collections: [] },
-  { key: "b", name: "B", base: "https://b.example", country: "AU", collections: [] },
+  { id: 9001, key: "a", name: "A", base: "https://a.example", country: "US", collections: [], status: "unverified" },
+  { id: 9002, key: "b", name: "B", base: "https://b.example", country: "AU", collections: [], status: "unverified" },
 ];
 
 test("trends run over each store's own appearances; partial and catalogue-only runs add nothing", () => {
@@ -135,15 +138,17 @@ test("appearances are capped per store", () => {
   assert.equal(groupAppearances(rows).get("a")!.length, MAX_APPEARANCES);
 });
 
-test("the report step never fails the import", () => {
-  const wf = fs.readFileSync(path.resolve(__dirname, "../.github/workflows/import-prices.yml"), "utf8");
-  assert.match(wf, /continue-on-error: true\s+run: npx tsx scripts\/store-health\.ts/);
+test("the report step never fails a workflow: its own daily workflow runs it, and the script always exits 0 and opens with the line the workflow parses", () => {
+  const wf = fs.readFileSync(path.resolve(__dirname, "../.github/workflows/store-health.yml"), "utf8");
+  assert.match(wf, /npx tsx scripts\/store-health\.ts/);
+  assert.match(wf, /Store health: \[0-9\]\[0-9\]\* stores/, "the workflow reads the first line of the report");
   const script = fs.readFileSync(path.resolve(__dirname, "../scripts/store-health.ts"), "utf8");
   assert.match(script, /process\.exit\(0\)/);
+  assert.match(script, /`Store health: \$\{stores\.length\} stores, \$\{alerting\.length\} alerting, \$\{total\} alerts\.`/);
 });
 
 test("non-Shopify stores: the platform is shown and a failed read says why", () => {
-  const stores: StoreInfo[] = [{ key: "sp", name: "SP", base: "https://sp.example", country: "US", collections: [], platform: "shadowpos" }, STORES[0]!];
+  const stores: StoreInfo[] = [{ id: 9003, key: "sp", name: "SP", base: "https://sp.example", country: "US", collections: [], platform: "shadowpos", status: "unverified" }, STORES[0]!];
   const history = new Map([["sp", [app({ failed: true, products: 0, cards: 0, note: "HTTP 503" })]]]);
   const h = computeStoreHealth(stores, history, new Map([["sp", offers()]]), NOW);
   assert.equal(h[0]!.platform, "shadowpos");
@@ -151,4 +156,30 @@ test("non-Shopify stores: the platform is shown and a failed read says why", () 
   assert.deepEqual(h[0]!.alerts.map((a) => a.kind), ["last-read-failed"]);
   assert.match(h[0]!.alerts[0]!.text, /HTTP 503/);
   assert.match(storeAlerts([app({ products: 0, cards: 0, note: "robots.txt disallows the search" })], offers(), NOW).find((a) => a.kind === "empty-read")!.text, /robots\.txt disallows the search/);
+});
+
+test("not-admitted: an unverified store that did not pass admission is mild, not broken (10.26)", () => {
+  const a = storeAlerts([app({ skipped: "not admitted: 3 matched in-stock listings (needs 20)", cards: 0 })], offers({ listings: 0, inStock: 0, newest: null }), NOW);
+  assert.deepEqual(a.map((x) => x.kind), ["not-admitted"]);
+  assert.ok(isMildAlert("not-admitted") && isMildAlert("last-read-failed") && !isMildAlert("failing"));
+});
+
+test("offer stats come from ss/runs.json: rows held, rows in stock, the time of the pair's last completed read; an unknown store id is ignored", () => {
+  const goodgames = storeByKey("goodgames")!, lotus = storeByKey("lotusgamesct")!;
+  const runs: StoreRunsFile = {
+    v: 1, at: "2026-10-08",
+    r: [
+      [goodgames.id, 1, "2026-10-08T02:10:00.000Z", 1, 4120, 3000, 2950, 50, 700],
+      [lotus.id, 0, "2026-10-05T02:10:00.000Z", 0, 310, 0, 0, 0, 0],
+      [31999, 0, "2026-10-08T02:10:00.000Z", 1, 5, 5, 5, 0, 1],
+      [goodgames.id, 0, "2026-10-08T02:10:00.000Z", 1, 99, 99, 99, 0, 9],
+    ],
+  };
+  const got = offerStatsOf(runs);
+  assert.deepEqual([...got.keys()].sort(), ["goodgames", "lotusgamesct"]);
+  assert.deepEqual(got.get("goodgames"), { listings: 4120, inStock: 3000, newest: new Date("2026-10-08T02:10:00.000Z") }, "a row for a market the store does not sell in is ignored");
+  assert.equal(got.get("lotusgamesct")!.newest!.toISOString(), "2026-10-05T02:10:00.000Z", "a failed read keeps its old time, which is what raises stale");
+  const h = computeStoreHealth([goodgames, lotus], new Map(), got, new Date("2026-10-08T12:00:00Z"));
+  assert.deepEqual(h.find((x) => x.key === "lotusgamesct")!.alerts.map((a) => a.kind), ["stale"]);
+  assert.deepEqual(offerStatsOf(null).size, 0);
 });

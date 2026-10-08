@@ -20,7 +20,8 @@ import { scoreVsTcg } from "./deals";
 import { honouredTargetIds } from "./target-price";
 import { affiliateUrl } from "./affiliate";
 import { adminEmails, isAdminEmail } from "./admin-emails";
-import { alertPairKey, computeAlertPrices, type AlertOffer, type AlertPrice } from "./alert-price";
+import { finishFromIndex, unitKey } from "./constants";
+import { alertPairKey, computeAlertPrices, liveAlertCards, liveAlertReader, type AlertCard, type AlertCardLoader, type AlertOffer, type AlertOfferReader, type AlertPrice } from "./alert-price";
 import { usdCentsToCountry } from "./fx";
 import { moneyCode as formatMoney } from "./format";
 import { DROP_MIN_CENTS, DROP_MIN_PCT } from "./alert-thresholds";
@@ -398,7 +399,11 @@ const isSupportedMarket = (m: string): m is Country => Object.prototype.hasOwnPr
 // sender and notifier (tests/alerts-email-off.test.ts); the run passes nothing.
 // `notifyUsers: false` switches the in-app mirror off.
 export interface AlertRunDeps {
-  db?: Pick<typeof prisma, "priceAlert" | "offer" | "alertMute" | "deckWatch" | "sealedWatch" | "$transaction">;
+  db?: Pick<typeof prisma, "priceAlert" | "alertMute" | "deckWatch" | "sealedWatch" | "$transaction">;
+  // Where the run reads live offers and the watched cards from: the published
+  // files by default (alert-price.ts); tests pass stand-ins.
+  readOffers?: AlertOfferReader;
+  cards?: AlertCardLoader;
   sendPriceDropEmail?: typeof sendPriceDropEmailImpl;
   notify?: (userId: string, type: string, title: string, body: string, href?: string | null) => Promise<void>;
   now?: Date;
@@ -490,28 +495,12 @@ export async function runPriceAlerts(deps: AlertRunDeps = {}, opts: AlertRunOpti
       // carries the "create a free account" block (anonymous watchers only).
       userId: true,
       user: { select: { email: true, isAdmin: true, premiumUntil: true, premiumTier: true } },
-      card: {
-        select: {
-          id: true,
-          name: true,
-          variant: true,
-          slug: true,
-          number: true,
-          // The below-market reference (TCGplayer US market, USD cents).
-          marketUsd: true,
-          // Only for the ebayOnly counter: the alert price is lib/alert-price.ts.
-          lowUS: true,
-          lowAU: true,
-          lowUK: true,
-          lowSG: true,
-          lowCA: true,
-          lowEU: true,
-          set: { select: { code: true, releasedOn: true } },
-        },
-      },
+      cardId: true,
+      finish: true,
     },
   });
   type Row = (typeof alerts)[number];
+  type Live = Row & { market: Country; card: AlertCard };
 
   const summary: AlertRunSummary = {
     alerts: alerts.length,
@@ -565,28 +554,37 @@ export async function runPriceAlerts(deps: AlertRunDeps = {}, opts: AlertRunOpti
 
   // Rows this run evaluates: in scope, on a supported market (legacy NZ rows
   // would otherwise be priced as AU).
-  const rows: (Row & { market: Country })[] = [];
+  const scoped: (Row & { market: Country })[] = [];
   for (const a of alerts) {
     if (!inScope(a)) continue;
     if (!isSupportedMarket(a.market)) {
       summary.legacyMarket++;
       continue;
     }
-    rows.push(a as Row & { market: Country });
+    scoped.push(a as Row & { market: Country });
+  }
+  // The watched cards, read once from the published catalogue (user rows hold
+  // a plain product id and a finish). A product the catalogue no longer has
+  // cannot be priced or named: its row is left alone this run.
+  const cardsByUnit = await (deps.cards ?? liveAlertCards)(scoped.map((a) => ({ id: a.cardId, finish: finishFromIndex(a.finish) })));
+  const rows: Live[] = [];
+  for (const a of scoped) {
+    const card = cardsByUnit.get(unitKey(a.cardId, finishFromIndex(a.finish)));
+    if (card) rows.push({ ...a, card });
   }
 
   // THE ALERT PRICE for every evaluated (card, market): one bounded query.
   // A failed read throws — nothing is safe to compare, and it must never be
   // read as every watched card selling out.
-  const prices = await computeAlertPrices(db, rows.map((a) => ({ cardId: a.card.id, market: a.market })), now);
-  const lowOf = (a: Row & { market: Country }): number | null => a.card[`low${a.market}` as "lowUS"] ?? null;
-  const preorderOf = (a: Row): boolean => a.card.set.releasedOn != null && a.card.set.releasedOn.getTime() > now.getTime();
-  const priceOf = (a: Row & { market: Country }): AlertPrice | undefined => prices.get(alertPairKey(a.market, a.card.id));
+  const prices = await computeAlertPrices(deps.readOffers ?? liveAlertReader(), rows.map((a) => ({ cardId: a.card.id, finish: a.card.finish, market: a.market })), now);
+  const lowOf = (a: Live): number | null => a.card.low[a.market] ?? null;
+  const preorderOf = (a: Live): boolean => a.card.releasedOn != null && a.card.releasedOn.getTime() > now.getTime();
+  const priceOf = (a: Live): AlertPrice | undefined => prices.get(alertPairKey(a.market, a.card.id, a.card.finish));
 
   // TCGplayer market for the below-market trigger: Card.marketUsd (already
   // read with the row), converted into the watch's currency; TCGplayer's own
   // cheapest US listing, when the alert price names it, is the US guard.
-  const tcgOf = (a: Row & { market: Country }, ap: AlertPrice): TcgMarketRef | null =>
+  const tcgOf = (a: Live, ap: AlertPrice): TcgMarketRef | null =>
     a.card.marketUsd != null && a.card.marketUsd > 0
       ? {
           marketCents: usdCentsToCountry(a.card.marketUsd, a.market),
@@ -632,7 +630,7 @@ export async function runPriceAlerts(deps: AlertRunDeps = {}, opts: AlertRunOpti
   const patch = (m: Map<string, Patch>, id: string, p: Patch) => m.set(id, { ...(m.get(id) ?? {}), ...p });
 
   interface Candidate {
-    a: Row & { market: Country };
+    a: Live;
     item: PriceDropItem;
     paid: boolean; // exempt from the weekly cap
     cap: "paid" | "first" | "drop";
@@ -641,7 +639,7 @@ export async function runPriceAlerts(deps: AlertRunDeps = {}, opts: AlertRunOpti
   const candidates: Candidate[] = [];
 
   const buildItem = (
-    a: Row & { market: Country },
+    a: Live,
     ap: AlertPrice,
     kind: AlertKind,
     ref: { cents: number | null; basis: PriceDropItem["referenceBasis"] },
@@ -667,7 +665,7 @@ export async function runPriceAlerts(deps: AlertRunDeps = {}, opts: AlertRunOpti
       alertId: a.id,
       cardId: a.card.id,
       name: `${a.card.name}${a.card.variant ? ` (${a.card.variant})` : ""}`,
-      setCode: a.card.set.code,
+      setCode: a.card.setCode,
       number: a.card.number ?? "",
       url: `${SITE_URL}/card/${a.card.slug}`,
       market: a.market,
@@ -694,7 +692,7 @@ export async function runPriceAlerts(deps: AlertRunDeps = {}, opts: AlertRunOpti
       tcgMarket: null,
       soldOutAt: null,
       preorder,
-      releasedOn: preorder ? a.card.set.releasedOn?.toISOString().slice(0, 10) ?? null : null,
+      releasedOn: preorder ? a.card.releasedOn?.toISOString().slice(0, 10) ?? null : null,
       actions,
       ...extra,
     };

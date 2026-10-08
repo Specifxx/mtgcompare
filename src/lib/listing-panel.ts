@@ -156,3 +156,39 @@ export function chaseQuery(c: { name: string; setCode?: string | null; label?: s
   const words = [front, c.setCode ?? "", c.label ? c.label.replace(/·/g, " ") : "", c.finish === "F" ? "foil" : "", "mtg"].join(" ");
   return words.replace(/\s+/g, " ").trim();
 }
+
+// ── helpers shared by the strip, the picks and the panels ──────────────────────────────────────────────────────────────────────
+
+/** eBay's own image renditions (s-l225, s-l300, s-l500): the same picture at the size the tile needs, never re-hosted or re-encoded. A URL that is not an eBay rendition is returned as it is. */
+export function ebayImg(url: string, size: 225 | 300 | 500): string {
+  return url.replace(/\/s-l\d+\.(jpg|jpeg|png|webp)(\?.*)?$/i, `/s-l${size}.$1`);
+}
+export function ebaySrcSet(url: string): string {
+  return [225, 300, 500].map((w) => `${ebayImg(url, w as 225 | 300 | 500)} ${w}w`).join(", ");
+}
+
+/** "Traveling Chocobo (Borderless) (Neon Ink Yellow)" -> { base: "Traveling Chocobo", label: "Borderless · Neon Ink Yellow" }. A collector-number parenthesis ("(0205)") is dropped. */
+export function splitTcgName(name: string): { base: string; label: string | null } {
+  const parts = [...name.matchAll(/\(([^)]*)\)/g)].map((m) => m[1]!.trim()).filter((p) => p && !/^\d+[a-z★]*$/i.test(p));
+  const base = name.replace(/\s*\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
+  return { base: base || name, label: parts.length ? parts.join(" · ") : null };
+}
+
+/** The structural shape of a catalogue tile (HomeTile, CardMini): enough to make a pool card's art tile. */
+export interface PoolCard { id: number; slug: string; name: string; setCode: string; label?: string | null; headFinish: Finish; marketUsd: number | null; imageUrl: string | null }
+export function chaseArtOf(c: PoolCard): ChaseArt {
+  const { base, label } = splitTcgName(c.name);
+  return { id: c.id, slug: c.slug, name: base, setCode: c.setCode, label: c.label ?? label, finish: c.headFinish, marketCents: c.marketUsd, imageUrl: c.imageUrl };
+}
+/** A payload tile (lib/data/ebay.ts BannerTile) as a live listing. The currency is the market's, never stored. */
+export function liveOfTile(t: { id: number; name: string; image: string | null; cents: number; ship: boolean | null; market: Country; itemId: string; checkedAt: string; finish?: Finish; sc?: string; label?: string; usd?: number }, currency: string): ChaseLive | null {
+  const image = safeEbayImage(t.image);
+  if (!image) return null;
+  return { id: t.id, name: t.name, label: t.label ?? null, setCode: t.sc ?? null, finish: t.finish ?? "N", market: t.market, priceCents: t.cents, currency, freeShipping: t.ship === true, itemId: t.itemId, imageUrl: image, checkedAt: t.checkedAt, marketCents: t.usd ?? null };
+}
+
+const SYMBOL: Record<string, string> = { USD: "US$", AUD: "A$", GBP: "£", SGD: "S$", CAD: "C$", EUR: "€" };
+/** "US$1,234.50": the symbol of the listing's own currency, never another market's. */
+export function formatMoney(cents: number, currency: string): string {
+  return `${SYMBOL[currency] ?? `${currency} `}${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}

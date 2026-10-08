@@ -3,13 +3,22 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+// Grouped as the landing page groups them: Money, Data, Site, People, Previews.
 const LINKS = [
   { href: "/admin/accounts", label: "Accounts" },
   { href: "/admin/subscriptions", label: "Subscriptions" },
+  { href: "/admin/premium", label: "Interest" },
+  { href: "/admin/clicks", label: "Clicks" },
+  { href: "/admin/data", label: "Data" },
+  { href: "/admin/ebay", label: "eBay" },
   { href: "/admin/store-health", label: "Store health" },
+  { href: "/admin/database", label: "Database" },
+  { href: "/admin/deploys", label: "Deploys" },
   { href: "/admin/inbox", label: "Inbox" },
   { href: "/admin/support", label: "Support" },
-  { href: "/admin/premium", label: "Interest" },
+  { href: "/admin/mail", label: "Mail" },
+  { href: "/admin/lookup", label: "Lookup" },
+  { href: "/admin/loyalty", label: "Loyalty" },
   { href: "/admin/demand", label: "Demand" },
   { href: "/admin/rising", label: "Rising" },
   { href: "/admin/decks", label: "Decks" },

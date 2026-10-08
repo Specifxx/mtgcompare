@@ -9,7 +9,7 @@ import { money } from "@/lib/format";
 import { CopyPostButton } from "@/components/CopyPostButton";
 import { CONDITIONS } from "@/lib/collection-conditions";
 
-// RiftCompare's /c/[token], ported for OP Compare (wave 2, 2026-10-03).
+// A shared binder (/c/[token]).
 //
 // Reads the visitor's own market (a shared binder should be valued in the
 // currency of whoever OPENED the link, not whoever posted it), which makes the
@@ -23,7 +23,7 @@ export const dynamic = "force-dynamic";
 // owner rotated the token. `nofollow` too: every card link on the page is a
 // normal indexable URL reachable elsewhere.
 //
-// No opengraph-image.tsx beside it: share images read only cached data.ts
+// No opengraph-image.tsx beside it: share images read only data/
 // loaders (CLAUDE.md, "Share images"), and a binder is one account's rows, so
 // the link unfurls with the site's root image (DECISIONS, "Shared binder").
 export const metadata: Metadata = {
@@ -47,7 +47,7 @@ export default async function SharedCollectionPage({ params }: { params: { token
     totalCopies: shared.totalCopies,
     totalCents: shared.totalCents,
     country,
-    top: shared.holdings.slice(0, 3).map((h) => ({ card: h.card, unitCents: h.unitCents })),
+    top: shared.holdings.slice(0, 3).map((h) => ({ card: h.card, isFoil: h.isFoil, unitCents: h.unitCents })),
     url,
   });
 
@@ -55,7 +55,7 @@ export default async function SharedCollectionPage({ params }: { params: { token
     <div className="mx-auto max-w-4xl space-y-6">
       <header className="space-y-3">
         <p className="text-xs font-bold uppercase tracking-wide text-brand-400">Shared collection</p>
-        <h1 className="text-3xl font-extrabold text-white">{shared.ownerName}&apos;s One Piece collection</h1>
+        <h1 className="text-3xl font-extrabold text-white">{shared.ownerName}&apos;s Magic collection</h1>
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm text-slate-400">
           <span>
             <strong className="text-white">{shared.distinctCards}</strong> card{shared.distinctCards === 1 ? "" : "s"}
@@ -67,7 +67,7 @@ export default async function SharedCollectionPage({ params }: { params: { token
           </span>
         </div>
         <p className="text-xs text-slate-500">
-          Valued at today&apos;s cheapest in-stock price in your market, adjusted for condition.
+          Valued at TCGplayer&apos;s market price for the finish each copy is held in, in your market&apos;s currency, adjusted for condition.
           {priced < shared.holdings.length && (
             <> {shared.holdings.length - priced} card{shared.holdings.length - priced === 1 ? " has" : "s have"} no live price and count as zero.</>
           )}
@@ -91,7 +91,7 @@ export default async function SharedCollectionPage({ params }: { params: { token
                   <img src={h.card.img} alt="" aria-hidden="true" loading="lazy" decoding="async" className="h-12 w-9 shrink-0 rounded object-cover" />
                 )}
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-semibold text-white">{displayName(h.card)}</span>
+                  <span className="block truncate text-sm font-semibold text-white">{displayName(h.card)}{h.isFoil ? ` · ${h.card.foilLabel}` : ""}</span>
                   <span className="block text-[11px] text-slate-500">
                     {h.card.setCode}
                     {h.card.number ? ` · ${h.card.number}` : ""} · {CONDITIONS[h.condition]?.label ?? h.condition}
@@ -117,7 +117,7 @@ export default async function SharedCollectionPage({ params }: { params: { token
       <section className="rounded-xl border border-ink-800 bg-ink-950/60 p-5 text-center">
         <h2 className="font-bold text-white">Track your own collection</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Add your cards once and OP Compare values them daily against live prices from every store we track.
+          Add your cards once and MTG Compare values them daily against live prices from every store we track.
         </p>
         {/* Straight to /login, not /portfolio's signed-out bounce, so the
             sign-up carries its source. */}

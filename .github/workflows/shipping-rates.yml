@@ -3,7 +3,7 @@ name: Shipping rates probe
 # Re-measures what each tracked store's OWN checkout charges for postage, so
 # the snapshot Best Basket and the deck price watch price delivery from
 # (src/lib/shipping-rates.json) can be refreshed (RiftCompare's workflow, for
-# OP Compare's stores).
+# MTG Compare's stores).
 #
 # Why it exists: on RiftCompare an Adelaide customer was shown $2 postage in
 # Best Basket for a store that charges $20 — the figure was a hand-typed guess.

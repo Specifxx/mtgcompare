@@ -12,13 +12,13 @@
 //   vs-ebay  sort, mine, page        (no store picker: its store side is fixed)
 //   ebay     page                    (free for everyone; no picker, sort or mine)
 //
-// OP Compare's watchlist lives in the browser (localStorage), so "mine" has one
-// value, "watch" (RiftCompare also has "own", a server-side binder OP lacks).
+// "Only my cards" (Plus and Premium): "watch" is the watchlist (this browser's list
+// plus the account's price alerts), "binder" is the account's collection (parity P29).
 import type { DealSort } from "./deals";
 
 export const DEAL_FINDER_PATH = "/tools/deal-finder";
 
-export type MineFilter = "watch";
+export type MineFilter = "watch" | "binder";
 
 export type DealFinderView = "tcg" | "ebay" | "vs-ebay";
 export const DEAL_FINDER_VIEWS: readonly DealFinderView[] = ["tcg", "ebay", "vs-ebay"];
@@ -29,7 +29,7 @@ export interface DealFinderParams {
   buy: string[] | null;
   sort: DealSort;
   page: number;
-  /** Honoured only for Plus+ members — parseDealFinderParams drops it otherwise. Not on "ebay". */
+  /** Honoured only at full access (Plus and Premium) — parseDealFinderParams drops it otherwise. Not on "ebay". */
   mine: MineFilter | null;
 }
 
@@ -64,7 +64,7 @@ export function parseDealFinderParams(sp: DealFinderSearchParams, opts: { allowM
   // "margin" is RiftCompare's pre-2026-09-25 value for "pct"; accepted for symmetry.
   const sort: DealSort = raw.sort === "pct" || raw.sort === "margin" ? "pct" : "saving";
   const page = Math.max(1, parseInt(raw.page ?? "1", 10) || 1);
-  const mine = opts.allowMine && raw.mine === "watch" ? "watch" : null;
+  const mine: MineFilter | null = opts.allowMine && (raw.mine === "watch" || raw.mine === "binder") ? raw.mine : null;
   return canonical({ view, buy, sort, page, mine });
 }
 

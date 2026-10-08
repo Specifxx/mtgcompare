@@ -4,11 +4,8 @@ import PlanButton from "./PlanButton";
 import { freeLimitHeadline } from "@/lib/free-limits";
 import { TIER_NAMES, planPrice } from "@/lib/plans";
 
-// THE PORTFOLIO'S UPGRADE PROMPT AT THE LIMIT — the collection-alerts track's
-// stand-in for the member track's FreeLimitPanel (RiftCompare's), with the same
-// copy and the same props for kind "portfolio". The integrator swaps every use
-// for `<FreeLimitPanel kind="portfolio" … />` once both tracks are on main
-// (wave2-plan, track 4 item 1). Rendered only as the answer to an add the free
+// THE PORTFOLIO'S UPGRADE PROMPT AT THE LIMIT, with the same copy and props as a
+// FreeLimitPanel of kind "portfolio". Rendered only as the answer to an add the free
 // account could not make, right where it was tried — never on load.
 export function PortfolioLimitNotice({
   // FreeLimitPanel's prop, accepted so a swap is a rename only; always "portfolio" here.

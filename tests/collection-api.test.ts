@@ -4,11 +4,10 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseAddBody, parseCardId, parsePatchBody } from "../src/lib/collection-server";
 
-// The /api/collection bodies, validated by hand (RiftCompare's zod schemas,
-// written out: OP Compare carries no zod) — wave 2, 2026-10-03.
+// The /api/collection bodies, validated by hand (the site carries no zod).
 const read = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
 
-test("an add body defaults to one Near Mint copy and leaves foil to the card's own finish", () => {
+test("an add body defaults to one Near Mint copy and leaves the finish to the owner (Normal unless the product has only a Foil)", () => {
   assert.deepEqual(parseAddBody({ cardId: 454665 }), { cardId: 454665, condition: "NM", quantity: 1, costBasisCents: undefined, note: undefined });
   assert.equal(parseAddBody({ cardId: "454665" })?.cardId, 454665, "a numeric string id is accepted");
   assert.deepEqual(parseAddBody({ cardId: 1, condition: "LP", quantity: 3, isFoil: true, costBasisCents: 500, costBasisIsTotal: true, note: " pulled " }), {
@@ -44,5 +43,6 @@ test("the routes are thin: same-origin writes, the session read, no database imp
   assert.match(get, /collectionItems\(user\.id\)/);
   const lib = read("src/lib/collection-server.ts");
   assert.match(lib, /COLLECTION_TAKE = 2000/);
-  assert.match(lib, /const isFoil = d\.isFoil \?\? card\.finish === "Foil"/, "foil follows the card's own finish");
+  assert.match(lib, /const isFoil = normalizeFoil\(\{ mask: maskOfCard\(card\) \}, d\.isFoil \?\? false\)/, "the finish is the owner's pick, forced to the only finish a product has");
+  assert.match(lib, /collectionRowStore\(prisma, \{ userId: account\.id, cardId: card\.id, condition: d\.condition, isFoil \}, d\.note, card\.setId\)/, "the row's set is written from the published data");
 });
