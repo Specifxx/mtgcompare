@@ -64,7 +64,7 @@ const FIXED: readonly (readonly [path: string, freq: ChangeFreq, priority: numbe
   ["/browse", "daily", 0.9, true], ["/price-guide", "daily", 0.8, true], ["/singles", "daily", 0.9, true], ["/sealed", "daily", 0.8, true], ["/sets", "weekly", 0.8, true],
   ["/market", "daily", 0.8, true], ["/market/records", "daily", 0.7, true], ["/movers", "daily", 0.8, true], ["/stores", "weekly", 0.5, true],
   ["/commanders", "weekly", 0.8, true], ["/colors", "weekly", 0.7, false], ["/keywords", "weekly", 0.7, false], ["/cards", "weekly", 0.7, false], ["/cards/all", "daily", 0.7, true], ["/cards/rarity", "weekly", 0.7, false],
-  ["/gallery", "daily", 0.8, true], ["/deck", "weekly", 0.7, false], ["/release-dates", "daily", 0.8, false], ["/preorders", "daily", 0.8, true],
+  ["/gallery", "daily", 0.8, true], ["/deck", "weekly", 0.7, false], ["/release-dates", "daily", 0.8, false],
   ["/tools", "weekly", 0.8, false], ["/tools/deal-finder", "daily", 0.7, true], ["/tools/rising", "daily", 0.6, true], ["/tools/demand", "daily", 0.6, true], ["/tools/box-ev", "daily", 0.7, true], ["/tools/best-basket", "weekly", 0.8, false], ["/tools/selling-fees", "monthly", 0.7, false],
   ["/trade", "monthly", 0.7, false], ["/alerts", "monthly", 0.6, false], ["/premium", "monthly", 0.6, false], ["/stores/suggest", "monthly", 0.5, false],
   ["/blog", "daily", 0.8, false], ["/guides", "daily", 0.8, false], ["/learn", "monthly", 0.8, false], ["/authors", "monthly", 0.5, false], ["/editorial-policy", "monthly", 0.5, false], ["/methodology", "monthly", 0.5, false],

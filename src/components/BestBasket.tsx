@@ -7,7 +7,7 @@ import { useCountry } from "./CountryProvider";
 import PlanButton from "./PlanButton";
 import { QtyInput } from "./QtyInput";
 import { CardPicker, type PickerCard } from "./CardPicker";
-import { outboundRel, ebaySearchUrl, onePieceEbayQuery } from "@/lib/affiliate";
+import { outboundRel, ebaySearchUrl, magicEbayQuery } from "@/lib/affiliate";
 import { COUNTRIES, type Country } from "@/lib/country";
 import { money } from "@/lib/format";
 import { parseDeckList, formatDeckLine, DECK_LINE_CAP } from "@/lib/deck";
@@ -845,7 +845,7 @@ function NotStockedList({ items, total, place }: { items: { name: string; setCod
         {items.map((u, i) => (
           <li key={i}>
             <a
-              href={ebaySearchUrl(country as Country, onePieceEbayQuery(u.name), "basket-set-not-stocked")}
+              href={ebaySearchUrl(country as Country, magicEbayQuery(u.name), "basket-set-not-stocked")}
               target="_blank"
               rel={outboundRel()}
               data-retailer="ebay_basket"
@@ -1408,7 +1408,7 @@ function Unbuyable({ plan, country, floor }: { plan: BasketPlan; country: string
         {plan.unbuyable.map((u, i) => (
           <li key={i}>
             <a
-              href={ebaySearchUrl(country as Country, onePieceEbayQuery(u.name), "basket-unbuyable")}
+              href={ebaySearchUrl(country as Country, magicEbayQuery(u.name), "basket-unbuyable")}
               target="_blank"
               rel={outboundRel()}
               data-retailer="ebay_basket"

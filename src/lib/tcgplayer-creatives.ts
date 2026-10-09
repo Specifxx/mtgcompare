@@ -1,5 +1,6 @@
-// NEXT_PUBLIC_TCGPLAYER_CREATIVES: owner-supplied Impact creative ids for OP
-// Compare's account, "<id>:<w>x<h>" comma-separated, e.g. "3841228:336x280".
+// NEXT_PUBLIC_TCGPLAYER_CREATIVES: owner-supplied Impact creative ids for MTG
+// Compare's OWN Impact account (never a sister site's), "<id>:<w>x<h>"
+// comma-separated, e.g. "3841228:336x280".
 // Pure parse; a malformed entry is dropped (never guessed), none means no banner.
 export interface TcgCreative {
   id: string;

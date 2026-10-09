@@ -8,6 +8,7 @@
 //   treat=borderless,etched   treatments (ANY of)            finish=nonfoil|foil  (the unit view: every price on the page is that finish's)
 //   format=modern    legal or restricted in the format       keyword=flying     min=1&max=20   (US$, TCGplayer MARKET: a low-only unit matches no range)
 //   priced=1         has a listing in the visitor's market   sort=value|price-asc|price-desc|newest|number|name|rising|falling|popular   per=24|48|100
+//   sort=relevance   "Best match": the DEFAULT when q is set (the card the words name best first, its ordinary printing first, then cheapest first: data/search.ts relevancePage); without q it means value
 import { COLORS, COLOR_PAGES, FORMATS, PRIMARY_TYPES, PRIMARY_TYPE_LABEL, RARITY_KEYS, RARITY_SLUGS, TREATMENT_BY_KEY, isRarity, type ColorKey, type Format, type Rarity } from "./constants";
 import type { Country } from "./country";
 import type { CardQuery, SetLite } from "./data";
@@ -27,6 +28,13 @@ export const SORTS = {
   popular: "Most played (EDHREC)",
 } as const;
 export type SortKey = keyof typeof SORTS;
+/** The sort of a search the visitor did not sort: relevance ("Best match"). Offered, and the default, only when the URL carries `q`; the engine has no such key (searchCards orders a name search itself when no sort is given). */
+export const RELEVANCE = "relevance" as const;
+export const RELEVANCE_LABEL = "Best match";
+/** The sort options of a list: "Best match" first when there is search text. */
+export const sortOptions = (q: string): { value: string; label: string }[] => [...(q ? [{ value: RELEVANCE, label: RELEVANCE_LABEL }] : []), ...Object.entries(SORTS).map(([value, label]) => ({ value, label }))];
+/** The sort a list falls back to when the URL names none: relevance for a search, market value otherwise. */
+export const defaultSort = (q: string): SortKey | typeof RELEVANCE => (q ? RELEVANCE : "value");
 export type ColorMode = "any" | "exact" | "within";
 
 export interface BrowseQuery {
@@ -44,7 +52,7 @@ export interface BrowseQuery {
   min: number | null;            // USD cents of the TCGplayer MARKET price
   max: number | null;
   priced: boolean;               // a listing in the visitor's own market
-  sort: SortKey;
+  sort: SortKey | typeof RELEVANCE;   // relevance only with q (defaultSort)
   page: number;
   per: number;
 }
@@ -92,9 +100,9 @@ export function parseBrowse(sp: SearchParams): BrowseQuery {
   const per = parseInt(one(sp.per), 10);
   const page = parseInt(one(sp.page), 10);
   const finish = one(sp.finish).toLowerCase(), format = one(sp.format).toLowerCase();
-  const cmode = one(sp.cmode).toLowerCase();
+  const cmode = one(sp.cmode).toLowerCase(), text = one(sp.q).slice(0, 80);
   return {
-    q: one(sp.q).slice(0, 80),
+    q: text,
     sets: list(sp.set),
     colors: uniq(list(sp.color).map(colorWord).filter((c): c is string => !!c)),
     colorMode: cmode === "exact" || cmode === "within" ? cmode : "any",
@@ -108,7 +116,7 @@ export function parseBrowse(sp: SearchParams): BrowseQuery {
     min: dollars(one(sp.min)),
     max: dollars(one(sp.max)),
     priced: one(sp.priced) === "1",
-    sort: sort in SORTS ? sort : "value",
+    sort: sort in SORTS ? sort : defaultSort(text.trim()),
     page: Number.isFinite(page) && page > 0 ? Math.min(page, 100) : 1,
     per: per === 100 || per === 24 ? per : 48,
   };
@@ -133,7 +141,8 @@ export function toCardQuery(b: BrowseQuery, sets: readonly SetLite[], country: C
   const byKey = new Map<string, SetLite>();
   for (const s of sets) { byKey.set(s.slug, s); byKey.set(s.code.toLowerCase(), s); byKey.set(s.tok.toLowerCase(), s); }
   const setIds = uniq(b.sets.flatMap((k) => { const s = byKey.get(k.toLowerCase()); return s ? [s.id] : []; }));
-  const q: Partial<CardQuery> = { sort: b.sort, page: b.page, per: (o.per ?? b.per) as CardQuery["per"] };
+  const q: Partial<CardQuery> = { page: b.page, per: (o.per ?? b.per) as CardQuery["per"] };
+  if (b.sort !== RELEVANCE) q.sort = b.sort;                                          // relevance is no engine key: a search with no sort is ordered by the planner (searchCards)
   if (b.q) q.q = b.q;
   if (b.sets.length) q.setIds = setIds.length ? setIds : [NO_SET];                   // an unknown set matches nothing (canonicalQuery drops an id that is not positive, which would mean every set)
   const letters = b.colors.filter((c) => c !== "colorless" && c !== "multicolor");

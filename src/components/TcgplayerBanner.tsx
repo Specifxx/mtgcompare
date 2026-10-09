@@ -1,13 +1,13 @@
-import { affiliateUrl, outboundRel } from "@/lib/affiliate";
+import { TCGPLAYER_MAGIC_SEARCH, affiliateUrl, outboundRel } from "@/lib/affiliate";
 import type { Country } from "@/lib/country";
 
 // The TCGplayer house banner (RiftCompare's TcgplayerAd), second under the price
 // comparison after the card's eBay banner: "Shop Magic singles & sealed" on
-// TCGplayer through the Impact link. Labelled "Ad" and marked
+// TCGplayer's Magic search (TCGPLAYER_MAGIC_SEARCH) through the Impact link,
+// the same affiliateUrl a card's own TCGplayer link uses. Labelled "Ad" and marked
 // data-ad-placement, so Plus and Premium members (ad-free) never see it. Fixed
 // heights, so it never shifts the page. The TcgMarketPrice block above already
 // links the product itself; this one is the store-wide click.
-const TCGPLAYER_ONE_PIECE = "https://www.tcgplayer.com/search/one-piece-card-game/product?productLineName=one-piece-card-game&view=grid";
 
 function tagline(country: Country): string {
   if (country === "US") return "Fast US shipping";
@@ -18,7 +18,7 @@ function tagline(country: Country): string {
 }
 
 export function TcgplayerBanner({ country, page, card, className = "" }: { country: Country; page: string; card?: string; className?: string }) {
-  const href = affiliateUrl(TCGPLAYER_ONE_PIECE, "tcgplayer_banner", `/${page}`);
+  const href = affiliateUrl(TCGPLAYER_MAGIC_SEARCH, "tcgplayer_banner", `/${page}`);
   return (
     <div data-ad-placement="tcgplayer-banner" className={`flex flex-col items-center ${className}`}>
       <a

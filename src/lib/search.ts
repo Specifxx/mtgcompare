@@ -9,7 +9,8 @@
 //   sol ring foil, borderless, etched, surge foil, showcase   words of TREATMENT_BY_SYNONYM become `treat`; "foil" / "nonfoil" / "etched" become the finish (the unit view)
 //   khan engineered evil                                  a printed (reskin) name: the planner matches `alt` as well as the name
 //   jace the mind sculptor, jace, the mind sculptor       fold() removes punctuation; a leading "the" is optional
-import { TREATMENTS, TREATMENT_BY_SYNONYM, fold, type Finish, type TreatmentKey } from "./constants";
+// The printing a bare name OPENS is decided here too (ordinaryPrinting, pure): one rule for the importer's name table (nm/ topSlug) and for the request-time search (the header dropdown, /browse?q=).
+import { CARD_FLAGS, NOTPLAY_SET_KINDS, PRICE_MASK, RELEASE_SET_KINDS, TREATMENTS, TREATMENT_BY_KEY, TREATMENT_BY_SYNONYM, fold, type Finish, type TreatmentKey } from "./constants";
 
 export interface ParsedSearch {
   text: string;                    // the remaining name text, folded
@@ -161,4 +162,61 @@ export function didYouMean(typed: string, names: readonly string[], n = 3): stri
     const d = editDistance(q, key, max); if (d <= max) { seen.add(key); out.push({ name, d, i }); }
   });
   return out.sort((a, b) => a.d - b.d || a.i - b.i).slice(0, n).map((x) => x.name);
+}
+
+// ── the printing a name means ───────────────────────────────────────────────────────────────────────────────────────────────────
+
+/**
+ * What the ordinary-printing rule reads of one printing: published catalogue columns only (a cat/px row in the importer, a browse-index row in a request), never a store price. `marketN` and `marketF`
+ * are TCGplayer MARKET prices in USD cents (null, or a value <= 0, is none); `rarity` is the effective rarity letter (constants.ts RARITY_KEYS); `treat` is the space-separated treatment keys ("" = none); `setKind`
+ * is the kind of the printing's set.
+ */
+export interface PrintingFacts { id: number; cls: number; rarity: string; treat: string; flags: number; mask: number; marketN: number | null; marketF: number | null; setKind: string }
+
+const SPECIAL_FLAGS = CARD_FLAGS.PROMO | CARD_FLAGS.ETCHED | CARD_FLAGS.NOTPLAY;
+/** Set kinds whose every printing is a special product: promos, Secret Lair, The List, and the sets that are not tournament-legal as printed (gold border, Un-sets, art cards, oversized). */
+const SPECIAL_SET_KINDS: readonly string[] = ["promo", "promo-pack", "secret-lair", "list", ...NOTPLAY_SET_KINDS];
+/** A treatment a player names when they mean it: a chase frame, art or foil pattern (borderless, showcase, extended art, Foil Etched, confetti ...), a promo stamp or event (prerelease, judge, Secret Lair, The List ...), a serial number. Inverted, white border, display ... are not. */
+const specialTreatment = (treat: string): boolean => treat.split(" ").some((k) => { const t = TREATMENT_BY_KEY[k]; return !!t && (t.chase || t.kind === "promo" || t.kind === "serial"); });
+const marketOf = (v: number | null): number | null => (v != null && v > 0 ? v : null);
+/** One tier is worth more than any market in cents (US$100,000,000), so a rank is tier, then price, in one number. */
+const TIER = 1e10;
+
+/**
+ * Where a printing stands when a player types the card's bare name, lower first:
+ *   0  the ORDINARY printing: a card (class 0) of a main release set (expansion, core, masters, commander) with no treatment, nothing special (below), not foil-only, not GONE, and a MARKET price
+ *      on its Normal unit (on its Foil unit when `unit` is "F", where foil-only is fine). The same predicate picks the home page's `popular` printing (DECISIONS 2026-10-08, "Home popular shows the printing a player buys").
+ *   1  any other printing that is nothing special: a deck or other set kind, a foil-only card, a treatment nobody chases (inverted, white border, display commander ...)
+ *   2  special: a promo, Secret Lair, The List, gold border or Un-set printing, a chase treatment (borderless, showcase, extended art, Foil Etched, a foil pattern), a promo stamp, the Special rarity (Scryfall
+ *      "special" / "bonus": Masterpieces, Timeshifted: the Kaladesh Inventions Sol Ring is not what "sol ring foil" means)
+ *   3  serialized
+ *   4 to 6  the same three when the unit shown (Normal first, the headline) has no MARKET price: a low-only unit is never ranked by its single listing ("Market ranks, display shows")
+ *  +7  not a card (a token, an art card ...): only when nothing else carries the name
+ */
+export function ordinaryTier(p: PrintingFacts, unit?: Finish): number {
+  const f = unit ?? ((p.mask & PRICE_MASK.HEADF) !== 0 ? "F" : "N"), priced = marketOf(f === "N" ? p.marketN : p.marketF) != null;
+  const serial = (p.flags & CARD_FLAGS.SERIAL) !== 0 || p.treat.split(" ").includes("serial");
+  const special = !serial && ((p.flags & SPECIAL_FLAGS) !== 0 || p.rarity === "S" || SPECIAL_SET_KINDS.includes(p.setKind) || specialTreatment(p.treat));
+  const plain = !serial && !special && !p.treat && (RELEASE_SET_KINDS as readonly string[]).includes(p.setKind) && (p.mask & PRICE_MASK.GONE) === 0 && (unit === "F" || (f === "N" && (p.flags & CARD_FLAGS.FOILONLY) === 0));
+  const odd = serial ? 3 : special ? 2 : 1, tier = !priced ? 3 + odd : plain ? 0 : odd;
+  return p.cls === 0 ? tier : tier + 7;
+}
+/** True for a printing of tier 0: the ordinary printing a bare name means (see ordinaryTier). */
+export const isOrdinaryPrinting = (p: PrintingFacts, unit?: Finish): boolean => ordinaryTier(p, unit) === 0;
+
+/** The rank of a printing for a bare name, lower first: its tier, then the MARKET of the unit shown, cheapest first (a unit without one ranks by tier only). Ties go to the lower product id. */
+export function ordinaryRank(p: PrintingFacts, unit?: Finish): number {
+  const tier = ordinaryTier(p, unit), f = unit ?? ((p.mask & PRICE_MASK.HEADF) !== 0 ? "F" : "N");
+  return tier * TIER + (marketOf(f === "N" ? p.marketN : p.marketF) ?? 0);
+}
+
+/**
+ * The printing a card's bare name opens (the header search, a name hit): the cheapest ordinary printing by MARKET price, and when the card has none, the least special printing that has a market (a deck or foil-only
+ * printing, then a promo or treatment, then a serialized one), cheapest first; a card priced only by thin single listings falls back to the least special of those, by id. Never the dearest: "Sol Ring" is not the
+ * serialized LTC 409z, "Smothering Tithe" not the Anime Borderless Confetti Foil, "Birds of Paradise" not the serialized Retro Frame (Ravnica Remastered 344z).
+ */
+export function ordinaryPrinting<T extends PrintingFacts>(rows: readonly T[], unit?: Finish): T | undefined {
+  let best: T | undefined, bestRank = Infinity;
+  for (const r of rows) { const k = ordinaryRank(r, unit); if (k < bestRank || (k === bestRank && best && r.id < best.id)) { best = r; bestRank = k; } }
+  return best;
 }

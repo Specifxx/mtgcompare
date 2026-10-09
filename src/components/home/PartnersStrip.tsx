@@ -1,7 +1,7 @@
 "use client";
 
 import { AffiliateDisclosure } from "@/components/AffiliateDisclosure";
-import { affiliateUrl, ebaySearchUrl, outboundRel } from "@/lib/affiliate";
+import { TCGPLAYER_MAGIC_SEARCH, affiliateUrl, ebaySearchUrl, outboundRel } from "@/lib/affiliate";
 import { useCountry } from "@/components/CountryProvider";
 
 // RiftCompare's PartnersStrip: "Approved partners" with the eBay and TCGplayer
@@ -10,7 +10,7 @@ import { useCountry } from "@/components/CountryProvider";
 export function PartnersStrip() {
   const { country } = useCountry();
   const ebayHref = ebaySearchUrl(country, "Magic The Gathering cards", "partners_strip");
-  const tcgHref = affiliateUrl("https://www.tcgplayer.com/search/magic/product?productLineName=magic", "partners_strip", "/");
+  const tcgHref = affiliateUrl(TCGPLAYER_MAGIC_SEARCH, "partners_strip", "/");
   return (
     <section className="flex flex-col items-center gap-1 text-center">
       <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-slate-500">

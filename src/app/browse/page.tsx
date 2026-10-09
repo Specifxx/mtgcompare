@@ -16,9 +16,10 @@ import { InlineSignupPrompt } from "@/components/InlineSignupPrompt";
 import { Breadcrumbs } from "@/components/ui";
 import { EmptyState } from "@/components/ui/EmptyState";
 import {
-  SORTS,
+  defaultSort,
   isFiltered,
   parseBrowse,
+  sortOptions,
   toCardQuery,
   type SearchParams,
 } from "@/lib/browse";
@@ -71,9 +72,11 @@ export default async function BrowsePage({
           </label>
           <div className="mt-3 hidden peer-checked:block lg:mt-0 lg:block">
             <BrowseFilters q={q} sets={sets} country={country} />
+            {/* A search defaults to "Best match" (relevance), a plain list to value:
+                the default is what the URL leaves out. */}
             <FormCleaner
               formId="filters"
-              defaults={{ sort: "value", per: "48" }}
+              defaults={{ sort: defaultSort(q.q.trim()), per: "48" }}
             />
           </div>
         </aside>
@@ -123,7 +126,7 @@ export default async function BrowsePage({
             </p>
             <div className="flex items-center gap-2">
               <PageSizeSelect size={q.per} />
-              <SortSelect defaultSort="value" options={Object.entries(SORTS).map(([value, label]) => ({ value, label }))} />
+              <SortSelect defaultSort={defaultSort(q.q.trim())} options={sortOptions(q.q.trim())} />
             </div>
           </div>
 

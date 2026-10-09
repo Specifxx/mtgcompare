@@ -12,8 +12,9 @@
 //  - PAGE-SPECIFIC: no sentence appears in two entries.
 //  - Short enough that the tool still starts about one phone screen down.
 //  - Facts from code, stated the way the code does them: six markets; prices
-//    read twice a day; comparisons ranked by ITEM price (only Best Basket prices
-//    whole orders, with measured postage); nothing forecasts a price.
+//    imported once a day (src/lib/schedule.ts); comparisons ranked by ITEM price
+//    (only Best Basket, a Premium tool, prices whole orders, with measured
+//    postage); nothing forecasts a price.
 //  - No figure a constant owns and could change, and no set named.
 // A paragraph may carry internal links as `[label](/path)` (HubIntro renders
 // single-slash paths only). Entries for the catalogue pages (/sets, /sealed,
@@ -43,7 +44,7 @@ export const HUB_INTROS: Record<string, HubIntro> = {
   "/tools/best-basket": {
     paragraphs: [
       "The cheapest card is rarely the cheapest order. Postage is charged per store, so a shopping list split across five shops to save a few cents on each card routinely costs more delivered than buying the whole list from two. This works out which combination of stores actually costs least.",
-      "Give it the cards you want and it searches store combinations for the lowest total including postage. Any signed-in account sees its own delivered total; with Premium it also shows the best one-store and two-store orders beside it, so you can see what splitting the order actually saves. Usually the answer is not the split with the cheapest individual cards.",
+      "Give it the cards you want and it searches store combinations for the lowest total including postage. Best Basket is a Premium tool: it shows that delivered total, which store to buy each card from, and the best one-store and two-store orders beside it, so you can see what splitting the order actually saves. Usually the answer is not the split with the cheapest individual cards.",
       "Postage is each store's own checkout rate, measured for orders of different sizes and values to addresses across your market, never guessed. A store we have not measured yet is marked as an estimate, and the store's checkout is always final; the questions below cover regions, tracked and untracked letters, and free-postage thresholds in full.",
     ],
   },
@@ -55,7 +56,7 @@ export const HUB_INTROS: Record<string, HubIntro> = {
   "/tools/box-ev": {
     paragraphs: [
       "Is a Magic booster box worth more opened than it costs? The calculator values every card a pack can hold at its TCGplayer US market price, converted into your currency, averages each pull pool — common to mythic rare, plus the borderless, showcase and foil chase printings — multiplies each average by how many of that pool a box yields, and sets the total against the box's price.",
-      "Wizards of the Coast publishes pull rates only in part, and they differ by booster type. The rates here are estimates, set at the low end on purpose, and every one can be changed to match what you have seen. The box price starts at the cheapest in-stock booster box we track in your market; [sealed product](/sealed) compares where a box costs least, market by market.",
+      "The rates come from the booster layouts Wizards of the Coast describes, and the calculator marks any slot not confirmed against a Wizards article. A slot with no published split adds nothing until you type a rate in, so no pull rate is invented, and every one can be changed. The box price starts at the cheapest in-stock booster box we track in your market; [sealed product](/sealed) compares where a box costs least, market by market.",
     ],
   },
   "/tools/rising": {
@@ -78,7 +79,7 @@ export const HUB_INTROS: Record<string, HubIntro> = {
   },
   "/tools": {
     paragraphs: [
-      "The price tools here run on the same data as the rest of MTG Compare: the prices our twice-daily import reads from stores, TCGplayer and eBay in six markets — the US, Australia, the UK, Singapore, Canada and the EU. Each answers one question: what a card or a whole list costs, whether a box is worth opening, whether a trade is fair, or what you keep after selling.",
+      "The price tools here run on the same data as the rest of MTG Compare: the store and TCGplayer prices our daily import reads in six markets — the US, Australia, the UK, Singapore, Canada and the EU — and the eBay listings we collect. Each answers one question: what a card or a whole list costs, whether a box is worth opening, whether a trade is fair, or what you keep after selling.",
       "A price is an item price unless a tool says otherwise; Best Basket is the one that prices whole orders with each store's measured postage. None of them forecasts where a price will go.",
     ],
   },

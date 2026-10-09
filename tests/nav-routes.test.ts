@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { FOOTER_GROUPS, NAV_GROUPS, PRIMARY_NAV } from "../src/components/nav-groups";
 
@@ -59,4 +59,29 @@ test("the nav names no game and no Riftbound-only page", () => {
 test("the deck pricer answers 'bulk pricer'", () => {
   const deck = NAV_GROUPS.flatMap((g) => g.links).find((l) => l.href === "/deck");
   assert.ok(deck?.keywords?.includes("bulk pricer"));
+});
+
+/** A page.tsx that renders nothing and only sends the visitor elsewhere (redirect / permanentRedirect, no JSX): an old URL kept alive, not a page. */
+function redirectOnly(src: string): boolean {
+  const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
+  return /\b(?:permanentRedirect|redirect)\(/.test(code) && !/<[A-Za-z]/.test(code);
+}
+
+// "Pre-order prices" linked /preorders, a page that only redirects to /release-dates, until 2026-10-09: the rail, the phone menu, ⌘K and the footer
+// promised a pre-order page that does not exist. A nav entry must name the page it opens.
+test("no nav link points at a page that only redirects (the label would promise a page that does not exist)", () => {
+  assert.equal(redirectOnly(readFileSync(join(APP, "preorders/page.tsx"), "utf8")), true, "the detector sees the /preorders redirect");
+  assert.equal(redirectOnly(readFileSync(join(APP, "release-dates/page.tsx"), "utf8")), false, "and passes a real page");
+  const redirecting = [...new Set(internal)].map((h) => h.split(/[?#]/)[0]!).filter((h) => {
+    const f = join(APP, h, "page.tsx");
+    return existsSync(f) && redirectOnly(readFileSync(f, "utf8"));
+  });
+  assert.deepEqual(redirecting, [], `nav links to a redirect: ${redirecting.join(", ")}`);
+  assert.ok(!internal.includes("/preorders"));
+});
+
+test("the pre-order words find the upcoming sets: /release-dates lists them, each linking to its set page with its pre-order prices", () => {
+  const rd = NAV_GROUPS.flatMap((g) => g.links).find((l) => l.href === "/release-dates");
+  for (const k of ["preorder", "pre-order", "pre order", "presale"]) assert.ok(rd?.keywords?.includes(k), k);
+  assert.match(readFileSync(join(APP, "release-dates/page.tsx"), "utf8"), /href=\{`\/sets\/\$\{s\.slug\}`\}/, "each upcoming set links to its set page");
 });

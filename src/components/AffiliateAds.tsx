@@ -1,17 +1,17 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { affiliateUrl, ebayLabel, ebaySearchUrl, outboundRel } from "@/lib/affiliate";
+import { TCGPLAYER_MAGIC_SEARCH, affiliateUrl, ebayLabel, ebaySearchUrl, outboundRel } from "@/lib/affiliate";
 import { useCountry } from "./CountryProvider";
 
 // RiftCompare's footer ad zone: an eBay box and a TCGplayer box above the
-// footer, labelled "Ad", with one disclosure line. Both are affiliate SEARCH /
-// category links — no eBay API call is involved (API prices come only from the
-// script-side eBay pass, scripts/ebay.ts). Not shown on the policy pages,
-// nor to Plus and Premium members (data-ad-placement, lib/ad-free.ts).
+// footer, labelled "Ad", with one disclosure line. Both are affiliate SEARCH
+// links for Magic (eBay's "Magic The Gathering cards"; TCGplayer's Magic
+// product line, TCGPLAYER_MAGIC_SEARCH) — no eBay API call is involved (API
+// prices come only from the script-side eBay pass, scripts/ebay.ts). Not shown
+// on the policy pages, nor to Plus and Premium members (data-ad-placement,
+// lib/ad-free.ts).
 const BANNER_FREE = ["/about", "/authors", "/contact", "/editorial-policy", "/methodology", "/privacy", "/terms"];
-
-const TCGPLAYER_ONE_PIECE = "https://www.tcgplayer.com/search/one-piece-card-game/product?productLineName=one-piece-card-game&view=grid";
 
 export function EbayWordmark({ className = "" }: { className?: string }) {
   return (
@@ -47,7 +47,7 @@ export function FooterAds() {
         </span>
         <span className="rounded bg-[#0064d2] px-2.5 py-1 text-xs font-bold text-[#ffffff]">Search eBay →</span>
       </AdBox>
-      <AdBox href={affiliateUrl(TCGPLAYER_ONE_PIECE, "tcgplayer_footer", "/footer")} retailer="tcgplayer_footer" tone="border-sky-400/30 bg-sky-400/[0.04] hover:border-sky-400/60">
+      <AdBox href={affiliateUrl(TCGPLAYER_MAGIC_SEARCH, "tcgplayer_footer", "/footer")} retailer="tcgplayer_footer" tone="border-sky-400/30 bg-sky-400/[0.04] hover:border-sky-400/60">
         <span className="text-xl font-extrabold tracking-tight text-white">
           TCG<span className="text-sky-400">player</span>
         </span>

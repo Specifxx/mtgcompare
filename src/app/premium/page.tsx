@@ -33,7 +33,7 @@ const FAQ = [
   },
   {
     q: "What is Best Basket?",
-    a: "Paste a deck or send your watchlist, and it works out the cheapest delivered way to buy it across the stores in your market, each store's measured postage included. Any signed-in account sees its own delivered total; Premium shows which store to buy each card from, beside the best one-store and two-store orders, at the minimum condition you set.",
+    a: "Paste a deck or send your watchlist, and it works out the cheapest delivered way to buy it across the stores in your market, each store's measured postage included. Best Basket is part of Premium: the delivered total, which store to buy each card from, and the best one-store and two-store orders beside it, at the minimum condition you set. Without Premium, the free deck and list pricer still shows every card's cheapest price.",
   },
   {
     q: "How do I cancel?",

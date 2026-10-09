@@ -40,8 +40,9 @@ function steps(emailOn: boolean): { title: string; body: React.ReactNode }[] {
       title: "Find the exact printing",
       body: (
         <>
-          Search <Link href="/browse" className="text-brand-400 underline">the card database</Link> by card number, not
-          just name — a Parallel and a standard print of the same card are different cards at very different prices.
+          Search <Link href="/browse" className="text-brand-400 underline">the card database</Link> by set code and
+          collector number, not just name — the standard print, a borderless or showcase printing and the foil of the
+          same card are each priced and watched on their own, often at very different prices.
         </>
       ),
     },

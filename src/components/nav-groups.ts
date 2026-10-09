@@ -12,9 +12,9 @@ import type { NavIconName } from "./NavIcon";
 // "drop the games"), For stores, and every Riftbound-only page (champions, the
 // ban list, domains, Riftle, the Pokémon section, the Radiance hub).
 //
-// Some routes are built by other packages (commanders, pre-orders, widgets,
-// creators). tests/nav-routes.test.ts checks every internal href against src/app
-// and stays red until the last of them lands.
+// Some routes are built by other packages (commanders, widgets, creators).
+// tests/nav-routes.test.ts checks every internal href against src/app, and that
+// none of them is a page that only redirects.
 export interface NavGroupLink {
   href: string;
   label: string;
@@ -50,7 +50,6 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/market", label: "Market Index", keywords: ["index", "market", "chart", "trend", "how is the market"] },
       { href: "/market/records", label: "Price records", keywords: ["records", "all time high", "most expensive ever", "highs", "lows"] },
       { href: "/movers", label: "Weekly Movers", keywords: ["movers", "risers", "fallers", "gainers", "drops", "trending", "biggest movers"] },
-      { href: "/preorders", label: "Pre-order prices", keywords: ["preorder", "pre-order", "pre order", "presale", "upcoming set", "prerelease", "release week"] },
       { href: "/stores", label: "Stores we track", keywords: ["stores", "shops", "retailers", "which stores"] },
     ],
   },
@@ -76,7 +75,9 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/cards", label: "By type & rarity", keywords: ["type", "rarity", "treatment", "foil", "etched", "borderless", "showcase", "extended art", "serialized", "mythic", "rare", "creature", "instant", "planeswalker"] },
       { href: "/cards/all", label: "Every card (A-Z)", keywords: ["all cards", "every card", "full list", "complete list", "card index", "a-z", "list of all magic cards"] },
       { href: "/gallery", label: "Card gallery", keywords: ["gallery", "card gallery", "full art", "browse art", "card images"] },
-      { href: "/release-dates", label: "Release dates", keywords: ["release date", "release dates", "countdown", "when", "next set", "upcoming", "when does the next set come out"] },
+      // No "Pre-order prices" entry: there is no pre-order page (/preorders only redirects here). The sets still to come are listed on /release-dates and each
+      // links to its set page, where pre-order listings are priced, so the pre-order words land here.
+      { href: "/release-dates", label: "Release dates", keywords: ["release date", "release dates", "countdown", "when", "next set", "upcoming", "when does the next set come out", "preorder", "pre-order", "pre order", "presale", "upcoming set", "prerelease", "release week"] },
       { href: "/singles", label: "Buy singles", keywords: ["singles", "buy singles", "cheapest single"] },
     ],
   },

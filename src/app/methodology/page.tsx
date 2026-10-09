@@ -38,8 +38,8 @@ export default async function Methodology() {
           TCGplayer&apos;s data.
         </li>
         <li>
-          <strong>Scryfall.</strong> Card names, rules text, legalities and
-          card art come from <a href={SCRYFALL_URL}>Scryfall</a>. {DATA_ATTRIBUTION}
+          <strong>Scryfall.</strong> What each card is — its name, rules text
+          and legalities — comes from <a href={SCRYFALL_URL}>Scryfall</a>. {DATA_ATTRIBUTION}
         </li>
         {ebayLive ? (
           <li>

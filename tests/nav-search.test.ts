@@ -52,7 +52,9 @@ const MUST_FIND: [query: string, href: string][] = [
   ["faq", "/support"],
   ["search", "/browse"],
   ["modern horizons", "/sets"],
-  ["preorder", "/preorders"],
+  // 2026-10-09: there is no pre-order page (/preorders only redirects), so the pre-order words open the release dates, whose upcoming sets link to their pre-order prices.
+  ["preorder", "/release-dates"],
+  ["pre-order", "/release-dates"],
   ["embed", "/embed"],
   ["creators", "/creators"],
   ["borderless", "/cards"],

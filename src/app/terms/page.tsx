@@ -75,7 +75,7 @@ export default function Terms() {
         </a>
         .
       </p>
-      <p>{DATA_ATTRIBUTION} Card images are served from Scryfall and TCGplayer; trademarks, card names and artwork belong to their owners.</p>
+      <p>{DATA_ATTRIBUTION} Trademarks, card names and artwork belong to their owners.</p>
     </StaticPage>
   );
 }

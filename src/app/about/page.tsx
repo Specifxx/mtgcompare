@@ -36,8 +36,8 @@ export default async function About() {
       <p>
         TCGplayer&apos;s catalogue (read through TCGCSV) is the backbone of the
         prices: every printing TCGplayer lists has a page here, with
-        TCGplayer&apos;s market price. Card names, rules text, legalities and
-        card art are matched from <a href={SCRYFALL_URL}>Scryfall</a>. {DATA_ATTRIBUTION}
+        TCGplayer&apos;s market price. Card names, rules text and legalities
+        are matched from <a href={SCRYFALL_URL}>Scryfall</a>. {DATA_ATTRIBUTION}
       </p>
       <h2>Made by the RiftCompare team</h2>
       <p>

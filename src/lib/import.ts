@@ -14,6 +14,7 @@ import { addDays, dayIso, dayNum, daysBetween, nextIndex } from "./history";
 import { usdCentsToCountry, toUsdCents } from "./fx";
 import { buildScryfallIndex, claimByIds, fetchBulkListing, fetchSets, joinProduct, parseSets, slimScryfall, streamDefaultCards, streamDefaultCardsFile, strictOracleName, type JoinResult, type LinkLevel, type ScryfallRow, type ScryfallSet } from "./scryfall";
 import type { MatchRow } from "./match";
+import { isOrdinaryPrinting, ordinaryRank, type PrintingFacts } from "./search";
 import type { StoreResult } from "./stores";
 import type { PrevState } from "./data/plane/prevstate";
 import { memTree, type MutableTree, type TreeView } from "./data/plane/tree";
@@ -640,6 +641,8 @@ function catRowOf(c: CardRow): CatRow {
   return [c.id, c.slug, c.name, z(c.alt), c.setId, z(c.sc), z(c.number), z(c.fnum), c.rarity, c.cls, c.treat, z(c.label), c.flags, c.link, c.oracleNo ?? 0, c.flags & CARD_FLAGS.SCRYIMG ? z(c.scryId) : 0, z(c.rootId), z(c.tn), c.colors, c.mv, c.ptype];
 }
 interface RowView { c: CatRow; p: PxRow }
+/** What the ordinary-printing rule (search.ts ordinaryTier) reads of a catalogue row: the same columns the browse index carries, so the importer and a request pick the same printing. */
+const printingFacts = (r: RowView, kindOf: (setId: number) => string): PrintingFacts => ({ id: r.c[0], cls: r.c[9], rarity: r.c[8], treat: r.c[10], flags: r.c[12], mask: r.p[5], marketN: r.p[1], marketF: r.p[2], setKind: kindOf(r.c[4]) });
 const headFinishOf = (mask: number): 0 | 1 => ((mask & PRICE_MASK.HEADF) !== 0 ? 1 : 0);
 const marketOfUnit = (p: PxRow, f: 0 | 1): number | null => (f === 0 ? p[1] : p[2]);
 /** Stat columns of a px row for one finish (the lite hydrator's `at`): Normal at 6..8, Foil at 9..11. */
@@ -717,7 +720,16 @@ export function writeCatalogueFiles(ctx: ImportContext): { written: number; unch
   }
   const hot = (o: OracleRow): number => { const rep = repOf.get(o.no); const price = rep ? topCents(rep.p[1], rep.p[2]) ?? 0 : 0; const pop = o.edhrecRank ? 1 / (1 + o.edhrecRank / 1500) : 0; return price * (1 + 2 * Math.max(pop, o.flags & ORACLE_FLAGS.RESERVED ? 0.5 : 0)); };
   const names = [...oracles.values()].map((o) => ({ o, h: hot(o) })).sort((a, b) => b.h - a.h || (a.o.slug < b.o.slug ? -1 : 1));
-  const nmRows: NameRow[] = names.map(({ o }) => { const rep = repOf.get(o.no); return [o.no, o.name, o.slug, rep ? rep.c[1] : 0, o.nPrint, rep ? topCents(rep.p[1], rep.p[2]) : null, rep ? rep.c[3] : 0]; });
+  // the printing a NAME opens (nm/ topSlug, its dearest market and printed name): the ORDINARY printing of search.ts (the cheapest plain printing of a main set by MARKET; a promo, treatment or serialized one only
+  // when the card has nothing plainer), the rule the request-time search applies to the browse index. Not repOf: the dearest printing made "Sol Ring" open the serialized LTC 409z. repOf still ranks the hot table.
+  const kindOf = (sid: number): string => setById.get(sid)?.kind ?? "";
+  const nameOf = new Map<number, { r: RowView; k: number }>();
+  for (const r of view) {
+    if (r.c[9] !== 0 || !r.c[14] || !(r.p[5] & PRICE_MASK.LISTED)) continue;
+    const k = ordinaryRank(printingFacts(r, kindOf)), cur = nameOf.get(r.c[14]);
+    if (!cur || k < cur.k || (k === cur.k && r.c[0] < cur.r.c[0])) nameOf.set(r.c[14], { r, k });
+  }
+  const nmRows: NameRow[] = names.map(({ o }) => { const pick = nameOf.get(o.no)?.r; return [o.no, o.name, o.slug, pick ? pick.c[1] : 0, o.nPrint, pick ? topCents(pick.p[1], pick.p[2]) : null, pick ? pick.c[3] : 0]; });
   for (let k = 0, n = 0; k < nmRows.length || n === 0; k += NAME_CHUNK, n++) w.put(nameChunkPath(n), `{"v":1,"n":${n},"r":[\n${lines(nmRows.slice(k, k + NAME_CHUNK))}\n]}`);
   w.sweep((f) => f.startsWith("slug/") || f.startsWith("sc/") || f.startsWith("or/") || f.startsWith("nm/"));
   // 5. boards and sealed
@@ -903,8 +915,8 @@ function writeViews(w: Writer, t: TreeView, ctx: ImportContext, view: RowView[],
   const reps = [...repOf.values()].filter((r) => r.c[9] === 0 && !(r.p[5] & PRICE_MASK.GONE));
   const byValue = [...reps].sort((a, b) => (topCents(b.p[1], b.p[2]) ?? 0) - (topCents(a.p[1], a.p[2]) ?? 0) || a.c[0] - b.c[0]);
   const edh = new Map<number, number>(); for (const o of snap.oracles) if (o.edhrecRank) edh.set(o.no, o.edhrecRank);
-  // `popular` shows the printing a player buys (REQ-WP15-14): the cheapest plain Normal printing in a main set, the dearest only when the oracle has none; `chase` keeps the dearest
-  const plain = (r: RowView): boolean => r.c[9] === 0 && !r.c[10] && !(r.c[12] & (CARD_FLAGS.SERIAL | CARD_FLAGS.PROMO | CARD_FLAGS.ETCHED | CARD_FLAGS.FOILONLY)) && (r.p[5] & PRICE_MASK.HASN) !== 0 && (r.p[1] ?? 0) > 0 && !(r.p[5] & PRICE_MASK.GONE) && RELEASE_KINDS.includes(setById.get(r.c[4])?.kind ?? "");
+  // `popular` shows the printing a player buys (REQ-WP15-14): the cheapest plain Normal printing in a main set (search.ts isOrdinaryPrinting, the tier-0 printing a bare name opens), the dearest only when the oracle has none; `chase` keeps the dearest
+  const plain = (r: RowView): boolean => isOrdinaryPrinting(printingFacts(r, (sid) => setById.get(sid)?.kind ?? ""));
   const cheapestPlain = new Map<number, RowView>();
   for (const r of view) { if (!r.c[14] || !(r.p[5] & PRICE_MASK.LISTED) || !plain(r)) continue; const cur = cheapestPlain.get(r.c[14]); if (!cur || r.p[1]! < cur.p[1]! || (r.p[1] === cur.p[1] && r.c[0] < cur.c[0])) cheapestPlain.set(r.c[14], r); }
   const byPopularity = reps.filter((r) => (topCents(r.p[1], r.p[2]) ?? 0) >= 100 && edh.has(r.c[14])).sort((a, b) => edh.get(a.c[14])! - edh.get(b.c[14])! || a.c[0] - b.c[0]).map((r) => cheapestPlain.get(r.c[14]) ?? r);

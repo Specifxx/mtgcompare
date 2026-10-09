@@ -33,7 +33,7 @@ export function alertsFaqs(emailOn: boolean): AlertsFaq[] {
   return [
     {
       q: "How do I set a price alert for a Magic card?",
-      a: `Open the card's page or its quick view and tap the watch button — a free alert needs no price. We check the cheapest Near Mint (or unstated-condition) copy at the stores we track once a day, after the morning price update. We ${tell} when it falls by ${MATERIAL} from ${told}${emailOn ? " — or, if we haven't emailed you about that card in the last 30 days, from where it stood before it started falling" : ""}, so a slow slide in small steps still adds up to an alert. If no store has the card yet, we ${tell} when it's first listed instead, and if it sells out we ${tell} when it's back. Plus members can also set their own price on up to ${PLUS_TARGET_ALERT_LIMIT} watched cards (every card on Premium).`,
+      a: `Open the card's page or its quick view and tap the watch button — a free alert needs no price. We check the cheapest Near Mint (or unstated-condition) copy at the stores we track ${PRICES_REFRESH_PHRASE}, straight after the price update. We ${tell} when it falls by ${MATERIAL} from ${told}${emailOn ? " — or, if we haven't emailed you about that card in the last 30 days, from where it stood before it started falling" : ""}, so a slow slide in small steps still adds up to an alert. If no store has the card yet, we ${tell} when it's first listed instead, and if it sells out we ${tell} when it's back. Plus members can also set their own price on up to ${PLUS_TARGET_ALERT_LIMIT} watched cards (every card on Premium).`,
     },
     {
       q: "Can I watch a card with no price yet?",
@@ -94,5 +94,5 @@ export function alertsPlusCopy(emailOn: boolean): string {
   const deliver = emailOn
     ? "we email you straight away, without the weekly wait: the card, the price, the store and a link to the listing"
     : "we flag it on your watchlist and dashboard straight away, without the weekly wait: the card, the price and the store";
-  return `Know what you'd pay? Plus members can set a price on any watched card — "Notify me at" — on up to ${PLUS_TARGET_ALERT_LIMIT} cards, or every card on Premium. After each of the two daily price updates we check every store we track in that card's market, and when the lowest in-stock price is at or below your number ${deliver}. It fires once, then again only if the price falls another ${TARGET_REFIRE_STEP_PCT}% — or if it goes back above your number and comes down again. Never more than one alert a day about the same card.`;
+  return `Know what you'd pay? Plus members can set a price on any watched card — "Notify me at" — on up to ${PLUS_TARGET_ALERT_LIMIT} cards, or every card on Premium. After each price update (prices are imported ${PRICES_REFRESH_PHRASE}) we check every store we track in that card's market, and when the lowest in-stock price is at or below your number ${deliver}. It fires once, then again only if the price falls another ${TARGET_REFIRE_STEP_PCT}% — or if it goes back above your number and comes down again. Never more than one alert a day about the same card.`;
 }

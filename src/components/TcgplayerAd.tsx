@@ -1,4 +1,4 @@
-import { outboundRel, tcgplayerImpactLink } from "@/lib/affiliate";
+import { TCGPLAYER_MAGIC_SEARCH, outboundRel, tcgplayerCreativeUrl } from "@/lib/affiliate";
 import { parseCreatives, type TcgCreative } from "@/lib/tcgplayer-creatives";
 
 // An Impact creative banner for TCGplayer through MTG Compare's OWN Impact
@@ -6,17 +6,16 @@ import { parseCreatives, type TcgCreative } from "@/lib/tcgplayer-creatives";
 // in NEXT_PUBLIC_TCGPLAYER_CREATIVES ("<id>:<w>x<h>,…"); WITHOUT them the banner
 // renders nothing (the house banner TcgplayerBanner is the always-on one), so no
 // creative id is ever invented. Labelled "Ad", data-ad-placement (ad-free members
-// never see it), fixed dimensions so it never shifts the page.
+// never see it), fixed dimensions so it never shifts the page. The click lands on
+// TCGplayer's Magic search (TCGPLAYER_MAGIC_SEARCH, deep-linked by
+// tcgplayerCreativeUrl), whatever landing page the creative was set up with.
 const CREATIVES: TcgCreative[] = parseCreatives(process.env.NEXT_PUBLIC_TCGPLAYER_CREATIVES);
 
 export function TcgplayerAd({ variant = "leaderboard", page, className = "" }: { variant?: "leaderboard" | "rect" | "mobile"; page: string; className?: string }) {
   const want = { leaderboard: [728, 90], rect: [300, 250], mobile: [320, 100] }[variant];
   const c = CREATIVES.find((x) => x.w === want[0] && x.h === want[1]);
-  const impact = tcgplayerImpactLink();
-  if (!c || !impact) return null;
-  const base = impact.replace(/\/\d+\/\d+$/, "");
-  const program = impact.match(/\/(\d+)$/)?.[1] ?? "";
-  const href = `${base}/${c.id}/${program}?sharedid=mc-tcg-ad-${page}`;
+  const href = c ? tcgplayerCreativeUrl(c.id, TCGPLAYER_MAGIC_SEARCH, "tcg-ad", `/${page}`) : null;
+  if (!c || !href) return null;
   return (
     <div data-ad-placement="tcgplayer-ad" className={`flex flex-col items-center ${className}`}>
       <a href={href} target="_blank" rel={outboundRel()} data-retailer="tcgplayer_ad" data-page={page} data-surface="tcgplayer_ad" className="relative block overflow-hidden rounded-lg border border-sky-500/30 bg-ink-900" style={{ width: c.w, maxWidth: "100%", height: Math.min(c.h, 100) }}>

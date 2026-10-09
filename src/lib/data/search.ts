@@ -3,9 +3,10 @@
 // a finish, and answered by the browse engine (plane/browse-index.ts), which does not interpret `q`. Every function reads PUBLISHED FILES through the PlaneSource of the request and holds only instance memory (kinds P and M of contract 7.5): no database, no unstable_cache.
 // The names, arguments, result types and cache kinds are FROZEN (contract 7.12): this module only adds exports.
 //
+// A name opens its ORDINARY printing (search.ts ordinaryPrinting: the cheapest plain printing of a main set by MARKET), never the dearest; a name search the visitor did not sort is in RELEVANCE order (namePrintings, searchCards).
 // Cost: nm/0 is the 8,000 hottest oracles (480 KB); a query that the hot table answers with an exact or prefix match reads nothing else. Otherwise the tail chunks nm/1.. are parsed once per data commit (about 4 files, 2 MB) and every later query is memory.
-import { fold } from "../constants";
-import { didYouMean, nameTier, nicknameTargets, parseSearch, type ParsedSearch } from "../search";
+import { PRICE_MASK, fold, type Finish } from "../constants";
+import { didYouMean, nameTier, nicknameTargets, ordinaryRank, parseSearch, type ParsedSearch, type PrintingFacts } from "../search";
 import { getBrowseIndex, getCardsByIds, getScrySets, getSetByCode, getSets, resolveBySetNumber } from "./catalog";
 import { canonicalQuery } from "./core";
 import { pageOf } from "./lite";
@@ -211,25 +212,74 @@ export async function planSearch(q: string, o: Partial<CardQuery> = {}): Promise
   return { query, parsed };
 }
 
+// ── the printing a name opens, and the relevance order ─────────────────────────────────────────────────────────────────────────
+
+/** Set kind by set id (meta/sets.json), once per data commit: the ordinary-printing rule reads the kind of a printing's set. */
+const setKinds = (): Promise<ReadonlyMap<number, string>> =>
+  planeSource().then(({ ptr }) => memoByRef("search:kinds", memoKey(ptr), async () => new Map((await getSets()).map((s) => [s.id, s.kind] as const))));
+/** The columns of a browse-index row the ordinary-printing rule reads (the importer reads the same ones from cat/px: import.ts printingFacts). */
+const factsAt = (ix: BrowseIndex, kinds: ReadonlyMap<number, string>, i: number): PrintingFacts =>
+  ({ id: ix.id[i]!, cls: ix.cls[i]!, rarity: String.fromCharCode(ix.rar[i]!), treat: ix.dict.tr[ix.tr[i]!] ?? "", flags: ix.fl[i]!, mask: ix.mk[i]!, marketN: ix.mn[i]! < 0 ? null : ix.mn[i]!, marketF: ix.mf[i]! < 0 ? null : ix.mf[i]!, setKind: kinds.get(ix.setId[i]!) ?? "" });
+/** A rank no printing reaches by the rule alone (search.ts ordinaryRank tops out near 1.4e11): a printing whose printed name is not the one typed comes after every one that carries it. */
+const ALT_MISS = 1e13;
+
 /**
- * parseSearch (pure), then the engine. `q` is the TYPED text (not folded: `khc-29`, `231★` and `mh3:6` keep their shape), `o` the page's own filters. The result of a search is sorted by `o.sort` (default: market value); there is no relevance order across printings.
+ * The printing each name hit opens (the header dropdown's card rows, /api/search), by oracle: the ORDINARY printing (search.ts ordinaryPrinting: the cheapest plain printing of a main set by MARKET; a deck, promo,
+ * treatment or serialized printing only when the card has nothing plainer; a low-only unit never by its price), and for a hit that matched a printed (reskin) name, a printing that carries that name. One pass over the
+ * browse index (the published topSlug of nm/ is written by the importer with the same rule, but a request does not depend on it).
+ */
+export async function namePrintings(hits: readonly NameHit[], unit?: Finish): Promise<Map<number, CardLite>> {
+  const want = new Map<number, string>(); for (const h of hits) if (h.oracleNo) want.set(h.oracleNo, h.alt ? fold(h.alt) : "");
+  const out = new Map<number, CardLite>(); if (!want.size) return out;
+  const [ix, kinds] = await Promise.all([getBrowseIndex({ withOracle: false }), setKinds()]), best = new Map<number, { i: number; k: number }>();
+  for (let i = 0; i < ix.n; i++) {
+    const no = ix.or[i]!, alt = want.get(no); if (alt === undefined || !(ix.mk[i]! & PRICE_MASK.LISTED)) continue;
+    if (unit && !(ix.mk[i]! & (unit === "N" ? PRICE_MASK.HASN : PRICE_MASK.HASF))) continue;
+    const k = ordinaryRank(factsAt(ix, kinds, i), unit) + (alt && fold(ix.alt.get(ix.id[i]!)) !== alt ? ALT_MISS : 0), cur = best.get(no);
+    if (!cur || k < cur.k) best.set(no, { i, k });                                        // rows are in id order: a tie keeps the lower id
+  }
+  for (const [no, b] of best) out.set(no, ix.liteAt(b.i, unit));
+  return out;
+}
+
+/**
+ * The RELEVANCE order of a name search (what /browse?q= and the dropdown show when the visitor picked no sort): the planner's oracle order (`order`: exact before prefix before word matches, hottest first among
+ * equals); within a card, the printings whose own or printed name matches the words best, then the ordinary-printing rank (search.ts ordinaryRank: the ordinary printings, cheapest MARKET first, so the first tile
+ * is the printing the name opens; then the other regular ones, the promos and special treatments, the serialized ones, each cheapest first; a unit without a market last, never ranked by a thin listing), then id.
+ * The engine filters (select), this orders and pages.
+ */
+async function relevancePage(ix: BrowseIndex, query: Partial<CardQuery>, order: readonly number[], text: string): Promise<CardPage> {
+  const cq = canonicalQuery(query), unit = cq.finish, rows = ix.select(cq), kinds = await setKinds(), qk = fold(text), at = new Map(order.map((no, k) => [no, k] as const));
+  const keyed = rows.map((i) => ({ i, o: at.get(ix.or[i]!) ?? order.length, t: qk ? printingTier(ix.name[i]!, ix.alt.get(ix.id[i]!), qk) : 0, r: ordinaryRank(factsAt(ix, kinds, i), unit) }));
+  keyed.sort((a, b) => a.o - b.o || a.t - b.t || a.r - b.r || a.i - b.i);
+  const off = (cq.page - 1) * cq.per;
+  return pageOf(keyed.slice(off, off + cq.per).map((x) => ix.liteAt(x.i, unit)), rows.length, cq.page, cq.per);
+}
+/** The engine's answer to a planned query: relevance when the caller left the sort to us and the words named cards, else the sort asked for (default: market value). */
+const answer = (ix: BrowseIndex, query: Partial<CardQuery>, byRelevance: boolean, text: string): Promise<CardPage> =>
+  byRelevance && query.oracleNos?.length ? relevancePage(ix, query, query.oracleNos, text) : Promise.resolve(ix.query(canonicalQuery(query)));
+
+/**
+ * parseSearch (pure), then the engine. `q` is the TYPED text (not folded: `khc-29`, `231★` and `mh3:6` keep their shape), `o` the page's own filters. A search that names cards and has no `o.sort` is in RELEVANCE order
+ * (relevancePage: the best-matching card first, its ordinary printing first, then the rest cheapest first): a player who types "sol ring" wants the Sol Ring they would buy, not the dearest serialized one. An explicit
+ * `o.sort` wins; a query that names no card (a treatment or a finish alone, "borderless") keeps the engine's default, market value.
  * Words the grammar took for a finish or a treatment are a REQUEST, not part of a name: when they leave nothing, the whole text is tried as a name ("scroll rack", "inverted iceberg", "judge of currents").
  */
 export async function searchCards(q: string, o: Partial<CardQuery> = {}): Promise<CardPage> {
-  const typed = String(q ?? "").slice(0, 120), ix = await indexFor(o), cq = canonicalQuery({ ...o, q: undefined });
+  const typed = String(q ?? "").slice(0, 120), ix = await indexFor(o), cq = canonicalQuery({ ...o, q: undefined }), byRelevance = o.sort == null;
   if (!fold(typed)) return ix.query(cq);
   const plan = await planSearch(typed, o);
   if (plan.direct) {
     const unit = plan.parsed.finish, rows = unit && plan.direct.length ? [...(await getCardsByIds(plan.direct.map((c) => c.id), { unit })).values()] : plan.direct;
     return pageOf(rows.slice(0, cq.per), rows.length, 1, cq.per);
   }
-  const page = ix.query(canonicalQuery(plan.query));
+  const page = await answer(ix, plan.query, byRelevance, plan.parsed.text);
   if (page.total > 0 || !(plan.parsed.treat.length || plan.parsed.finish)) return page;
   const nos = (await rankedNames(fold(typed), CANDIDATES)).map((h) => h.oracleNo!).filter((n) => !!n);
   if (!nos.length) return page;
   const again: Partial<CardQuery> = { ...o, q: undefined, oracleNos: nos };
   if (plan.parsed.set) { const f = await setFilter(ix, plan.parsed.set); if (f) Object.assign(again, f); }
-  return ix.query(canonicalQuery(again));
+  return answer(ix, again, byRelevance, fold(typed));
 }
 
 /** "Did you mean": up to three real names close to what was typed, from the hot table. [] when the query already finds something to the eye or is too short. */

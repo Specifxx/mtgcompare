@@ -12,8 +12,8 @@ import { computeFees, parseRate, type CommissionBase } from "@/lib/selling-fees"
 // processing rate: both marketplaces run tiered, frequently-changing fee
 // schedules (see TCGplayer's own fee page), and printing a specific percentage here
 // that later goes stale would be worse than not printing one at all. Instead —
-// same move as the Box EV calculator's "Bandai publishes no pull rates, so
-// you tune the rates" — this asks the seller to type in their own
+// same move as the Box EV calculator's "Wizards publishes the slot structure,
+// not every rate, so you tune the rates" — this asks the seller to type in their own
 // current rate from their seller dashboard, and does the stacked-fee math for
 // them from there. eBay's ~13.25% figure is offered as a starting point only
 // because it's the same hedged ("commonly around") figure RiftCompare's fee

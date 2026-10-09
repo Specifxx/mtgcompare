@@ -189,5 +189,10 @@ test("the page and calculator say what is published and what is left at zero, an
   assert.match(calc, /Wizards of the Coast publishes the slot structure/);
   assert.match(calc, /valued at zero/);
   assert.doesNotMatch(calc, /Bandai|One Piece|community estimate/);
+  // The /tools hub's FAQ answers "Is a Magic booster box worth opening?" (visible and as FAQPage JSON-LD): it said Bandai and "community estimates" until 2026-10-09.
+  const hub = read("src/app/tools/page.tsx");
+  assert.match(hub, /Wizards of the Coast publishes the slot structure of its boosters/);
+  assert.match(hub, /valued at zero until you give it a rate/);
+  assert.doesNotMatch(hub, /Bandai|One Piece|community estimate/);
   assert.match(read("next.config.js"), /source: "\/tools\/box-value", destination: "\/tools\/box-ev", permanent: true/);
 });

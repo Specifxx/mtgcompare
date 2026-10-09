@@ -7,7 +7,9 @@ import path from "node:path";
 import { ROOT, ratchet, stripComments, summary, walk } from "./helpers/ratchet";
 
 const CODE = (f: string) => /\.(tsx?|js|cjs|mjs)$/.test(f);
-const OP_BRAND = /\b(?:OP Compare|OpCompare|opcompare|One Piece|ONE PIECE|onepiece|Straw Hat|Specifxx\/OpCompare)\b/;
+// The brand in prose, AND in URLs and identifiers: TCGplayer's product-line slug (one-piece-card-game), a constant (TCGPLAYER_ONE_PIECE) and a helper (onePieceEbayQuery)
+// carried the old game through the spaced spelling's net until 2026-10-09, the house banners linking One Piece's search under "Shop Magic singles & sealed".
+const OP_BRAND = /\b(?:OP Compare|OpCompare|opcompare|One Piece|ONE PIECE|onepiece|Straw Hat|Specifxx\/OpCompare)\b|one-piece|ONE_PIECE|onePiece/;
 const LEGACY: [string, RegExp][] = [
   ["OP rarity codes", /["'](?:SEC|SR|UC|TR|PR)["']\s*[,\])}:]|(?:rarity|r)\s*===?\s*["'](?:SEC|SR|UC|TR|PR|L)["']/],   // "L" is Land in MTG; flagged only as a comparison
   ["OP printing keys", /\bprinting\s*(?:===?|!==?)\s*["'](?:alt|manga|sp|treasure|parallel|reprint|foil)["']|PRINTING_KEYS\.includes\(["'](?:manga|sp)["']\)/],
@@ -51,6 +53,15 @@ test("the comment stripper keeps code that looks like a comment, and removes com
   assert.ok(out.includes("https://x.test/a") && out.includes("/[/*]+/g") && out.includes("`a${'//'}b`"), "a URL, a regex and a template are code");
   assert.ok(out.includes("One Piece"), "what follows a doc comment is still there");
   assert.equal(out.split("\n").length, src.split("\n").length, "line numbers do not move");
+});
+test("the brand check reads the old game's URL slug and identifiers, not only its prose", () => {
+  for (const leftover of [
+    "https://www.tcgplayer.com/search/one-piece-card-game/product?productLineName=one-piece-card-game&view=grid",
+    "const TCGPLAYER_ONE_PIECE = 1;",
+    "export const onePieceEbayQuery = magicEbayQuery;",
+    "the One Piece Card Game",
+  ]) assert.ok(OP_BRAND.test(leftover), leftover);
+  for (const magic of ["https://www.tcgplayer.com/search/magic/product?productLineName=magic&view=grid", "magicEbayQuery", "a card in one piece"]) assert.ok(!OP_BRAND.test(magic), magic);
 });
 test("the sister-site array is the only exemption, and it is exempt only inside site.ts", () => {
   const site = path.join(ROOT, "src/lib/site.ts");

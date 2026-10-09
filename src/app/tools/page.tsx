@@ -54,7 +54,7 @@ const FAQS = [
   },
   {
     q: "Do I need an account to use MTG Compare tools?",
-    a: `Not for most of them. Browsing, comparing prices and running the calculators need no account. A free account adds a watchlist of up to ${FREE_WATCHLIST_LIMIT} cards with new-low alerts, a portfolio of up to ${FREE_PORTFOLIO_LIMIT} cards with a set checklist of what each set is missing, and the top rows of Deal Finder and Rising Cards. Plus adds an unlimited watchlist and portfolio (a whole set fits), every Deal Finder row, target-price alerts, sealed watches on up to ${SEALED_WATCH_LIMIT_PLUS} products (an alert when a box is back in stock or at RRP) and an ad-free site; Premium adds Best Basket (the store-by-store plan, at the minimum condition you set), every Rising Cards pick, the full Demand Finder and a deck price watch (a saved list re-priced delivered after every update, up to ${DECK_WATCH_LIMIT} lists).`,
+    a: `Not for most of them. Browsing, comparing prices and running the calculators need no account. A free account adds a watchlist of up to ${FREE_WATCHLIST_LIMIT} cards with new-low alerts, a portfolio of up to ${FREE_PORTFOLIO_LIMIT} cards with a set checklist of what each set is missing, and the top rows of Deal Finder and Rising Cards. Plus adds an unlimited watchlist and portfolio (a whole set fits), every Deal Finder row, target-price alerts, sealed watches on up to ${SEALED_WATCH_LIMIT_PLUS} products (an alert when a box is back in stock, drops in price or reaches the price you set) and an ad-free site; Premium adds Best Basket (the store-by-store plan, at the minimum condition you set), every Rising Cards pick, the full Demand Finder and a deck price watch (a saved list re-priced delivered after every update, up to ${DECK_WATCH_LIMIT} lists).`,
   },
   {
     q: "Which Magic tool should I use to buy a whole decklist?",
@@ -62,7 +62,7 @@ const FAQS = [
   },
   {
     q: "Is a Magic booster box worth opening?",
-    a: "Use the box EV calculator: it compares a sealed box's live price against the expected value of its pulls at current singles prices. Bandai publishes no pull rates, so its rates are community estimates set low on purpose, and you can change every one. As a rule, buying the singles you actually want is cheaper than opening product for them.",
+    a: "Use the box EV calculator: it compares a sealed box's live price against the expected value of its pulls at current singles prices. Wizards of the Coast publishes the slot structure of its boosters, not a probability for every card, so the calculator uses that structure and nothing else: a slot Wizards gives no split for is valued at zero until you give it a rate, and you can change every rate. As a rule, buying the singles you actually want is cheaper than opening product for them.",
   },
 ];
 
@@ -128,7 +128,7 @@ const GROUPS: ToolGroup[] = [
       {
         href: "/sealed",
         title: "Sealed prices",
-        desc: `Booster boxes, packs, starter decks and premium products priced across stores — and, with Plus, a watch that alerts you on a restock or at RRP, checked ${SEALED_CHECK_CADENCE}.`,
+        desc: `Booster boxes, packs, bundles, Commander decks and Secret Lair drops priced across stores — and, with Plus, a watch that alerts you on a restock, a price drop or the price you set, checked ${SEALED_CHECK_CADENCE}.`,
       },
     ],
   },

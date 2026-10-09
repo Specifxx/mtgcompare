@@ -139,19 +139,22 @@ export function ebaySearchUrl(country: Country, query: string, source?: string):
   return ebayAffiliateUrl(url, source);
 }
 
+/** The first path segment of the page a link is rendered on ("/card/x" -> "card", "/" -> "home"); undefined when `loc` is not a URL or a path. */
+function pageOf(loc: string): string | undefined {
+  try {
+    return new URL(loc, SITE_URL).pathname.split("/").filter(Boolean)[0] ?? "home";
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Tag an outbound product link. eBay EPN → TCGplayer (Impact) → plain link.
  * `subId` is the retailer key, `loc` the page it was rendered on (path only).
  */
 export function affiliateUrl(url: string | null | undefined, subId = "mc", loc: string = SITE_URL): string {
   if (!url) return "#";
-  const page = (() => {
-    try {
-      return new URL(loc, SITE_URL).pathname.split("/").filter(Boolean)[0] ?? "home";
-    } catch {
-      return undefined;
-    }
-  })();
+  const page = pageOf(loc);
   try {
     const u = new URL(url);
     if (/(?:^|\.)ebay\./i.test(u.hostname)) return ebayAffiliateUrl(url, affiliateSubId(subId, page));
@@ -166,6 +169,28 @@ export function affiliateUrl(url: string | null | undefined, subId = "mc", loc: 
     /* not an absolute URL — leave it untouched */
   }
   return url;
+}
+
+// ── TCGplayer: where the store-wide banners and ads land ────────────────────
+/**
+ * TCGplayer's Magic: The Gathering search (product line `magic`, TCGCSV category 1). Every store-wide TCGplayer banner and ad
+ * ("Shop Magic singles & sealed": the card page's house banner, the footer box, the partners strip, the Impact creative) lands
+ * here, through affiliateUrl like a card's own TCGplayer link; a single product links its own page (constants.ts tcgplayerUrl).
+ * One constant, so no banner carries a sister site's product line again: the house banner and the footer box linked the
+ * One Piece Card Game's search until 2026-10-09 (tests/affiliate.test.ts now fails on any other product line in src/).
+ */
+export const TCGPLAYER_MAGIC_SEARCH = "https://www.tcgplayer.com/search/magic/product?productLineName=magic&view=grid";
+
+/**
+ * An Impact CREATIVE link for an owner-supplied ad id (NEXT_PUBLIC_TCGPLAYER_CREATIVES): our own Impact link
+ * (`…/c/<account>/<ad>/<program>`) with that ad id in place of the text link's, deep-linked (`u=`) to `url`, so the click
+ * lands where our own copy says whatever landing page the creative was set up with. Null without an Impact link of our
+ * own, with one not in that shape, or with an ad id that is not digits: the ad then renders nothing, never a guessed link.
+ */
+export function tcgplayerCreativeUrl(adId: string, url: string, subId: string, loc: string = SITE_URL): string | null {
+  const m = /^(https:\/\/[^?#]+\/c\/\d+)\/\d+\/(\d+)\/?$/.exec(tcgplayerImpactLink());
+  if (!m || !/^\d+$/.test(adId)) return null;
+  return `${m[1]}/${adId}/${m[2]}?u=${encodeURIComponent(url)}&sharedid=${encodeURIComponent(affiliateSubId("mc", subId, pageOf(loc)))}`;
 }
 
 export function outboundRel(): string {
@@ -184,6 +209,3 @@ export function isPaidLink(href: string | null | undefined): boolean {
     return false;
   }
 }
-
-/** @deprecated the old name, kept until every importer is on magicEbayQuery (WP06 request in each owner's file). */
-export const onePieceEbayQuery = magicEbayQuery;

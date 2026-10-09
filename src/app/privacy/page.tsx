@@ -99,10 +99,11 @@ export default function Privacy() {
       </p>
       <h2>Where the card data comes from</h2>
       <p>
-        Card data and images come from Scryfall and prices from TCGplayer and
-        public store listings, all gathered by us on the server before you load
-        a page. Your browser loads card images from those providers&apos; image
-        servers, which see the same request details any image request carries.
+        Card data comes from Scryfall and prices from TCGplayer and public store
+        listings, all gathered by us on the server before you load a page. Your
+        browser loads card images straight from TCGplayer&apos;s and
+        Scryfall&apos;s image servers, which see the same request details any
+        image request carries.
       </p>
       <h2>Links to stores</h2>
       <p>

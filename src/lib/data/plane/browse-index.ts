@@ -108,6 +108,20 @@ export class BrowseIndex {
   /** Answers a CANONICAL CardQuery (core.ts canonicalQuery) by one pass over the rows and a walk down a presorted order. Not interpreted here: `q` (free text; the search planner of WP07 resolves it to oracleNos / sc / treats / finish first) and `rootId` (a family is read from the card's
    *  own bucket; asking the index for it throws). Hidden set kinds (art-series, oversized) are out unless `includeHidden` is set or the query names the set in `setIds`. A filter that needs the oracle columns throws on an index loaded without them. */
   query(q: CardQuery): CardPage {
+    const m = this.match(q); if (!m) return pageOf([], 0, q.page, q.per);
+    const { ok, total } = m, f = q.finish;
+    const ord = this.order(q.sort, f), off = (q.page - 1) * q.per, items: CardLite[] = []; let seen = 0;
+    for (let k = 0; k < ord.length && items.length < q.per; k++) { const i = ord[k]!; if (!ok[i]) continue; if (seen++ < off) continue; items.push(this.liteAt(i, f)); }
+    return pageOf(items, total, q.page, q.per);
+  }
+  /** The rows a CANONICAL CardQuery matches, in index (id) order, unsorted and unpaged: for an order the presorted keys cannot express (the search planner's relevance, data/search.ts). Same filters, same errors as query(). */
+  select(q: CardQuery): number[] {
+    const m = this.match(q), out: number[] = []; if (!m) return out;
+    for (let i = 0; i < this.n; i++) if (m.ok[i]) out.push(i);
+    return out;
+  }
+  /** The one filter pass of query() and select(): ok[i] = 1 for every row the query keeps. null = nothing can match (an unknown Scryfall code). */
+  private match(q: CardQuery): { ok: Uint8Array; total: number } | null {
     if (q.rootId != null) throw new Error("CardQuery.rootId is answered from the card's cat bucket (getCardDetail family), not by the browse index");
     if ((q.identity || q.keyword || q.format || q.sort === "popular") && !this.hasOracle) throw new Error("this browse index was loaded without the oracle columns: identity, keyword, format and the popular sort need withOracle");
     const n = this.n, ok = new Uint8Array(n); let total = 0; const f = q.finish;
@@ -117,7 +131,7 @@ export class BrowseIndex {
     const hide = !q.includeHidden && this.hidden.size > 0 && !(q.setIds?.length);
     const setSet = q.setIds?.length ? new Set(q.setIds) : null, rar = q.rarities?.length ? q.rarities.join("") : "", classes = q.classes ?? [0];
     const typeSet = q.types?.length ? new Set(q.types.map((t) => PRIMARY_TYPES.indexOf(t as never)).filter((x) => x >= 0)) : null;
-    const scIdx = q.sc ? this.dict.sc.indexOf(q.sc) : -1; if (q.sc && scIdx < 0) return pageOf([], 0, q.page, q.per);
+    const scIdx = q.sc ? this.dict.sc.indexOf(q.sc) : -1; if (q.sc && scIdx < 0) return null;
     const oracles = q.oracleNos?.length ? new Set(q.oracleNos) : q.oracleNo != null ? new Set([q.oracleNo]) : null;
     const col = q.colors; const idn = q.identity;
     for (let i = 0; i < n; i++) {
@@ -144,9 +158,7 @@ export class BrowseIndex {
       if (q.pricedIn) { const mi = MARKETS.indexOf(q.pricedIn); if (this.low[(i * 2 + fi) * 6 + mi]! < 0) continue; }
       ok[i] = 1; total++;
     }
-    const ord = this.order(q.sort, f), off = (q.page - 1) * q.per, items: CardLite[] = []; let seen = 0;
-    for (let k = 0; k < ord.length && items.length < q.per; k++) { const i = ord[k]!; if (!ok[i]) continue; if (seen++ < off) continue; items.push(this.liteAt(i, f)); }
-    return pageOf(items, total, q.page, q.per);
+    return { ok, total };
   }
   /** One pass: counts of the listed class-0 rows by rarity, primary type and colour (the facet pages). */
   facetCounts(): { rarity: Record<string, number>; type: Record<string, number>; treat: Record<string, number>; color: Record<string, number> } {
