@@ -20,6 +20,7 @@ import {
   subscriptionIdFromInvoice,
   tierOfSubscription,
 } from "../src/lib/stripe-entitlement";
+import { checkoutAllowed, checkoutOpen, stripeEnabled, stripeModeOf } from "../src/lib/stripe";
 
 const T = 1_900_000_000; // epoch seconds
 const price = (tier: string, site = "mtgcompare") => ({ id: "price_1", metadata: { site, tier } });
@@ -191,4 +192,50 @@ test("the proof line and the proof route agree on the count's key", () => {
   // (falling back to `dealCount`), so neither side can drift alone.
   assert.match(route, /deals: dealCountValue/);
   assert.match(line, /\.deals \?\? o\.dealCount/);
+});
+
+// MTG Compare runs on a Stripe TEST key until the owner takes payments (docs/SETUP.md section 6). Until 2026-10-09 every buy
+// surface asked only "is a key set?", so /premium showed clickable Get Plus / Get Premium buttons that opened a test-mode
+// checkout: nobody could pay, and a test card (4242 ...) would have bought a real entitlement through the webhook.
+// The key's own prefix decides now. The fake keys below are short on purpose: real key formats trip secret scanners.
+test("the Stripe mode is read from the key's prefix: sk_/rk_ live or test, nothing else counts as live", () => {
+  assert.equal(stripeModeOf("sk_test_FAKE"), "test");
+  assert.equal(stripeModeOf("rk_test_FAKE"), "test", "a restricted test key");
+  assert.equal(stripeModeOf("sk_live_FAKE"), "live");
+  assert.equal(stripeModeOf("rk_live_FAKE"), "live", "a restricted live key");
+  assert.equal(stripeModeOf("  sk_live_FAKE\n"), "live", "a pasted key's whitespace is not part of it");
+  assert.equal(stripeModeOf(undefined), "off");
+  assert.equal(stripeModeOf(""), "off");
+  assert.equal(stripeModeOf("pk_test_FAKE"), "unknown", "a publishable key in the secret's place is not a live checkout");
+  assert.equal(stripeModeOf("pk_live_FAKE"), "unknown");
+  assert.equal(stripeModeOf("whsec_FAKE"), "unknown");
+  assert.equal(stripeModeOf("SK_LIVE_FAKE"), "unknown", "Stripe's prefixes are lower case");
+});
+
+test("a new checkout opens to everyone only on a live key; a test key admits an admin only; no key or a strange one, no one", () => {
+  assert.equal(checkoutAllowed("live", false), true);
+  assert.equal(checkoutAllowed("live", true), true);
+  assert.equal(checkoutAllowed("test", false), false, "a visitor never reaches a test-mode checkout");
+  assert.equal(checkoutAllowed("test", true), true, "the owner can still test the flow");
+  for (const m of ["off", "unknown"] as const) {
+    assert.equal(checkoutAllowed(m, false), false, m);
+    assert.equal(checkoutAllowed(m, true), false, m);
+  }
+});
+
+test("checkoutOpen() follows STRIPE_SECRET_KEY: closed on the test key, open on the live one; billing for an existing subscription only needs a key", () => {
+  const saved = process.env.STRIPE_SECRET_KEY;
+  try {
+    process.env.STRIPE_SECRET_KEY = "sk_test_FAKE";
+    assert.equal(checkoutOpen(), false);
+    assert.equal(stripeEnabled(), true, "the portal and plan changes of an existing (test) subscription keep working");
+    process.env.STRIPE_SECRET_KEY = "sk_live_FAKE";
+    assert.equal(checkoutOpen(), true, "it switches itself on when the live key arrives");
+    delete process.env.STRIPE_SECRET_KEY;
+    assert.equal(checkoutOpen(), false);
+    assert.equal(stripeEnabled(), false);
+  } finally {
+    if (saved === undefined) delete process.env.STRIPE_SECRET_KEY;
+    else process.env.STRIPE_SECRET_KEY = saved;
+  }
 });

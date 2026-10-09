@@ -14,7 +14,7 @@ import { trackEvent } from "@/lib/analytics";
 import { Icon } from "./Icon";
 import { AnnualPriceBlock } from "./AnnualPriceBlock";
 import { StripeErrorNotice } from "./StripeErrorNotice";
-import { startCheckout } from "./PricingCards";
+import { CHECKOUT_SOON, startCheckout } from "./PricingCards";
 import { TierComparisonTable } from "./TierComparisonTable";
 import { useEscapeLayer, useModalFlag, useScrollLock } from "./ui/Dialog";
 
@@ -25,7 +25,8 @@ import { useEscapeLayer, useModalFlag, useScrollLock } from "./ui/Dialog";
 //   Plus member       → "Upgrade to Premium — $X" in place (/api/premium/upgrade,
 //                       prorated, at the member's own interval; wave 2)
 //   Premium member    → "You're Premium", their tools
-//   Stripe not set up → "Opening soon", exactly as /premium shows it
+//   checkout not open → "Checkout opens soon", exactly as /premium shows it
+//                       (no Stripe key, or a test key: lib/stripe.ts checkoutOpen)
 //   signed out        → /premium/start with the selection and the page they
 //                       were on (lib/premium-start.ts; wave 2), the sign-in
 //                       step inside checkout
@@ -224,7 +225,7 @@ export function PlanDialog({ initialTier, surface, checkoutOpen, providers = [],
                   {!checkoutOpen ? (
                     <>
                       <span data-autofocus tabIndex={-1} className="block rounded-lg border border-ink-700 px-4 py-2.5 text-center text-sm text-slate-400">
-                        Opening soon
+                        {CHECKOUT_SOON}
                       </span>
                       <p className="mt-2 text-center text-[11px] text-slate-500">Subscriptions aren&apos;t open yet. Everything free stays free meanwhile.</p>
                     </>

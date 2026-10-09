@@ -5,15 +5,21 @@ import { join } from "node:path";
 import {
   BOOSTER_SET_KINDS,
   CHASE_POOLS,
+  boxSetLabel,
   cheapestBoxOffer,
   computeEv,
+  defaultBoxSet,
   derivedRates,
+  hasComputedEv,
+  isReleased,
   oneInPacks,
+  openingEv,
   poolOf,
   poolStats,
   unvaluedSlots,
   verdictFor,
   type PoolKey,
+  type PoolRow,
 } from "../src/lib/box-ev";
 import { BOOSTER_TYPES, DRAFT_BOOSTER, PLAY_BOOSTER, boosterTypeOf, cardsInPack } from "../src/lib/pack-composition";
 
@@ -195,4 +201,73 @@ test("the page and calculator say what is published and what is left at zero, an
   assert.match(hub, /valued at zero until you give it a rate/);
   assert.doesNotMatch(hub, /Bandai|One Piece|community estimate/);
   assert.match(read("next.config.js"), /source: "\/tools\/box-value", destination: "\/tools\/box-ev", permanent: true/);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Which set the calculator opens on. Real pool rows of the published plane
+// (price day 2026-10-08), aggregated exactly as /tools/box-ev aggregates them:
+// Star Trek (TRK, out 2026-11-13) is the newest set with a Play Booster box and
+// was the set the page opened on, with 24 previewed cards at pre-order prices;
+// Reality Fracture (FRA, out 2026-10-02) and The Hobbit (HOB, 2026-08-14) are out.
+// ─────────────────────────────────────────────────────────────────────────────
+const TODAY = "2026-10-09";
+const row = (pool: PoolKey, avgUsdCents: number, topUsdCents: number, priced: number, total: number): PoolRow => ({ pool, avgUsdCents, topUsdCents, priced, total });
+const TRK_POOLS: PoolRow[] = [row("Common", 299, 299, 2, 2), row("Uncommon", 256, 299, 6, 7), row("Rare", 1932, 3132, 3, 4), row("Mythic", 1324, 5297, 1, 4), row("AltRare", 0, 0, 0, 2), row("AltMythic", 0, 0, 0, 5)];
+const FRA_POOLS: PoolRow[] = [row("Common", 22, 115, 71, 71), row("Uncommon", 26, 111, 109, 109), row("Rare", 111, 848, 64, 64), row("Mythic", 877, 4023, 26, 26), row("Land", 22, 34, 20, 20), row("AltCommon", 107, 926, 15, 15), row("AltRare", 192, 1252, 64, 64), row("AltMythic", 1944, 7714, 36, 36), row("SpecialFoil", 28748, 65665, 23, 24)];
+const HOB_POOLS: PoolRow[] = [row("Common", 14, 27, 60, 60), row("Uncommon", 19, 31, 55, 55), row("Rare", 65, 385, 53, 53), row("Mythic", 798, 3168, 15, 15), row("Land", 17, 21, 10, 10), row("AltCommon", 26, 36, 12, 12), row("AltRare", 191, 1300, 50, 50), row("AltMythic", 145818, 2450000, 17, 17), row("SpecialFoil", 5782, 45477, 39, 39)];
+const PLAY_BOX = [{ key: "play", packs: 30 }];
+const boxSet = (setCode: string, setName: string, releasedOn: string | null, pools: PoolRow[]) => ({ setCode, setName, releasedOn, released: isReleased(releasedOn, TODAY), pools, boosters: PLAY_BOX });
+const TRK = boxSet("TRK", "Star Trek", "2026-11-13", TRK_POOLS);
+const FRA = boxSet("FRA", "Reality Fracture", "2026-10-02", FRA_POOLS);
+const HOB = boxSet("HOB", "The Hobbit", "2026-08-14", HOB_POOLS);
+
+test("a set is out from its release day (UTC); a set with no date counts as out", () => {
+  assert.equal(isReleased("2026-11-13", TODAY), false, "Star Trek");
+  assert.equal(isReleased("2026-10-02", TODAY), true, "Reality Fracture");
+  assert.equal(isReleased("2026-11-13", "2026-11-13"), true, "release day itself");
+  assert.equal(isReleased(null, TODAY), true);
+});
+
+test("why the release date decides: an unreleased set's preview cards make a large, 'computed' and meaningless EV", () => {
+  const trk = openingEv(TRK);
+  // 7 x 299 + 3 x 256 + 6/7 x 1932 + 1/7 x 1324 a pack (no Land pool; the Booster Fun pools have no published rate), x 30 packs.
+  const pack = 7 * 299 + 3 * 256 + (6 / 7) * 1932 + (1 / 7) * 1324;
+  assert.equal(trk.evBoxCents, Math.round(pack * 30));
+  assert.ok(trk.evBoxCents > 100_000, "over US$1,000 a box from 24 previewed cards");
+  assert.equal(trk.pricedShare, 12 / 17);
+  assert.equal(hasComputedEv(trk), true, "its numbers alone pass: only the release date tells it apart");
+  const fra = openingEv(FRA);
+  assert.equal(fra.evBoxCents, Math.round((7 * 22 + 3 * 26 + (6 / 7) * 111 + (1 / 7) * 877 + 22) * 30));
+  assert.equal(hasComputedEv(fra), true);
+});
+
+test("the calculator opens on the newest RELEASED set with a computed EV, never on Star Trek", () => {
+  assert.equal(defaultBoxSet([TRK, FRA, HOB])?.setCode, "FRA");
+  // A released set whose paying pools are still mostly unpriced (Star Trek's real mythic rows: 1 of 4 priced) is passed over.
+  const thin = { ...TRK, setCode: "THIN", released: true, pools: TRK_POOLS.filter((p) => p.pool === "Mythic" || p.pool === "AltMythic") };
+  assert.equal(hasComputedEv(openingEv(thin)), false);
+  assert.equal(defaultBoxSet([TRK, thin, HOB])?.setCode, "HOB");
+  // Fallbacks: the newest released set, then the first set; never nothing while there is a set.
+  assert.equal(defaultBoxSet([TRK, thin])?.setCode, "THIN");
+  assert.equal(defaultBoxSet([TRK])?.setCode, "TRK");
+  assert.equal(defaultBoxSet([]), null);
+});
+
+test("the picker labels a set that is not out yet, with its date", () => {
+  assert.equal(boxSetLabel(TRK), "Star Trek (TRK) · unreleased, out Nov 13, 2026");
+  assert.equal(boxSetLabel(FRA), "Reality Fracture (FRA)");
+  assert.equal(boxSetLabel({ ...TRK, releasedOn: null }), "Star Trek (TRK) · unreleased");
+});
+
+test("the page decides release and the opening set on the server; the calculator labels, opens there and gives an unreleased set no verdict", () => {
+  const page = read("src/app/tools/box-ev/page.tsx");
+  assert.match(page, /released: isReleased\(s\.releasedOn, today\)/);
+  assert.match(page, /<BoxEvCalculator sets=\{sets\} offers=\{boxOffers\} initialSetCode=\{defaultBoxSet\(sets\)\?\.setCode\} \/>/);
+  const calc = read("src/components/BoxEvCalculator.tsx");
+  assert.match(calc, /const opening = sets\.find\(\(s\) => s\.setCode === initialSetCode\) \?\? sets\[0\];/);
+  assert.match(calc, /useState\(opening\?\.setCode \?\? ""\)/);
+  assert.match(calc, /<option key=\{s\.setCode\} value=\{s\.setCode\}>\{boxSetLabel\(s\)\}<\/option>/);
+  assert.match(calc, /const verdict = set\.released \? verdictFor\(/);
+  assert.match(calc, /is not out until/);
+  assert.match(calc, /evForPools\(\{ pools: set\.pools, booster, packs, overrides, boxPriceCents: priceUsdCents \}\)/, "one EV function for the calculator and the opening-set choice");
 });

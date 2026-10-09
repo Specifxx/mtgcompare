@@ -10,11 +10,11 @@ import { useCountry } from "@/components/CountryProvider";
 import CardQuickLink from "@/components/CardQuickLink";
 import { CardArt } from "@/components/CardTile";
 import {
-  computeEv,
-  derivedRates,
+  boxSetLabel,
+  evForPools,
   isChasePool,
   oneInPacks,
-  poolStatsFromPools,
+  releaseDateLabel,
   verdictFor,
   DEFAULT_PACKS,
   POOL_LABEL,
@@ -68,6 +68,10 @@ export interface BoxEvSet {
   setCode: string;
   setSlug: string;
   setName: string;
+  /** YYYY-MM-DD, or null when the catalogue has no date. */
+  releasedOn: string | null;
+  /** Out on the day the page was rendered (lib/box-ev.ts isReleased, decided on the server so the picker hydrates as rendered). */
+  released: boolean;
   /** The booster boxes of the set that Wizards' published structures cover. */
   boosters: BoxEvBooster[];
   pools: BoxEvPool[];
@@ -86,12 +90,18 @@ export interface BoxEvOffer {
 /** setCode → market → offer. Only sets and markets with an open box offer appear. */
 export type BoxEvOffers = Record<string, Partial<Record<string, BoxEvOffer>>>;
 
-export function BoxEvCalculator({ sets, offers = {} }: { sets: BoxEvSet[]; offers?: BoxEvOffers }) {
+/**
+ * `initialSetCode` is the set the page chose to open on (lib/box-ev.ts
+ * defaultBoxSet: the newest RELEASED set with a computed EV); the list itself
+ * stays newest first, unreleased sets labelled.
+ */
+export function BoxEvCalculator({ sets, offers = {}, initialSetCode }: { sets: BoxEvSet[]; offers?: BoxEvOffers; initialSetCode?: string }) {
   const { country } = useCountry();
   const currency = currencyOf(country);
-  const [setCode, setSetCode] = useState(sets[0]?.setCode ?? "");
-  const [boosterKey, setBoosterKey] = useState(sets[0]?.boosters[0]?.key ?? "play");
-  const [packs, setPacks] = useState(sets[0]?.boosters[0]?.packs ?? DEFAULT_PACKS);
+  const opening = sets.find((s) => s.setCode === initialSetCode) ?? sets[0];
+  const [setCode, setSetCode] = useState(opening?.setCode ?? "");
+  const [boosterKey, setBoosterKey] = useState(opening?.boosters[0]?.key ?? "play");
+  const [packs, setPacks] = useState(opening?.boosters[0]?.packs ?? DEFAULT_PACKS);
   // null = "use the cheapest box we track" (see `offer` below); a string is what
   // the visitor typed, which wins until they switch set.
   const [typedPrice, setTypedPrice] = useState<string | null>(null);
@@ -117,20 +127,17 @@ export function BoxEvCalculator({ sets, offers = {} }: { sets: BoxEvSet[]; offer
 
   const calc = useMemo(() => {
     if (!set) return null;
-    const stats = poolStatsFromPools(set.pools);
-    const counts = new Map<PoolKey, number>(set.pools.map((p) => [p.pool, p.total]));
-    const base = derivedRates({ counts, booster });
-    const rates = { ...base, ...overrides };
     const priceCents = Math.round((parseFloat(boxPrice) || 0) * 100);
     // The box price is typed in the DISPLAY currency; the model works in USD, so
     // convert back rather than comparing two different currencies.
     const priceUsdCents = fx > 0 ? Math.round(priceCents / fx) : 0;
-    return { ...computeEv({ stats, rates, packs, boxPriceCents: priceUsdCents }), rates, base };
+    return evForPools({ pools: set.pools, booster, packs, overrides, boxPriceCents: priceUsdCents });
   }, [set, booster, packs, overrides, boxPrice, fx]);
 
   if (!set || !calc) return null;
 
-  const verdict = verdictFor(calc.ratio, { pricedShare: calc.pricedShare, chaseShare: calc.chaseShare });
+  // A set not out yet has a partial card list at pre-order prices: its EV is shown, labelled, and never given a verdict.
+  const verdict = set.released ? verdictFor(calc.ratio, { pricedShare: calc.pricedShare, chaseShare: calc.chaseShare }) : null;
   const chaseLines = calc.lines.filter((l) => isChasePool(l.pool));
   const chaseShare = chaseLines.reduce((a, l) => a + l.share, 0);
   const poolByKey = new Map(set.pools.map((p) => [p.pool, p]));
@@ -194,6 +201,13 @@ export function BoxEvCalculator({ sets, offers = {} }: { sets: BoxEvSet[]; offer
             </div>
           )}
 
+          {!set.released && (
+            <p className="mt-3 text-sm font-semibold text-gold" data-unreleased>
+              ⏳ {set.setName} is not out until {set.releasedOn ? releaseDateLabel(set.releasedOn) : "its release date"}. Only part of its card list is
+              known and its prices are pre-orders, so this expected value says nothing about a box yet.
+            </p>
+          )}
+
           {verdict && (
             <p
               className={`mt-3 text-sm font-semibold ${
@@ -225,7 +239,7 @@ export function BoxEvCalculator({ sets, offers = {} }: { sets: BoxEvSet[]; offer
               className="input"
             >
               {sets.map((s) => (
-                <option key={s.setCode} value={s.setCode}>{s.setName} ({s.setCode})</option>
+                <option key={s.setCode} value={s.setCode}>{boxSetLabel(s)}</option>
               ))}
             </select>
           </label>

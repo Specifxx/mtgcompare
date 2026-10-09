@@ -71,3 +71,16 @@ test("the sister-site array is the only exemption, and it is exempt only inside 
   assert.ok(!OP_BRAND.test(scanned("src/lib/site.ts")), "site.ts names the old brand outside SISTER_SITES");
   assert.deepEqual(Object.keys(EXEMPT), ["src/lib/site.ts"]);
 });
+
+// THE SISTER SITES' PRODUCT FACTS, IN PROSE (zero, not a ratchet). The brand check above reads names; these are the facts of the other two games that the copy carried over as
+// if they were Magic's: "Bandai publishes no pull rates" (the /tools FAQ on booster box EV, also its FAQPage JSON-LD) and "a Parallel and a standard print" (the /alerts
+// how-to) were live until 2026-10-09. Wizards of the Coast publishes Magic; a Magic printing is borderless, showcase, extended art or a foil, never a Parallel, a Manga or a
+// Leader, and there is no DON!! deck. Riftbound is named only by the sister-site array. Every file of src, blog posts included, comments removed.
+const SISTER_FACTS = /\bBandai\b|\bParallels?\b|\bManga\b|\bLeaders?\b|\bDON!!|\bRiftbound\b|\bOne Piece\b/;
+test("no copy carries One Piece's or Riftbound's facts as Magic's (Bandai, Parallel, Manga, Leader, DON!!, Riftbound)", () => {
+  for (const s of ["Bandai publishes no pull rates, so its rates are community estimates set low on purpose", "a Parallel and a standard print of the same card are different cards", "the Leader card", "10 DON!! cards", "Riftbound champions"]) assert.ok(SISTER_FACTS.test(s), s);
+  for (const s of ["Wizards of the Coast publishes the slot structure of its boosters", "the standard print, a borderless or showcase printing and the foil", "const READ_PARALLEL = 6;", "fetch them in parallel", "the card that leads the deck", "don't"]) assert.ok(!SISTER_FACTS.test(s), s);
+  const all = walk("src", CODE);
+  const offenders = all.filter((f) => SISTER_FACTS.test((EXEMPT[f] ?? []).reduce((t, re) => t.replace(re, ""), stripComments(fs.readFileSync(path.join(ROOT, f), "utf8")))));
+  assert.deepEqual(offenders, []);
+});

@@ -24,12 +24,15 @@ export const CLAIMS: [string, RegExp][] = [
   ["real-time", /(mtg ?compare|\bour\b|\bwe\b)[^.\n]{0,60}\b(real[- ]time|updated hourly|checked hourly|live lookups?)\b/i],
   ["delivered-cost comparison", /\bwith (\w+ )?delivered cost\b|\bon (total )?delivered cost\b|\bcheapest delivered (first|price)\b/i],
   // the cadence is daily (one publish a day) and is quoted from schedule.ts; "twice a day" is OP Compare's old figure
-  ["wrong cadence", /\b(?:prices?|listings?|stores?|data|catalogue|import)\b[^.\n]{0,60}\b(?:twice (?:a|per) day|twice daily|every (?:12|six|6|four|4|two|2) hours|several times (?:a|per) day|hourly|every hour)\b/i],
+  // and its other spellings: "our twice-daily import" (the /tools intro) and "each of the two daily price updates" (the target-alert copy) were live until 2026-10-09
+  ["wrong cadence", /\b(?:prices?|listings?|stores?|data|catalogue|import)\b[^.\n]{0,60}\b(?:twice[- ](?:a|per)[- ]day|twice[- ]daily|every (?:12|six|6|four|4|two|2) hours|several times (?:a|per) day|hourly|every hour)\b|\b(?:twice[- ]daily|twice[- ]a[- ]day|two daily|2 daily|(?:two|2) (?:price )?(?:imports|updates|refreshes) a day)\b[^.\n]{0,30}\b(?:imports?|updates?|refresh(?:es)?|prices?|price data)\b/i],
   // the unofficial-fan-site rule: an endorsement is claimed by "official", "licensed", "approved by", "endorsed by", "sponsored by" in front of a rights holder
   ["affiliation", /\b(?:officially|official (?:price guide|prices|partner|retailer|site|app)|licen[sc]ed (?:by|from)|(?:endorsed|approved|sponsored|authori[sz]ed|certified) (?:by|from))\b[^.\n]{0,40}\b(?:Wizards|Hasbro|Scryfall|TCGplayer)/i],
   // Scryfall's rule: nothing paywalls its data. Premium sells analysis
   ["paid card data", /\b(?:Plus|Premium|subscribers?|members?)\b[^.\n]{0,70}\b(?:unlock|get|gain|include|access|see|view)\w*\b[^.\n]{0,40}\b(?:card data|card images|card database|Scryfall|oracle text|card prices)\b|\b(?:pay|subscribe|upgrade)\b[^.\n]{0,40}\bto (?:see|view|unlock) (?:card prices|prices|card data)\b/i],
   ["every printing in every store", /\bevery (?:printing|card|single)\b[^.\n]{0,60}\b(?:in|at|across) (?:every|all)(?: \d+)? (?:store|retailer)s?\b/i],
+  // MTG Compare has no MSRP table (src/lib/msrp.ts is empty, SEALED_RRP_MARKETS = []), so no sealed watch fires "at RRP": the /tools FAQ and the Sealed prices card promised one until 2026-10-09
+  ["RRP alert", /\b(?:at|below|under|reach(?:es)?) (?:the )?(?:RRP|MSRP)\b|\b(?:RRP|MSRP) (?:alerts?|watch(?:es)?|triggers?)\b/i],
   ["guaranteed", /\bguarantee[sd]?\b[^.\n]{0,40}\b(?:lowest|cheapest|best) price|\b(?:lowest|cheapest|best) price (?:is )?guaranteed|\b100% accurate\b|\balways accurate\b/i],
 ];
 /** True sentences that match a pattern, with the reason each is true. */
@@ -49,7 +52,9 @@ export function findings(text: string, where: string): string[] {
   }
   return out;
 }
-const SCOPE = [...walk("src/app", (f) => /\.tsx?$/.test(f)), ...walk("src/components", (f) => /\.tsx?$/.test(f)), ...walk("src/lib/blog", (f) => /\.tsx?$/.test(f)), ...walk("src/lib/content", (f) => /\.tsx?$/.test(f)), "src/lib/seo.ts", "src/lib/site.ts", "src/lib/card-seo.ts", "src/lib/gallery-seo.ts"].filter((f) => fs.existsSync(path.join(ROOT, f)));
+// The copy libraries outside src/lib/content are read too: the alert FAQs and the target-alert pitch (alerts-copy.ts, where "the two daily price updates" lived), the home FAQ,
+// the plan tables and the sign-in prompts.
+const SCOPE = [...walk("src/app", (f) => /\.tsx?$/.test(f)), ...walk("src/components", (f) => /\.tsx?$/.test(f)), ...walk("src/lib/blog", (f) => /\.tsx?$/.test(f)), ...walk("src/lib/content", (f) => /\.tsx?$/.test(f)), "src/lib/seo.ts", "src/lib/site.ts", "src/lib/card-seo.ts", "src/lib/gallery-seo.ts", "src/lib/alerts-copy.ts", "src/lib/home-faq.ts", "src/lib/plans.ts", "src/lib/login-context.ts"].filter((f) => fs.existsSync(path.join(ROOT, f)));
 
 test("the patterns catch the claims they exist for, and pass the true sentences", () => {
   const hit = (s: string): boolean => CLAIMS.some(([, re]) => re.test(s)) && !allowed(s);
@@ -63,6 +68,8 @@ test("the patterns catch the claims they exist for, and pass the true sentences"
     "1,101 cards compared across 24 UK stores in GBP, with UK delivered cost.",
     "MTG Compare compares every store, cheapest delivered first.",
     "Prices are refreshed twice a day.",
+    "The price tools here run on the same data as the rest of MTG Compare: the prices our twice-daily import reads from stores, TCGplayer and eBay in six markets.",
+    "After each of the two daily price updates we check every store we track in that card's market.",
     "Store listings are updated hourly.",
     "The official price guide of Wizards of the Coast.",
     "MTG Compare is licensed by Wizards of the Coast.",
@@ -70,6 +77,8 @@ test("the patterns catch the claims they exist for, and pass the true sentences"
     "Subscribe to see card prices.",
     "Every printing is compared in every store.",
     "We guarantee the lowest price.",
+    "Plus adds sealed watches on up to 25 products (an alert when a box is back in stock or at RRP).",
+    "With Plus, a watch that alerts you on a restock or at RRP, checked once a day.",
   ]) assert.ok(hit(s), `should be caught: ${s}`);
   for (const s of [
     "Best Basket's store-by-store plan for the cheapest delivered order.",
@@ -80,8 +89,11 @@ test("the patterns catch the claims they exist for, and pass the true sentences"
     "MTG Compare is an independent, unofficial fan site. It is not endorsed, sponsored or approved by Wizards of the Coast, Hasbro or Scryfall.",
     "Unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards.",
     "Prices are refreshed once a day, after TCGplayer publishes its market data.",
+    "After each price update (prices are imported once a day) we check every store we track in that card's market.",
+    "The price tools here run on the same data as the rest of MTG Compare: the store and TCGplayer prices our daily import reads in six markets.",
     "Premium unlocks the Deal Finder, Rising Cards and the Demand Finder; card data and prices stay free.",
     "We do not guarantee that a store will have stock.",
+    "Sealed watches on up to 25 products (an alert when a box is back in stock, drops in price or reaches the price you set).",
   ]) assert.ok(!hit(s), `should pass: ${s}`);
 });
 test("RATCHET: no page, component, article or content library claims something about the site that the code does not do", () => {
@@ -93,6 +105,23 @@ test("RATCHET: no page, component, article or content library claims something a
   const r = ratchet("site-claims", [...files]);
   if (files.size) console.log(`site-claims: ${summary(r)}\n  ${bad.slice(0, 8).join("\n  ")}`);
   assert.ok(r.ok, `${r.failures.join("\n")}\n${bad.slice(0, 12).join("\n")}`);
+});
+// Two claims are at zero and stay there whoever owns the file (the ratchet above lets an owner keep its baseline): the cadence the import does not run and the RRP alert nothing sends.
+test("no copy names a cadence other than once a day, or an alert at RRP (zero, not a ratchet)", async () => {
+  const strict = new Set(["wrong cadence", "RRP alert"]);
+  const bad = SCOPE.flatMap((f) => findings(stripComments(fs.readFileSync(path.join(ROOT, f), "utf8")), f)).filter((h) => [...strict].some((n) => h.includes(`[${n}]`)));
+  assert.deepEqual(bad, []);
+  // the alert copy is built from the schedule: every sentence of it, as a visitor reads it, says once a day
+  const { alertsFaqs, alertsPlusCopy } = await import("../src/lib/alerts-copy");
+  const { PRICES_REFRESH_PHRASE, SEALED_RRP_MARKETS } = await import("../src/lib/alert-limits");
+  assert.equal(PRICES_REFRESH_PHRASE, "once a day");
+  for (const email of [true, false]) {
+    const copy = [alertsPlusCopy(email), ...alertsFaqs(email).flatMap((f) => [f.q, f.a])].join("\n");
+    assert.deepEqual(findings(copy, `alerts-copy(email ${email})`), []);
+    assert.match(alertsPlusCopy(email), /prices are imported once a day/);
+  }
+  const { MSRP } = await import("../src/lib/msrp");
+  assert.deepEqual([MSRP.length, SEALED_RRP_MARKETS.length], [0, 0], "an MSRP table has landed: the RRP alert exists now, so drop the RRP pattern from the strict set");
 });
 test("the facts behind the claims: six markets, one publish a day, a weekly release", async () => {
   const { COUNTRY_LIST } = await import("../src/lib/country");

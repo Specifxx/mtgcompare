@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { withArticle, activeChips, canonical, clearFilters, priceInput, removeChip, toggle, values } from "../src/lib/filter-chips";
-import { DEFAULT_FLOOR_CENTS, NO_SET, isFiltered, parseBrowse, toCardQuery } from "../src/lib/browse";
+import { DEFAULT_FLOOR_CENTS, NO_SET, RELEVANCE, defaultSort, isFiltered, parseBrowse, sortOptions, toCardQuery } from "../src/lib/browse";
 import { COLORS } from "../src/lib/constants";
 import type { SetLite } from "../src/lib/data";
 
@@ -14,10 +14,22 @@ test("values merge CSV and repeated keys", () => {
 });
 
 test("canonical: fixed order, CSV, defaults and page dropped, unknown keys kept", () => {
-  const c = canonical(sp("page=3&sort=value&per=48&color=white&color=blue&q=sol+ring&utm_source=x&min=&cmode=any"));
+  const c = canonical(sp("page=3&sort=relevance&per=48&color=white&color=blue&q=sol+ring&utm_source=x&min=&cmode=any"));
   assert.equal(c.toString(), "q=sol+ring&color=white%2Cblue&utm_source=x");
+  assert.equal(canonical(sp("page=3&sort=value&per=48&color=white&cmode=any")).toString(), "color=white", "without search words the default sort is market value");
   assert.equal(canonical(sp("sort=price-asc&per=100")).toString(), "sort=price-asc&per=100");
   assert.equal(canonical(sp("format=modern&finish=foil&treat=borderless&rarity=M")).toString(), "rarity=M&treat=borderless&finish=foil&format=modern", "rarity, treatment, finish, format: the panel's order");
+});
+
+test("canonical: a search defaults to Best match, so a sort the visitor chose survives a filter change; the search words are one value, commas and all", () => {
+  // /browse?q=sol+ring opens on "Best match" (browse.ts defaultSort); "Most valuable" is then the visitor's choice and must not be dropped when a colour is ticked
+  assert.equal(canonical(toggle(sp("q=sol+ring&sort=value"), "color", "colorless")).toString(), "q=sol+ring&color=colorless&sort=value");
+  assert.equal(canonical(sp("q=sol+ring&sort=relevance&rarity=U")).toString(), "q=sol+ring&rarity=U", "Best match is the default of a search: left out");
+  assert.equal(canonical(sp("q=sol+ring&sort=price-asc")).toString(), "q=sol+ring&sort=price-asc");
+  assert.equal(canonical(sp("sort=value&rarity=M")).toString(), "rarity=M");
+  assert.equal(canonical(sp("q=Jace%2C+the+Mind+Sculptor&color=blue")).get("q"), "Jace, the Mind Sculptor", "a comma in a card name is not a list separator");
+  assert.equal(canonical(sp("q=Borrowing+100%2C000+Arrows")).get("q"), "Borrowing 100,000 Arrows");
+  assert.equal(canonical(sp("q=++&sort=value")).toString(), "", "blank search words are no search");
 });
 
 test("toggle a value on and off (colors and rarities case-insensitively)", () => {
@@ -110,4 +122,21 @@ test("the default list leaves THIN rows out (the index floor); a search, a set, 
   assert.equal(toCardQuery(parseBrowse({}), SETS, "US", { floor: false }).minCents, undefined);
   assert.equal(isFiltered(parseBrowse({ sort: "name", per: "24" })), false);
   assert.equal(isFiltered(parseBrowse({ format: "modern" })), true);
+});
+
+test("a search defaults to Best match (relevance), never to dearest first; an explicit sort wins; without search words the default stays market value", () => {
+  const b = parseBrowse({ q: "sol ring" });
+  assert.equal(b.sort, RELEVANCE);
+  assert.equal(toCardQuery(b, SETS, "US").sort, undefined, "relevance is no engine key: the search planner orders a name search itself (data/search.ts relevancePage)");
+  assert.equal(parseBrowse({ q: "sol ring", sort: "bogus" }).sort, RELEVANCE);
+  assert.equal(parseBrowse({ q: "sol ring", sort: "price-desc" }).sort, "price-desc");
+  assert.equal(toCardQuery(parseBrowse({ q: "sol ring", sort: "value" }), SETS, "US").sort, "value", "Most valuable is still one click away");
+  assert.equal(parseBrowse({}).sort, "value");
+  assert.equal(parseBrowse({ q: "   " }).sort, "value", "blank words are no search");
+  assert.equal(parseBrowse({ sort: "relevance" }).sort, "value", "Best match needs search words");
+  assert.equal(toCardQuery(parseBrowse({}), SETS, "US").sort, "value");
+  assert.deepEqual(sortOptions("sol ring")[0], { value: "relevance", label: "Best match" });
+  assert.ok(!sortOptions("").some((o) => o.value === RELEVANCE), "a list with no search offers no Best match");
+  assert.equal(defaultSort("sol ring"), RELEVANCE);
+  assert.equal(defaultSort(""), "value");
 });

@@ -6,10 +6,9 @@ import { parseScope, type SetScope } from "./set-scope";
 
 // What a Best Basket request may send, parsed the same way for every caller
 // (RiftCompare's lib/basket-request.ts). Pure (no database), so the tier story
-// can be tested behaviourally: nothing here looks at the account. Any signed-in
-// account may send a pasted list or its watchlist; what the tier decides is
-// only the ANSWER — the store-by-store plan needs Premium, everyone else gets
-// their own total (app/api/basket/route.ts).
+// can be tested behaviourally: nothing here looks at the account. Who may send
+// one is the route's call: since 2026-10-07 Best Basket is Premium only, and
+// anyone else gets a 403 before this parser runs (app/api/basket/route.ts).
 //
 // MTG Compare differences:
 //   • "watchlist" carries the watched card ids in the body (`ids`, from the

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { PricingCards } from "@/components/PricingCards";
 import { ManageSubscriptionButton } from "@/components/ManageSubscriptionButton";
 import { SubscriptionActions } from "@/components/SubscriptionActions";
+import type { OAuthProvider } from "@/lib/oauth";
 import { TIER_NAMES, planPrice, type Interval, type Tier } from "@/lib/plans";
 import { accessFor, type Feature } from "@/lib/premium-gates";
 import { useMe } from "@/lib/use-me";
@@ -15,6 +16,10 @@ import { useMe } from "@/lib/use-me";
 // SubscriptionActions, then the member quick links), ported in wave 2
 // (2026-10-03). The page itself stays static; who the visitor is is learned
 // here, client-side, like the header.
+//
+// Two server-decided switches: `checkoutOpen` (a LIVE Stripe key: the buy
+// buttons) and `billing` (Stripe configured at all: managing a subscription
+// that already exists, which a test key must not take away from its holder).
 interface Sub {
   tier: Tier;
   interval: Interval | null;
@@ -26,13 +31,13 @@ interface Sub {
 
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" });
 
-export function PremiumPlans({ checkoutOpen }: { checkoutOpen: boolean }) {
+export function PremiumPlans({ checkoutOpen, billing, providers = [] }: { checkoutOpen: boolean; billing: boolean; providers?: OAuthProvider[] }) {
   const { me, loaded } = useMe();
-  if (!loaded || !me.tier) return <PricingCards checkoutOpen={checkoutOpen} />;
-  return <MemberView tier={me.tier} until={me.until} admin={me.admin} checkoutOpen={checkoutOpen} />;
+  if (!loaded || !me.tier) return <PricingCards checkoutOpen={checkoutOpen} providers={providers} />;
+  return <MemberView tier={me.tier} until={me.until} admin={me.admin} billing={billing} />;
 }
 
-function MemberView({ tier, until, admin, checkoutOpen }: { tier: Tier; until: string | null; admin: boolean; checkoutOpen: boolean }) {
+function MemberView({ tier, until, admin, billing }: { tier: Tier; until: string | null; admin: boolean; billing: boolean }) {
   const [sub, setSub] = useState<Sub | null>(null);
   const [settled, setSettled] = useState(false);
   const [reload, setReload] = useState(0);
@@ -80,7 +85,7 @@ function MemberView({ tier, until, admin, checkoutOpen }: { tier: Tier; until: s
               tier={shownTier}
               interval={sub.interval}
               annualAvailable={!!sub.annualAvailable}
-              canManageBilling={checkoutOpen}
+              canManageBilling={billing}
               trialing={sub.status === "trialing"}
               keep={keep}
               highlightKeep={keepParam}
@@ -132,7 +137,7 @@ function MemberView({ tier, until, admin, checkoutOpen }: { tier: Tier; until: s
         <Link href="/portfolio/sets" className="btn-ghost">
           Set checklist
         </Link>
-        {checkoutOpen && !sub && settled && !admin ? <ManageSubscriptionButton /> : null}
+        {billing && !sub && settled && !admin ? <ManageSubscriptionButton /> : null}
       </div>
     </div>
   );

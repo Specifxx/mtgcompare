@@ -4,11 +4,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { stripeUrlIn } from "@/lib/checkout-params";
 import { INTERVALS, PLAN_FEATURES, PLAN_PITCH, TIER_NAMES, annualSavingPct, perMonth, planPrice, type Interval, type Tier } from "@/lib/plans";
+import { LAUNCH_PROMO_ENABLED, PROMO_SOURCE, type PromoStatus } from "@/lib/launch-promo-shared";
+import type { OAuthProvider } from "@/lib/oauth";
 import { firePlanClick } from "@/lib/nudge-surface";
 import { goParamToStart, intervalPlan, premiumStartHref } from "@/lib/premium-start";
 import { recallPremiumSurface } from "@/lib/premium-surface";
 import { trackEvent } from "@/lib/analytics";
 import { useMe } from "@/lib/use-me";
+import { AuthForm } from "./AuthForm";
 import { ManageSubscriptionButton } from "./ManageSubscriptionButton";
 import { StripeErrorNotice } from "./StripeErrorNotice";
 
@@ -51,9 +54,17 @@ export async function startCheckout(tier: Tier, iv: Interval, surface: string, b
 // lib/premium-start.ts); signed in → straight to Stripe; a member → their
 // plan (changes happen in place on the member card). The old wave-1
 // `/premium?go=plus-year` links now forward to the start step.
+//
+// Checkout not open (`checkoutOpen` false: no Stripe key, or the TEST key the
+// site runs on until the owner takes payments; decided on the server, lib/
+// stripe.ts): each button is a DISABLED "Get Plus/Premium" with "Checkout opens
+// soon" under it, nothing links to /premium/start, and a signed-out visitor is
+// offered the launch promotion (LaunchOffer) — the one way to Premium meanwhile,
+// since the popup never shows on /premium.
 const CTA_BTN = "btn-primary w-full py-3.5 text-center text-base leading-tight";
+export const CHECKOUT_SOON = "Checkout opens soon";
 
-export function PricingCards({ checkoutOpen }: { checkoutOpen: boolean }) {
+export function PricingCards({ checkoutOpen, providers = [] }: { checkoutOpen: boolean; providers?: OAuthProvider[] }) {
   const [cycle, setCycle] = useState<Interval>("month");
   const save = annualSavingPct("premium");
 
@@ -93,8 +104,56 @@ export function PricingCards({ checkoutOpen }: { checkoutOpen: boolean }) {
           <p className="mt-1 text-center text-[11px] text-slate-500">Prices in US dollars. Cancel from the membership page; you keep access to the end of the period you paid for.</p>
         </>
       ) : (
-        <p className="mt-3 text-center text-[11px] text-slate-500">Prices in US dollars. Checkout isn&apos;t open yet; nothing can be charged until it is.</p>
+        <>
+          <p className="mt-3 text-center text-xs font-semibold text-slate-300" data-checkout-soon>
+            {CHECKOUT_SOON}. Nothing can be charged until it does.
+          </p>
+          <p className="mt-1 text-center text-[11px] text-slate-500">Prices in US dollars. Everything free stays free meanwhile.</p>
+          <LaunchOffer providers={providers} />
+        </>
       )}
+    </div>
+  );
+}
+
+/**
+ * The launch promotion (lib/launch-promo.ts: the first PROMO_SLOTS NEW accounts
+ * get PROMO_DAYS of Premium, granted when the account is created) for a
+ * signed-out visitor while checkout is closed. It reads the same live counter as
+ * the popup (/api/promo) and shows nothing until it answers, once the slots are
+ * gone, or when the counter cannot be read: it never promises a slot that may
+ * not exist. Signing up returns here, to the member card.
+ */
+function LaunchOffer({ providers }: { providers: OAuthProvider[] }) {
+  const { me, loaded } = useMe();
+  const [status, setStatus] = useState<PromoStatus | null>(null);
+  const signedOut = loaded && !me.user;
+  useEffect(() => {
+    if (!signedOut || !LAUNCH_PROMO_ENABLED) return;
+    let alive = true;
+    fetch("/api/promo")
+      .then((r) => (r.ok ? (r.json() as Promise<PromoStatus>) : null))
+      .then((s) => {
+        if (alive && s && typeof s.left === "number") setStatus(s);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [signedOut]);
+  if (!signedOut || !status || status.left <= 0 || providers.length === 0) return null;
+  return (
+    <div className="mx-auto mt-4 max-w-md rounded-xl border border-gold/40 bg-gold/5 px-4 py-4 text-center" data-launch-offer>
+      <span className="inline-block rounded border border-gold/40 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gold">Launch offer</span>
+      <p className="mt-2 text-sm font-semibold text-white">
+        The first {status.slots} new accounts get {status.days} days of Premium free.
+      </p>
+      <p className="mt-0.5 text-xs text-slate-400">
+        <span className="num font-bold text-white">{status.left}</span> of {status.slots} left · no card, nothing to cancel
+      </p>
+      <div className="mt-3">
+        <AuthForm providers={providers} compact bare next="/premium" source={PROMO_SOURCE} onProviderClick={() => trackEvent("launch_promo_click", { left: status.left })} />
+      </div>
     </div>
   );
 }
@@ -152,7 +211,17 @@ function PlanCta({ tier, interval, checkoutOpen }: { tier: Tier; interval: Inter
     );
   }
   if (!checkoutOpen) {
-    return <span className="block rounded-lg border border-ink-700 px-2 py-2.5 text-center text-sm text-slate-400 sm:px-4 sm:py-3">Opening soon</span>;
+    // Server-decided (lib/stripe.ts checkoutOpen): the button is shown and disabled, never a link to a checkout that cannot take a payment.
+    return (
+      <div className="w-full">
+        <button type="button" disabled aria-describedby={`checkout-soon-${tier}`} className={CTA_BTN}>
+          Get {TIER_NAMES[tier]}
+        </button>
+        <p id={`checkout-soon-${tier}`} className="mt-1.5 text-center text-[11px] font-semibold text-slate-400">
+          {CHECKOUT_SOON}
+        </p>
+      </div>
+    );
   }
   if (!loaded || !me.user) {
     const startHref = premiumStartHref({ tier, plan: intervalPlan(interval), src: "premium-page" });

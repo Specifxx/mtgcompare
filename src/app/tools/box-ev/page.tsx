@@ -8,7 +8,7 @@ import { affiliateUrl } from "@/lib/affiliate";
 import { sourceLabel, storeForSource } from "@/lib/stores";
 import { pageOg } from "@/lib/og/meta";
 import { BoxEvCalculator, type BoxEvBooster, type BoxEvOffers, type BoxEvSet, type PullCard } from "@/components/BoxEvCalculator";
-import { BOOSTER_SET_KINDS, cheapestBoxOffer, poolOf, POOL_ORDER, type PoolKey } from "@/lib/box-ev";
+import { BOOSTER_SET_KINDS, cheapestBoxOffer, defaultBoxSet, isReleased, poolOf, POOL_ORDER, type PoolKey } from "@/lib/box-ev";
 import { boosterTypeOf } from "@/lib/pack-composition";
 import { HubIntro } from "@/components/HubIntro";
 import { RelatedGuides } from "@/components/RelatedGuides";
@@ -92,6 +92,9 @@ export default async function BoxEvPage() {
     if (pools.size) bySet.set(set.id, pools);
   });
 
+  // "Released" is judged on the day of the request (UTC), here, so the picker's
+  // labels and the opening set hydrate exactly as rendered.
+  const today = new Date().toISOString().slice(0, 10);
   const sets: BoxEvSet[] = boxSets
     .filter((s) => bySet.has(s.id))
     .map((s) => {
@@ -106,6 +109,8 @@ export default async function BoxEvPage() {
         setCode: s.code.toUpperCase(),
         setSlug: s.slug,
         setName: s.name,
+        releasedOn: s.releasedOn,
+        released: isReleased(s.releasedOn, today),
         boosters,
         pools: POOL_ORDER.filter((p) => pools.has(p)).map((pool) => {
           const cell = pools.get(pool)!;
@@ -197,7 +202,8 @@ export default async function BoxEvPage() {
           </div>
         </div>
       ) : (
-        <BoxEvCalculator sets={sets} offers={boxOffers} />
+        // Opens on the newest RELEASED set with a computed EV, never on a set not out yet (lib/box-ev.ts defaultBoxSet).
+        <BoxEvCalculator sets={sets} offers={boxOffers} initialSetCode={defaultBoxSet(sets)?.setCode} />
       )}
 
       {/* The guide behind the number, after the calculator. */}

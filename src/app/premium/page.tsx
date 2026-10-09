@@ -7,7 +7,8 @@ import { PLAN_CENTS, PLAN_FEATURES, PLAN_PITCH, TIER_NAMES, TIERS, paidToolRows,
 import type { Feature } from "@/lib/premium-gates";
 import { FREE_DEAL_ROWS, FREE_DEMAND_ROWS, FREE_RISING_ROWS, PREMIUM_DEMAND_ROWS } from "@/lib/tier-limits";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
-import { stripeEnabled } from "@/lib/stripe";
+import { checkoutOpen, stripeEnabled } from "@/lib/stripe";
+import { enabledProviders } from "@/lib/oauth";
 import { pageOg } from "@/lib/og/meta";
 import { PremiumPlans } from "./PremiumPlans";
 
@@ -60,10 +61,14 @@ const TOOL_COLUMNS = ["Signed out", "Free account", "Plus", "Premium"] as const;
 // then the two plans side by side at every width, so both buttons sit in the
 // first screen of a phone. Members see their subscription there instead
 // (PremiumPlans, client-side). Then the proof line, what each tier gets, the
-// shared comparison table and the FAQ. While Stripe is not configured every
-// button reads "Opening soon", as before.
+// shared comparison table and the FAQ. Until checkout is OPEN (a live Stripe
+// key: lib/stripe.ts checkoutOpen; the site runs on a test key until the owner
+// takes payments) both buttons are disabled with "Checkout opens soon", decided
+// here on the server, and a signed-out visitor is offered the launch promotion
+// instead (PricingCards). A member's existing subscription is still managed
+// whenever Stripe is configured (`billing`).
 export default function Premium() {
-  const open = stripeEnabled();
+  const open = checkoutOpen();
   return (
     <div>
       <JsonLd
@@ -97,7 +102,7 @@ export default function Premium() {
         <p className="mt-1.5 text-sm text-slate-300 sm:text-[15px]">Comparing prices is free. Plus shows every deal with no ads; Premium adds Rising Cards and Demand Finder and plans your list.</p>
       </div>
       <div className="mt-4 sm:mt-6" id="top-pricing">
-        <PremiumPlans checkoutOpen={open} />
+        <PremiumPlans checkoutOpen={open} billing={stripeEnabled()} providers={enabledProviders()} />
       </div>
       <PremiumProofLine />
 

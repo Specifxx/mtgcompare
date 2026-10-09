@@ -4,8 +4,8 @@
 // Server-only: the routes in src/app/api may not import @/lib/db themselves
 // (tests/nested-cache.test.ts). Each is ONE small insert, per click, never
 // read on a page: only /admin/premium reads them back
-// (src/lib/admin-clicks.ts, uncached). Rows older than CLICK_RETENTION_DAYS are
-// deleted by pruneBeacons, which the twice-daily import runs.
+// (src/lib/admin-clicks.ts, uncached). pruneBeacons deletes rows older than
+// CLICK_RETENTION_DAYS; no workflow calls it yet (there is one import a day).
 import { prisma } from "./db";
 import type { Tier } from "./plans";
 

@@ -172,7 +172,7 @@ Owner of the functions: **WP01a** (`src/lib/catalog.ts`, `src/lib/images.ts`); o
 | `/tools/deal-finder`, `/tools/rising`, `/tools/demand`, `/api/deal-finder` | same | WP13 (deal), WP07 (rising, demand) | **Premium gates** (section 14) |
 | `/sitemap.xml` (new), `/sitemaps/[section]` (new) | | WP15 | sectioned sitemaps (4.5) |
 | `/robots.txt`, `/llms.txt`, `/llms-full.txt`, `/llm/*` (new) | | WP20 | AI-crawler policy and markdown mirrors |
-| `/embed/*`, `/preorders`, `/api/og`, extra `opengraph-image` routes (new) | | WP20 | growth surfaces |
+| `/embed/*`, `/api/og`, extra `opengraph-image` routes (new); `/preorders` is a `next.config.js` redirect to `/release-dates` (no pre-order page was built) | | WP20 | growth surfaces |
 | `/api/click` (restored) | | WP15 | outbound click log (10.32) |
 | `/admin/*` | `/admin`, `/admin/{accounts,subscriptions,store-health,inbox,support,premium,demand,rising,decks}` (OP) + `/admin/{ebay,data,deploys,database,clicks,loyalty,mail,lookup,deals}` (new) | WP21 (WP13 for `deals`, WP04, WP07, WP10 for their OP pages) | section 15 |
 | `/browse`, `/search`, `/price-guide`, `/market`, `/market/records`, `/movers`, `/singles`, `/gallery`, `/rising/[token]`, `/tools/*`, `/trade`, `/stores/*`, `/portfolio*`, `/c/[token]`, `/watching`, `/alerts*`, `/dashboard`, `/profile`, `/premium*`, `/blog*`, `/guides*`, `/learn`, `/about`, `/methodology`, regional pages `/au /uk /ca /sg /eu` | same | as OP | |

@@ -214,6 +214,50 @@ test("a card with no plain printing falls back sensibly: the cheapest special pr
   assert.equal(ordinaryPrinting([]), undefined);
 });
 
+// ── the importer side: the name table it publishes (nm/ topSlug) ─────────────────────────────────────────────────────────────────
+// REAL TCGCSV products and Scryfall rows of 2026-10-08 added to the 57-record mini day (which already holds the BABP Sol Ring, the 7th Edition Birds of Paradise and the Secret Lair African Swallow): the
+// serialized and Confetti Foil printings that the header search used to open, and the plain printings a player buys.
+const NAME_TABLE_PRODUCTS = [
+  { productId: 719218, name: "Sol Ring (0286)", groupId: 23814, number: "286", rarity: "U", Normal: { market: 1.01, low: 0.82 } },
+  { productId: 488291, name: "Sol Ring - Dwarven (0409)", groupId: 23071, number: "409", rarity: "M", Normal: { market: 605.46, low: 605.41 } },
+  { productId: 488303, name: "Sol Ring - Dwarven (0409) (Serial Numbered)", groupId: 23071, number: "409", rarity: "M", Foil: { market: 2750, low: 20000 } },
+  { productId: 183033, name: "Smothering Tithe", groupId: 2366, number: "22", rarity: "R", Normal: { market: 56.08, low: 45 }, Foil: { market: 60.34, low: 58.99 } },
+  { productId: 509562, name: "Smothering Tithe (Anime Borderless)", groupId: 23273, number: "67", rarity: "M", Normal: { market: 208.89, low: 195.24 }, Foil: { market: 418.32, low: 440 } },
+  { productId: 509563, name: "Smothering Tithe (Anime Borderless) (Confetti Foil)", groupId: 23273, number: "87", rarity: "M", Foil: { market: 1760.07, low: 1850 } },
+  { productId: 719118, name: "Birds of Paradise", groupId: 23814, number: "191", rarity: "R", Normal: { market: 8.02, low: 6.69 } },
+  { productId: 531348, name: "Birds of Paradise (Retro Frame) (Serial Numbered)", groupId: 23319, number: "344", rarity: "R", Foil: { market: 1499.99, low: 4000 } },
+];
+const SOL = "6ad8011d-3471-4369-9d68-b264cc027487", TITHE = "153376c9-dffd-458c-8ce3-a4c8269bc4e9", BIRDS = "d3a0b660-358c-41bd-9cd2-41fbf3491b1a";
+const NAME_TABLE_SCRYFALL = [
+  { id: "4f152dd9-2b35-45b2-90fe-8c71d0634226", oracle_id: SOL, name: "Sol Ring", set: "fdc", set_type: "commander", collector_number: "286", finishes: ["nonfoil"], rarity: "uncommon", tcgplayer_id: 719218, edhrec_rank: 1 },
+  { id: "60bc8cfc-8f68-4ec7-92a7-98380d92f69e", oracle_id: SOL, name: "Sol Ring", set: "ltc", set_type: "commander", collector_number: "409", finishes: ["nonfoil"], rarity: "mythic", tcgplayer_id: 488291, edhrec_rank: 1 },
+  { id: "9fac535f-46a3-440b-bb93-6fe4b2dba600", oracle_id: SOL, name: "Sol Ring", set: "ltc", set_type: "commander", collector_number: "409z", finishes: ["foil"], rarity: "mythic", tcgplayer_id: 488303, edhrec_rank: 1 },
+  { id: "7af082fa-86a3-4f7b-966d-2be1f1d0c0bc", oracle_id: TITHE, name: "Smothering Tithe", set: "rna", set_type: "expansion", collector_number: "22", finishes: ["nonfoil", "foil"], rarity: "rare", tcgplayer_id: 183033, edhrec_rank: 65 },
+  { id: "58178dd4-c61e-4017-b2e6-2d8308ded4fd", oracle_id: TITHE, name: "Smothering Tithe", set: "wot", set_type: "masterpiece", collector_number: "67", finishes: ["nonfoil", "foil"], rarity: "mythic", tcgplayer_id: 509562, edhrec_rank: 65 },
+  { id: "a095e47e-8f02-45cf-a9d2-677fe171258d", oracle_id: TITHE, name: "Smothering Tithe", set: "wot", set_type: "masterpiece", collector_number: "87", finishes: ["foil"], rarity: "mythic", tcgplayer_id: 509563, edhrec_rank: 65 },
+  { id: "6672f025-525d-41ca-bd81-d4029e04f5f2", oracle_id: BIRDS, name: "Birds of Paradise", set: "fdc", set_type: "commander", collector_number: "191", finishes: ["nonfoil"], rarity: "rare", tcgplayer_id: 719118, edhrec_rank: 35 },
+  { id: "d816162c-bb87-4d45-ae14-1433b19f50c5", oracle_id: BIRDS, name: "Birds of Paradise", set: "rvr", set_type: "masters", collector_number: "344z", finishes: ["foil"], rarity: "rare", tcgplayer_id: 531348, edhrec_rank: 35 },
+];
+
+test("the importer publishes the printing a name opens: nm/ topSlug is the ordinary printing (Sol Ring FDC 286, Smothering Tithe RNA 22, Birds of Paradise FDC 191), never the serialized or Confetti Foil one", async () => {
+  const t = tmpRoot("search-nm-");
+  try {
+    const day = miniMagicDay(t.root, { products: NAME_TABLE_PRODUCTS, scryfall: NAME_TABLE_SCRYFALL });
+    const all = await importCatalog({ log: () => undefined, cfg: TRACK_DEFAULTS, prev: loadPrevState(memTree()) }, { cacheDir: day.tcgDir, scryfallCacheDir: day.scryDir, lastUpdated: day.stamp });
+    writeCatalogueFiles(all.ctx);
+    const rows = all.ctx.work.files().filter((f) => /^nm\/\d+\.json$/.test(f)).flatMap((f) => (JSON.parse(all.ctx.work.read(f)) as NameFile).r);
+    const row = (name: string) => { const r = rows.find((x) => x[1] === name); assert.ok(r, `${name} is in the name table`); return r; };
+    const slugOf = new Map(all.ctx.snapshot.cards.map((c) => [c.id, c.slug] as const));
+    const sol = row("Sol Ring"), tithe = row("Smothering Tithe"), birds = row("Birds of Paradise");
+    assert.equal(sol[3], slugOf.get(719218), "Sol Ring opens Commander: Foundations 286 (US$1.01), not the serialized LTC 409z (US$2,750, a US$20,000 low) nor the Dwarven LTC 409 (US$605.46) nor the Buy-a-Box promo");
+    assert.equal(sol[5], 101, "the name table's price is the price of the printing it opens");
+    assert.equal(tithe[3], slugOf.get(183033), "Smothering Tithe opens Ravnica Allegiance 22, not the Anime Borderless Confetti Foil (US$1,760.07, a US$1,850 low)");
+    assert.equal(tithe[5], 6034, "its dearer unit, the RNA foil (US$60.34)");
+    assert.equal(birds[3], slugOf.get(719118), "Birds of Paradise opens Commander: Foundations 191 (US$8.02): not the serialized Retro Frame RVR 344z (US$1,499.99) nor the 7th Edition foil star (US$3,980.75)");
+    for (const id of [488303, 509563, 531348, 2831]) { const slug = slugOf.get(id); assert.ok(slug, `${id} is in the catalogue`); assert.ok(!rows.some((r) => r[3] === slug), `${slug} is no name's printing`); }
+  } finally { t.done(); }
+});
+
 // ── the planner, the typeahead and the lists over published files ────────────────────────────────────────────────────────────────
 
 async function over<T>(root: string, run: () => Promise<T>): Promise<T> {
@@ -281,5 +325,47 @@ test("THE REAL CATALOGUE (Annex C check 9; skipped without a dataset): mh3 6, bo
     const az = await getOracleAZ("L", 1);
     assert.equal(az.items.length, 100);
     assert.ok(az.total > 200 && az.items.every((o) => o.name.toLowerCase().startsWith("l")));
+  });
+});
+
+test("THE REAL CATALOGUE (skipped without a dataset): the header search and /browse?q= open the ORDINARY printing of Sol Ring, Smothering Tithe, Rhystic Study and Birds of Paradise, and a search is Best match, not dearest first", { skip: !fs.existsSync(path.join(SAMPLE, "v1", "ix", "dict.json")) }, async () => {
+  await over(SAMPLE, async () => {
+    const { searchNames, namePrintings, getCardPage, getBrowseIndex, getSets } = await import("../src/lib/data");
+    const { parseBrowse, toCardQuery } = await import("../src/lib/browse");
+    const [ix, sets] = await Promise.all([getBrowseIndex({ withOracle: false }), getSets()]), kindOf = new Map(sets.map((s) => [s.id, s.kind] as const));
+    // what the rule reads of a printing, straight from the published browse-index columns
+    const facts = (id: number): PrintingFacts => { const i = ix.rowOf(id); return { id, cls: ix.cls[i]!, rarity: String.fromCharCode(ix.rar[i]!), treat: ix.dict.tr[ix.tr[i]!] ?? "", flags: ix.fl[i]!, mask: ix.mk[i]!, marketN: ix.mn[i]! < 0 ? null : ix.mn[i]!, marketF: ix.mf[i]! < 0 ? null : ix.mf[i]!, setKind: kindOf.get(ix.setId[i]!) ?? "" }; };
+    const printingsOf = (no: number): number[] => { const out: number[] = []; for (let i = 0; i < ix.n; i++) if (ix.or[i] === no && ix.mk[i]! & PRICE_MASK.LISTED) out.push(ix.id[i]!); return out; };
+    const DEAREST = new Set([488303, 488302, 509563, 509567, 531348, 625666]);   // the serialized LTC Sol Rings, the two Anime Confetti Foils, the serialized Retro Frame Birds, the Secret Lair Rainbow Foil Tithe
+    for (const name of ["Sol Ring", "Smothering Tithe", "Rhystic Study", "Birds of Paradise"]) {
+      const q = name.toLowerCase(), hits = await searchNames(q, 10), hit = hits[0]!;
+      assert.equal(hit.name, name);
+      const all = printingsOf(hit.oracleNo!), plain = all.filter((id) => isOrdinaryPrinting(facts(id)));
+      assert.ok(plain.length >= 1, `${name} has a plain printing of a main set with a Normal market`);
+      const cheapest = [...plain].sort((a, b) => facts(a).marketN! - facts(b).marketN! || a - b)[0]!;
+      // the header dropdown (/api/search): one row per name, the printing it opens
+      const open = (await namePrintings(hits)).get(hit.oracleNo!)!;
+      assert.equal(open.id, cheapest, `the header search opens ${name}'s cheapest plain printing by MARKET (${ix.slug[ix.rowOf(cheapest)]}), not ${open.slug}`);
+      assert.ok(!DEAREST.has(open.id) && !(open.flags & CARD_FLAGS.SERIAL), `${name} never opens a serialized or Confetti Foil printing`);
+      // /browse?q=: "Best match" is the default, the first tile is that printing, the plain printings come first (cheapest first) and no tile outranks the one before it
+      const b = parseBrowse({ q });
+      assert.equal(b.sort, "relevance");
+      const page = await getCardPage(toCardQuery(b, sets, "US"));
+      assert.equal(page.total, all.length, `every listed ${name} is on the page`);
+      assert.equal(page.items[0]!.id, cheapest, `/browse?q=${q} opens on the ordinary printing`);
+      const ranks = page.items.map((c) => ordinaryRank(facts(c.id)));
+      assert.ok(ranks.every((r, k) => k === 0 || ranks[k - 1]! <= r), `${name}: ordinary first, then cheapest first within each tier`);
+      const lead = page.items.slice(0, Math.min(plain.length, page.items.length));
+      assert.ok(lead.every((c) => plain.includes(c.id) && !DEAREST.has(c.id)), `${name}: the ${plain.length} plain printings lead the page`);
+      // an explicit sort still wins: "Price: high to low" is dearest first, by MARKET
+      const dear = await getCardPage(toCardQuery(parseBrowse({ q, sort: "price-desc" }), sets, "US"));
+      assert.equal(dear.total, page.total);
+      const m = dear.items.map((c) => c.marketUsd ?? -1);
+      assert.ok(m.every((v, k) => k === 0 || m[k - 1]! >= v || v < 0), `${name}: price-desc is dearest MARKET first when asked`);
+    }
+    // the nickname opens the same printing
+    const bop = await searchNames("bop", 5), bopOpen = (await namePrintings(bop)).get(bop[0]!.oracleNo!)!;
+    assert.equal(bop[0]!.name, "Birds of Paradise");
+    assert.ok(isOrdinaryPrinting(facts(bopOpen.id)));
   });
 });

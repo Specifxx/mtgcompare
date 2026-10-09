@@ -128,12 +128,12 @@ export interface AlertRunSummary {
 }
 
 // Which rows one run looks at.
-//   • "all"  — every watch, anonymous included: the daily free run, which
-//              refresh-prices.yml fires straight after the 07:00 UTC import.
+//   • "all"  — every watch, anonymous included: the daily run, which
+//              import-prices.yml fires straight after the once-a-day publish
+//              (scripts/alerts.ts, mode "daily").
 //   • "paid" — only watches owned by an entitled account (Plus, Premium,
-//              admin): the runs after each of the two daily imports, so a
-//              target is checked after every price update. Free and anonymous
-//              rows are never touched by a paid run.
+//              admin): a narrower re-run (scripts/alerts.ts paid). Free and
+//              anonymous rows are never touched by a paid run.
 export type AlertScope = "paid" | "all";
 
 // ── Thresholds (named so DECISIONS.md can quote and tune them) ───────────────

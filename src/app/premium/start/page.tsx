@@ -8,7 +8,7 @@ import { enabledProviders } from "@/lib/oauth";
 import { isPremium } from "@/lib/premium";
 import { TIER_NAMES, planPrice } from "@/lib/plans";
 import { parseCheckoutSelection, parseStartSrc, planInterval, sanitizeBackPath, PREMIUM_START_PATH } from "@/lib/premium-start";
-import { stripeEnabled } from "@/lib/stripe";
+import { checkoutOpen } from "@/lib/stripe";
 import { SITE_NAME } from "@/lib/site";
 
 // SIGN-IN AS A STEP INSIDE CHECKOUT, NOT A GATE IN FRONT OF IT (RiftCompare's
@@ -32,8 +32,8 @@ export const metadata: Metadata = {
 };
 
 export default async function PremiumStartPage({ searchParams }: { searchParams: { tier?: string; plan?: string; back?: string; src?: string } }) {
-  // Checkout unconfigured → /premium, which says "Opening soon" honestly.
-  if (!stripeEnabled()) redirect("/premium");
+  // Checkout not open (no key, or a TEST key: lib/stripe.ts checkoutOpen) → /premium, which says "Checkout opens soon" honestly.
+  if (!checkoutOpen()) redirect("/premium");
 
   const { tier, plan } = parseCheckoutSelection(searchParams.tier, searchParams.plan);
   const back = sanitizeBackPath(searchParams.back);

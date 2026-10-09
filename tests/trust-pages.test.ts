@@ -79,3 +79,32 @@ test("the unofficial notice says what it must: independent, unofficial, not endo
   assert.equal(FAN_CONTENT_POLICY_URL, "https://company.wizards.com/en/legal/fancontentpolicy");
   assert.equal(SCRYFALL_URL, "https://scryfall.com");
 });
+// The footer on every page said "Card data and images: Scryfall" until 2026-10-09, while src/lib/images.ts serves the TCGplayer scan of the priced product first and Scryfall's only as the
+// fallback and for back faces. The credit is now written from images.ts's own IMAGE_PRIMARY; this renders both, from real cards (tests/fixtures/magic-products.json), in both orders.
+test("the image credit names the host images.ts serves first, its fallback and the back faces' host, on real cards", async () => {
+  const { DATA_ATTRIBUTION, imageCredit } = await import("../src/lib/site");
+  const { IMAGE_PRIMARY, imageFor, backImageFor } = await import("../src/lib/images");
+  const { CARD_FLAGS } = await import("../src/lib/constants");
+  const fixture = JSON.parse(read("tests/fixtures/magic-products.json")) as { productId: number; expect: { slug: string }; scryfall: { id: string; layout: string }[] }[];
+  const card = (slug: string) => { const p = fixture.find((x) => x.expect.slug === slug)!; return { id: p.productId, scryId: p.scryfall[0]!.id, layout: p.scryfall[0]!.layout }; };
+  const counterspell = card("counterspell-mh2-267"), delver = card("delver-of-secrets-inr-60");
+  assert.equal(delver.layout, "transform", "Delver of Secrets // Insectile Aberration has a back face");
+  const HOST: Record<string, "TCGplayer" | "Scryfall"> = { "tcgplayer-cdn.tcgplayer.com": "TCGplayer", "cards.scryfall.io": "Scryfall" };
+  const served = (u: string | null): string => (u ? HOST[new URL(u).host] ?? new URL(u).host : "none");
+  const both = CARD_FLAGS.TCGIMG | CARD_FLAGS.SCRYIMG;
+  for (const primary of ["tcgplayer", "scryfall"] as const) {
+    const first = served(imageFor({ ...counterspell, flags: both }, "large", primary));
+    const other = first === "TCGplayer" ? "Scryfall" : "TCGplayer";
+    assert.equal(served(imageFor({ ...counterspell, flags: other === "Scryfall" ? CARD_FLAGS.SCRYIMG : CARD_FLAGS.TCGIMG }, "large", primary)), other, `${primary}: the other host is the fallback`);
+    assert.ok(imageCredit(primary).startsWith(`Card images: ${first}, and ${other} where ${first} has none`), `${primary}: ${imageCredit(primary)}`);
+    assert.equal(served(backImageFor({ ...delver, flags: both | CARD_FLAGS.DFC }, "large")), "Scryfall", "a back face is Scryfall's whichever host is first");
+  }
+  assert.match(imageCredit("tcgplayer"), /Scryfall where TCGplayer has none and for the back faces of double-faced cards/);
+  // The footer, /about, /methodology and /terms carry DATA_ATTRIBUTION: it holds the credit of the order the site runs, keeps Scryfall's attribution and says it does not endorse the site.
+  assert.ok(DATA_ATTRIBUTION.includes(imageCredit(IMAGE_PRIMARY)), DATA_ATTRIBUTION);
+  if (!process.env.NEXT_PUBLIC_IMAGE_PRIMARY) assert.equal(IMAGE_PRIMARY, "tcgplayer", "production's default order: TCGplayer first");
+  assert.doesNotMatch(DATA_ATTRIBUTION, /Card data and images: Scryfall/);
+  assert.match(DATA_ATTRIBUTION, /^Card data \(names, rules text, legalities, set codes and collector numbers\): Scryfall\./);
+  assert.match(DATA_ATTRIBUTION, /Scryfall does not endorse MTG Compare\.$/);
+  assert.doesNotMatch(read("src/lib/site.ts"), /process\.env\.NEXT_PUBLIC_IMAGE_PRIMARY/, "the order is read once, in images.ts");
+});

@@ -11,7 +11,7 @@ import { PlanDialog } from "./PlanDialog";
 // sent to /premium first. Mounted ONCE in the root layout; any client component
 // opens it with usePlanDialog()?.open(surface, { tier }).
 //
-// `checkoutOpen` is stripeEnabled(), read by the layout from the environment.
+// `checkoutOpen` is checkoutOpen() (lib/stripe.ts: a LIVE Stripe key), read by the layout from the environment.
 // It is NOT a session read (the root layout never reads the session); who the
 // visitor is comes from useMe() inside the dialog, which asks /api/me only when
 // the mc_auth hint cookie exists.

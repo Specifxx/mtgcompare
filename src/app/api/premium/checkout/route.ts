@@ -8,7 +8,7 @@ import { isInterval, isTier } from "@/lib/plans";
 import { isPremium } from "@/lib/premium";
 import { planInterval, sanitizeBackPath } from "@/lib/premium-start";
 import { SITE_URL } from "@/lib/site";
-import { priceIdFor, stripe, stripeEnabled } from "@/lib/stripe";
+import { checkoutAllowed, priceIdFor, stripe, stripeMode } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +21,8 @@ export async function POST(req: Request) {
   if (!sameOrigin(req)) return NextResponse.json({ error: "Cross-site request refused." }, { status: 403 });
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Sign in first." }, { status: 401 });
-  if (!stripeEnabled()) return NextResponse.json({ error: "Subscriptions aren't open yet." }, { status: 503 });
+  // Only a live key opens checkout to the public; on a test key only an admin may start one (lib/stripe.ts checkoutAllowed), so a test card never buys a real entitlement.
+  if (!checkoutAllowed(stripeMode(), user.isAdmin)) return NextResponse.json({ error: "Checkout opens soon." }, { status: 503 });
   // A member changes plan in place (/premium's member card), never with a second subscription.
   if (isPremium(user) && !user.isAdmin) return NextResponse.json({ error: "You're already a member — change your plan from the membership page." }, { status: 409 });
   const body = (await req.json().catch(() => ({}))) as { tier?: unknown; interval?: unknown; plan?: unknown; surface?: unknown; back?: unknown };

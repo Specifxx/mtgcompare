@@ -85,12 +85,14 @@ test("the XML: the index lists every child with the price day; a url is escaped;
 test("the static section: the fixed pages, the five region homes, the hubs of the vocabulary; Commanders, never Leaders; no query string; under the bound", () => {
   const entries = staticEntries(PRICE_DAY, { postHrefs: ["/blog/the-one-ring-price", "/guides/how-to-read-a-price"], authorSlugs: ["bill"], keywordSlugs: ["flying", "bad slug"], storeKeys: ["cardkingdom"], deckPaths: deckPaths([{ slug: "krenko-goblins", commanderSlug: "krenko-mob-boss" }]) });
   const locs = entries.map((e) => e.loc.slice(SITE_URL.length));
-  for (const must of ["", "/browse", "/price-guide", "/sealed", "/market", "/movers", "/stores", "/sets", "/commanders", "/colors", "/cards", "/cards/all", "/cards/rarity", "/keywords", "/tools/deal-finder", "/tools/rising", "/tools/demand", "/preorders", "/embed", "/creators", "/about", "/methodology", "/privacy", "/terms"]) assert.ok(locs.includes(must), `${must || "/"} is listed`);
+  for (const must of ["", "/browse", "/price-guide", "/sealed", "/market", "/movers", "/stores", "/sets", "/commanders", "/colors", "/cards", "/cards/all", "/cards/rarity", "/keywords", "/tools/deal-finder", "/tools/rising", "/tools/demand", "/release-dates", "/embed", "/creators", "/about", "/methodology", "/privacy", "/terms"]) assert.ok(locs.includes(must), `${must || "/"} is listed`);
   for (const region of ["/au", "/uk", "/ca", "/sg", "/eu"]) assert.ok(locs.includes(region), region);
   for (const hub of ["/colors/white", "/colors/colorless", "/colors/multicolor", "/cards/rarity/mythic", "/cards/type/creature", "/cards/treatment/borderless", "/cards/treatment/showcase"]) assert.ok(locs.includes(hub), hub);
   assert.ok(locs.includes("/blog/the-one-ring-price") && locs.includes("/authors/bill") && locs.includes("/keywords/flying") && locs.includes("/stores/cardkingdom") && locs.includes("/decks/commander/krenko-mob-boss"));
   assert.ok(!locs.includes("/keywords/bad slug"), "an unsafe extra is dropped");
   assert.ok(!locs.some((l) => /leaders|\/cards\/printing|\?|#/.test(l)), "no OP routes, no query, no fragment");
+  // /preorders was listed until 2026-10-09, though it is only a redirect to /release-dates (now in next.config.js): a sitemap lists pages, never a URL that redirects.
+  assert.ok(!locs.includes("/preorders"), "a redirect is not listed");
   assert.equal(new Set(locs).size, locs.length, "no duplicate");
   assert.ok(entries.length < SITEMAP_SECTION_SIZE);
   const home = entries[0]!; assert.equal(home.loc, SITE_URL); assert.equal(home.priority, 1); assert.equal(home.lastmod, PRICE_DAY);

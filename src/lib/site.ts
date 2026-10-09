@@ -1,3 +1,5 @@
+import { IMAGE_PRIMARY } from "./images";
+
 // Site identity. Everything brand-shaped reads from here, so a rename or a new
 // domain is a one-file change.
 //
@@ -43,15 +45,15 @@ export const UNOFFICIAL_FAN_SITE_NOTICE = `${SITE_NAME} is an independent, unoff
 export const SCRYFALL_URL = "https://scryfall.com";
 /**
  * Where the card images come from, as src/lib/images.ts serves them: the TCGplayer scan of the priced product first, Scryfall's where TCGplayer has none, and Scryfall's
- * alone for the back face of a double-faced card; NEXT_PUBLIC_IMAGE_PRIMARY=scryfall swaps the first two. Read here with images.ts's own test, so this file imports
- * nothing (tests/trust-pages.test.ts pins the two to the same answer).
+ * alone for the back face of a double-faced card; NEXT_PUBLIC_IMAGE_PRIMARY=scryfall swaps the first two. The order is images.ts's own IMAGE_PRIMARY (the one place
+ * that variable is read, tests/env-names.test.ts), so the credit cannot disagree with the image on the page (tests/trust-pages.test.ts renders both from real cards).
  */
 export function imageCredit(primary: "tcgplayer" | "scryfall"): string {
   return primary === "scryfall"
     ? "Card images: Scryfall, and TCGplayer where Scryfall has none."
     : "Card images: TCGplayer, and Scryfall where TCGplayer has none and for the back faces of double-faced cards.";
 }
-const IMAGE_PRIMARY_FOR_CREDIT: "tcgplayer" | "scryfall" = process.env.NEXT_PUBLIC_IMAGE_PRIMARY === "scryfall" ? "scryfall" : "tcgplayer";
 // Scryfall's terms ask for attribution and for no implied endorsement. Card names, rules text, legalities, set codes and collector numbers are Scryfall's
 // (docs/magic-data-contract.md: "Scryfall owns what the card is"); the catalogue and the prices are TCGplayer's, read through TCGCSV, and the stores'.
-export const DATA_ATTRIBUTION = `Card data (names, rules text, legalities, set codes and collector numbers): Scryfall. ${imageCredit(IMAGE_PRIMARY_FOR_CREDIT)} Prices: TCGplayer market data and public store listings. For information only; Scryfall does not endorse ${SITE_NAME}.`;
+// Until 2026-10-09 this read "Card data and images: Scryfall", on every page's footer, while most images on the site are TCGplayer's.
+export const DATA_ATTRIBUTION = `Card data (names, rules text, legalities, set codes and collector numbers): Scryfall. ${imageCredit(IMAGE_PRIMARY)} Prices: TCGplayer market data and public store listings. For information only; Scryfall does not endorse ${SITE_NAME}.`;

@@ -46,7 +46,7 @@ const FAQS = [
   },
   {
     q: "Does it account for shipping?",
-    a: "Yes — that's the whole point. Buying each card from its individual cheapest store usually spreads an order over a dozen stores and buries the saving in postage. Best Basket searches store combinations for the lowest total including each store's postage, and with Premium it also shows the best one-store and two-store orders beside it. The postage is each store's own checkout rate, measured for orders of different sizes and values to addresses across your market (in the US: New York, Chicago, Dallas and San Francisco): the store's rate name, whether its name says it's tracked, where a cheap untracked letter stops being offered, and the order value where postage goes free, if it ever does. It starts from your region and prices it at the address we measured there, or at the dearer of the two either side of it; leave it unset and it uses each store's highest. An order bigger than any we measured is marked 'from', a store we haven't measured yet (and TCGplayer, where every seller charges their own postage) is marked as an estimate, and the store's own checkout is always final.",
+    a: "Yes — that's the whole point. Buying each card from its individual cheapest store usually spreads an order over a dozen stores and buries the saving in postage. Best Basket searches store combinations for the lowest total including each store's postage, and shows the best one-store and two-store orders beside it. The postage is each store's own checkout rate, measured for orders of different sizes and values to addresses across your market (in the US: New York, Chicago, Dallas and San Francisco): the store's rate name, whether its name says it's tracked, where a cheap untracked letter stops being offered, and the order value where postage goes free, if it ever does. It starts from your region and prices it at the address we measured there, or at the dearer of the two either side of it; leave it unset and it uses each store's highest. An order bigger than any we measured is marked 'from', a store we haven't measured yet (and TCGplayer, where every seller charges their own postage) is marked as an estimate, and the store's own checkout is always final.",
   },
   {
     q: "What can I paste in?",
@@ -228,9 +228,10 @@ export default async function BestBasketPage({ searchParams }: { searchParams: P
         </div>
       ) : (
         <div className="card-surface p-6 text-center">
-          <h2 className="text-lg font-extrabold text-white">Sign in to use Best Basket</h2>
+          <h2 className="text-lg font-extrabold text-white">Best Basket is a Premium tool</h2>
           <p className="mx-auto mt-1 max-w-md text-sm text-slate-400">
             Best Basket is part of MTG Compare Premium: the cheapest order for your whole list, store by store, with postage counted where a store&apos;s rate is known.
+            Sign in to choose Premium; a free account alone does not include it.
           </p>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
             <Link href={`/login?next=${encodeURIComponent(selfHref(searchParams))}&src=tool_gate`} rel="nofollow" className="btn-primary text-sm">

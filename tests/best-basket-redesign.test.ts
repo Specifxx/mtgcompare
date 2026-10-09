@@ -583,6 +583,29 @@ test("the basket route is Premium only: anyone else gets a 403 before any read (
   assert.match(page, /<PlanButton surface="gate:basket" tier="premium" \/>/);
 });
 
+// The gate above is the fact; the copy has to say it. Until 2026-10-09 the /premium FAQ ("What is Best Basket?", also its FAQPage JSON-LD) and the /tools/best-basket intro
+// said "Any signed-in account sees its own delivered total", the page's own FAQ said Best Basket shows the one- and two-store orders "with Premium", and the signed-out card
+// read "Sign in to use Best Basket": a free account that followed any of them got the 403.
+test("the copy says what the gate does: Best Basket is Premium, and nothing promises a free or signed-in account a delivered total", async () => {
+  const { HUB_INTROS } = await import("../src/lib/content/hub-intros");
+  const intro = HUB_INTROS["/tools/best-basket"]!.paragraphs.join(" ");
+  const premium = read("src/app/premium/page.tsx");
+  const faq = /q: "What is Best Basket\?",\s*a: "([^"]+)"/.exec(premium)?.[1] ?? "";
+  assert.ok(faq, "the /premium FAQ answers \"What is Best Basket?\"");
+  for (const [where, t] of [["/premium FAQ", faq], ["/tools/best-basket intro", intro]] as const) {
+    assert.match(t, /Best Basket is (?:part of Premium|a Premium tool)/, where);
+    assert.doesNotMatch(t, /signed-in account|own delivered total|with Premium it also/i, where);
+  }
+  const page = read("src/app/tools/best-basket/page.tsx");
+  assert.doesNotMatch(page, /Sign in to use Best Basket|with Premium it also shows/);
+  assert.equal((page.match(/Best Basket is a Premium tool/g) ?? []).length, 2, "the signed-in and the signed-out card both say so");
+  // Every page, component and content library, read as text: no tiered Best Basket left in the copy.
+  const { walk } = await import("./helpers/ratchet");
+  const files = [...walk("src/app"), ...walk("src/components"), ...walk("src/lib/content"), ...walk("src/lib/blog"), "src/lib/plans.ts", "src/lib/login-context.ts", "src/lib/email.ts"].filter((f) => /\.tsx?$/.test(f));
+  const tiered = files.filter((f) => /\b(?:any|every) signed-in account\b[^.]{0,80}\b(?:delivered total|basket)\b|\bown delivered total\b/i.test(readCode(f)));
+  assert.deepEqual(tiered, []);
+});
+
 test("a failed read answers 503, never a $0.00 plan", () => {
   const code = readCode(ROUTE);
   assert.match(code, /\} catch \(e\) \{[^}]*return fail\("Store prices are unavailable[^;]*, 503\);/);

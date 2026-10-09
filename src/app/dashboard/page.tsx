@@ -10,7 +10,7 @@ import { COUNTRIES } from "@/lib/country";
 import { money } from "@/lib/format";
 import { TIER_NAMES } from "@/lib/plans";
 import { SITE_NAME } from "@/lib/site";
-import { stripeEnabled } from "@/lib/stripe";
+import { checkoutOpen, stripeEnabled } from "@/lib/stripe";
 import { touchActivity } from "@/lib/activity";
 import { notificationFeed } from "@/lib/notifications";
 import { DASHBOARD_TOOLS, dashboardToolOpens } from "@/lib/dashboard-tools";
@@ -66,7 +66,8 @@ export default async function DashboardPage() {
   const billing = isPlus ? await billingStateFor(user, true) : { trialing: false, interval: null };
   const tools = DASHBOARD_TOOLS.map((t) => ({ ...t, opens: dashboardToolOpens(t.tier, tier) }));
   const lockedTools = tools.filter((t) => !t.opens && !t.freeTaste);
-  const canUpgrade = isFree ? stripeEnabled() : isPlus && stripeEnabled() && !billing.trialing;
+  // Buying or upgrading needs OPEN checkout (a live key, lib/stripe.ts); managing an existing subscription only needs Stripe configured.
+  const canUpgrade = isFree ? checkoutOpen() : isPlus && checkoutOpen() && !billing.trialing;
 
   // MTG Compare: the alerts are delivered in-app while email is off — the ten
   // newest, one bounded per-user read (lib/notifications.ts).

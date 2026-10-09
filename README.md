@@ -4,7 +4,7 @@
 
 MTG Compare is the Magic sister site of [RiftCompare](https://riftcompare.com) and OP Compare: the same layout, market switcher, price-comparison board and data rules, rebuilt for Magic with its own brand ("Arcane Ink": amethyst and brass, see `docs/BRAND.md`), its own data model, its own database and its own store list.
 
-> Independent fan-made site. Not affiliated with, endorsed or sponsored by Wizards of the Coast. Magic: The Gathering and its card names, art and symbols are property of Wizards of the Coast. Card data and images come from [Scryfall](https://scryfall.com); prices come from TCGplayer (via TCGCSV) and the stores listed on `/stores`.
+> Independent fan-made site. Not affiliated with, endorsed or sponsored by Wizards of the Coast. Magic: The Gathering and its card names, art and symbols are property of Wizards of the Coast. Card data comes from [Scryfall](https://scryfall.com); card images are TCGplayer's, with Scryfall's where TCGplayer has none and for the back faces of double-faced cards; prices come from TCGplayer (via TCGCSV) and the stores listed on `/stores`.
 
 ## What's on the site
 

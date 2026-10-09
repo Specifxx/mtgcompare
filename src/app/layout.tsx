@@ -25,7 +25,7 @@ import { ReferralCapture } from "@/components/ReferralCapture";
 import { PriceAlertModalGate } from "@/components/PriceAlertModalGate";
 import { EmailOnly } from "@/components/EmailOnly";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
-import { stripeEnabled } from "@/lib/stripe";
+import { checkoutOpen } from "@/lib/stripe";
 import { DEFAULT_COUNTRY } from "@/lib/country";
 import { enabledProviders } from "@/lib/oauth";
 import { CONTACT_EMAIL, DISCORD_URL, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
@@ -147,9 +147,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <NextTopLoader color="#c394f4" height={2} showSpinner={false} shadow={false} zIndex={200} />
         {/* The Plus/Premium dialog and its account state (RiftCompare's
             PremiumProvider + PremiumDialogProvider). checkoutOpen is an
-            environment read (is Stripe configured?), not a session read: who
+            environment read (a LIVE Stripe key: a test key keeps every buy
+            button closed, lib/stripe.ts), not a session read: who
             the visitor is comes from /api/me, client-side. */}
-        <PlanProvider checkoutOpen={stripeEnabled()} providers={enabledProviders()}>
+        <PlanProvider checkoutOpen={checkoutOpen()} providers={enabledProviders()}>
         <CountryProvider initial={DEFAULT_COUNTRY}>
           {/* Card QuickView (CardQuickLink): a client island; reads no session. */}
           <QuickViewProvider providers={enabledProviders()}>

@@ -18,9 +18,11 @@
 //   • Slot counts come from the structures Wizards publishes
 //     (lib/pack-composition.ts). A slot with no published split adds nothing to
 //     the EV until the visitor sets a rate. No pull rate is invented.
+//   • The calculator opens on the newest RELEASED set with a computed EV
+//     (defaultBoxSet); a set not out yet is labelled so and gets no verdict.
 
 import { TREATMENT_BY_KEY } from "./constants";
-import type { BoosterType } from "./pack-composition";
+import { BOOSTER_TYPES, type BoosterType } from "./pack-composition";
 
 // ── Pools ────────────────────────────────────────────────────────────────────
 // A pool is a set of cards one pull can produce: a standard-frame card by
@@ -267,4 +269,74 @@ export function cheapestBoxOffer<T extends BoxOfferListing>(offers: readonly T[]
     if (!best || o.priceCents < best.priceCents) best = o;
   }
   return best;
+}
+
+// ── The calculator's numbers for one set ─────────────────────────────────────
+
+/** One pool of a set as the page ships it (aggregated server-side, USD cents). */
+export interface PoolRow {
+  pool: PoolKey;
+  avgUsdCents: number;
+  topUsdCents: number;
+  priced: number;
+  total: number;
+}
+
+/**
+ * EV of a set's pools for one booster: its published rates, the visitor's
+ * overrides on top. The calculator and the page's choice of opening set both
+ * call this, so the number a set is chosen on is the number it opens with.
+ */
+export function evForPools(opts: { pools: readonly PoolRow[]; booster: BoosterType | null; packs: number; overrides?: Partial<Record<PoolKey, number>>; boxPriceCents?: number }) {
+  const stats = poolStatsFromPools(opts.pools);
+  const counts = new Map<PoolKey, number>(opts.pools.map((p) => [p.pool, p.total]));
+  const base = derivedRates({ counts, booster: opts.booster });
+  const rates = { ...base, ...opts.overrides };
+  return { ...computeEv({ stats, rates, packs: opts.packs, boxPriceCents: opts.boxPriceCents ?? 0 }), rates, base };
+}
+
+// ── Which set the calculator opens on ────────────────────────────────────────
+// The list is newest first, so it starts with sets that are not out yet. On
+// 2026-10-09 that was Star Trek (out 2026-11-13): 24 previewed cards at
+// pre-order prices, which the published Play Booster rates turn into an "EV"
+// of about US$1,400 a box. That number describes no box anyone can open, so
+// the calculator opens on the newest set that IS out and has a computed EV, and
+// a set not out yet is labelled in the picker and given no verdict.
+
+/** Is a set out on `today` (YYYY-MM-DD, UTC)? A set with no date counts as out, as lib/release-alerts.ts isUnreleased reads it. Pure. */
+export const isReleased = (releasedOn: string | null | undefined, today: string): boolean => releasedOn == null || releasedOn <= today;
+
+/** A computed EV: above zero, from paying pools at least VERDICT_MIN_PRICED_SHARE priced (below that the page itself calls the EV understated). Pure. */
+export function hasComputedEv(ev: Pick<EvResult, "evBoxCents" | "pricedShare">): boolean {
+  return ev.evBoxCents > 0 && ev.pricedShare >= VERDICT_MIN_PRICED_SHARE;
+}
+
+/** What the opening-set choice needs of a set (the page's BoxEvSet satisfies it). */
+export interface OpeningSet {
+  released: boolean;
+  pools: readonly PoolRow[];
+  /** The set's modelled boxes; the first is the one the calculator opens on. */
+  boosters: readonly { key: string; packs: number }[];
+}
+
+/** The EV a set opens with: its first box's booster at the published rates and that box's pack count, no override, no price. Pure. */
+export function openingEv(set: OpeningSet, boosters: readonly BoosterType[] = BOOSTER_TYPES): EvResult {
+  const first = set.boosters[0];
+  return evForPools({ pools: set.pools, booster: boosters.find((b) => b.key === first?.key) ?? null, packs: first?.packs ?? DEFAULT_PACKS });
+}
+
+/** The set the calculator opens on, from sets listed newest first: the newest RELEASED set with a computed EV; else the newest released set; else the first. Pure. */
+export function defaultBoxSet<S extends OpeningSet>(sets: readonly S[]): S | null {
+  const out = sets.filter((s) => s.released);
+  return out.find((s) => hasComputedEv(openingEv(s))) ?? out[0] ?? sets[0] ?? null;
+}
+
+/** "Nov 13, 2026" for a YYYY-MM-DD release date, the same on the server and in every browser. Pure. */
+export const releaseDateLabel = (iso: string): string => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+
+/** The picker's line for a set: "Reality Fracture (FRA)", or "Star Trek (TRK) · unreleased, out Nov 13, 2026". Pure. */
+export function boxSetLabel(s: { setName: string; setCode: string; released: boolean; releasedOn: string | null }): string {
+  const name = `${s.setName} (${s.setCode})`;
+  if (s.released) return name;
+  return s.releasedOn ? `${name} · unreleased, out ${releaseDateLabel(s.releasedOn)}` : `${name} · unreleased`;
 }

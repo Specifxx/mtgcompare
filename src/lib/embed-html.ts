@@ -2,6 +2,13 @@
 // HTML document, no script, no tracking, dark-safe, with a link back to the page.
 import { SITE_NAME } from "./site";
 
+/**
+ * The card the /embed page's price-badge snippet shows: a real slug, the last part of the card page's URL (/card/counterspell-mh2-267, Counterspell, Modern Horizons 2
+ * #267). It was the bare name "lightning-bolt" until 2026-10-09, which is no card's slug (a slug carries the set and the number: lightning-bolt-m11-149), so the copied
+ * snippet answered 404. tests/backlink-embeds.test.ts renders the badge for it from the real products.
+ */
+export const EMBED_EXAMPLE_CARD = "counterspell-mh2-267";
+
 export const esc = (s: string): string => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 export function embedPage(title: string, body: string, href: string): Response {

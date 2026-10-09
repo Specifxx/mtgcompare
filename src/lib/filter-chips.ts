@@ -8,12 +8,15 @@
 // "?color=white&color=blue" link still works and is rewritten on the next change.
 import { COLORS, FORMAT_LABEL, PRIMARY_TYPE_LABEL, TREATMENT_BY_KEY, rarityLabel, type Format, type PrimaryType } from "./constants";
 import { keywordLabel } from "./keywords";
+import { defaultSort } from "./browse";
 
 /** The multi-value keys, in the order chips and the URL list them. */
 export const MULTI_KEYS = ["set", "color", "rarity", "type", "treat"] as const;
 /** Every key the filter panel writes, in canonical URL order. */
 export const URL_ORDER = ["q", ...MULTI_KEYS, "cmode", "identity", "finish", "format", "keyword", "priced", "min", "max", "sort", "per"] as const;
 export const BROWSE_DEFAULTS: Record<string, string> = { sort: "value", per: "48", cmode: "any" };
+/** The defaults a /browse URL leaves out for these search words: the sort is "Best match" (relevance) when the URL carries `q`, market value otherwise (browse.ts defaultSort). With `q`, an explicit `sort=value` is the visitor's choice and stays. */
+export const browseDefaults = (q: string): Record<string, string> => ({ ...BROWSE_DEFAULTS, sort: defaultSort(q.trim()) });
 
 export type ParamsLike = { getAll(key: string): string[]; get(key: string): string | null };
 
@@ -24,17 +27,21 @@ export function values(sp: ParamsLike, key: string): string[] {
   return out;
 }
 
+/** A single-value key as written (the first non-empty value, trimmed). Never split on commas: the search words are one value ("Jace, the Mind Sculptor", "Borrowing 100,000 Arrows"). */
+const single = (sp: ParamsLike, key: string): string => sp.getAll(key).map((v) => v.trim()).find(Boolean) ?? "";
+
 /**
  * The canonical query: known keys in URL_ORDER, multi-values as one CSV,
- * empty values and defaults dropped, and never `page` (any filter change
+ * empty values and defaults dropped (the default sort is Best match when the
+ * URL carries search words: browseDefaults), and never `page` (any filter change
  * starts again at page 1). Unknown keys (e.g. utm_*) are kept at the end.
  */
-export function canonical(sp: ParamsLike & { keys(): IterableIterator<string> }, defaults: Record<string, string> = BROWSE_DEFAULTS): URLSearchParams {
+export function canonical(sp: ParamsLike & { keys(): IterableIterator<string> }, defaults: Record<string, string> = browseDefaults(single(sp, "q"))): URLSearchParams {
   const out = new URLSearchParams();
   for (const k of URL_ORDER) {
-    const vs = values(sp, k);
-    if (!vs.length) continue;
-    const v = (MULTI_KEYS as readonly string[]).includes(k) ? vs.join(",") : vs[0];
+    const multi = (MULTI_KEYS as readonly string[]).includes(k);
+    const v = multi ? values(sp, k).join(",") : single(sp, k);
+    if (!v) continue;
     if (defaults[k] === v) continue;
     out.set(k, v);
   }

@@ -29,6 +29,11 @@ const nextConfig = {
       { source: "/tools/buy-list", destination: "/tools/best-basket?source=watchlist", permanent: true },
       { source: "/tools/box-value", destination: "/tools/box-ev", permanent: true },
       { source: "/bulk-pricer", destination: "/deck", permanent: true },
+      // There is no pre-order price page: the sets still to come are the "Coming up" part of
+      // /release-dates, each linking to its set page, where pre-order listings are priced. An
+      // old /preorders URL lands there; it was a page.tsx that only redirected (and the nav's
+      // "Pre-order prices") until 2026-10-09 (tests/nav-routes.test.ts).
+      { source: "/preorders", destination: "/release-dates", permanent: true },
       // A signed-out visit to a member page is a real 307 to the login page,
       // decided before anything streams. These routes have a loading.tsx; the
       // page's own redirect() only runs after that shell has been flushed, and
