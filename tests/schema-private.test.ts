@@ -9,7 +9,7 @@ const schema = fs.readFileSync(path.join(ROOT, "prisma/schema.prisma"), "utf8");
 const models = [...schema.matchAll(/^model (\w+) \{([\s\S]*?)^\}/gm)].map((m) => ({ name: m[1]!, body: m[2]! }));
 const fields = (body: string) => body.split("\n").map((l) => l.replace(/\/\/.*$/, "").trim()).filter((l) => l && !l.startsWith("@@") && !l.startsWith("//"));
 const PUBLIC = ["Set", "ScrySet", "Oracle", "Card", "CardPrice", "Unit", "Offer", "StoreRun", "Sealed", "EbayCheck", "EbayListing", "EbayGradedListing"];
-const EXPECTED = ["User", "Meta", "PriceReport", "StoreSuggestion", "Feedback", "ContactMessage", "ClickEvent", "PremiumClick", "PriceAlert", "AlertMute", "SealedWatch", "DeckWatch", "Notification", "CollectionCard", "Counter", "NewsletterSubscriber", "SetReleaseAlert", "PublishedDeck", "RisingSnapshot", "SupportTicket", "ImportRun", "EbayTrack", "EbayBest", "EbayPanel", "EbayBanner", "EbayLedger", "CardStat", "DemandDay"];
+const EXPECTED = ["PlaneFile", "User", "Meta", "PriceReport", "StoreSuggestion", "Feedback", "ContactMessage", "ClickEvent", "PremiumClick", "PriceAlert", "AlertMute", "SealedWatch", "DeckWatch", "Notification", "CollectionCard", "Counter", "NewsletterSubscriber", "SetReleaseAlert", "PublishedDeck", "RisingSnapshot", "SupportTicket", "ImportRun", "EbayTrack", "EbayBest", "EbayPanel", "EbayBanner", "EbayLedger", "CardStat", "DemandDay"];
 
 test("28 models, exactly the private ones; none of the public catalogue tables is back", () => {
   assert.deepEqual(models.map((m) => m.name).sort(), [...EXPECTED].sort());

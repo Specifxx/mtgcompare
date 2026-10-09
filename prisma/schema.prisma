@@ -1,4 +1,4 @@
-// MTG Compare: the PRIVATE-STATE schema (contract section 2.2, FROZEN; owner WP01a). ONE Neon database, DATABASE_URL, 28 models.
+// MTG Compare: the PRIVATE-STATE schema (contract section 2.2, FROZEN; owner WP01a). ONE Neon database, DATABASE_URL, 28 models (plus PlaneFile at the bottom: the published plane, declared only so `prisma db push` does not drop it).
 // The public catalogue (sets, cards, oracles, prices, units, store offers, sealed, price history and every precomputed public view) is NOT here: it lives in the PRIVATE data repository as sharded versioned JSON
 // (sections 2.9 and 12, src/lib/data/plane). This schema keeps ONLY accounts, billing, member data, inbox, counters, ops rows, the private demand analytics and the eBay data that must never leave the database.
 // Products are referenced by plain integers (productId = Card.id / Sealed.id) with NO foreign key; existence is checked against the plane (cardExists / sealedExists), and the importer never deletes a catalogue row,
@@ -468,4 +468,13 @@ model CardStat {
 model DemandDay {
   day  String @id            // "2026-10-07"
   data Json                  // top 3,000 cards by activity, about 40 KB a day
+}
+
+// The published data plane when it lives in Neon (the default; PLANE_BACKEND=github turns it off). Created and written ONLY by src/lib/data/plane/neon-store.ts with raw SQL (CREATE TABLE IF NOT EXISTS, same columns). It is declared here
+// for one reason: `prisma db push` drops any table the schema does not know. No code reads it through the generated client. Everything in it is world-readable through the site: never anything private, paid or eBay-derived.
+model PlaneFile {
+  path      String   @id
+  sha       String
+  body      Bytes
+  updatedAt DateTime @default(now()) @db.Timestamptz(6)
 }

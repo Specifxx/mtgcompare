@@ -18,9 +18,11 @@ import { PRICE_MASK } from "../src/lib/constants";
 const read = (p: string): string => fs.readFileSync(path.join(ROOT, p), "utf8");
 
 // ── 1. Postgres holds no price history ──────────────────────────────────────────────────────────────────────────────────────
-const MODELS = [...read("prisma/schema.prisma").matchAll(/^model (\w+) \{/gm)].map((m) => m[1]!);
+const ALL_MODELS = [...read("prisma/schema.prisma").matchAll(/^model (\w+) \{/gm)].map((m) => m[1]!);
+const MODELS = ALL_MODELS.filter((m) => m !== "PlaneFile");   // PlaneFile is the published plane (Neon backend), declared only so `prisma db push` keeps it; it is not private state
 test("the schema has exactly the 28 private models, and the egress audit lists exactly those", () => {
   assert.equal(MODELS.length, 28);
+  assert.ok(ALL_MODELS.includes("PlaneFile"), "the plane table is declared, or a schema push drops the published data");
   assert.deepEqual([...PRIVATE_TABLES].sort(), [...MODELS].sort(), "scripts/audit-egress.ts PRIVATE_TABLES is the schema: a table missing from the list is reported as 'not one of the private tables', a stale one hides a retired table");
 });
 test("no model keeps a price series: the only event log is ClickEvent, and it is swept", () => {
