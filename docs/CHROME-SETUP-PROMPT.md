@@ -80,13 +80,14 @@ with the services that are signed in.
 3. Copy the **pooled** connection string (Connect, "Pooled connection" on; it contains `-pooler` and ends in
    `?sslmode=require`). This is `DATABASE_URL`. Do not print it.
 
-### A2. GitHub: the code repo Specifxx/mtgcompare, and a PRIVATE data repo
-MTG Compare keeps ALL public data (live prices, store offers, price history) as files in a **private** GitHub repository, so the
-site does not depend on the database. Neon holds only accounts, billing, alerts and ops state.
+### A2. GitHub: the code repo Specifxx/mtgcompare (the private data repo is now OPTIONAL)
+MTG Compare publishes ALL public data (live prices, store offers, price history) as sharded JSON files. Since 2026-10-09 they live by DEFAULT in the
+Neon database (`DATABASE_URL`, table `PlaneFile`, created by the first import): no repository, no token, no `PLANE_*` variable. Steps 2 and 3 below
+are ONLY for `PLANE_BACKEND=github` (a private data repository); SKIP them unless I ask for that. Neon also holds accounts, billing, alerts and ops state.
 1. Specifxx/mtgcompare, Settings, Actions, General, Workflow permissions: **Read and write permissions**, Save.
-2. Create a new **private** repository `Specifxx/mtgcompare-data`, completely empty (no README, no .gitignore, no licence). The
+2. ONLY IF I ASK FOR THE GITHUB BACKEND (then also set variable `PLANE_BACKEND` = `github` in Actions AND in Vercel): create a new **private** repository `Specifxx/mtgcompare-data`, completely empty (no README, no .gitignore, no licence). The
    import creates its `data` branch itself. Reuse it if it exists.
-3. Create two **fine-grained personal access tokens** (github.com/settings/personal-access-tokens/new), resource owner Specifxx,
+3. ONLY IF I ASK FOR THE GITHUB BACKEND: create two **fine-grained personal access tokens** (github.com/settings/personal-access-tokens/new), resource owner Specifxx,
    repository access **Only select repositories: `mtgcompare-data`**, expiration 1 year:
    - name `mtgcompare-plane-read`, permission **Contents: Read-only**. This value is `PLANE_TOKEN` (goes to Vercel only, A3).
    - name `mtgcompare-data-write`, permissions **Contents: Read and write** and **Administration: Read-only**. This value is
@@ -94,10 +95,10 @@ site does not depend on the database. Neon holds only accounts, billing, alerts 
    GitHub may ask me for my password, a passkey or a 2FA code when creating a token: that is a manual item (leave the tab open on
    the token form). Never print a token. Tokens are shown once: put each straight into its field.
 4. Specifxx/mtgcompare, Settings, Secrets and variables, Actions, **Secrets**: `DATABASE_URL` (the Neon pooled string),
-   `CRON_SECRET` (a new random secret; keep it for A3), `AUTH_SECRET` (a new random secret; **the same value goes to Vercel in A3**),
-   `DATA_REPO_TOKEN`.
+   `CRON_SECRET` (a new random secret; keep it for A3), `AUTH_SECRET` (a new random secret; **the same value goes to Vercel in A3**).
+   (`DATA_REPO_TOKEN` only with the GitHub backend.)
 5. Same page, **Variables**: `SITE_URL` = SITE_URL and `REVALIDATE_URL` = SITE_URL (both set after A3 knows the Vercel URL; come back
-   and set them), `PLANE_REPO` = `Specifxx/mtgcompare-data`, `NEXT_PUBLIC_EBAY_CAMPAIGN_ID` = `5339155912`,
+   and set them), `NEXT_PUBLIC_EBAY_CAMPAIGN_ID` = `5339155912`,
    `INDEXNOW_KEY` = `43ac93dd97a44d4894bedf52d621c57c`.
 6. OPTIONAL, skip unless I ask: Actions secret `OPS_WEBHOOK_URL` (a Discord or Slack webhook for freshness and failure alerts; alerts only print in
    the log without it) and Actions secret `TARGET_DATABASE_URL` (only when a Neon project must be replaced: the `migrate-database` maintenance task is a
@@ -116,8 +117,7 @@ site does not depend on the database. Neon holds only accounts, billing, alerts 
    - `DATABASE_URL` = the Neon pooled string
    - `CRON_SECRET` = the same value as GitHub's
    - `AUTH_SECRET` = the same value as the GitHub secret of that name (A2.4)
-   - `PLANE_REPO` = `Specifxx/mtgcompare-data`
-   - `PLANE_TOKEN` = the read-only token from A2.3 (mark it Sensitive)
+   - (`PLANE_BACKEND`, `PLANE_REPO` and `PLANE_TOKEN` only with the GitHub backend: leave them unset otherwise)
    - `NEXT_PUBLIC_SITE_URL` = SITE_URL
    - `INDEXNOW_KEY` = `43ac93dd97a44d4894bedf52d621c57c`
    - `NEXT_PUBLIC_EBAY_CAMPAIGN_ID` = `5339155912` (my existing public eBay Partner Network campaign id)
@@ -203,10 +203,10 @@ If READY, read `docs/SETUP.md` fully first (its names win), then:
 default branch (Settings, General). Vercel, Settings, Git, Production Branch = `main`. Never delete the original branch.
 
 **B2. Schema and data.** GitHub, Actions: run the workflow that publishes the data (named in docs/SETUP.md, expected: **Import
-prices**) on `main` and wait for green (it can take up to ~75 minutes; it publishes to the private data repo's `data` branch and
+prices**) on `main` and wait for green (it can take up to ~75 minutes; it publishes into the `PlaneFile` table of the Neon database (GitHub backend: the private data repo's `data` branch) and
 creates the Neon tables). Then run the **data-hook** workflow once (it tells the site the new data is there). In
 `Specifxx/mtgcompare-data` confirm a `data` branch now exists. If anything fails, copy the failing step's error text into PROBLEMS
-(a 404 or "token rejected" means `PLANE_TOKEN` or `DATA_REPO_TOKEN` is wrong or missing: check the scopes in A2.3).
+("DATABASE_URL is not set" means the Actions secret is missing; with the GitHub backend a 404 or "token rejected" means `PLANE_TOKEN` or `DATA_REPO_TOKEN` is wrong or missing: check the scopes in A2.3).
 
 **B3. Stripe products and webhook (test mode).** Run the **Stripe setup** workflow (branch main). Its log lists the products and
 prices (Plus and Premium, monthly and yearly). In Stripe (MTG Compare account, test mode): Developers, Webhooks, Add endpoint

@@ -1,7 +1,7 @@
 // The hourly watchdog of the data repository (contract 6.6, 12.10.3). Reads the pointer, the head of the branch, the host probes, the repository size, the token's expiry, the live site's served ref and a sample of the pointed manifest, runs every alarm rule (plane/status.ts
 // computeAlarms) and writes the root status.json ONLY when an alarm changed or the day changed, so the hourly run is normally a no-op. It is a writer of the data repository, so it runs in the same concurrency group as the import (queue: max) and can neither cancel nor be cancelled by one.
 // It also owns the small helpers the other data jobs (squash, rollback) use to land a status-only commit.
-//   npx tsx scripts/data-watchdog.ts                 # the hourly run (PLANE_REPO, DATA_REPO_TOKEN, SITE_URL, GITHUB_REPOSITORY/GITHUB_TOKEN for the keepalive age)
+//   npx tsx scripts/data-watchdog.ts                 # the hourly run (DATABASE_URL, or with PLANE_BACKEND=github: PLANE_REPO, DATA_REPO_TOKEN; SITE_URL, GITHUB_REPOSITORY/GITHUB_TOKEN for the keepalive age)
 import fs from "node:fs";
 import path from "node:path";
 import { createHash, randomInt } from "node:crypto";
@@ -10,9 +10,11 @@ import { TAG_PREFIX, seqOfTag } from "../src/lib/data/plane/publish-protocol";
 import { gitIn, type Git } from "../src/lib/data/plane/publisher";
 import { computeAlarms, type Alarm, type StatusFile, type WatchInput } from "../src/lib/data/plane/status";
 import { authenticateGit, log, remoteOf, workRoot } from "./import";
+import { planeBackend } from "../src/lib/data/plane/backend";
+import { PLANE_TABLE, STATUS_ROW, TREE_PREFIX, openWriterStore, type NeonStore } from "../src/lib/data/plane/neon-store";
 
 const sha256 = (s: string): string => createHash("sha256").update(s).digest("hex");
-export interface WatchDeps { fetch: typeof fetch; now: () => Date; env: NodeJS.ProcessEnv; workdir: string }
+export interface WatchDeps { fetch: typeof fetch; now: () => Date; env: NodeJS.ProcessEnv; workdir: string; /** The Neon-backed plane (the default): the watchdog then reads and writes rows, no git, no host probes. */ store?: NeonStore }
 
 /** Check out the head of `branch` (depth 1) into `workdir` and return a git handle; the status.json and latest.json of the head. */
 export function checkoutHead(remote: string, workdir: string, branch = "data"): { g: Git; pointer: PointerFile | null; status: StatusFile | null; head: string; subject: string; headAt: Date } {
@@ -46,6 +48,7 @@ async function probe(f: typeof fetch, url: string, headers: Record<string, strin
 }
 /** One run of the watchdog. Returns whether a status commit was written and the alarms it computed (the tests read these). */
 export async function runWatchdog(d: WatchDeps): Promise<{ wrote: boolean; alarms: Alarm[]; head: string }> {
+  if (d.store) return runWatchdogNeon(d, d.store);
   const { remote, repo, github } = remoteOf(d.env); const token = d.env.DATA_REPO_TOKEN; const now = d.now(); const branch = d.env.PLANE_BRANCH || "data";
   const co = checkoutHead(remote, d.workdir, branch); const p = co.pointer; const prevStatus = co.status;
   // probes: raw (the pointer file) and the contents API (the repository record: size, visibility; and the token's expiry header)
@@ -92,9 +95,43 @@ export async function runWatchdog(d: WatchDeps): Promise<{ wrote: boolean; alarm
   }, `status ${now.toISOString().slice(0, 16)}`);
   return { wrote: true, alarms, head: co.head };
 }
+/** The watchdog of the Neon-backed plane (DECISIONS.md, 2026-10-09). The same alarm rules over the same status.json; what is git-specific is gone (host probes, the token, unpointed data commits) and the repository size is the size of the "PlaneFile" table (informative: the 1.5 GB lines are GitHub's, Neon Free allows 0.5 GB per project, see /admin/database).
+ *  The manifest sample compares the stored sha of 20 random files with the manifest of the pointed tree: no bodies are read. */
+export async function runWatchdogNeon(d: WatchDeps, store: NeonStore): Promise<{ wrote: boolean; alarms: Alarm[]; head: string }> {
+  const now = d.now(); const pt = await store.pointerText(), st = await store.get(STATUS_ROW);
+  const p = pt ? (JSON.parse(pt) as PointerFile) : null; const prevStatus = st ? (JSON.parse(st.text) as StatusFile) : null;
+  let servedRef: string | null = null; let minutesSincePush: number | null = null;
+  if (d.env.SITE_URL && p) { try { const origin = new URL(d.env.SITE_URL).origin; const r = await d.fetch(`${origin}/api/data-status`, { cache: "no-store", signal: AbortSignal.timeout(8000) } as RequestInit); servedRef = ((await r.json()) as { ref?: string }).ref ?? null; minutesSincePush = (now.getTime() - Date.parse(p.publishedAt)) / 60_000; } catch { servedRef = null; } }
+  let manifestMismatch = false;
+  if (p) {
+    try {
+      const man = JSON.parse((await store.get(`${TREE_PREFIX}manifest.json`))?.text ?? "null") as { files: [string, number, string][] } | null;
+      if (man && sha256((await store.get(`${TREE_PREFIX}manifest.json`))!.text) === p.manifestSha256) {
+        const want = Math.min(20, man.files.length); const pick = new Set<number>(); while (pick.size < want) pick.add(randomInt(man.files.length));
+        const rows = await store.sql.all<{ path: string; sha: string }>(`SELECT path, sha FROM "${PLANE_TABLE}" WHERE path = ANY($1::text[])`, [...pick].map((i) => `${TREE_PREFIX}${man.files[i]![0]}`));
+        const have = new Map(rows.map((r) => [r.path, r.sha])); for (const i of pick) { const [rel, , prefix] = man.files[i]!; if (have.get(`${TREE_PREFIX}${rel}`)?.slice(0, prefix.length) !== prefix) { manifestMismatch = true; break; } }
+      }
+    } catch { manifestMismatch = false; }
+  }
+  let kb: number | null = prevStatus?.repo?.kb ?? null;
+  try { const r = await store.sql.all<{ kb: number }>(`SELECT (pg_total_relation_size('"${PLANE_TABLE}"') / 1024)::int AS kb`); kb = r[0]?.kb ?? kb; } catch { /* keep the last */ }
+  const draft: StatusFile | null = prevStatus ? { ...prevStatus, hosts: null, token: null, repo: { kb, at: now.toISOString(), trend: prevStatus.repo?.trend ?? [], isPrivate: null, lastSquashAt: null } } : null;
+  const alarms = computeAlarms({ now, pointer: p, status: draft, headIsUnpointedDataCommit: null, servedRef, minutesSincePointerPush: minutesSincePush, manifestMismatch, mainLastCommitAgeDays: null });
+  const dayChanged = !prevStatus || prevStatus.at.slice(0, 10) !== now.toISOString().slice(0, 10), changed = alarmKey(alarms) !== alarmKey(prevStatus?.alarms ?? []);
+  if (!prevStatus || (!changed && !dayChanged)) return { wrote: false, alarms, head: p?.ref ?? "" };
+  const s = { ...prevStatus } as StatusFile; s.at = now.toISOString(); s.by = "watchdog"; s.alarms = alarms; s.hosts = null; s.token = null;
+  const trend = [...(prevStatus.repo?.trend ?? [])]; const day = now.toISOString().slice(0, 10); if (kb != null && trend[trend.length - 1]?.[0] !== day) trend.push([day, kb]);
+  s.repo = { kb, at: now.toISOString(), trend: trend.slice(-400), isPrivate: null, lastSquashAt: null };
+  await store.put(STATUS_ROW, JSON.stringify(s));
+  return { wrote: true, alarms, head: p?.ref ?? "" };
+}
 async function main(): Promise<void> {
-  authenticateGit();
-  const r = await runWatchdog({ fetch, now: () => new Date(), env: process.env, workdir: path.join(workRoot(), "watch") });
+  const neon = planeBackend(process.env) === "neon";
+  if (neon && !process.env.DATABASE_URL) { log("watchdog: DATABASE_URL is not set; nothing to watch (a green no-op)"); return; }
+  const store = neon ? await openWriterStore(process.env) : undefined;
+  if (!store) authenticateGit();
+  let r: Awaited<ReturnType<typeof runWatchdog>>;
+  try { r = await runWatchdog({ fetch, now: () => new Date(), env: process.env, workdir: path.join(workRoot(), "watch"), store }); } finally { await store?.close().catch(() => undefined); }
   log(`watchdog: ${r.alarms.length} alarm(s)${r.alarms.length ? ` (${r.alarms.map((a) => `${a.code}/${a.level}`).join(", ")})` : ""}; status ${r.wrote ? "written" : "unchanged"}`);
   // an alarm is a record in status.json and the admin panel, never a red workflow of its own: the exit code stays 0
 }

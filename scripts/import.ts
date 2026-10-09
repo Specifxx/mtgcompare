@@ -6,8 +6,9 @@
 //   IMPORT_STORES=0 ...                                        # phase `full` is skipped (the store stage is off)
 //   TCGCSV_CACHE_DIR=... SCRYFALL_CACHE_DIR=... PLANE_REMOTE=<a git remote or a path>   # developer runs, tests: no network for the sources, a local bare repository for the data
 //
-// THE IMPORTER READS NOTHING FROM NEON. Its memory of last time is a depth-1 checkout of the data branch (PrevState); its output is a tree of JSON files that the publisher validates, commits, verifies and points at (plane/publisher.ts). A refusal, a crash or a failed
-// push ends the run red and changes nothing for readers. Neon receives one courtesy ImportRun row at the very end, inside try, with a 10-second timeout.
+// THE IMPORTER'S SOURCES ARE NOT NEON; ITS OUTPUT IS (DECISIONS.md, 2026-10-09). Its memory of last time is the previous published tree (PrevState), pulled from the plane; its output is a tree of JSON files that the publisher validates, uploads, verifies and points at
+// (plane/publisher.ts for git, plane/publisher-neon.ts for the default Neon-backed plane: the "PlaneFile" table of DATABASE_URL, no token). PLANE_BACKEND=github publishes to the private data repository instead. A refusal, a crash or a failed publish ends the run red and
+// changes nothing for readers. The private ImportRun row is a courtesy at the very end, inside try, with a 10-second timeout.
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -20,6 +21,9 @@ import type { MatchRow } from "../src/lib/match";
 import type { StoreResult } from "../src/lib/stores";
 import { loadPrevState, type PrevState } from "../src/lib/data/plane/prevstate";
 import { publish, restoreState, type PublishInput, type PublishOutcome } from "../src/lib/data/plane/publisher";
+import { restoreStateNeon } from "../src/lib/data/plane/publisher-neon";
+import { planeBackend } from "../src/lib/data/plane/backend";
+import { NEON_REPO, openWriterStore, type NeonStore } from "../src/lib/data/plane/neon-store";
 import { fsTree, type MutableTree } from "../src/lib/data/plane/tree";
 import { validateTree, type Phase } from "../src/lib/data/plane/validate";
 import { familyOf } from "../src/lib/data/plane/shards";
@@ -48,6 +52,10 @@ export function authenticateGit(env: NodeJS.ProcessEnv = process.env): void {
 export async function readRemotePointer(env: NodeJS.ProcessEnv = process.env, f: typeof fetch = fetch): Promise<PointerFile | null> {
   const r = remoteOf(env); if (!r.github || !env.DATA_REPO_TOKEN) return null;
   try { const res = await f(`https://raw.githubusercontent.com/${r.repo}/${env.PLANE_BRANCH || "data"}/latest.json`, { headers: { Authorization: `token ${env.DATA_REPO_TOKEN}` }, cache: "no-store" } as RequestInit); return res.ok ? ((await res.json()) as PointerFile) : null; } catch { return null; }
+}
+/** The pointer of a Neon-backed plane (S0): one row read. null when nothing was ever published or the database cannot be read (the gate inside the build then decides from the pulled tree). */
+export async function readStorePointer(store: NeonStore): Promise<PointerFile | null> {
+  try { const t = await store.pointerText(); return t ? (JSON.parse(t) as PointerFile) : null; } catch { return null; }
 }
 /** S12 step 5: fetch manifest.json, the root files and 50 random files at `ref` through raw with the token and compare their sha-256 prefix with the manifest; retry for up to 2 minutes (propagation). */
 export async function verifyThroughRaw(ref: string, env: NodeJS.ProcessEnv = process.env, f: typeof fetch = fetch, o: { sleepMs?: number; maxMs?: number; sample?: number } = {}): Promise<void> {
@@ -81,7 +89,7 @@ export function readSlugSeed(file = path.join(__dirname, "..", "data", "slug-see
 
 // ── one phase ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 export interface PhaseArgs {
-  phase: Phase; priceDay: string; tcgcsv: string; scryfall: string; env?: NodeJS.ProcessEnv; onlyStores?: string[]; market?: Country; remote?: string; now?: () => Date;
+  phase: Phase; priceDay: string; tcgcsv: string; scryfall: string; env?: NodeJS.ProcessEnv; onlyStores?: string[]; market?: Country; remote?: string; now?: () => Date; store?: NeonStore;
   /** Test seams: the store stage and the registry lookup (production loads src/lib/store-import.ts and src/lib/stores.ts by name when they exist). */
   deps?: { importStores?: (ctx: ImportContext, o: { only?: string[]; market?: Country }) => Promise<StoreResult[]>; storeId?: (key: string, country: Country) => number | undefined };
 }
@@ -118,7 +126,7 @@ export async function buildPhase(tree: MutableTree, c: { prev: PointerFile | nul
   if (a.phase === "catalog" && c.prev && a.priceDay < c.prev.priceDay) throw new Error(`F0: the source's price day ${a.priceDay} is older than the published ${c.prev.priceDay}: a stale TCGCSV copy is never published (the site would read yesterday's prices as today's)`);
   if (a.phase === "full" && (!c.prev || c.prev.tcgcsv !== a.tcgcsv)) throw new Error("phase full needs today's phase 1 on the branch: run --phase catalog first");
   let prevState: PrevState = loadPrevState(tree); let restoredFrom: string | null = null;
-  if (prevState.empty && a.remote) { try { const restored = restoreState(a.remote, path.join(workRoot(env), "state")); if (restored && !restored.empty) { prevState = restored; restoredFrom = "state"; log(`PrevState restored from branch state (${restored.slugById.size} slugs, ${restored.slugByOracleNo.size} oracles)`); } } catch (e) { log(`state branch not usable: ${String(e).slice(0, 120)}`); } }
+  if (prevState.empty && (a.remote || a.store)) { try { const restored = a.store ? await restoreStateNeon(a.store) : restoreState(a.remote!, path.join(workRoot(env), "state")); if (restored && !restored.empty) { prevState = restored; restoredFrom = "state"; log(`PrevState restored from branch state (${restored.slugById.size} slugs, ${restored.slugByOracleNo.size} oracles)`); } } catch (e) { log(`state branch not usable: ${String(e).slice(0, 120)}`); } }
   let summary: Partial<ImportSummaryV1>; let guards: StatusFile["guards"]; let groups: StatusFile["groups"]; let histCut = c.prev?.histCut ?? a.priceDay; let stores: StoreResult[] = []; let ctx: ImportContext; const degraded: string[] = [];
   if (a.phase === "catalog") {
     const bg = env.BOOTSTRAP_GROUPS ? Number(env.BOOTSTRAP_GROUPS) : undefined;
@@ -172,17 +180,21 @@ function runNote(phase: Phase, s: Partial<ImportSummaryV1>, c: StatusFile["count
 
 // ── the run: gate, publish, hook, courtesy row ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 export interface RunResult { outcome: PublishOutcome | "already-published" | "skipped"; summary?: Partial<ImportSummaryV1>; neon: "recorded" | "skipped" | "failed"; message?: string }
-export async function runImport(a: { phase: Phase; onlyStores?: string[]; market?: Country; env?: NodeJS.ProcessEnv; deps?: PhaseArgs["deps"]; fetch?: typeof fetch; skipHook?: boolean }): Promise<RunResult> {
-  const env = a.env ?? process.env; const { remote, repo, github } = remoteOf(env);
-  if (!remote) throw new Error("PLANE_REPO is not set");
-  authenticateGit(env);
+export async function runImport(a: { phase: Phase; onlyStores?: string[]; market?: Country; env?: NodeJS.ProcessEnv; deps?: PhaseArgs["deps"]; fetch?: typeof fetch; skipHook?: boolean; store?: NeonStore }): Promise<RunResult> {
+  const env = a.env ?? process.env; const store = a.store ?? (planeBackend(env) === "neon" ? await openWriterStore(env) : null);
+  try { return await runImportOn(a, env, store); } finally { if (store && !a.store) await store.close().catch(() => undefined); }
+}
+async function runImportOn(a: Parameters<typeof runImport>[0], env: NodeJS.ProcessEnv, store: NeonStore | null): Promise<RunResult> {
+  const { remote, repo, github } = remoteOf(env);
+  if (!store && !remote) throw new Error("PLANE_REPO is not set");
+  if (!store) authenticateGit(env);
   // S0: the sources' stamps against the pointer
   const mode = env.SCRYFALL_MODE === "off" ? "off" : "auto";
   const tcgcsv = await tcgcsvStamp({ cacheDir: env.TCGCSV_CACHE_DIR || undefined, fetch: a.fetch });
   const scryfall = await scryfallStamp({ pinnedDir: env.SCRYFALL_CACHE_DIR || undefined, mode, fetch: a.fetch });
   const priceDay = tcgcsv.slice(0, 10);
   if (!truthy(env.IMPORT_FORCE)) {
-    const ptr = await readRemotePointer(env, a.fetch);
+    const ptr = store ? await readStorePointer(store) : await readRemotePointer(env, a.fetch);
     if (ptr && ptr.tcgcsv === tcgcsv && ptr.scryfall === scryfall && (a.phase === "catalog" || ptr.phase === "full")) { log(`Already published: seq ${ptr.seq}, phase ${ptr.phase}, ${tcgcsv}`); return { outcome: "already-published", neon: "skipped" }; }
   }
   let result: PhaseResult | null = null; const started = new Date();
@@ -190,10 +202,10 @@ export async function runImport(a: { phase: Phase; onlyStores?: string[]; market
   let outcome: PublishOutcome;
   try {
     outcome = await publish({
-      remote, workdir, phase: a.phase, priceDay, tcgcsv, scryfall, repo,
-      build: async (tree, ctx) => { result = await buildPhase(tree, ctx, { phase: a.phase, priceDay, tcgcsv, scryfall, env, onlyStores: a.onlyStores, market: a.market, remote, deps: a.deps }); return result.built; },
-      verify: github ? (ref) => verifyThroughRaw(ref, env, a.fetch) : undefined,
-      onStateBackupError: (e) => log(`::warning::the second copy on branch state was not pushed (the publish is unaffected; slugs and ordinals are recoverable from the data branch until the next good run): ${String(e).slice(0, 200)}`),
+      remote, workdir, phase: a.phase, priceDay, tcgcsv, scryfall, repo: store ? NEON_REPO : repo, store: store ?? undefined,
+      build: async (tree, ctx) => { result = await buildPhase(tree, ctx, { phase: a.phase, priceDay, tcgcsv, scryfall, env, onlyStores: a.onlyStores, market: a.market, remote: store ? undefined : remote, store: store ?? undefined, deps: a.deps }); return result.built; },
+      verify: !store && github ? (ref) => verifyThroughRaw(ref, env, a.fetch) : undefined,
+      onStateBackupError: (e) => log(store ? `::warning::the second copy of the write-once state (state/ rows) was not stored (the publish is unaffected; slugs and ordinals are recoverable from the published tree until the next good run): ${String(e).slice(0, 200)}` : `::warning::the second copy on branch state was not pushed (the publish is unaffected; slugs and ordinals are recoverable from the data branch until the next good run): ${String(e).slice(0, 200)}`),
     });
   } catch (e) {
     if (e instanceof AlreadyPublished) { log(e.message); return { outcome: "already-published", neon: "skipped", message: e.message }; }

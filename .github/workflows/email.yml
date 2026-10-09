@@ -35,7 +35,8 @@ jobs:
       EMAIL_LINK_SECRET: ${{ secrets.EMAIL_LINK_SECRET }}
       EMAIL_REPLY_TO: ${{ vars.EMAIL_REPLY_TO }}
       NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL || 'https://mtgcompare.app' }}
-      # The published data is read over HTTP at the pointed commit (no checkout): the confirmations and the digest price from it.
+      # The published data is read through the plane reader (src/lib/data/plane): from Neon with DATABASE_URL by default, over HTTP at the pointed commit with PLANE_BACKEND=github. No checkout: the confirmations and the digest price from it.
+      PLANE_BACKEND: ${{ vars.PLANE_BACKEND }}
       PLANE_REPO: ${{ vars.PLANE_REPO }}
       PLANE_TOKEN: ${{ secrets.PLANE_TOKEN }}
     steps:

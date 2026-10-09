@@ -5,7 +5,7 @@
 //   3. pv/rising.json: the top 3 picks of Rising Cards per scope with the reason of each (what a free account sees on the tool page), computed by the same assembly the Premium list uses, from the public weekly closes (hist/w) and the browse index of the CHECKOUT it publishes onto;
 //   4. one overlay commit and a pointer move, the site told (the warm call and the ranking tag).
 // A failed run leaves yesterday's slices (PREVIEW_STALE shows after 48 hours). It never writes anything private to the data repository: a counter, a view count or a velocity is refused by the validator (FORBIDDEN_KEY).
-//   npx tsx scripts/publish-demand.ts           # PLANE_REPO, DATA_REPO_TOKEN, DATABASE_URL, REVALIDATE_URL, CRON_SECRET
+//   npx tsx scripts/publish-demand.ts           # DATABASE_URL (the plane lives there by default; PLANE_BACKEND=github: PLANE_REPO, DATA_REPO_TOKEN), REVALIDATE_URL, CRON_SECRET
 import path from "node:path";
 import { demandPreviewFile, readDemandWindow, readRiseDemand, riseEntryFrom, risingPreviewFile, weeklyClosesOf } from "../src/lib/data/demand";
 import { BrowseIndex } from "../src/lib/data/plane/browse-index";
@@ -21,7 +21,9 @@ import { revalidateSite } from "../src/lib/import";
 import { recordDemandDay, prismaDemandStore, type DemandStore } from "../src/lib/tools-history";
 import { utcDayKey } from "../src/lib/demand-snapshot";
 import type { SetLite } from "../src/lib/data/types";
-import { authenticateGit, log, remoteOf, readRemotePointer, verifyThroughRaw, workRoot } from "./import";
+import { authenticateGit, log, remoteOf, readRemotePointer, readStorePointer, verifyThroughRaw, workRoot } from "./import";
+import { planeBackend } from "../src/lib/data/plane/backend";
+import { NEON_REPO, openWriterStore, type NeonStore } from "../src/lib/data/plane/neon-store";
 
 /** A PlaneSource over the checkout the publisher is building in: the same code that serves a page reads the same files. */
 export function treeSource(tree: TreeView): PlaneSource {
@@ -48,22 +50,26 @@ export async function writeSlices(tree: MutableTree, store: DemandStore, now: Da
 }
 
 export interface DemandJobResult { outcome: PublishOutcome | "no-data"; overlay?: OverlayResult }
-export async function runDemandJob(o: { env?: NodeJS.ProcessEnv; store?: DemandStore; now?: () => Date; fetch?: typeof fetch; skipHook?: boolean } = {}): Promise<DemandJobResult> {
-  const env = o.env ?? process.env, store = o.store ?? prismaDemandStore(), now = o.now ?? (() => new Date()), { remote, repo, github } = remoteOf(env);
-  authenticateGit(env);
+export async function runDemandJob(o: { env?: NodeJS.ProcessEnv; store?: DemandStore; plane?: NeonStore; now?: () => Date; fetch?: typeof fetch; skipHook?: boolean } = {}): Promise<DemandJobResult> {
+  const env = o.env ?? process.env; const plane = o.plane ?? (planeBackend(env) === "neon" ? await openWriterStore(env) : null);
+  try { return await runDemandOn(o, env, plane); } finally { if (plane && !o.plane) await plane.close().catch(() => undefined); }
+}
+async function runDemandOn(o: Parameters<typeof runDemandJob>[0] & object, env: NodeJS.ProcessEnv, plane: NeonStore | null): Promise<DemandJobResult> {
+  const store = o.store ?? prismaDemandStore(), now = o.now ?? (() => new Date()), { remote, repo, github } = remoteOf(env);
+  if (!plane) authenticateGit(env);
   const recorded = await recordDemandDay(store, utcDayKey(now()));
   log(`DemandDay ${recorded.day}: ${recorded.cards} cards, ${recorded.snapshotDays} days on record, ${recorded.pruned} old rows pruned`);
-  const ptr = await readRemotePointer(env, o.fetch), started = now();
+  const ptr = plane ? await readStorePointer(plane) : await readRemotePointer(env, o.fetch), started = now();
   let overlay: OverlayResult | undefined;
   const outcome = await publish({
-    remote, workdir: path.join(workRoot(env), "demand"), phase: "overlay", priceDay: ptr?.priceDay ?? utcDayKey(started), tcgcsv: ptr?.tcgcsv ?? "", scryfall: ptr?.scryfall ?? "", repo, now,
+    remote, workdir: path.join(workRoot(env), "demand"), phase: "overlay", priceDay: ptr?.priceDay ?? utcDayKey(started), tcgcsv: ptr?.tcgcsv ?? "", scryfall: ptr?.scryfall ?? "", repo: plane ? NEON_REPO : repo, store: plane ?? undefined, now,
     build: async (tree, ctx) => {
       if (!ctx.prev) throw new Error("nothing is published yet: there is no catalogue to overlay (run the import first)");
       overlay = await writeSlices(tree, store, now());
       const run: RunRecord = { at: now().toISOString(), startedAt: started.toISOString(), kind: "overlay", ok: true, seconds: Math.round((now().getTime() - started.getTime()) / 1000), note: `${overlay.demandRows} demand rows, ${Object.values(overlay.risingPicks).reduce((a, b) => a + (b ?? 0), 0)} rising picks in ${Object.keys(overlay.risingPicks).length} scopes` };
       return { counts: ctx.prev.counts, histCut: ctx.prev.histCut, status: { runs: [run, ...(ctx.prevStatus?.runs ?? [])].slice(0, 30) } };
     },
-    verify: github ? (ref) => verifyThroughRaw(ref, env, o.fetch) : undefined,
+    verify: !plane && github ? (ref) => verifyThroughRaw(ref, env, o.fetch) : undefined,
   }).catch((e: Error) => { if (/nothing is published yet/.test(e.message)) { log(e.message); return "no-data" as const; } throw e; });
   if (outcome === "no-data") return { outcome };
   if (outcome.kind === "refused") { log(`REFUSED: ${outcome.problems.slice(0, 5).map((p) => `${p.code} ${p.message}`).join(" | ")}`); return { outcome, overlay }; }

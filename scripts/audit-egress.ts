@@ -34,6 +34,8 @@ export const PRIVATE_TABLES: readonly string[] = [
   "User", "Meta", "PriceReport", "StoreSuggestion", "Feedback", "ContactMessage", "ClickEvent", "PremiumClick", "PriceAlert", "AlertMute", "SealedWatch", "DeckWatch", "Notification", "CollectionCard", "Counter",
   "NewsletterSubscriber", "SetReleaseAlert", "PublishedDeck", "RisingSnapshot", "SupportTicket", "ImportRun", "EbayTrack", "EbayBest", "EbayPanel", "EbayBanner", "EbayLedger", "CardStat", "DemandDay",
 ];
+/** The ONE table of public data that is allowed in Postgres since 2026-10-09 (DECISIONS.md, "The plane moves into Neon"): the published tree as gzip rows, created by the publisher with raw SQL (plane/neon-store.ts), not a model of the private schema. Its traffic has budgets of its own below. */
+export const PLANE_TABLES: readonly string[] = ["PlaneFile"];
 /** Tables that held public data in the baseline and must never be queried again; named so the message can say what replaced them. */
 export const RETIRED_TABLES: Record<string, string> = {
   Card: "the catalogue is published files (cat/ px/ un/ of/)", Set: "meta/sets.json", Sealed: "sl/ files", Offer: "of/ and ix/f files", RetailerPrice: "of/ files", PriceHistory: "hist/ files (price history lives in GitHub)",
@@ -54,6 +56,8 @@ export interface QueryBudget {
 /** The budgets. Initial values derived from the arithmetic of contract 12.12 (members only; the beacon and the click log flush inside one aligned minute of each half hour, at most 48 wake-ups a day however many instances run) and re-baselined
  *  from the first month of pg_stat_statements (12.14.1 check 7): change a number here WITH the measurement that justifies it, in the same commit. */
 export const QUERY_BUDGETS: readonly QueryBudget[] = [
+  { id: "plane-read", tables: ["PlaneFile"], ops: ["select"], maxRowsPerCall: 250, maxCallsPerDay: 400_000, why: "plane/neon-reader.ts: one row per cold file per instance (the LRU is keyed by sha, a hit costs no query), the pointer row at most every 60 s per instance, and the pull of scripts/plane-pull.ts in batches of 200" },
+  { id: "plane-write", tables: ["PlaneFile"], ops: ["insert", "update", "delete"], maxRowsPerCall: 20_000, maxCallsPerDay: 6_000, why: "plane/neon-store.ts: the daily publishes (up to 3 phases plus the demand overlay) stage changed files in batches of 150 rows, then ONE flip transaction renames the staged rows and deletes the superseded ones" },
   { id: "view-beacon", tables: ["CardStat", "DemandDay"], ops: ["insert", "update"], maxRowsPerCall: 3_000, maxCallsPerDay: 48 * 8, why: "one batched upsert per instance in the first minute of each half hour (plane/view-beacon.ts): 48 windows x up to 8 warm instances" },
   { id: "click-log", tables: ["ClickEvent"], ops: ["insert"], maxRowsPerCall: 3_000, maxCallsPerDay: 48 * 8, why: "ClickBatcher writes ONE insert per instance per window; CLICK_SAMPLE_RATE thins it" },
   { id: "click-sweep", tables: ["ClickEvent"], ops: ["delete"], maxRowsPerCall: 200_000, maxCallsPerDay: 24, why: "the daily 90-day sweep (Annex C check 28)" },
@@ -110,7 +114,7 @@ export function evaluate(shapes: readonly Shape[], o: EvalOpts): { findings: Fin
     const tables = tablesOf(q), op = opOf(q), perCall = s.rows / s.calls, perDay = o.windowDays > 0 ? s.calls / o.windowDays : NaN;
     const retired = tables.find((t) => t in RETIRED_TABLES);
     if (retired) { findings.push({ level: "error", code: "RETIRED_TABLE", budget: "private-only", message: `queries "${retired}", which left Postgres: ${RETIRED_TABLES[retired]} (C24: public data is files)`, query: q.slice(0, 240) }); continue; }
-    const unknown = tables.find((t) => !PRIVATE_TABLES.includes(t) && !KNOWN_ELSEWHERE.test(t));
+    const unknown = tables.find((t) => !PRIVATE_TABLES.includes(t) && !PLANE_TABLES.includes(t) && !KNOWN_ELSEWHERE.test(t));
     if (unknown) { findings.push({ level: "error", code: "UNKNOWN_TABLE", budget: "private-only", message: `queries "${unknown}", which is not one of the 28 private tables`, query: q.slice(0, 240) }); continue; }
     const b = budgetFor(tables, op, o.budgets);
     if (op !== "insert" && perCall > b.maxRowsPerCall) findings.push({ level: "error", code: "ROWS_PER_CALL", budget: b.id, message: `${perCall.toFixed(1)} rows per call (budget ${b.maxRowsPerCall}, ${b.id}: ${b.why})`, query: q.slice(0, 240) });

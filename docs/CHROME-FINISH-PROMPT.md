@@ -8,22 +8,16 @@ You are completing the launch of MTG Compare (code repo `Specifxx/mtgcompare`, b
 
 **Hard rules.** Never open or change anything for Rift Compare (its Vercel project, Neon project, Stripe account) except reading the eBay developer portal keyset page. Do not spend money, do not accept legal terms for me, do not enter payment cards. If an action needs me (CAPTCHA, 2FA, identity or bank verification, a card, a legal acceptance), write it on a MANUAL list, leave that tab open, and continue with the next item. At the very end, print the MANUAL list in order.
 
-**Context.** The first import failed at the final `git push`: the GitHub Actions repo has no `DATA_REPO_TOKEN` secret and no `PLANE_REPO` variable. Everything else in the import worked. Fixing this is the top priority.
+**Context.** The first import failed at the final `git push` because the GitHub Actions repo has no `DATA_REPO_TOKEN`. That is now FIXED IN CODE (2026-10-09): the published data goes by default into the Neon database (`DATABASE_URL`, table `PlaneFile`), with no token and no `PLANE_*` variable. The GitHub data repository and its two tokens are OPTIONAL (only for `PLANE_BACKEND=github`); do NOT create them.
 
-## 1. GitHub: data repository and Actions settings (top priority)
-1. Open https://github.com/Specifxx/mtgcompare-data. If it does not exist, create it as PRIVATE, empty (no README). Make sure a branch can be created by pushes (the importer creates branch `data`).
-2. Open https://github.com/settings/personal-access-tokens . Check whether two fine-grained tokens exist for `mtgcompare-data`:
-   - `mtgcompare-data-write`: repository access ONLY `Specifxx/mtgcompare-data`, permission Contents: Read and write. No expiry shorter than 1 year.
-   - `mtgcompare-data-read`: same repository, Contents: Read-only.
-   Tokens cannot be re-read, so if you cannot see a token value, create new ones (name them with today's date). Copy each value straight into the place that needs it; do not write it anywhere else.
-3. Open https://github.com/Specifxx/mtgcompare/settings/secrets/actions and make sure these exist (add or update): `DATA_REPO_TOKEN` = the write token; `PLANE_TOKEN` = the read token (the mail workflows read this one); plus anything already there stays.
-4. Open https://github.com/Specifxx/mtgcompare/settings/variables/actions and make sure: `PLANE_REPO` = `Specifxx/mtgcompare-data`.
-5. Open https://github.com/Specifxx/mtgcompare/actions/workflows/import-prices.yml and press "Run workflow" on branch `claude/compassionate-wright-1tr8wt`. Leave the tab open. Report whether the run started. (Phase 1 takes about 3 minutes, phase 2 35 to 75 minutes later; the run must go green, if it goes red open the failing step and copy me the last 15 log lines with any secrets blanked.)
+## 1. GitHub: Actions settings (top priority)
+1. Open https://github.com/Specifxx/mtgcompare/settings/secrets/actions and make sure `DATABASE_URL` (the Neon pooled string), `CRON_SECRET` and `AUTH_SECRET` exist and are not empty; anything else already there stays. `DATA_REPO_TOKEN` and `PLANE_TOKEN` are not needed (leave them if they exist).
+2. Open https://github.com/Specifxx/mtgcompare/settings/variables/actions and make sure `PLANE_BACKEND` is NOT set (or equals `neon`). `PLANE_REPO` is not needed.
+3. Open https://github.com/Specifxx/mtgcompare/actions/workflows/import-prices.yml and press "Run workflow" on branch `claude/compassionate-wright-1tr8wt`. Leave the tab open. Report whether the run started. (Phase 1 takes about 3 minutes plus the upload into Neon, phase 2 35 to 75 minutes later; the run must go green, if it goes red open the failing step and copy me the last 15 log lines with any secrets blanked.)
 
 ## 2. Vercel: production environment
 Open the Vercel project for MTG Compare only (project name containing `mtgcompare`). Under Settings, Environment Variables, make sure these exist for PRODUCTION only (no Preview, no Development) and that none is empty:
-- `PLANE_REPO` = `Specifxx/mtgcompare-data`
-- `PLANE_TOKEN` = the read-only token from step 1 (mark Sensitive)
+- `PLANE_REPO`, `PLANE_TOKEN` and `PLANE_BACKEND` are NOT needed (the data is read from Neon with `DATABASE_URL`); do not add them.
 - `DATABASE_URL` (Neon, pooled), `AUTH_SECRET`, `NEXT_PUBLIC_SITE_URL`
 - `NEXT_PUBLIC_EBAY_CAMPAIGN_ID` = `5339155912`, `NEXT_PUBLIC_TCGPLAYER_IMPACT_LINK` = `https://partner.tcgplayer.com/c/7385758/1780961/21018`
 - Stripe keys, Google OAuth, Discord, GA4, Resend if I already set them (do not invent values).

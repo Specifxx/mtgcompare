@@ -1,6 +1,6 @@
 name: CI
 
-# Typecheck, lint, the image guard and the unit tests on every pull request and every push to main. Database-free and network-free: nothing here needs a secret.
+# Typecheck, lint, the image guard and the unit tests on every pull request and every push to main. Network-free: nothing here needs a secret. A throw-away PostgreSQL container (no Neon, no credentials) lets tests/plane-neon-backend.test.ts exercise the Neon-backed plane for real; without it that file skips.
 # The build, the smoke test of the rendered pages and the SEO gate are ci-build.yml (a real `next build` with the database and the data host UNREACHABLE).
 on:
   pull_request:
@@ -14,6 +14,17 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: mtg
+          POSTGRES_PASSWORD: mtg
+          POSTGRES_DB: mtgcompare_neonplane
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U mtg" --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

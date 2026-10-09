@@ -83,7 +83,8 @@ test("secrets are scoped to the steps that need them: npm ci never sees one", ()
   assert.match(read, /DATA_REPO_TOKEN: \$\{\{ secrets\.DATA_REPO_TOKEN \}\}/);
   assert.match(read, /continue-on-error: true/, "an unreachable data repository never fails the run");
   assert.match(read, /scripts\/plane-checkout\.sh \.data/);
-  assert.doesNotMatch(read, /EBAY_CLIENT|DATABASE_URL/);
+  assert.doesNotMatch(read, /EBAY_CLIENT/);
+  assert.match(read, /DATABASE_URL: \$\{\{ secrets\.DATABASE_URL \}\}/, "the default plane lives in Neon (DECISIONS.md 2026-10-09): the pull needs DATABASE_URL, and nothing else secret except the optional GitHub-backend token");
   const pass = step(/name: eBay pass/);
   for (const k of ["DATABASE_URL", "EBAY_CLIENT_ID", "EBAY_CLIENT_SECRET", "CRON_SECRET"]) assert.match(pass, new RegExp(`${k}: \\$\\{\\{ secrets\\.${k} \\}\\}`));
   assert.match(pass, /run: npx tsx scripts\/ebay\.ts \.data/);

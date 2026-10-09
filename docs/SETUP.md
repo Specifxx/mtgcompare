@@ -13,31 +13,33 @@ MTG Compare gets its **own** Neon project, Vercel project, private data reposito
 1. Create a Neon project named `mtgcompare`: Postgres 16+, region AWS US East (N. Virginia), next to Vercel's `iad1` functions. Scale to zero stays on.
 2. Copy the **pooled** connection string (`...-pooler....neon.tech/neondb?sslmode=require`). That one string is `DATABASE_URL` everywhere below.
 
-Neon holds **private** state only: accounts, billing, watches, alerts, the collection, notifications, the newsletter, the inbox, click events, the launch-promo counter, `ImportRun`/`Meta`, the eBay ledger and all eBay data (about 100 MB at most, target). Public data is files (section 2). Free tier: 0.5 GB storage, 5 GB/month transfer, 100 compute hours.
+Neon holds **private** state (accounts, billing, watches, alerts, the collection, notifications, the newsletter, the inbox, click events, the launch-promo counter, `ImportRun`/`Meta`, the eBay ledger and all eBay data: about 100 MB at most, target) **and, since 2026-10-09, the published data plane** as one raw-SQL table, `"PlaneFile"` (about 25 MB of gzip: the current tree only; the publisher creates it, there is nothing to migrate; see DECISIONS.md, "The plane moves into Neon"). Free tier: 0.5 GB storage, 5 GB/month transfer, 100 compute hours. The GitHub data repository below is now OPTIONAL (`PLANE_BACKEND=github`).
 
-## 2. GitHub: the code repository and the private data repository
+## 2. GitHub: the code repository (and, optionally, the private data repository)
 
 **Code:** `Specifxx/mtgcompare`. Create `main` from the working branch and make it the default branch (CI, the weekly release and Vercel production all key off `main`; scheduled workflows run only from the default branch). Settings, Actions, General, Workflow permissions: **Read and write** (the weekly release pushes a commit to `main`).
 
-**Data:** a **private** repository `Specifxx/mtgcompare-data`, created empty (no README, no licence). The first publish creates its `data` branch. Everything in it is readable by whoever can read the repository: never write anything private, paid or eBay-derived to it.
+**Data (default): nothing to create.** The published data goes to the Neon database that `DATABASE_URL` names (Actions secret and Vercel Production variable, both already needed). No repository, no token, no `PLANE_*` variable. Everything in the plane table is world-readable through the site anyway: never write anything private, paid or eBay-derived to it (the validator and `tests/plane-no-premium.test.ts` guard that).
 
-**Two fine-grained personal access tokens** (resource owner Specifxx, repository access *Only select repositories: `mtgcompare-data`*, expiry one year):
+**Data (optional, `PLANE_BACKEND=github`): a private repository.** Set the variable `PLANE_BACKEND` = `github` in Vercel (Production) AND in Actions, create the **private** repository `Specifxx/mtgcompare-data` empty (no README, no licence; the first publish creates its `data` branch) and the two tokens below. Without that variable none of the rest of this section applies.
+
+**Two fine-grained personal access tokens (`PLANE_BACKEND=github` only)** (resource owner Specifxx, repository access *Only select repositories: `mtgcompare-data`*, expiry one year):
 
 | Token | Permissions | Goes to |
 |---|---|---|
 | `mtgcompare-plane-read` | Contents: Read-only | Vercel only, as `PLANE_TOKEN` (the site reads the data with it) |
 | `mtgcompare-data-write` | Contents: Read and write, Administration: Read-only | GitHub Actions secret `DATA_REPO_TOKEN` (the publisher and the watchdog) |
 
-The watchdog reports days left on `PLANE_TOKEN` on `/admin/data` and alarms at 30 and 7 days. Rotate before expiry.
+With the GitHub backend the watchdog reports days left on `PLANE_TOKEN` on `/admin/data` and alarms at 30 and 7 days. Rotate before expiry.
 
-**Settings, Secrets and variables, Actions.** The full list is in section 9. The required ones to start: secrets `DATABASE_URL`, `CRON_SECRET`, `AUTH_SECRET`, `DATA_REPO_TOKEN`; variables `SITE_URL`, `REVALIDATE_URL`, `PLANE_REPO` (`Specifxx/mtgcompare-data`). Optional: `OPS_WEBHOOK_URL` (a Discord or Slack webhook for freshness and failure alerts; they only print in the log without it) and `TARGET_DATABASE_URL` (only when a Neon project must be replaced; the `migrate-database` maintenance task is a green no-op without it; never a Vercel variable).
+**Settings, Secrets and variables, Actions.** The full list is in section 9. The required ones to start: secrets `DATABASE_URL`, `CRON_SECRET`, `AUTH_SECRET`; variables `SITE_URL`, `REVALIDATE_URL`. (`DATA_REPO_TOKEN` and `PLANE_REPO` only with `PLANE_BACKEND=github`.) Optional: `OPS_WEBHOOK_URL` (a Discord or Slack webhook for freshness and failure alerts; they only print in the log without it) and `TARGET_DATABASE_URL` (only when a Neon project must be replaced; the `migrate-database` maintenance task is a green no-op without it; never a Vercel variable).
 
 | Workflow | When (UTC) | Needs |
 |---|---|---|
 | CI, CI build | every PR and push to `main` | nothing (the build reads no database and no data host) |
-| Import prices | 21:25, 21:55, 22:25 (the first that finds new sources publishes), or Run workflow | `DATABASE_URL`, `DATA_REPO_TOKEN`, `CRON_SECRET`, `PLANE_REPO` |
-| Data hook, Data watchdog | after a publish; hourly at :17 | `DATA_REPO_TOKEN`, `REVALIDATE_URL` |
-| Data audit, Data squash, Data rollback | 00:20 daily; Sunday 23:50; by hand | `DATA_REPO_TOKEN` |
+| Import prices | 21:25, 21:55, 22:25 (the first that finds new sources publishes), or Run workflow | `DATABASE_URL`, `CRON_SECRET` (GitHub backend: `DATA_REPO_TOKEN`, `PLANE_REPO`) |
+| Data hook, Data watchdog | after a publish; hourly at :17 | `DATABASE_URL`, `REVALIDATE_URL` (GitHub backend: `DATA_REPO_TOKEN`) |
+| Data audit, Data squash, Data rollback | 00:20 daily; Sunday 23:50; by hand | `DATABASE_URL` (GitHub backend: `DATA_REPO_TOKEN`). With the Neon backend squash is a green no-op (only the current tree is stored) and rollback refuses with an explanation |
 | Production deploy | **Tuesday 08:00**, or Run workflow | write permission |
 | eBay prices | 05:37 and 17:37, or Run workflow (never 21:05 to 23:30) | `DATABASE_URL`, `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET` (a green no-op without them) |
 | Demand snapshot, IndexNow, Store health | 22:40, 23:15, 23:35 | as their headers say |
@@ -98,7 +100,7 @@ MTG Compare ships with email **off**: alerts are delivered in-app, no page promi
 
 ## 8. Turn it on
 
-1. **Publish the data first.** GitHub, Actions, *Import prices*, Run workflow on `main` (up to about 75 minutes; it creates the Neon tables and the `data` branch of the data repository). Then run *Data hook* once. Pages render from this data, so it must exist before the first deploy.
+1. **Publish the data first.** GitHub, Actions, *Import prices*, Run workflow on `main` (up to about 75 minutes; it creates the `PlaneFile` table in Neon and publishes the tree into it; with the GitHub backend, the `data` branch of the data repository). Then run *Data hook* once. Pages render from this data, so it must exist before the first deploy.
 2. **First deploy.** Push a commit whose subject carries `[deploy]`, or run *Production deploy*. After that, production deploys by itself once a week, Tuesday 08:00 UTC; data refreshes never need a deploy.
 3. Open SITE_URL and check: a card page shows store prices per finish; `/login` shows the sign-in buttons; `/premium` shows live buttons; signed in as **mastermisclick@gmail.com** the account menu shows *Admin* and `/admin` loads (the lights for data, eBay, database and deploy age); `/admin/data` shows the pointer under 26 hours old. Signed out, `/admin` is an ordinary 404.
 4. Share images: paste SITE_URL, a card URL and `/price-guide` into a link-preview tester and a Discord message; each must show real cards and prices, not the data-free fallback. Check **before** posting to Reddit: Reddit keeps a post's thumbnail forever.
@@ -199,13 +201,15 @@ Generated from `tests/fixtures/env-names.json`. **Kind:** secret (never committe
 | `EBAY_VERIFICATION_TOKEN` | secret | none | Marketplace Account Deletion route; tests/no-ebay-api.test.ts pins the two names this route reads |
 | `EBAY_DELETION_ENDPOINT` | var | none |  |
 
-**Data plane (section 12): the private data repository, its tokens, the reader's tuning**
+**Data plane (section 12): where the published data lives, the reader's tuning, and (only for `PLANE_BACKEND=github`) the private data repository and its tokens**
 
 | Name | Kind | Default / when unset | What |
 |---|---|---|---|
-| `PLANE_REPO` | var | Specifxx/mtgcompare-data | owner/name of the PRIVATE data repository (12.4); the same value in Vercel and in Actions |
-| `PLANE_BRANCH` | var | data | the data branch; only the publisher writes it |
-| `PLANE_TOKEN` | secret | unset: reads are unauthenticated and a private repository answers 404 (the site serves... | fine-grained personal access token, Contents: read, on the data repository ONLY, at most 1 year (alarm 30 days before expiry). Part of the Data Cache key of every file: a rotation makes the cache cold and is followed by the data-hook workflow |
+| `PLANE_BACKEND` | var | neon | `neon` (also when unset): the `PlaneFile` table of `DATABASE_URL`, no token. `github`: the private data repository, and the OPTIONAL rows below become required. The same value in Vercel and in Actions |
+| `PLANE_POINTER_TTL_S` | var | 60 | Neon backend: seconds an instance trusts its last read of the pointer row (raise it to let Neon's compute suspend between visits) |
+| `PLANE_REPO` | var | OPTIONAL (github backend): Specifxx/mtgcompare-data | owner/name of the PRIVATE data repository (12.4); the same value in Vercel and in Actions |
+| `PLANE_BRANCH` | var | OPTIONAL (github backend): data | the data branch; only the publisher writes it |
+| `PLANE_TOKEN` | secret | OPTIONAL (github backend). Unset: reads are unauthenticated and a private repository answers 404 (the site serves... | fine-grained personal access token, Contents: read, on the data repository ONLY, at most 1 year (alarm 30 days before expiry). Part of the Data Cache key of every file: a rotation makes the cache cold and is followed by the data-hook workflow |
 | `PLANE_LRU_MB` | var | 64 | per-instance memory cache of parsed files |
 | `PLANE_TIMEOUT_RAW_MS` | var | 3000 | per-file budget of the raw host before the API fallback |
 | `PLANE_TIMEOUT_API_MS` | var | 5000 | per-file budget of the contents API fallback |
@@ -316,18 +320,20 @@ Generated from `tests/fixtures/env-names.json`. **Kind:** secret (never committe
 | `BOOTSTRAP_GROUPS` | var | unset | N = restrict the first run to the N largest and newest groups |
 | `FEED_SOURCES` | var | empty | public price feeds stay off (10.11) |
 
-**Data plane (section 12): the private data repository, its tokens, the reader's tuning**
+**Data plane (section 12): where the published data lives, the reader's tuning, and (only for `PLANE_BACKEND=github`) the private data repository and its tokens**
 
 | Name | Kind | Default / when unset | What |
 |---|---|---|---|
-| `PLANE_REPO` | var | Specifxx/mtgcompare-data | owner/name of the PRIVATE data repository (12.4); the same value in Vercel and in Actions |
-| `PLANE_BRANCH` | var | data | the data branch; only the publisher writes it |
+| `PLANE_BACKEND` | var | neon | `neon` (also when unset): the `PlaneFile` table of `DATABASE_URL`, no token. `github`: the private data repository, and the OPTIONAL rows below become required. The same value in Vercel and in Actions |
+| `PLANE_POINTER_TTL_S` | var | 60 | Neon backend: seconds an instance trusts its last read of the pointer row (raise it to let Neon's compute suspend between visits) |
+| `PLANE_REPO` | var | OPTIONAL (github backend): Specifxx/mtgcompare-data | owner/name of the PRIVATE data repository (12.4); the same value in Vercel and in Actions |
+| `PLANE_BRANCH` | var | OPTIONAL (github backend): data | the data branch; only the publisher writes it |
 | `PLANE_ALLOW_PUBLIC` | var | unset: a public data repository raises DATA_REPO_PUBLIC (error) | 1 = operate knowingly with a public data repository; the premium inputs and licensed data are then world-readable (12.3.3) |
-| `DATA_REPO_TOKEN` | secret | none: no publish | fine-grained personal access token, Contents: write (and Administration: read for the size probe), on the data repository ONLY. GITHUB_TOKEN covers only the workflow's own repository. Travels in an http extraheader, never in a URL or a log |
+| `DATA_REPO_TOKEN` | secret | OPTIONAL (github backend). None: no publish | fine-grained personal access token, Contents: write (and Administration: read for the size probe), on the data repository ONLY. GITHUB_TOKEN covers only the workflow's own repository. Travels in an http extraheader, never in a URL or a log |
 
 ## Limits to watch
 
-- **Neon:** under 100 MB of private tables (`/admin/database` lights amber at 70 MB, red at 90 MB); 5 GB/month transfer; the public pages do not read it. The Launch-plan trigger is 80 projected compute hours by day 10 of a billing month.
-- **The data repository:** `/admin/data` shows its size against 3 GB and the days left; the weekly squash keeps it bounded. Rotate `PLANE_TOKEN` and `DATA_REPO_TOKEN` before a year is up.
+- **Neon:** the published plane is one table (`PlaneFile`, about 25 MB gzip; `/admin/data` shows its size against 400 MB, `scripts/audit-publication.ts --remote` against Neon Free's 512 MB project limit) on top of under 100 MB of private tables (`/admin/database` lights amber at 70 MB, red at 90 MB); 5 GB/month transfer; public pages now read it through `src/lib/data/plane` only: a pointer row at most every 60 s per instance and one row per cold file (a per-instance LRU keyed by sha keeps the rest in memory); the CDN headers of the pages cut the origin hits. If Neon's compute-hours run short, raise `PLANE_POINTER_TTL_S`. The Launch-plan trigger is 80 projected compute hours by day 10 of a billing month.
+- **The data repository (only with `PLANE_BACKEND=github`):** `/admin/data` shows its size against 3 GB and the days left; the weekly squash keeps it bounded. Rotate `PLANE_TOKEN` and `DATA_REPO_TOKEN` before a year is up.
 - **eBay:** `/admin/ebay` shows calls spent against the cap per quota window; in shared mode MTG Compare only spends what Rift has left over.
 - **Releases:** more than two `[deploy]` subjects in a week turns the Deploys light red.

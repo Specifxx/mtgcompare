@@ -21,7 +21,7 @@ export default async function AdminData() {
         <h1 className="text-3xl text-white">Data publication</h1>
         <Light level={view.level} />
       </div>
-      <p className="max-w-3xl text-sm text-slate-400">The daily import publishes the catalogue, prices, offers and history to the private data repository and moves one pointer. Data never waits for a release: a week-old deployment serves today&apos;s prices.</p>
+      <p className="max-w-3xl text-sm text-slate-400">The daily import publishes the catalogue, prices, offers and history to the published data plane (the PlaneFile table of the Neon database by default; the private data repository with PLANE_BACKEND=github) and moves one pointer. Data never waits for a release: a week-old deployment serves today&apos;s prices.</p>
       <Rows rows={view.rows.map((r) => ({ label: r.label, value: r.value, level: r.level, note: r.note }))} />
       {view.guards.length ? (
         <div className="card-surface p-4">
@@ -58,7 +58,7 @@ export default async function AdminData() {
       ) : null}
       {view.trend.length > 1 ? (
         <div className="card-surface p-4">
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Data repository size, last {view.trend.length} days{view.dailyGrowthKb != null ? ` (${view.dailyGrowthKb} KB/day)` : ""}</p>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Data size (PlaneFile table or repository), last {view.trend.length} days{view.dailyGrowthKb != null ? ` (${view.dailyGrowthKb} KB/day)` : ""}</p>
           <Bars label="Repository size trend" points={view.trend.map((kb, i) => ({ k: `day ${i + 1}`, n: kb }))} />
         </div>
       ) : null}

@@ -72,7 +72,8 @@ async function collect(spaces: { cards: Set<number>; sealed: Set<number> } | nul
   const { prisma: db } = await import("../src/lib/db");
   for (let i = 1; ; i++) { try { await db.$queryRaw`SELECT 1`; break; } catch (e) { if (i >= 6) throw e; console.log(`  ...database cold (attempt ${i}/6), retrying in 10s`); await new Promise((r) => setTimeout(r, 10_000)); } }
   const now = Date.now(), ago = (ms: number): Date => new Date(now - ms);
-  const size = await db.$queryRaw<{ s: bigint }[]>`SELECT pg_database_size(current_database()) AS s`;
+  // the PRIVATE footprint: the published plane (table "PlaneFile", DECISIONS.md 2026-10-09) is measured by audit-publication.ts against its own limit, not against the 100 MB the design budgets for 10,000 members
+  const size = await db.$queryRaw<{ s: bigint }[]>`SELECT pg_database_size(current_database()) - COALESCE(pg_total_relation_size(to_regclass('public."PlaneFile"')), 0) AS s`;
   const tabs = await db.$queryRaw<{ name: string; rows: bigint; bytes: bigint }[]>`SELECT relname AS name, n_live_tup AS rows, pg_total_relation_size(relid) AS bytes FROM pg_stat_user_tables ORDER BY pg_total_relation_size(relid) DESC LIMIT 12`;
   const oldestClick = await db.clickEvent.findFirst({ orderBy: { createdAt: "asc" }, select: { createdAt: true } });
   const orphans: NonNullable<DbFacts["orphans"]> = [];

@@ -1,7 +1,7 @@
 // scripts/audit-publication.ts (owner WP19, parity P02 and addendum 9): the audit of the PUBLISHED DATA as an operator would read it: how big is it, how fast is the repository growing, how old is it, are the
 // hosts answering, how much API quota is left. The Neon half of the egress question is scripts/audit-egress.ts; this is the other half (the data repository is what public pages cost us now).
 //
-//   npx tsx scripts/audit-publication.ts --remote            pointer, status.json, repository size and the host probes over HTTPS (a few KB; needs PLANE_REPO and PLANE_TOKEN, the read token)
+//   npx tsx scripts/audit-publication.ts --remote            pointer, status.json, repository size and the host probes over HTTPS (a few KB; needs DATABASE_URL by default, or PLANE_BACKEND=github with PLANE_REPO and PLANE_TOKEN, the read token)
 //   npx tsx scripts/audit-publication.ts --dir .data         a CHECKOUT of the pointed commit (scripts/plane-checkout.sh .data): every file against its family budget, the manifest, the validator, history freshness
 //   PLANE_DIR=.data npx tsx scripts/audit-publication.ts     the same as --dir
 //   --json                                                   findings as JSON after the report
@@ -19,6 +19,8 @@ import { familyOf } from "../src/lib/data/plane/shards";
 import { POINTER_STALE_HOURS, REPO_CRIT_KB, REPO_WARN_KB, ROTATION_HORIZON_DAYS, daysToLimit, type StatusFile } from "../src/lib/data/plane/status";
 import { fsTree, type TreeView } from "../src/lib/data/plane/tree";
 import { validateTree, type Phase } from "../src/lib/data/plane/validate";
+import { planeBackend } from "../src/lib/data/plane/backend";
+import { PLANE_TABLE, STATUS_ROW, openWriterStore } from "../src/lib/data/plane/neon-store";
 
 export type Level = "error" | "warn";
 export interface Finding { level: Level; code: string; message: string }
@@ -165,6 +167,25 @@ export async function auditRemote(env: Record<string, string | undefined>, now: 
   return { findings, lines };
 }
 
+/** The Neon-backed plane's remote audit (the default backend, DECISIONS.md 2026-10-09): pointer and status.json rows, the freshness rules of evaluateStatus, and the footprint of the PlaneFile table against Neon Free's 0.5 GB project limit. Null without DATABASE_URL or before the first publish. */
+export async function auditNeon(env: Record<string, string | undefined>, now: Date): Promise<{ findings: Finding[]; lines: string[] } | null> {
+  if (!env.DATABASE_URL) return null;
+  const store = await openWriterStore(env as NodeJS.ProcessEnv);
+  try {
+    if (!(await store.tableExists())) return { findings: [{ level: "error", code: "NO_PLANE", message: "the PlaneFile table does not exist: nothing has ever been published into this database" }], lines: ["Neon plane: no PlaneFile table"] };
+    const pt = await store.pointerText(), st = await store.get(STATUS_ROW);
+    const ptr = pt ? (JSON.parse(pt) as PointerFile) : null, status = st ? (JSON.parse(st.text) as StatusFile) : null;
+    const size = await store.sql.all<{ kb: number; rows: number }>(`SELECT (pg_total_relation_size('"${PLANE_TABLE}"') / 1024)::int AS kb, (SELECT count(*) FROM "${PLANE_TABLE}")::int AS rows`);
+    const kb = size[0]?.kb ?? 0, lines = [`Neon plane: ${size[0]?.rows ?? 0} rows, ${mbOf(kb)} in "${PLANE_TABLE}" (Neon Free allows 512 MB for the whole project)`];
+    if (ptr) lines.push(`pointer seq ${ptr.seq} ${ptr.ref.slice(0, 7)} ${ptr.phase} published ${ptr.publishedAt} (price day ${ptr.priceDay}); ${ptr.counts.files} files, ${ptr.counts.cards} cards`);
+    const findings = evaluateStatus(status ? { ...status, repo: { ...status.repo, kb: null, trend: [] } } : null, ptr, now);
+    if (!ptr) findings.push({ level: "error", code: "NO_POINTER", message: "the table has no latest.json row: nothing is published" });
+    if (kb >= 460 * 1024) findings.push({ level: "error", code: "NEON_SIZE_CRIT", message: `the plane table is ${mbOf(kb)}: Neon Free's 512 MB project limit is close (private tables share it)` });
+    else if (kb >= 350 * 1024) findings.push({ level: "warn", code: "NEON_SIZE_WARN", message: `the plane table is ${mbOf(kb)} of Neon Free's 512 MB project limit` });
+    return { findings, lines };
+  } finally { await store.close().catch(() => undefined); }
+}
+
 export function renderReport(title: string, lines: readonly string[], rows: readonly FamilyRow[], findings: readonly Finding[]): string {
   const out = [`== ${title} ==`, ...lines];
   if (rows.length) {
@@ -190,9 +211,10 @@ export async function main(argv: readonly string[], env: Record<string, string |
     findings = [...evaluateStatus(status, ptr, now), ...rep.findings];
     console.log(renderReport(`published tree ${root}`, [`${rep.files} files, ${(rep.bytes / 1e6).toFixed(1)} MB raw`, ptr ? `pointer seq ${ptr.seq} ${ptr.ref.slice(0, 7)} ${ptr.phase}, price day ${ptr.priceDay}, published ${ptr.publishedAt}` : "no latest.json"], rep.families, findings));
   } else {
-    const r = await auditRemote(env, now);
-    if (!r) { console.log("PLANE_REPO and PLANE_TOKEN (or DATA_REPO_TOKEN) are not both set: no data repository to audit (a green no-op)."); return 0; }
-    findings = r.findings; console.log(renderReport("data repository", r.lines, [], findings));
+    const neon = planeBackend(env) === "neon";
+    const r = neon ? await auditNeon(env, now) : await auditRemote(env, now);
+    if (!r) { console.log(neon ? "DATABASE_URL is not set: no Neon plane to audit (a green no-op)." : "PLANE_BACKEND=github, and PLANE_REPO and PLANE_TOKEN (or DATA_REPO_TOKEN) are not both set: no data repository to audit (a green no-op)."); return 0; }
+    findings = r.findings; console.log(renderReport(neon ? "Neon plane" : "data repository", r.lines, [], findings));
   }
   for (const f of findings) if (f.level === "error") console.log(`::error title=Data publication (${f.code})::${f.message}`);
   if (json) console.log(JSON.stringify(findings, null, 1));

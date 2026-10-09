@@ -16,6 +16,8 @@ import { deltaPath, historyDelta } from "./history-delta";
 import { isCutDay, nextPointer, planSquash, rollbackTarget, seqOfTag, tagName, TAG_PREFIX, type TagInfo } from "./publish-protocol";
 import { fsTree, type MutableTree, type TreeView } from "./tree";
 import { validateOverlay, validateTree, type Phase, type Problem } from "./validate";
+import { buildAndValidate, manifestOf, readPointer, readStatus, refusalStatus, sha256, type PublishOutcome } from "./publish-common";
+import type { NeonStore } from "./neon-store";
 import type { StatusFile } from "./status";
 
 export class GitError extends Error { constructor(public args: string[], public code: number | null, public stderr: string) { super(`git ${args.join(" ")} -> ${code}: ${stderr.slice(0, 300)}`); } }
@@ -24,7 +26,6 @@ export function gitIn(cwd: string, env: Record<string, string> = {}): Git {
   const base = { GIT_AUTHOR_NAME: "mtgcompare-data", GIT_AUTHOR_EMAIL: "data@invalid", GIT_COMMITTER_NAME: "mtgcompare-data", GIT_COMMITTER_EMAIL: "data@invalid", GIT_TERMINAL_PROMPT: "0", ...env };
   return { run(args, o) { const r = spawnSync("git", args, { cwd, env: { ...process.env, ...base }, encoding: "utf8", maxBuffer: 256 * 1024 * 1024 }); if (r.status !== 0 && !o?.allowFail) throw new GitError(args, r.status, r.stderr); return r.stdout.trim(); } };
 }
-const sha256 = (s: string): string => createHash("sha256").update(s).digest("hex");
 
 export interface PublishInput {
   remote: string; workdir: string; branch?: string; phase: Phase | "overlay"; priceDay: string; tcgcsv: string; scryfall: string; repo: string; now?: () => Date;
@@ -32,19 +33,14 @@ export interface PublishInput {
   build(tree: MutableTree, ctx: { prev: PointerFile | null; prevStatus: StatusFile | null; cutDay: boolean }): Promise<{ counts: PointerFile["counts"]; histCut: string; status: Partial<StatusFile>; prevCounts?: { cards: number; listed: number; tracked: number; oracles: number } | null }>;
   verify?(ref: string): Promise<void>;
   /** Test hooks: a thrown error simulates a crash at that point. */
-  hooks?: { afterCommitA?(ref: string): void; beforePush?(): void };
+  hooks?: { afterCommitA?(ref: string): void; beforePush?(): void; /** Neon only: after each committed batch of staged rows (the crash tests throw from it). */ afterBatch?(n: number): void };
   /** The second copy of the write-once state on the append-only branch `state` (state-backup.ts). On by default. */
   stateBackup?: boolean; onStateBackupError?(e: Error): void;
+  /** The Neon transport (DECISIONS.md, 2026-10-09): when set, `remote` and the git steps are not used at all and the publish goes through publisher-neon.ts. `workdir` is still the scratch directory the tree is materialised into. */
+  store?: NeonStore;
 }
-export type PublishOutcome = { kind: "published"; ref: string; seq: number; pointer: PointerFile } | { kind: "refused"; problems: Problem[]; seq: number };
+export type { PublishOutcome } from "./publish-common";
 
-function readPointer(dir: string): PointerFile | null { const f = path.join(dir, "latest.json"); return fs.existsSync(f) ? (JSON.parse(fs.readFileSync(f, "utf8")) as PointerFile) : null; }
-function readStatus(dir: string): StatusFile | null { const f = path.join(dir, "status.json"); return fs.existsSync(f) ? (JSON.parse(fs.readFileSync(f, "utf8")) as StatusFile) : null; }
-/** The manifest lists the data files. status.json is written AFTER it (it carries the manifest's own hash) and the checkout still holds the previous commit's copy, so listing it would pin a stale hash that the verification step (a random sample of the manifest) and the watchdog would flag. */
-function manifestOf(tree: TreeView): { text: string; files: number; bytes: number } {
-  const files = tree.files().filter((f) => f !== "manifest.json" && f !== "status.json").map((f) => [f, tree.size(f), sha256(tree.read(f)).slice(0, 16)] as [string, number, string]);
-  const text = JSON.stringify({ v: 1, files }); return { text, files: files.length + 2, bytes: files.reduce((a, f) => a + f[1], 0) };
-}
 function clone(i: { remote: string; workdir: string; branch: string }): Git {
   fs.rmSync(i.workdir, { recursive: true, force: true }); fs.mkdirSync(i.workdir, { recursive: true });
   const g = gitIn(i.workdir);
@@ -55,24 +51,14 @@ function clone(i: { remote: string; workdir: string; branch: string }): Git {
 }
 /** One publish (phase catalog or full) or one overlay. */
 export async function publish(i: PublishInput): Promise<PublishOutcome> {
+  if (i.store) return (await import("./publisher-neon")).publishNeon(i, i.store);
   const branch = i.branch ?? "data", now = i.now ?? (() => new Date());
   const g = clone({ remote: i.remote, workdir: i.workdir, branch });
   const prev = readPointer(i.workdir), prevStatus = readStatus(i.workdir);
-  const seq = (prev?.seq ?? 0) + 1;
-  const root = path.join(i.workdir, PLANE_PREFIX); fs.mkdirSync(root, { recursive: true });
-  const tree = fsTree(root);
-  const before = i.phase === "overlay" ? new Map(tree.files().map((f) => [f, tree.read(f)] as const)) : null;
-  const prevState = i.phase === "overlay" ? null : loadPrevState(tree);                                  // the importer's memory, from the checkout (6.2); the write-once rules are checked against it below
-  const cutDay = i.phase !== "overlay" && isCutDay(i.priceDay, prev?.histCut ?? null);
-  const built = await i.build(tree, { prev, prevStatus, cutDay });
-  // the manifest and the v1/status.json copy are bookkeeping of THIS commit
-  const problems: Problem[] = i.phase === "overlay"
-    ? validateOverlay({ files: () => [...before!.keys()], read: (f) => before!.get(f)!, size: (f) => Buffer.byteLength(before!.get(f)!), has: (f) => before!.has(f) }, tree)
-    : validateTree(tree, { phase: i.phase, prev: built.prevCounts ?? (prevStatus?.counts ? { cards: prevStatus.counts.cards, listed: prevStatus.counts.listed, tracked: prevStatus.counts.tracked, oracles: prevStatus.counts.oracles } : null), histCut: Number(built.histCut.replace(/-/g, "")) }).problems;
-  if (prevState) for (const w of writeOnceProblems(prevState, tree)) problems.push({ code: w.code, message: w.message });
+  const { tree, seq, built, problems, prevState, cutDay } = await buildAndValidate(i, i.workdir, prev, prevStatus);
   if (problems.length) {                                                           // REFUSAL: discard the tree, push a status-only commit, leave latest.json alone
     g.run(["checkout", "--", "."], { allowFail: true }); g.run(["clean", "-fdq", "--", PLANE_PREFIX], { allowFail: true });
-    const st: StatusFile = { ...(prevStatus ?? ({} as StatusFile)), v: 1, at: now().toISOString(), by: "refusal", refusals: [{ at: now().toISOString(), seq, code: problems[0]!.code, message: problems[0]!.message.slice(0, 240) }, ...(prevStatus?.refusals ?? [])].slice(0, 20), runs: [{ at: now().toISOString(), kind: "refused" as const, ok: false, seconds: 0, note: problems[0]!.message.slice(0, 200), errors: problems.slice(0, 5).map((p) => p.message) }, ...(prevStatus?.runs ?? [])].slice(0, 30) };
+    const st = refusalStatus(prevStatus, problems, seq, i.priceDay, now());
     fs.writeFileSync(path.join(i.workdir, "status.json"), JSON.stringify(st)); g.run(["add", "-A"]); g.run(["commit", "-q", "-m", `data refusal ${i.priceDay} ${seq}`]); g.run(["push", "-q", "origin", `HEAD:refs/heads/${branch}`]);
     return { kind: "refused", problems, seq };
   }

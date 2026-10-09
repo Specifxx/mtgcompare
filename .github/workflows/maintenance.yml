@@ -178,7 +178,9 @@ jobs:
       - name: Data repository status
         if: inputs.task == 'data-status'
         env:
+          PLANE_BACKEND: ${{ vars.PLANE_BACKEND }}
           PLANE_REPO: ${{ vars.PLANE_REPO }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           PLANE_BRANCH: ${{ vars.PLANE_BRANCH }}
           PLANE_TOKEN: ${{ secrets.PLANE_TOKEN }}
         run: |
@@ -189,11 +191,15 @@ jobs:
       - name: Regenerate the slug seed
         if: inputs.task == 'slug-seed'
         env:
+          PLANE_BACKEND: ${{ vars.PLANE_BACKEND }}
           PLANE_REPO: ${{ vars.PLANE_REPO }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           PLANE_BRANCH: ${{ vars.PLANE_BRANCH }}
           DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
         run: |
-          if [ -z "${PLANE_REPO:-}" ] || [ -z "${DATA_REPO_TOKEN:-}" ]; then echo "PLANE_REPO and DATA_REPO_TOKEN are not both set for Actions - nothing to read (a green no-op)."; exit 0; fi
+          if [ "${PLANE_BACKEND:-neon}" = "github" ]; then
+            if [ -z "${PLANE_REPO:-}" ] || [ -z "${DATA_REPO_TOKEN:-}" ]; then echo "PLANE_BACKEND=github, and PLANE_REPO and DATA_REPO_TOKEN are not both set for Actions - nothing to read (a green no-op)."; exit 0; fi
+          elif [ -z "${DATABASE_URL:-}" ]; then echo "DATABASE_URL is not set for Actions - nothing to read (a green no-op)."; exit 0; fi
           bash scripts/plane-checkout.sh .data
           npx tsx scripts/slug-seed.ts .data
       - name: Upload the slug seed

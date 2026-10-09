@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
+      PLANE_BACKEND: ${{ vars.PLANE_BACKEND }}
       PLANE_REPO: ${{ vars.PLANE_REPO }}
       DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
       DATABASE_URL: ${{ secrets.DATABASE_URL }}

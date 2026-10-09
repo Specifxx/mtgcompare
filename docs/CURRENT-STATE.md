@@ -26,9 +26,11 @@ Entries dated before 2026-10-08 are OP Compare's inherited history (One Piece vo
 
 ## Reading the data: loaders, caches, files
 
+- THE PUBLISHED PLANE LIVES IN NEON BY DEFAULT (owner decision, `DATA_REPO_TOKEN` unavailable at launch): the `"PlaneFile"` table of `DATABASE_URL`, created by the publisher with raw SQL, the same `v1/` contract, the pointer row written last in the one flip transaction; `PLANE_BACKEND=github` selects the private repository again and `PLANE_REPO`, `PLANE_TOKEN`, `DATA_REPO_TOKEN` are read only then. The Neon read is confined to `src/lib/data/plane/neon-store.ts` (lazy import), reached from `neon-reader.ts` and `runtime.ts`; nothing under `src/app` imports `@/lib/db`; the Neon-backed PRIVATE loaders stay out of public renders; private, paid and eBay data are never in the plane; no `unstable_cache` wraps a plane read (the pointer memo is 60 s, the LRU is keyed by path and sha). [2026-10-09](../DECISIONS.md#L2725)
+
 - A build reads no data host, no data directory and no database: the plane reader throws `PlaneError("build")` while `NEXT_PHASE=phase-production-build` (HTTP and `PLANE_DIR` alike) and `src/lib/db.ts` targets a closed local port in that phase. [2026-10-08](../DECISIONS.md#L2263)
 - Every plane read of a request is pinned to the commit the request's first `getDataRef()` returned (React request cache; the 20-second instance memo outside a request); instance memos of derived shapes are keyed by `memoKey(ptr)` (`ref:seq:publishedAt`). [2026-10-08](../DECISIONS.md#L2301)
-- Pinned files are read from `pointer.repo` (the pointer itself from `PLANE_REPO`): a repository rotation changes the pointer only. [2026-10-08](../DECISIONS.md#L2314)
+- GitHub backend only (`PLANE_BACKEND=github`): pinned files are read from `pointer.repo` (the pointer itself from `PLANE_REPO`): a repository rotation changes the pointer only. [2026-10-08](../DECISIONS.md#L2314)
 - `POST /api/data-warm { ref }` (Bearer CRON_SECRET) warms the named commit's hot set and is the only call a publish makes; `POST /api/revalidate` purges only `NEON_TAGS`; `GET /api/data-status` is the instance's pointer, host and memory in a body without secrets. [2026-10-08](../DECISIONS.md#L2321)
 
 ## Matching, stores and eBay
@@ -83,6 +85,6 @@ Entries dated before 2026-10-08 are OP Compare's inherited history (One Piece vo
 
 ## Admin, project root and docs
 
-- The admin console has the eight panels (data, ebay, deploys, database, clicks, loyalty, mail, lookup) beside OP's pages; the Run buttons work only when the optional `GITHUB_DISPATCH_TOKEN` exists and otherwise link to the workflow; `/admin/data` never needs Neon. [2026-10-08](../DECISIONS.md#L2615)
+- The admin console has the eight panels (data, ebay, deploys, database, clicks, loyalty, mail, lookup) beside OP's pages; the Run buttons work only when the optional `GITHUB_DISPATCH_TOKEN` exists and otherwise link to the workflow; `/admin/data` reads only `status.json` (a row of the Neon plane by default) and never a private table. [2026-10-08](../DECISIONS.md#L2615)
 - `docs/magic-data-contract.md`, `docs/premium-gates.md`, `docs/BRAND.md` and `docs/RELEASE.md` are the repository's own copies of the data rules, the tier matrix, the brand and the release runbook; the brand's open questions are listed in BRAND.md section 11. [2026-10-08](../DECISIONS.md#L2621)
 - Every environment variable the code reads is a row of `tests/fixtures/env-names.json`; `.env.example` and the env table of the setup prompt list exactly those rows; Vercel variables are Production-only. [2026-10-08](../DECISIONS.md#L2626)

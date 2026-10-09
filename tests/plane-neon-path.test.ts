@@ -54,17 +54,23 @@ import { hotSet } from "../src/lib/data/plane/shards";
 
 const ROOT = process.env.TEST_ROOT ?? path.resolve(__dirname, "..");
 const READER = ["src/lib/data/core.ts", "src/lib/data/catalog.ts", "src/lib/data/history.ts", "src/lib/data/catalog-shim.ts", "src/lib/data/lite.ts", "src/lib/data/types.ts", "src/lib/offer-read.ts", "src/lib/price.ts", "src/lib/selectors.ts", ...fs.readdirSync(path.join(ROOT, "src/lib/data/plane")).filter((f) => f.endsWith(".ts")).map((f) => `src/lib/data/plane/${f}`)];
-test("the reader's import closure never reaches the database client: not @/lib/db, not @prisma/client (so a closed Neon cannot break a public read)", () => {
+// DECISIONS.md 2026-10-09 (the plane moved into Neon by default): the reader's closure reaches the database client in exactly ONE place, src/lib/data/plane/neon-store.ts, and only through a LAZY `await import("../../db")` inside two functions (so a build, a
+// PLANE_DIR run and a GitHub-backend run never load Prisma). Nothing else in the closure, and nothing under src/app, imports the client.
+const NEON_STORE = "src/lib/data/plane/neon-store.ts";
+test("the Neon read is confined to src/lib/data/plane/neon-store.ts, which imports the client only lazily; nothing else in the reader's import closure reaches @/lib/db or @prisma/client", () => {
   const seen = new Set<string>(), bad: string[] = [], stack = READER.map((f) => path.join(ROOT, f));
   while (stack.length) {
     const f = stack.pop()!; if (seen.has(f)) continue; seen.add(f);
     for (const e of importsOf(fs.readFileSync(f, "utf8"))) {
       if (e.typeOnly) continue;
-      if (/^@prisma\/client|\/lib\/db$|^\.\.?\/db$|^@\/lib\/db/.test(e.spec) || e.spec === "pg") bad.push(`${path.relative(ROOT, f)} -> ${e.spec}`);
+      if (/^@prisma\/client|\/lib\/db$|^\.\.?\/db$|^(\.\.\/)+db$|^@\/lib\/db/.test(e.spec) || e.spec === "pg") { if (path.relative(ROOT, f).split(path.sep).join("/") === NEON_STORE && /^(\.\.\/)+db$/.test(e.spec)) continue; bad.push(`${path.relative(ROOT, f)} -> ${e.spec}`); }
       const r = resolveSpec(f, e.spec, ROOT); if (r && /\.tsx?$/.test(r)) stack.push(r);
     }
   }
   assert.deepEqual(bad, []); assert.ok(seen.size > 20, `walked ${seen.size} files`);
+  const store = fs.readFileSync(path.join(ROOT, NEON_STORE), "utf8"); const lazy = [...store.matchAll(/^\s*import\s.*\sfrom\s*["'][^"']*\/db["']/gm)];
+  assert.deepEqual(lazy, [], "neon-store.ts has no static import of the client"); assert.equal([...store.matchAll(/await import\("\.\.\/\.\.\/db"\)/g)].length, 2, "exactly two lazy imports: the reader's client and the writer's");
+  for (const f of fs.readdirSync(path.join(ROOT, "src/lib/data/plane")).filter((x) => x.endsWith(".ts") && x !== "neon-store.ts")) assert.doesNotMatch(fs.readFileSync(path.join(ROOT, "src/lib/data/plane", f), "utf8").replace(/^\s*\/\/.*$/gm, ""), /\$queryRaw|\$executeRaw|PrismaClient/, `${f}: SQL belongs to neon-store.ts`);
 });
 test("loaders answer with DATABASE_URL pointing at a closed port, and no Prisma client is ever constructed", async () => {
   const dir = writePlaneDir(realMiniTree()); process.env.PLANE_DIR = dir; process.env.DATABASE_URL = "postgresql://nobody:x@127.0.0.1:1/none"; resetPlaneForTests();

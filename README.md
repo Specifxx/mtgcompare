@@ -35,8 +35,8 @@ MTG Compare is the Magic sister site of [RiftCompare](https://riftcompare.com) a
 
 ## Architecture in five lines
 
-1. **Public data is files.** The daily import (`import-prices.yml`) publishes the catalogue, prices, offers and history as sharded JSON to a private GitHub repository (`Specifxx/mtgcompare-data`, branch `data`) and moves one pointer. Pages read the files through `src/lib/data/**`; no page needs Neon.
-2. **Neon holds private state** (accounts, billing, alerts, collection, inbox, click events, the eBay ledger and eBay data), well under 100 MB.
+1. **Public data is files, carried by Neon by default.** The daily import (`import-prices.yml`) publishes the catalogue, prices, offers and history as sharded JSON files (`v1/**`) into one table, `PlaneFile`, of the `DATABASE_URL` database and moves one pointer row last (DECISIONS.md, 2026-10-09). `PLANE_BACKEND=github` puts the same files in a private GitHub repository instead (`Specifxx/mtgcompare-data`, branch `data`). Pages read them only through `src/lib/data/**` (`plane/neon-reader.ts`, an in-memory LRU keyed by sha); nothing under `src/app` touches the database.
+2. **Neon holds private state** (accounts, billing, alerts, collection, inbox, click events, the eBay ledger and eBay data), well under 100 MB, plus the published plane (about 25 MB gzip).
 3. **Code ships weekly.** Production builds only for a commit whose subject carries `[deploy]`; `production-deploy.yml` lands one every Tuesday at 08:00 UTC. Data never waits for it. Preview builds are off. See `docs/RELEASE.md`.
 4. **Nothing paid is a file.** Deal Finder, Rising Cards and Demand Finder are computed per request behind an opaque entitlement and cut once in the loader.
 5. **A build reads nothing.** No database, no data host, no data-backed prerender.

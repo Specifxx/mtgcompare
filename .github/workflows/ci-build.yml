@@ -6,8 +6,8 @@ name: CI build
 # rejected by the build), and a homepage that server-rendered nothing typechecked, built and looked fine in a browser, and shipped blank (the incident scripts/smoke-pages.ts was written for). With production builds
 # gated to one a week (CLAUDE.md "Deploys are gated"), most commits would otherwise meet `next build` for the first time in the Tuesday release.
 #
-# THE BUILD READS NOTHING (contract 13.5, Annex C checks 23 and 24). It runs with DATABASE_URL pointing at a closed local port and PLANE_REPO/PLANE_TOKEN pointing at a repository that does not exist: both origins are
-# unreachable, so a build that exits 0 PROVES it needs neither Neon nor the data host, and prerenders no data-backed page (a data read during `next build` throws: plane/runtime.ts guards NEXT_PHASE). The server is then
+# THE BUILD READS NOTHING (contract 13.5, Annex C checks 23 and 24). It runs with DATABASE_URL pointing at a closed local port and NO PLANE_* variable at all. The published data lives in that same database by default (DECISIONS.md, 2026-10-09:
+# the Neon-backed plane), so the one unreachable origin is the only origin there is: a build that exits 0 PROVES it needs neither Neon nor the data host, and prerenders no data-backed page (a data read during `next build` throws: plane/runtime.ts guards NEXT_PHASE). The server is then
 # started with the same unreachable DATABASE_URL and a fixture data directory (PLANE_DIR: the golden tree of tests/helpers/plane-tree.ts, written by `smoke-pages.ts --write-tree`), so the smoke test also proves the
 # public pages render with Neon down.
 #
@@ -36,10 +36,8 @@ jobs:
     # The ceiling keeps a hung `next start`, or a prerender stuck on a connect timeout, from holding a runner for GitHub's six-hour default.
     timeout-minutes: 30
     env:
-      # Both origins UNREACHABLE: a closed port on the loopback and a repository that does not exist. The password and the token are placeholders, not credentials.
+      # The one origin UNREACHABLE: a closed port on the loopback (the default plane backend lives in this database). No PLANE_* variable is set. The password is a placeholder, not a credential.
       DATABASE_URL: postgresql://nobody:x@127.0.0.1:1/none
-      PLANE_REPO: nobody/none
-      PLANE_TOKEN: x
       NEXT_TELEMETRY_DISABLED: 1
     steps:
       - uses: actions/checkout@v4

@@ -36,3 +36,12 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 export function hasDatabase(): boolean {
   return Boolean(process.env.DATABASE_URL);
 }
+
+/** The DIRECT (unpooled) form of a Neon connection string: Neon's pooler is pgbouncer in transaction mode, which is wrong for a long bulk write (the plane publisher, plane-pull) and for `prisma db push`. Same rewrite as maintenance.yml. A local or non-pooled URL comes back unchanged. */
+export function directDatabaseUrl(url: string | undefined = process.env.DATABASE_URL): string | undefined {
+  return url ? url.replace("-pooler", "") : url;
+}
+/** A second client over the direct URL, for the Neon-backed plane's bulk publish (src/lib/data/plane/neon-store.ts). The CALLER owns it and must $disconnect() it; the shared `prisma` above stays the client of everything else. */
+export function createDirectPrisma(): PrismaClient {
+  return new PrismaClient({ log: ["error"], datasourceUrl: directDatabaseUrl() });
+}

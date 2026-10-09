@@ -131,5 +131,6 @@ test("history is read by the pinned plane fetch alone: no unstable_cache, no tag
   }
   // the one-day-old answer is the pointer's: every key that wraps plane data carries `ref` (tests/nested-cache.test.ts rule 5); here, that no key anywhere in the data layer is a clock day
   for (const f of walk("src/lib/data", (x) => /\.ts$/.test(x))) assert.doesNotMatch(stripComments(read(f)), /unstable_cache\([^)]*\[[^\]]*(?:Date|dayKey|sydneyDayKey|toISOString)/, `${f}: a clock-keyed cache key`);
-  for (const f of walk("src/lib/data/plane", (x) => /\.ts$/.test(x))) assert.doesNotMatch(stripComments(read(f)), /\bpg_|\$queryRaw|\$executeRaw/, `${f}: the plane reads files, never the database`);
+  // DECISIONS.md 2026-10-09: the plane may live in Neon, but the SQL is confined to ONE module, neon-store.ts (the table's schema, the reads and the publisher's writes); the reader (neon-reader.ts), the loaders and every other plane module speak files
+  for (const f of walk("src/lib/data/plane", (x) => /\.ts$/.test(x) && !/neon-store\.ts$/.test(x))) assert.doesNotMatch(stripComments(read(f)), /\bpg_|\$queryRaw|\$executeRaw/, `${f}: the plane reads files, never the database (only plane/neon-store.ts holds SQL)`);
 });

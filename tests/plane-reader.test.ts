@@ -292,12 +292,12 @@ test("a rotation needs no deploy: the pointer is read from PLANE_REPO and every 
     return res(404);
   }) as unknown as typeof fetch;
   try {
-    delete process.env.PLANE_TOKEN; process.env.PLANE_REPO = "o/old"; useDir(undefined);
+    delete process.env.PLANE_TOKEN; process.env.PLANE_REPO = "o/old"; process.env.PLANE_BACKEND = "github"; useDir(undefined);          // the repository chain is the GitHub backend's (the default backend is Neon)
     assert.equal((await cat.getCardDetail("counterspell-mh2-267"))?.id, ID.counterspell); assert.equal(core.planeHealth().ref, ptr.ref);
     const files = seen.filter((u) => !u.endsWith("/latest.json")); assert.ok(files.length >= 5, `${files.length} file requests`);
     assert.ok(files.every((u) => u.startsWith(`https://raw.githubusercontent.com/o/new/${ptr.ref}/v1/`)), "every file comes from the repository the pointer names");
     assert.deepEqual(seen.filter((u) => u.endsWith("/latest.json")), ["https://raw.githubusercontent.com/o/old/data/latest.json"], "the pointer stays in PLANE_REPO");
   } finally {
-    globalThis.fetch = realFetch; if (was.repo === undefined) delete process.env.PLANE_REPO; else process.env.PLANE_REPO = was.repo; if (was.token !== undefined) process.env.PLANE_TOKEN = was.token; useDir(undefined);
+    globalThis.fetch = realFetch; delete process.env.PLANE_BACKEND; if (was.repo === undefined) delete process.env.PLANE_REPO; else process.env.PLANE_REPO = was.repo; if (was.token !== undefined) process.env.PLANE_TOKEN = was.token; useDir(undefined);
   }
 });

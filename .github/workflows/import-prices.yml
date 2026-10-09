@@ -1,7 +1,8 @@
 name: Import prices
 
-# THE DAILY PUBLISH (contract sections 6.4 and 6.6). The importer reads NOTHING from Neon: its memory is a depth-1 checkout of the data repository. Phase 1 (catalogue, prices, history, free views) goes live about 10 minutes after the start;
-# phase 2 (store offers and aggregates) 35 to 75 minutes later. Every data push goes to the PRIVATE data repository (vars/secrets: PLANE_REPO, DATA_REPO_TOKEN); GITHUB_TOKEN cannot write another repository.
+# THE DAILY PUBLISH (contract sections 6.4 and 6.6). The published data goes to the "PlaneFile" table of the Neon database by default (DECISIONS.md, 2026-10-09: DATABASE_URL is the only credential; no token, no repository). Its memory of last time is the
+# previous published tree, pulled from there. Phase 1 (catalogue, prices, history, free views) goes live about 10 minutes after the start; phase 2 (store offers and aggregates) 35 to 75 minutes later.
+# PLANE_BACKEND=github (a repository variable) publishes to the PRIVATE data repository instead (vars/secrets: PLANE_REPO, DATA_REPO_TOKEN); GITHUB_TOKEN cannot write another repository.
 # Concurrency: ONE group for every writer of the data repository, with `queue: max` (critique DP-10: the default single pending slot lets a newer run cancel the older pending one).
 on:
   schedule:
@@ -28,6 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 180
     env:
+      PLANE_BACKEND: ${{ vars.PLANE_BACKEND }}
       PLANE_REPO: ${{ vars.PLANE_REPO }}
       DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
       REVALIDATE_URL: ${{ vars.REVALIDATE_URL }}
@@ -54,7 +56,7 @@ jobs:
       - name: Phase 2 (store offers and aggregates), pointer, hook
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.stores }}
         run: npx tsx scripts/import.ts --phase full --only-stores "${{ inputs.only_stores }}"
-      - name: Check out the pointed tree into .data (the alerts step reads .data/v1; a retry that published nothing leaves the same tree)
+      - name: Check out the pointed tree into .data (the alerts step reads .data/v1; a retry that published nothing leaves the same tree; from Neon by default via scripts/plane-pull.ts)
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.alerts }}
         run: bash scripts/plane-checkout.sh .data
       - name: Alerts, newsletter, digests (read .data/v1; Neon only for the user rows)

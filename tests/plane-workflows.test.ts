@@ -192,8 +192,8 @@ test("the warm call: POST /api/data-warm with the cron secret and the ref, then 
     assert.ok(logs.some((l) => /warm failed: down/.test(l)) && logs.some((l) => /did not report aaaaaaa/.test(l)), "an unreachable site is reported, not thrown");
     // the data-hook script: the pointer through raw with the token, then the same warm call
     calls.length = 0; served.push("a".repeat(40)); const ptrFetch = (async (url: string, init?: RequestInit) => String(url) === "https://raw.githubusercontent.com/o/data/data/latest.json" ? new Response(JSON.stringify({ ref: "a".repeat(40), seq: 7 })) : f(url, init)) as unknown as typeof fetch;
-    assert.equal(await hook({ PLANE_REPO: "o/data", DATA_REPO_TOKEN: "t" } as unknown as NodeJS.ProcessEnv, ptrFetch), true); assert.ok(calls.some((c) => c.startsWith("POST https://site.test/api/data-warm")));
-    assert.equal(await hook({ PLANE_REPO: "o/data" } as unknown as NodeJS.ProcessEnv, ptrFetch), false, "no token, no pointer, nothing to announce");
+    assert.equal(await hook({ PLANE_BACKEND: "github", PLANE_REPO: "o/data", DATA_REPO_TOKEN: "t" } as unknown as NodeJS.ProcessEnv, ptrFetch), true); assert.ok(calls.some((c) => c.startsWith("POST https://site.test/api/data-warm")));
+    assert.equal(await hook({ PLANE_BACKEND: "github", PLANE_REPO: "o/data" } as unknown as NodeJS.ProcessEnv, ptrFetch), false, "no token, no pointer, nothing to announce");
   } finally { for (const [k, v] of [["REVALIDATE_URL", was[0]], ["CRON_SECRET", was[1]]] as const) { if (v === undefined) delete process.env[k]; else process.env[k] = v; } }
 });
 test("git access: the write token travels in an http.extraheader for github.com only, is masked in the log, and is never in the remote URL; a local remote needs none; the pointer is read through raw with the token", async () => {

@@ -9,6 +9,9 @@ import { decodeDense, encodeRuns, endDayOf } from "../src/lib/data/plane/history
 import { bucketPath, histBucket } from "../src/lib/data/plane/shards";
 import { addDays } from "../src/lib/history";
 import { authenticateGit, log, remoteOf, workRoot } from "./import";
+import { planeBackend } from "../src/lib/data/plane/backend";
+import { openWriterStore } from "../src/lib/data/plane/neon-store";
+import { readDeltasNeon } from "../src/lib/data/plane/publisher-neon";
 
 /** The base files of the rebuilt series: { relative path -> text }. A series is trimmed to 730 days ending on the last delta day; one that ended before that window is dropped. */
 export function rebuildFiles(deltas: readonly DeltaFile[]): Map<string, string> {
@@ -21,10 +24,13 @@ export function rebuildFiles(deltas: readonly DeltaFile[]): Map<string, string> 
   }
   return new Map([...by].sort((a, b) => a[0] - b[0]).map(([b, p]) => [bucketPath("hist/p", b), `{"v":4,"p":${JSON.stringify(p)}}`] as [string, string]));
 }
-if (process.argv[1] && /scripts[\\/]history-rebuild\.ts$/.test(process.argv[1])) {
-  authenticateGit(); const { remote } = remoteOf(); const outArg = process.argv.indexOf("--out"); const out = path.resolve(outArg >= 0 ? process.argv[outArg + 1]! : ".rebuild");
-  const deltas = readDeltas(remote, path.join(workRoot(), "deltas"));
-  if (!deltas.length) { console.error("history-rebuild: the repository has no daily delta files on branch state"); process.exit(1); }
+if (process.argv[1] && /scripts[\\/]history-rebuild\.ts$/.test(process.argv[1])) main().catch((e) => { console.error(e); process.exit(1); });
+async function main(): Promise<void> {
+  const outArg = process.argv.indexOf("--out"); const out = path.resolve(outArg >= 0 ? process.argv[outArg + 1]! : ".rebuild");
+  let deltas: ReturnType<typeof readDeltas>;
+  if (planeBackend() === "neon") { const store = await openWriterStore(); try { deltas = await readDeltasNeon(store); } finally { await store.close().catch(() => undefined); } }
+  else { authenticateGit(); const { remote } = remoteOf(); deltas = readDeltas(remote, path.join(workRoot(), "deltas")); }
+  if (!deltas.length) { console.error("history-rebuild: no daily delta files were found (state rows of the Neon plane, or branch state)"); process.exit(1); }
   const files = rebuildFiles(deltas); for (const [rel, text] of files) { const f = path.join(out, "v1", rel); fs.mkdirSync(path.dirname(f), { recursive: true }); fs.writeFileSync(f, text); }
   log(`history-rebuild: ${deltas.length} daily files (${deltas[0]!.day} to ${deltas[deltas.length - 1]!.day}) -> ${files.size} base files in ${out}/v1/hist/p`);
 }

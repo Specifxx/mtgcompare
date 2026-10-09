@@ -30,6 +30,7 @@ jobs:
       EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
       EMAIL_REPLY_TO: ${{ vars.EMAIL_REPLY_TO }}
       NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL || 'https://mtgcompare.app' }}
+      PLANE_BACKEND: ${{ vars.PLANE_BACKEND }}
       PLANE_REPO: ${{ vars.PLANE_REPO }}
       PLANE_TOKEN: ${{ secrets.PLANE_TOKEN }}
     steps:

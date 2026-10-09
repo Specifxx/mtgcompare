@@ -97,30 +97,32 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
+      PLANE_BACKEND: ${{ vars.PLANE_BACKEND }}
       PLANE_REPO: ${{ vars.PLANE_REPO }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
       PLANE_TOKEN: ${{ secrets.PLANE_TOKEN }}
     steps:
       - name: No data repository configured
-        if: env.PLANE_REPO == '' || env.PLANE_TOKEN == ''
-        run: echo "PLANE_REPO and PLANE_TOKEN are not both set for Actions - nothing to audit (a green no-op)."
+        if: ${{ !((env.PLANE_BACKEND != 'github' && env.DATABASE_URL != '') || (env.PLANE_BACKEND == 'github' && env.PLANE_REPO != '' && env.PLANE_TOKEN != '')) }}
+        run: echo "Nothing to audit (a green no-op) - DATABASE_URL is not set for Actions (the default Neon-backed plane), or PLANE_BACKEND=github and PLANE_REPO and PLANE_TOKEN are not both set."
       - uses: actions/checkout@v4
-        if: env.PLANE_REPO != '' && env.PLANE_TOKEN != ''
+        if: ${{ (env.PLANE_BACKEND != 'github' && env.DATABASE_URL != '') || (env.PLANE_BACKEND == 'github' && env.PLANE_REPO != '' && env.PLANE_TOKEN != '') }}
       - uses: actions/setup-node@v4
-        if: env.PLANE_REPO != '' && env.PLANE_TOKEN != ''
+        if: ${{ (env.PLANE_BACKEND != 'github' && env.DATABASE_URL != '') || (env.PLANE_BACKEND == 'github' && env.PLANE_REPO != '' && env.PLANE_TOKEN != '') }}
         with:
           node-version: 22
           cache: npm
       - name: Install
-        if: env.PLANE_REPO != '' && env.PLANE_TOKEN != ''
+        if: ${{ (env.PLANE_BACKEND != 'github' && env.DATABASE_URL != '') || (env.PLANE_BACKEND == 'github' && env.PLANE_REPO != '' && env.PLANE_TOKEN != '') }}
         run: npm ci
       - name: Data repository size, freshness and quota
-        if: env.PLANE_REPO != '' && env.PLANE_TOKEN != ''
+        if: ${{ (env.PLANE_BACKEND != 'github' && env.DATABASE_URL != '') || (env.PLANE_BACKEND == 'github' && env.PLANE_REPO != '' && env.PLANE_TOKEN != '') }}
         run: |
           set -o pipefail
           npx tsx scripts/audit-publication.ts --remote | tee data.txt
           { echo "## Data repository"; echo '```'; cat data.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - name: Tell ops
-        if: failure() && env.PLANE_REPO != ''
+        if: ${{ failure() && ((env.PLANE_BACKEND != 'github' && env.DATABASE_URL != '') || (env.PLANE_BACKEND == 'github' && env.PLANE_REPO != '' && env.PLANE_TOKEN != '')) }}
         env:
           OPS_WEBHOOK_URL: ${{ secrets.OPS_WEBHOOK_URL }}
         run: npx tsx scripts/ops-webhook.ts --title "Data repository audit" --level error --file data.txt --tail 25 --url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

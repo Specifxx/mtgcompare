@@ -6,7 +6,7 @@ name: Store health
 # This workflow runs it once a day, after the day's publish, and posts to the ops webhook (OPS_WEBHOOK_URL, a Discord or Slack incoming webhook; webhook only, never a bot) when M is above zero. Parity P39.
 #
 # GREEN WITHOUT ITS SECRETS: the report script no-ops without its inputs, and without OPS_WEBHOOK_URL the report stays in this log and the step summary. The script always exits 0 (a broken scraper is something to look at, not a red
-# workflow); the alert is the only side effect. The report reads the published store-run records (PLANE_REPO / DATA_REPO_TOKEN: the pointed tree is checked out when both exist) and, for the per-store history it keeps in Neon, DATABASE_URL.
+# workflow); the alert is the only side effect. The report reads the published store-run records (the current tree is pulled from Neon with DATABASE_URL; with PLANE_BACKEND=github, PLANE_REPO / DATA_REPO_TOKEN: the pointed tree is checked out when both exist) and, for the per-store history it keeps in Neon, DATABASE_URL.
 #
 # WHEN. 23:35 UTC, after phase 2 of the daily import (21:55 and the 22:25 retry), the demand overlay (22:40) and the data audit's quiet hour. Own concurrency group: it reads, it never writes.
 on:
@@ -27,6 +27,7 @@ jobs:
     timeout-minutes: 15
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PLANE_BACKEND: ${{ vars.PLANE_BACKEND }}
       PLANE_REPO: ${{ vars.PLANE_REPO }}
       PLANE_BRANCH: ${{ vars.PLANE_BRANCH }}
       DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
@@ -46,8 +47,8 @@ jobs:
         run: |
           npm ci
           npx prisma generate
-      - name: Check out the pointed commit
-        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+      - name: Pull the published tree (Neon by default, the pointed commit with PLANE_BACKEND=github)
+        if: ${{ (env.PLANE_BACKEND != 'github' && env.DATABASE_URL != '') || (env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != '') }}
         run: bash scripts/plane-checkout.sh .data
       - name: Store health report
         id: health

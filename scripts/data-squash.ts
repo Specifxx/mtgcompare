@@ -7,6 +7,7 @@ import { listTags, squash, gitIn } from "../src/lib/data/plane/publisher";
 import { planSquash } from "../src/lib/data/plane/publish-protocol";
 import type { PointerFile } from "../src/lib/data/plane/formats";
 import { authenticateGit, log, remoteOf, workRoot } from "./import";
+import { planeBackend } from "../src/lib/data/plane/backend";
 import { checkoutHead, pushStatus } from "./data-watchdog";
 
 /** The API-created parentless commit: needs the tree sha only, so nothing is uploaded. Returns the new head sha, or null when the API refuses (the caller falls back to the plain push). */
@@ -21,6 +22,7 @@ export async function apiSquash(repo: string, branch: string, token: string, f: 
 }
 export interface SquashRun { skipped: string | null; deleted: string[]; mode: "api" | "push" | "skipped" }
 export async function runSquash(env: NodeJS.ProcessEnv = process.env, o: { f?: typeof fetch; now?: () => Date; workdir?: string } = {}): Promise<SquashRun> {
+  if (planeBackend(env) === "neon") { const m = "the Neon-backed plane stores only the current tree (changed files are upserted, removed paths deleted): there is no history to squash (PLANE_BACKEND=github keeps this job)"; log(`squash: skipped: ${m}`); return { skipped: m, deleted: [], mode: "skipped" }; }
   const { remote, repo, github } = remoteOf(env); const branch = env.PLANE_BRANCH || "data"; const now = o.now ?? (() => new Date()); const f = o.f ?? fetch;
   const work = o.workdir ?? path.join(workRoot(env), "squash");
   // the plan first (the same fetch squash() does), so the API path can be tried before any push
@@ -39,4 +41,4 @@ export async function runSquash(env: NodeJS.ProcessEnv = process.env, o: { f?: t
   pushStatus(co.g, `${work}-status`, branch, (s) => { s.at = now().toISOString(); s.by = "squash"; s.repo = { ...(s.repo ?? { kb: null, at: now().toISOString(), trend: [], isPrivate: null }), lastSquashAt: now().toISOString() } as never; s.runs = [{ at: now().toISOString(), kind: "squash" as const, ok: true, seconds: 0, note: `${deleted.length} tag(s) deleted via ${mode}` }, ...(s.runs ?? [])].slice(0, 30); }, `status squash ${now().toISOString().slice(0, 10)}`);
   return { skipped: null, deleted, mode };
 }
-if (process.argv[1] && /scripts[\\/]data-squash\.ts$/.test(process.argv[1])) { authenticateGit(); runSquash().catch((e) => { console.error(e); process.exitCode = 1; }); }
+if (process.argv[1] && /scripts[\\/]data-squash\.ts$/.test(process.argv[1])) { if (planeBackend() === "github") authenticateGit(); runSquash().catch((e) => { console.error(e); process.exitCode = 1; }); }

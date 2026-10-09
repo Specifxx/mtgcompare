@@ -19,7 +19,9 @@ jobs:
       group: data-publish
       queue: max
     env:
+      PLANE_BACKEND: ${{ vars.PLANE_BACKEND }}
       PLANE_REPO: ${{ vars.PLANE_REPO }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
       DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
       SITE_URL: ${{ vars.REVALIDATE_URL }}
     steps:

@@ -22,6 +22,7 @@
    "default": "none",
    "where": [
     "src/lib/db.ts",
+    "src/lib/data/plane/neon-store.ts",
     "scripts/**",
     "prisma/**"
    ],
@@ -37,9 +38,14 @@
     "egress-audit.yml",
     "maintenance.yml",
     "store-health.yml",
-    "release-day-email.yml"
+    "release-day-email.yml",
+    "data-audit.yml",
+    "data-hook.yml",
+    "data-rollback.yml",
+    "data-squash.yml",
+    "data-watchdog.yml"
    ],
-   "note": "the ONE Neon project (pooled URL): private tables only (accounts, billing, watches, alerts, collection, notifications, newsletter, inbox, click events, ledger and eBay data, ImportRun/Meta). Public data is NOT in it (section 12). The importer does not read it",
+   "note": "the ONE Neon project (pooled URL): private tables only (accounts, billing, watches, alerts, collection, notifications, newsletter, inbox, click events, ledger and eBay data, ImportRun/Meta). Public data is NOT in it (section 12). The importer does not read it ALSO the default home of the published data plane (table \"PlaneFile\", DECISIONS.md 2026-10-09): src/lib/data/plane/neon-store.ts is the only reader-side module that reaches it",
    "group": "Database and platform"
   },
   "TEST_DATABASE_URL": {
@@ -1764,7 +1770,7 @@
     "email.yml",
     "release-day-email.yml"
    ],
-   "note": "owner/name of the PRIVATE data repository (12.4); the same value in Vercel and in Actions",
+   "note": "OPTIONAL: read only with PLANE_BACKEND=github (the default backend is Neon and needs none of it). owner/name of the PRIVATE data repository (12.4); the same value in Vercel and in Actions",
    "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
   },
   "PLANE_BRANCH": {
@@ -1783,7 +1789,7 @@
     "maintenance.yml",
     "store-health.yml"
    ],
-   "note": "the data branch; only the publisher writes it",
+   "note": "OPTIONAL: read only with PLANE_BACKEND=github (the default backend is Neon and needs none of it). the data branch; only the publisher writes it",
    "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
   },
   "PLANE_TOKEN": {
@@ -1803,7 +1809,7 @@
     "email.yml",
     "release-day-email.yml"
    ],
-   "note": "fine-grained personal access token, Contents: read, on the data repository ONLY, at most 1 year (alarm 30 days before expiry). Part of the Data Cache key of every file: a rotation makes the cache cold and is followed by the data-hook workflow",
+   "note": "OPTIONAL: read only with PLANE_BACKEND=github (the default backend is Neon and needs none of it). fine-grained personal access token, Contents: read, on the data repository ONLY, at most 1 year (alarm 30 days before expiry). Part of the Data Cache key of every file: a rotation makes the cache cold and is followed by the data-hook workflow",
    "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
   },
   "PLANE_DIR": {
@@ -1827,6 +1833,7 @@
    "wp": "WP01b",
    "default": "unset",
    "where": [
+    "src/lib/data/plane/backend.ts",
     "scripts/**"
    ],
    "wf": [],
@@ -1920,7 +1927,7 @@
     "store-health.yml",
     "ebay-prices.yml"
    ],
-   "note": "fine-grained personal access token, Contents: write (and Administration: read for the size probe), on the data repository ONLY. GITHUB_TOKEN covers only the workflow's own repository. Travels in an http extraheader, never in a URL or a log",
+   "note": "OPTIONAL: read only with PLANE_BACKEND=github (the default backend is Neon and needs none of it). fine-grained personal access token, Contents: write (and Administration: read for the size probe), on the data repository ONLY. GITHUB_TOKEN covers only the workflow's own repository. Travels in an http extraheader, never in a URL or a log",
    "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
   },
   "VIEW_BEACON_SAMPLE": {
@@ -2103,6 +2110,49 @@
     "scripts/send-release-day.ts"
    ],
    "note": "cap on recipients for one blast"
+  },
+  "PLANE_BACKEND": {
+   "kind": "var",
+   "at": "V+G",
+   "status": "dp",
+   "wp": "WP02",
+   "default": "neon",
+   "where": [
+    "src/lib/data/plane/backend.ts",
+    "scripts/**"
+   ],
+   "wf": [
+    "import-prices.yml",
+    "demand-snapshot.yml",
+    "data-squash.yml",
+    "data-watchdog.yml",
+    "data-rollback.yml",
+    "data-hook.yml",
+    "data-audit.yml",
+    "db-audit.yml",
+    "egress-audit.yml",
+    "maintenance.yml",
+    "store-health.yml",
+    "ebay-prices.yml",
+    "email-weekly.yml",
+    "email.yml",
+    "release-day-email.yml"
+   ],
+   "note": "neon (the default, unset means neon): the published data lives in the PlaneFile table of DATABASE_URL, no token, no PLANE_REPO. github: the private data repository again (PLANE_REPO, DATA_REPO_TOKEN, PLANE_TOKEN). Set it in Vercel AND Actions, the same value in both",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "PLANE_POINTER_TTL_S": {
+   "kind": "var",
+   "at": "V",
+   "status": "dp",
+   "wp": "WP02",
+   "default": "60",
+   "where": [
+    "src/lib/data/plane/runtime.ts"
+   ],
+   "wf": [],
+   "note": "Neon backend only: how long an instance trusts its last read of the pointer row before looking again (stale-while-error on failure). Raise it to let Neon's compute suspend between visits",
+   "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
   }
  }
 }

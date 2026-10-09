@@ -175,8 +175,7 @@ test("the CI build can reach neither the database nor the data host, and holds n
   const src = live("ci-build.yml");
   assert.doesNotMatch(src, /\$\{\{\s*(secrets|vars)\./, "ci-build.yml must name no secret and no repository variable: with no real address in the process it cannot reach a real database or data host even by mistake");
   assert.match(src, /DATABASE_URL:\s*postgresql:\/\/nobody:x@127\.0\.0\.1:1\/none/, "Annex C check 24: DATABASE_URL points at a closed port");
-  assert.match(src, /PLANE_REPO:\s*nobody\/none/);
-  assert.match(src, /PLANE_TOKEN:\s*x\b/);
+  assert.doesNotMatch(src, /PLANE_(?!DIR)/, "no PLANE_* variable at all: the default plane lives in the (unreachable) database, so a build that exits 0 proves it needs neither origin (DECISIONS.md 2026-10-09)");
   assert.match(src, /run:\s*npm run build/, "the job runs the production build");
   assert.match(src, /smoke-pages\.ts[^\n]*--check-build/, "and checks that the build prerendered no data-backed page");
   assert.match(src, /PLANE_DIR:\s*\$\{\{\s*runner\.temp\s*\}\}\/plane/, "the server then serves a fixture directory");

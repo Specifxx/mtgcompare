@@ -4,7 +4,7 @@ name: DB audit
 # design's budget (under 100 MB at 10,000 members), the RETENTION sweeps (click events 90 days, eBay rows 72 hours), the eBay ledger against its cap, the launch-promo counter, the tier of every user, and the ORPHAN SWEEP: every product id
 # a user row points at (alerts, binder, sealed watches, published decks, eBay rows, view counters) exists in the published catalogue. User rows carry no foreign key to a product (2.3), so this is the only thing that notices a stray id.
 #
-# Read-only. GREEN WITHOUT ITS SECRETS: no DATABASE_URL, no audit and no failure. With PLANE_REPO and DATA_REPO_TOKEN it checks the pointed tree out for the orphan sweep; without them the sweep is skipped and says so.
+# Read-only. GREEN WITHOUT ITS SECRETS: no DATABASE_URL, no audit and no failure. It pulls the current published tree for the orphan sweep (from the same database by default; with PLANE_BACKEND=github, from the data repository, which needs PLANE_REPO and DATA_REPO_TOKEN, else the sweep is skipped and says so).
 # A failed audit posts to OPS_WEBHOOK_URL when that optional secret exists.
 #
 # WHEN. Monday 03:30 UTC (the egress audit is Sunday 03:00; no publish, eBay pass or release runs then), and by hand.
@@ -26,6 +26,7 @@ jobs:
     timeout-minutes: 20
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PLANE_BACKEND: ${{ vars.PLANE_BACKEND }}
       PLANE_REPO: ${{ vars.PLANE_REPO }}
       PLANE_BRANCH: ${{ vars.PLANE_BRANCH }}
       DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
@@ -45,8 +46,8 @@ jobs:
         run: |
           npm ci
           npx prisma generate
-      - name: Check out the pointed commit (for the orphan sweep)
-        if: env.DATABASE_URL != '' && env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+      - name: Pull the published tree (for the orphan sweep)
+        if: ${{ env.DATABASE_URL != '' && (env.PLANE_BACKEND != 'github' || (env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != '')) }}
         run: bash scripts/plane-checkout.sh .data
       - name: Audit
         if: env.DATABASE_URL != ''

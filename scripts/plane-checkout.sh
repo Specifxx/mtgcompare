@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
-# scripts/plane-checkout.sh (owner WP01b). Checks out the tree of the POINTED commit (not the branch head: a crash between data commit A and the pointer commit B can leave the head ahead of the pointer) of the PRIVATE data repository
+# scripts/plane-checkout.sh (owner WP01b). Materialises the CURRENT published tree into $1 (default .data) for every job that reads the published data as files. DEFAULT (PLANE_BACKEND unset or neon): the Neon-backed plane, pulled by scripts/plane-pull.ts from
+# DATABASE_URL: no token, no PLANE_REPO. PLANE_BACKEND=github: the original behaviour below. Checks out the tree of the POINTED commit (not the branch head: a crash between data commit A and the pointer commit B can leave the head ahead of the pointer) of the PRIVATE data repository
 # into $1 (default .data), for every job that reads the published data (eBay passes, alerts, rollback checks). Needs PLANE_REPO and DATA_REPO_TOKEN (the token travels in an http extraheader, never in the URL or the log).
 set -euo pipefail
+if [ "${PLANE_BACKEND:-neon}" != "github" ]; then
+  exec npx tsx "$(dirname "$0")/plane-pull.ts" "${1:-.data}"
+fi
 DIR="${1:-.data}"; REPO="${PLANE_REPO:?PLANE_REPO is not set}"; BRANCH="${PLANE_BRANCH:-data}"
 AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "${DATA_REPO_TOKEN:?DATA_REPO_TOKEN is not set}" | base64 -w0)"
 echo "::add-mask::$AUTH" 2>/dev/null || true

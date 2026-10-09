@@ -424,7 +424,7 @@ export async function runEbayPass(log: Log, deps: PassDeps, opts: { now?: Date }
     const sync = await deps.store.syncTracks(wantedTracks(units, alloc.tiers, alloc.scores, poolOrder, cfg)).catch((e) => { log(`tracks: ${(e as Error).message}`); return null; });
     if (sync) { log(`eBay tracks: ${sync.written} written, ${sync.removed} removed`); tracks = await deps.store.readTracks().catch(() => tracks); }
     log(`eBay tiers: A ${alloc.counts.A} (V >= ${alloc.cut.aMin ?? "-"}c), B ${alloc.counts.B} (V >= ${alloc.cut.bMin ?? "-"}c), C ${alloc.counts.C}, sealed ${alloc.counts.sealed}, chase pool ${poolOrder.length} names; modelled ${Math.round(alloc.daily.total)} calls a day`);
-  } else log("eBay: no data checkout (PLANE_REPO unset): tiers and tracks unchanged");
+  } else log("eBay: no data checkout (nothing pulled: scripts/plane-pull.ts needs DATABASE_URL and a published tree; PLANE_BACKEND=github needs PLANE_REPO): tiers and tracks unchanged");
 
   // ── the allowance ─────────────────────────────────────────────────────────
   const paused = await deps.store.paused().catch(() => false);

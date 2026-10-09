@@ -47,12 +47,12 @@ export function publicationView(s: PublicationStatus, now = new Date()): Publica
     { label: "Price day", value: s.pointer.dataDay ?? "unknown", level: s.pointer.dataDay ? "ok" : "unknown", note: s.pointer.phase ? `phase ${s.pointer.phase}` : undefined },
     { label: "Last run", value: s.run.mode ? `${s.run.mode} ${s.run.ok ? "ok" : "FAILED"}` : "unknown", level: runLevel, note: s.run.errors[0] },
     { label: "Files", value: `${num(s.files.total)} files, ${mb(s.files.bytes)}`, level: count.level, note: count.pct == null ? undefined : `${count.pct > 0 ? "+" : ""}${count.pct}% since the previous publish` },
-    { label: "Repository size", value: s.repo.sizeKb == null ? "unknown" : `${(s.repo.sizeKb / 1024).toFixed(0)} MB of ${(s.repo.budgetKb / 1024).toFixed(0)} MB`, level: repo.level, note: repo.daysLeft == null ? (growth == null ? undefined : `${growth} KB/day`) : `${repo.daysLeft} days left at ${growth} KB/day` },
+    { label: "Data size (PlaneFile table or repository)", value: s.repo.sizeKb == null ? "unknown" : `${(s.repo.sizeKb / 1024).toFixed(0)} MB of ${(s.repo.budgetKb / 1024).toFixed(0)} MB`, level: repo.level, note: repo.daysLeft == null ? (growth == null ? undefined : `${growth} KB/day`) : `${repo.daysLeft} days left at ${growth} KB/day` },
     { label: "Catalogue", value: `${num(s.catalog.rows)} rows, ${num(s.catalog.listed)} listed, ${num(s.catalog.thin)} thin, ${num(s.catalog.tracked)} tracked, ${num(s.catalog.oracles)} oracles`, level: rowsLevel },
     { label: "TCGCSV updated", value: s.sources.tcgcsvLastUpdated ?? "unknown", level: srcLevel, note: Number.isFinite(tcgAge) ? `${Math.round(tcgAge)} h ago` : undefined },
     { label: "Scryfall build", value: s.sources.scryfallBuild ?? "unknown", level: s.sources.scryfallBuild ? "ok" : "unknown" },
     { label: "Format", value: s.format.version ?? "unknown", level: s.format.version ? "ok" : "unknown" },
-    { label: "Read token", value: s.token.daysLeft == null ? "unknown" : `${s.token.daysLeft} days left`, level: tokenLevel },
+    { label: "Read token (GitHub backend only)", value: s.token.daysLeft == null ? "unknown" : `${s.token.daysLeft} days left`, level: tokenLevel },
     { label: "Alarms", value: s.alarms.length ? s.alarms.map((a) => a.code).join(", ") : "none", level: alarmLevel },
   ];
   const guards: string[] = [];

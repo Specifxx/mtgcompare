@@ -27,6 +27,8 @@ export interface StatusFile {
   alarms: Alarm[];
 }
 
+/** The Neon-backed plane's stop line (DECISIONS.md, 2026-10-09): Neon Free allows 512 MB for the whole project, private tables included; the plane table is about 25 MB of gzip. status.repo.kb is the size of the PlaneFile table there. */
+export const NEON_PLANE_BUDGET_KB = 400 * 1024;
 export const POINTER_STALE_HOURS = 36, REPO_WARN_KB = 1_572_864, REPO_CRIT_KB = 3_145_728 /* 1.5 GB, 3 GB in KB as GitHub reports */, ROTATION_HORIZON_DAYS = 60, SQUASH_OVERDUE_DAYS = 10, TOKEN_WARN_DAYS = 30, TOKEN_BAD_DAYS = 7, KEEPALIVE_WARN_DAYS = 50, PREVIEW_STALE_HOURS = 48;
 export interface WatchInput {
   now: Date; pointer: PointerFile | null; status: StatusFile | null;
@@ -103,7 +105,7 @@ export function publicationStatusOf(s: StatusFile | null | undefined, p?: Pointe
   return {
     pointer: { sha: ptr?.ref ?? p?.ref ?? null, ref: ptr?.ref ?? p?.ref ?? null, prev: ptr?.prev ?? p?.prev ?? null, publishedAt: ptr?.publishedAt ?? p?.publishedAt ?? null, dataDay: ptr?.priceDay ?? p?.priceDay ?? null, phase: ptr?.phase ?? p?.phase ?? null },
     files: { total: s?.counts?.files ?? null, bytes: s?.counts?.bytesRaw ?? null, byKind, previous: s?.previous?.files ?? null },
-    repo: { sizeKb: s?.repo?.kb ?? null, budgetKb: REPO_CRIT_KB, history: (s?.repo?.trend ?? []).slice(-90) },
+    repo: { sizeKb: s?.repo?.kb ?? null, budgetKb: (ptr?.repo ?? p?.repo) === "neon/plane" ? NEON_PLANE_BUDGET_KB : REPO_CRIT_KB, history: (s?.repo?.trend ?? []).slice(-90) },
     run: { ok: run ? run.ok : null, startedAt: run?.startedAt ?? null, finishedAt: run?.at ?? null, mode: run?.kind ?? null, errors: run?.errors ?? (run && !run.ok ? [run.note] : []), guards: s ? { flagChange: s.guards.flagChange, groupHold: s.guards.groupHold, storeHold: s.guards.storeHold, configChanged: s.guards.configChanged } : null },
     sources: { tcgcsvLastUpdated: ptr?.tcgcsv ?? p?.tcgcsv ?? null, scryfallBuild: ptr?.scryfall ?? p?.scryfall ?? null },
     format: { version: ptr?.format ?? p?.format ?? null, previousVersion: null },

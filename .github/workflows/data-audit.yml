@@ -7,11 +7,11 @@ name: Data audit
 #   audit-catalogue.ts        identity C1, C3, C14; the vocabulary; the denormalised copies C9; the class rules C11; the join rules C8; the slug seed; AND, against the previous publish, that no id was deleted and no slug changed
 #   check-card-consistency.ts one price, six copies: px against the set boards, the browse index, the typeahead table, the home tiles, the movers and the store aggregates
 #   audit-history.ts          every tracked unit's series ends on the price day at today's market; the tail follows the cut; the weekly closes sit on Sundays
-# It READS the data repository and writes nothing (contents: read; no script here pushes), so it is outside the `data-publish` concurrency group and can neither delay nor be delayed by a publish.
+# It READS the published data and writes nothing (contents: read; no script here pushes), so it is outside the `data-publish` concurrency group and can neither delay nor be delayed by a publish.
 #
-# GREEN WITHOUT ITS SECRETS: with PLANE_REPO or DATA_REPO_TOKEN missing, every step prints that and passes. A failing audit posts to OPS_WEBHOOK_URL when that optional secret exists.
+# GREEN WITHOUT ITS SECRETS: with DATABASE_URL missing (the default, Neon-backed plane) or, under PLANE_BACKEND=github, PLANE_REPO or DATA_REPO_TOKEN missing, every step prints that and passes. A failing audit posts to OPS_WEBHOOK_URL when that optional secret exists.
 #
-# WHEN. 00:20 UTC, an hour after the last scheduled publish retry (22:25) and after the demand overlay (22:40): the tree it reads is the day's final one. The cost is a depth-1 clone of the pointed commit (about 70 MB); no Neon byte is read.
+# WHEN. 00:20 UTC, an hour after the last scheduled publish retry (22:25) and after the demand overlay (22:40): the tree it reads is the day's final one. The cost is one pull of the current tree (scripts/plane-pull.ts, about 25 MB of gzip from Neon; with PLANE_BACKEND=github a depth-1 clone of the pointed commit, about 70 MB).
 on:
   schedule:
     - cron: "20 0 * * *"
@@ -29,29 +29,32 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
+      PLANE_BACKEND: ${{ vars.PLANE_BACKEND }}
       PLANE_REPO: ${{ vars.PLANE_REPO }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
       PLANE_BRANCH: ${{ vars.PLANE_BRANCH }}
       DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
     steps:
       - name: No data repository configured
-        if: env.PLANE_REPO == '' || env.DATA_REPO_TOKEN == ''
-        run: echo "PLANE_REPO and DATA_REPO_TOKEN are not both set for Actions - nothing to audit (a green no-op)."
+        if: ${{ !((env.PLANE_BACKEND == 'github' && env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != '') || (env.PLANE_BACKEND != 'github' && env.DATABASE_URL != '')) }}
+        run: echo "Nothing to audit (a green no-op) - DATABASE_URL is not set for Actions (the default Neon-backed plane), or PLANE_BACKEND=github and PLANE_REPO and DATA_REPO_TOKEN are not both set."
       - uses: actions/checkout@v4
-        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        if: ${{ (env.PLANE_BACKEND == 'github' && env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != '') || (env.PLANE_BACKEND != 'github' && env.DATABASE_URL != '') }}
       - uses: actions/setup-node@v4
-        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        if: ${{ (env.PLANE_BACKEND == 'github' && env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != '') || (env.PLANE_BACKEND != 'github' && env.DATABASE_URL != '') }}
         with:
           node-version: 22
           cache: npm
       - name: Install
-        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        if: ${{ (env.PLANE_BACKEND == 'github' && env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != '') || (env.PLANE_BACKEND != 'github' && env.DATABASE_URL != '') }}
         run: npm ci
       - name: Check out the pointed commit
-        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        if: ${{ (env.PLANE_BACKEND == 'github' && env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != '') || (env.PLANE_BACKEND != 'github' && env.DATABASE_URL != '') }}
         run: bash scripts/plane-checkout.sh .data
+      # (GitHub backend only: the Neon-backed plane keeps just the current tree, so the cross-tree write-once comparison is skipped there; the publisher checks the same rules against its own pull on every publish.)
       # The publish BEFORE this one, for the write-once rules across two trees. The branch is squashed weekly, so the previous commit may be gone: then the comparison is skipped and said so.
       - name: Check out the previous publish
-        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        if: env.PLANE_BACKEND == 'github' && env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
         run: |
           PREV="$(node -e 'const p=require("./.data/latest.json");console.log(p.prev||"")')"
           rm -rf .data-prev
@@ -66,7 +69,7 @@ jobs:
             echo "::notice::the previous publish ($PREV) is no longer in the repository (the weekly squash): the write-once comparison is skipped."
           fi
       - name: Run the audits
-        if: env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != ''
+        if: ${{ (env.PLANE_BACKEND == 'github' && env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != '') || (env.PLANE_BACKEND != 'github' && env.DATABASE_URL != '') }}
         run: |
           set -uo pipefail
           # the audits run inside a pipeline (so they stream into audit.txt), where a variable would die with the subshell: the verdict travels in a file
@@ -87,7 +90,7 @@ jobs:
           { echo "## Data audit"; echo '```'; grep -v '^::' audit.txt | tail -250; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           exit "$(cat rc.txt)"
       - name: Tell ops
-        if: failure() && env.PLANE_REPO != ''
+        if: ${{ failure() && ((env.PLANE_BACKEND == 'github' && env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != '') || (env.PLANE_BACKEND != 'github' && env.DATABASE_URL != '')) }}
         env:
           OPS_WEBHOOK_URL: ${{ secrets.OPS_WEBHOOK_URL }}
         run: npx tsx scripts/ops-webhook.ts --title "Data audit failed" --level error --file audit.txt --tail 30 --url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
