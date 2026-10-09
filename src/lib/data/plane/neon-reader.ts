@@ -12,7 +12,7 @@ import { PlaneError, type PlaneSource } from "./source";
 import { PLANE_TABLE, STATUS_ROW, TREE_PREFIX, POINTER_ROW, readerSql, sha256Hex, unpack, type PlaneSql } from "./neon-store";
 
 export interface NeonReaderConfig { sql?: () => Promise<PlaneSql>; lruBytes?: number; timeoutMs?: number; maxInflight?: number; now?: () => number; buildPhase?: boolean }
-export interface NeonStats { queries: number; lruHits: number; missesNoQuery: number; failures: number; lruBytes: number; manifestReads: number }
+export interface NeonStats { lastError?: string; queries: number; lruHits: number; missesNoQuery: number; failures: number; lruBytes: number; manifestReads: number }
 interface Entry { text: string; parsed: unknown; bytes: number }
 interface ManifestView { map: Map<string, string>; authoritative: boolean }
 const within = <T,>(p: Promise<T>, ms: number, what: string): Promise<T> => {
@@ -20,6 +20,9 @@ const within = <T,>(p: Promise<T>, ms: number, what: string): Promise<T> => {
   const clock = new Promise<never>((_, rej) => { t = setTimeout(() => rej(Object.assign(new Error(`${what} timed out`), { name: "TimeoutError" })), ms); });
   return Promise.race([p, clock]).finally(() => clearTimeout(t));
 };
+
+/** The failure text for /api/data-status: class and message, connection strings and long tokens blanked. */
+const scrub = (e: unknown): string => `${(e as Error)?.name ?? "Error"}: ${String((e as Error)?.message ?? e).replace(/\w+:\/\/\S+/g, "<url>").replace(/[A-Za-z0-9_-]{32,}/g, "<token>").slice(0, 300)}`;
 
 export class NeonPlane {
   private lru = new Map<string, Entry>(); private lruBytes = 0;
@@ -46,7 +49,7 @@ export class NeonPlane {
           const rows = await this.query<{ body: Uint8Array }>(`SELECT body FROM "${PLANE_TABLE}" WHERE path = $1`, POINTER_ROW);
           if (!rows[0]) throw new PointerError("http", "no pointer row yet (nothing has been published into Neon)");
           return JSON.parse(unpack(rows[0].body)) as unknown;
-        } catch (e) { this.stats.failures++; if (e instanceof PointerError) throw e; throw new PointerError((e as Error).name === "TimeoutError" ? "timeout" : "http", `Neon pointer read failed: ${String((e as Error).message).slice(0, 160)}`); }
+        } catch (e) { this.stats.failures++; this.stats.lastError = scrub(e); if (e instanceof PointerError) throw e; throw new PointerError((e as Error).name === "TimeoutError" ? "timeout" : "http", `Neon pointer read failed: ${String((e as Error).message).slice(0, 160)}`); }
       },
     };
   }
@@ -93,7 +96,7 @@ export class NeonPlane {
     const p = this.permit(async () => {
       let rows: { sha: string; body: Uint8Array }[];
       try { rows = await this.query<{ sha: string; body: Uint8Array }>(`SELECT sha, body FROM "${PLANE_TABLE}" WHERE path = $1`, `${TREE_PREFIX}${rel}`); }
-      catch (e) { this.stats.failures++; throw new PlaneError(rel, (e as Error).name === "TimeoutError" ? "timeout" : "http", String((e as Error).message).slice(0, 120)); }
+      catch (e) { this.stats.failures++; this.stats.lastError = scrub(e); throw new PlaneError(rel, (e as Error).name === "TimeoutError" ? "timeout" : "http", String((e as Error).message).slice(0, 120)); }
       if (!rows[0]) throw new PlaneError(rel, "missing");
       const text = unpack(rows[0].body); let parsed: unknown;
       try { parsed = JSON.parse(text); } catch { throw new PlaneError(rel, "parse"); }

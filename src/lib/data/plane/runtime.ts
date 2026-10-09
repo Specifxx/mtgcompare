@@ -154,13 +154,13 @@ export async function planeJson<T>(rel: string, opts: { optional?: boolean } = {
   const { src } = await planeSource();
   try { return await src.json<T>(rel); } catch (e) { if (opts.optional && e instanceof PlaneError && e.reason === "missing") return null; throw e; }
 }
-export interface PlaneHealth { ref: string | null; seq: number | null; ageHours: number | null; hostUsed: "raw" | "api" | "dir" | "neon" | null; stale: boolean; tokenRejected: boolean; lruMb: number; failures: number }
+export interface PlaneHealth { ref: string | null; seq: number | null; ageHours: number | null; hostUsed: "raw" | "api" | "dir" | "neon" | null; stale: boolean; tokenRejected: boolean; lruMb: number; failures: number; lastError?: string }
 /** GET /api/data-status: counts only, no secrets. */
 export function planeHealth(now = Date.now()): PlaneHealth {
   const b = boot();
   if (b.env.dir) { const p = dirPointer(b.env.dir); return { ref: p.ref, seq: p.seq, ageHours: null, hostUsed: "dir", stale: false, tokenRejected: false, lruMb: 0, failures: 0 }; }
   const s = b.reader!.peek();
-  if (b.neon) return { ref: s.ptr?.ref ?? null, seq: s.ptr?.seq ?? null, ageHours: s.ptr ? Math.round(((now - Date.parse(s.ptr.publishedAt)) / 3_600_000) * 10) / 10 : null, hostUsed: s.ptr ? "neon" : null, stale: s.ptr !== null && s.lastError !== null, tokenRejected: false, lruMb: Math.round(b.neon.stats.lruBytes / 1048576), failures: b.neon.stats.failures };
+  if (b.neon) return { ref: s.ptr?.ref ?? null, seq: s.ptr?.seq ?? null, ageHours: s.ptr ? Math.round(((now - Date.parse(s.ptr.publishedAt)) / 3_600_000) * 10) / 10 : null, hostUsed: s.ptr ? "neon" : null, stale: s.ptr !== null && s.lastError !== null, tokenRejected: false, lruMb: Math.round(b.neon.stats.lruBytes / 1048576), failures: b.neon.stats.failures, ...(b.neon.stats.lastError ? { lastError: b.neon.stats.lastError } : {}) };
   const st = planeFor(b, s.ptr?.repo).stats;
   return { ref: s.ptr?.ref ?? null, seq: s.ptr?.seq ?? null, ageHours: s.ptr ? Math.round(((now - Date.parse(s.ptr.publishedAt)) / 3_600_000) * 10) / 10 : null, hostUsed: st.apiOk > st.rawOk ? "api" : st.rawOk ? "raw" : null, stale: s.ptr !== null && s.lastError !== null, tokenRejected: s.tokenRejected, lruMb: Math.round(st.lruBytes / 1048576), failures: st.failures };
 }
