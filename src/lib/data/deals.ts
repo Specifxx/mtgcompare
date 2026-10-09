@@ -23,7 +23,7 @@ import type { BrowseIndex } from "./plane/browse-index";
 export const BASKET_ID_CHUNK: 40 = 40;
 export interface DealRow { uid: number; buyCents: number; marketCents: number; belowCents: number; belowPct: number; storeId: number; source: string; market: Country }
 /** [uid, buyCents, marketCents, belowCents, belowPct, storeId]: a ranking is held as tuples (about 35 bytes a row, at most DEAL_RANK_MAX_ROWS). storeId is 0 when the buy side is "every store" (the index holds the cheapest price, not whose it is; the page's live offers name the store). */
-type RankTuple = [uid: number, buy: number, market: number, below: number, pct: number, storeId: number];
+export type RankTuple = [uid: number, buy: number, market: number, below: number, pct: number, storeId: number];
 
 const marketIndex = (c: Country): number => Math.max(0, MARKETS.indexOf(c));
 
@@ -82,14 +82,20 @@ async function rankingOf(country: Country, sort: DealQuery["sort"], buyKeys: rea
 
 const rowOf = (country: Country) => (t: RankTuple): DealRow => ({ uid: t[0], buyCents: t[1], marketCents: t[2], belowCents: t[3], belowPct: t[4], storeId: t[5], source: sourceOfStoreId(t[5]) ?? "", market: country });
 
+/** Pure: the cut of a FULL ranking for `who` (tests drive it with a ranking built by rankFromIndex). The query is coerced first, "only my cards" filters BEFORE paging, then sliceRanking applies the gate once. */
+export function cutDealList(country: Country, ranking: readonly RankTuple[], q: Partial<DealQuery>, who: Entitlement): Sliced<DealRow> {
+  const { q: nq } = coerceDealQuery(accessOf("deal-finder", who), q);
+  let list = ranking;
+  if (nq.onlyUids) { const only = nq.onlyUids; list = list.filter((t) => only.has(t[0])); }
+  const s = sliceRanking("deal-finder", who, list, q);
+  return { ...s, rows: s.rows.map(rowOf(country)) };
+}
+
 /** The Deal Finder list. Signed out: no row (the real total only); a free account: the first rows of the DEFAULT ranking; Plus and Premium: the page asked for, with the store picker, sort and "only my cards" (onlyUids). Below full access every refinement is coerced to the default BEFORE the ranking is read. */
 export async function getDealList(country: Country, q: Partial<DealQuery>, who: Entitlement): Promise<Sliced<DealRow>> {
   const access = accessOf("deal-finder", who), { q: nq } = coerceDealQuery(access, q);
   if (access === "none") { const s = sliceRanking<RankTuple>("deal-finder", who, [], q); return { ...s, rows: [], total: await getDealCount(country).catch(() => 0) }; }
-  let ranking = await rankingOf(country, nq.sort, nq.buyKeys);
-  if (nq.onlyUids) { const only = nq.onlyUids; ranking = ranking.filter((t) => only.has(t[0])); }
-  const s = sliceRanking("deal-finder", who, ranking, q);
-  return { ...s, rows: s.rows.map(rowOf(country)) };
+  return cutDealList(country, await rankingOf(country, nq.sort, nq.buyKeys), q, who);
 }
 
 /** The 1-based position of each given unit in the DEFAULT ranking (default store set, sort "saving"); a unit that is not on the list is absent. Returns positions of the caller's own ids, never a row, a price or a gap

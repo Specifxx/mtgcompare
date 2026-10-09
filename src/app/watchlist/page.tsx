@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-// /watchlist was OP Compare's browser-only list. Since wave 2 (2026-10-03) the
+// /watchlist was MTG Compare's browser-only list. Since wave 2 (2026-10-03) the
 // watchlist is RiftCompare's /watching (account-backed, with target prices);
 // this path stays as a NON-permanent redirect (a 307, never a cached 308), so
 // old links and bookmarks still land on the list. Signed-out visitors are sent

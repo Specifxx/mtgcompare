@@ -12,10 +12,10 @@ import { SEALED_CHECK_CADENCE, SEALED_WATCH_LIMIT_PLUS } from "@/lib/alert-limit
 // wave 2 (2026-10-03). A toggle for a Plus/Premium member: the alert run
 // (collection-alerts track) checks it after every import and tells them when
 // it is back in stock after selling out everywhere, at their target, or on a
-// real drop. OP Compare has no MSRP table, so there is no at-RRP trigger and
+// real drop. MTG Compare has no MSRP table, so there is no at-RRP trigger and
 // the copy names none.
 //
-// Everyone else keeps OP Compare's no-account heart (saved in this browser,
+// Everyone else keeps MTG Compare's no-account heart (saved in this browser,
 // components/WatchButton.tsx) — free and signed-out sealed hearts are never
 // dropped — and, on the product page, the Plus gate beside it with one honest
 // line (surface gate:sealed-watch). `compact` is the /sealed tile's icon.

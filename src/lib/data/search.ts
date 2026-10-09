@@ -172,6 +172,12 @@ function oraclesInSet(ix: BrowseIndex, f: Pick<CardQuery, "sc" | "setIds">, qk: 
   return [...best].sort((a, b) => a[1] - b[1] || a[0] - b[0]).map(([no]) => no);
 }
 
+/** A name typed in full is that card: when some oracle matches exactly (its name, a face of it, its printed name or a nickname) only those are searched, so "fire ice" is Fire // Ice and not every card with both words. Otherwise every candidate is. */
+function exactOrAll(hits: readonly NameHit[], qk: string): number[] {
+  const ok = hits.filter((h) => h.oracleNo != null), exact = ok.filter((h) => tierOfHit(h, qk) < 1 || nicknameTargets(qk).includes(fold(h.name)));
+  return (exact.length ? exact : ok).map((h) => h.oracleNo!);
+}
+
 interface Plan { query: Partial<CardQuery>; direct?: CardLite[]; parsed: ParsedSearch }
 /**
  * Resolves a typed query to a CardQuery the engine can answer (or to the 1 to 3 products of a set + number). `o` carries the filters of the page (sort, page, rarities, price range ...); the typed words add to them. Exposed for the tests.
@@ -189,7 +195,7 @@ export async function planSearch(q: string, o: Partial<CardQuery> = {}): Promise
   if (parsed.finish) query.finish = parsed.finish;
   if (parsed.treat.length) query.treats = parsed.treat;
   if (parsed.text) {
-    let text = parsed.text, nos = query.sc || query.setIds ? oraclesInSet(ix, { sc: query.sc, setIds: query.setIds }, text) : (await rankedNames(text, CANDIDATES)).map((h) => h.oracleNo!).filter((n) => !!n);
+    let text = parsed.text, nos = query.sc || query.setIds ? oraclesInSet(ix, { sc: query.sc, setIds: query.setIds }, text) : exactOrAll(await rankedNames(text, CANDIDATES), text);
     if (!nos.length && !parsed.set) {                                    // nothing is called that: an all-letter code at either end ("black lotus lea") was a set after all. Tried only on a miss, so "fire ice" and "war room" keep their words.
       const words = text.split(" "), codes = await setCodes();
       for (const [code, rest] of [[words[words.length - 1]!, words.slice(0, -1)], [words[0]!, words.slice(1)]] as const) {

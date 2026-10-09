@@ -4,7 +4,7 @@
 //   • email OFF (the default until the owner configures a mailer — lib/data.ts
 //     getEmailStatus): alerts are delivered IN-APP — a notification on the
 //     dashboard and a chip on the watchlist — and no sentence promises an email;
-//   • email ON: RiftCompare's email copy, rebranded, minus what OP Compare does
+//   • email ON: RiftCompare's email copy, rebranded, minus what MTG Compare does
 //     not do (no CardTrader, no measured postage in the alert: the stores are
 //     named and linked, postage is added at their checkout).
 //
@@ -13,7 +13,7 @@
 // constant, quoted, never typed (tests/alerts-page.test.ts). Pure: no React.
 import { DROP_MIN_CENTS, DROP_MIN_PCT } from "./alert-thresholds";
 import { BELOW_MARKET_MIN_PCT, OUTLIER_DROP_PCT, TARGET_REFIRE_STEP_PCT } from "./price-alerts";
-import { PLUS_TARGET_ALERT_LIMIT } from "./alert-limits";
+import { PLUS_TARGET_ALERT_LIMIT, PRICES_REFRESH_PHRASE } from "./alert-limits";
 import { FREE_WATCHLIST_LIMIT } from "./free-limits";
 
 export interface AlertsFaq {
@@ -32,7 +32,7 @@ export function alertsFaqs(emailOn: boolean): AlertsFaq[] {
   const told = emailOn ? "the price we last emailed you" : "where it stood before it started falling";
   return [
     {
-      q: "How do I set a price alert for a One Piece card?",
+      q: "How do I set a price alert for a Magic card?",
       a: `Open the card's page or its quick view and tap the watch button — a free alert needs no price. We check the cheapest Near Mint (or unstated-condition) copy at the stores we track once a day, after the morning price update. We ${tell} when it falls by ${MATERIAL} from ${told}${emailOn ? " — or, if we haven't emailed you about that card in the last 30 days, from where it stood before it started falling" : ""}, so a slow slide in small steps still adds up to an alert. If no store has the card yet, we ${tell} when it's first listed instead, and if it sells out we ${tell} when it's back. Plus members can also set their own price on up to ${PLUS_TARGET_ALERT_LIMIT} watched cards (every card on Premium).`,
     },
     {
@@ -55,7 +55,7 @@ export function alertsFaqs(emailOn: boolean): AlertsFaq[] {
     },
     {
       q: "How often are prices checked?",
-      a: "Prices are imported twice a day. New-low alerts are checked once a day, straight after the morning import; Plus target-price, below-market and back-in-stock alerts are checked after both. A drop is picked up on the next check rather than instantly — One Piece Card Game prices move over days, not seconds, so that is the right resolution for buying decisions.",
+      a: `Prices are imported ${PRICES_REFRESH_PHRASE}, and every alert is checked straight after the import. A drop is picked up on the next check rather than instantly — Magic: The Gathering prices move over days, not seconds, so that is the right resolution for buying decisions.`,
     },
     emailOn
       ? {
@@ -85,8 +85,8 @@ export function alertsFaqs(emailOn: boolean): AlertsFaq[] {
 /** The answer box under the H1. */
 export function alertsAnswer(emailOn: boolean): string {
   return emailOn
-    ? `A watchlist is a list of One Piece cards you want; a price alert is an email when one drops to a new low — at most one email a week. Both are free, with no price to set, on up to ${FREE_WATCHLIST_LIMIT} cards (unlimited with Plus). The trigger is the cheapest Near Mint copy in stock at the stores we track for your market — never an eBay listing or a played copy. That is the item price, before postage, so every alert names up to three stores and links each listing.`
-    : `A watchlist is a list of One Piece cards you want; a price alert flags one on your watchlist and dashboard when it drops to a new low — at most one a week. Both are free, with no price to set, on up to ${FREE_WATCHLIST_LIMIT} cards (unlimited with Plus). The trigger is the cheapest Near Mint copy in stock at the stores we track for your market — never an eBay listing or a played copy — and the alert names the store with it.`;
+    ? `A watchlist is a list of Magic cards you want; a price alert is an email when one drops to a new low — at most one email a week. Both are free, with no price to set, on up to ${FREE_WATCHLIST_LIMIT} cards (unlimited with Plus). The trigger is the cheapest Near Mint copy in stock at the stores we track for your market — never an eBay listing or a played copy. That is the item price, before postage, so every alert names up to three stores and links each listing.`
+    : `A watchlist is a list of Magic cards you want; a price alert flags one on your watchlist and dashboard when it drops to a new low — at most one a week. Both are free, with no price to set, on up to ${FREE_WATCHLIST_LIMIT} cards (unlimited with Plus). The trigger is the cheapest Near Mint copy in stock at the stores we track for your market — never an eBay listing or a played copy — and the alert names the store with it.`;
 }
 
 /** The Plus section's first paragraph. */

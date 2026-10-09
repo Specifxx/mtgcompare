@@ -1,6 +1,6 @@
 // THE WEEKLY NEWSLETTER — RiftCompare's /api/cron/newsletter, run script-side
-// in GitHub Actions for OP Compare (.github/workflows/email-weekly.yml, Fridays
-// 21:00 UTC; wave 2, 2026-10-03). One edition per ISO week (lib/newsletter.ts
+// in GitHub Actions for MTG Compare (.github/workflows/email-weekly.yml, Fridays
+// 21:00 UTC). One edition per ISO week (lib/newsletter.ts
 // editionKey), stamped per subscriber only after a successful send, so a rerun
 // resumes rather than double-sends.
 //

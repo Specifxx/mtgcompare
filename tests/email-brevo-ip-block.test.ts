@@ -19,6 +19,8 @@ const IP_BLOCK_BODY = JSON.stringify({
 test("a Brevo 401 for an unrecognised IP surfaces the actual, actionable cause", async (t) => {
   const originalKey = process.env.BREVO_API_KEY;
   process.env.BREVO_API_KEY = "test-key";
+  const originalFrom = process.env.EMAIL_FROM;
+  process.env.EMAIL_FROM = "MTG Compare <alerts@example.com>"; // there is no default sender: the address comes from EMAIL_FROM
   const originalFetch = global.fetch;
   global.fetch = (async () =>
     new Response(IP_BLOCK_BODY, { status: 401 })) as typeof fetch;
@@ -26,6 +28,8 @@ test("a Brevo 401 for an unrecognised IP surfaces the actual, actionable cause",
     global.fetch = originalFetch;
     if (originalKey === undefined) delete process.env.BREVO_API_KEY;
     else process.env.BREVO_API_KEY = originalKey;
+    if (originalFrom === undefined) delete process.env.EMAIL_FROM;
+    else process.env.EMAIL_FROM = originalFrom;
   });
 
   const ok = await sendEmailBrevo("someone@example.com", "subject", "<p>body</p>");
@@ -42,6 +46,8 @@ test("a Brevo 401 for an unrecognised IP surfaces the actual, actionable cause",
 test("an unrelated Brevo failure still gets the plain provider/status/body message", async (t) => {
   const originalKey = process.env.BREVO_API_KEY;
   process.env.BREVO_API_KEY = "test-key";
+  const originalFrom = process.env.EMAIL_FROM;
+  process.env.EMAIL_FROM = "MTG Compare <alerts@example.com>"; // there is no default sender: the address comes from EMAIL_FROM
   const originalFetch = global.fetch;
   global.fetch = (async () =>
     new Response(JSON.stringify({ code: "invalid_parameter", message: "sender not verified" }), { status: 400 })) as typeof fetch;
@@ -49,6 +55,8 @@ test("an unrelated Brevo failure still gets the plain provider/status/body messa
     global.fetch = originalFetch;
     if (originalKey === undefined) delete process.env.BREVO_API_KEY;
     else process.env.BREVO_API_KEY = originalKey;
+    if (originalFrom === undefined) delete process.env.EMAIL_FROM;
+    else process.env.EMAIL_FROM = originalFrom;
   });
 
   const ok = await sendEmailBrevo("someone@example.com", "subject", "<p>body</p>");

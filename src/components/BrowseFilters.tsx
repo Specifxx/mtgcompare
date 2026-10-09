@@ -111,12 +111,25 @@ export function BrowseFilters({ q, sets, country, action = "/browse", hide = [] 
   };
 
   const activeCount =
-    ["set", "color", "rarity", "type", "printing"].reduce((n, k) => n + values(sp, k).length, 0) + (sp.get("priced") === "1" ? 1 : 0) + (sp.get("min") || sp.get("max") ? 1 : 0);
+    ["set", "color", "rarity", "type", "treat"].reduce((n, k) => n + values(sp, k).length, 0) + ["priced", "finish", "format", "identity", "keyword"].filter((k) => sp.get(k)).length + (sp.get("min") || sp.get("max") ? 1 : 0);
 
   const byKind = Object.entries(SET_KINDS)
+    .filter(([, v]) => !v.hidden)
     .sort((a, b) => a[1].order - b[1].order)
     .map(([k, v]) => ({ kind: k, label: v.plural, sets: sets.filter((s) => s.kind === k).sort((a, b) => (b.releasedOn ?? "").localeCompare(a.releasedOn ?? "")) }))
     .filter((g) => g.sets.length);
+  const setParam = (key: string, value: string | null) => {
+    const next = new URLSearchParams(sp);
+    if (value) next.set(key, value);
+    else next.delete(key);
+    go(next);
+  };
+  const identity = (sp.get("identity") ?? "").toLowerCase();
+  const flipIdentity = (letter: string) => {
+    const has = identity.includes(letter), rest = [...identity.replace("c", "")].filter((l) => l !== letter);
+    setParam("identity", has ? rest.join("") || null : [...rest, letter].sort((a, b) => "wubrg".indexOf(a) - "wubrg".indexOf(b)).join(""));
+  };
+  const colors = values(sp, "color").map((v) => v.toLowerCase());
 
   return (
     <form
@@ -142,7 +155,7 @@ export function BrowseFilters({ q, sets, country, action = "/browse", hide = [] 
           which navigate on their own); carried here so applying a filter keeps them. */}
       <input type="hidden" name="sort" value={q.sort} />
       <input type="hidden" name="per" value={String(q.per)} />
-      <Section title={`Price (${c.currency})`} open>
+      <Section title="Market price (US$)" open>
         <div className="flex items-center gap-2">
           <input
             name="min"
@@ -155,7 +168,7 @@ export function BrowseFilters({ q, sets, country, action = "/browse", hide = [] 
             inputMode="decimal"
             placeholder="Min"
             className="input"
-            aria-label={`Minimum price, ${c.currency}`}
+            aria-label="Minimum market price, US dollars"
             aria-invalid={priceError || undefined}
           />
           <span className="text-slate-500">–</span>
@@ -170,20 +183,20 @@ export function BrowseFilters({ q, sets, country, action = "/browse", hide = [] 
             inputMode="decimal"
             placeholder="Max"
             className="input"
-            aria-label={`Maximum price, ${c.currency}`}
+            aria-label="Maximum market price, US dollars"
             aria-invalid={priceError || undefined}
           />
         </div>
-        {priceError ? <p className="text-xs text-rose-400">Enter a number, like 5 or 12.50.</p> : <p className="text-xs text-slate-500">Press Enter or leave the box to apply.</p>}
+        {priceError ? <p className="text-xs text-rose-400">Enter a number, like 5 or 12.50.</p> : <p className="text-xs text-slate-500">TCGplayer&apos;s market price, in US$. Press Enter or leave the box to apply.</p>}
         <label className="flex min-h-8 cursor-pointer items-center gap-2.5 pt-1 text-[15px] text-slate-200">
-          <input type="checkbox" name="priced" value="1" checked={sp.get("priced") === "1"} onChange={() => {
-              const n = new URLSearchParams(sp);
-              if (n.get("priced") === "1") n.delete("priced");
-              else n.set("priced", "1");
-              go(n);
-            }} className="h-4 w-4 accent-[#d92b33]" />
+          <input type="checkbox" name="priced" value="1" checked={sp.get("priced") === "1"} onChange={() => setParam("priced", sp.get("priced") === "1" ? null : "1")} className="h-4 w-4 accent-[#9140da]" />
           Only cards with {withArticle(c.adjective)} listing
         </label>
+      </Section>
+      <Section title="Version" open={!!sp.get("finish")}>
+        <Radio name="finish" value="" checked={!sp.get("finish")} onPick={() => setParam("finish", null)}>Any (non-foil first)</Radio>
+        <Radio name="finish" value="nonfoil" checked={sp.get("finish") === "nonfoil"} onPick={() => setParam("finish", "nonfoil")}>Non-foil prices</Radio>
+        <Radio name="finish" value="foil" checked={sp.get("finish") === "foil"} onPick={() => setParam("finish", "foil")}>Foil prices</Radio>
       </Section>
       {!hide.includes("set") ? (
         <Section title="Set" open={values(sp, "set").length > 0}>
@@ -202,36 +215,79 @@ export function BrowseFilters({ q, sets, country, action = "/browse", hide = [] 
         </Section>
       ) : null}
       {!hide.includes("color") ? (
-        <Section title="Colour" open={values(sp, "color").length > 0}>
-          {COLOR_KEYS.map((k) => (
-            <Check key={k} name="color" value={k.toLowerCase()} checked={on("color", k)} onToggle={() => flip("color", k.toLowerCase())}>
+        <Section title="Color" open={colors.length > 0 || !!identity}>
+          {(Object.keys(COLORS) as (keyof typeof COLORS)[]).map((k) => (
+            <Check key={k} name="color" value={COLORS[k].slug} checked={on("color", COLORS[k].slug)} onToggle={() => flip("color", COLORS[k].slug)}>
               <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: COLORS[k].hex }} />
-              {k}
+              {COLORS[k].label}
             </Check>
           ))}
+          <Check name="color" value="colorless" checked={on("color", "colorless")} onToggle={() => flip("color", "colorless")}>Colorless</Check>
+          <Check name="color" value="multicolor" checked={on("color", "multicolor")} onToggle={() => flip("color", "multicolor")}>Multicolor</Check>
+          {colors.filter((w) => w !== "colorless" && w !== "multicolor").length > 0 ? (
+            <div className="pt-1" role="group" aria-label="How the colors match">
+              <Radio name="cmode" value="any" checked={!sp.get("cmode") || sp.get("cmode") === "any"} onPick={() => setParam("cmode", null)}>Any of these</Radio>
+              <Radio name="cmode" value="exact" checked={sp.get("cmode") === "exact"} onPick={() => setParam("cmode", "exact")}>Exactly these</Radio>
+              <Radio name="cmode" value="within" checked={sp.get("cmode") === "within"} onPick={() => setParam("cmode", "within")}>Only these (or colorless)</Radio>
+            </div>
+          ) : null}
+          <p className="pt-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Commander identity</p>
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {COLOR_LETTERS.map((l) => {
+              const key = l.toLowerCase(), color = Object.values(COLORS).find((x) => x.letter === l)!, active = identity.includes(key);
+              return (
+                <button key={l} type="button" onClick={() => flipIdentity(key)} aria-pressed={active} title={`${color.label} in the commander's identity`} className={`grid h-8 w-8 place-items-center rounded-full border text-xs font-bold ${active ? "border-brand-500 bg-brand-500/20 text-white" : "border-ink-700 text-slate-300 hover:border-ink-600"}`}>
+                  {l}
+                </button>
+              );
+            })}
+            <button type="button" onClick={() => setParam("identity", identity === "c" ? null : "c")} aria-pressed={identity === "c"} title="Colorless identity" className={`grid h-8 w-8 place-items-center rounded-full border text-xs font-bold ${identity === "c" ? "border-brand-500 bg-brand-500/20 text-white" : "border-ink-700 text-slate-300 hover:border-ink-600"}`}>C</button>
+          </div>
         </Section>
       ) : null}
       <Section title="Rarity" open={values(sp, "rarity").length > 0}>
-        {Object.entries(RARITIES).map(([k, v]) => (
+        {RARITY_KEYS.filter((k) => k !== "T").map((k) => (
           <Check key={k} name="rarity" value={k} checked={on("rarity", k)} onToggle={() => flip("rarity", k)}>
-            {v.label} <span className="text-slate-500">({k})</span>
+            {RARITIES[k].label} <span className="text-slate-500">({k})</span>
           </Check>
         ))}
       </Section>
       <Section title="Card type" open={values(sp, "type").length > 0}>
-        {CARD_TYPES.map((t) => (
+        {PRIMARY_TYPES.filter((t) => t !== "other").map((t) => (
           <Check key={t} name="type" value={t} checked={on("type", t)} onToggle={() => flip("type", t)}>
-            {t}
+            {PRIMARY_TYPE_LABEL[t]}
           </Check>
         ))}
       </Section>
-      <Section title="Printing" open>
-        {PRINTING_KEYS.map((k) => (
-          <Check key={k} name="printing" value={k} checked={on("printing", k)} onToggle={() => flip("printing", k)}>
-            <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: PRINTINGS[k].dot }} />
-            {PRINTINGS[k].label}
-          </Check>
-        ))}
+      <Section title="Playable in" open={!!sp.get("format")}>
+        <select name="format" aria-label="Format" value={sp.get("format") ?? ""} onChange={(e) => setParam("format", e.target.value || null)} className="input">
+          <option value="">Any format</option>
+          {FORMAT_UI.map((f) => (
+            <option key={f} value={f}>
+              {FORMAT_LABEL[f]}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-slate-500">Legal or restricted today, from the card&apos;s Oracle record.</p>
+      </Section>
+      <Section title="Treatment" open={values(sp, "treat").length > 0}>
+        {TREATMENT_GROUPS.map((g) => {
+          const items = TREATMENTS.filter((t) => t.kind === g.kind && !t.hidden && t.syn.length > 0);
+          if (!items.length) return null;
+          return (
+            <div key={g.kind} className="pb-2">
+              <p className="pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">{g.label}</p>
+              <div className="max-h-56 space-y-0.5 overflow-y-auto pr-1">
+                {items.map((t) => (
+                  <Check key={t.key} name="treat" value={t.key} checked={on("treat", t.key)} onToggle={() => flip("treat", t.key)}>
+                    <span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: TREATMENT_KIND_DOT[t.kind] }} />
+                    {t.label}
+                  </Check>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </Section>
       {/* Without JavaScript this submits the form. With it, filters apply as
           they change, so the bar is only the phone's way back to the results

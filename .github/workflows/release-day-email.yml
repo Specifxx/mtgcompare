@@ -1,0 +1,63 @@
+name: Release-day email
+
+# The "set is out" announcement to the newsletter list (scripts/send-release-day.ts, lib/release-day.ts). MANUAL ONLY: the owner dispatches it with the set's slug
+# on release day (Tuesday), first as a dry run. It never runs on a schedule and never from Vercel.
+#
+# OFF until the repository secrets RESEND_API_KEY and EMAIL_FROM exist (MTG Compare's own Resend account, never RiftCompare's): the gate then skips the job and the run is
+# green. A refused key fails the run red. Resumable and idempotent per campaign: a rerun carries on where a capped run stopped. The set must be out and under a week old.
+# Its own concurrency group with the other mail jobs; it touches neither the import's nor the data repository's.
+on:
+  workflow_dispatch:
+    inputs:
+      set_slug: { description: "The set's slug (e.g. modern-horizons-3)", type: string, required: true }
+      dry_run: { description: "Report the audience and send nothing", type: boolean, required: false, default: true }
+      limit: { description: "Most emails this run (empty = 200)", type: string, required: false }
+
+permissions:
+  contents: read
+
+concurrency:
+  group: email
+  cancel-in-progress: false
+
+jobs:
+  release-day:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+      EMAIL_REPLY_TO: ${{ vars.EMAIL_REPLY_TO }}
+      NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL || 'https://mtgcompare.app' }}
+      PLANE_REPO: ${{ vars.PLANE_REPO }}
+      PLANE_TOKEN: ${{ secrets.PLANE_TOKEN || secrets.DATA_REPO_TOKEN }}
+    steps:
+      - name: Skip unless email and the database are configured
+        id: gate
+        run: |
+          if [ -z "$DATABASE_URL" ] || [ -z "$RESEND_API_KEY" ] || [ -z "$EMAIL_FROM" ]; then
+            echo "Email is not configured (DATABASE_URL, RESEND_API_KEY and EMAIL_FROM are all needed): nothing to send."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.run == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.run == 'true'
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+        if: steps.gate.outputs.run == 'true'
+      - run: npx prisma generate
+        if: steps.gate.outputs.run == 'true'
+      - name: Send the announcement
+        if: steps.gate.outputs.run == 'true'
+        env:
+          RELEASE_DAY_SEND: "1"
+          SET_SLUG: ${{ inputs.set_slug }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
+          LIMIT: ${{ inputs.limit }}
+        run: npx tsx scripts/send-release-day.ts

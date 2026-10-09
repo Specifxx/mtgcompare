@@ -488,7 +488,7 @@ export async function runEbayPass(log: Log, deps: PassDeps, opts: { now?: Date }
   log(`eBay plan (${purpose}): ${plan.order.length} pairs, ${Math.round(plan.modelled)} modelled calls of ${a.allowance} allowed; ${plan.overflow.length} more due`);
 
   // ── search and write, pair by pair ────────────────────────────────────────
-  const claimer = new Claimer(deps.ledger, windowKey, () => new Date());
+  const claimer = new Claimer(deps.ledger, windowKey, () => now);
   setEbayBudget(a.allowance);
   setCallGate(() => claimer.next(a.allowance));
   const poolIds = new Set(poolCandidates.map((c) => c.id));
@@ -504,8 +504,8 @@ export async function runEbayPass(log: Log, deps: PassDeps, opts: { now?: Date }
 
   const searchSingle = async (pair: Pair, n: NameInfo): Promise<{ status: QueryStatus; items: BrowseItem[] }> => {
     const marketplace = EBAY_MARKETPLACE[pair.market as keyof typeof EBAY_MARKETPLACE];
-    const floorUsd = Math.min(...n.tracked.flatMap((p) => [p.trackedN ? p.marketN : null, p.trackedF ? p.marketF : null]).filter((x): x is number => x != null)) / 100;
-    const filter = cardFilter(pair.market as Country, Number.isFinite(floorUsd) ? floorUsd : null);
+    const floor = Math.min(...n.tracked.flatMap((p) => [p.trackedN ? p.marketN : null, p.trackedF ? p.marketF : null]).filter((x): x is number => x != null));
+    const filter = cardFilter(pair.market as Country, Number.isFinite(floor) ? floor : null);
     const q = cardQuery(n.name);
     const r1 = await searchBrowse({ marketplace, q: q.strict, filter, limit: CARD_LIMIT, category: MTG_SINGLES_CATEGORY });
     if (r1.status !== "ok") return { status: r1.status, items: [] };
@@ -574,9 +574,9 @@ export async function runEbayPass(log: Log, deps: PassDeps, opts: { now?: Date }
     } else {
       const s = built.sealed.get(pair.ref);
       if (!s) continue;
-      const target: SealedTarget = { kind: "sealed", id: s.id, name: s.name, marketUsd: s.marketCents, refs: [...built.sealed.values()].map((x): SealedRef => ({ id: x.id, name: x.name, setCode: x.setCode, kind: x.kind })) };
+      const target: SealedTarget = { kind: "sealed", id: s.id, name: s.name, marketCents: s.marketCents, refs: [...built.sealed.values()].map((x): SealedRef => ({ id: x.id, name: x.name, setCode: x.setCode, kind: x.kind })) };
       const marketplace = EBAY_MARKETPLACE[pair.market as keyof typeof EBAY_MARKETPLACE];
-      const r = await searchBrowse({ marketplace, q: sealedQuery(s.name), filter: sealedFilter(pair.market as Country, s.marketCents == null ? null : s.marketCents / 100), limit: SEALED_LIMIT });
+      const r = await searchBrowse({ marketplace, q: sealedQuery(s.name), filter: sealedFilter(pair.market as Country, s.marketCents), limit: SEALED_LIMIT });
       status = r.status;
       if (r.status === "ok") {
         const sc = screenSealed(r.items, target, pair.market as Country);
@@ -624,7 +624,7 @@ export async function runEbayPass(log: Log, deps: PassDeps, opts: { now?: Date }
       prevRemaining = cur.remaining;
       summary.remainingEnd = cur.remaining;
       if (foreign > 10) { log(`eBay: ${foreign} calls spent by another app during the last chunk: pausing`); await sleep((deps.quietMs ?? 45_000) * 6); }
-      const reserve = reserveFor(new Date(), cur.reset, cfg);
+      const reserve = reserveFor(now, cur.reset, cfg);
       if (cur.remaining - reserve < CLAIM_CHUNK) { summary.latched = "reserve"; log(`eBay: remaining ${cur.remaining} is within a chunk of the reserve ${reserve}: stopping`); break; }
     }
   }

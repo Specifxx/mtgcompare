@@ -1,12 +1,13 @@
 import type { Country } from "@/lib/country";
-import type { CardLite, SetLite } from "@/lib/data";
+import type { CardLite } from "@/lib/data";
+import { finishLabel } from "@/lib/constants";
 import { money } from "@/lib/format";
 import { Sparkline } from "./Sparkline";
-import { cardImage } from "@/lib/images";
+import { imageFor } from "@/lib/images";
 import CardQuickLink from "./CardQuickLink";
 import { EbayCardSearchRow } from "./EbayCardSearchRow";
 
-export function MoverList({ title, sub, tone, rows, setById, empty, spark, ebaySource }: { title: string; sub: string; tone: string; rows: { card: CardLite; right: React.ReactNode; price: number | null }[]; setById: Map<number, SetLite>; country?: Country; empty: string; spark?: Record<number, number[]>; /** Adds a "Search eBay" row naming the top three cards (the /movers page). */ ebaySource?: string }) {
+export function MoverList({ title, sub, tone, rows, empty, spark, ebaySource }: { title: string; sub: string; tone: string; rows: { card: CardLite; right: React.ReactNode; price: number | null }[]; country?: Country; empty: string; spark?: Record<number, number[]>; /** Adds a "Search eBay" row naming the top three cards (the /movers page). */ ebaySource?: string }) {
   return (
     <div className="card-surface min-w-0">
       <div className="border-b border-ink-800 px-4 py-3">
@@ -18,9 +19,9 @@ export function MoverList({ title, sub, tone, rows, setById, empty, spark, ebayS
           {rows.map(({ card, right, price }) => (
             <li key={card.id}>
               <CardQuickLink slug={card.slug} className="flex items-center gap-3 px-4 py-2.5 hover:bg-ink-800/50">
-                {card.hasImage ? (
+                {imageFor(card, "thumb") ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={cardImage.thumb(card.id)} alt="" loading="lazy" className="h-12 w-9 shrink-0 rounded-sm bg-ink-800 object-cover" />
+                  <img src={imageFor(card, "thumb") ?? ""} alt="" loading="lazy" className="h-12 w-9 shrink-0 rounded-sm bg-ink-800 object-cover" />
                 ) : (
                   <span className="h-12 w-9 shrink-0 rounded-sm bg-ink-800" />
                 )}
@@ -30,7 +31,8 @@ export function MoverList({ title, sub, tone, rows, setById, empty, spark, ebayS
                     {card.variant ? ` (${card.variant})` : ""}
                   </span>
                   <span className="block truncate text-xs text-slate-500">
-                    {setById.get(card.setId)?.code} · {card.number ?? "DON!!"}
+                    {card.setCode} · {card.number ?? "—"}
+                    {card.headFinish === "F" ? ` · ${finishLabel(card, "F")}` : ""}
                   </span>
                 </span>
                 {spark ? <Sparkline values={spark[card.id]} className="hidden h-7 w-14 min-[400px]:block lg:hidden 2xl:block" /> : null}

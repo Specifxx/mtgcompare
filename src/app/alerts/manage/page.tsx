@@ -7,6 +7,8 @@ import { UnsubscribeClient } from "@/components/UnsubscribeClient";
 // unsubToken: the cards on it, a per-card remove, pause/resume, and an
 // explicit delete-everything. Same component as /unsubscribe. (RiftCompare's
 // /alerts/manage, wave 2.)
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Manage your price alerts",
   robots: { index: false, follow: false },

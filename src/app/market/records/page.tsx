@@ -3,33 +3,34 @@ import Link from "next/link";
 import CardQuickLink from "@/components/CardQuickLink";
 import { Breadcrumbs, Faq, JsonLd } from "@/components/ui";
 import { COUNTRIES, COUNTRY_LIST, MARKETS, currencyOf, normalizeCountry, type Country } from "@/lib/country";
-import { getCatalog, getDealInputs, type CardLite, type Catalog } from "@/lib/data";
-import { crossMarketGaps, decodeDealInputs, XMARKET_MIN_SAVING_CENTS, type CrossMarketGap } from "@/lib/deals";
+import { getMarketRecords, type CardLite } from "@/lib/data";
+import { finishLabel } from "@/lib/constants";
+import { XMARKET_MIN_SAVING_CENTS } from "@/lib/deals";
 import { money } from "@/lib/format";
-import { USD_TO, convertUsdCents, toUsdCents, usdCentsToCountry } from "@/lib/fx";
+import { USD_TO, usdCentsToCountry } from "@/lib/fx";
 import { getCountry } from "@/lib/get-country";
-import { cardImage } from "@/lib/images";
+import { imageFor } from "@/lib/images";
 import { pageOg } from "@/lib/og/meta";
-import { offHighs } from "@/lib/selectors";
-import { SITE_URL } from "@/lib/site";
 
-// The free cross-market board (RiftCompare's /market/records, ported with OP
+// The free cross-market board (RiftCompare's /market/records, ported with MTG
 // Compare's data). Two kinds of board:
 //   • Biggest cross-market gaps — the cheapest in-stock STORE price for the same
 //     printing in another market, converted at our reference rate, against the
 //     cheapest store price here. Stores only (never TCGplayer's own listing or an
 //     eBay ask), ranked by money saved, before postage or customs.
-//   • 90-day records — from TCGplayer's market price history (Card.high90Usd,
-//     change30d): cards at a fresh 90-day high, and cards furthest below theirs.
-//     OP Compare's history is young, so these are 90-day records, never "all-time".
+//   • 90-day records — from TCGplayer's market price history (the 90-day high and
+//     the 30-day change of a card's unit): cards at a fresh 90-day high, and cards
+//     furthest below theirs. The history is young, so these are 90-day records,
+//     never "all-time".
 // ?market= picks the home market (Deal Finder links here with it); without it the
-// visitor's own market. Reads only the self-cached data.ts loaders.
+// visitor's own market. Reads only the published views (mk/records.json through
+// getMarketRecords); nothing is computed here.
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "One Piece Card Price Records & Cross-Market Gaps",
+  title: "Magic Card Price Records & Cross-Market Gaps",
   description:
-    "Where the same One Piece card costs less in another market, converted into your currency, plus the cards at a 90-day high and the cards furthest below theirs — each linked to its store-by-store price comparison.",
+    "Where the same Magic card costs less in another market, converted into your currency, plus the cards at a 90-day high and the cards furthest below theirs — each linked to its store-by-store price comparison.",
   alternates: { canonical: "/market/records" },
   openGraph: pageOg("/market/records"),
 };
@@ -37,16 +38,13 @@ export const metadata: Metadata = {
 const GAPS_SHOWN = 10;
 const RECORDS_SHOWN = 10;
 
-function convert(cents: number, from: Country, to: Country): number {
-  return convertUsdCents(toUsdCents(cents, currencyOf(from)), currencyOf(to));
-}
-
-function CardCell({ card, cat }: { card: CardLite; cat: Catalog }) {
+function CardCell({ card, finish }: { card: CardLite; finish: "N" | "F" }) {
+  const img = imageFor(card, "thumb");
   return (
     <CardQuickLink slug={card.slug} className="flex min-w-0 items-center gap-2 hover:text-brand-400" title={card.name}>
-      {card.hasImage ? (
+      {img ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={cardImage.thumb(card.id)} alt="" width={28} height={40} loading="lazy" decoding="async" className="h-10 w-7 shrink-0 rounded bg-ink-800 object-cover" />
+        <img src={img} alt="" width={28} height={40} loading="lazy" decoding="async" className="h-10 w-7 shrink-0 rounded bg-ink-800 object-cover" />
       ) : (
         <span className="h-10 w-7 shrink-0 rounded bg-ink-800" />
       )}
@@ -54,9 +52,10 @@ function CardCell({ card, cat }: { card: CardLite; cat: Catalog }) {
         <span className="block truncate text-sm font-semibold text-white">
           {card.name}
           {card.variant ? <span className="font-normal text-slate-400"> ({card.variant})</span> : null}
+          {finish === "F" ? <span className="font-normal text-slate-400"> · {finishLabel(card, "F")}</span> : null}
         </span>
         <span className="block text-[11px] text-slate-500">
-          {cat.setById.get(card.setId)?.code} · {card.number ?? "DON!!"}
+          {card.setCode} · {card.number ?? "—"}
         </span>
       </span>
     </CardQuickLink>
@@ -89,29 +88,8 @@ export default async function MarketRecordsPage({ searchParams }: { searchParams
   const raw = searchParams.market;
   const country: Country = raw ? normalizeCountry(raw) : getCountry();
   const info = COUNTRIES[country];
-  const [cat, ...inputs] = await Promise.all([getCatalog(), ...MARKETS.map((m) => getDealInputs(m))]);
-
-  const storeMinBy: Partial<Record<Country, Map<number, number>>> = {};
-  MARKETS.forEach((m, i) => {
-    const mins = new Map<number, number>();
-    for (const r of decodeDealInputs(inputs[i])) if (r.storeMin != null) mins.set(r.id, r.storeMin);
-    if (mins.size) storeMinBy[m] = mins;
-  });
-  const gaps: (CrossMarketGap & { card: CardLite })[] = crossMarketGaps(country, storeMinBy, convert)
-    .flatMap((g) => {
-      const card = cat.byId.get(g.id);
-      return card ? [{ ...g, card }] : [];
-    })
-    .slice(0, GAPS_SHOWN);
-
-  // 90-day records on TCGplayer's market price. A "high" needs a month of
-  // history behind it (change30d) and a rise over that month, so a card priced
-  // once is never a record.
-  const highs = cat.cards
-    .filter((c) => c.marketUsd != null && c.marketUsd >= 500 && c.high90Usd != null && c.marketUsd >= c.high90Usd && c.change30d != null && c.change30d > 0)
-    .sort((a, b) => (b.marketUsd ?? 0) - (a.marketUsd ?? 0))
-    .slice(0, RECORDS_SHOWN);
-  const offPeak = offHighs(cat.cards, RECORDS_SHOWN);
+  const records = await getMarketRecords(country);
+  const gaps = records.gaps.slice(0, GAPS_SHOWN), highs = records.highs.slice(0, RECORDS_SHOWN), offPeak = records.lows.slice(0, RECORDS_SHOWN);
   const ref = (usd: number) => (country === "US" ? money(usd, "US") : `≈ ${money(usdCentsToCountry(usd, country), country)}`);
 
   const FAQS = [
@@ -131,7 +109,7 @@ export default async function MarketRecordsPage({ searchParams }: { searchParams
     },
     {
       q: "How often does this update?",
-      a: "The gaps read current store prices, which we refresh twice a day. The 90-day records move once a day, when the day's TCGplayer market price is recorded.",
+      a: "The gaps read current store prices, which we refresh daily. The 90-day records move once a day, when the day's TCGplayer market price is recorded.",
     },
   ];
 
@@ -149,7 +127,7 @@ export default async function MarketRecordsPage({ searchParams }: { searchParams
       <div className="mx-auto max-w-4xl space-y-8">
         <header>
           <Breadcrumbs trail={[{ href: "/market", name: "Market index" }, { name: "Price records" }]} />
-          <h1 className="text-3xl font-extrabold text-white sm:text-4xl">One Piece price records &amp; market gaps</h1>
+          <h1 className="text-3xl font-extrabold text-white sm:text-4xl">Magic price records &amp; market gaps</h1>
           <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-slate-300">
             Where the same printing costs less in another market than in {info.place}, and which cards are at a 90-day high or furthest below
             one. Free, for every market we track.
@@ -175,10 +153,10 @@ export default async function MarketRecordsPage({ searchParams }: { searchParams
             heading="Biggest cross-market price gaps"
             blurb={`Cards a store in another market sells for meaningfully less than the cheapest store in ${info.place}, ranked by the money saved before postage or customs. Converted at our reference rate so the two figures compare.`}
             rows={gaps.map((g) => ({
-              key: g.id,
-              cell: <CardCell card={g.card} cat={cat} />,
-              value: `${money(g.savingCents, country)} less`,
-              sub: `${COUNTRIES[g.away].flag} ${money(g.awayCents, g.away)} vs ${money(g.homeCents, country)} · −${g.pct}%`,
+              key: g.card.id * 2 + (g.finish === "F" ? 1 : 0),
+              cell: <CardCell card={g.card} finish={g.finish} />,
+              value: `${money(g.saving, country)} less`,
+              sub: `${COUNTRIES[g.away].flag} ${money(g.awayCents, g.away)} vs ${money(g.home, country)} · −${g.pct}%`,
               tone: "text-up",
             }))}
             note={
@@ -196,9 +174,7 @@ export default async function MarketRecordsPage({ searchParams }: { searchParams
           <section id="gaps" className="scroll-mt-24">
             <h2 className="text-xl text-white">Biggest cross-market price gaps</h2>
             <p className="mt-1 text-sm text-slate-400">
-              {storeMinBy[country]
-                ? `No card is at least ${money(XMARKET_MIN_SAVING_CENTS, country)} cheaper at a store in another market than in ${info.place} right now.`
-                : `No store we track in ${info.place} has a card in stock right now, so there is nothing to compare.`}
+              {`No card is at least ${money(XMARKET_MIN_SAVING_CENTS, country)} cheaper at a store in another market than in ${info.place} right now, or the stores of ${info.place} have not been read yet today.`}
             </p>
           </section>
         )}
@@ -208,11 +184,11 @@ export default async function MarketRecordsPage({ searchParams }: { searchParams
             id="highs"
             heading="At a 90-day high"
             blurb="Cards whose TCGplayer market price is the highest we have recorded in the last 90 days, after rising over the past month. Most valuable first."
-            rows={highs.map((c) => ({
-              key: c.id,
-              cell: <CardCell card={c} cat={cat} />,
-              value: ref(c.marketUsd!),
-              sub: `+${c.change30d!.toFixed(1)}% in 30 days`,
+            rows={highs.map((h) => ({
+              key: h.card.id * 2 + (h.finish === "F" ? 1 : 0),
+              cell: <CardCell card={h.card} finish={h.finish} />,
+              value: ref(h.cents),
+              sub: h.card.change30d != null ? `+${h.card.change30d.toFixed(1)}% in 30 days` : "at its 90-day high",
               tone: "text-up",
             }))}
             note={country === "US" ? "TCGplayer market price, from the daily history we record." : `TCGplayer market price converted to ${info.currency} at our reference rate.`}
@@ -224,11 +200,11 @@ export default async function MarketRecordsPage({ searchParams }: { searchParams
             id="off-peak"
             heading="Furthest below their 90-day high"
             blurb="Cards trading well under their own highest TCGplayer market price of the last 90 days."
-            rows={offPeak.map(({ card, off }) => ({
-              key: card.id,
-              cell: <CardCell card={card} cat={cat} />,
-              value: `−${off.toFixed(1)}%`,
-              sub: `${ref(card.marketUsd!)} · high ${ref(card.high90Usd!)}`,
+            rows={offPeak.map((l) => ({
+              key: l.card.id * 2 + (l.finish === "F" ? 1 : 0),
+              cell: <CardCell card={l.card} finish={l.finish} />,
+              value: `−${l.pctBelow.toFixed(1)}%`,
+              sub: `${ref(l.cents)} · high ${ref(l.high90)}`,
               tone: "text-down",
             }))}
             note="Measured on TCGplayer's market price at the latest daily record."
@@ -256,7 +232,7 @@ export default async function MarketRecordsPage({ searchParams }: { searchParams
 
         <nav className="flex flex-wrap gap-2 border-t border-ink-800 pt-6 text-sm" aria-label="Related">
           <Link href="/market" className="btn-ghost">
-            The OP Compare Index →
+            The MTG Compare Index →
           </Link>
           <Link href="/movers" className="btn-ghost">
             This week&apos;s movers →

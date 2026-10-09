@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { getEmailStatus } from "@/lib/data";
 import { NewsletterUnsubscribeClient } from "@/components/NewsletterUnsubscribeClient";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Unsubscribe from the weekly Index summary",
   robots: { index: false, follow: false },

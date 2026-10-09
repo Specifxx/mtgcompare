@@ -8,7 +8,7 @@ import { clampTargetCents } from "./target-price";
 // SEALED WATCHES — Plus and Premium. RiftCompare's lib/sealed-watch.ts route
 // logic, ported in wave 2 (2026-10-03).
 // ─────────────────────────────────────────────────────────────────────────────
-// One sealed product (OP Compare: a Sealed.id, the TCGplayer productId —
+// One sealed product (MTG Compare: a Sealed.id, the TCGplayer productId —
 // RiftCompare keys by a listing groupKey) in one market. Plus watches up to
 // SEALED_WATCH_LIMIT_PLUS, Premium is unlimited up to the SEALED_WATCH_HARD_CAP
 // sanity ceiling (lib/alert-limits.ts). The RUN that checks them after each

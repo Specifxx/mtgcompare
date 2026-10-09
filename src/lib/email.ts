@@ -1,6 +1,6 @@
-// THE EMAIL MODULE — RiftCompare's lib/email.ts, ported for OP Compare in wave 2
-// (2026-10-03; DECISIONS.md, "Email: OP's own Resend account, script-side, off
-// until configured"). What differs from RiftCompare:
+// THE EMAIL MODULE — RiftCompare's lib/email.ts, ported for MTG Compare
+// (DECISIONS.md, "Email: its own Resend account, script-side, off until
+// configured"). What differs from RiftCompare:
 //
 //   • SCRIPT-SIDE ONLY. Every send runs in GitHub Actions (scripts/alerts.ts,
 //     scripts/email-hourly.ts, scripts/newsletter.ts). No page or route imports
@@ -9,20 +9,20 @@
 //   • OFF UNTIL CONFIGURED, like the eBay keyset: isEmailEnabled() needs BOTH
 //     RESEND_API_KEY and EMAIL_FROM. Unset, every send returns false and warns
 //     once, the runs are green no-ops that still advance their state, and the
-//     site promises no email (getEmailStatus in lib/data.ts). A key that is set
+//     site promises no email (getEmailStatus in lib/data/email.ts). A key that is set
 //     but REFUSED (401/403) is recorded in getLastEmailError() and providerRefused(),
 //     and the runner fails the run red.
-//   • OP Compare's own Resend account — never RiftCompare's (its 100/day quota
-//     would be split, and OP alerts could starve RiftCompare's mail).
+//   • MTG Compare's own Resend account — never RiftCompare's (its 100/day quota
+//     would be split, and these alerts could starve RiftCompare's mail).
 //   • The provider hosts (Resend, Brevo) and the key names appear ONLY in this
 //     file and the email workflows.
-//   • The shell is OP Compare's: the "OP Compare" wordmark, OP's ink and red, a
-//     red button with white text.
+//   • The shell is MTG Compare's: the "MTG Compare" wordmark, the amethyst brand
+//     on ink, a violet button with white text.
 //
-// The templates kept are the ones OP Compare sends: the price-alert digest, the
+// The templates kept are the ones MTG Compare sends: the price-alert digest, the
 // watch confirmation, the newsletter (digest and welcome), the welcome email,
 // and the shell lib/watch-emails.ts and lib/release-alerts.ts build on.
-// RiftCompare's verification/reset (OP is OAuth-only), trial, checkout-recovery,
+// RiftCompare's verification/reset (MTG Compare is OAuth-only), trial, checkout-recovery,
 // premium-offer, win-back, release-day, user-digest and consulting mail are not
 // ported (wave2-plan §7).
 import { SITE_NAME, SITE_URL } from "./site";
@@ -34,27 +34,26 @@ import { currencyOf, type Country } from "./country";
 import type { AlertActionLinks } from "./alert-actions";
 import { DROP_MIN_CENTS, DROP_MIN_PCT } from "./alert-thresholds";
 
-/** OP Compare's sender when EMAIL_FROM is unset (it never is when email is on: both are required). */
-export const DEFAULT_EMAIL_FROM = `${SITE_NAME} <alerts@opcompare.app>`;
+// There is no default sender: EMAIL_FROM is required, and without it (or the provider key) no mail is sent.
 
-// OP Compare's email palette (globals.css dark tokens and the brand red).
+// MTG Compare's email palette (the dark tokens of globals.css and the amethyst brand).
 export const EMAIL_COLORS = {
-  page: "#0a0c10",
-  card: "#13171f",
-  inset: "#0e1116",
-  border: "#252b38",
-  rule: "#1b2029",
-  text: "#b8c0cc",
-  muted: "#8b95a5",
-  link: "#ff8a8a",
+  page: "#0a0912",
+  card: "#151421",
+  inset: "#0f0e18",
+  border: "#2a293e",
+  rule: "#1c1b2b",
+  text: "#c0bcd4",
+  muted: "#9a95b4",
+  link: "#d3b0f8",
   white: "#ffffff",
-  accent: "#ff6b6b", // --c-brand-400 (dark): prices and inline links
-  button: "#d92b33", // the brand red fill, with white ink (DECISIONS: white on red)
+  accent: "#c394f4", // --c-brand-400 (dark): prices and inline links
+  button: "#9140da", // the amethyst brand fill (brand-500), with white ink (5.3:1)
   buttonInk: "#ffffff",
 };
 const C = EMAIL_COLORS;
-const WORDMARK = `<div style="font-size:22px;font-weight:800;color:${C.white}">OP <span style="color:${C.accent}">Compare</span></div>`;
-export const SITE_LINE = "OP Compare · One Piece Card Game price comparison.";
+const WORDMARK = `<div style="font-size:22px;font-weight:800;color:${C.white}">MTG <span style="color:${C.accent}">Compare</span></div>`;
+export const SITE_LINE = "MTG Compare · Magic: The Gathering price comparison.";
 
 export function isEmailEnabled(env: Record<string, string | undefined> = process.env): boolean {
   return !!env.RESEND_API_KEY && !!env.EMAIL_FROM;
@@ -116,7 +115,7 @@ export async function sendEmail(to: string, subject: string, html: string, extra
     lastEmailError = "Resend: email is not configured";
     return false;
   }
-  const from = process.env.EMAIL_FROM ?? DEFAULT_EMAIL_FROM;
+  const from = process.env.EMAIL_FROM;
   const replyTo = process.env.EMAIL_REPLY_TO;
   try {
     const res = await fetch("https://api.resend.com/emails", {
@@ -176,7 +175,7 @@ export function parseFrom(raw: string): { name: string; email: string } {
 
 // Sends via Brevo (app.brevo.com) instead of Resend. Kept for parity: RiftCompare
 // uses it for bulk sends to registered accounts (its user digest and
-// announcements), which OP Compare has not ported, so nothing calls it yet. Free tier: 300 emails/day, no card required
+// announcements), which MTG Compare has not ported, so nothing calls it yet. Free tier: 300 emails/day, no card required
 // — app.brevo.com → SMTP & API → API Keys. The sender address must be
 // verified inside Brevo separately from Resend's domain verification.
 // `extras` mirrors sendEmail's: Brevo's /v3/smtp/email takes the plain-text
@@ -189,7 +188,11 @@ export async function sendEmailBrevo(to: string, subject: string, html: string, 
     lastEmailError = "Brevo: BREVO_API_KEY not set";
     return false;
   }
-  const sender = parseFrom(process.env.EMAIL_FROM ?? DEFAULT_EMAIL_FROM);
+  if (!process.env.EMAIL_FROM) {
+    lastEmailError = "Brevo: EMAIL_FROM not set";
+    return false;
+  }
+  const sender = parseFrom(process.env.EMAIL_FROM);
   try {
     const res = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
@@ -639,7 +642,7 @@ export function priceDropCopy(items: PriceDropItem[]): { heading: string; intro:
 // choices — pause (keeps the watchlist) and delete.
 function alertFooter(links: Pick<AlertAddressLinks, "pause" | "deleteAll">): string {
   return `<tr><td style="padding:16px 32px 26px;border-top:1px solid ${C.border};font-size:12px;line-height:1.6;color:${C.muted}">
-    You're getting this because you asked OP Compare to watch these cards for price changes. Free alerts come at most once a week;
+    You're getting this because you asked MTG Compare to watch these cards for price changes. Free alerts come at most once a week;
     Plus and Premium target, below-market and restock alerts can arrive after each price update.<br/>
     <a href="${escapeHtml(links.pause)}" style="color:${C.link};text-decoration:underline">Pause alert emails (your watchlist is kept)</a>
     &nbsp;·&nbsp; <a href="${escapeHtml(links.deleteAll)}" style="color:${C.link};text-decoration:underline">Delete all my watches</a><br/>
@@ -648,7 +651,7 @@ function alertFooter(links: Pick<AlertAddressLinks, "pause" | "deleteAll">): str
 }
 function alertFooterText(links: Pick<AlertAddressLinks, "pause" | "deleteAll">): string {
   return [
-    "You're getting this because you asked OP Compare to watch these cards for price changes. Free alerts come at most once a week; Plus and Premium target, below-market and restock alerts can arrive after each price update.",
+    "You're getting this because you asked MTG Compare to watch these cards for price changes. Free alerts come at most once a week; Plus and Premium target, below-market and restock alerts can arrive after each price update.",
     `Pause alert emails (your watchlist is kept): ${links.pause}`,
     `Delete all my watches: ${links.deleteAll}`,
   ].join("\n");
@@ -792,7 +795,7 @@ export function buildAlertConfirmationEmail(cards: AlertConfirmationCard[], tota
     "",
     alertFooterText(links),
   ].join("\n");
-  const subject = total === 1 ? `You're watching ${cards[0]?.name ?? "a card"} on OP Compare` : `You're watching ${total} cards on OP Compare`;
+  const subject = total === 1 ? `You're watching ${cards[0]?.name ?? "a card"} on MTG Compare` : `You're watching ${total} cards on MTG Compare`;
   return { subject, heading, preheader: "At most one email a week, and only when there's news.", html: emailShell(heading, inner, alertFooter(links), "At most one email a week, and only when there's news."), text, headers: alertListHeaders(links) };
 }
 
@@ -870,13 +873,13 @@ export function escapeHtml(s: string): string {
 
 // ─── Newsletter welcome (the hourly outbox, scripts/email-hourly.ts) ─────────
 // Sent once to a NEW subscriber, by the hourly outbox run rather than the signup
-// route (OP Compare sends nothing at request time: NewsletterSubscriber
+// route (MTG Compare sends nothing at request time: NewsletterSubscriber
 // .welcomeSentAt is the outbox stamp). The weekly edition goes out on Friday
 // evening (UTC), so it says "this weekend".
 export function buildNewsletterWelcomeEmail(unsubUrl: string): { subject: string; heading: string; html: string } {
   const inner = `
     <tr><td style="padding:8px 32px 16px;font-size:14px;line-height:1.6;color:${C.text}">
-      You're on the list — every week you'll get the ${SITE_NAME} Index summary: the One Piece cards that spiked,
+      You're on the list — every week you'll get the ${SITE_NAME} Index summary: the Magic cards that spiked,
       the cards that dropped, and the new cards of the week, priced across US, AU, UK, SG, CA and EU stores.
       The next edition lands this weekend.
     </td></tr>
@@ -893,8 +896,8 @@ export async function sendNewsletterWelcomeEmail(to: string, unsubUrl: string): 
 // ─── Welcome email to a new account (one-time) ────────────────────────────────
 // Sent ONCE, within about an hour of an account being created (runWelcomeEmails
 // in lib/welcome-email.ts, from the hourly outbox run). RiftCompare's welcome,
-// rebranded, with only what OP Compare's account actually does (lib/plans.ts,
-// the enforced limits) and no trial: OP Compare offers none (DECISIONS).
+// rebranded, with only what MTG Compare's account actually does (lib/plans.ts,
+// the enforced limits) and no trial: MTG Compare offers none (DECISIONS).
 export interface WelcomeEmailOpts {
   displayName: string;
 }
@@ -907,15 +910,15 @@ export function buildWelcomeEmail(opts: WelcomeEmailOpts): { subject: string; he
     `<a href="${SITE_URL}${path}${path.includes("?") ? "&" : "?"}${WELCOME_UTM}" style="color:${C.accent};font-weight:700;text-decoration:none">${label}</a>`;
   const step = (n: number, title: string, body: string) =>
     `<tr><td style="padding:6px 32px;font-size:14px;line-height:1.6;color:${C.text}">
-      <strong style="color:#e6ebf2">${n}. ${title}</strong><br/>${body}
+      <strong style="color:#e9e5f7">${n}. ${title}</strong><br/>${body}
     </td></tr>`;
   const plus = `${TIER_NAMES.plus} is ${planPrice("plus", "month")}/month and ${TIER_NAMES.premium} ${planPrice("premium", "month")}/month.`;
   const inner = `
     <tr><td style="padding:8px 32px 8px;font-size:14px;line-height:1.6;color:${C.text}">
       Hi ${name}, your free account is ready. Four things it does that a visitor can't:
     </td></tr>
-    ${step(1, "Watch a card", `Press <em>Watch price</em> on any One Piece card and we'll email you when its price drops — up to ${FREE_WATCHLIST_LIMIT} cards on a free account. ${link("/browse", "Find a card&nbsp;→")}`)}
-    ${step(2, "See today's top 3 deals", `Your account shows the three biggest deals in Deal Finder, updated twice a day. ${link("/tools/deal-finder", "Deal&nbsp;Finder&nbsp;→")}`)}
+    ${step(1, "Watch a card", `Press <em>Watch price</em> on any Magic card and we'll email you when its price drops — up to ${FREE_WATCHLIST_LIMIT} cards on a free account. ${link("/browse", "Find a card&nbsp;→")}`)}
+    ${step(2, "See today's top 3 deals", `Your account shows the three biggest deals in Deal Finder, updated once a day. ${link("/tools/deal-finder", "Deal&nbsp;Finder&nbsp;→")}`)}
     ${step(3, "Track your collection", `Add up to ${FREE_PORTFOLIO_LIMIT} cards you own and see what they're worth today. ${link("/portfolio", "My&nbsp;binder&nbsp;→")}`)}
     ${step(4, "See what a set is missing", `Tick what's in your binder and the set checklist shows what's missing and the cheapest listing for each card, before postage. Free for your first ${FREE_PORTFOLIO_LIMIT} cards. ${link("/portfolio/sets", "Set&nbsp;checklist&nbsp;→")}`)}
     <tr><td style="padding:14px 32px 22px">

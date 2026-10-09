@@ -22,7 +22,7 @@ export interface PickerCard {
 // search route's ten hits.
 export function CardPicker({
   initialQuery = "",
-  placeholder = "Card name or number, e.g. Nami or OP01-016",
+  placeholder = "Card name or set and number, e.g. Sol Ring or MH3 6",
   onPick,
   disabled = false,
   autoFocus = false,

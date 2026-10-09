@@ -8,7 +8,7 @@ import { recordEmailRefused, recordEmailStatus } from "../src/lib/email-status";
 import { applyWrites, daysAgo, free, harness, hoursAgo, listing, NOW, owned, plus, row } from "./helpers/alert-harness";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// EMAIL OFF (the state OP Compare ships in, until both mail secrets exist):
+// EMAIL OFF (the state MTG Compare ships in, until both mail secrets exist):
 // the alert run still works. Every trigger an ACCOUNT would have been emailed
 // is delivered in-app — one Notification per card and lastFlaggedAt — the
 // baselines advance exactly as after a send, and lastNotifiedAt (which means "an
@@ -22,8 +22,8 @@ const off = { emailEnabled: false } as const;
 test("isEmailEnabled needs BOTH secrets", () => {
   assert.equal(isEmailEnabled({}), false);
   assert.equal(isEmailEnabled({ RESEND_API_KEY: "k" }), false);
-  assert.equal(isEmailEnabled({ EMAIL_FROM: "OP Compare <a@opcompare.app>" }), false);
-  assert.equal(isEmailEnabled({ RESEND_API_KEY: "k", EMAIL_FROM: "OP Compare <a@opcompare.app>" }), true);
+  assert.equal(isEmailEnabled({ EMAIL_FROM: "MTG Compare <a@example.com>" }), false);
+  assert.equal(isEmailEnabled({ RESEND_API_KEY: "k", EMAIL_FROM: "MTG Compare <a@example.com>" }), true);
 });
 
 test("a free account's new low is flagged in-app: one Notification, lastFlaggedAt, no lastNotifiedAt, baseline advanced", async () => {
@@ -167,11 +167,12 @@ test("the status the runners record: on only with both secrets; a refused key fl
 test("scripts/alerts.ts: modes, the Meta record first, an ImportRun row, red only on a refused key", () => {
   const src = read("scripts/alerts.ts");
   assert.match(src, /arg === "free" \|\| arg === "paid" \|\| arg === "baseline"/);
+  assert.match(src, /return "daily"/, "no mode named is the daily run");
   assert.ok(src.indexOf("recordEmailStatus(prisma, emailOn)") < src.indexOf("prisma.importRun.create"), "the site's promises follow the run, written first");
   assert.match(src, /importRun\.create\(\{ data: \{ kind: "alerts" \} \}\)/);
   assert.match(src, /baselineOnly: true/);
   assert.match(src, /if \(providerRefused\(\)\) throw new Error/, "a refused key exits red");
   assert.match(src, /exits 0/i, "any other failure is recorded, not red");
   const wf = read(".github/workflows/import-prices.yml");
-  assert.match(wf, /scripts\/alerts\.ts --mode=baseline/);
+  assert.match(wf, /scripts\/alerts\.ts/);
 });

@@ -8,7 +8,7 @@ import { FREE_PORTFOLIO_LIMIT, FREE_WATCHLIST_LIMIT } from "../src/lib/free-limi
 import { planPrice } from "../src/lib/plans";
 
 // The one-time welcome email to a new account — RiftCompare's, ported for OP
-// Compare (wave 2). No trial variant: OP Compare offers none, so the copy names
+// Compare (wave 2). No trial variant: MTG Compare offers none, so the copy names
 // only what ships (lib/free-limits.ts, lib/plans.ts) and is never typed.
 
 const read = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
@@ -23,7 +23,7 @@ test("the email leads with the free account, then Premium as the last block", ()
   assert.deepEqual([...order].sort((a, b) => a - b), order, "the free account comes first; Premium is the last block, not the headline");
   assert.match(e.html, /\/premium\?src=welcome"/, "the Premium link is attributed");
   assert.match(t, /We won't send it again\./, "the footer states it is one-time");
-  assert.doesNotMatch(t, /free trial|\$0 today|trial/i, "OP Compare offers no trial");
+  assert.doesNotMatch(t, /free trial|\$0 today|trial/i, "MTG Compare offers no trial");
 });
 
 test("limits and prices come from the shared modules, never typed", () => {
@@ -94,7 +94,7 @@ function withEmail<T>(on: boolean, fn: () => Promise<T>): Promise<T> {
   const f = process.env.EMAIL_FROM;
   if (on) {
     process.env.RESEND_API_KEY = "k";
-    process.env.EMAIL_FROM = "OP Compare <a@opcompare.app>";
+    process.env.EMAIL_FROM = "MTG Compare <a@example.com>";
   } else {
     delete process.env.RESEND_API_KEY;
     delete process.env.EMAIL_FROM;

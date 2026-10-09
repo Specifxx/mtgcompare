@@ -1,5 +1,5 @@
 // The weekly newsletter's sponsored slot — RiftCompare's lib/newsletter-sponsor.ts
-// (2026-10-01), ported to OP Compare in wave 2 (2026-10-03) with an empty list.
+// (2026-10-01), ported to MTG Compare in wave 2 (2026-10-03) with an empty list.
 //
 // A sponsor buys a placement that WE send; they never receive the list or any
 // subscriber data (the privacy policy says we do not sell personal

@@ -6,7 +6,7 @@ import { targetAlertLimit } from "./alert-limits";
 import { clampTargetCents } from "./target-price";
 import type { prisma } from "./db";
 
-// OP COMPARE (wave 2, 2026-10-03): RiftCompare's lib/alert-actions.ts with one
+// MTG COMPARE (wave 2, 2026-10-03): RiftCompare's lib/alert-actions.ts with one
 // deliberate change. The links are SIGNED in GitHub Actions (the alert run is
 // script-side, scripts/alerts.ts) and VERIFIED on Vercel, so the key cannot be
 // derived from AUTH_SECRET — that would mean copying the session secret into

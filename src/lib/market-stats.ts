@@ -1,7 +1,6 @@
-// The statistics /market reports (RiftCompare's computeStats from lib/market-index.ts,
-// ported pure over OP's chained index and the catalogue): one-of-each basket
-// value, average and median card, the index's range, breadth (advancing against
-// declining over 7 days) and recent realised volatility. Pure and client-safe.
+// The statistics /market reports (RiftCompare's computeStats from lib/market-index.ts): one-of-each basket value, average and median card, the index's range, breadth (advancing against
+// declining over 7 days) and recent realised volatility. Pure and client-safe. The basket aggregates come PUBLISHED (mk/overview.json, getMarketOverview: the importer computes them once a day
+// over every tracked unit at US$1 or more), so nothing here scans a catalogue; this module turns them, the index series and the 200 constituents into what the page draws.
 export interface IndexPointLite {
   day: string;
   value: number;
@@ -21,6 +20,8 @@ export interface Constituent {
   /** TCGplayer market change over 7 days, percent; null before a week of history. */
   d7pct: number | null;
   hasImage: boolean;
+  /** The front image to draw (the TCGplayer scan of this product, else Scryfall's); null when neither host has one. */
+  imageUrl: string | null;
 }
 
 export interface MarketStats {
@@ -44,14 +45,10 @@ export const INDEX_MIN_CENTS = 100;
 /** The constituents table ships this many rows (under 2 MB per cache entry, and a page a person can read). */
 export const INDEX_TABLE_SIZE = 200;
 
-export function computeStats(points: readonly IndexPointLite[], constituents: readonly Pick<Constituent, "priceCents" | "d7pct">[]): MarketStats {
-  const prices = constituents.map((c) => c.priceCents).filter((p) => p > 0);
-  const basketValueCents = prices.reduce((a, b) => a + b, 0);
-  const priced = prices.length;
-  const avgPriceCents = priced ? Math.round(basketValueCents / priced) : 0;
-  const sorted = [...prices].sort((a, b) => a - b);
-  const medianPriceCents = !priced ? 0 : priced % 2 ? sorted[(priced - 1) / 2] : Math.round((sorted[priced / 2 - 1] + sorted[priced / 2]) / 2);
+/** The published basket: the units priced at US$1 or more, one of each (mk/overview.json). Amounts are USD cents. */
+export interface BasketLite { n: number; totalCents: number; avgCents: number; medianCents: number; advancing: number; declining: number }
 
+export function computeStats(points: readonly IndexPointLite[], basket: BasketLite): MarketStats {
   let high = -Infinity;
   let low = Infinity;
   for (const p of points) {
@@ -62,16 +59,6 @@ export function computeStats(points: readonly IndexPointLite[], constituents: re
     high = 0;
     low = 0;
   }
-
-  let advancing = 0;
-  let declining = 0;
-  let unchanged = 0;
-  for (const c of constituents) {
-    if (c.d7pct == null || c.d7pct === 0) unchanged++;
-    else if (c.d7pct > 0) advancing++;
-    else declining++;
-  }
-
   const recent = points.slice(-VOLATILITY_LOOKBACK_POINTS);
   const returns: number[] = [];
   for (let i = 1; i < recent.length; i++) {
@@ -84,58 +71,56 @@ export function computeStats(points: readonly IndexPointLite[], constituents: re
     const variance = returns.reduce((a, b) => a + (b - mean) ** 2, 0) / returns.length;
     volatilityPct = Math.round(Math.sqrt(variance) * 100) / 100;
   }
-
   return {
-    basketValueCents,
-    avgPriceCents,
-    medianPriceCents,
-    constituentCount: constituents.length,
+    basketValueCents: basket.totalCents,
+    avgPriceCents: basket.avgCents,
+    medianPriceCents: basket.medianCents,
+    constituentCount: basket.n,
     high: Math.round(high * 10) / 10,
     low: Math.round(low * 10) / 10,
-    advancing,
-    declining,
-    unchanged,
+    advancing: basket.advancing,
+    declining: basket.declining,
+    unchanged: Math.max(0, basket.n - basket.advancing - basket.declining),
     volatilityPct,
   };
 }
 
-interface CardForIndex {
+/** What a constituent needs of its card beyond the published row (id, slug, name, market cents): the printing label, number, set, 7-day change and image. */
+export interface CardForIndex {
   id: number;
-  slug: string;
-  name: string;
   variant: string | null;
   number: string | null;
-  setId: number;
-  marketUsd: number | null;
+  setCode: string;
   change7d: number | null;
   hasImage: boolean;
+  imageUrl: string | null;
 }
 
 /**
- * The basket's top `size` cards by TCGplayer market price (the whole basket is
- * every card priced at US$1+; weights are against that whole basket), dearest first.
+ * The basket's top `size` cards by TCGplayer market price, dearest first (the published rows are already the dearest 200; weights are against the WHOLE basket of `basketCents`).
+ * A row whose card cannot be found keeps its name and price, without a label, number or change.
  */
-export function indexConstituents(cards: readonly CardForIndex[], setCodeOf: (setId: number) => string, size = INDEX_TABLE_SIZE): { rows: Constituent[]; basketCount: number; basketCents: number } {
-  const basket = cards.filter((c) => (c.marketUsd ?? 0) >= INDEX_MIN_CENTS);
-  const total = basket.reduce((a, c) => a + c.marketUsd!, 0);
-  const rows = [...basket]
-    .sort((a, b) => b.marketUsd! - a.marketUsd! || a.id - b.id)
+export function indexConstituents(published: readonly { id: number; slug: string; name: string; cents: number }[], cards: ReadonlyMap<number, CardForIndex>, basketCents: number, size = INDEX_TABLE_SIZE): Constituent[] {
+  return [...published]
+    .filter((r) => r.cents >= INDEX_MIN_CENTS)
+    .sort((a, b) => b.cents - a.cents || a.id - b.id)
     .slice(0, size)
-    .map(
-      (c): Constituent => ({
-        id: c.id,
-        slug: c.slug,
-        name: c.name,
-        variant: c.variant,
-        number: c.number,
-        setCode: setCodeOf(c.setId),
-        priceCents: c.marketUsd!,
-        weightPct: total ? Math.round((c.marketUsd! / total) * 1000) / 10 : 0,
-        d7pct: c.change7d,
-        hasImage: c.hasImage,
-      }),
-    );
-  return { rows, basketCount: basket.length, basketCents: total };
+    .map((r): Constituent => {
+      const c = cards.get(r.id);
+      return {
+        id: r.id,
+        slug: r.slug,
+        name: r.name,
+        variant: c?.variant ?? null,
+        number: c?.number ?? null,
+        setCode: c?.setCode ?? "",
+        priceCents: r.cents,
+        weightPct: basketCents ? Math.round((r.cents / basketCents) * 1000) / 10 : 0,
+        d7pct: c?.change7d ?? null,
+        hasImage: c?.hasImage ?? false,
+        imageUrl: c?.imageUrl ?? null,
+      };
+    });
 }
 
 /** "As of <day> the index sits at X, up Y% over 7 days, with A of N cards higher": the sentence an answer engine can quote. */
@@ -143,5 +128,5 @@ export function indexSentence(opts: { day: string; value: number; d7: number | n
   const { value, d7, advancing, counted } = opts;
   const move = d7 == null ? "" : d7 === 0 ? ", unchanged over 7 days" : `, ${d7 > 0 ? "up" : "down"} ${Math.abs(d7).toFixed(1)}% over 7 days`;
   const breadth = counted > 0 ? `, with ${advancing} of ${counted} cards higher` : "";
-  return `As of ${opts.day} the OP Compare Index sits at ${value.toFixed(1)}${move}${breadth}.`;
+  return `As of ${opts.day} the MTG Compare Index sits at ${value.toFixed(1)}${move}${breadth}.`;
 }

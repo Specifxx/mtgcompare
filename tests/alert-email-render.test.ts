@@ -52,9 +52,9 @@ function item(over: Partial<PriceDropItem> = {}): PriceDropItem {
     kind: "drop",
     alertId: "alert1",
     cardId: 100001,
-    name: "Monkey.D.Luffy",
-    setCode: "OP01",
-    number: "OP01-003",
+    name: "Lightning Bolt",
+    setCode: "2XM",
+    number: "141",
     url: `${SITE_URL}/card/monkey-d-luffy`,
     market: "AU",
     currency: "AUD",
@@ -93,18 +93,18 @@ const VARIANTS: Record<string, PriceDropItem> = {
 };
 
 test("the drop subject names the card, the price, the store and the saving", () => {
-  assert.equal(priceDropCopy([VARIANTS.drop!]).subject, "Monkey.D.Luffy: A$18.40 at Cherry, 12% off");
+  assert.equal(priceDropCopy([VARIANTS.drop!]).subject, "Lightning Bolt: A$18.40 at Cherry, 12% off");
   const c = priceDropCopy([VARIANTS.drop!]);
   assert.match(c.preheader, /^Save A\$2\.50 · checked 17:10 AEST 25 Sep$/);
   assert.equal(c.heading, "A card you're watching got cheaper", "the heading no longer repeats the subject");
 });
 
 test("each variant's subject leads with its news", () => {
-  assert.equal(priceDropCopy([VARIANTS.target!]).subject, "Monkey.D.Luffy hit your A$20.00 target: A$18.40 at Cherry");
-  assert.equal(priceDropCopy([VARIANTS.below_market!]).subject, "Monkey.D.Luffy: A$18.40 at Cherry, 20% under TCGplayer market");
-  assert.equal(priceDropCopy([VARIANTS.restock!]).subject, "Monkey.D.Luffy is back in stock: A$18.40 at Cherry");
-  assert.equal(priceDropCopy([VARIANTS.listed!]).subject, "Monkey.D.Luffy is now in stock from A$18.40 at Cherry");
-  assert.equal(priceDropCopy([VARIANTS.preorder!]).subject, "Monkey.D.Luffy is open for pre-order from A$18.40 at Cherry");
+  assert.equal(priceDropCopy([VARIANTS.target!]).subject, "Lightning Bolt hit your A$20.00 target: A$18.40 at Cherry");
+  assert.equal(priceDropCopy([VARIANTS.below_market!]).subject, "Lightning Bolt: A$18.40 at Cherry, 20% under TCGplayer market");
+  assert.equal(priceDropCopy([VARIANTS.restock!]).subject, "Lightning Bolt is back in stock: A$18.40 at Cherry");
+  assert.equal(priceDropCopy([VARIANTS.listed!]).subject, "Lightning Bolt is now in stock from A$18.40 at Cherry");
+  assert.equal(priceDropCopy([VARIANTS.preorder!]).subject, "Lightning Bolt is open for pre-order from A$18.40 at Cherry");
 });
 
 test("every variant row: headline, watching-since, condition, stores with delivered total and Buy, checked time", () => {
@@ -265,7 +265,7 @@ test("List-Unsubscribe points at the one-click PAUSE, and the send carries it wi
   const realFrom = process.env.EMAIL_FROM;
   let body: Record<string, unknown> | null = null;
   process.env.RESEND_API_KEY = "test-key";
-  process.env.EMAIL_FROM = "OP Compare <alerts@opcompare.app>";
+  process.env.EMAIL_FROM = "MTG Compare <alerts@example.com>";
   globalThis.fetch = (async (_url: string, init: { body: string }) => {
     body = JSON.parse(init.body);
     return new Response("{}", { status: 200 });
@@ -283,8 +283,8 @@ test("List-Unsubscribe points at the one-click PAUSE, and the send carries it wi
   const b = body as unknown as { headers: Record<string, string>; text: string; subject: string };
   assert.equal(b.headers["List-Unsubscribe-Post"], "List-Unsubscribe=One-Click");
   assert.match(b.headers["List-Unsubscribe"]!, /mode=pause>$/);
-  assert.match(b.text, /Monkey.D.Luffy/);
-  assert.equal(b.subject, "Monkey.D.Luffy: A$18.40 at Cherry, 12% off");
+  assert.match(b.text, /Lightning Bolt/);
+  assert.equal(b.subject, "Lightning Bolt: A$18.40 at Cherry, 12% off");
 });
 
 test("scraped strings are escaped", () => {
@@ -297,13 +297,13 @@ test("scraped strings are escaped", () => {
 
 test("the confirmation names the cards, their market and today's price, and states the cadence", () => {
   const cards = [
-    { name: "Monkey.D.Luffy", setCode: "OP01", number: "OP01-003", url: `${SITE_URL}/card/luffy`, market: "AU" as const, priceCents: 1840, storeName: "Cherry", condition: null },
-    { name: "Roronoa Zoro", setCode: "OP01", number: "OP01-025", url: `${SITE_URL}/card/zoro`, market: "AU" as const, priceCents: null, storeName: null },
+    { name: "Lightning Bolt", setCode: "2XM", number: "141", url: `${SITE_URL}/card/lightning-bolt`, market: "AU" as const, priceCents: 1840, storeName: "Cherry", condition: null },
+    { name: "Sol Ring", setCode: "2XM", number: "259", url: `${SITE_URL}/card/sol-ring`, market: "AU" as const, priceCents: null, storeName: null },
   ];
   const email = buildAlertConfirmationEmail(cards, 12, "tok", true);
-  assert.equal(email.subject, "You're watching 12 cards on OP Compare");
+  assert.equal(email.subject, "You're watching 12 cards on MTG Compare");
   for (const part of [email.html, email.text]) {
-    assert.match(part, /Monkey.D.Luffy/);
+    assert.match(part, /Lightning Bolt/);
     // The alert price admits unstated-condition copies: never called Near Mint unless the store says so.
     assert.match(part, /cheapest now A\$18\.40 at Cherry · Condition not stated by the store/);
     assert.doesNotMatch(part, /cheapest Near Mint/);
@@ -318,7 +318,7 @@ test("the confirmation names the cards, their market and today's price, and stat
   assert.match(email.html, /\/api\/market\?m=AU/);
   assert.equal(email.headers["List-Unsubscribe-Post"], "List-Unsubscribe=One-Click");
   assert.doesNotMatch(email.html, /width="520"/);
-  assert.equal(buildAlertConfirmationEmail([cards[0]!], 1, "tok").subject, "You're watching Monkey.D.Luffy on OP Compare");
+  assert.equal(buildAlertConfirmationEmail([cards[0]!], 1, "tok").subject, "You're watching Lightning Bolt on MTG Compare");
   // A stated condition is printed as the store states it; a UK watch says pence.
   const uk = buildAlertConfirmationEmail([{ ...cards[0]!, market: "UK" as const, condition: "Near Mint" }], 1, "tok");
   assert.match(uk.text, /cheapest now £18\.40 at Cherry · Near Mint/);

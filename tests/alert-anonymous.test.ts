@@ -36,7 +36,9 @@ test("the door is open only with email on AND the owner's switch", () => {
 
 test("request bodies: a real address, 1 to 500 integer card ids, a supported market", () => {
   const ok = parseSubscribeBody({ email: " Sam@Example.com ", cardIds: [100001, "100002", 100001], market: "AU" });
-  assert.deepEqual(ok, { email: "sam@example.com", cardIds: [100001, 100002], market: "AU" });
+  assert.deepEqual(ok, { email: "sam@example.com", cardIds: [100001, 100002], market: "AU", finish: null });
+  assert.equal(parseSubscribeBody({ email: "a@b.co", cardIds: [1], finish: 1 })!.finish, "F", "a finish may be named (0 or 1, N or F)");
+  assert.equal(parseSubscribeBody({ email: "a@b.co", cardIds: [1], finish: 2 }), null);
   assert.equal(parseSubscribeBody({ email: "a@b.co", cardIds: [1] })!.market, "US", "market defaults to US");
   for (const bad of [
     null,
@@ -102,6 +104,6 @@ test("PriceAlert.userId is NULLABLE and the email dedupe key is untouched", () =
   const model = /model PriceAlert \{([\s\S]*?)\n\}/.exec(read("prisma/schema.prisma"))?.[1] ?? "";
   assert.match(model, /userId\s+String\?/);
   assert.match(model, /\n\s*email\s+String/);
-  assert.match(model, /@@unique\(\[email, cardId, market\]\)/);
+  assert.match(model, /@@unique\(\[email, cardId, finish, market\]\)/);
   assert.match(model, /@@index\(\[userId\]\)/);
 });

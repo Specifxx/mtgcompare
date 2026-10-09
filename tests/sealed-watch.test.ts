@@ -22,7 +22,7 @@ process.env.EMAIL_LINK_SECRET = "test-link-secret-0123456789abcdef0123456789abcd
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SEALED WATCHES (lib/sealed-watch-run.ts, RiftCompare's sealed-watch rules
-// ported over OP Compare's Offer rows): restock after a sold-out spell at EVERY
+// ported over MTG Compare's Offer rows): restock after a sold-out spell at EVERY
 // real store, at the member's target, or a material drop — `store:` sources
 // only, a restock at most once per 6h and the rest once per 24h per watch. RRP
 // is off (no MSRP table). Email off delivers the same triggers in-app.
@@ -180,18 +180,15 @@ test("a failed send holds the baseline for the next run; a failed read throws an
   assert.equal(bad.writeFor("s1")?.lastPriceCents, undefined);
   assert.equal(bad.writeFor("s1")?.lastNotifiedAt, undefined);
   const failing = sealedHarness([sealedRow("s1", plus, { lastPriceCents: 16000 })], { readFails: true });
-  await assert.rejects(failing.run(), /db down/);
+  await assert.rejects(failing.run(), /data host down/);
   assert.equal(failing.writes.length, 0);
 });
 
-test("the read is ONE bounded query over real-store rows for the watched pairs", async () => {
-  const h = sealedHarness([sealedRow("s1", plus, { lastPriceCents: 16000 }), sealedRow("s2", plus, { productId: 5002, market: "UK" })], { offers: [offer(14000)] });
+test("the read is one detail file per watched product, real-store rows only", async () => {
+  const h = sealedHarness([sealedRow("s1", plus, { lastPriceCents: 16000 }), sealedRow("s2", plus, { productId: 5002, market: "UK" })], { offers: [offer(14000), offer(9900, { source: "tcgplayer" }), offer(8000, { source: "ebay" })] });
   await h.run();
-  assert.equal(h.offerQueries.length, 1);
-  const q = h.offerQueries[0] as { where: { source: unknown; OR: unknown[] }; select: Record<string, boolean>; take: number };
-  assert.deepEqual(q.where.source, { startsWith: "store:" }, "the query itself refuses eBay, TCGplayer and every non-store row");
-  assert.deepEqual(q.where.OR, [{ market: "US", productId: { in: [5001] } }, { market: "UK", productId: { in: [5002] } }]);
-  assert.ok(q.take > 0 && q.take <= 2 * 60);
+  assert.deepEqual(h.offerQueries, [{ sealedId: 5001 }, { sealedId: 5002 }], "one read per product, nothing else");
+  assert.equal(h.sent[0]?.item.priceCents, 14000, "the store row, never the TCGplayer or eBay one");
 });
 
 // ── Email off: in-app delivery ───────────────────────────────────────────────

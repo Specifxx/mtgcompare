@@ -5,9 +5,9 @@ import { useState } from "react";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { setUnreadCount } from "@/lib/use-unread";
 
-// "Recent alerts" on /dashboard — an OP Compare divergence from RiftCompare
+// "Recent alerts" on /dashboard — an MTG Compare divergence from RiftCompare
 // (wave 2, 2026-10-03). RiftCompare delivers alerts by email and keeps no
-// bell; OP Compare sends no email until a mailer is configured, so the alert
+// bell; MTG Compare sends no email until a mailer is configured, so the alert
 // run's in-app notifications (lib/notifications.ts notify()) are the
 // delivery, and this panel is where they are read. The rows arrive with the
 // page (server-rendered, one bounded per-user read); mark-read is one POST.

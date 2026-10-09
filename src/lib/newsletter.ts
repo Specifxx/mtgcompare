@@ -9,27 +9,27 @@ import { SITE_URL } from "./site";
 import { cardEbayQuery, ebaySearchUrl } from "./affiliate";
 import { sponsorFor, type NewsletterSponsor } from "./newsletter-sponsor";
 
-// THE WEEKLY NEWSLETTER — RiftCompare's lib/newsletter.ts, ported to OP Compare
-// in wave 2 (2026-10-03). Sent by scripts/newsletter.ts
+// THE WEEKLY NEWSLETTER — RiftCompare's lib/newsletter.ts, ported to MTG Compare.
+// Sent by scripts/newsletter.ts
 // (.github/workflows/email-weekly.yml, Fridays 21:00 UTC) — GitHub Actions, never
 // Vercel, and a green no-op while email is off (lib/email.ts isEmailEnabled).
 //
 // What changed from RiftCompare, and why:
-//   • Movers are OP Compare's own: TCGplayer's market price against ~7 days ago
-//     (Card.change7d, the same numbers /movers shows), cards worth US$1+, and
+//   • Movers are MTG Compare's own: TCGplayer's market price against ~7 days ago
+//     (CardLite.change7d, the numbers /movers shows), cards worth US$1+, and
 //     "best value" = furthest under the card's 90-day high (US$3+, 5%+ off).
-//     They are read ONCE per run with one narrow uncached query
-//     (loadDigestCards) — a script has no Next.js cache — and are the same for
-//     every market; each market's edition adds its own cheapest listing.
-//   • "New One Piece cards this week" replaces RiftCompare's Radiance reveals:
-//     cards whose Card.firstSeen is in the last 7 days (TCGplayer listed them).
-//   • No Index, peaks or articles sections: each would need a cached loader the
-//     script cannot call; every figure that IS here comes from the database rows
-//     the site shows, so the email never says something the site doesn't.
+//     They are read ONCE per run from the published mover lists (getMovers, the
+//     headline unit of each card) and are the same for every market; each
+//     market's edition adds its own cheapest listing.
+//   • "Newest Magic cards" replaces RiftCompare's Radiance reveals: the newest
+//     cards of the catalogue (getNewestCards, newest set first).
+//   • No Index, peaks or articles sections; every figure that IS here comes from
+//     the published files the site shows, so the email never says something the
+//     site doesn't.
 //   • The eBay link on each row is an affiliate-tagged SEARCH (lib/affiliate.ts
 //     ebaySearchUrl), never an API call.
 
-/** A card row as the digest reads it (one narrow select, see loadDigestCards). */
+/** A card as the digest reads it (the headline unit of a CardLite, see loadDigestCards). */
 export interface DigestCard {
   id: number;
   slug: string;
@@ -181,7 +181,7 @@ function section(title: string, items: Mover[], take: number, market: Country, k
 
 function newCardsSection(cards: DigestCard[], market: Country): string {
   if (!cards.length) return "";
-  return `${heading("New One Piece cards this week")}
+  return `${heading("Newest Magic cards")}
     <tr><td style="padding:0 32px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">${cards
       .map(
         (c) => `<tr><td style="padding:8px 0;border-bottom:1px solid ${C.border}">
@@ -220,11 +220,11 @@ function sponsorSection(sp: DigestExtras["sponsor"]): string {
   if (sp === "house") {
     return `<tr><td style="padding:18px 32px 0"><div style="border:1px dashed ${C.border};border-radius:10px;padding:12px 14px;font-size:13px;color:${C.muted}">
       <span style="font-size:10px;font-weight:700;letter-spacing:.06em;color:${C.muted}">SPONSORED</span><br/>
-      Want to reach One Piece Card Game collectors every week? <a href="${utm("/contact")}" style="color:${C.accent};font-weight:700;text-decoration:none">Sponsor this newsletter →</a>
+      Want to reach Magic: The Gathering collectors every week? <a href="${utm("/contact")}" style="color:${C.accent};font-weight:700;text-decoration:none">Sponsor this newsletter →</a>
     </div></td></tr>`;
   }
   const sep = sp.url.includes("?") ? "&" : "?";
-  const href = `${sp.url}${sep}utm_source=opcompare&utm_medium=email&utm_campaign=newsletter-sponsor`;
+  const href = `${sp.url}${sep}utm_source=mtgcompare&utm_medium=email&utm_campaign=newsletter-sponsor`;
   return `<tr><td style="padding:18px 32px 0"><div style="border:1px solid ${C.border};background:${C.inset};border-radius:10px;padding:14px 16px">
     <div style="font-size:10px;font-weight:700;letter-spacing:.06em;color:${C.muted}">SPONSORED · ${escapeHtml(sp.name)}</div>
     ${sp.imageUrl ? `<a href="${escapeHtml(href)}" rel="sponsored"><img src="${escapeHtml(sp.imageUrl)}" alt="${escapeHtml(sp.name)}" width="536" style="display:block;width:100%;max-width:536px;border-radius:8px;margin-top:8px" /></a>` : ""}
@@ -297,12 +297,12 @@ export function buildDigest(movers: PriceMovers, market: Country, newCards: Dige
   if (topRiser) bits.push(`${topRiser.card.name} ${signedPct(topRiser.pct)}`);
   if (topDrop) bits.push(`${topDrop.card.name} ${signedPct(topDrop.pct)}`);
   const subject = bits.length
-    ? `One Piece cards this week: ${bits.join(", ")}`
-    : `${newCards.length} new One Piece ${newCards.length === 1 ? "card" : "cards"} this week`;
+    ? `Magic cards this week: ${bits.join(", ")}`
+    : `${newCards.length} of the newest Magic ${newCards.length === 1 ? "card" : "cards"}`;
 
   const inner = `
     <tr><td style="padding:8px 32px 0;font-size:14px;line-height:1.6;color:${C.text}">
-      Your weekly read on the One Piece Card Game market: the biggest price moves on TCGplayer's market price, the cards collectors are searching for and what's coming up — with the cheapest listing we track at ${info.adjective} stores.
+      Your weekly read on the Magic: The Gathering market: the biggest price moves on TCGplayer's market price, the cards collectors are searching for and what's coming up — with the cheapest listing we track at ${info.adjective} stores.
     </td></tr>
     ${glanceSection(extras, market)}
     ${newCardsSection(newCards, market)}
@@ -314,7 +314,7 @@ export function buildDigest(movers: PriceMovers, market: Country, newCards: Dige
     ${extras.releases ? releasesSection(extras.releases) : ""}
     <tr><td style="padding:18px 32px 24px"><a href="${utm("/movers")}" style="display:inline-block;background:${C.button};color:${C.buttonInk};font-weight:700;text-decoration:none;padding:12px 22px;border-radius:10px">See all movers and price charts</a></td></tr>`;
 
-  return { subject, heading: "This week on the One Piece card market", inner };
+  return { subject, heading: "This week on the Magic card market", inner };
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

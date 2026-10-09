@@ -11,9 +11,9 @@ import { useWatchlistDrawer } from "./WatchlistDrawerProvider";
 // ported in wave 2 (2026-10-03): a right-hand slide-over with one wide row per
 // card and the "Notify me at $__" field under each.
 //
-// OP Compare differences:
+// MTG Compare differences:
 //   • Signed out, RiftCompare shows only a sign-in prompt (its signed-out heart
-//     collects an email instead). OP Compare keeps no-account hearts, so the
+//     collects an email instead). MTG Compare keeps no-account hearts, so the
 //     drawer shows the list saved in this browser, under a "Sign in to sync
 //     and get alerts" bar.
 //   • The signed-in line promises an email only once a mailer is configured

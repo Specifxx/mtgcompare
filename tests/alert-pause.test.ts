@@ -5,6 +5,8 @@ import { join } from "node:path";
 
 import { harness, owned, plus, row } from "./helpers/alert-harness";
 import { applyAlertEmailMode, alertEmailSummary, maskEmail, pausedAddresses, type AlertMuteDb } from "../src/lib/alert-mute";
+import type { AlertCardLoader } from "../src/lib/alert-price";
+import { unitKey } from "../src/lib/constants";
 import { GET as marketGET } from "../src/app/api/market/route";
 import { GET as unsubGET } from "../src/app/api/alerts/unsubscribe/route";
 
@@ -89,11 +91,21 @@ test("pausedAddresses is scoped and capped", async () => {
 
 // ── The token page's modes ───────────────────────────────────────────────────
 
+// The catalogue stand-in: the watch rows hold only a product id and a finish.
+const catalogue: AlertCardLoader = async (units) => {
+  const rows: Record<number, { name: string; variant: string | null; number: string }> = {
+    3000: { name: "Lightning Bolt", variant: null, number: "141" },
+    3001: { name: "Sol Ring", variant: "Foil", number: "259" },
+    3002: { name: "Counterspell", variant: null, number: "50" },
+  };
+  return new Map(units.flatMap((u) => (rows[u.id] ? [[unitKey(u.id, u.finish), { id: u.id, finish: u.finish, slug: String(u.id), setCode: "2XM", releasedOn: null, marketUsd: null, low: {} as never, ...rows[u.id]! }] as const] : [])));
+};
+
 function muteStub() {
   const alerts = [
-    { id: "r1", email: "bill@example.com", unsubToken: "T", market: "AU", snoozedUntil: null, createdAt: new Date(2), card: { name: "Monkey.D.Luffy", variant: null, number: "OP01-001", set: { code: "OP01" } } },
-    { id: "r2", email: "bill@example.com", unsubToken: "T", market: "US", snoozedUntil: null, createdAt: new Date(1), card: { name: "Roronoa Zoro", variant: null, number: "OP01-001", set: { code: "OP01" } } },
-    { id: "o1", email: "other@example.com", unsubToken: "O", market: "AU", snoozedUntil: null, createdAt: new Date(1), card: { name: "Nami", variant: null, number: "OP01-001", set: { code: "OP01" } } },
+    { id: "r1", email: "bill@example.com", unsubToken: "T", market: "AU", snoozedUntil: null, createdAt: new Date(2), cardId: 3000, finish: 0 },
+    { id: "r2", email: "bill@example.com", unsubToken: "T", market: "US", snoozedUntil: null, createdAt: new Date(1), cardId: 3001, finish: 1 },
+    { id: "o1", email: "other@example.com", unsubToken: "O", market: "AU", snoozedUntil: null, createdAt: new Date(1), cardId: 3002, finish: 0 },
   ];
   const mutes = new Map<string, { source: string }>();
   const db = {
@@ -124,7 +136,8 @@ test("pause keeps every watch; resume lifts it; the summary reports it", async (
   assert.equal(r.status, 200);
   assert.equal(s.alerts.length, 3, "no watch deleted");
   assert.equal(s.mutes.get("bill@example.com")?.source, "one-click");
-  const sum = await alertEmailSummary(s.db, "T");
+  const sum = await alertEmailSummary(s.db, "T", catalogue);
+  assert.deepEqual(sum.cards.map((c) => c.name), ["Lightning Bolt", "Sol Ring (Foil)"], "named from the catalogue, the finish shown");
   assert.equal(sum.paused, true);
   assert.equal(sum.count, 2);
   assert.equal(sum.email, "bi***@example.com");
@@ -158,7 +171,7 @@ test("the unsubscribe route: pause by default, one-click can only pause, no sess
 });
 
 test("GET /api/alerts/unsubscribe without a token is a 400", async () => {
-  const res = await unsubGET(new Request("https://opcompare.app/api/alerts/unsubscribe"));
+  const res = await unsubGET(new Request("https://mtgcompare.app/api/alerts/unsubscribe"));
   assert.equal(res.status, 400);
 });
 
@@ -183,15 +196,15 @@ test("AlertMute is a new, email-keyed table (additive for db push)", () => {
 // ── /api/market ──────────────────────────────────────────────────────────────
 
 test("/api/market sets the watch's market and redirects same-origin only", async () => {
-  const res = marketGET(new Request(`https://opcompare.app/api/market?m=uk&to=${encodeURIComponent("/card/luffy?utm_source=email")}`));
+  const res = marketGET(new Request(`https://mtgcompare.app/api/market?m=uk&to=${encodeURIComponent("/card/lightning-bolt?utm_source=email")}`));
   assert.equal(res.status, 307);
-  assert.equal(res.headers.get("location"), "https://opcompare.app/card/luffy?utm_source=email");
+  assert.equal(res.headers.get("location"), "https://mtgcompare.app/card/lightning-bolt?utm_source=email");
   assert.match(res.headers.get("set-cookie") ?? "", /^country=UK; Path=\/; .*Max-Age=31536000/i);
   assert.doesNotMatch(res.headers.get("set-cookie") ?? "", /HttpOnly/i, "CountryProvider reads it client-side");
   for (const to of ["//evil.example/x", "https://evil.example/", "/api/admin"]) {
-    const r = marketGET(new Request(`https://opcompare.app/api/market?m=AU&to=${encodeURIComponent(to)}`));
-    assert.equal(r.headers.get("location"), "https://opcompare.app/", to);
+    const r = marketGET(new Request(`https://mtgcompare.app/api/market?m=AU&to=${encodeURIComponent(to)}`));
+    assert.equal(r.headers.get("location"), "https://mtgcompare.app/", to);
   }
-  const unknown = marketGET(new Request("https://opcompare.app/api/market?m=ZZ&to=/browse"));
+  const unknown = marketGET(new Request("https://mtgcompare.app/api/market?m=ZZ&to=/browse"));
   assert.equal(unknown.headers.get("set-cookie"), null);
 });

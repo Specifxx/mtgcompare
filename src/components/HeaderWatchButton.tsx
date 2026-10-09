@@ -18,8 +18,8 @@ import { useWatchlistDrawer } from "./WatchlistDrawerProvider";
  * RiftCompare. A heart, filled when there is something in it — the same glyph
  * as every card's PriceWatchButton.
  *
- * THE DOT (an OP Compare divergence, flagged for the owner): RiftCompare's
- * alerts arrive by email, so its count is the only ambient signal. OP Compare
+ * THE DOT (an MTG Compare divergence, flagged for the owner): RiftCompare's
+ * alerts arrive by email, so its count is the only ambient signal. MTG Compare
  * sends no email until a mailer is configured; its alerts are in-app
  * notifications (the /dashboard "Recent alerts" panel), so the heart carries
  * a small brand dot while any is unread. The count rides /api/me (no polling).

@@ -321,7 +321,7 @@ test("the email names up to three stores from the same rows as the price; postag
   assert.deepEqual(item.checkedAt, hoursAgo(2));
 });
 
-test("alertPostage never claims postage OP Compare does not know", () => {
+test("alertPostage never claims postage MTG Compare does not know", () => {
   assert.deepEqual(alertPostage({ source: "store:anything", priceCents: 500 }, "AU"), { postageCents: null, postageBasis: null, postageUpTo: false, deliveredCents: null });
   assert.deepEqual(alertPostage({ source: "tcgplayer", priceCents: 500 }, "US"), { postageCents: null, postageBasis: null, postageUpTo: false, deliveredCents: null });
 });
@@ -345,9 +345,9 @@ test("the run makes no nested-cache calls and reads TCGplayer market from the ca
 
 test("target email copy names the price and the store; postage is never invented", () => {
   const base = {
-    name: "Monkey.D.Luffy",
-    setCode: "OP01",
-    number: "OP01-003",
+    name: "Lightning Bolt",
+    setCode: "2XM",
+    number: "141",
     url: "https://x/card/a",
     market: "US" as const,
     currency: "USD",
@@ -366,9 +366,9 @@ test("target email copy names the price and the store; postage is never invented
   };
   const store = { retailer: "store:shopx", name: "Shop X", url: "https://shopx.example/a", priceCents: 900, condition: null, postageCents: null, postageBasis: null, postageUpTo: false, deliveredCents: null };
   const hit: PriceDropItem = { ...base, kind: "target", currentCents: 900, targetCents: 1000, stores: [store] };
-  assert.equal(priceDropCopy([hit]).subject, "Monkey.D.Luffy hit your $10.00 target: $9.00 at Shop X");
+  assert.equal(priceDropCopy([hit]).subject, "Lightning Bolt hit your $10.00 target: $9.00 at Shop X");
   assert.match(priceDropCopy([hit, { ...hit, kind: "drop", targetCents: null }]).subject, /\(\+1 more\)$/);
-  assert.equal(priceDropCopy([{ ...hit, stores: [] }]).subject, "Monkey.D.Luffy hit your $10.00 target: $9.00");
+  assert.equal(priceDropCopy([{ ...hit, stores: [] }]).subject, "Lightning Bolt hit your $10.00 target: $9.00");
   const html = dropRow(hit);
   assert.match(html, /Your target \$10\.00 · now <strong[^>]*>\$9\.00<\/strong> · \$1\.00 under it/);
   assert.match(html, /<strong[^>]*>Shop X<\/strong> · \$9\.00 item price, postage extra/);
@@ -382,7 +382,7 @@ test("target email copy names the price and the store; postage is never invented
   assert.equal(postageNote({ postageCents: 800, postageBasis: "estimate", postageUpTo: false }, "USD"), "+ $8.00 postage (est.)");
 
   const below: PriceDropItem = { ...hit, kind: "below_market", targetCents: null, tcgMarket: { marketCents: 1420, marketUsdCents: 940, belowCents: 520, belowPct: 36.6 } };
-  assert.equal(priceDropCopy([below]).subject, "Monkey.D.Luffy: $9.00 at Shop X, 37% under TCGplayer market");
+  assert.equal(priceDropCopy([below]).subject, "Lightning Bolt: $9.00 at Shop X, 37% under TCGplayer market");
   assert.match(dropRow(below), /≈ \$14\.20 · 37% under/);
 });
 

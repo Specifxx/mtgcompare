@@ -127,7 +127,7 @@ export const PACING_MS = 200;                             // sleep between Brows
 export const CHUNK = 25;                                  // calls claimed from the ledger at a time
 export const MIN_RUN = 20;                                // an allowance under this is not worth a run
 export const DUE_GRACE_HOURS = 3;
-export const BANNER_ONLY_RUN_CAP = 60;                    // a banner-only run (3 a day) never plans past this
+export const BANNER_ONLY_RUN_CAP = 70;                    // a banner-only run (3 a day) never plans past this: the US pool (24 x 1.15) plus the other markets' daily names (33 x 1.15) fit
 export const singleCost = (cfg: Pick<EbayConfig, "retryRate">): number => SINGLE_CALL_COST_BASE + cfg.retryRate;
 
 /** The sealed kinds the eBay pass searches (constants.ts SEALED_KINDS): boxes and cases at one floor, commander decks, bundles, Secret Lair drops and collections at a lower one. Loose packs, tins and prerelease packs are not searched. */
@@ -388,12 +388,13 @@ export function planRun(pairs: readonly Pair[], budget: number, allowance: Recor
 // ── the budget: ledger x live quota x Rift's reserve ─────────────────────────
 
 export interface RiftJob { name: string; hour: number; minute: number; cost: number }
-/** Rift Compare's planned eBay jobs (UTC), mirrored from its workflows (refresh-prices 07:00 and 19:00, refresh-auctions every 4 h, pokemon-import 21:47); the measured foreign-spend profile overrides any smaller entry. */
+/** Rift Compare's planned eBay jobs (UTC), mirrored from its workflows (refresh-prices 07:00 and 19:00, refresh-auctions every 4 h, pokemon-import 05:17 and 21:47); the measured foreign-spend profile overrides any smaller entry. */
 export const RIFT_JOBS: RiftJob[] = [
   { name: "refresh-prices-morning", hour: 7, minute: 0, cost: 2000 },
   { name: "refresh-prices-evening", hour: 19, minute: 0, cost: 1000 },
   ...[0, 4, 8, 12, 16, 20].map((h) => ({ name: `refresh-auctions-${h}`, hour: h, minute: 0, cost: 6 })),
-  { name: "pokemon-import", hour: 21, minute: 47, cost: 60 },
+  { name: "pokemon-import-morning", hour: 5, minute: 17, cost: 60 },
+  { name: "pokemon-import-evening", hour: 21, minute: 47, cost: 60 },
 ];
 export const RIFT_START_DELAY_MIN = 8;
 export const RIFT_DRIFT_MIN = 120;
@@ -475,14 +476,16 @@ export function allowanceFor(i: AllowanceInput): Allowance {
   if (cfg.maxCalls != null) a = Math.min(a, cfg.maxCalls);
   const share = i.purpose === "banner" ? BANNER_ONLY_RUN_CAP : Infinity;
   a = Math.min(a, share);
-  if (i.dispatchCap != null && String(i.dispatchCap).trim() !== "") {
-    const d = envInt(String(i.dispatchCap));
-    if (d != null && d > 0 && d <= a) { a = d; }
-    else i.log?.(`eBay: ignoring max_calls=${JSON.stringify(String(i.dispatchCap))} (must be a positive number; it can only lower the budget)`);
-  }
   a = Math.max(0, Math.floor(a));
   detail.allowance = a;
+  // an allowance under the minimum run is not worth a run; a dispatch cap (a smoke test) may then lower it further, never raise it
   if (a < MIN_RUN) return { allowance: 0, stop: quotaLeft < MIN_RUN ? "reserve" : "no-budget", detail };
+  if (i.dispatchCap != null && String(i.dispatchCap).trim() !== "") {
+    const d = envInt(String(i.dispatchCap));
+    if (d != null && d > 0 && d <= a) a = d;
+    else i.log?.(`eBay: ignoring max_calls=${JSON.stringify(String(i.dispatchCap))} (must be a positive number; it can only lower the budget)`);
+    detail.allowance = a;
+  }
   return { allowance: a, stop: null, detail };
 }
 function ownFallback(i: AllowanceInput, detail: Allowance["detail"]): Allowance {

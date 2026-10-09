@@ -112,7 +112,7 @@ export function UnsubscribeClient({ token, focus = "pause", emailOn = false }: {
             This link looks broken.{emailOn ? " If you keep getting emails, reply to one and we'll sort it out." : ""}
           </p>
           <Link href="/" className="btn-ghost mt-4">
-            Back to OP Compare
+            Back to MTG Compare
           </Link>
         </>
       )}
@@ -198,7 +198,7 @@ export function UnsubscribeClient({ token, focus = "pause", emailOn = false }: {
               : "There are no watches on this link any more, so there's nothing to email you about."}
           </p>
           <Link href="/" className="btn-ghost mt-4">
-            Back to OP Compare
+            Back to MTG Compare
           </Link>
         </>
       )}

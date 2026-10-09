@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { staticEntries } from "../src/lib/sitemap-sections";
 import { alertsAnswer, alertsFaqs, alertsPlusCopy } from "../src/lib/alerts-copy";
 import { DROP_MIN_CENTS, DROP_MIN_PCT } from "../src/lib/alert-thresholds";
 import { BELOW_MARKET_MIN_PCT, OUTLIER_DROP_PCT, TARGET_REFIRE_STEP_PCT } from "../src/lib/price-alerts";
@@ -46,7 +47,7 @@ test("email OFF: no sentence promises an email; the one mention says there are n
   assert.match(off, /Where do alerts show up\?/);
 });
 
-test("email ON: RiftCompare's email copy, rebranded, and no claim OP Compare cannot keep", () => {
+test("email ON: RiftCompare's email copy, rebranded, and no claim MTG Compare cannot keep", () => {
   const on = all(true);
   assert.match(on, /How often will I actually get emailed\?/);
   assert.match(on, /At most one email a week/);
@@ -56,16 +57,17 @@ test("email ON: RiftCompare's email copy, rebranded, and no claim OP Compare can
   assert.doesNotMatch(on, /money back|buyer protection/i);
 });
 
-test("the page reads the recorded status, is static (revalidate a day) and quotes the Plus limit through the lib", () => {
+test("the page reads the status switch, renders per request (it reaches the data barrel) and quotes the Plus limit through the lib", () => {
   const page = code("src/app/alerts/page.tsx");
-  assert.match(page, /export const revalidate = 86400/);
+  assert.match(page, /export const dynamic = "force-dynamic"/);
+  assert.doesNotMatch(page, /export const revalidate/, "an ISR page would bake the email switch in at build time");
   assert.match(page, /getEmailStatus\(\)\) === "on"/);
   assert.match(page, /alertsFaqs\(emailOn\)/);
   assert.match(page, /faqLd\(faqs\)/, "the JSON-LD is built from the same FAQ the page renders");
-  assert.match(page, /One Piece Card Game Price Alerts & Watchlists \| OP Compare/);
+  assert.match(page, /Magic: The Gathering Price Alerts & Watchlists \| MTG Compare/);
   assert.match(page, /Plus is ad-free/);
-  assert.doesNotMatch(page, /cookies\(|getCurrentUser|prisma/, "a static page reads no session and no database");
-  assert.match(code("src/app/sitemap.ts"), /\/alerts/);
+  assert.doesNotMatch(page, /cookies\(|getCurrentUser|prisma/, "a public page reads no session and no database");
+  assert.ok(staticEntries(undefined).map((e) => e.loc).some((l) => l.endsWith("/alerts")), "/alerts is in the sitemap (src/lib/sitemap-sections.ts)");
 });
 
 test("the signup CTA points at the free account, attributed", () => {

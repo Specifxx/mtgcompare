@@ -9,27 +9,28 @@ import { alertsAnswer, alertsFaqs, alertsPlusCopy } from "@/lib/alerts-copy";
 import { FREE_WATCHLIST_LIMIT } from "@/lib/free-limits";
 
 // RiftCompare's /alerts — the explainer for watchlists and price alerts, and
-// the landing page for "one piece card price alert" style queries — ported in
+// the landing page for "magic card price alert" style queries — ported in
 // wave 2 (2026-10-03).
 //
 // EVERY SENTENCE HERE DESCRIBES CODE THAT RUNS (lib/price-alerts.ts,
 // lib/alerts-copy.ts holds the words). EMAIL IS OFF UNTIL CONFIGURED: the page
-// reads getEmailStatus() (one cached Meta row) and, while it is "off", explains
+// reads getEmailStatus() (the EMAIL_STATUS switch) and, while it is "off", explains
 // the in-app flags and the watchlist chips honestly and promises no email; when
 // the alert run has recorded "on", it switches to RiftCompare's email copy.
-export const revalidate = 86400;
+// Reaches the data barrel (getEmailStatus), so it is rendered per request: an ISR page would bake the switch in at build time.
+export const dynamic = "force-dynamic";
 
 const CANONICAL = "/alerts";
 
 export const metadata: Metadata = {
-  title: { absolute: "One Piece Card Game Price Alerts & Watchlists | OP Compare" },
+  title: { absolute: "Magic: The Gathering Price Alerts & Watchlists | MTG Compare" },
   description:
-    "Track any One Piece card and get alerted when its price hits a new low, with the cheapest store named. How OP Compare watchlists and price alerts work, what they cost, and how to set one up.",
+    "Track any Magic card and get alerted when its price hits a new low, with the cheapest store named. How MTG Compare watchlists and price alerts work, what they cost, and how to set one up.",
   alternates: { canonical: CANONICAL },
-  keywords: ["one piece card price alert", "one piece tcg watchlist", "track one piece card prices", "one piece card price drop"],
+  keywords: ["magic card price alert", "magic tcg watchlist", "track magic card prices", "magic card price drop"],
   openGraph: pageOg(CANONICAL, {
-    title: "One Piece Card Game Price Alerts & Watchlists",
-    description: "Track any One Piece card and get alerted when its price hits a new low — free, across every store we track.",
+    title: "Magic: The Gathering Price Alerts & Watchlists",
+    description: "Track any Magic card and get alerted when its price hits a new low — free, across every store we track.",
   }),
 };
 
@@ -92,7 +93,7 @@ export default async function AlertsPage() {
       <JsonLd data={faqLd(faqs)} />
       <Breadcrumbs trail={[{ name: "Price alerts" }]} />
 
-      <h1 className="text-2xl font-extrabold text-white sm:text-3xl">One Piece Card Game price alerts &amp; watchlists</h1>
+      <h1 className="text-2xl font-extrabold text-white sm:text-3xl">Magic: The Gathering price alerts &amp; watchlists</h1>
 
       <div className="card-surface mt-4 border-l-2 border-l-brand-500 p-5">
         <p className="text-[15px] leading-relaxed text-slate-200">{alertsAnswer(emailOn)}</p>

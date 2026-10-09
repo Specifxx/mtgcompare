@@ -34,11 +34,11 @@ import { Skeleton, SkeletonTile } from "./ui/Skeleton";
 // `list` is the 448px drawer, one wide row per card with the heart in a column
 // of its own (a grid there gave four 90px columns on every desktop).
 //
-// SIGNED OUT (OP Compare): the list saved in this browser (localStorage),
+// SIGNED OUT (MTG Compare): the list saved in this browser (localStorage),
 // priced by /api/watchlist from the cached catalogue — RiftCompare has no
 // signed-out list (its heart asks for an email instead).
 //
-// LIVE CHIPS (OP Compare): while email is off an alert is delivered in-app, so
+// LIVE CHIPS (MTG Compare): while email is off an alert is delivered in-app, so
 // each row says "At your target" or "New low since you started", computed
 // from the same cached price the row shows (lib/watch-baseline.ts watchChips).
 // The snooze chip and the pause banner exist only once email is on.

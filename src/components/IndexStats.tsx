@@ -1,7 +1,7 @@
 import { money } from "@/lib/format";
 import type { MarketStats } from "@/lib/market-stats";
 
-// The "key statistics" panel for the OP Compare Index (RiftCompare's IndexStats):
+// The "key statistics" panel for the MTG Compare Index (RiftCompare's IndexStats):
 // the stats a real market reports: basket value (one of each card), average and
 // median price, the index's range, breadth (advancers against decliners) and
 // recent realised volatility. A server component. US dollars: TCGplayer's market.

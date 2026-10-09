@@ -17,15 +17,15 @@ import { FREE_LIMIT_STATUS, parseFreeLimit, wouldHitFreeLimit, type FreeLimitBod
 // the page is open: unwatching from a tile's own heart has to make that tile
 // disappear from the watchlist drawer immediately, without a refetch.
 //
-// ── Two branches (OP Compare) ───────────────────────────────────────────────
+// ── Two branches (MTG Compare) ───────────────────────────────────────────────
 // SIGNED IN ("account"): RiftCompare's behaviour — GET /api/alerts/watchlist?ids=1
 //   once (ids only), optimistic POST /api/alerts/watchlist and DELETE
 //   /api/alerts/watchlist/[cardId], the free limit decided by the route's 402.
 //   Until the wave-2 member track ships those routes, a 404 means "no server
 //   list": the set is empty and a watch fails (and rolls back).
-// SIGNED OUT ("local"): OP Compare keeps its no-account hearts (RiftCompare
+// SIGNED OUT ("local"): MTG Compare keeps its no-account hearts (RiftCompare
 //   asks for an email instead, which OP cannot honour while email is off). The
-//   watched set is the card items of localStorage `op:watchlist` — the format of
+//   watched set is the card items of localStorage `mc:watchlist` — the format of
 //   components/WatchButton.tsx — and watch/unwatch write it and publish. No
 //   request at all. Older local items carry only a slug, so a card counts as
 //   watched when its id OR its slug is in the list (`isWatched`).
@@ -37,8 +37,8 @@ import { FREE_LIMIT_STATUS, parseFreeLimit, wouldHitFreeLimit, type FreeLimitBod
 // (member track, wave2-plan §4).
 
 /** localStorage key and change event of the signed-out list (components/WatchButton.tsx WATCH_KEY). */
-export const LOCAL_WATCHLIST_KEY = "op:watchlist";
-export const LOCAL_WATCHLIST_EVENT = "op:watchlist";
+export const LOCAL_WATCHLIST_KEY = "mc:watchlist";
+export const LOCAL_WATCHLIST_EVENT = "mc:watchlist";
 /** The signed-out list keeps the newest this many items (WatchButton's cap). */
 export const LOCAL_WATCHLIST_MAX = 200;
 
@@ -146,15 +146,15 @@ function listenLocal() {
 
 // ── The merge on first sign-in (member track, wave 2) ───────────────────────
 // A visitor who hearted cards while signed out keeps them when they make an
-// account or sign in: the card items of `op:watchlist` are posted to
+// account or sign in: the card items of `mc:watchlist` are posted to
 // /api/alerts/watchlist/merge, which resolves them through the cached
 // catalogue, imports at most 200 and GRANDFATHERS them (no free-limit check;
 // the limit applies to adds after the merge). On success the merged card
-// items leave localStorage and `op:watchlist-merged` records the account, so
+// items leave localStorage and `mc:watchlist-merged` records the account, so
 // nothing is posted twice. Sealed items stay local (sealed watches are Plus,
 // lib/use-sealed-watches.ts). A failed merge leaves the local list intact
 // for the next load.
-export const LOCAL_MERGED_KEY = "op:watchlist-merged";
+export const LOCAL_MERGED_KEY = "mc:watchlist-merged";
 
 function cookieMarket(): string {
   try {
@@ -190,7 +190,7 @@ async function mergeLocal(userId: string | null): Promise<void> {
 function load(): Promise<WatchlistState> {
   if (!inflight) {
     // Signed-out is known from /api/me (one shared request per page, and none
-    // at all without the oc_auth hint; see use-me.ts), so an anonymous visitor
+    // at all without the mc_auth hint; see use-me.ts), so an anonymous visitor
     // makes NO watchlist request. IDS ONLY (?ids=1): this runs on every
     // signed-in page view and builds nothing but a Set of card ids.
     inflight = fetchMe()
@@ -225,7 +225,7 @@ export function invalidateWatchlist() {
   publish();
 }
 
-// invalidateMe() (use-me.ts) fires `oc:me` on sign-in, sign-out and plan
+// invalidateMe() (use-me.ts) fires `mc:me` on sign-in, sign-out and plan
 // changes. Follow it so a mounted heart or header count never keeps the old
 // account's list (or the local list after signing in) until a reload: drop the
 // cached state and, when anything is listening, load again (one ids request,
@@ -234,7 +234,7 @@ let meListening = false;
 function listenMe() {
   if (meListening || typeof window === "undefined" || typeof window.addEventListener !== "function") return;
   meListening = true;
-  window.addEventListener("oc:me", () => {
+  window.addEventListener("mc:me", () => {
     if (state === null && inflight === null) return;
     invalidateWatchlist();
     if (subscribers.size) void load();

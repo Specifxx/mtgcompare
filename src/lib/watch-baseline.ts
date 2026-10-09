@@ -29,9 +29,9 @@ export function watchBaseline(
   return { label, text, delta };
 }
 
-// ── The live chips (OP Compare: delivery is in-app while email is off) ──────
+// ── The live chips (MTG Compare: delivery is in-app while email is off) ──────
 // RiftCompare tells a member a target was met, or a card hit a new low, by
-// email. OP Compare sends no email until a mailer is configured
+// email. MTG Compare sends no email until a mailer is configured
 // (getEmailStatus), so the watchlist itself says it, computed from the same
 // cached catalogue price the row shows: "At your target" when today's price in
 // the watch's market is at or under the target, "New low since you started"
@@ -53,7 +53,7 @@ export function watchChips(
 // ── The baseline a NEW watch is seeded with ─────────────────────────────────
 // RiftCompare seeds startPriceCents from its ALERT PRICE (lib/alert-price.ts):
 // the cheapest in-stock copy at a real store or TCGplayer's cheapest listing,
-// fresh, never eBay. OP Compare's Card.low<MKT> includes eBay, so it is never
+// fresh, never eBay. MTG Compare's Card.low<MKT> includes eBay, so it is never
 // the seed; this picks from the card's Offer rows by the same rule. Pure, so
 // the eBay exclusion is pinned by a test (tests/watch-baseline.test.ts); the
 // read is lib/watchlist-server.ts alertBaselineCents. To be replaced by the

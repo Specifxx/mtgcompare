@@ -34,7 +34,7 @@ import { readSealedListings, type SealedListing } from "./sealed-alert-read";
 //                     that is older than the 30-day watermark.
 //   • sealed_restock  sold out at EVERY tracked store (on fresh reads) for at
 //                     least SEALED_RESTOCK_MIN_SOLDOUT_MS, and open now.
-//   • sealed_rrp      OFF on OP Compare: there is no MSRP table yet
+//   • sealed_rrp      OFF on MTG Compare: there is no MSRP table yet
 //                     (lib/alert-limits.ts SEALED_RRP_MARKETS = []).
 //   • sealed_drop     no target, and a material drop (≥5% and
 //                     ≥ SEALED_DROP_MIN_CENTS) under the reference.

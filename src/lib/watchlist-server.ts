@@ -12,7 +12,7 @@
 // from the cached catalogue (getCatalog in lib/data.ts). Called only from
 // /api/* routes, never from a page render or a cached loader.
 //
-// Card ids are numbers (Card.id, the TCGplayer productId). OP Compare is
+// Card ids are numbers (Card.id, the TCGplayer productId). MTG Compare is
 // account-only here: there is no anonymous email door, so every row carries
 // userId as well as the account's email (kept for AlertMute and future mail).
 import { randomUUID } from "node:crypto";
@@ -285,8 +285,8 @@ export async function applyTargetPrice(db: TargetDb, user: EntitlementFields & {
   };
 }
 
-// ── The signed-out list, merged on first sign-in (OP Compare) ───────────────
-// The browser posts the card items of its localStorage `op:watchlist` (slug
+// ── The signed-out list, merged on first sign-in (MTG Compare) ───────────────
+// The browser posts the card items of its localStorage `mc:watchlist` (slug
 // and, on newer items, the id). Each resolves through the cached catalogue —
 // an unknown slug is skipped, never guessed. At most MERGE_CAP are imported,
 // and they are GRANDFATHERED: no free-limit check, because a visitor who

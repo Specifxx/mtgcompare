@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-// RiftCompare's /watching, ported in wave 2 (2026-10-03). OP Compare's old
+// RiftCompare's /watching, ported in wave 2 (2026-10-03). MTG Compare's old
 // /watchlist (a browser-only list) now redirects here (next.config.js,
 // non-permanent). The signed-out list still lives in the header drawer.
 //

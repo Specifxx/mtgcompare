@@ -812,7 +812,7 @@ test("banner and sealed slices: the pool costs what the brief says; sealed needs
 });
 
 test("a chase-pool name that is otherwise tier C is searched for the banner only", () => {
-  const cheap = UNITS.find((u) => u.valueCents < CFG.minValueCents + 100)!;
+  const cheap = { ...UNITS.at(-1)!, valueCents: 800 };   // the sample's cheapest name, as one of its US$8 printings: under the US$10 floor
   const a = allocate([{ ...cheap, banner: true }], CFG);
   assert.equal(a.tiers.get(cheap.ref), TIER.BANNER);
 });
@@ -835,8 +835,8 @@ test("isDue: never searched is due, then interval minus a 3 h grace; force ignor
   assert.equal(isDue(hoursAgo(68), 72, NOW), false);
   assert.equal(isDue(hoursAgo(69), 72, NOW), true);
   assert.equal(isDue(hoursAgo(1), 24, NOW, true), true);
-  assert.equal(isDue(hoursAgo(2), 6, NOW), true, "the grace is capped at half the interval");
-  assert.equal(isDue(hoursAgo(2), 6, NOW) && !isDue(hoursAgo(1), 6, NOW), true);
+  assert.equal(isDue(hoursAgo(3), 6, NOW), true, "the grace is capped at half the interval: a 6 h pair is due at 3 h");
+  assert.equal(isDue(hoursAgo(2), 6, NOW), false);
 });
 
 function due(purpose: "banner" | "main", over: Partial<Parameters<typeof duePairs>[0]> = {}): Pair[] {
@@ -928,7 +928,7 @@ test("schedule: four crons, the MAIN one at 23:37, every run clear of the import
   assert.equal(purposeOfSchedule("37 23 * * *"), "main");
   assert.equal(purposeOfSchedule("37 4 * * *"), "banner");
   assert.equal(purposeOfSchedule(null), "main", "a dispatch is a main run");
-  assert.ok(BANNER_ONLY_RUN_CAP >= 28 + 3 * 11 && BANNER_ONLY_RUN_CAP <= 100);
+  assert.ok(BANNER_ONLY_RUN_CAP >= Math.ceil((24 + 3 * 11) * 1.15) && BANNER_ONLY_RUN_CAP <= 100);
   const yml = read(".github/workflows/ebay-prices.yml");
   assert.deepEqual([...yml.matchAll(/- cron:\s*"([^"]+)"/g)].map((m) => m[1]), [...EBAY_CRONS]);
   assert.deepEqual(SINGLES_MARKETS, ["US", "UK", "AU", "EU"]);

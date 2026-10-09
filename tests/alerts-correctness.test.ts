@@ -7,7 +7,7 @@ import { CONFIRMATION_DAILY_CAP, claimConfirmationSlot, confirmationKey, type Co
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Alert correctness: the numbers and promises the paid target alert is built
-// on (RiftCompare's alerts-correctness, over OP Compare's schema and workflow).
+// on (RiftCompare's alerts-correctness, over MTG Compare's schema and workflow).
 // ─────────────────────────────────────────────────────────────────────────────
 
 const ROOT = process.cwd();
@@ -22,7 +22,7 @@ test("schema: targetCents and startPriceCents are additive, nullable PriceAlert 
   assert.match(model, /\n\s*lastNotifiedAt\s+DateTime\?/);
   assert.match(model, /\n\s*lastFlaggedAt\s+DateTime\?/);
   assert.match(model, /\n\s*confirmSentAt\s+DateTime\?/);
-  assert.match(model, /@@unique\(\[email, cardId, market\]\)/);
+  assert.match(model, /@@unique\(\[email, cardId, finish, market\]\)/);
 });
 
 test("the run READS the start price (the email's 'you started watching at') but never writes it", () => {
@@ -34,8 +34,8 @@ test("the anonymous subscribe door seeds from the ALERT PRICE once, never from C
   // sold out on the first run and its first store listing emailed "back in
   // stock". alertBaselineSeed's own behaviour is pinned in alert-price.test.ts.
   const lib = code("src/lib/alert-subscribe.ts");
-  assert.match(lib, /computeAlertPrices\(prisma, fresh\.map\(\(c\) => \(\{ cardId: c\.id, market \}\)\), now, \{ slim: true \}\)/);
-  assert.match(lib, /\.\.\.alertBaselineSeed\(prices\.get\(alertPairKey\(market, c\.id\)\)\)/);
+  assert.match(lib, /computeAlertPrices\(io\.readOffers \?\? liveAlertReader\(\), fresh\.map\(\(c\) => \(\{ cardId: c\.id, finish: c\.finish, market \}\)\), now\)/);
+  assert.match(lib, /\.\.\.alertBaselineSeed\(prices\.get\(alertPairKey\(market, c\.id, c\.finish\)\)\)/);
   assert.doesNotMatch(lib, /\blow(US|AU|UK|SG|CA|EU)\b|lowestPriceCents/);
   assert.match(lib, /skipDuplicates: true/, "re-watching never rewrites a baseline");
 });
@@ -98,13 +98,13 @@ test("the daily cap counts confirmations sent — one slot per call, per UTC day
 
 test("the confirmation names the cards, their market and today's price, and states the cadence", () => {
   const cards = [
-    { name: "Monkey.D.Luffy", setCode: "OP01", number: "OP01-003", url: "https://opcompare.app/card/luffy", market: "AU" as const, priceCents: 1840, storeName: "Cherry", condition: null },
-    { name: "Roronoa Zoro", setCode: "OP01", number: "OP01-025", url: "https://opcompare.app/card/zoro", market: "AU" as const, priceCents: null, storeName: null },
+    { name: "Lightning Bolt", setCode: "2XM", number: "141", url: "https://mtgcompare.app/card/lightning-bolt", market: "AU" as const, priceCents: 1840, storeName: "Cherry", condition: null },
+    { name: "Sol Ring", setCode: "2XM", number: "259", url: "https://mtgcompare.app/card/sol-ring", market: "AU" as const, priceCents: null, storeName: null },
   ];
   const email = buildAlertConfirmationEmail(cards, 12, "tok", true);
-  assert.equal(email.subject, "You're watching 12 cards on OP Compare");
+  assert.equal(email.subject, "You're watching 12 cards on MTG Compare");
   for (const part of [email.html, email.text]) {
-    assert.match(part, /Monkey\.D\.Luffy/);
+    assert.match(part, /Lightning Bolt/);
     assert.match(part, /cheapest now A\$18\.40 at Cherry · Condition not stated by the store/);
     assert.doesNotMatch(part, /cheapest Near Mint/);
     assert.match(part, /falls at least 5% \(and at least A\$0\.50\) to a new low/);
@@ -113,43 +113,32 @@ test("the confirmation names the cards, their market and today's price, and stat
     assert.match(part, /At most one email a week for free alerts/);
   }
   assert.equal(email.headers["List-Unsubscribe-Post"], "List-Unsubscribe=One-Click");
-  assert.equal(buildAlertConfirmationEmail([cards[0]!], 1, "tok").subject, "You're watching Monkey.D.Luffy on OP Compare");
+  assert.equal(buildAlertConfirmationEmail([cards[0]!], 1, "tok").subject, "You're watching Lightning Bolt on MTG Compare");
   const uk = buildAlertConfirmationEmail([{ ...cards[0]!, market: "UK" as const, condition: "Near Mint" }], 1, "tok");
   assert.match(uk.text, /cheapest now £18\.40 at Cherry · Near Mint/);
   assert.match(uk.text, /at least £0\.50\)/);
 });
 
-test("alert runs follow a SUCCESSFUL import: free once a day after 07:07, paid after both, baselines on request", () => {
+test("alert runs follow a SUCCESSFUL publish: one daily step after the pointed checkout, baselines by mode only", () => {
   const wf = read(".github/workflows/import-prices.yml");
-  // The import step is addressable, and every alert step gates on it: a failed
-  // import leaves Offer half-rewritten.
-  assert.match(wf, /- name: Import\n\s+id: import\n/);
-  const publish = wf.indexOf("- name: Point the site at it and refresh");
-  const freeRun = wf.indexOf("- name: Free price alerts");
-  const paid = wf.indexOf("- name: Paid price alerts");
-  const baseline = wf.indexOf("- name: Alert baselines after a matcher change");
-  assert.ok(publish > 0 && freeRun > publish && paid > freeRun && baseline > paid, "publish, then free, then paid, then baselines");
-  const freeStep = wf.slice(freeRun, paid);
-  assert.match(freeStep, /if: \$\{\{ !cancelled\(\) && steps\.import\.outcome == 'success' && \(github\.event\.schedule == '7 7 \* \* \*' \|\| \(github\.event_name == 'workflow_dispatch' && inputs\.alerts == 'free'\)\) \}\}/);
-  assert.match(freeStep, /scripts\/alerts\.ts --mode=free/);
-  const paidStep = wf.slice(paid, baseline);
-  assert.match(paidStep, /if: \$\{\{ !cancelled\(\) && steps\.import\.outcome == 'success' && \(github\.event_name == 'schedule' \|\| \(github\.event_name == 'workflow_dispatch' && inputs\.alerts == 'free'\)\) \}\}/);
-  assert.match(paidStep, /scripts\/alerts\.ts --mode=paid/);
-  const baseStep = wf.slice(baseline);
-  assert.match(baseStep, /if: \$\{\{ !cancelled\(\) && steps\.import\.outcome == 'success' && github\.event_name == 'workflow_dispatch' && inputs\.alerts == 'baseline' \}\}/);
-  assert.match(baseStep, /scripts\/alerts\.ts --mode=baseline/);
-  assert.match(wf, /alerts:\n\s+description: [^\n]+\n\s+type: choice\n\s+options: \[none, baseline, free\]\n\s+default: none/);
-  for (const cond of wf.slice(freeRun).match(/^\s*if: [^\n]*/gm) ?? []) assert.match(cond, /!cancelled\(\) && steps\.import\.outcome == 'success'/, cond);
-  assert.doesNotMatch(wf.slice(freeRun), /if: always\(\)/, "no alert run after a failed import");
-  // No Vercel cron runs alerts; the workflow owns both runs, and the link secret is the only key Actions holds for them.
+  // The alert step comes after the publish steps (a failed import fails the job before it) and after the checkout of the
+  // pointed tree it reads; it runs bare (the daily mode of scripts/alerts.ts), never a second or third time with a mode.
+  const phase2 = wf.indexOf("- name: Phase 2");
+  const checkout = wf.indexOf("scripts/plane-checkout.sh .data");
+  const alerts = wf.indexOf("- name: Alerts");
+  assert.ok(phase2 > 0 && checkout > phase2 && alerts > checkout, "publish, then the checkout, then the alerts");
+  const step = wf.slice(alerts);
+  assert.match(step, /run: npx tsx scripts\/alerts\.ts\s*(\n|$)/);
+  assert.doesNotMatch(wf, /alerts\.ts --mode=(free|paid)/, "one daily run, not a free and a paid one");
+  // No Vercel cron runs alerts; the workflow owns the run, and the link secret is the only key Actions holds for it.
   const crons = (JSON.parse(read("vercel.json")).crons ?? []) as { path: string }[];
   assert.deepEqual(crons.filter((c) => /alert|email|newsletter/i.test(c.path)), []);
   assert.doesNotMatch(wf, /AUTH_SECRET/, "AUTH_SECRET never goes into Actions");
 });
 
-test("the manual import defaults to NO alerts: a matcher re-import writes fixes, not market news", () => {
+test("a manual publish can switch the alerts off, and a matcher re-import writes fixes, not market news: baseline mode exists for it", () => {
   const wf = read(".github/workflows/import-prices.yml");
-  const manual = wf.slice(wf.indexOf("alerts:"), wf.indexOf("concurrency:"));
-  assert.match(manual, /default: none/);
-  assert.doesNotMatch(wf.slice(wf.indexOf("- name: Free price alerts")), /inputs\.alerts == 'none'/);
+  assert.match(wf, /alerts: \{ description: [^\n]*type: boolean/);
+  assert.match(read("scripts/alerts.ts"), /baselineOnly: true/);
+  assert.match(wf.slice(wf.indexOf("- name: Alerts")), /inputs\.alerts/, "the step honours the box");
 });

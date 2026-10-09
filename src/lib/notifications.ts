@@ -3,7 +3,7 @@ import { prisma } from "./db";
 // THE IN-APP NOTIFICATION FEED — RiftCompare's lib/notifications.ts and the
 // reads behind /api/notifications, ported in wave 2 (2026-10-03).
 //
-// In RiftCompare a notification is the in-app mirror of an email. OP Compare
+// In RiftCompare a notification is the in-app mirror of an email. MTG Compare
 // sends no email until a mailer is configured (getEmailStatus), so here a
 // notification IS the alert's delivery: the alert run (scripts/alerts.ts,
 // collection-alerts track) writes one per trigger through notify(), the

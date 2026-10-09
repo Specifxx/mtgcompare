@@ -1,6 +1,6 @@
 // THE HOURLY OUTBOX — RiftCompare's welcome-email cron, the alert-confirmation
 // drain and the newsletter-welcome send, run script-side in GitHub Actions
-// (.github/workflows/email.yml, minute 23) for OP Compare (wave 2, 2026-10-03).
+// (.github/workflows/email.yml, minute 23) for MTG Compare.
 // Nothing is sent from a request: a signup writes a row, and this run sends.
 //
 // OFF UNTIL CONFIGURED: without both mail secrets (lib/email.ts
@@ -14,6 +14,7 @@ import { recordEmailRefused, recordEmailStatus } from "../src/lib/email-status";
 import { drainConfirmations } from "../src/lib/alert-confirmations";
 import { drainNewsletterWelcomes } from "../src/lib/newsletter";
 import { runWelcomeEmails } from "../src/lib/welcome-email";
+import { drainSupportEmails } from "../src/lib/support-email";
 
 const log = (...a: unknown[]) => console.log(new Date().toISOString().slice(11, 19), ...a);
 
@@ -34,6 +35,7 @@ async function main() {
   };
   await attempt("welcome", () => runWelcomeEmails());
   await attempt("confirmations", () => drainConfirmations());
+  await attempt("support", () => drainSupportEmails());
   await attempt("newsletterWelcomes", () => drainNewsletterWelcomes(new Date(), sendNewsletterWelcomeEmail));
   log("Outbox:", JSON.stringify(summary));
   if (providerRefused()) {

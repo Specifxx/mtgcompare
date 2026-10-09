@@ -1,12 +1,12 @@
 name: Weekly newsletter
 
 # The weekly Index summary (scripts/newsletter.ts), Fridays 21:00 UTC: this
-# week's One Piece card movers per market, the cards TCGplayer listed this week,
+# week's Magic card movers per market, the cards TCGplayer listed this week,
 # and the sponsored slot when one is booked (lib/newsletter-sponsor.ts). One
 # edition per ISO week, stamped per subscriber after a successful send, so a
 # manual re-run resumes rather than double-sends.
 #
-# OFF until the repository secrets RESEND_API_KEY and EMAIL_FROM exist (OP
+# OFF until the repository secrets RESEND_API_KEY and EMAIL_FROM exist (MTG
 # Compare's own Resend account, never RiftCompare's, never on Vercel): the gate
 # then skips the job and the run is green. A refused key fails the run red.
 on:
@@ -31,7 +31,10 @@ jobs:
       EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
       EMAIL_LINK_SECRET: ${{ secrets.EMAIL_LINK_SECRET }}
       EMAIL_REPLY_TO: ${{ vars.EMAIL_REPLY_TO }}
-      NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL || 'https://opcompare.app' }}
+      NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL || 'https://mtgcompare.app' }}
+      # The published data is read over HTTP at the pointed commit (no checkout): the confirmations and the digest price from it.
+      PLANE_REPO: ${{ vars.PLANE_REPO }}
+      PLANE_TOKEN: ${{ secrets.PLANE_TOKEN || secrets.DATA_REPO_TOKEN }}
     steps:
       - name: Skip unless email and the database are configured
         id: gate

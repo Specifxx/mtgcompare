@@ -107,7 +107,7 @@ test("a cheaper store going stale while a dearer one is fresh sends nothing, rai
 test("a digest past what one email renders holds the rest for the next email", async () => {
   const shown = ALERT_EMAIL_FULL_ROWS + ALERT_EMAIL_COMPACT_ROWS;
   const rows = Array.from({ length: shown + 5 }, (_, i) =>
-    row(`c${i}`, { email: "big@example.com", unsubToken: "tok-big", setCode: "OP01" }),
+    row(`c${i}`, { email: "big@example.com", unsubToken: "tok-big", setCode: "2XM" }),
   ).map((r, i) => ({ ...r, _price: 1000 + i }));
   const h = harness(rows);
   const s = await h.run();
@@ -169,11 +169,11 @@ test("sanitizeNextPath refuses backslash and control-character tricks", () => {
 
 test("/api/market never 307s off-origin", () => {
   for (const to of ["/\\evil.com", "/\t/evil.com", "/\n/evil.com", "/%5Cevil.com"]) {
-    const r = marketGET(new Request(`https://opcompare.app/api/market?m=AU&to=${encodeURIComponent(to)}`));
+    const r = marketGET(new Request(`https://mtgcompare.app/api/market?m=AU&to=${encodeURIComponent(to)}`));
     const loc = r.headers.get("location") ?? "";
-    assert.ok(loc.startsWith("https://opcompare.app/"), `${JSON.stringify(to)} → ${loc}`);
+    assert.ok(loc.startsWith("https://mtgcompare.app/"), `${JSON.stringify(to)} → ${loc}`);
   }
   // The decoded backslash form, as the finding reproduced it.
-  const r = marketGET(new Request("https://opcompare.app/api/market?to=%2F%5Cevil.com"));
-  assert.equal(r.headers.get("location"), "https://opcompare.app/");
+  const r = marketGET(new Request("https://mtgcompare.app/api/market?to=%2F%5Cevil.com"));
+  assert.equal(r.headers.get("location"), "https://mtgcompare.app/");
 });

@@ -364,7 +364,7 @@ test("the region and tracked-only choices are remembered, guarded, and sent to b
   assert.match(read("src/lib/postage-display.ts"), /untracked letter \$\{fmt\(p\.otherOption\.cents\)\} also offered/);
   assert.match(ui, /postageLineBits\(group, fmt\)/);
   assert.match(ui, /the store&apos;s own checkout is final/);
-  assert.match(prefs, /POSTAGE_PREFS_KEY = "oc_postage"/, "OP Compare's own storage key");
+  assert.match(prefs, /POSTAGE_PREFS_KEY = "mc_postage"/, "MTG Compare's own storage key");
 });
 
 // ── The checked-in snapshot ─────────────────────────────────────────────────

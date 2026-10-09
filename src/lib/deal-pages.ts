@@ -99,7 +99,7 @@ export interface DealList<T> {
 }
 
 const unitOf = (uid: number): { id: number; finish: Finish } => ({ id: uid >> 1, finish: uid & 1 ? "F" : "N" });
-const unitUids = (ids: ReadonlySet<number> | null | undefined): Set<number> | undefined => (ids?.size ? new Set([...ids].flatMap((id) => [id * 2, id * 2 + 1])) : undefined);
+export const unitUids = (ids: ReadonlySet<number> | null | undefined): Set<number> | undefined => (ids?.size ? new Set([...ids].flatMap((id) => [id * 2, id * 2 + 1])) : undefined);
 
 export function dealCard(c: CardLite, finish: Finish): DealCard {
   return { id: c.id, slug: c.slug, name: c.name, variant: c.label ?? c.variant, number: c.number, setCode: c.setCode, hasImage: c.hasImage, finish };

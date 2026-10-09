@@ -7,7 +7,7 @@ import { parseNewsletterBody } from "../src/lib/newsletter-signup";
 
 const sp = (over: Partial<NewsletterSponsor> = {}): NewsletterSponsor => ({
   name: "Acme Sleeves", headline: "Sleeves <b>for</b> chase cards", body: "Matte sleeves & top-loaders.",
-  url: "https://acme.example/onepiece", cta: "Shop sleeves", from: "2026-10-01", until: "2026-10-07", ...over,
+  url: "https://acme.example/magic", cta: "Shop sleeves", from: "2026-10-01", until: "2026-10-07", ...over,
 });
 
 test("no sponsor is booked until the owner adds one", () => {
@@ -27,16 +27,16 @@ test("sponsorFor picks a booking only inside its dates and markets, https only",
 });
 
 const card = (name: string, over: Partial<DigestCard> = {}): DigestCard => ({
-  id: 1, slug: name.toLowerCase().replace(/\W+/g, "-"), name, number: "OP01-003", variant: null, setCode: "OP01",
+  id: 1, slug: name.toLowerCase().replace(/\W+/g, "-"), name, number: "141", variant: null, setCode: "2XM",
   marketUsd: 500, change7d: null, high90Usd: null, low: { US: 450 }, ...over,
 });
-const movers = digestMovers([card("Monkey.D.Luffy", { change7d: 25 }), card("Roronoa Zoro", { id: 2, change7d: -20 })]);
+const movers = digestMovers([card("Lightning Bolt", { change7d: 25 }), card("Sol Ring", { id: 2, change7d: -20 })]);
 
 test("the sponsored slot is labelled, escaped, UTM-tagged and rel=sponsored", () => {
   const d = buildDigest(movers, "US", [], { sponsor: sp() })!;
   assert.match(d.inner, /SPONSORED · Acme Sleeves/);
   assert.match(d.inner, /Sleeves &lt;b&gt;for&lt;\/b&gt; chase cards/, "sponsor text is HTML-escaped");
-  assert.match(d.inner, /href="https:\/\/acme\.example\/onepiece\?utm_source=opcompare&amp;utm_medium=email&amp;utm_campaign=newsletter-sponsor" rel="sponsored"/);
+  assert.match(d.inner, /href="https:\/\/acme\.example\/magic\?utm_source=mtgcompare&amp;utm_medium=email&amp;utm_campaign=newsletter-sponsor" rel="sponsored"/);
 });
 
 test("with no booking the slot is a labelled 'sponsor this newsletter' line", () => {
@@ -49,7 +49,7 @@ test("the extra sections render only from the data they are given", () => {
   const extras: DigestExtras = {
     stats: { priced: 1234, liveStores: 42 },
     popular: [card("Trafalgar Law", { id: 3, low: { US: 1999 } })],
-    releases: [{ name: "Awakening of the New Era", date: "2026-10-23", daysAway: 22, href: "/sets/op-05" }],
+    releases: [{ name: "Modern Horizons 3", date: "2026-10-23", daysAway: 22, href: "/sets/modern-horizons-3" }],
   };
   const inner = buildDigest(movers, "US", [], extras)!.inner;
   for (const s of ["The market at a glance", "1,234 cards with a live price", "42 US stores with stock", "What collectors are searching for", "from US$19.99", "Coming up", "in 22 days"]) {
@@ -59,9 +59,9 @@ test("the extra sections render only from the data they are given", () => {
   for (const s of ["The market at a glance", "What collectors are searching for", "Coming up"]) assert.ok(!bare.includes(s), s);
 });
 
-test("new One Piece cards this week come from the cards TCGplayer first listed", () => {
+test("the newest Magic cards come from the catalogue's newest set", () => {
   const inner = buildDigest(movers, "US", [card("Portgas.D.Ace", { id: 9 })], {})!.inner;
-  assert.match(inner, /New One Piece cards this week/);
+  assert.match(inner, /Newest Magic cards/);
   assert.match(inner, /Portgas\.D\.Ace/);
   assert.match(inner, /utm_source=newsletter/);
   assert.match(inner, /Search eBay/, "the eBay link is an affiliate search, never an API call");

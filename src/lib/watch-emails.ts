@@ -2,11 +2,11 @@ import type { Country } from "./country";
 import { moneyCode as formatMoney } from "./format";
 import { SITE_URL } from "./site";
 import { EMAIL_COLORS as C, SITE_LINE, alertListHeaders, checkedLabel, emailButton, emailShell, escapeHtml, sendEmail } from "./email";
-import type { WatchActionLinks } from "./alert-actions";
+import { watchActionLinks, type WatchActionLinks } from "./alert-actions";
 import { SEALED_CHECK_CADENCE, SEALED_CHECK_SENTENCE } from "./alert-limits";
 
-// OP Compare (wave 2, 2026-10-03): RiftCompare's lib/watch-emails.ts. A sealed
-// watch is keyed by Sealed.id (RiftCompare: a listing groupKey), and OP Compare
+// MTG Compare (wave 2, 2026-10-03): RiftCompare's lib/watch-emails.ts. A sealed
+// watch is keyed by Sealed.id (RiftCompare: a listing groupKey), and MTG Compare
 // has no MSRP table yet (lib/alert-limits.ts SEALED_RRP_MARKETS = []), so a
 // sealed email names no RRP. The deck price watch's run is the tools track's
 // (lib/deck-watch.ts runDeckWatches); its email lives here beside the sealed one.
@@ -36,8 +36,8 @@ function watchHeaders(links: WatchActionLinks): Record<string, string> {
   return alertListHeaders({ oneClick: `${SITE_URL}/api/alerts/action?t=${encodeURIComponent(new URL(links.stop).searchParams.get("t") ?? "")}` });
 }
 
-// The cadence a sealed watch is honestly sold at: the store import runs twice a
-// day (import-prices.yml, 07:07 and 19:07 UTC); the scheduler can start one late. Never "instant". A Discord stock
+// The cadence a sealed watch is honestly sold at: the import publishes once a
+// day (schedule.ts; SEALED_CHECK_CADENCE reads it); the scheduler can start one late. Never "instant". A Discord stock
 // bot polls faster than a price site can, so the copy says so instead of
 // pretending otherwise.
 const SEALED_CADENCE_NOTE = SEALED_CHECK_SENTENCE;
@@ -46,7 +46,7 @@ function watchFooter(kind: "deck" | "sealed", links: WatchActionLinks, manage: s
   const what = kind === "deck" ? "this list's delivered price" : "this sealed product";
   const cadence = kind === "deck" ? "it is checked after every price update" : `sealed products are checked ${SEALED_CHECK_CADENCE}`;
   return `<tr><td style="padding:16px 32px 26px;border-top:1px solid ${C.border};font-size:12px;line-height:1.6;color:${C.muted}">
-    You're getting this because you asked OP Compare to watch ${what}${kind === "deck" ? " (Premium)" : " (Plus or Premium)"}; ${cadence}.<br/>
+    You're getting this because you asked MTG Compare to watch ${what}${kind === "deck" ? " (Premium)" : " (Plus or Premium)"}; ${cadence}.<br/>
     <a href="${escapeHtml(links.stop)}" style="color:${C.link};text-decoration:underline">Stop watching</a>
     &nbsp;·&nbsp; <a href="${escapeHtml(links.snooze)}" style="color:${C.link};text-decoration:underline">Snooze 30 days</a>
     &nbsp;·&nbsp; <a href="${escapeHtml(manage)}" style="color:${C.link};text-decoration:underline">Manage your watches</a><br/>
@@ -96,7 +96,7 @@ export interface DeckWatchItem {
   minCondition?: "nm" | "lp" | "any";
   stores: DeckWatchStoreLine[]; // the plan's stores, dearest first, at most 3
   checkedAt: Date;
-  actions: WatchActionLinks | null;
+  actions?: WatchActionLinks | null; // absent: sendDeckWatchEmail signs the stop and snooze links itself (the deck run builds none)
 }
 
 /** The page that re-runs this watch's saved list for its owner. */
@@ -197,7 +197,7 @@ function total(m: (c: number) => string, item: { totalCents: number }): string {
 }
 
 export async function sendDeckWatchEmail(to: string, item: DeckWatchItem): Promise<boolean> {
-  const e = buildDeckWatchEmail(item);
+  const e = buildDeckWatchEmail(item.actions === undefined ? { ...item, actions: watchActionLinks({ kind: "deck", id: item.watchId }) } : item);
   return sendEmail(to, e.subject, e.html, { text: e.text, headers: e.headers });
 }
 
@@ -216,7 +216,7 @@ export interface SealedWatchItem {
   market: Country;
   currency: string;
   priceCents: number; // the cheapest open listing at a real store
-  rrpCents: number | null; // always null on OP Compare until an MSRP table exists
+  rrpCents: number | null; // always null on MTG Compare until an MSRP table exists
   store: { name: string; url: string; retailer: string }; // affiliate-tagged, loc /email-alert-sealed
   storeCount: number; // real stores with an open listing
   targetCents: number | null;

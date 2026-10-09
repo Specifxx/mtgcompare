@@ -119,6 +119,9 @@ export function isFiltered(q: BrowseQuery): boolean {
   return !!(q.q || q.sets.length || q.colors.length || q.identity || q.rarities.length || q.types.length || q.treats.length || q.finish || q.format || q.keyword || q.priced || q.min != null || q.max != null);
 }
 
+/** A set id no set has: the filter for a set slug that does not exist. */
+export const NO_SET = 2_147_483_647;
+
 /** The cheapest a card is for a DEFAULT list to show it: below the index floor a row is THIN (listed, noindex, in no sitemap), and a default view that opens on value would otherwise page through them. A search, a set, a named price or any filter lifts it. */
 export const DEFAULT_FLOOR_CENTS = TRACK_DEFAULTS.indexFloorCents;
 
@@ -132,7 +135,7 @@ export function toCardQuery(b: BrowseQuery, sets: readonly SetLite[], country: C
   const setIds = uniq(b.sets.flatMap((k) => { const s = byKey.get(k.toLowerCase()); return s ? [s.id] : []; }));
   const q: Partial<CardQuery> = { sort: b.sort, page: b.page, per: (o.per ?? b.per) as CardQuery["per"] };
   if (b.q) q.q = b.q;
-  if (b.sets.length) q.setIds = setIds.length ? setIds : [-1];                       // an unknown set matches nothing
+  if (b.sets.length) q.setIds = setIds.length ? setIds : [NO_SET];                   // an unknown set matches nothing (canonicalQuery drops an id that is not positive, which would mean every set)
   const letters = b.colors.filter((c) => c !== "colorless" && c !== "multicolor");
   const mask = letters.reduce((m, w) => m | (Object.values(COLORS).find((c) => c.slug === w)?.bit ?? 0), 0);
   if (letters.length) q.colors = { mask, mode: b.colors.includes("colorless") ? "within" : b.colorMode };

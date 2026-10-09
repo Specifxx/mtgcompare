@@ -7,10 +7,10 @@ import type { ReleaseAlertSource } from "@/lib/release-alerts";
 // The one-field "email me when {set} lands" signup (lib/release-alerts.ts) —
 // RiftCompare's ReleaseAlertSignup, ported in wave 2 (2026-10-03). Same consent
 // line as the price-alert modal ("... Unsubscribe anytime."), and the same
-// remembered address (op:alert_email) so a visitor who already set an alert
+// remembered address (mc:alert_email) so a visitor who already set an alert
 // types nothing twice. Mounted only inside <EmailOnly>: while email is off no
 // email field renders.
-const SAVED_EMAIL_KEY = "op:alert_email";
+const SAVED_EMAIL_KEY = "mc:alert_email";
 
 export function ReleaseAlertSignup({
   setSlug,

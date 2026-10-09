@@ -1,5 +1,5 @@
 // "Tell me when this set lands" — the set-level release alert. RiftCompare's
-// lib/release-alerts.ts (2026-09-26), ported for OP Compare in wave 2
+// lib/release-alerts.ts (2026-09-26), ported for MTG Compare in wave 2
 // (2026-10-03) and generalised from one set (Radiance) to EVERY set whose
 // release date is in the future or within the last 30 days (releaseAlertSets).
 //
@@ -20,7 +20,7 @@
 // Honest by construction: every email states a fact true at send time (a count
 // of priced singles, the named card's price, the named product back in stock)
 // and never a prediction. Sends are capped per run (RELEASE_ALERT_SEND_CAP) on
-// the shared transactional quota; the rest go out on the next run, twice a day.
+// the shared transactional quota; the rest go out on the next daily run.
 
 import { SITE_URL } from "./site";
 import { COUNTRIES, type Country } from "./country";
@@ -151,7 +151,7 @@ export function buildReleaseEmail(
   setName: string,
   setPath: string,
   notices: (SinglesNotice | RestockNotice)[],
-  // Where "See the pre-orders" goes (OP Compare: the set's page, which lists its sealed products).
+  // Where "See the pre-orders" goes (MTG Compare: the set's page, which lists its sealed products).
   preorderPath: string = setPath,
 ): BuiltReleaseEmail {
   const singles = notices.find((n): n is SinglesNotice => n.kind === "singles");

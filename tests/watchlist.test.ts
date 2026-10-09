@@ -16,7 +16,7 @@ test("no next.config.js redirect shadows /watching, /dashboard or /profile for a
     // The one allowed rule is the signed-out 307 to /login, which only matches
     // when there is NO session cookie (so the page still renders for a member).
     for (const l of lines) {
-      assert.match(l, /missing: \[\{ type: "cookie", key: "oc_session" \}\]/, p);
+      assert.match(l, /missing: \[\{ type: "cookie", key: "mc_session" \}\]/, p);
       assert.match(l, /permanent: false/, p);
       assert.ok(l.includes(`destination: "/login?next=${p}"`), p);
     }
@@ -28,7 +28,7 @@ test("signed-out visits to the streamed member pages are a real 307, decided bef
   for (const p of ["/watching", "/portfolio", "/portfolio/sets", "/portfolio/sets/:set"]) {
     const l = cfg.split("\n").find((x) => x.includes(`source: "${p}"`));
     assert.ok(l, p);
-    assert.match(l!, /missing: \[\{ type: "cookie", key: "oc_session" \}\]/);
+    assert.match(l!, /missing: \[\{ type: "cookie", key: "mc_session" \}\]/);
     assert.ok(l!.includes(`destination: "/login?next=${p}"`));
   }
   // An expired or invalid cookie is not "missing": the segment's LAYOUT (outside

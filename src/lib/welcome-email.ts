@@ -1,6 +1,6 @@
 // The one-time welcome email to a NEW account — the run half (the template is
 // buildWelcomeEmail in lib/email.ts). RiftCompare's lib/welcome-email.ts,
-// ported in wave 2 (2026-10-03) without the trial variant: OP Compare offers
+// ported in wave 2 (2026-10-03) without the trial variant: MTG Compare offers
 // no trial, so every new account gets the one ordinary welcome, whose copy
 // names only features that ship (lib/plans.ts, lib/free-limits.ts).
 //

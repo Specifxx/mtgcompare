@@ -6,7 +6,7 @@ import { alertPairKey, computeAlertPrices, liveAlertCards, liveAlertReader, type
 import { CONFIRMATION_CARD_ROWS, sendAlertConfirmationEmail, type AlertConfirmationCard } from "./email";
 
 // THE WATCH CONFIRMATION — RiftCompare's lib/alert-confirmations.ts, ported in
-// wave 2 (2026-10-03). OP Compare sends nothing at request time: the subscribe
+// wave 2 (2026-10-03). MTG Compare sends nothing at request time: the subscribe
 // route writes rows with confirmSentAt null, and the hourly outbox
 // (scripts/email-hourly.ts → drainConfirmations below) sends the confirmation,
 // under the same global daily cap.

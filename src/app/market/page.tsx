@@ -11,9 +11,10 @@ import {
   SectionHeader,
   StatTile,
 } from "@/components/ui";
-import { getCatalog, getIndexSeries } from "@/lib/data";
-import { int, longDate, money } from "@/lib/format";
-import { movers, releasedSets } from "@/lib/selectors";
+import { getCardsByIds, getIndexSeries, getMarketOverview, getMovers, getSets } from "@/lib/data";
+import { imageFor } from "@/lib/images";
+import { int, longDate, money, usd } from "@/lib/format";
+import { releasedSets } from "@/lib/selectors";
 import CardQuickLink from "@/components/CardQuickLink";
 import { IndexConstituents } from "@/components/IndexConstituents";
 import { IndexStats } from "@/components/IndexStats";
@@ -27,10 +28,13 @@ import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { pageOg } from "@/lib/og/meta";
 import { DATA_TABLE } from "@/components/prose";
 
+// Reads the published market views (mk/overview.json, the index series, the movers feed): rendered per request, cached at the CDN (contract 7.5).
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
-  title: "One Piece Card Market Index — Is the Market Up or Down?",
+  title: "Magic Card Market Index — Is the Market Up or Down?",
   description:
-    "The OP Compare Index tracks the whole One Piece Card Game singles market from TCGplayer market prices, plus each set's total value.",
+    "The MTG Compare Index tracks the whole Magic: The Gathering singles market from TCGplayer market prices, plus each set's total value.",
   alternates: { canonical: "/market" },
   openGraph: pageOg("/market"),
 };
@@ -47,29 +51,23 @@ function change(
 }
 
 export default async function MarketPage() {
-  const [cat, series] = await Promise.all([getCatalog(), getIndexSeries()]);
+  const [overview, series, allSets, gainers, fallers] = await Promise.all([
+    getMarketOverview(), getIndexSeries(), getSets(),
+    getMovers({ dir: "up", window: 7, minCents: 100, n: 5 }), getMovers({ dir: "down", window: 7, minCents: 100, n: 5 }),
+  ]);
   const last = series[series.length - 1];
-  const sets = releasedSets(cat.sets, ["booster", "extra", "premium"]).map(
-    (s) => {
-      const cs = cat.cards.filter((x) => x.setId === s.id);
-      const total = cs.reduce((a, x) => a + (x.marketUsd ?? 0), 0);
-      const w = cs.filter((x) => x.change7d != null && x.marketUsd);
-      const move = w.length
-        ? (w.reduce((a, x) => a + x.marketUsd!, 0) /
-            w.reduce((a, x) => a + x.marketUsd! / (1 + x.change7d! / 100), 0) -
-            1) *
-          100
-        : null;
-      return { s, total, move, n: cs.length };
-    },
-  );
+  // The value of each released set: the published share of the one-of-each basket it holds (cards at US$1 or more), by TCGplayer market price.
+  const worth = new Map(overview.sets.map((x) => [x.setId, x] as const));
+  const sets = releasedSets(allSets).map((s) => ({ s, total: worth.get(s.id)?.totalCents ?? 0, held: worth.get(s.id)?.n ?? 0 })).filter((r) => r.held > 0);
 
-  const { rows: constituents, basketCount } = indexConstituents(cat.cards, (id) => cat.setById.get(id)?.code ?? "");
-  // Breadth over the WHOLE basket (every card at US$1+), not just the table rows.
-  const basketAll = cat.cards.filter((c) => (c.marketUsd ?? 0) >= 100).map((c) => ({ priceCents: c.marketUsd!, d7pct: c.change7d }));
-  const stats = computeStats(series, basketAll);
-  const gainers = movers(cat.cards, "up", 5);
-  const fallers = movers(cat.cards, "down", 5);
+  // The 200 dearest cards of the basket, with the printing label, number, set and 7-day change of each.
+  const cards = await getCardsByIds(overview.constituents.map((r) => r.id), { stores: false });
+  const lite = new Map([...cards].map(([id, c]) => [id, { id, variant: c.variant, number: c.number, setCode: c.setCode, change7d: c.change7d, hasImage: c.hasImage, imageUrl: imageFor(c, "thumb") }] as const));
+  const basketCents = overview.basket.totalUsd;
+  const constituents = indexConstituents(overview.constituents, lite, basketCents);
+  const basketCount = overview.basket.n;
+  // Breadth over the WHOLE basket (every unit at US$1+), as the importer counted it, not just the table rows.
+  const stats = computeStats(series, { n: basketCount, totalCents: basketCents, avgCents: overview.basket.avg, medianCents: overview.basket.median, advancing: overview.advancing, declining: overview.declining });
   const d7 = change(series, 7);
   const sentence = last ? indexSentence({ day: longDate(last.day), value: last.value, d7, advancing: stats.advancing, counted: stats.advancing + stats.declining }) : null;
   const guides = guidesForCatalogue("market");
@@ -85,7 +83,7 @@ export default async function MarketPage() {
   return (
     <div>
       <Breadcrumbs trail={[{ name: "Market index" }]} />
-      <h1 className="text-2xl font-extrabold text-white sm:text-3xl">The OP Compare Index</h1>
+      <h1 className="text-2xl font-extrabold text-white sm:text-3xl">The MTG Compare Index</h1>
       <HubIntro path="/market" />
       {sentence ? <p className="mt-4 max-w-3xl text-[15px] font-semibold text-white">{sentence}</p> : null}
       <p className="mt-1 text-xs text-slate-500">US$ · TCGplayer market</p>
@@ -113,8 +111,8 @@ export default async function MarketPage() {
         <LineChart
           series={[
             {
-              label: "OP Compare Index",
-              color: "#ff6b6b",
+              label: "MTG Compare Index",
+              color: "#a259e6",
               points: series.map((p) => ({ x: p.day, y: p.value })),
             },
           ]}
@@ -133,7 +131,7 @@ export default async function MarketPage() {
       <section id="stats" className="mt-8 scroll-mt-40 xl:scroll-mt-36">
         <IndexStats stats={stats} startDay={series[0]?.day ?? "the first day"} />
         <p className="mt-2 text-xs text-slate-500">
-          Basket: the {int(basketCount)} printings priced at US$1 or more, one of each. Breadth counts every one of them, not only the table below.
+          Basket: the {int(basketCount)} printings priced at US$1 or more (the version each tracks: non-foil first), one of each. Breadth counts every one of them, not only the table below.
         </p>
       </section>
 
@@ -151,7 +149,7 @@ export default async function MarketPage() {
                   <li key={x.id} className="flex items-center justify-between gap-3 py-2 text-sm">
                     <CardQuickLink slug={x.slug} className="min-w-0 truncate text-slate-100 hover:text-brand-400 hover:underline">
                       {x.name}
-                      {x.variant ? ` (${x.variant})` : ""} <span className="num text-xs text-slate-500">{x.number}</span>
+                      {x.variant ? ` (${x.variant})` : ""} <span className="num text-xs text-slate-500">{x.setCode} {x.number}</span>
                     </CardQuickLink>
                     <span className="flex shrink-0 items-baseline gap-2">
                       <span className="num text-xs text-slate-400">{money(x.marketUsd, "US")}</span>
@@ -174,20 +172,19 @@ export default async function MarketPage() {
       <section id="sets" className="mt-10 scroll-mt-40 xl:scroll-mt-36">
         <SectionHeader
           title="Value by set"
-          sub="Every printing in each released booster set at TCGplayer's market price, and its value-weighted 7-day move."
+          sub="The printings of each released set that are worth US$1 or more, at TCGplayer's market price."
         />
         <div className="card-surface overflow-x-auto">
           <table className={`${DATA_TABLE} min-w-[560px]`}>
             <thead>
               <tr>
                 <th>Set</th>
-                <th className="text-right">Printings</th>
+                <th className="text-right">Printings over US$1</th>
                 <th className="text-right">Total value</th>
-                <th className="text-right">7 days</th>
               </tr>
             </thead>
             <tbody>
-              {sets.map(({ s, total, move, n }) => (
+              {sets.map(({ s, total, held }) => (
                 <tr key={s.id}>
                   <td>
                     <Link
@@ -198,12 +195,9 @@ export default async function MarketPage() {
                     </Link>{" "}
                     <span className="text-xs text-slate-500">{s.code}</span>
                   </td>
-                  <td className="num text-right text-slate-300">{int(n)}</td>
+                  <td className="num text-right text-slate-300">{int(held)}</td>
                   <td className="num text-right font-semibold text-accent">
-                    {money(total, "US")}
-                  </td>
-                  <td className="text-right">
-                    <Delta v={move} className="text-xs" />
+                    {usd(total)}
                   </td>
                 </tr>
               ))}
@@ -214,12 +208,12 @@ export default async function MarketPage() {
       <EbayChase page="market" className="mt-8" />
       <AdSlot slot="market" className="mt-10" thin={!series.length} />
       <section id="cite" className="card-surface mt-10 scroll-mt-40 p-5 xl:scroll-mt-36">
-        <h2 className="text-lg text-white">Cite the OP Compare Index</h2>
+        <h2 className="text-lg text-white">Cite the MTG Compare Index</h2>
         <p className="mt-1 max-w-3xl text-sm text-slate-400">
           You are welcome to quote the index with a link back. The method is stated above: a chained, value-weighted measure over TCGplayer market prices of cards at US$1 or more, 1,000 on its first day.
         </p>
         <pre className="mt-3 overflow-x-auto rounded-lg border border-ink-800 bg-ink-950/60 p-3 text-xs text-slate-300">
-          {`OP Compare Index${last ? `, ${last.day}: ${last.value.toFixed(1)}` : ""}. ${SITE_NAME}, ${SITE_URL}/market`}
+          {`MTG Compare Index${last ? `, ${last.day}: ${last.value.toFixed(1)}` : ""}. ${SITE_NAME}, ${SITE_URL}/market`}
         </pre>
       </section>
       <RelatedGuides guides={guides} className="card-surface mt-6 p-5" />

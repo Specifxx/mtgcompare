@@ -57,15 +57,16 @@ export function priceFilter(minUsdCents: number, currency: string): string {
 }
 /** 5% under our own plausibility floor: our FX rates are constants, eBay converts at live rates. */
 export const FX_SLACK = 0.95;
-/** plausibleSinglePrice's floor is 0.3x the market from US$3; moved to the server so hundreds of cheap copies cannot push a US$4,000 printing past `limit`. */
-export function cardFilter(market: Country, floorMarketUsd: number | null): string {
+/** plausibleSinglePrice's floor is 0.3x the market from US$3; moved to the server so hundreds of cheap copies cannot push a US$4,000 printing past `limit`. `floorMarketCents`: the cheapest tracked unit's market, USD cents. */
+export function cardFilter(market: Country, floorMarketCents: number | null): string {
   const parts = ["buyingOptions:{FIXED_PRICE}", `deliveryCountry:${isoCountry(market)}`];
-  if (floorMarketUsd != null && floorMarketUsd >= 300) parts.push(priceFilter(Math.round(FX_SLACK * 0.3 * floorMarketUsd), currencyOf(market)));
+  if (floorMarketCents != null && floorMarketCents >= 300) parts.push(priceFilter(Math.round(FX_SLACK * 0.3 * floorMarketCents), currencyOf(market)));
   return parts.join(",");
 }
-export function sealedFilter(market: Country, marketUsd: number | null): string {
+/** Sealed: new, fixed price, at least half the product's market (USD cents). */
+export function sealedFilter(market: Country, marketCents: number | null): string {
   const parts = ["buyingOptions:{FIXED_PRICE}", "conditions:{NEW}", `deliveryCountry:${isoCountry(market)}`];
-  if (marketUsd != null) parts.push(priceFilter(Math.round(FX_SLACK * 0.5 * marketUsd), currencyOf(market)));
+  if (marketCents != null) parts.push(priceFilter(Math.round(FX_SLACK * 0.5 * marketCents), currencyOf(market)));
   return parts.join(",");
 }
 export const CARD_LIMIT = 200;
@@ -217,7 +218,7 @@ export interface SealedTarget {
   kind: "sealed";
   id: number;
   name: string;
-  marketUsd: number | null;
+  marketCents: number | null;      // TCGplayer MARKET, USD cents
   refs: readonly SealedRef[];
 }
 export type ChooseTarget = NameTarget | SealedTarget;
@@ -350,12 +351,12 @@ export function screenSealed(items: EbayItem[], target: SealedTarget, market: Co
     if ("reject" in why) { no(why.reject); continue; }
     const l = mapItem(it);
     if (!l) { no("unusable"); continue; }
-    if (target.marketUsd == null) { no("no-reference"); continue; }
+    if (target.marketCents == null) { no("no-reference"); continue; }
     const usd = toUsdCents(l.priceCents, l.currency);
-    if (!plausibleSealedPrice(usd, target.marketUsd)) { no("implausible-price"); continue; }
+    if (!plausibleSealedPrice(usd, target.marketCents)) { no("implausible-price"); continue; }
     if (l.shippingCents != null && l.shippingCents > 0) {
       const shipUsd = toUsdCents(l.shippingCents, l.currency);
-      if (shipUsd > Math.max(usd, POSTAGE_CAP_USD_CENTS) || !plausibleSealedPrice(usd + shipUsd, target.marketUsd)) { no("postage"); continue; }
+      if (shipUsd > Math.max(usd, POSTAGE_CAP_USD_CENTS) || !plausibleSealedPrice(usd + shipUsd, target.marketCents)) { no("postage"); continue; }
     }
     survivors.push(l);
   }

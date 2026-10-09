@@ -62,7 +62,7 @@ export function NewsletterUnsubscribeClient({ token, emailOn = false }: { token:
             This unsubscribe link looks broken or has already been used.{emailOn ? " If you keep getting emails, reply to one and we'll sort it out." : ""}
           </p>
           <Link href="/" className="btn-ghost mt-4">
-            Back to OP Compare
+            Back to MTG Compare
           </Link>
         </>
       )}
@@ -91,7 +91,7 @@ export function NewsletterUnsubscribeClient({ token, emailOn = false }: { token:
               : "You're already off the list — this link has no active subscription."}
           </p>
           <Link href="/" className="btn-ghost mt-4">
-            Back to OP Compare
+            Back to MTG Compare
           </Link>
         </>
       )}

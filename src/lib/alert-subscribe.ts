@@ -2,7 +2,7 @@
 // watch half of its lib/free-limits-server.ts, ported in wave 2 (2026-10-03).
 // BUILT, AND HIDDEN: the route answers 404 unless email is on (Meta "email",
 // getEmailStatus) AND the owner has enabled it (NEXT_PUBLIC_ANON_ALERTS=1);
-// PriceAlertModal renders under the same two conditions. OP Compare's
+// PriceAlertModal renders under the same two conditions. MTG Compare's
 // watchlist is otherwise account-only (the member track).
 //
 // Request-time mail is DEFERRED: the route sends nothing. A new anonymous row

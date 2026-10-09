@@ -1,16 +1,19 @@
 // A stateful-enough stub of everything runPriceAlerts() touches, shared by the
-// alert tests (RiftCompare's helper, rebuilt for OP Compare's schema). Not a
+// alert tests (RiftCompare's helper, rebuilt for MTG Compare's schema). Not a
 // test file itself (npm test globs tests/*.test.ts).
 //
-// Rows are PriceAlert rows as the run selects them. Prices come from Offer
-// rows, exactly as in production: `price` (or `us`) on a row is shorthand for
+// Rows are PriceAlert rows as the run selects them (a plain product id and a
+// finish; the card itself comes from the published catalogue, stubbed here by
+// `cards`). Prices come from live offers, exactly as in production: `price` (or `us`) on a row is shorthand for
 // one fresh, in-stock, Near-Mint store listing of that card in the row's
 // market at that price; `stores` supplies any other rows. Card ids are
 // integers (the TCGplayer productId); tests may pass a readable name and the
 // helper maps it to a stable integer.
 import { runPriceAlerts, type AlertRunDeps, type AlertScope } from "../../src/lib/price-alerts";
 import type { PriceDropItem } from "../../src/lib/email";
-import type { AlertPriceRow } from "../../src/lib/alert-price";
+import type { AlertCard, AlertOfferReader, AlertPriceRow } from "../../src/lib/alert-price";
+import { unitKey } from "../../src/lib/constants";
+import type { LiveOffer } from "../../src/lib/offer-read";
 
 export const NOW = new Date("2026-10-30T09:00:00Z");
 export const HOUR = 60 * 60 * 1000;
@@ -55,6 +58,7 @@ export type Card = {
   lowCA: number | null;
   lowEU: number | null;
   set: { code: string; releasedOn: Date | null };
+  finish?: "N" | "F";
 };
 
 export type Row = {
@@ -78,9 +82,11 @@ export type Row = {
   userId: string | null;
   user: User | null;
   card: Card;
+  cardId: number;
+  finish: number;
 };
 
-export type RowOpts = Partial<Omit<Row, "card">> & {
+export type RowOpts = Partial<Omit<Row, "card" | "cardId">> & {
   price?: number | null; // one fresh NM store listing in the row's market
   us?: number | null; // alias for price on a US row
   cardId?: string | number;
@@ -94,7 +100,7 @@ export type RowOpts = Partial<Omit<Row, "card">> & {
 // A released set by default, so "listed" reads as listed; tests about
 // pre-orders pass a releasedOn after `now`.
 export function row(id: string, over: RowOpts = {}): Row & { _price: number | null } {
-  const { price, us, cardId = `card-${id}`, setCode = "OP01", releasedOn = new Date("2024-12-01T00:00:00Z"), cardPrice = null, marketUsd = null, ...rest } = over;
+  const { price, us, cardId = `card-${id}`, setCode = "M21", releasedOn = new Date("2024-12-01T00:00:00Z"), cardPrice = null, marketUsd = null, ...rest } = over;
   // A row given soldOutAt has been SEEN sold out by two runs unless the test
   // says otherwise (soldOutRuns: 1) — the restock rule's second condition.
   if (rest.soldOutAt != null && rest.soldOutRuns === undefined) rest.soldOutRuns = 2;
@@ -104,7 +110,7 @@ export function row(id: string, over: RowOpts = {}): Row & { _price: number | nu
     name: `Card ${id}`,
     variant: null,
     slug: `card-${id}`,
-    number: "OP01-001",
+    number: "001",
     marketUsd,
     lowUS: null,
     lowAU: null,
@@ -136,6 +142,8 @@ export function row(id: string, over: RowOpts = {}): Row & { _price: number | nu
     userId: null,
     user: null,
     card,
+    cardId: card.id,
+    finish: 0,
     ...rest,
     _price: price ?? us ?? null,
   };
@@ -149,6 +157,7 @@ export function listing(cardId: string | number, priceCents: number, over: Parti
   const productId = cardNum(cardId);
   return {
     productId,
+    finish: "N",
     market: "US",
     source: "store:shopx",
     priceCents,
@@ -173,12 +182,6 @@ export interface HarnessOpts {
   notifyFails?: boolean; // the Notification write throws
 }
 
-type Where = {
-  inStock?: boolean;
-  updatedAt?: { gte: Date; lt?: Date };
-  AND?: unknown[];
-};
-
 export function harness(rows: (Row & { _price?: number | null })[], opts: HarnessOpts = {}) {
   const now = opts.now ?? NOW;
   const sent: { to: string; items: PriceDropItem[]; token: string; anonymous: boolean }[] = [];
@@ -192,7 +195,49 @@ export function harness(rows: (Row & { _price?: number | null })[], opts: Harnes
     ...rows.filter((r) => r._price != null).map((r) => listing(r.card.id, r._price!, { market: r.market })),
     ...(opts.stores ?? []),
   ];
-  const cleanRows = rows.map(({ _price, ...r }) => r);
+  // The rows as the run selects them: no card (it comes from the catalogue), the finish as the smallint.
+  const cleanRows = rows.map(({ _price, card: _card, ...r }) => r);
+  const readOffers: AlertOfferReader = async (units, market) => {
+    priceQueries.push({ units, market });
+    if (opts.priceQueryFails) throw new Error("db down");
+    // Filters the unit and market as the reader would; the SOURCE filter is left to the code, so eBay exclusion is proven in code.
+    return listings
+      .filter((l) => l.market === market && units.some((u) => u.id === l.productId && u.finish === (l.finish ?? "N")))
+      .map((l): LiveOffer => ({
+        productId: l.productId,
+        finish: l.finish ?? "N",
+        market: l.market as LiveOffer["market"],
+        storeId: 1,
+        source: l.source,
+        priceCents: l.priceCents,
+        currency: "USD",
+        url: l.url,
+        condition: l.condition as LiveOffer["condition"],
+        inStock: l.inStock,
+        refreshedAt: l.updatedAt,
+      }));
+  };
+  const cards = async (units: readonly { id: number; finish: "N" | "F" }[]) => {
+    const out = new Map<string, AlertCard>();
+    for (const r of rows) {
+      const c = r.card;
+      const finish = c.finish ?? "N";
+      if (!units.some((u) => u.id === c.id && u.finish === finish)) continue;
+      out.set(unitKey(c.id, finish), {
+        id: c.id,
+        finish,
+        name: c.name,
+        variant: c.variant,
+        slug: c.slug,
+        number: c.number,
+        setCode: c.set.code,
+        releasedOn: c.set.releasedOn,
+        marketUsd: c.marketUsd,
+        low: { US: c.lowUS, AU: c.lowAU, UK: c.lowUK, SG: c.lowSG, CA: c.lowCA, EU: c.lowEU },
+      });
+    }
+    return out;
+  };
   const db = {
     priceAlert: {
       findMany: async (args: Record<string, unknown>) => {
@@ -211,25 +256,6 @@ export function harness(rows: (Row & { _price?: number | null })[], opts: Harnes
         return args;
       },
     },
-    offer: {
-      findMany: async (args: { where: Where; take?: number }) => {
-        priceQueries.push(args as unknown as Record<string, unknown>);
-        if (opts.priceQueryFails) throw new Error("db down");
-        const w = args.where;
-        const gte = w.updatedAt?.gte.getTime() ?? 0;
-        const lt = w.updatedAt?.lt?.getTime() ?? Infinity;
-        const ors = ((w.AND ?? []).map((c) => (c as { OR?: { market?: string }[] }).OR ?? []).find((o) => o.some((x) => x.market !== undefined)) ?? []) as { market: string; productId: { in: number[] } }[];
-        // Filters the pair, stock and age as Postgres would; the SOURCE
-        // filter is left to the code, so eBay exclusion is proven in code too,
-        // not only in the query.
-        return listings
-          .filter((l) => (w.inStock ? l.inStock : true))
-          .filter((l) => l.updatedAt.getTime() >= gte && l.updatedAt.getTime() < lt)
-          .filter((l) => ors.some((o) => o.market === l.market && o.productId.in.includes(l.productId)))
-          .sort((a, b) => a.priceCents - b.priceCents)
-          .slice(0, args.take ?? Infinity);
-      },
-    },
     // The two other watch tables the shared budget counts (lib/alert-budget.ts):
     // empty here — the card run's tests are about the card run.
     deckWatch: { findMany: async () => [] as { user: { email: string } }[] },
@@ -246,6 +272,8 @@ export function harness(rows: (Row & { _price?: number | null })[], opts: Harnes
   const emailEnabled = opts.emailEnabled ?? true;
   const deps: AlertRunDeps = {
     db: db as unknown as AlertRunDeps["db"],
+    readOffers,
+    cards,
     sendPriceDropEmail: async (to, items, token, anonymous = false) => {
       sent.push({ to, items, token, anonymous });
       const ok = opts.sendOk ?? true;

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { LOCAL_WATCHLIST_EVENT, LOCAL_WATCHLIST_KEY, LOCAL_WATCHLIST_MAX } from "@/lib/use-watchlist";
 
-// The heart that saves into THIS BROWSER (localStorage `op:watchlist`), no
+// The heart that saves into THIS BROWSER (localStorage `mc:watchlist`), no
 // account needed. Since wave 2 (2026-10-03) cards use PriceWatchButton (the
 // account watchlist when signed in, this same list when signed out); this
 // component remains for SEALED products on a free or signed-out visit —

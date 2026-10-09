@@ -1,8 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { CARD_ALIASES, aliasesFor, slugsForAlias } from "../src/lib/card-aliases";
-import { searchCards } from "../src/lib/search";
-import type { CardLite, SetLite } from "../src/lib/data";
+import { resetPlaneForTests } from "../src/lib/data/plane/runtime";
+import { realMiniTree, writePlaneDir } from "./helpers/data-source";
 
 test("the table is seeded empty and every entry would be well formed", () => {
   assert.deepEqual(CARD_ALIASES, {});
@@ -12,21 +13,25 @@ test("the table is seeded empty and every entry would be well formed", () => {
   }
 });
 
-const table = { "luffy-gear-5-op05-119-manga": ["Gear 5 Luffy", "Sun God manga"], "shanks-op01-120-parallel": ["Red Hair"] };
+// A table of the test's own, on slugs of real products (tests/fixtures/magic-products.json): the lookup rules, not a claim about what players call a card.
+const table = { "sol-ring-babp-1": ["Rock", "Sol Ring (Promo Pack)"], "khan-engineered-evil-sheoldred-the-apocalypse-sds-11-borderless": ["Khan"] };
 
-test("an alias resolves to its card, ignoring case, punctuation and accents", () => {
-  assert.deepEqual(slugsForAlias("gear 5 luffy", table), ["luffy-gear-5-op05-119-manga"]);
-  assert.deepEqual(slugsForAlias("  SUN-GOD Manga ", table), ["luffy-gear-5-op05-119-manga"]);
-  assert.deepEqual(slugsForAlias("red hair", table), ["shanks-op01-120-parallel"]);
-  assert.deepEqual(slugsForAlias("luffy", table), []); // an alias is an exact phrase
+test("an alias resolves to its printing, ignoring case, punctuation and accents", () => {
+  assert.deepEqual(slugsForAlias("rock", table), ["sol-ring-babp-1"]);
+  assert.deepEqual(slugsForAlias("  SOL-RING (promo pack) ", table), ["sol-ring-babp-1"]);
+  assert.deepEqual(slugsForAlias("Khan", table), ["khan-engineered-evil-sheoldred-the-apocalypse-sds-11-borderless"]);
+  assert.deepEqual(slugsForAlias("sol", table), []); // an alias is an exact phrase
   assert.deepEqual(slugsForAlias("", table), []);
-  assert.deepEqual(aliasesFor("shanks-op01-120-parallel", table), ["Red Hair"]);
+  assert.deepEqual(aliasesFor("sol-ring-babp-1", table), ["Rock", "Sol Ring (Promo Pack)"]);
   assert.deepEqual(aliasesFor("nothing", table), []);
 });
 
-test("search with no aliases behaves as before", () => {
-  const sets = new Map<number, SetLite>([[1, { id: 1, slug: "op01", code: "OP01", name: "Romance Dawn", kind: "booster", releasedOn: "2022-12-02", cardCount: 1, sealedCount: 0 }]]);
-  const card = { id: 1, slug: "shanks-op01-120", name: "Shanks", number: "OP01-120", setId: 1, rarity: "SEC", variant: null, printing: "standard", colors: ["Red"], cardType: "Leader", hasImage: true, marketUsd: 100, low: {}, stores: {}, change7d: null, change30d: null, high90Usd: null } as unknown as CardLite;
-  assert.deepEqual(searchCards([card], sets, "shanks").map((c) => c.id), [1]);
-  assert.deepEqual(searchCards([card], sets, "nonexistent thing"), []);
+test("search with no aliases behaves as before: a real card name finds it, nonsense finds nothing", async () => {
+  const dir = writePlaneDir(realMiniTree()), was = process.env.PLANE_DIR;
+  process.env.PLANE_DIR = dir; resetPlaneForTests();
+  try {
+    const { searchCards } = await import("../src/lib/data");
+    assert.deepEqual((await searchCards("sol ring")).items.map((c) => c.id), [594545]);
+    assert.deepEqual((await searchCards("nonexistent thing")).items, []);
+  } finally { if (was === undefined) delete process.env.PLANE_DIR; else process.env.PLANE_DIR = was; resetPlaneForTests(); fs.rmSync(dir, { recursive: true, force: true }); }
 });

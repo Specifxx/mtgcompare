@@ -10,9 +10,9 @@ import { trackEvent } from "@/lib/analytics";
 // while the next page loads in a transition. Real <a href>s throughout, so a
 // crawler or a modifier click gets a plain link.
 //
-// OP Compare differences: the active page is white on the red fill, page 1
+// Differences from RiftCompare's: the active page is white on the brand fill, page 1
 // carries no ?page=1 (its canonical URL), multi-valued params (browse's set
-// and colour filters) are kept, and the click event goes to GA only.
+// and color filters) are kept, and the click event goes to GA only.
 function windowed(page: number, total: number): (number | "…")[] {
   const pages = new Set<number>([1, total]);
   for (let p = page - 1; p <= page + 1; p++) if (p >= 1 && p <= total) pages.add(p);

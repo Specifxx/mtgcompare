@@ -414,7 +414,7 @@ test("the deal loaders live in src/lib/data/deals.ts: one ranking cache, tier-ne
   assert.equal((data.match(/unstable_cache\(/g) ?? []).length, 1, "the ranking is the only cache");
   assert.match(data, /rankKey\("deal-rank-v1", ptr\.ref, country, sort, buyKeysHash\(keys\)\)/);
   assert.match(data, /accessOf\("deal-finder", who\)/);
-  assert.match(data, /sliceRanking\("deal-finder", who, ranking, q\)/);
+  assert.match(data, /sliceRanking\("deal-finder", who, list, q\)/);
   assert.doesNotMatch(data.replace(/\/\/[^\n]*/g, ""), /\.tier\b|isPremium/, "the loader never compares a tier");
   assert.match(data, /source: sourceOfStoreId\(t\[5\]\) \?\? ""|sourceOfStoreId\(t\[5\]\)/);
   for (const f of ["src/lib/deal-pages.ts", "src/lib/top-deals.ts", "src/lib/deals.ts"]) {

@@ -142,9 +142,9 @@ test("drops still send, measured from the last price", async () => {
 
 test("email copy: 'now in stock' for listings, no strikethrough on a listing", () => {
   const base = {
-    name: "Monkey.D.Luffy",
-    setCode: "OP01",
-    number: "OP01-003",
+    name: "Lightning Bolt",
+    setCode: "2XM",
+    number: "141",
     url: "https://x/card/a",
     market: "US" as const,
     currency: "USD",
@@ -164,15 +164,15 @@ test("email copy: 'now in stock' for listings, no strikethrough on a listing", (
   const drop: PriceDropItem = { ...base, kind: "drop", currentCents: 1299, referenceCents: 1500, referenceBasis: "last", change: { cents: 201, pct: 13 } };
 
   const l = priceDropCopy([listed]);
-  assert.match(l.subject, /^Monkey.D.Luffy is now in stock from /);
+  assert.match(l.subject, /^Lightning Bolt is now in stock from /);
   assert.equal(l.heading, "Now in stock");
   for (const c of [l, priceDropCopy([listed, { ...listed, name: "B" }]), priceDropCopy([drop, listed])]) {
     assert.doesNotMatch(`${c.heading} ${c.intro} ${c.subject}`, /first time/);
   }
   // The subject names the card, the price and the saving (2026-09-25 rebuild).
-  assert.equal(priceDropCopy([drop]).subject, "Monkey.D.Luffy: $12.99, 13% off");
+  assert.equal(priceDropCopy([drop]).subject, "Lightning Bolt: $12.99, 13% off");
   // The drop leads a mixed digest (a saving outranks a listing).
-  assert.equal(priceDropCopy([listed, drop]).subject, "Monkey.D.Luffy: $12.99, 13% off (+1 more)");
+  assert.equal(priceDropCopy([listed, drop]).subject, "Lightning Bolt: $12.99, 13% off (+1 more)");
   const r = dropRow(listed);
   assert.match(r, /Now in stock · from/);
   assert.doesNotMatch(r, /line-through|NaN|Infinity/);

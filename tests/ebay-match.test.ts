@@ -1,424 +1,191 @@
-// The eBay listing picker (src/lib/ebay-match.ts): OP Compare's matcher run
-// against the FULL index, plus the eBay-only filters. Titles are eBay-style
-// titles in the shapes One Piece sellers use (replace with titles captured on
-// the first smoke run as they come in; keep every rule covered).
+// Picking eBay listings (src/lib/ebay-match.ts) with real eBay-style titles, against the real catalogue rows of tests/fixtures/titles/rows.json and sealed.json.
+// Prices are the TCGplayer MARKET prices of 2026-10-07: The One Ring (LTR 246) Normal US$116.19 Foil US$139.67, Extended Art 380 US$141.65 / US$355.87, Borderless Poster 748 US$931.66 / US$1,753.06,
+// The Hobbit Eternal 44 US$131.48 / US$155.25; Sol Ring (Alpha) has NO market, only a low of US$1,539.99; Lightning Bolt (2X2 117) US$2.16 / US$2.14; Modern Horizons 3 Play Booster Display US$303.93.
+// A rule changed here gets a real title here (CLAUDE.md): the matcher is never loosened to raise the match count; an ambiguous listing is skipped.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildCardIndex, type SealedRef } from "../src/lib/match";
+import fs from "node:fs";
+import path from "node:path";
+import type { MatchRow, SealedRef } from "../src/lib/match";
 import {
-  EBAY_JUNK,
-  NUMBER_RANGE_OP,
-  canonicalTitle,
-  selfMatches,
-  REJECT_LOCATIONS,
-  cardFilter,
-  cardQuery,
-  chooseListing,
-  ebayConditionLabel,
-  mapItem,
-  panelListings,
-  parseGrade,
-  isGradedListing,
-  screenGraded,
-  priceFilter,
-  pruneCheapOutliers,
-  queryWord,
-  sealedFilter,
-  sealedQuery,
-  type ChooseTarget,
-  type EbayItem,
-  type EbayListing,
+  CARD_LIMIT, EBAY_FOREIGN_OR_FAKE, EBAY_JUNK, EBAY_NOT_RAW, ebayConditionLabel, cardFilter, cardQuery, identityOfSealed, identityOfSingle, itemDigits, mapItem, nameTarget, nameWords, panelListings, parseGrade,
+  pickListing, pruneCheapOutliers, sealedFilter, sealedQuery, screenGraded, screenName, screenSealed, selfMatches, unitKeyOf, type EbayItem, type NameUnit,
 } from "../src/lib/ebay-match";
 
-// A slice of the real catalogue (ids are fixtures; variants and sets as TCGplayer has them).
-const CARDS = [
-  { id: 1, name: "Shanks", number: "OP01-120", variant: null, setCode: "OP01", setName: "Romance Dawn", marketUsd: 785 },
-  { id: 2, name: "Shanks", number: "OP01-120", variant: "Parallel", setCode: "OP01", setName: "Romance Dawn", marketUsd: 8025 },
-  { id: 3, name: "Shanks", number: "OP01-120", variant: "Parallel · Manga · Alternate Art", setCode: "OP01", setName: "Romance Dawn", marketUsd: 399874 },
-  { id: 4, name: "Shanks", number: "OP01-120", variant: "Alternate Art", setCode: "PRB-01", setName: "Premium Booster -The Best-", marketUsd: 2912 },
-  { id: 5, name: "Shanks", number: "OP01-120", variant: "Reprint", setCode: "PRB-01", setName: "Premium Booster -The Best-", marketUsd: 289 },
-  { id: 6, name: "Shanks", number: "OP01-120", variant: "Manga", setCode: "PRB-01", setName: "Premium Booster -The Best-", marketUsd: 125000 },
-  { id: 30, name: "Portgas.D.Ace", number: "OP13-119", variant: "Super Alternate Art", setCode: "OP13", setName: "Carrying On His Will", marketUsd: 60000 },
-  { id: 31, name: "Portgas.D.Ace", number: "OP13-119", variant: "Red Super Alternate Art", setCode: "OP13", setName: "Carrying On His Will", marketUsd: 150000 },
-  { id: 50, name: "Gecko Moria", number: "ST03-004", variant: "SP", setCode: "OP08", setName: "Two Legends", marketUsd: 9000 },
-  { id: 51, name: "Gecko Moria", number: "ST03-004", variant: null, setCode: "ST-03", setName: "Starter Deck 3: The Seven Warlords of the Sea", marketUsd: 25 },
-  { id: 60, name: "Nami", number: "OP01-016", variant: null, setCode: "OP01", setName: "Romance Dawn", marketUsd: 300 },
-  { id: 61, name: "Nami", number: "OP01-016", variant: "Box Topper", setCode: "OP01", setName: "Romance Dawn", marketUsd: 4000 },
-  { id: 62, name: "Nami", number: "OP01-016", variant: "Parallel", setCode: "OP01", setName: "Romance Dawn", marketUsd: 6000 },
-  { id: 71, name: "Monkey.D.Luffy", number: "P-001", variant: "Judge Pack Vol. 2", setCode: "OP-PR", setName: "One Piece Promotion Cards", marketUsd: 3000 },
-  { id: 70, name: "Monkey.D.Luffy", number: "P-001", variant: null, setCode: "OP-DD", setName: "One Piece Demo Deck Cards", marketUsd: 2232 },
-  { id: 80, name: "Roronoa Zoro", number: "OP01-001", variant: null, setCode: "OP01", setName: "Romance Dawn", marketUsd: 2500 },
-  // Original-set printings with a same-tag Premium Booster twin (market prices as of 2026-10-03).
-  { id: 90, name: "Trafalgar Law", number: "OP05-069", variant: "Alternate Art · Manga", setCode: "OP05", setName: "Awakening of the New Era", marketUsd: 170058 },
-  { id: 91, name: "Trafalgar Law", number: "OP05-069", variant: "Manga", setCode: "PRB-01", setName: "Premium Booster -The Best-", marketUsd: 106666 },
-  { id: 92, name: "Yamato", number: "OP01-121", variant: "Parallel", setCode: "OP01", setName: "Romance Dawn", marketUsd: 13370 },
-  { id: 93, name: "Yamato", number: "OP01-121", variant: "Alternate Art", setCode: "PRB-01", setName: "Premium Booster -The Best-", marketUsd: 4156 },
-  { id: 94, name: "Boa Hancock", number: "OP01-078", variant: "Parallel", setCode: "OP01", setName: "Romance Dawn", marketUsd: 14747 },
-  { id: 95, name: "Boa Hancock", number: "OP01-078", variant: "Alternate Art", setCode: "PRB-01", setName: "Premium Booster -The Best-", marketUsd: 5480 },
-  { id: 96, name: "Monkey.D.Luffy", number: "OP05-119", variant: "Wanted Poster", setCode: "OP13", setName: "Carrying On His Will", marketUsd: 65063 },
-  { id: 97, name: "Monkey.D.Luffy", number: "OP05-119", variant: null, setCode: "OP05", setName: "Awakening of the New Era", marketUsd: 1800 },
-  { id: 98, name: "Nico Robin", number: "OP18-031", variant: "Manga", setCode: "OP18", setName: "The Dominance of God", marketUsd: null },
-  { id: 99, name: "Sabo", number: "OP13-120", variant: "Parallel", setCode: "OP13", setName: "Carrying On His Will", marketUsd: 1376 },
-  { id: 100, name: "Sabo", number: "OP13-120", variant: null, setCode: "OP13", setName: "Carrying On His Will", marketUsd: 900 },
-];
-const idx = buildCardIndex(CARDS);
-const single = (id: number, refUsd: number | null = null): ChooseTarget => {
-  const c = CARDS.find((x) => x.id === id)!;
-  return { kind: "single", id, name: c.name, variant: c.variant, setName: c.setName, marketUsd: c.marketUsd, refUsd, idx };
+const FIX = path.resolve(__dirname, "fixtures/titles");
+const rows = JSON.parse(fs.readFileSync(path.join(FIX, "rows.json"), "utf8")) as MatchRow[];
+const sealedRefs = JSON.parse(fs.readFileSync(path.join(FIX, "sealed.json"), "utf8")) as SealedRef[];
+
+const MARKETS: Record<number, [number | null, number | null]> = {
+  487805: [11_619, 13_967], 488276: [14_165, 35_587], 517451: [93_166, 175_306], 693049: [13_148, 15_525], 693048: [null, 12_000],     // The One Ring
+  1263: [null, null], 488278: [381, null], 276484: [216, 214], 276485: [183, 264],                                                        // Sol Ring (Alpha), Sol Ring (LTC 284), Lightning Bolt
 };
+function target(name: string) {
+  const rs = rows.filter((r) => r.names[0] === name && r.cls === 0);
+  const units: NameUnit[] = rs.map((r) => ({ id: r.id, setCode: r.sc, setName: r.setNames[0] ?? null, label: r.label ?? null, hasN: r.hasN, hasF: r.hasF, etched: r.etched, marketN: MARKETS[r.id]?.[0] ?? null, marketF: MARKETS[r.id]?.[1] ?? null }));
+  return nameTarget(name, rs, units);
+}
+const RING = target("the one ring"), SOL = target("sol ring"), BOLT = target("lightning bolt");
 
+const item = (title: string, price: string, o: Partial<EbayItem> = {}): EbayItem => ({
+  itemId: "v1|305123456789|0", title, price: { value: price, currency: "USD" }, buyingOptions: ["FIXED_PRICE"], itemLocation: { country: "US" }, condition: "Ungraded", image: { imageUrl: "https://i.ebayimg.com/images/g/ABC/s-l225.jpg" },
+  shippingOptions: [{ shippingCost: { value: "0.00", currency: "USD" } }], ...o,
+});
 let n = 0;
-const item = (title: string, value: string, o: Partial<EbayItem> & { ship?: string | null; cur?: string } = {}): EbayItem => ({
-  conditionId: o.conditionId,
-  itemId: `v1|${++n}|0`,
-  title,
-  price: { value, currency: o.cur ?? "USD" },
-  buyingOptions: o.buyingOptions ?? ["FIXED_PRICE"],
-  itemLocation: o.itemLocation ?? { country: "US" },
-  shippingOptions: o.ship === null ? undefined : [{ shippingCost: { value: o.ship ?? "0.00", currency: o.cur ?? "USD" } }],
-  itemWebUrl: `https://www.ebay.com/itm/${n}`,
-  itemAffiliateWebUrl: o.itemAffiliateWebUrl,
-  condition: o.condition ?? "Ungraded",
-});
-const pick = (items: EbayItem[], id: number, market: "US" | "UK" = "US") => chooseListing(items, single(id), market);
-const pickedTitle = (items: EbayItem[], id: number) => pick(items, id).listing?.title ?? null;
+const it = (title: string, price: string, o: Partial<EbayItem> = {}): EbayItem => item(title, price, { itemId: `v1|3051234${String(++n).padStart(5, "0")}|0`, ...o });
 
-test("the base OP01-120 never takes the Parallel, and the Parallel never takes the base", () => {
-  const base = "One Piece Card Game Shanks OP01-120 SEC Romance Dawn English NM";
-  const par = "Shanks OP01-120 Parallel Alt Art SEC Romance Dawn One Piece TCG English";
-  assert.equal(pickedTitle([item(par, "75.00"), item(base, "7.50")], 1), base);
-  assert.equal(pickedTitle([item(base, "7.50"), item(par, "75.00")], 2), par);
-  assert.equal(pickedTitle([item(par, "75.00")], 1), null);
-  assert.equal(pickedTitle([item(base, "7.50")], 2), null);
+test("queries: the front face without commas or parentheses; the strict query keeps the category, the retry names the game", () => {
+  assert.equal(nameWords("Fire // Ice"), "Fire");
+  assert.equal(nameWords("Erayo, Soratami Ascendant"), "Erayo Soratami Ascendant");
+  assert.equal(nameWords("Forest (0205)"), "Forest");
+  assert.deepEqual(cardQuery("The One Ring"), { strict: "The One Ring", retry: "MTG The One Ring" });
+  assert.equal(nameWords("x ".repeat(80)).length <= 100, true);
+  assert.equal(sealedQuery("Modern Horizons 3 - Play Booster Display"), "MTG Modern Horizons 3 - Play Booster Display");
+  assert.equal(sealedQuery("Secret Lair Drop: Showcase: Murders at Karlov Manor - Rainbow Foil Edition"), "MTG Secret Lair Showcase: Murders at Karlov Manor - Rainbow Foil Edition");
+  assert.equal(CARD_LIMIT, 200);
+});
+test("filters: fixed price, the delivery country, and a server-side floor from US$300 only (our rates are constants, eBay's are live)", () => {
+  assert.equal(cardFilter("US", 216), "buyingOptions:{FIXED_PRICE},deliveryCountry:US", "a US$2.16 printing: no floor");
+  assert.equal(cardFilter("US", null), "buyingOptions:{FIXED_PRICE},deliveryCountry:US");
+  assert.match(cardFilter("US", 93_166), /price:\[265\.52\.\.\],priceCurrency:USD$/, "0.95 x 0.3 x US$931.66");
+  assert.match(cardFilter("UK", 93_166), /deliveryCountry:GB,price:\[\d+\.\d\d\.\.\],priceCurrency:GBP$/);
+  assert.match(sealedFilter("AU", 30_393), /conditions:\{NEW\},deliveryCountry:AU,price:\[\d+\.\d\d\.\.\],priceCurrency:AUD$/);
 });
 
-test("a Manga matches only its own printing (OP01 vs the Premium Booster)", () => {
-  const op01 = "One Piece TCG Shanks OP01-120 Manga Rare Romance Dawn English";
-  const prb = "Shanks OP01-120 Manga PRB-01 Premium Booster The Best One Piece";
-  assert.equal(pickedTitle([item(op01, "3900.00"), item(prb, "1200.00")], 3), op01);
-  assert.equal(pickedTitle([item(op01, "3900.00"), item(prb, "1200.00")], 6), prb);
-  assert.equal(pickedTitle([item(op01, "3900.00")], 2), null);
+test("an item's fields: the legacy id digits, the price, the first shipping option in the same currency, the https image; no URL, no seller", () => {
+  const l = mapItem(item("The One Ring LTR 246", "119.99"))!;
+  assert.deepEqual([l.itemId, l.priceCents, l.shippingCents, l.currency, l.location, l.condition], ["305123456789", 11_999, 0, "USD", "US", null]);
+  assert.equal(mapItem(item("x", "119.99", { image: { imageUrl: "http://i.ebayimg.com/a.jpg" } }))!.imageUrl, null);
+  assert.equal(mapItem(item("x", "119.99", { shippingOptions: [{ shippingCost: { value: "5.00", currency: "EUR" } }] }))!.shippingCents, null, "postage in another currency is unknown, not 5.00");
+  assert.equal(mapItem(item("x", "0.00")), null);
+  assert.equal(mapItem(item("x", "12.00", { itemId: "garbage" })), null);
+  assert.equal(itemDigits({ legacyItemId: "123456789012" }), "123456789012");
+  assert.equal(itemDigits({ itemId: "v1|123456789012|0" }), "123456789012");
+  assert.ok(!("url" in l) && !("seller" in l));
+  assert.equal(ebayConditionLabel("Near Mint or Better"), "NM");
+  assert.equal(ebayConditionLabel("Lightly Played (Excellent)"), "LP");
+  assert.equal(ebayConditionLabel("Moderately Played (Very Good)"), "MP");
+  assert.equal(ebayConditionLabel("Heavily Played (Poor)"), "HP");
+  assert.equal(ebayConditionLabel("Ungraded"), null, "never guess NM");
 });
 
-test("an SP and a red SAA each match only their own printing", () => {
-  const sp = "Gecko Moria ST03-004 SP Special Card Two Legends OP08 One Piece English";
-  assert.equal(pickedTitle([item(sp, "88.00")], 50), sp);
-  assert.equal(pickedTitle([item(sp, "88.00")], 51), null);
-  const red = "Portgas.D.Ace OP13-119 Red Super Alternate Art Carrying On His Will English";
-  const saa = "Portgas.D.Ace OP13-119 SAA Super Alternate Art OP13 English NM";
-  assert.equal(pickedTitle([item(saa, "590.00"), item(red, "1450.00")], 31), red);
-  assert.equal(pickedTitle([item(saa, "590.00"), item(red, "1450.00")], 30), saa);
+test("identity: the set, the number or the treatment words place a title on ONE printing and the finish the title states", () => {
+  const id = (t: string) => identityOfSingle(t, RING);
+  assert.deepEqual(id("The One Ring - Lord of the Rings Tales of Middle-earth LTR 246 NM Mythic Rare MTG"), { id: 487805, finish: "N" });
+  assert.deepEqual(id("The One Ring LTR 246 FOIL Lord of the Rings Tales of Middle-earth"), { id: 487805, finish: "F" });
+  assert.deepEqual(id("The One Ring Extended Art LTR 380 Lord of the Rings"), { id: 488276, finish: "N" });
+  assert.deepEqual(id("MTG The One Ring Borderless Poster LTR 748 Foil Universes Beyond"), { id: 517451, finish: "F" });
+  assert.deepEqual(id("The One Ring Borderless Hobbit Eternal HOC 44 Magic"), { id: 693049, finish: "N" });
+});
+test("skipped, never guessed: no set, a set that fits several printings, a printing we do not track", () => {
+  assert.deepEqual(identityOfSingle("The One Ring MTG Magic the Gathering card", RING), { reject: "match:nokey" });
+  assert.deepEqual(identityOfSingle("The One Ring Lord of the Rings Tales of Middle-earth Magic", RING), { reject: "match:ambiguous" });
+  assert.deepEqual(identityOfSingle("The One Ring Prerelease Promo PLTR 246s", RING), { id: 501274, finish: "F" }, "identity is the printing; whether it has a reference price is the screen's question");
+  const tracked = nameTarget("the one ring", rows.filter((r) => r.names[0] === "the one ring"), RING.units.filter((u) => u.id !== 501274));
+  assert.deepEqual(identityOfSingle("The One Ring Prerelease Promo PLTR 246s", tracked), { reject: "other-printing" }, "a title that fits a printing outside the target is a miss, not a stretch to the nearest one");
+});
+test("a finish the printing does not have is a reject, not a guess", () => {
+  const sol = target("sol ring");
+  assert.deepEqual(identityOfSingle("Sol Ring Commander LTC 284 Tales of Middle-earth Foil", sol), { reject: "match:finish-not-offered" });
+  assert.deepEqual(identityOfSingle("Sol Ring Commander LTC 284 Tales of Middle-earth", sol), { id: 488278, finish: "N" });
 });
 
-test("rejects: foreign titles, Asian seller locations, lots, graded, proxies, junk, ranges", () => {
-  const base = "Shanks OP01-120 SEC Romance Dawn English NM";
-  const rej = (it: EbayItem, id = 1) => {
-    const r = pick([it], id);
-    assert.equal(r.listing, null, it.title);
-    return Object.keys(r.rejects)[0];
-  };
-  assert.equal(rej(item("Shanks OP01-120 Japanese Romance Dawn", "8.00")), "match:foreign");
-  for (const c of ["JP", "CN", "HK", "TW", "KR"]) assert.equal(rej(item(base, "8.00", { itemLocation: { country: c } })), "location", c);
-  assert.ok(REJECT_LOCATIONS.has("JP") && REJECT_LOCATIONS.size === 5);
-  assert.equal(rej(item("Shanks OP01-120 lot of 4 Romance Dawn", "30.00")), "not-raw");
-  assert.equal(rej(item("Shanks OP01-120 Playset Romance Dawn", "30.00")), "match:not-single");
-  assert.equal(rej(item("Shanks OP01-120 Proxy Romance Dawn", "3.00")), "match:not-single");
-  assert.equal(rej(item("PSA 10 Shanks OP01-120 Romance Dawn", "80.00")), "not-raw");
-  assert.equal(rej(item("One Piece OP01-120 Shanks bundle with sleeves", "9.00")), "junk");
-  assert.equal(rej(item("Pick your card OP01-120 Shanks Romance Dawn", "8.00")), "junk");
-  // matchCardTitle alone would take this for OP01-001 (the "010" is not a full number).
-  assert.equal(rej(item("OP01-001 - 010 Romance Dawn Zoro Leader", "25.00"), 80), "number-range");
-  assert.ok(EBAY_JUNK.test("One Piece 50 cards"));
-});
-
-test("booster/box words reject a single unless its own printing or set says them", () => {
-  assert.equal(pickedTitle([item("Nami OP01-016 Romance Dawn Booster Box Pull NM", "3.00")], 60), null);
-  const topper = "Nami OP01-016 Box Topper Romance Dawn One Piece English";
-  assert.equal(pickedTitle([item(topper, "40.00")], 61), topper);
-  const judge = "Monkey.D.Luffy P-001 Judge Pack Vol 2 Promo One Piece English";
-  assert.equal(pickedTitle([item(judge, "30.00")], 71), judge);
-  const prb = "Shanks OP01-120 Alternate Art PRB-01 Premium Booster The Best English";
-  assert.equal(pickedTitle([item(prb, "29.00")], 4), prb);
-});
-
-test("a currency mismatch and a non-fixed-price item are rejected", () => {
-  const base = "Shanks OP01-120 SEC Romance Dawn English NM";
-  assert.deepEqual(pick([item(base, "6.00", { cur: "USD" })], 1, "UK").rejects, { currency: 1 });
-  assert.ok(pick([item(base, "6.00", { cur: "GBP" })], 1, "UK").listing);
-  assert.deepEqual(pick([item(base, "6.00", { buyingOptions: ["AUCTION"] })], 1).rejects, { "not-fixed-price": 1 });
-});
-
-test("plausibility: under 0.3× and over 4× + US$5 are rejected", () => {
-  const t = "Shanks OP01-120 Parallel Alt Art Romance Dawn English"; // market 80.25
-  assert.equal(pickedTitle([item(t, (8025 * 0.29 / 100).toFixed(2))], 2), null);
-  assert.equal(pickedTitle([item(t, ((8025 * 4 + 600) / 100).toFixed(2))], 2), null);
-  assert.equal(pickedTitle([item(t, "60.00")], 2), t);
-});
-
-// ── Review fixes (2026-10-03): real eBay titles, each pinned ─────────────────
-
-test("sibling sets: a title that doesn't name the set never takes a printing with a same-tag twin elsewhere", () => {
-  const rej = (title: string, value: string, id: number) => {
-    const r = pick([item(title, value)], id);
-    assert.equal(r.listing, null, title);
-    assert.deepEqual(r.rejects, { "sibling-set": 1 }, title);
-  };
-  // Each was ACCEPTED for the expensive original-set printing at the reprint's price.
-  rej("Shanks OP01-120 SEC Manga Rare One Piece English", "1300.00", 3);
-  rej("Trafalgar Law OP05-069 Manga Rare SR", "1100.00", 90);
-  rej("Shanks OP01-120 SEC Alt Art One Piece", "30.00", 2);
-  rej("Yamato OP01-121 SEC Alt Art", "45.00", 92);
-  rej("Boa Hancock OP01-078 SR Alternate Art", "55.00", 94);
-  // Naming the set (by name or by code) still matches either printing.
-  for (const [title, value, id] of [
-    ["Trafalgar Law OP05-069 Manga Rare SR Awakening of the New Era", "1650.00", 90],
-    ["Trafalgar Law OP05-069 Manga PRB-01 One Piece", "1050.00", 91],
-    ["Yamato OP01-121 SEC Parallel OP-01 Romance Dawn", "130.00", 92],
-    ["Yamato OP01-121 Alt Art PRB01 Premium Booster The Best", "41.00", 93],
-  ] as const)
-    assert.equal(pickedTitle([item(title, value)], id), title);
-});
-
-test("foreign and fake wording eBay sellers use (eBay-only, match.ts unchanged)", () => {
-  const base = (title: string, value = "4.00", o: Parameters<typeof item>[2] = {}) => {
-    const r = pick([item(title, value, o)], 1, o.cur === "EUR" ? ("EU" as "US") : "US");
-    assert.equal(r.listing, null, title);
-    return Object.keys(r.rejects)[0];
-  };
-  for (const t of [
-    "Shanks OP01-120 SEC One Piece Japan",
-    "Shanks OP01-120 SEC One Piece China Exclusive",
-    "Shanks OP01-120 SEC One Piece Korea",
-    "Shanks OP01-120 SEC Thai",
-    "Shanks OP01-120 SEC Version Française One Piece",
-    "Shanks OP01-120 SEC One Piece Orica",
-    "Shanks OP01-120 SEC One Piece Fan Art Holo",
-    "Shanks OP01-120 SEC One Piece Reproduction",
-    "Shanks OP01-120 One Piece Metal Card",
-    "Shanks OP01-120 One Piece Unofficial",
-  ])
-    assert.equal(base(t), "foreign-or-fake", t);
-  for (const t of ["Carte One Piece Shanks OP01-120 SEC VF", "Carte One Piece Shanks OP01-120 SEC FR"])
-    assert.equal(base(t, "6.50", { cur: "EUR", itemLocation: { country: "FR" } }), "foreign-or-fake", t);
-  // Still a match: plain English titles, and a Japanese-set name word is not "Japan".
-  assert.equal(pickedTitle([item("Shanks OP01-120 SEC Romance Dawn One Piece TCG English NM", "6.50")], 1), "Shanks OP01-120 SEC Romance Dawn One Piece TCG English NM");
-});
-
-test("not a raw single: slabs, lots, variation listings, damaged, signed, misprints, eBay's Graded condition", () => {
-  for (const [t, v] of [
-    ["Shanks OP01-120 SEC One Piece PSA10", "30.00"],
-    ["Shanks OP01-120 SEC One Piece BGS9.5", "25.00"],
-    ["Shanks OP01-120 SEC One Piece ARS 10", "25.00"],
-    ["Shanks OP01-120 SEC One Piece ACE 10", "25.00"],
-    ["Shanks OP01-120 SEC Lot", "20.00"],
-    ["Shanks OP01-120 SEC x10", "20.00"],
-    ["Shanks OP01-120 SEC 3 copies", "20.00"],
-    ["Shanks OP01-120 SEC Qty 2", "15.00"],
-    ["Shanks OP01-120 SEC U Pick", "6.00"],
-    ["Shanks OP01-120 SEC - Choose Version Base/Parallel", "6.00"],
-    ["Shanks OP01-120 SEC Damaged", "4.00"],
-    ["Shanks OP01-120 SEC Heavily Played", "3.00"],
-    ["Shanks OP01-120 SEC Creased", "3.00"],
-    ["Shanks OP01-120 SEC Signed autograph", "30.00"],
-    ["Shanks OP01-120 SEC Error Misprint", "6.50"],
-  ]) {
-    const r = pick([item(t, v)], 1);
-    assert.equal(r.listing, null, t);
-    assert.deepEqual(r.rejects, { "not-raw": 1 }, t);
+test("eBay-only words: lots, fakes, other languages, damage, graded wording (each with the title that taught it)", () => {
+  for (const t of ["4x The One Ring LTR 246 NM", "The One Ring LTR 246 Playset", "The One Ring LTR 246 lot of 3", "The One Ring + Sol Ring bundle"]) assert.ok(EBAY_JUNK.test(t) || EBAY_NOT_RAW.test(t), t);
+  for (const t of ["The One Ring LTR 246 Proxy Custom Art", "The One Ring LTR 246 Japanese", "The One Ring Orica Alter Fan Art", "The One Ring replica metal card", "The One Ring LTR 246 German"]) assert.ok(EBAY_FOREIGN_OR_FAKE.test(t), t);
+  for (const t of ["The One Ring LTR 246 HP creased", "The One Ring LTR 246 PSA10", "The One Ring LTR 246 signed by the artist", "The One Ring LTR 246 misprint"]) assert.ok(EBAY_NOT_RAW.test(t), t);
+  for (const t of ["The One Ring LTR 246 NM", "The One Ring Lord of the Rings 246/281 Mythic", "The One Ring LTR Foil Extended Art"]) {
+    assert.ok(!EBAY_JUNK.test(t) && !EBAY_FOREIGN_OR_FAKE.test(t) && !EBAY_NOT_RAW.test(t), t);
   }
-  const slab = pick([item("Shanks OP01-120 SEC Romance Dawn One Piece", "30.00", { condition: "Graded", conditionId: "2750" })], 1);
-  assert.deepEqual(slab.rejects, { graded: 1 });
-  // "Ace" the character is not an ACE grade.
-  assert.equal(pickedTitle([item("Portgas.D.Ace OP13-119 SAA Super Alternate Art OP13 English NM", "590.00")], 30), "Portgas.D.Ace OP13-119 SAA Super Alternate Art OP13 English NM");
+  // a word the card's OWN name or set carries is allowed: "Alter Reality", "Custom"
+  assert.equal(identityOfSingle("Alter Reality Magic card", target("sol ring")).hasOwnProperty("reject"), true);
+  assert.deepEqual(identityOfSingle("Sol Ring Proxy LTC 284", SOL), { reject: "foreign-or-fake" });
+  assert.deepEqual(identityOfSingle("Sol Ring LTC 284 booster pack sealed", SOL), { reject: "sealed-word" });
 });
 
-test("a word the product's own printing carries is allowed: the Wanted Poster matches itself", () => {
-  const t = "Monkey D Luffy OP05-119 Wanted Poster SEC Emperors in the New World";
-  assert.equal(pickedTitle([item(t, "600.00")], 96), t);
-  // …and "poster" still rejects the plain card.
-  assert.equal(pick([item("Monkey D Luffy OP05-119 SEC Awakening of the New Era poster", "18.00")], 97).rejects.junk, 1);
-});
-
-test("selfMatches: the canonical title of each printing matches it, except ones no listing can reach", () => {
-  const c = (id: number) => {
-    const x = CARDS.find((y) => y.id === id)!;
-    return { id, name: x.name, number: x.number, variant: x.variant, setName: x.setName, setCode: x.setCode };
-  };
-  for (const id of [1, 2, 3, 4, 6, 30, 31, 50, 90, 91, 92, 93, 96]) assert.ok(selfMatches(c(id), idx), canonicalTitle(c(id)));
-  const jp = buildCardIndex([{ id: 1, name: "Sabo", number: "OP07-118", variant: "Japanese Version 3rd Anniversary Set", setCode: "OP-PR", setName: "One Piece Promotion Cards" }]);
-  assert.equal(selfMatches({ id: 1, name: "Sabo", number: "OP07-118", variant: "Japanese Version 3rd Anniversary Set", setName: "One Piece Promotion Cards", setCode: "OP-PR" }, jp), false);
-  const twins = buildCardIndex([
-    { id: 1, name: "St. Marcus Mars", number: "OP13-091", variant: "Parallel", setCode: "OP13", setName: "Carrying On His Will" },
-    { id: 2, name: "St. Marcus Mars", number: "OP13-091", variant: "Alternate Art", setCode: "OP13", setName: "Carrying On His Will" },
-  ]);
-  assert.equal(selfMatches({ id: 1, name: "St. Marcus Mars", number: "OP13-091", variant: "Parallel", setName: "Carrying On His Will", setCode: "OP13" }, twins), false);
-});
-
-test("unpriced products: no reference → nothing; a store reference → its floor, 3+ survivors, no cheap head", () => {
-  const robin = "Nico Robin OP18-031 Manga Rare SEC The Dominance of God One Piece";
-  // No market price and no store reference: never trusted.
-  assert.deepEqual(chooseListing([item(robin, "300.00")], single(98), "US").rejects, { "no-reference": 1 });
-  // A store reference of US$400: the 0.3× floor applies, and one listing is not enough.
-  assert.equal(chooseListing([item(robin, "380.00")], single(98, 40000), "US").listing, null);
-  assert.equal(chooseListing([item(robin, "100.00"), item(robin, "380.00"), item(robin, "390.00")], single(98, 40000), "US").listing, null);
-  const ok = chooseListing([item(robin, "360.00"), item(robin, "380.00"), item(robin, "390.00")], single(98, 40000), "US");
-  assert.equal(ok.listing?.priceCents, 36000);
-  // A head under half the survivors' median is dropped (and then too few remain).
-  const head = chooseListing([item(robin, "150.00"), item(robin, "380.00"), item(robin, "390.00"), item(robin, "400.00")], single(98, 40000), "US");
-  assert.equal(head.listing?.priceCents, 38000);
-  // Orica at US$3: the title rejects it before price is even read.
-  assert.deepEqual(chooseListing([item("Nico Robin OP18-031 Manga Alt Art One Piece Orica", "3.00")], single(98, 40000), "US").rejects, { "foreign-or-fake": 1 });
-  // The server-side floor uses the reference too.
-  assert.equal(cardFilter("US", 40000), "buyingOptions:{FIXED_PRICE},deliveryCountry:US,price:[114.00..],priceCurrency:USD");
-});
-
-test("postage: a cheap item with dear postage is rejected; the delivered price must be plausible", () => {
-  // OP13-120 Sabo Parallel, market US$13.76: $4.50 + $25.00 postage would have been "Cheapest" at $4.50.
-  const bait = item("Sabo OP13-120 Parallel SEC Carrying On His Will", "4.50", { ship: "25.00" });
-  assert.deepEqual(pick([bait], 99).rejects, { postage: 1 });
-  const fair = item("Sabo OP13-120 Parallel SEC Carrying On His Will NM", "9.00", { ship: "4.00" });
-  assert.equal(pick([bait, fair], 99).listing?.itemId, fair.itemId);
-  // Postage within max(item, US$15) and a plausible delivered price passes.
-  assert.equal(pick([item("Roronoa Zoro OP01-001 Leader Romance Dawn English", "20.00", { ship: "12.00" })], 80).listing?.priceCents, 2000);
-});
-
-test("ties on delivered price prefer known postage; a range needs a number after the dash, not '100%'", () => {
-  const unknown = item("Sabo OP13-120 Parallel SEC A", "10.00", { ship: null });
-  const free = item("Sabo OP13-120 Parallel SEC B", "10.00", { ship: "0.00" });
-  assert.equal(pick([unknown, free], 99).listing?.itemId, free.itemId);
-  assert.equal(pick([free, unknown], 99).listing?.itemId, free.itemId);
-  assert.ok(NUMBER_RANGE_OP.test("OP01-001 - 010 Romance Dawn Zoro Leader"));
-  assert.ok(NUMBER_RANGE_OP.test("OP01-001 to OP01-010"));
-  assert.ok(!NUMBER_RANGE_OP.test("Shanks OP01-120 - 100% Authentic Romance Dawn"));
-  assert.equal(pickedTitle([item("Shanks OP01-120 - 100% Authentic Romance Dawn", "7.00")], 1), "Shanks OP01-120 - 100% Authentic Romance Dawn");
-});
-
-test("chooseListing picks the cheapest DELIVERED listing", () => {
-  const z = "Roronoa Zoro OP01-001 Leader Romance Dawn English";
-  const cheapItem = item(z, "8.00", { ship: "20.00" });
-  const free = item(`${z} NM`, "12.00", { ship: "0.00" });
-  assert.equal(pick([cheapItem, free], 80).listing?.itemId, free.itemId);
-  // Unknown postage sorts as 0 but is stored as null.
-  const unknown = item(`${z} LP`, "11.00", { ship: null });
-  const r = pick([cheapItem, free, unknown], 80).listing!;
-  assert.equal(r.itemId, unknown.itemId);
-  assert.equal(r.shippingCents, null);
-});
-
-const L = (cents: number, i: number): EbayListing => ({ itemId: String(i), title: "", priceCents: cents, currency: "USD", shippingCents: 0, url: "", condition: null, location: "US", imageUrl: null });
-test("pruneCheapOutliers drops a 0.3×-median head only with 4+ listings", () => {
-  assert.equal(pruneCheapOutliers([L(300, 1), L(1000, 2), L(1000, 3), L(1100, 4)])[0].itemId, "2");
-  assert.equal(pruneCheapOutliers([L(300, 1), L(1000, 2), L(1100, 3)])[0].itemId, "1");
-  assert.equal(pruneCheapOutliers([L(100, 1), L(300, 2), L(300, 3), L(400, 4)])[0].itemId, "1"); // median < 500
-});
-
-test("ebayConditionLabel never guesses NM", () => {
-  assert.equal(ebayConditionLabel("Ungraded"), null);
-  assert.equal(ebayConditionLabel("Used"), null);
-  assert.equal(ebayConditionLabel("Near mint or better"), "NM");
-  assert.equal(ebayConditionLabel("Excellent"), "LP");
-  assert.equal(ebayConditionLabel("Very Good"), "MP");
-  assert.equal(ebayConditionLabel("Poor"), "HP");
-  assert.equal(ebayConditionLabel("New"), "NM");
-  assert.equal(ebayConditionLabel(null), null);
-});
-
-test("queries: one name word, no variant words, P- numbers keep One Piece and get no retry", () => {
-  assert.equal(queryWord("Monkey.D.Luffy"), "Luffy");
-  assert.equal(queryWord("Trafalgar Law"), "Trafalgar");
-  assert.equal(queryWord("Shanks"), "Shanks");
-  assert.equal(queryWord("Ace"), null);
-  assert.deepEqual(cardQuery({ number: "OP01-120", name: "Shanks" }), { strict: "One Piece OP01-120 Shanks", retry: "OP01-120 Shanks" });
-  assert.deepEqual(cardQuery({ number: "P-001", name: "Monkey.D.Luffy" }), { strict: "One Piece P-001 Luffy", retry: null });
-  for (const c of CARDS) {
-    const q = cardQuery(c);
-    assert.doesNotMatch(`${q.strict} ${q.retry ?? ""}`, /parallel|manga|alternate|judge|pack|sp\b|rare|romance|booster/i);
-  }
-  assert.equal(sealedQuery("Romance Dawn Booster Box"), "One Piece Romance Dawn Booster Box");
-});
-
-test("filters: delivery country, price floor in the market currency with 5% FX slack", () => {
-  assert.match(priceFilter(1234 / 0.79, "GBP"), /^price:\[12\.3[34]\.\.\],priceCurrency:GBP$/);
-  assert.equal(cardFilter("US", 250), "buyingOptions:{FIXED_PRICE},deliveryCountry:US");
-  assert.equal(cardFilter("EU", 10000), "buyingOptions:{FIXED_PRICE},deliveryCountry:ES,price:[26.22..],priceCurrency:EUR");
-  assert.equal(cardFilter("UK", 10000), "buyingOptions:{FIXED_PRICE},deliveryCountry:GB,price:[22.52..],priceCurrency:GBP");
-  assert.equal(sealedFilter("AU", 10000), "buyingOptions:{FIXED_PRICE},conditions:{NEW},deliveryCountry:AU,price:[71.25..],priceCurrency:AUD");
-  assert.equal(sealedFilter("CA", null), "buyingOptions:{FIXED_PRICE},conditions:{NEW},deliveryCountry:CA");
-});
-
-test("mapItem: affiliate URL preferred and EPN-tagged, postage in cents, condition label", () => {
-  const l = mapItem({
-    itemId: "v1|1|0",
-    title: "t",
-    price: { value: "12.50", currency: "GBP" },
-    shippingOptions: [{ shippingCost: { value: "1.99", currency: "GBP" } }],
-    itemWebUrl: "https://www.ebay.co.uk/itm/1",
-    itemAffiliateWebUrl: "https://www.ebay.co.uk/itm/1?mkevt=1&mkcid=1&mkrid=710-99999-0-0&campid=1&toolid=10001",
-    condition: "Near mint or better",
-    itemLocation: { country: "GB" },
-  })!;
-  assert.equal(l.priceCents, 1250);
-  assert.equal(l.shippingCents, 199);
-  assert.equal(l.condition, "NM");
-  const u = new URL(l.url);
-  assert.equal(u.searchParams.get("mkrid"), "710-99999-0-0"); // eBay's own rotation kept
-  assert.equal(u.searchParams.get("campid"), "5339155912");
-  assert.equal(u.searchParams.get("customid"), "oc-uk-product");
-});
-
-test("sealed: identity through matchSealedTitle", () => {
-  const refs: SealedRef[] = [
-    { id: 900, name: "Romance Dawn Booster Box", kind: "Booster Box", setCode: "OP01", setName: "Romance Dawn" },
-    { id: 901, name: "Paramount War Booster Box", kind: "Booster Box", setCode: "OP02", setName: "Paramount War" },
+test("the screen: every reject has a reason, the survivors are grouped by unit and sorted cheapest delivered first", () => {
+  const items: EbayItem[] = [
+    it("The One Ring - Lord of the Rings Tales of Middle-earth LTR 246 NM", "129.99"),
+    it("The One Ring LTR 246 Lord of the Rings Tales of Middle-earth near mint", "119.50", { shippingOptions: [{ shippingCost: { value: "4.99", currency: "USD" } }] }),
+    it("The One Ring LTR 246 Lord of the Rings Tales of Middle-earth NM FOIL", "154.00"),
+    it("The One Ring Extended Art LTR 380 Lord of the Rings", "162.00"),
+    it("The One Ring LTR 246 Lord of the Rings Tales of Middle-earth", "9.99"),
+    it("The One Ring LTR 246 Lord of the Rings Tales of Middle-earth", "120.00", { buyingOptions: ["AUCTION"] }),
+    it("The One Ring LTR 246 Lord of the Rings Tales of Middle-earth", "120.00", { itemLocation: { country: "CN" } }),
+    it("The One Ring LTR 246 Lord of the Rings Tales of Middle-earth", "120.00", { price: { value: "120.00", currency: "GBP" } }),
+    it("The One Ring LTR 246 Lord of the Rings Tales of Middle-earth", "120.00", { condition: "Heavily Played (Poor)" }),
+    it("The One Ring LTR 246 Lord of the Rings Tales of Middle-earth PSA 10", "700.00", { conditionId: "2750", condition: "Graded" }),
+    it("The One Ring LTR 246 Lord of the Rings Tales of Middle-earth", "118.00", { shippingOptions: [{ shippingCost: { value: "250.00", currency: "USD" } }] }),
+    it("The One Ring MTG", "120.00"),
+    it("The One Ring Prerelease PLTR 246s", "120.00"),
+    { ...it("The One Ring LTR 246 Lord of the Rings", "120.00"), price: undefined },
   ];
-  const t: ChooseTarget = { kind: "sealed", id: 901, marketUsd: 30000, refs };
-  const ok = item("One Piece Card Game Paramount War OP-02 Booster Box English Sealed", "320.00");
-  const other = item("One Piece Romance Dawn OP-01 Booster Box English Sealed", "300.00");
-  const r = chooseListing([other, ok], t, "US");
-  assert.equal(r.listing?.itemId, ok.itemId);
-  assert.equal(r.rejects["other-product"], 1);
+  const r = screenName(items, RING, "US");
+  assert.deepEqual([...r.byUnit.keys()].sort(), [unitKeyOf(487805, "F"), unitKeyOf(487805, "N"), unitKeyOf(488276, "N")].sort());
+  assert.deepEqual(r.byUnit.get(unitKeyOf(487805, "N"))!.map((l) => l.priceCents), [11_950, 12_999], "US$119.50 + US$4.99 postage (124.49 delivered) beats US$129.99 with free postage");
+  assert.deepEqual(r.rejects, { "implausible-price": 1, "not-fixed-price": 1, location: 1, currency: 1, condition: 1, graded: 1, postage: 1, "match:nokey": 1, "no-reference": 1, "no-price": 1 });
 });
 
-// ── Graded slabs: captured from the same search, never an Offer ──────────────
-test("parseGrade reads the grader and grade, and never invents one", () => {
-  assert.deepEqual(parseGrade("PSA 10 GEM MINT Shanks OP01-120 Manga Rare One Piece"), { grader: "PSA", grade: 10 });
-  assert.deepEqual(parseGrade("Shanks OP01-120 Parallel BGS 9.5 Romance Dawn"), { grader: "BGS", grade: 9.5 });
-  assert.deepEqual(parseGrade("CGC-9 Portgas.D.Ace OP13-119 SAA"), { grader: "CGC", grade: 9 });
-  assert.deepEqual(parseGrade("Shanks OP01-120 SGC10 One Piece"), { grader: "SGC", grade: 10 });
-  assert.deepEqual(parseGrade("Shanks OP01-120 PSA graded, see photos"), { grader: "PSA", grade: null });
-  assert.deepEqual(parseGrade("One of 10 PSA submissions Shanks"), { grader: "PSA", grade: null });
-  assert.deepEqual(parseGrade("Shanks OP01-120 SEC Romance Dawn NM"), { grader: null, grade: null });
-  assert.equal(isGradedListing("PSA 9 Shanks"), true);
-  assert.equal(isGradedListing("Shanks OP01-120 NM"), false);
+test("the pick is the cheapest delivered after the outlier prune; a banned item (claimed elsewhere) is skipped", () => {
+  const l = (itemId: string, priceCents: number, ship: number | null = 0) => ({ itemId, title: "t", priceCents, currency: "USD", shippingCents: ship, condition: null, location: "US", imageUrl: null, endsAt: null });
+  const list = [l("1", 900), l("2", 11_900), l("3", 12_000), l("4", 12_400), l("5", 13_000)];
+  assert.deepEqual(pruneCheapOutliers(list).map((x) => x.itemId), ["2", "3", "4", "5"], "US$9 against a US$120 median is a bait price");
+  assert.equal(pickListing(list)!.itemId, "2");
+  assert.equal(pickListing(list, new Set(["2"]))!.itemId, "3");
+  assert.equal(pickListing([]), null);
+  assert.deepEqual(pruneCheapOutliers(list.slice(0, 3)).map((x) => x.itemId), ["1", "2", "3"], "under four listings nothing is pruned");
+});
+test("the panel: the headline pick of each finish first, the rest by price, at most eight", () => {
+  const l = (itemId: string, priceCents: number) => ({ itemId, title: "t", priceCents, currency: "USD", shippingCents: 0, condition: null, location: "US", imageUrl: null, endsAt: null });
+  const N = [l("n1", 12_000), l("n2", 12_500), l("n3", 13_000)], F = [l("f1", 15_000), l("f2", 15_500)];
+  const rows9 = panelListings({ N, F }, { N: N[0]!, F: F[0]! });
+  assert.deepEqual(rows9.map((r) => `${r.finish}:${r.l.itemId}`), ["N:n1", "F:f1", "N:n2", "N:n3", "F:f2"]);
+  assert.equal(panelListings({ N: Array.from({ length: 12 }, (_, i) => l(`x${i}`, 12_000 + i)) }, {}).length, 8);
+  assert.deepEqual(panelListings({ N }, { N: N[1]! }, new Set(["n3"])).map((r) => r.l.itemId), ["n2", "n1"], "the given pick first, then the others, minus the banned item");
 });
 
-test("screenGraded keeps slabs of the target printing only, best grade first, and the raw path still rejects them", () => {
-  const slab10 = item("PSA 10 GEM MINT Shanks OP01-120 Parallel Alt Art SEC Romance Dawn One Piece TCG", "260.00", { conditionId: "2750", condition: "Graded" });
-  const slab9 = item("BGS 9 Shanks OP01-120 Parallel Alt Art Romance Dawn One Piece", "150.00", { conditionId: "2750", condition: "Graded" });
-  const wrongPrinting = item("PSA 10 Shanks OP01-120 SEC Romance Dawn One Piece English", "40.00", { conditionId: "2750", condition: "Graded" });
-  const raw = item("Shanks OP01-120 Parallel Alt Art SEC Romance Dawn One Piece TCG English", "80.00");
-  const noGrader = item("Graded Shanks OP01-120 Parallel Alt Art Romance Dawn One Piece", "100.00", { conditionId: "2750", condition: "Graded" });
-  const lowBait = item("PSA 8 Shanks OP01-120 Parallel Alt Art Romance Dawn One Piece", "5.00", { conditionId: "2750", condition: "Graded" });
-  const lot = item("Lot of 3 PSA 10 Shanks OP01-120 Parallel Alt Art Romance Dawn One Piece", "600.00", { conditionId: "2750", condition: "Graded" });
-  const all = [slab9, raw, wrongPrinting, noGrader, lowBait, lot, slab10];
-  const slabs = screenGraded(all, single(2), "US");
-  assert.deepEqual(slabs.map((l) => `${l.grader} ${l.grade}`), ["PSA 10", "BGS 9"]);
-  assert.equal(pick(all, 2).listing?.title, raw.title); // raw pricing is unchanged
-  assert.equal(screenGraded(all, single(1), "US").length, 1); // the base printing's own slab
+test("slabs: the grader before the grade, best grade first, never below half the raw reference, never a raw listing", () => {
+  assert.deepEqual(parseGrade("The One Ring LTR 246 PSA 10 GEM MINT"), { grader: "PSA", grade: 10 });
+  assert.deepEqual(parseGrade("BGS 9.5 The One Ring"), { grader: "BGS", grade: 9.5 });
+  assert.deepEqual(parseGrade("The One Ring CGC-9"), { grader: "CGC", grade: 9 });
+  assert.deepEqual(parseGrade("1 of 10 PSA graded, see photos"), { grader: "PSA", grade: null });
+  assert.deepEqual(parseGrade("The One Ring LTR 246 NM"), { grader: null, grade: null });
+  const items = [
+    it("The One Ring LTR 246 Lord of the Rings Tales of Middle-earth PSA 9 MINT", "240.00", { conditionId: "2750", condition: "Graded" }),
+    it("The One Ring LTR 246 Lord of the Rings Tales of Middle-earth PSA 10 GEM MINT", "399.00", { conditionId: "2750", condition: "Graded" }),
+    it("The One Ring LTR 246 Lord of the Rings Tales of Middle-earth BGS 9.5", "310.00", { conditionId: "2750", condition: "Graded" }),
+    it("The One Ring LTR 246 Lord of the Rings Tales of Middle-earth PSA 8", "40.00", { conditionId: "2750", condition: "Graded" }),
+    it("The One Ring LTR 246 Lord of the Rings Tales of Middle-earth NM", "119.00"),
+    it("The One Ring Lord of the Rings Tales of Middle-earth PSA 10", "399.00", { conditionId: "2750", condition: "Graded" }),
+  ];
+  const g = screenGraded(items, RING, "US").get(487805)!;
+  assert.deepEqual(g.map((x) => [x.grader, x.grade, x.priceCents]), [["PSA", "10", 39_900], ["BGS", "9.5", 31_000], ["PSA", "9", 24_000]], "US$40 for a PSA 8 is under half the raw reference; the title with no set is ambiguous");
+  assert.ok(g.every((x) => x.finish === "N" && x.productId === 487805));
+  assert.equal(screenName(items, RING, "US").byUnit.size, 1, "the raw search sees only the raw copy");
 });
 
-test("panelListings puts the headline pick first and caps at 8", () => {
-  const list = Array.from({ length: 12 }, (_, i) => L(1000 + i * 10, i));
-  const out = panelListings(list, list[3]);
-  assert.equal(out[0].itemId, "3");
-  assert.equal(out.length, 8);
-  assert.equal(new Set(out.map((l) => l.itemId)).size, 8);
-  assert.equal(panelListings(list, null, new Set(["0"]))[0].itemId, "1");
+test("sealed: the product, the market's currency, new and fixed price, plausible against the product's market; a pack is not a box", () => {
+  const MH3_BOX = 541_164;
+  const t = { kind: "sealed" as const, id: MH3_BOX, name: "Modern Horizons 3 - Play Booster Display", marketCents: 30_393, refs: sealedRefs };
+  assert.deepEqual(identityOfSealed("Magic The Gathering Modern Horizons 3 Play Booster Box Factory Sealed", t), { id: MH3_BOX });
+  assert.deepEqual(identityOfSealed("Modern Horizons 3 Play Booster Pack", t), { reject: "other-product" }, "a pack is another product, found by name and kind");
+  assert.deepEqual(identityOfSealed("Modern Horizons 3 Collector Booster Box", t), { reject: "other-product" });
+  assert.deepEqual(identityOfSealed("Modern Horizons 3 Play Booster Box x4 lot", t), { reject: "junk" });
+  const items = [
+    it("MTG Modern Horizons 3 Play Booster Box Factory Sealed", "319.99"),
+    it("Magic The Gathering Modern Horizons 3 Play Booster Box SEALED", "289.00", { shippingOptions: [{ shippingCost: { value: "12.00", currency: "USD" } }] }),
+    it("MTG Modern Horizons 3 Play Booster Box", "99.00"),
+    it("Modern Horizons 3 Play Booster Box Chinese", "250.00"),
+    it("Modern Horizons 3 Collector Booster Box", "899.00"),
+  ];
+  const r = screenSealed(items, t, "US");
+  assert.deepEqual(r.survivors.map((x) => x.priceCents), [28_900, 31_999]);
+  assert.deepEqual(r.rejects, { "implausible-price": 1, "foreign-or-fake": 1, "other-product": 1 });
+  assert.deepEqual(screenSealed(items, { ...t, marketCents: null }, "US").survivors, [], "no reference price: nothing is trusted");
 });
 
-test("mapItem carries Browse's own https image only", () => {
-  const it = item("Shanks OP01-120 NM", "7.50");
-  assert.equal(mapItem({ ...it, image: { imageUrl: "https://i.ebayimg.com/x.jpg" } })?.imageUrl, "https://i.ebayimg.com/x.jpg");
-  assert.equal(mapItem({ ...it, image: { imageUrl: "http://i.ebayimg.com/x.jpg" } })?.imageUrl, null);
-  assert.equal(mapItem(it)?.imageUrl, null);
+test("a name none of whose printings can match its own canonical title is never searched", () => {
+  assert.equal(selfMatches(RING), true);
+  assert.equal(selfMatches(BOLT), true);
+  assert.equal(selfMatches(nameTarget("the one ring", [], [])), false);
 });

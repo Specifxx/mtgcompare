@@ -63,18 +63,18 @@ export function parseSearch(q: string, ctx: { setCodes: ReadonlySet<string> }): 
     return true;
   });
 
-  // 2. "mh3-6", "mh3/6", "mh3:6" as one token
-  if (!set && tokens.length) {
-    const last = tokens[tokens.length - 1]!, cut = /[-/:]/.exec(last);
-    if (cut && cut.index > 0) { const left = last.slice(0, cut.index), right = last.slice(cut.index + 1); if (known(left) && NUMBER_RX.test(right)) { tokens = [...tokens.slice(0, -1), left, right]; } }
-  }
-
-  // 3. set code + collector number: the last two tokens, the first a known code, the second shaped like a number
+  // 2. set code + collector number: the last two tokens, the first a known code, the second shaped like a number ("plst khc-29": the number may carry a prefix)
   if (!set && tokens.length >= 2) {
     const a = tokens[tokens.length - 2]!, b = tokens[tokens.length - 1]!;
     if (known(a) && NUMBER_RX.test(b)) { set = a; number = b; tokens = tokens.slice(0, -2); }
   } else if (set && !number && tokens.length) {
     const b = tokens[tokens.length - 1]!; if (NUMBER_RX.test(b) && /\d/.test(b)) { number = b; tokens = tokens.slice(0, -1); }          // "set:mh3 6"
+  }
+
+  // 3. "mh3-6", "mh3/6", "mh3:6" as one token
+  if (!set && tokens.length) {
+    const last = tokens[tokens.length - 1]!, cut = /[-/:]/.exec(last);
+    if (cut && cut.index > 0) { const left = last.slice(0, cut.index), right = last.slice(cut.index + 1); if (known(left) && NUMBER_RX.test(right)) { set = left; number = right; tokens = tokens.slice(0, -1); } }
   }
 
   // 4. a name plus a code that contains a digit, trailing first, then leading

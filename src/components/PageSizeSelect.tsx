@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 
-// RiftCompare's PageSizeSelect: "Show [48]". OP Compare's browse calls the
+// RiftCompare's PageSizeSelect: "Show [48]". MTG Compare's browse calls the
 // param `per` (24 / 48 / 100, default 48), so the param, sizes and default are
 // props here rather than RiftCompare's lib/cards constants.
 export function PageSizeSelect({

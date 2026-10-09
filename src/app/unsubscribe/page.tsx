@@ -6,6 +6,8 @@ import { UnsubscribeClient } from "@/components/UnsubscribeClient";
 // watchlist); ?mode=delete (the footer's "Delete all my watches") opens with
 // the explicit delete confirmation shown. See UnsubscribeClient. (RiftCompare's
 // /unsubscribe, wave 2.)
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Pause price-alert emails",
   robots: { index: false, follow: false },

@@ -9,11 +9,12 @@ import { NOW, hoursAgo, offer, plus, sealedHarness, sealedRow } from "./helpers/
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SEALED WATCH CADENCE. RiftCompare checks sealed products about every six
-// hours; OP Compare's store import runs twice a day (07:07 and 19:07 UTC), so
-// its watches are honestly "checked twice a day", and the restock rule is
-// RiftCompare's with the same 5h floor: a sell-out seen at one run and a
-// restock at the next is 12h apart, well past it. The copy quotes the one
-// constant (lib/alert-limits.ts SEALED_CHECK_CADENCE), never a typed number.
+// hours; MTG Compare's import publishes once a day (IMPORT_CRONS in
+// lib/schedule.ts), so its watches are honestly "checked once a day", and the
+// restock rule is RiftCompare's with the same 5h floor: a sell-out seen at one
+// run and a restock at the next is a day apart, well past it. The copy quotes
+// the one constant (lib/alert-limits.ts SEALED_CHECK_CADENCE, read from
+// schedule.ts), never a typed number.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const read = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
@@ -31,7 +32,7 @@ test("the thresholds: a five-hour sold-out floor, a six-hour restock cooldown, 2
   assert.equal(inSealedCooldown(null, NOW, "sealed_restock"), false);
 });
 
-test("two imports 12h apart are enough for a restock, a short blip is not", async () => {
+test("two runs 5h or more apart are enough for a restock, a short blip is not", async () => {
   for (const [hours, fires] of [[12, true], [11.5, true], [5, true], [4.9, false], [3, false]] as const) {
     const h = sealedHarness([sealedRow("s1", plus, { lastPriceCents: 15000, lastInStock: false, soldOutAt: hoursAgo(hours) })], { offers: [offer(15000)] });
     const s = await h.run();
@@ -40,24 +41,25 @@ test("two imports 12h apart are enough for a restock, a short blip is not", asyn
   }
 });
 
-test("the cadence is one constant, twice a day, quoted in the email and the footer", () => {
-  assert.equal(SEALED_CHECK_CADENCE, "twice a day");
-  assert.match(SEALED_CHECK_SENTENCE, /checked twice a day/);
+test("the cadence is one constant, once a day, read from the schedule, quoted in the email and the footer", () => {
+  assert.equal(SEALED_CHECK_CADENCE, "once a day");
+  assert.match(read("src/lib/alert-limits.ts"), /IMPORT_CRONS\.every/, "derived from the schedule, not typed");
+  assert.match(SEALED_CHECK_SENTENCE, /checked once a day/);
   assert.match(SEALED_CHECK_SENTENCE, /Discord stock bot may be faster/, "never pretends to be instant");
   const item: SealedWatchItem = {
-    kind: "sealed_restock", watchId: "w1", sealedId: 5001, slug: "op-05-booster-box", name: "OP-05 Booster Box", productType: "booster-box", setCode: "OP05",
+    kind: "sealed_restock", watchId: "w1", sealedId: 5001, slug: "modern-horizons-3-play-booster-box", name: "Modern Horizons 3 Play Booster Box", productType: "booster-box", setCode: "MH3",
     market: "US", currency: "USD", priceCents: 15500, rrpCents: null, store: { name: "Shop X", url: "https://shopx.example/box", retailer: "store:shopx" }, storeCount: 2,
     targetCents: null, referenceCents: null, referenceBasis: null, soldOutAt: hoursAgo(30), checkedAt: hoursAgo(2), actions: null,
   };
   const e = buildSealedWatchEmail(item);
-  assert.match(e.html, /checked twice a day/);
-  assert.match(e.text, /checked twice a day/);
+  assert.match(e.html, /checked once a day/);
+  assert.match(e.text, /checked once a day/);
   assert.match(e.html, /Checked .* at Shop X\./, "when the store's page was last read, in the body");
   assert.match(e.html, /Stock can sell out again before you get there/);
   assert.doesNotMatch(`${e.html} ${e.text}`, /every six hours|instant/i);
   const src = read("src/lib/watch-emails.ts");
   assert.match(src, /SEALED_CHECK_CADENCE/);
-  assert.doesNotMatch(src.replace(/\/\/.*$/gm, ""), /twice a day|six hours/, "the number is never typed in the template");
+  assert.doesNotMatch(src.replace(/\/\/.*$/gm, ""), /once a day|six hours/, "the number is never typed in the template");
 });
 
 test("RRP alerts are off: no market is enabled, so none is promised or sent", () => {
@@ -65,12 +67,12 @@ test("RRP alerts are off: no market is enabled, so none is promised or sent", ()
   for (const m of ["US", "AU", "UK", "SG", "CA", "EU"] as const) assert.equal(sealedRrpAvailable(m), false, m);
 });
 
-test("the sealed pass runs in the paid mode only, after the card and deck passes, from the import workflow", () => {
+test("the sealed pass runs in the daily and paid modes, after the card and deck passes, from the import workflow", () => {
   const script = read("scripts/alerts.ts");
   const paid = script.slice(script.indexOf("} else {"));
-  assert.match(paid, /runPriceAlerts\(\{\}, \{ scope: "paid" \}\)/);
+  assert.match(paid, /runPriceAlerts\(\{\}, \{ scope: mode === "daily" \? "all" : "paid" \}\)/);
   assert.ok(paid.indexOf("runPriceAlerts") < paid.indexOf("runSealedWatches") && paid.indexOf("runSealedWatches") < paid.indexOf("runReleaseAlerts"));
   assert.match(paid, /runSealedWatches\(\{ sendCap: afterDecks \}\)/, "one send cap shared across the passes");
   const wf = read(".github/workflows/import-prices.yml");
-  assert.match(wf, /- name: Paid price alerts[\s\S]*scripts\/alerts\.ts --mode=paid/);
+  assert.match(wf, /- name: Alerts[\s\S]*scripts\/alerts\.ts/);
 });

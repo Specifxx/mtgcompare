@@ -31,14 +31,14 @@ test("DTEND of an all-day event is the next day, across month and year ends", ()
 });
 
 test("the calendar is a CRLF VCALENDAR with one all-day VEVENT and escaped text", () => {
-  const ics = releaseIcs({ date: "2026-12-05", name: "Wings, Swords; & More", code: "OP18", slug: "op18-x" }, new Date("2026-10-04T10:00:00Z"));
+  const ics = releaseIcs({ date: "2026-12-05", name: "Wings, Swords; & More", code: "MH3", slug: "modern-horizons-3" }, new Date("2026-10-04T10:00:00Z"));
   assert.match(ics, /^BEGIN:VCALENDAR\r\nVERSION:2\.0\r\n/);
   assert.ok(ics.endsWith("END:VCALENDAR\r\n"));
   assert.equal((ics.match(/BEGIN:VEVENT/g) ?? []).length, 1);
   assert.match(ics, /DTSTART;VALUE=DATE:20261205\r\n/);
   assert.match(ics, /DTEND;VALUE=DATE:20261206\r\n/);
   assert.match(ics, /DTSTAMP:20261004T100000Z\r\n/);
-  assert.match(ics, /SUMMARY:One Piece Card Game: Wings\\, Swords\; & More \(OP18\) releases/);
-  assert.match(ics, /UID:one-piece-release-op18-2026-12-05@opcompare\.app/);
+  assert.match(ics, /SUMMARY:Magic: The Gathering Wings\\, Swords\; & More \(MH3\) releases/);
+  assert.match(ics, /UID:magic-release-mh3-2026-12-05@mtgcompare\.app/);
   assert.ok(!/\n(?<!\r\n)/.test(ics.replace(/\r\n/g, "")));
 });

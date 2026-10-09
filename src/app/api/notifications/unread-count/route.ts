@@ -4,7 +4,7 @@ import { unreadCount } from "@/lib/notifications";
 
 export const dynamic = "force-dynamic";
 
-// One indexed count (RiftCompare's poll target). OP Compare does NOT poll it:
+// One indexed count (RiftCompare's poll target). MTG Compare does NOT poll it:
 // the count rides /api/me (lib/use-unread.ts). Kept for parity and scripts.
 export async function GET() {
   const user = await getCurrentUser();

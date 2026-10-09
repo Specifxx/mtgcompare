@@ -17,7 +17,7 @@ import { Toast } from "./ui/Toast";
 //   • Signed IN — a real toggle against the account's watchlist
 //     (lib/use-watchlist.ts), optimistic, with the free limit's 402 answered by
 //     the upgrade panel beside THIS heart.
-//   • Signed OUT — RiftCompare opens an email-only alert modal. OP Compare sends
+//   • Signed OUT — RiftCompare opens an email-only alert modal. MTG Compare sends
 //     no email until a mailer is configured, so the heart saves the card in
 //     this browser (the local branch of the same store) and says so in a
 //     toast: "Saved in this browser. Sign in to sync and get alerts". Signing

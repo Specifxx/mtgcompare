@@ -61,12 +61,12 @@ test("a set-wide signup is told once singles have a store price in its own marke
 test("a card-page signup waits for THAT card, not the set", () => {
   const facts = {
     pricedCount: { US: 40 },
-    cards: { "100001": { name: "Monkey.D.Luffy (Parallel)", href: "/card/monkey-d-luffy-parallel", price: { US: null as number | null } } },
+    cards: { "100001": { name: "Lightning Bolt (Borderless)", href: "/card/lightning-bolt-borderless", price: { US: null as number | null } } },
   };
   assert.equal(singlesNotices([row({ scope: "100001" })], facts).size, 0);
   facts.cards["100001"].price.US = 129900;
   const n = singlesNotices([row({ scope: "100001" })], facts).get("r1")!;
-  assert.deepEqual(n.card, { name: "Monkey.D.Luffy (Parallel)", href: "/card/monkey-d-luffy-parallel", priceCents: 129900 });
+  assert.deepEqual(n.card, { name: "Lightning Bolt (Borderless)", href: "/card/lightning-bolt-borderless", priceCents: 129900 });
 });
 
 test("restock fires only for a product that was sold out everywhere and is open again", () => {
@@ -88,40 +88,40 @@ test("restock fires only for a product that was sold out everywhere and is open 
 
 test("one email per address, and the email states only facts, with an unsubscribe", () => {
   assert.equal(groupByEmail([row(), row({ id: "r2", scope: "100001" }), row({ id: "r3", email: "x@y.z" })]).size, 2);
-  const e = buildReleaseEmail("Awakening of the New Era", "/sets/op-05", [
+  const e = buildReleaseEmail("Modern Horizons 3", "/sets/modern-horizons-3", [
     { kind: "singles", market: "US", pricedCount: 3, card: null },
-    { kind: "restock", market: "US", products: ["OP-05 Booster Box"] },
+    { kind: "restock", market: "US", products: ["Modern Horizons 3 Play Booster Box"] },
   ]);
-  assert.equal(e.subject, "Awakening of the New Era singles have store prices");
-  assert.match(e.lines.join(" "), /3 Awakening of the New Era singles have a store price in the United States/);
-  assert.match(e.lines.join(" "), /Back in stock for pre-order in the United States: OP-05 Booster Box/);
+  assert.equal(e.subject, "Modern Horizons 3 singles have store prices");
+  assert.match(e.lines.join(" "), /3 Modern Horizons 3 singles have a store price in the United States/);
+  assert.match(e.lines.join(" "), /Back in stock for pre-order in the United States: Modern Horizons 3 Play Booster Box/);
   const text = renderReleaseEmailText(e, "tok");
-  assert.match(text, /Unsubscribe: https:\/\/opcompare\.app\/alerts\/release\?token=tok/);
+  assert.match(text, /Unsubscribe: https:\/\/mtgcompare\.app\/alerts\/release\?token=tok/);
   assert.doesNotMatch(text, /ebay|tcgplayer/i, "no affiliate links in emails");
   const html = renderReleaseEmailHtml(e, "tok", emailShell);
   assert.match(html, /at most two emails/);
   assert.doesNotMatch(`${html} ${text}`, /riftbound|riftcompare|radiance/i);
-  assert.equal(releaseStopUrl("a b"), "https://opcompare.app/alerts/release?token=a%20b");
-  assert.equal(releaseOneClickUrl("tok"), "https://opcompare.app/api/alerts/release/unsubscribe?token=tok");
+  assert.equal(releaseStopUrl("a b"), "https://mtgcompare.app/alerts/release?token=a%20b");
+  assert.equal(releaseOneClickUrl("tok"), "https://mtgcompare.app/api/alerts/release/unsubscribe?token=tok");
 });
 
 test("a card signup's email names the card and its price", () => {
-  const e = buildReleaseEmail("Awakening of the New Era", "/sets/op-05", [
-    { kind: "singles", market: "AU", pricedCount: 9, card: { name: "Monkey.D.Luffy", href: "/card/monkey-d-luffy", priceCents: 4500 } },
+  const e = buildReleaseEmail("Modern Horizons 3", "/sets/modern-horizons-3", [
+    { kind: "singles", market: "AU", pricedCount: 9, card: { name: "Lightning Bolt", href: "/card/lightning-bolt", priceCents: 4500 } },
   ]);
-  assert.equal(e.subject, "Monkey.D.Luffy is listed");
-  assert.match(e.lines[0]!, /Monkey\.D\.Luffy now has a store price in Australia: A\$45\.00/);
-  assert.equal(e.cta.url, "https://opcompare.app/card/monkey-d-luffy");
+  assert.equal(e.subject, "Lightning Bolt is listed");
+  assert.match(e.lines[0]!, /Lightning Bolt now has a store price in Australia: A\$45\.00/);
+  assert.equal(e.cta.url, "https://mtgcompare.app/card/lightning-bolt");
 });
 
 test("signup bodies: a valid address and a real set slug; a card must be an integer id; the honeypot is flagged", () => {
-  const ok = parseReleaseBody({ email: " Sam@Example.com ", setSlug: "OP-05", market: "uk", source: "set" });
-  assert.deepEqual(ok, { email: "sam@example.com", setSlug: "op-05", cardId: null, market: "UK", source: "set", honeypot: false });
-  assert.equal(parseReleaseBody({ email: "sam@example.com", setSlug: "op-05", cardId: 100001, source: "card" })!.cardId, 100001);
-  assert.equal(parseReleaseBody({ email: "sam@example.com", setSlug: "op-05", cardId: "100001" })!.cardId, 100001);
-  assert.equal(parseReleaseBody({ email: "sam@example.com", setSlug: "op-05", source: "bogus" })!.source, null);
-  assert.equal(parseReleaseBody({ email: "sam@example.com", setSlug: "op-05", website: "http://spam" })!.honeypot, true);
-  for (const bad of [null, {}, { email: "no", setSlug: "op-05" }, { email: "a@b.co" }, { email: "a@b.co", setSlug: "../x" }, { email: "a@b.co", setSlug: "op-05", cardId: -1 }, { email: "a@b.co", setSlug: "op-05", cardId: 1.5 }]) {
+  const ok = parseReleaseBody({ email: " Sam@Example.com ", setSlug: "Modern-Horizons-3", market: "uk", source: "set" });
+  assert.deepEqual(ok, { email: "sam@example.com", setSlug: "modern-horizons-3", cardId: null, market: "UK", source: "set", honeypot: false });
+  assert.equal(parseReleaseBody({ email: "sam@example.com", setSlug: "modern-horizons-3", cardId: 100001, source: "card" })!.cardId, 100001);
+  assert.equal(parseReleaseBody({ email: "sam@example.com", setSlug: "modern-horizons-3", cardId: "100001" })!.cardId, 100001);
+  assert.equal(parseReleaseBody({ email: "sam@example.com", setSlug: "modern-horizons-3", source: "bogus" })!.source, null);
+  assert.equal(parseReleaseBody({ email: "sam@example.com", setSlug: "modern-horizons-3", website: "http://spam" })!.honeypot, true);
+  for (const bad of [null, {}, { email: "no", setSlug: "modern-horizons-3" }, { email: "a@b.co" }, { email: "a@b.co", setSlug: "../x" }, { email: "a@b.co", setSlug: "modern-horizons-3", cardId: -1 }, { email: "a@b.co", setSlug: "modern-horizons-3", cardId: 1.5 }]) {
     assert.equal(parseReleaseBody(bad), null, JSON.stringify(bad));
   }
   assert.deepEqual([...RELEASE_ALERT_SOURCES], ["release-dates", "set", "sealed", "card"]);
@@ -148,7 +148,8 @@ test("the run: generalised over every set in the window, 2 emails per address pe
   const run = readFileSync("src/lib/release-alerts-run.ts", "utf8");
   assert.match(run, /releaseAlertSets\(/);
   assert.match(run, /RELEASE_ALERT_SEND_CAP/);
-  assert.match(run, /source: \{ startsWith: "store:" \}/, "real stores only: never eBay, never the TCGplayer row");
+  assert.match(run, /ix\.smin\[/, "real stores only (the store-only minimum): never eBay, never TCGplayer's own low");
+  assert.match(run, /readSealedListings\(null,/, "the presale restock reads real-store listings only");
   assert.match(run, /if \(!emailOn\) continue;/, "pending until email is configured");
   assert.match(run, /singlesNotifiedAt: at/);
   assert.match(run, /restockNotifiedAt: at/);
@@ -171,5 +172,5 @@ test("the signup shows on the set page, the sealed presale page, unreleased card
   const slot = readFileSync("src/components/ReleaseAlertSlot.tsx", "utf8");
   assert.match(slot, /<EmailOnly>/);
   assert.match(readFileSync("src/components/EmailOnly.tsx", "utf8"), /getEmailStatus\(\)/);
-  assert.match(readFileSync("src/components/ReleaseAlertSignup.tsx", "utf8"), /op:alert_email/);
+  assert.match(readFileSync("src/components/ReleaseAlertSignup.tsx", "utf8"), /mc:alert_email/);
 });

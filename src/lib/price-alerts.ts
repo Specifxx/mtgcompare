@@ -38,9 +38,9 @@ export interface TcgMarketRef {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PRICE ALERTS — what fires, and when. RiftCompare's lib/price-alerts.ts (rules
-// as of 2026-09-25), ported for OP Compare in wave 2 (2026-10-03).
+// as of 2026-09-25), ported for MTG Compare in wave 2 (2026-10-03).
 // ─────────────────────────────────────────────────────────────────────────────
-// OP COMPARE: EMAIL IS OFF UNTIL CONFIGURED (isEmailEnabled, lib/email.ts). The
+// MTG COMPARE: EMAIL IS OFF UNTIL CONFIGURED (isEmailEnabled, lib/email.ts). The
 // rules below are RiftCompare's, unchanged. What changes is DELIVERY:
 //   • email ON  — RiftCompare's behaviour: one digest per address, the budget
 //     and caps, AlertMute pauses, lastNotifiedAt and the emailed watermark on a
@@ -379,7 +379,7 @@ export function isRestock(opts: { prev: number | null; soldOutAt: Date | null; s
 }
 
 /**
- * Postage for ONE card from this store to the watcher's market. OP Compare's
+ * Postage for ONE card from this store to the watcher's market. MTG Compare's
  * store rows state no postage and the measured postage model is the tools
  * track's (Best Basket), so an alert says "item price, postage extra" — never
  * a guess dressed as a quote, never "delivered" without known postage.

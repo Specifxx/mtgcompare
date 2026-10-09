@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { cardImage } from "@/lib/images";
 import type { Constituent } from "@/lib/market-stats";
 
 type SortKey = "rank" | "name" | "weight" | "price" | "d7";
@@ -95,9 +94,9 @@ export function IndexConstituents({ constituents }: { constituents: Constituent[
                 <td className="py-2 pl-3 pr-1 font-bold text-slate-500 sm:px-4">{rank <= 3 ? <span className="chip bg-gold/20 text-gold">{rank}</span> : rank}</td>
                 <td className="px-2 py-2">
                   <Link href={`/card/${c.slug}`} className="flex min-h-11 items-center gap-2.5">
-                    {c.hasImage ? (
+                    {c.hasImage && c.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={cardImage.thumb(c.id)} alt="" width={28} height={39} loading="lazy" decoding="async" className="h-10 w-7 shrink-0 rounded-sm object-cover" />
+                      <img src={c.imageUrl ?? ""} alt="" width={28} height={39} loading="lazy" decoding="async" className="h-10 w-7 shrink-0 rounded-sm object-cover" />
                     ) : null}
                     <span className="min-w-0">
                       <span className="block truncate font-semibold text-white">

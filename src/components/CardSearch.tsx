@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { ebayLabel, ebaySearchUrl, onePieceEbayQuery, outboundRel } from "@/lib/affiliate";
+import { ebayLabel, ebaySearchUrl, magicEbayQuery, outboundRel } from "@/lib/affiliate";
 import { clearRecent, pushRecentSearch, RECENT_SEARCHES_KEY, useRecentCards, useRecentSearches } from "@/lib/recently-viewed";
 import CardQuickLink from "./CardQuickLink";
 import { sendCardView } from "@/lib/card-views";
@@ -303,7 +303,7 @@ export function CardSearch({
   const activeLabel = active >= 0 ? (zero ? recent[active] : rows[active]?.name) : undefined;
   const big = size === "lg";
   const rowCls = (on: boolean) => `flex items-center gap-3 px-3 py-2 ${on ? "bg-ink-800 ring-1 ring-inset ring-brand-500/50" : "hover:bg-ink-800"}`;
-  const ebayHref = ebaySearchUrl(country, onePieceEbayQuery(trimmed), "search-no-results");
+  const ebayHref = ebaySearchUrl(country, magicEbayQuery(trimmed), "search-no-results");
 
   return (
     <div ref={box} className="relative w-full">

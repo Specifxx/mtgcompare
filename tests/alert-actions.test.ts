@@ -275,11 +275,11 @@ test("…and the run then stays quiet until a real further drop", async () => {
 
 test("POST /api/alerts/action: 403 on a bad token, JSON or form", async () => {
   const json = await actionPOST(
-    new Request("https://opcompare.app/api/alerts/action", { method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": "10.0.0.1" }, body: JSON.stringify({ token: "nope.nope" }) }),
+    new Request("https://mtgcompare.app/api/alerts/action", { method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": "10.0.0.1" }, body: JSON.stringify({ token: "nope.nope" }) }),
   );
   assert.equal(json.status, 403);
   const form = await actionPOST(
-    new Request("https://opcompare.app/api/alerts/action", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded", "x-forwarded-for": "10.0.0.2" }, body: "t=forged.token" }),
+    new Request("https://mtgcompare.app/api/alerts/action", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded", "x-forwarded-for": "10.0.0.2" }, body: "t=forged.token" }),
   );
   assert.equal(form.status, 403);
 });

@@ -1,3 +1,4 @@
+import { IMPORT_CRONS, parseDailyCron } from "./schedule";
 // How many watched cards may carry a TARGET PRICE ("Notify me at $X"), per
 // tier — RiftCompare's lib/alert-limits.ts, ported in wave 2 (2026-10-03).
 // Plain watches are free for every account — up to FREE_WATCHLIST_LIMIT
@@ -42,15 +43,17 @@ export function sealedWatchLimit(tier: "plus" | "premium" | null | undefined): n
   return 0;
 }
 
-// HOW OFTEN A SEALED WATCH IS CHECKED, as copy. OP Compare's store import runs
-// twice a day (import-prices.yml), and the sealed alert pass follows it. Never
+// HOW OFTEN A SEALED WATCH IS CHECKED, as copy. MTG Compare's import publishes
+// once a day (IMPORT_CRONS in schedule.ts: the 21:25, 21:55 and 22:25 runs are
+// one price day and its retries), and the sealed alert pass follows it. Never
 // "instant", never "first in line": a Discord stock bot polls faster than a
 // price site can, and the copy says so. One definition, so the table, the FAQ
 // and the watch form cannot drift apart.
-export const SEALED_CHECK_CADENCE = "twice a day";
+export const PRICES_REFRESH_PHRASE = IMPORT_CRONS.every((c) => parseDailyCron(c)?.weekday === null) ? "once a day" : "regularly";
+export const SEALED_CHECK_CADENCE = PRICES_REFRESH_PHRASE;
 
 // WHERE "AT RRP" EXISTS. RiftCompare publishes an RRP for AU, US and UK
-// (lib/msrp.ts); OP Compare has no MSRP table yet, so NO market offers an at-RRP
+// (lib/msrp.ts); MTG Compare has no MSRP table yet, so NO market offers an at-RRP
 // alert — restock, target and drop alerts work in every market. When an MSRP
 // table lands, list its markets here and every surface follows.
 export const SEALED_RRP_MARKETS: readonly string[] = [];

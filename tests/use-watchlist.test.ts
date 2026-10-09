@@ -1,6 +1,6 @@
 // The shared watchlist store (src/lib/use-watchlist.ts), driven outside React
 // with a stubbed fetch, a cookie and a localStorage shim. Both branches: the
-// signed-out localStorage list (OP Compare's no-account hearts) and the
+// signed-out localStorage list (MTG Compare's no-account hearts) and the
 // signed-in account list (RiftCompare's optimistic store over
 // /api/alerts/watchlist).
 import test from "node:test";
@@ -48,8 +48,8 @@ g.fetch = async (url: string, init?: { method?: string; body?: string }) => {
 };
 
 
-const luffy = { id: 101, slug: "monkey-d-luffy-op01-024", name: "Monkey.D.Luffy" };
-const zoro = { id: 202, slug: "roronoa-zoro-op01-025", name: "Roronoa Zoro" };
+const luffy = { id: 101, slug: "monkey-d-luffy-op01-024", name: "Lightning Bolt" };
+const zoro = { id: 202, slug: "roronoa-zoro-op01-025", name: "Sol Ring" };
 const local = () => JSON.parse(store.get(LOCAL_WATCHLIST_KEY) ?? "[]") as { slug: string; kind: string; name: string; added: string; id?: number }[];
 
 function signedOut() {
@@ -62,7 +62,7 @@ function signedIn(tier: "plus" | "premium" | null, ids: number[], opts: { keepLo
   // No signed-out list unless a test asks for one: otherwise the first load
   // merges it (the member track's merge hook) before the ids request.
   if (!opts.keepLocal) store.delete(LOCAL_WATCHLIST_KEY);
-  (g.document as { cookie: string }).cookie = "oc_auth=1";
+  (g.document as { cookie: string }).cookie = "mc_auth=1";
   invalidateMe();
   invalidateWatchlist();
   calls = [];
@@ -90,7 +90,7 @@ test("signed out: no request at all; the watched set is the local card items, se
     LOCAL_WATCHLIST_KEY,
     JSON.stringify([
       { slug: luffy.slug, kind: "card", name: luffy.name, added: "2026-10-01T00:00:00Z" }, // an older item: no id
-      { slug: "op-01-booster-box", kind: "sealed", name: "OP-01 Booster Box", added: "2026-10-01T00:00:00Z" },
+      { slug: "modern-horizons-3-play-booster-box", kind: "sealed", name: "Modern Horizons 3 Play Booster Box", added: "2026-10-01T00:00:00Z" },
     ]),
   );
   signedOut();
@@ -103,7 +103,7 @@ test("signed out: no request at all; the watched set is the local card items, se
   assert.ok(!isWatched(s, zoro));
 });
 
-test("signed out: watch and unwatch write op:watchlist (WatchButton's format) and publish", async () => {
+test("signed out: watch and unwatch write mc:watchlist (WatchButton's format) and publish", async () => {
   signedOut();
   await watchlistStore.load();
   const seen: number[] = [];
@@ -113,7 +113,7 @@ test("signed out: watch and unwatch write op:watchlist (WatchButton's format) an
   const first = local()[0];
   assert.deepEqual(first, { slug: zoro.slug, kind: "card", name: zoro.name, added: first.added, id: zoro.id });
   assert.ok(!Number.isNaN(Date.parse(first.added)));
-  assert.ok(events.includes("op:watchlist"), "other hearts on the page hear it");
+  assert.ok(events.includes("mc:watchlist"), "other hearts on the page hear it");
   assert.ok(isWatched(watchlistStore.get(), zoro));
   // Watching twice does not duplicate.
   await watchlistStore.watch(zoro, "US");
@@ -126,11 +126,11 @@ test("signed out: watch and unwatch write op:watchlist (WatchButton's format) an
   assert.ok(seen.length >= 3);
 });
 
-test("signed out: a write from WatchButton (the op:watchlist event) refreshes the store", async () => {
+test("signed out: a write from WatchButton (the mc:watchlist event) refreshes the store", async () => {
   signedOut();
   await watchlistStore.load();
   store.set(LOCAL_WATCHLIST_KEY, JSON.stringify([]));
-  (g.window as { dispatchEvent: (e: { type: string }) => void }).dispatchEvent({ type: "op:watchlist" });
+  (g.window as { dispatchEvent: (e: { type: string }) => void }).dispatchEvent({ type: "mc:watchlist" });
   assert.equal(watchlistStore.get()?.count, 0);
 });
 
@@ -197,7 +197,7 @@ test("signed in: unwatch is optimistic, a 404 counts as success, a failure rolls
 });
 
 test("signed in before the member routes exist: a 404 list is an empty set, not an error", async () => {
-  (g.document as { cookie: string }).cookie = "oc_auth=1";
+  (g.document as { cookie: string }).cookie = "mc_auth=1";
   invalidateMe();
   invalidateWatchlist();
   respond = (c) => (c.url === "/api/me" ? { status: 200, body: { user: { name: "T", email: "t@x.com", avatar: null }, tier: null } } : { status: 404 });
@@ -209,7 +209,7 @@ test("signed in before the member routes exist: a 404 list is an empty set, not 
 test("the local key is WatchButton's, and the module keeps RiftCompare's optimistic shape", () => {
   const button = readFileSync(join(process.cwd(), "src/components/WatchButton.tsx"), "utf8");
   assert.match(button, /WATCH_KEY = LOCAL_WATCHLIST_KEY/);
-  assert.equal(LOCAL_WATCHLIST_KEY, "op:watchlist");
+  assert.equal(LOCAL_WATCHLIST_KEY, "mc:watchlist");
   const src = readFileSync(join(process.cwd(), "src/lib/use-watchlist.ts"), "utf8");
   assert.match(src, /export function useWatchlist\(\)/);
   assert.match(src, /export function useWatchedIds\(\)/);
@@ -230,8 +230,8 @@ test("a subscribed store follows invalidateMe(): signing in swaps the local list
   await watchlistStore.load();
   assert.equal(watchlistStore.get()?.mode, "local");
   // Sign in: only the cookie and invalidateMe() (what the login flow does). The
-  // store hears oc:me, drops its state and, with a subscriber, loads again.
-  (g.document as { cookie: string }).cookie = "oc_auth=1";
+  // store hears mc:me, drops its state and, with a subscriber, loads again.
+  (g.document as { cookie: string }).cookie = "mc_auth=1";
   invalidateMe();
   await new Promise((r) => setTimeout(r, 20));
   const s = watchlistStore.get();
@@ -250,12 +250,12 @@ test("first signed-in load: local CARD items are merged before the ids request, 
     JSON.stringify([
       { slug: luffy.slug, kind: "card", name: luffy.name, added: "x", id: luffy.id },
       { slug: zoro.slug, kind: "card", name: zoro.name, added: "x" }, // an older item: slug only
-      { slug: "op-01-booster-box", kind: "sealed", name: "OP-01 Booster Box", added: "x" },
+      { slug: "modern-horizons-3-play-booster-box", kind: "sealed", name: "Modern Horizons 3 Play Booster Box", added: "x" },
     ]),
   );
   mergeStatus = 200;
   signedIn(null, [], { keepLocal: true });
-  (g.document as { cookie: string }).cookie = "oc_auth=1; country=AU";
+  (g.document as { cookie: string }).cookie = "mc_auth=1; country=AU";
   const s = await watchlistStore.load();
   assert.deepEqual(
     calls.map((c) => c.url),
@@ -276,7 +276,7 @@ test("first signed-in load: local CARD items are merged before the ids request, 
     ["sealed"],
     "card items leave localStorage; the sealed item stays (sealed watches are Plus)",
   );
-  assert.equal(store.get("op:watchlist-merged"), undefined, "no userId in this /api/me answer, so no marker");
+  assert.equal(store.get("mc:watchlist-merged"), undefined, "no userId in this /api/me answer, so no marker");
 });
 
 test("a failed merge leaves the local list intact for the next load", async () => {

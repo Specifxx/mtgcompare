@@ -14,18 +14,18 @@ import { Spinner } from "./ui/Skeleton";
 import { FREE_LIMIT_STATUS, freeLimitHeadline, parseFreeLimit, type FreeLimitBody } from "@/lib/free-limits";
 import PlanButton from "./PlanButton";
 
-// OP COMPARE (wave 2, 2026-10-03): RiftCompare's PriceAlertModal, BUILT AND
+// MTG COMPARE (wave 2, 2026-10-03): RiftCompare's PriceAlertModal, BUILT AND
 // HIDDEN. It is mounted in the root layout only when email is on
 // (getEmailStatus) AND the owner has set NEXT_PUBLIC_ANON_ALERTS=1
 // (components/PriceAlertModalGate.tsx), and its route answers 404 otherwise.
-// OP Compare differences: card ids are numbers; the account path is
+// MTG Compare differences: card ids are numbers; the account path is
 // AuthForm (OAuth links, returning to this page); the Plus target field
 // after subscribing is left to the watchlist (the member track's
 // TargetPriceField); the free-limit answer is the portfolio-style panel inline.
 
 // Where we remember the visitor's email so clicking "watch price" again
 // doesn't re-prompt — it silently extends their existing watch instead.
-const EMAIL_KEY = "op:alert_email";
+const EMAIL_KEY = "mc:alert_email";
 
 // Fired by PriceWatchButton with the ONE card just watched.
 // Which notice the alert will actually send (lib/price-alerts.ts): a drop for a

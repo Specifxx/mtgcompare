@@ -4,23 +4,23 @@ import {
   ALERT_FRESH_MS,
   ALERT_LOOKBACK_MS,
   ALERT_OUTAGE_MAX_MS,
-  ALERT_ROWS_PER_PAIR,
   alertBaselineSeed,
   alertConditionRank,
   alertPairKey,
   alertPriceFromRows,
   computeAlertPrices,
   isAlertEligibleSource,
-  type AlertPriceDb,
+  type AlertOfferReader,
 } from "../src/lib/alert-price";
 import { NOW, cardNum, hoursAgo, listing } from "./helpers/alert-harness";
+import type { LiveOffer } from "../src/lib/offer-read";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // THE ALERT PRICE: alerts compare the cheapest copy you could actually buy —
 // Near Mint or unstated, in stock, seen within 36h, at a real store or
 // TCGplayer's cheapest US listing — never eBay and never Card.low<M>.
-// RiftCompare's test, over OP Compare's Offer rows (source "store:<key>",
-// "tcgplayer", "ebay…"; updatedAt; integer productIds).
+// RiftCompare's test, over the published live offers (source "store:<key>",
+// "tcgplayer", "ebay…"; refreshedAt; integer productIds; a finish on every unit).
 // ─────────────────────────────────────────────────────────────────────────────
 
 test("eBay never sets or names an alert price — every ebay source", () => {
@@ -108,104 +108,69 @@ test("up to three stores, one per source: price, then source key", () => {
   assert.deepEqual(p.checkedAt, p.stores[0]!.lastSeen);
 });
 
-test("computeAlertPrices: ONE bounded query over the watched pairs, grouped by market", async () => {
-  const queries: Record<string, unknown>[] = [];
-  const db = {
-    offer: {
-      findMany: async (args: Record<string, unknown>) => {
-        queries.push(args);
-        return [listing("a", 700), listing("b", 900, { market: "UK" })];
-      },
-    },
-  } as unknown as AlertPriceDb;
+const liveOf = (productId: number, priceCents: number, over: Partial<LiveOffer> = {}): LiveOffer => ({
+  productId, finish: "N", market: "US", storeId: 1, source: "store:shopx", priceCents, currency: "USD", url: `https://shopx.example/${productId}`,
+  condition: "NM", inStock: true, refreshedAt: hoursAgo(2), ...over,
+});
+
+test("computeAlertPrices: one read per market over the watched (product, finish) units, duplicates collapsed", async () => {
+  const calls: { units: unknown; market: string }[] = [];
   const [a, b, c] = [cardNum("a"), cardNum("b"), cardNum("c")];
+  const read: AlertOfferReader = async (units, market) => {
+    calls.push({ units, market });
+    return [liveOf(a, 700), liveOf(b, 900, { market: "UK" }), liveOf(a, 1500, { finish: "F" })];
+  };
   const out = await computeAlertPrices(
-    db,
+    read,
     [
-      { cardId: a, market: "US" },
-      { cardId: b, market: "UK" },
-      { cardId: a, market: "US" }, // duplicate pair: one lookup
-      { cardId: c, market: "US" }, // nobody lists it
+      { cardId: a, finish: "N", market: "US" },
+      { cardId: b, finish: "N", market: "UK" },
+      { cardId: a, finish: "N", market: "US" }, // duplicate pair: one unit
+      { cardId: a, finish: "F", market: "US" }, // the foil unit of the same product is its own pair
+      { cardId: c, finish: "N", market: "US" }, // nobody lists it
     ],
     NOW,
   );
-  // The first read; "c" came back sold out, so a second, narrower read looks
-  // for older rows of that pair only (the outage check).
-  assert.equal(queries.length, 2);
-  const q = queries[0] as {
-    where: { inStock: boolean; updatedAt: { gte: Date }; AND: [{ OR: unknown[] }, { OR: unknown[] }] };
-    select: Record<string, boolean>;
-    take: number;
-    orderBy: unknown;
-  };
-  assert.equal(q.where.inStock, true);
-  assert.deepEqual(q.where.updatedAt.gte, new Date(NOW.getTime() - ALERT_LOOKBACK_MS));
-  assert.deepEqual(q.where.AND[0], { OR: [{ source: { startsWith: "store:" } }, { source: "tcgplayer" }] }, "the query itself refuses eBay and every non-store source");
-  assert.deepEqual(q.where.AND[1], {
-    OR: [
-      { market: "US", productId: { in: [a, c] } },
-      { market: "UK", productId: { in: [b] } },
-    ],
-  });
-  assert.deepEqual(Object.keys(q.select).sort(), ["condition", "inStock", "market", "priceCents", "productId", "source", "updatedAt", "url"]);
-  assert.equal(q.take, 3 * ALERT_ROWS_PER_PAIR);
-  assert.deepEqual(q.orderBy, { priceCents: "asc" });
-  assert.equal(out.get(alertPairKey("US", a))!.priceCents, 700);
-  assert.equal(out.get(alertPairKey("UK", b))!.priceCents, 900);
-  assert.equal(out.get(alertPairKey("US", c))!.state, "soldout");
-  const q2 = queries[1] as { where: { updatedAt: { gte: Date; lt: Date }; AND: [unknown, { OR: unknown[] }] }; take: number; select: Record<string, boolean> };
-  assert.deepEqual(q2.where.AND[1].OR, [{ market: "US", productId: { in: [c] } }], "only the sold-out pairs");
-  assert.deepEqual(q2.where.updatedAt, { gte: new Date(NOW.getTime() - ALERT_OUTAGE_MAX_MS), lt: new Date(NOW.getTime() - ALERT_LOOKBACK_MS) });
-  assert.equal(q2.take, ALERT_ROWS_PER_PAIR);
-  assert.equal(q2.select.url, undefined, "narrow");
-  // No pairs, no query.
-  await computeAlertPrices(db, [], NOW);
-  assert.equal(queries.length, 2);
-  // Every pair priced: no second read.
-  await computeAlertPrices(db, [{ cardId: a, market: "US" }], NOW);
-  assert.equal(queries.length, 3);
+  assert.equal(calls.length, 2, "one read per market");
+  assert.deepEqual(calls.find((x) => x.market === "US")!.units, [{ id: a, finish: "N" }, { id: a, finish: "F" }, { id: c, finish: "N" }]);
+  assert.equal(out.get(alertPairKey("US", a, "N"))!.priceCents, 700);
+  assert.equal(out.get(alertPairKey("US", a, "F"))!.priceCents, 1500, "the finish is part of the key");
+  assert.equal(out.get(alertPairKey("UK", b, "N"))!.priceCents, 900);
+  assert.equal(out.get(alertPairKey("US", c, "N"))!.state, "soldout");
+  // No pairs, no read.
+  await computeAlertPrices(read, [], NOW);
+  assert.equal(calls.length, 2);
+});
+
+test("eBay and non-store sources never reach the price, whatever the reader returns", async () => {
+  const a = cardNum("a");
+  const read: AlertOfferReader = async () => [liveOf(a, 300, { source: "ebay" }), liveOf(a, 2500)];
+  const out = await computeAlertPrices(read, [{ cardId: a, finish: "N", market: "US" }], NOW);
+  assert.equal(out.get(alertPairKey("US", a, "N"))!.priceCents, 2500);
 });
 
 test("an outage longer than 72h stays UNKNOWN while the source's old rows survive (up to 14 days)", async () => {
-  const stub = (rows: ReturnType<typeof listing>[]) =>
-    ({
-      offer: {
-        findMany: async (args: { where: { updatedAt: { gte: Date; lt?: Date } } }) =>
-          rows.filter((r) => r.updatedAt >= args.where.updatedAt.gte && (!args.where.updatedAt.lt || r.updatedAt < args.where.updatedAt.lt)),
-      },
-    }) as unknown as AlertPriceDb;
-  const pair = [{ cardId: cardNum("c"), market: "US" }];
-  const key = alertPairKey("US", cardNum("c"));
-  // A store whose scrape keeps failing keeps its rows: an 80h-old in-stock row
-  // means its feed is down, not that the card sold out.
-  const eighty = await computeAlertPrices(stub([listing("c", 900, { updatedAt: hoursAgo(80) })]), pair, NOW);
+  const c = cardNum("c");
+  const pair = [{ cardId: c, finish: "N" as const, market: "US" }];
+  const key = alertPairKey("US", c, "N");
+  // The reader calls a row of a store whose run is older than 72h out of stock but still returns it, stamped with that run.
+  const stub = (o: LiveOffer): AlertOfferReader => async () => [o];
+  // A store whose scrape keeps failing keeps its rows: an 80h-old run means its feed is down, not that the card sold out.
+  const eighty = await computeAlertPrices(stub(liveOf(c, 900, { inStock: false, refreshedAt: hoursAgo(80) })), pair, NOW);
   assert.equal(eighty.get(key)!.state, "unknown");
   // A played row that old proves nothing.
-  const played = await computeAlertPrices(stub([listing("c", 900, { updatedAt: hoursAgo(80), condition: "Heavily Played" })]), pair, NOW);
+  const played = await computeAlertPrices(stub(liveOf(c, 900, { inStock: false, refreshedAt: hoursAgo(80), condition: "HP" })), pair, NOW);
   assert.equal(played.get(key)!.state, "soldout");
   // An eBay row that old proves nothing either.
-  const ebay = await computeAlertPrices(stub([listing("c", 900, { updatedAt: hoursAgo(80), source: "ebay" })]), pair, NOW);
+  const ebay = await computeAlertPrices(stub(liveOf(c, 900, { inStock: false, refreshedAt: hoursAgo(80), source: "ebay" })), pair, NOW);
   assert.equal(ebay.get(key)!.state, "soldout");
   // Past ALERT_OUTAGE_MAX_MS the listing is gone for all purposes.
-  const old = await computeAlertPrices(stub([listing("c", 900, { updatedAt: hoursAgo(15 * 24) })]), pair, NOW);
+  const old = await computeAlertPrices(stub(liveOf(c, 900, { inStock: false, refreshedAt: hoursAgo(15 * 24) })), pair, NOW);
   assert.equal(old.get(key)!.state, "soldout");
+  // A fresh run that lists the row out of stock IS a sell-out.
+  const fresh = await computeAlertPrices(stub(liveOf(c, 900, { inStock: false, refreshedAt: hoursAgo(3) })), pair, NOW);
+  assert.equal(fresh.get(key)!.state, "soldout");
   assert.equal(ALERT_OUTAGE_MAX_MS, 14 * 24 * 3600_000);
-});
-
-test("slim reads skip the URL", async () => {
-  const queries: { select: Record<string, boolean> }[] = [];
-  const db = {
-    offer: {
-      findMany: async (args: { select: Record<string, boolean> }) => {
-        queries.push(args);
-        const { url: _u, ...rest } = listing("a", 700);
-        return [rest];
-      },
-    },
-  } as unknown as AlertPriceDb;
-  const out = await computeAlertPrices(db, [{ cardId: cardNum("a"), market: "US" }], NOW, { slim: true });
-  assert.equal(queries[0]!.select.url, false);
-  assert.equal(out.get(alertPairKey("US", cardNum("a")))!.priceCents, 700);
 });
 
 test("alertBaselineSeed: a new watch starts from the alert price, or from nothing", () => {
@@ -219,6 +184,6 @@ test("alertBaselineSeed: a new watch starts from the alert price, or from nothin
 });
 
 test("a failed price read throws rather than reading as every card sold out", async () => {
-  const db = { offer: { findMany: async () => { throw new Error("db down"); } } } as unknown as AlertPriceDb;
-  await assert.rejects(computeAlertPrices(db, [{ cardId: 1, market: "US" }], NOW), /db down/);
+  const read: AlertOfferReader = async () => { throw new Error("data host down"); };
+  await assert.rejects(computeAlertPrices(read, [{ cardId: 1, finish: "N", market: "US" }], NOW), /data host down/);
 });
