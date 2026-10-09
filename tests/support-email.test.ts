@@ -26,14 +26,14 @@ test("the confirmation goes to the sender with the ticket number", () => {
   assert.doesNotMatch(c.html, /One Piece|OP Compare|Riftcompare/i);
 });
 
-test("email off sends nothing; the placeholder inbox is never mailed, the sender still gets the confirmation", async () => {
+test("email off sends nothing; email on mails the contact inbox and the sender", async () => {
   const sent: string[] = [];
   const send = async (e: { to: string }) => (sent.push(e.to), true);
   assert.deepEqual(await sendTicketEmails(T, send, false), { notified: false, confirmed: false });
   assert.deepEqual(sent, []);
-  const r = await sendTicketEmails(T, send, true);   // CONTACT_EMAIL is the .invalid placeholder in the test environment
-  assert.deepEqual(r, { notified: false, confirmed: true });
-  assert.deepEqual(sent, ["sam@example.com"]);
+  const r = await sendTicketEmails(T, send, true);
+  assert.deepEqual(r, { notified: true, confirmed: true });
+  assert.deepEqual(sent, ["riftcompare@gmail.com", "sam@example.com"]);
 });
 
 function fakeDb(tickets: { number: number }[]) {

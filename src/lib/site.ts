@@ -15,9 +15,8 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://mtgcompare
 export const SITE_TAGLINE = "Magic: The Gathering card prices, compared";
 export const SITE_DESCRIPTION =
   "Compare Magic: The Gathering card prices across stores in the US, Australia, the UK, Singapore, Canada and the EU. Every printing and sealed product, priced daily.";
-// The public contact address. PLACEHOLDER: the .invalid TLD can never deliver,
-// so nothing is ever sent to a stranger's inbox. Set NEXT_PUBLIC_CONTACT_EMAIL
-// (Vercel and GitHub Actions) to the owner's real MTG Compare address.
+// The public contact address (owner's choice, shared with Rift Compare). Set
+// NEXT_PUBLIC_CONTACT_EMAIL (Vercel and GitHub Actions) to give MTG Compare its own.
 export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "riftcompare@gmail.com";
 // The owner's sister sites, linked from About and the footer. The one place the other two brands are named.
 export const SISTER_SITES = [
