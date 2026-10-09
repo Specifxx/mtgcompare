@@ -38,8 +38,8 @@ export const STORE_BY_KEY: Record<string, StoreInfo> = Object.fromEntries(STORES
 const BY_ID: ReadonlyMap<number, StoreInfo> = new Map(STORES.map((s) => [s.id, s]));
 /** The date the registry (not the postage) was last reviewed; the postage of each store is measured by the shipping probe (shipping-rates.json carries its own dates). */
 export const STORE_POSTAGE_CHECKED = "2026-10-08";
-/** Ids that were once a store and are gone. Never reused (tests/store-ids.test.ts). Empty at launch. */
-export const RETIRED_STORE_IDS: readonly number[] = [];
+/** Ids that were once a store and are gone. Never reused (tests/store-ids.test.ts). 246 was assigned to Flagship Games on 2026-10-09 and withdrawn before any publish (per-set collections only). */
+export const RETIRED_STORE_IDS: readonly number[] = [246];
 
 export function platformOf(store: Pick<StoreInfo, "platform">): StorePlatform {
   return store.platform ?? "shopify";

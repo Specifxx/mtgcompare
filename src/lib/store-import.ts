@@ -117,10 +117,10 @@ export const SHOPIFY_MAX_PAGE = SHOPIFY_WINDOW / SHOPIFY_PAGE_SIZE;
 const IN_STOCK_SHARE = 0.95;
 /** Pages of sealed collections a store may spend (2,000 products). */
 export const SEALED_PAGES = 8;
-/** Stores read at once. */
-export const STORE_CONCURRENCY = 4;
+/** Stores read at once (each store is still read one request at a time with its own pacing; 12 since the registry grew to about 400 stores, 2026-10-09). */
+export const STORE_CONCURRENCY = 12;
 /** The stage stops starting stores after this long, and a read still running when it passes is a FAILED read. */
-export const STAGE_BUDGET_MS = 100 * 60_000;
+export const STAGE_BUDGET_MS = 140 * 60_000;
 /** An unverified store is published only when it passes the probe's admission rule on this very read (10.26): this many matched in-stock listings. */
 export const ADMIT_MIN_MATCHED_IN_STOCK = 20;
 

@@ -45,11 +45,11 @@ test("each platform's store carries what its reader needs", () => {
   }
 });
 
-test("the registry is the 67 seed stores, the 13 ShadowPOS stores and the two feeds, every one unverified until the production probe admits it (10.26)", () => {
-  assert.equal(STORES.length, 82);
+test("the registry is the 67 seed stores, the 13 ShadowPOS stores, the 324 stores of the 2026-10-09 sweep and the two feeds, every one unverified until the production probe admits it (10.26)", () => {
+  assert.equal(STORES.length, 406);
   assert.equal(STORES.filter((s) => platformOf(s) === "feed").length, 2);
-  assert.equal(STORES.filter((s) => platformOf(s) === "shadowpos").length, 13);
-  assert.equal(STORES.filter((s) => platformOf(s) === "shopify").length, 67);
+  assert.equal(STORES.filter((s) => platformOf(s) === "shadowpos").length, 37);
+  assert.equal(STORES.filter((s) => platformOf(s) === "shopify").length, 367);
   for (const s of STORES) assert.equal(s.status, "unverified", s.key);
   for (const s of STORES) if (platformOf(s) === "shadowpos") assert.ok(s.collections.length === 0, `${s.key}: ShadowPOS has one search, no collections`);
 });
