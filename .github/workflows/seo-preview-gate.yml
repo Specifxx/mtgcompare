@@ -46,9 +46,12 @@ jobs:
           ENV_URL: ${{ github.event.deployment_status.environment_url }}
           TARGET_URL: ${{ github.event.deployment_status.target_url }}
           ENVIRONMENT: ${{ github.event.deployment.environment }}
+          SITE_URL: ${{ vars.SITE_URL }}
         run: |
           URL="$ENV_URL"
           if [ -z "$URL" ]; then URL="$TARGET_URL"; fi
+          # A Production deployment's own URL sits behind Vercel Authentication (a 302 to a login page, so every page "fails"); the public site is what visitors get.
+          if [ "$ENVIRONMENT" = "Production" ]; then URL="${SITE_URL:-https://mtgcompare.vercel.app}"; URL="${URL%/}"; fi
           if [ -z "$URL" ]; then
             echo "::error::no environment_url or target_url on this deployment_status event - nothing to test."
             exit 1
