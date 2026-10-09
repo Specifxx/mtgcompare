@@ -89,6 +89,9 @@ export const metadata: Metadata = {
   },
 };
 
+// Impact's ownership check for the affiliate account (public by design: it sits in every page's head).
+const IMPACT_SITE_VERIFICATION = "a11ca5e9-2699-42c9-bf8d-09074aae9cec";
+
 // Brand chrome colour for the browser UI / installed-PWA theme: the dark
 // palette's page colour (THEME_COLOR.dark), since dark is MTG Compare's
 // default (as on RiftCompare). ThemeToggle re-stamps the meta for a
@@ -126,6 +129,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" data-theme="dark" className={`${inter.variable} ${jetbrainsMono.variable} ${fraunces.variable}`} suppressHydrationWarning>
       <head>
+        {/* Impact (TCGplayer affiliate) site verification: Impact's checker reads the `value` attribute, which the Metadata API cannot emit. */}
+        <meta name="impact-site-verification" content={IMPACT_SITE_VERIFICATION} {...({ value: IMPACT_SITE_VERIFICATION } as Record<string, string>)} />
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: AD_FREE_BOOT_SCRIPT }} />
         {/* Consent Mode v2 defaults first, then GA4: nothing measures before the defaults are set. */}
