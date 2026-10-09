@@ -11,6 +11,15 @@
 // SCALE. A full pass is about 10,500 pages of 250 products. Four stores are read at once, a store's pages are one request delay apart, a store has a page budget (`maxPages`, default MAX_STORE_PAGES) shared
 // by its collections, products are matched page by page and never held (a 120,000-product catalogue is never in memory), and the whole stage has a time budget after which the stores not yet started are
 // left alone (their rows age) and a store in flight is a FAILED read (its rows stay).
+//
+// SHOPIFY'S LIMITS (measured 2026-10-09; the first production import failed 35 of 80 stores on them).
+//   - The page window: `/collections/<h>/products.json?page=` serves at most 25,000 products (page * limit <= 25,000). Page 101 of 250 is HTTP 400 `{"errors":"Page * Limit exceeds the 25000 limit."}`,
+//     and every one of the 21 stores that "could not be read (HTTP 400)" has a singles collection of 26,142 to 170,862 products. `sort_by`, `since_id`, `filter.*` and tag paths are ignored or 404, so
+//     nothing past the window is reachable through that collection: the reader stops at page 100, the read is NOT a failure, and the store's other (smaller) collections are what reach further.
+//   - 429 and bot checks: a rate-limited page is retried after the store's Retry-After (seconds or a date) or a doubling wait, bounded per page and per store, and the store's pages are spaced further apart
+//     for the rest of its read. A 5xx (a 3-second `shopify-complexity-score: 15000` 500 that succeeds 10 s later) is retried twice. Only what still fails after that fails the store.
+//   - Overlapping collections: a store's per-set and "high-end" collections are mostly subsets of its main one. A DISCOVERED collection ends at its first full page that brings no new product, or, once the
+//     store's in-stock singles were read, no new in-stock product. The registry's configured handles are read to their end (or the window).
 import { bestVariant, anyVariant, buildCardIndex, buildNameIndex, collapseOffers, matchStoreVariants, plausibleSealedPrice, plausibleSinglePrice, type MatchRow, type OfferDraft, type SealedRef, type StoreMatchIndexes } from "./match";
 import { fetchBigCommerceStore } from "./bigcommerce";
 import { CONDITIONS, sealedKind, uidOf, type Finish } from "./constants";
@@ -21,7 +30,7 @@ import { fetchEcwidStore } from "./ecwid";
 import { toUsdCents } from "./fx";
 import type { ImportContext } from "./import";
 import { fetchNopStore } from "./nopcommerce";
-import { fetchText, fetchWithTimeout, isRateLimited, REQUEST_DELAY_MS, robotsAllows, sleep } from "./scrape";
+import { fetchText, fetchWithTimeout, isRateLimited, limiter, REQUEST_DELAY_MS, robotsAllows, sleep } from "./scrape";
 import { fetchShadowposStore } from "./shadowpos";
 import { STORES, enabledFeeds, platformOf, type StoreInfo, type StoreResult } from "./stores";
 import { fetchWooStore } from "./woocommerce";
@@ -68,18 +77,44 @@ export interface ReadOptions {
 }
 
 // A collection handle we should NOT read: other languages, graded slabs, accessories, merchandise, and what the matcher answers "not-a-single" for anyway. Matching would reject most of what is in them;
-// skipping them saves the requests and the risk.
+// skipping them saves the requests and the risk. The last five are Yu-Gi-Oh! sets whose names carry "magic" (Magician's Force, Magic Ruler, Legendary Duelists: Magical Hero, Dark Magic / Black Magic
+// decks; four stores' sitemaps list them) and dice ("mtg-dice-in-stock" would otherwise rank as an in-stock singles handle).
 export const SKIP_HANDLE =
-  /japan|(?:^|-)jp(?:-|$)|japanese|chinese|korean|graded|grade|slab|psa|proxies|proxy|figure|funko|books|toy|model-kit|statue|sleeve|accessor|supplies|playmat|binder|plush|live-break|digital|zubehor|accesorios|tickets|(?:^|-)events?$|tournois|(?:^|-)pop(?:-|$)|lots|merch|apparel|storage|token|art-series|oversize/i;
-// Sealed collections are read AFTER the singles, with a small page budget (SEALED_PAGES): the sealed pages quote them, the crawl does not depend on them.
-export const SEALED_HANDLE = /sealed|booster|bundle|(?:^|-)decks?(?:-|$)|commander-decks?|precon|starter|display|prerelease|collector-box/i;
-// A singles handle that is the superset of an in-stock one ("mtg-singles-all-products" beside "mtg-singles-in-stock"): skipped once the in-stock one was read.
+  /japan|(?:^|-)jp(?:-|$)|japanese|chinese|korean|graded|grade|slab|psa|proxies|proxy|figure|funko|books|toy|model-kit|statue|sleeve|accessor|supplies|playmat|binder|plush|live-break|digital|zubehor|accesorios|tickets|(?:^|-)events?$|tournois|(?:^|-)pop(?:-|$)|lots|merch|apparel|storage|token|art-series|oversize|magician|magic-ruler|magical-hero|(?:dark|black)-magic|(?:^|-)dice(?:-|$)/i;
+// Sealed collections are read AFTER the singles, with a small page budget (SEALED_PAGES): the sealed pages quote them, the crawl does not depend on them. `scell`: French "produits scellés".
+export const SEALED_HANDLE = /sealed|scell|booster|bundle|(?:^|-)decks?(?:-|$)|commander-decks?|precon|starter|display|prerelease|collector-box/i;
+// A singles handle that is the superset of an in-stock one ("mtg-singles-all-products" beside "mtg-singles-in-stock"): skipped once the in-stock one was read COMPLETELY (a collection cut at the window
+// leaves in-stock products the superset may still reach).
 const SUPERSET_HANDLE = /all-products|all-singles|singles-all|everything|catalog/i;
-const IN_STOCK_HANDLE = /in-?stock|available/i;
+// In stock: "mtg-singles-instock", "magic-singles-in-stock", "...-cartes-a-lunite-en-stock" (French), "mtg-unite-stock".
+export const IN_STOCK_HANDLE = /in-?stock|(?:^|-)stock(?:-|$)|available/i;
+// A handle that names a SLICE of the stock (newest, best-selling, a sale, pre-orders, a hot list, "excl. premium"): never taken for the store's in-stock singles, read after its singles collections.
+export const PARTIAL_HANDLE = /(?:^|-)(?:new|newest|best|fresh|recent|recently|excl|sale|deals?|hot|hotlist|pre-?orders?)(?:-|$)/i;
+const SINGLES_WORD = /single|unite|singole|einzel|karten|kaarten/i;
+
+/**
+ * The order a store's singles collections are read in: a whole-stock in-stock handle first (a quarter of the pages of an all-products one), then the registry's configured (proven) handles, then the
+ * discovered singles handles, then the rest (per-set, slices). Within a rank, configured first, then the registry's and the sitemap's own order.
+ */
+export function singlesRank(h: string, configured: boolean): number {
+  const partial = PARTIAL_HANDLE.test(h);
+  if (IN_STOCK_HANDLE.test(h) && !partial) return 0;
+  if (configured) return 1;
+  if (partial) return 3;
+  return SINGLES_WORD.test(h) ? 2 : 3;
+}
 
 const MAX_HANDLES = 24;
-/** 250 products a page: 700 pages = 175,000 products, past the biggest singles collection found (Boutique La Pioche, 171,272). A store's `maxPages` lowers it. */
+/** 250 products a page: 700 pages = 175,000 products, past the biggest singles collection found (Boutique La Pioche, 171,272). A store's `maxPages` lowers it. One collection gives at most SHOPIFY_MAX_PAGE. */
 export const MAX_STORE_PAGES = 700;
+/** Products a page (Shopify's maximum). */
+export const SHOPIFY_PAGE_SIZE = 250;
+/** Shopify serves at most this many products of one collection through `?page=`: page * limit past it is HTTP 400 "Page * Limit exceeds the 25000 limit." */
+export const SHOPIFY_WINDOW = 25_000;
+/** The last page the reader asks for: 100. */
+export const SHOPIFY_MAX_PAGE = SHOPIFY_WINDOW / SHOPIFY_PAGE_SIZE;
+/** A collection is the store's in-stock singles when at least this share of what it served had a buyable variant. */
+const IN_STOCK_SHARE = 0.95;
 /** Pages of sealed collections a store may spend (2,000 products). */
 export const SEALED_PAGES = 8;
 /** Stores read at once. */
@@ -118,54 +153,156 @@ export function shopifyVariant(v: Record<string, unknown>): ShopifyVariant {
   return { title: String(v.title ?? ""), price: String(v.price ?? "0"), available: v.available === true, sku: typeof v.sku === "string" ? v.sku : null, options };
 }
 
-type PageResult = { products: ShopifyProduct[]; failed: boolean; note?: string; done: boolean };
+/** How the Shopify reader paces itself and waits out a refusal. The import never changes it; tests replace `sleep` (and may shorten the waits) so no test sleeps for real. */
+export interface ShopifyPacing {
+  /** Between two pages of one store. */
+  pageDelayMs: number;
+  /** Between two pages of a store that answered a 429 (or a bot check), for the rest of its read. */
+  slowPageDelayMs: number;
+  /** A 5xx, a timeout or a dropped connection: the waits before each further try. */
+  retryWaitsMs: number[];
+  /** A 429: this many further tries of the same page. A bot check (HTML where JSON was asked for) gets one. */
+  rateLimitRetries: number;
+  /** A 429 without Retry-After waits this long, doubling per try; a 429 after an honoured Retry-After waits at least the doubled time. */
+  rateLimitBaseMs: number;
+  minWaitMs: number;
+  maxWaitMs: number;
+  /** Time one store may spend waiting out 429s; past it the read fails as rate limited (its rows stay). */
+  storeWaitBudgetMs: number;
+  sleep: (ms: number) => Promise<void>;
+}
+export const shopifyPacing: ShopifyPacing = {
+  pageDelayMs: REQUEST_DELAY_MS,
+  slowPageDelayMs: 3_000,
+  retryWaitsMs: [3_000, 10_000],
+  rateLimitRetries: 4,
+  rateLimitBaseMs: 15_000,
+  minWaitMs: 1_000,
+  maxWaitMs: 90_000,
+  storeWaitBudgetMs: 8 * 60_000,
+  sleep,
+};
 
-async function fetchProductsPage(store: StoreInfo, handle: string, page: number): Promise<PageResult> {
-  // ?country= is critical: Shopify Markets prices per visitor country, and the runner is in the US. Forcing the store's market gets its local price.
-  const url = `${store.base}/collections/${handle}/products.json?limit=250&page=${page}&country=${isoCountry(store.country)}`;
-  let res: Response | null = null;
-  for (let attempt = 0; attempt < 2; attempt++) {
-    if (attempt) await sleep(REQUEST_DELAY_MS * 4);
-    try {
-      res = await fetchWithTimeout(url, 25000, { headers: { "Cache-Control": "no-cache" }, cache: "no-store" });
-    } catch {
-      res = null;
-      continue;
-    }
-    if (res.ok || res.status === 404 || isRateLimited(res)) break;
+/** How long to wait before retrying a 429: the Retry-After the store sent (seconds or an HTTP date), else `rateLimitBaseMs` doubled per try; a repeated 429 never waits less than the doubled time. Bounded. */
+export function rateLimitWaitMs(retryAfter: string | null | undefined, attempt: number, now = Date.now(), p: ShopifyPacing = shopifyPacing): number {
+  const clamp = (ms: number): number => Math.min(p.maxWaitMs, Math.max(p.minWaitMs, Math.round(ms)));
+  const v = retryAfter?.trim() ?? "";
+  let asked: number | null = null;
+  if (/^\d+(?:\.\d+)?$/.test(v)) asked = Number(v) * 1000;
+  else if (v) {
+    const at = Date.parse(v);
+    if (Number.isFinite(at)) asked = at - now;
   }
-  if (!res) return { products: [], failed: true, note: "no response", done: true };
-  if (isRateLimited(res)) return { products: [], failed: true, note: "rate limited", done: true };
-  if (!res.ok) return { products: [], failed: res.status !== 404, note: res.status === 404 ? undefined : `HTTP ${res.status}`, done: true };
-  let data: { products?: Record<string, unknown>[] };
-  try {
-    data = (await res.json()) as { products?: Record<string, unknown>[] };
-  } catch {
-    return { products: [], failed: true, note: "not JSON (a bot challenge?)", done: true }; // an HTML challenge / error page
-  }
-  const raw = data.products ?? [];
-  const products = raw.map((p) => ({
+  if (asked === null) return clamp(p.rateLimitBaseMs * 2 ** attempt);
+  return clamp(attempt ? Math.max(asked, p.rateLimitBaseMs * 2 ** (attempt - 1)) : asked);
+}
+
+/** One store's pacing during a read: the page delay (raised by a 429), the time spent waiting out 429s, how many, and the stage's deadline. */
+interface Pace { delayMs: number; waitedMs: number; rateLimits: number; deadline?: number }
+
+/**
+ * One products.json page. `refused` = HTTP 400 (`window` when it names the 25,000-product window); the caller decides what a refusal means on that page. `failed` = no usable answer after the retries.
+ */
+type PageResult = { products: ShopifyProduct[]; failed: boolean; note?: string; done: boolean; refused?: boolean; window?: boolean };
+
+const discard = (res: Response | null): void => void res?.body?.cancel().catch(() => undefined);
+
+function productOf(p: Record<string, unknown>): ShopifyProduct {
+  return {
     title: String(p.title ?? ""),
     handle: String(p.handle ?? ""),
     product_type: typeof p.product_type === "string" ? p.product_type : undefined,
     tags: Array.isArray(p.tags) || typeof p.tags === "string" ? (p.tags as string[] | string) : undefined,
     variants: Array.isArray(p.variants) ? (p.variants as Record<string, unknown>[]).map(shopifyVariant) : [],
-  }));
-  return { products, failed: false, done: raw.length < 250 };
+  };
 }
+
+async function fetchProductsPage(store: StoreInfo, handle: string, page: number, pace: Pace): Promise<PageResult> {
+  const p = shopifyPacing;
+  // ?country= is critical: Shopify Markets prices per visitor country, and the runner is in the US. Forcing the store's market gets its local price.
+  const url = `${store.base}/collections/${handle}/products.json?limit=${SHOPIFY_PAGE_SIZE}&page=${page}&country=${isoCountry(store.country)}`;
+  const fail = (note: string): PageResult => ({ products: [], failed: true, note, done: true });
+  let limited = 0;
+  let transient = 0;
+  for (;;) {
+    let res: Response | null;
+    try {
+      res = await fetchWithTimeout(url, 25000, { headers: { "Cache-Control": "no-cache" }, cache: "no-store" });
+    } catch {
+      res = null;
+    }
+    let challenge = false;
+    if (res?.ok) {
+      try {
+        const data = (await res.json()) as { products?: Record<string, unknown>[] };
+        const raw = Array.isArray(data.products) ? data.products : [];
+        return { products: raw.map(productOf), failed: false, done: raw.length < SHOPIFY_PAGE_SIZE };
+      } catch {
+        challenge = true; // HTML where JSON was asked for: a bot check ("Verifying your connection...") or an error page
+      }
+    } else if (res) {
+      if (res.status === 404) {
+        discard(res);
+        return { products: [], failed: false, done: true };
+      }
+      if (res.status === 400) {
+        const body = await res.text().catch(() => "");
+        return { products: [], failed: true, done: true, refused: true, window: /25000|page \* limit/i.test(body), note: "HTTP 400" };
+      }
+      if (!isRateLimited(res) && res.status < 500) {
+        discard(res);
+        return fail(`HTTP ${res.status}`);
+      }
+    }
+    if (challenge || (res && isRateLimited(res))) {
+      const why = challenge ? "not JSON (a bot challenge?)" : "rate limited";
+      const wait = rateLimitWaitMs(res?.headers.get("retry-after"), limited);
+      discard(res);
+      if (limited >= (challenge ? 1 : p.rateLimitRetries)) return fail(limited ? `${why}, ${limited} retr${limited === 1 ? "y" : "ies"} waited out` : why);
+      if (pace.waitedMs + wait > p.storeWaitBudgetMs || (pace.deadline && Date.now() + wait > pace.deadline)) return fail(`${why}, no time left to wait`);
+      limited++;
+      pace.rateLimits++;
+      pace.waitedMs += wait;
+      pace.delayMs = Math.max(pace.delayMs, p.slowPageDelayMs);
+      await p.sleep(wait);
+      continue;
+    }
+    // A 5xx, a timeout or a dropped connection.
+    discard(res);
+    if (transient >= p.retryWaitsMs.length) return fail(res ? `HTTP ${res.status}` : "no response");
+    await p.sleep(p.retryWaitsMs[transient++]!);
+  }
+}
+
+// Two registry rows on one host never read at the same time (the four-store pool would otherwise double the rate one storefront sees).
+const hostGates = new Map<string, ReturnType<typeof limiter>>();
+function hostGate(base: string): ReturnType<typeof limiter> {
+  let host = base;
+  try { host = new URL(base).hostname.replace(/^www\./, ""); } catch { /* keep the base */ }
+  let g = hostGates.get(host);
+  if (!g) hostGates.set(host, (g = limiter(1)));
+  return g;
+}
+
+const buyable = (p: ShopifyProduct): boolean => p.variants.some((v) => v.available);
 
 /**
  * Every Magic product a store lists, de-duplicated across overlapping collections, singles first and a few sealed pages last. `failed` = a collection we KNOW holds its stock could not be read (or the
- * deadline passed); the importer then keeps the store's existing rows rather than publishing a store with most of its stock missing.
+ * deadline passed); the importer then keeps the store's existing rows rather than publishing a store with most of its stock missing. A collection cut at Shopify's 25,000-product window is read, not failed:
+ * `note` says which.
  */
-export async function fetchStoreProducts(store: StoreInfo, o: ReadOptions = {}): Promise<StoreRead> {
+export function fetchStoreProducts(store: StoreInfo, o: ReadOptions = {}): Promise<StoreRead> {
+  return hostGate(store.base)(() => readShopifyStore(store, o));
+}
+
+async function readShopifyStore(store: StoreInfo, o: ReadOptions): Promise<StoreRead> {
   const discovered = await discoverMagicCollections(store.base);
   const configured = new Set(store.collections);
-  const rank = (h: string): number => (IN_STOCK_HANDLE.test(h) ? 0 : /single/i.test(h) ? 1 : 2);
-  // In-stock singles handles first (a quarter of the pages of an all-products one), then the configured (proven) handles, then the rest.
   const singles = [...new Set([...store.collections, ...discovered.singles])]
     .filter((h) => !SKIP_HANDLE.test(h))
-    .sort((a, b) => rank(a) - rank(b) || Number(configured.has(b)) - Number(configured.has(a)))
+    .map((h, i) => ({ h, i, rank: singlesRank(h, configured.has(h)) }))
+    .sort((a, b) => a.rank - b.rank || Number(configured.has(b.h)) - Number(configured.has(a.h)) || a.i - b.i)
+    .map((x) => x.h)
     .slice(0, MAX_HANDLES);
   const sealed = discovered.sealed.slice(0, 2);
   const handles = [...singles, ...sealed];
@@ -174,37 +311,76 @@ export async function fetchStoreProducts(store: StoreInfo, o: ReadOptions = {}):
   let count = 0;
   let pagesLeft = store.maxPages ?? MAX_STORE_PAGES;
   let sealedLeft = SEALED_PAGES;
-  let readInStock = false;
-  const emit = (batch: StoreListing[]): void => {
+  // A whole-stock in-stock handle read to its end: a superset handle ("all-products") then adds only out-of-stock rows.
+  let inStockComplete = false;
+  // The store's in-stock singles were read (to their end or the window): a discovered collection then ends at a page with no new in-stock listing.
+  let inStockRead = false;
+  const pace: Pace = { delayMs: shopifyPacing.pageDelayMs, waitedMs: 0, rateLimits: 0, deadline: o.deadline };
+  const windowed: string[] = [];
+  const ended: string[] = [];
+  let subsets = 0;
+  let requested = false;
+  const emit = (batch: StoreListing[]): { fresh: number; freshInStock: number } => {
     const fresh = batch.filter((p) => p.handle && !seen.has(p.handle));
     for (const p of fresh) seen.add(p.handle);
     count += fresh.length;
     if (o.sink) o.sink(fresh);
     else kept.push(...fresh);
+    return { fresh: fresh.length, freshInStock: fresh.filter(buyable).length };
   };
+  const failed = (note: string): StoreRead => ({ products: kept, failed: true, handles, count, note });
   for (const [i, h] of handles.entries()) {
     const isSealed = i >= singles.length;
-    if (!isSealed && readInStock && SUPERSET_HANDLE.test(h)) continue;
+    const mine = configured.has(h);
+    if (!isSealed && inStockComplete && SUPERSET_HANDLE.test(h)) continue;
     const allowed = await robotsAllows(store.base);
     if (!allowed(`/collections/${h}/products.json`)) continue;
     let got = 0;
-    for (let page = 1; isSealed ? sealedLeft > 0 : pagesLeft > 0; page++) {
-      if (o.deadline && Date.now() > o.deadline) return { products: kept, failed: true, handles, count, note: "the stage's time budget ran out" };
-      if (page > 1 || i) await sleep(REQUEST_DELAY_MS);
-      const r = await fetchProductsPage(store, h, page);
+    let inStock = 0;
+    let complete = false;
+    for (let page = 1; page <= SHOPIFY_MAX_PAGE && (isSealed ? sealedLeft > 0 : pagesLeft > 0); page++) {
+      if (o.deadline && Date.now() > o.deadline) return failed("the stage's time budget ran out");
+      if (requested) await shopifyPacing.sleep(pace.delayMs);
+      requested = true;
+      const r = await fetchProductsPage(store, h, page, pace);
       if (isSealed) sealedLeft--;
       else pagesLeft--;
-      if (r.failed) {
-        if (configured.has(h) || (!isSealed && got > 0)) return { products: kept, failed: true, handles, count, note: `/collections/${h} could not be read${r.note ? ` (${r.note})` : ""}` };
+      if (r.refused && page > 1) {
+        // Shopify refuses a page past what it serves (the 25,000 window, or a store's own lower limit): the pages before it were read, and the collection ends there.
+        if (r.window) windowed.push(`${h} at ${got.toLocaleString("en-US")}`);
+        else ended.push(`${h} at page ${page}`);
         break;
       }
+      if (r.failed) {
+        if (mine || (!isSealed && got > 0)) return failed(`/collections/${h} could not be read${r.note ? ` (${r.note})` : ""}`);
+        break;
+      }
+      const { fresh, freshInStock } = emit(r.products);
       got += r.products.length;
-      emit(r.products);
-      if (r.done) break;
+      inStock += r.products.filter(buyable).length;
+      if (r.done) {
+        complete = true;
+        break;
+      }
+      if (page === SHOPIFY_MAX_PAGE) windowed.push(`${h} at ${got.toLocaleString("en-US")}`); // a full page 100: page 101 would be refused
+      else if (!mine && (fresh === 0 || (!isSealed && inStockRead && freshInStock === 0))) {
+        // A discovered collection that adds nothing (a subset of what was read) or only out-of-stock rows once the in-stock singles are in: one page told us.
+        subsets++;
+        break;
+      }
     }
-    if (!isSealed && got >= 100 && IN_STOCK_HANDLE.test(h)) readInStock = true;
+    if (!isSealed && got >= 100 && !PARTIAL_HANDLE.test(h)) {
+      const named = IN_STOCK_HANDLE.test(h);
+      if (named && complete) inStockComplete = true;
+      if ((named || mine) && inStock >= got * IN_STOCK_SHARE) inStockRead = true;
+    }
   }
-  return { products: kept, failed: false, handles, count };
+  const notes: string[] = [];
+  if (windowed.length) notes.push(`Shopify's page window cut ${windowed.join(", ")} products`);
+  if (ended.length) notes.push(`refused ${ended.join(", ")}`);
+  if (subsets) notes.push(`${subsets} overlapping collection${subsets === 1 ? "" : "s"} stopped after a page`);
+  if (pace.rateLimits) notes.push(`${pace.rateLimits} rate limit${pace.rateLimits === 1 ? "" : "s"} waited out (${Math.round(pace.waitedMs / 1000)} s)`);
+  return { products: kept, failed: false, handles, count, ...(notes.length ? { note: notes.join("; ") } : {}) };
 }
 
 /** Every Magic listing a store has, read by its platform's reader. */

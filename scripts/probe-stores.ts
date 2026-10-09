@@ -8,7 +8,8 @@
 //   npx tsx scripts/probe-stores.ts --pages=5 --data=.data/v1 --key=goodgames
 //
 // Platforms: shopify (the default), shadowpos, ecwid, woocommerce, bigcommerce, nopcommerce: the same readers the import uses (lib/store-import.ts fetchStoreListings). For Shopify it discovers the
-// Magic collections (sitemap + the handles the importer would read) and reads the first `--pages` pages of each (default 2) with the market's Shopify Markets country. Every title then goes through the
+// Magic collections (sitemap + the handles the importer would read, in its order) and reads `--pages` pages in all (default 2; a budget the collections share, plus up to 8 sealed pages) with the market's
+// Shopify Markets country, through the importer's own pacing, retries and page window (`--pages=700` is a full import read). Every title then goes through the
 // real matcher against the catalogue of a PUBLISHED TREE (--data, default .data/v1: a checkout of the data branch; the probe reads no database and no data host), so the numbers it prints are what the
 // import would match. The admission rule of 10.26 is applied to the result: at least 20 matched in-stock listings of tracked units and a currency that matches the market. Read-only: it writes nothing;
 // a store that passes is marked `status: "verified", verifiedAt: <date>` in src/lib/store-registry-seed.ts by hand.
@@ -97,8 +98,9 @@ async function main() {
     const currencyOk = !store.currency && (!stated || stated === currencyOf(store.country));
     const admitted = !read.failed && currencyOk && inStock >= ADMIT_MIN_MATCHED_IN_STOCK;
     console.log(
-      `${store.base} (${store.country}, ${platformOf(store)}): ${read.handles.length} collections, ${tally.products} products, ${tally.matched} matched, ${inStock} matched in stock of tracked units${read.failed ? " - THE READ FAILED" : ""}${read.note ? ` (${read.note})` : ""}`,
+      `${store.base} (${store.country}, ${platformOf(store)}): ${read.handles.length} collections, ${tally.products} products, ${tally.matched} matched, ${inStock} matched in stock of tracked units${read.failed ? " - THE READ FAILED" : ""}`,
     );
+    if (read.note) console.log(`  read: ${read.note}`);
     console.log(`  currency: store states ${stated ?? "nothing"}, market ${currencyOf(store.country)}${store.currency ? `, registry says ${store.currency}` : ""}`);
     console.log(`  admission (>= ${ADMIT_MIN_MATCHED_IN_STOCK} matched in stock, currency matches): ${admitted ? "ADMIT" : "NOT ADMITTED"}`);
     console.log(`  handles: ${read.handles.join(", ") || "none"}`);

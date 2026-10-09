@@ -20,10 +20,18 @@ import { bestVariant, type MatchRow } from "../src/lib/match";
 import { inStockSpecId, nopPrice, parseNopPage } from "../src/lib/nopcommerce";
 import { decodeEntities, limiter, sleep } from "../src/lib/scrape";
 import { SHADOWPOS_PAGE, fetchShadowposStore, pageMaxCents, parseShadowposPage, shadowposSearchPath } from "../src/lib/shadowpos";
-import { ADMIT_MIN_MATCHED_IN_STOCK, SKIP_HANDLE, buildStageIndex, discoverMagicCollections, fetchStoreProducts, importStores, listingPath, matchListing, newTally, productUrl, shopifyVariant, type StoreListing } from "../src/lib/store-import";
+import {
+  ADMIT_MIN_MATCHED_IN_STOCK, IN_STOCK_HANDLE, PARTIAL_HANDLE, SEALED_HANDLE, SHOPIFY_MAX_PAGE, SHOPIFY_WINDOW, SKIP_HANDLE, buildStageIndex, discoverMagicCollections, fetchStoreProducts, importStores, listingPath, matchListing,
+  newTally, productUrl, rateLimitWaitMs, shopifyPacing, shopifyVariant, singlesRank, type ShopifyPacing, type StoreListing,
+} from "../src/lib/store-import";
 import { memTree } from "../src/lib/data/plane/tree";
-import { storeByKey, type StoreInfo } from "../src/lib/stores";
+import { STORES, platformOf, storeByKey, type StoreInfo } from "../src/lib/stores";
 import { magicCategoryIds, wooListing, type WooProduct } from "../src/lib/woocommerce";
+
+// The Shopify reader waits out 429s, bot checks and 5xx (shopifyPacing): never for real in a test. The waits are recorded; "Shopify's limits" below pins them.
+const waits: number[] = [];
+const PACING: ShopifyPacing = { ...shopifyPacing };
+shopifyPacing.sleep = async (ms: number) => void waits.push(ms);
 
 const fixture = (f: string) => fs.readFileSync(path.resolve(__dirname, "fixtures/stores", f), "utf8");
 const titles = <T,>(f: string): T => JSON.parse(fs.readFileSync(path.resolve(__dirname, "fixtures/titles", f), "utf8")) as T;
@@ -367,6 +375,9 @@ const productsJson = (fx: Fx[]): string =>
     })),
   });
 
+/** products.json of Good Games' configured collection: the S8 tests serve the store's real registry row. */
+const goodgamesPath = (): string => `/collections/${storeByKey("goodgames")!.collections[0]}/products.json`;
+
 /** An ImportContext with the catalogue of the matcher's tests: every unit the recorded answers name is tracked. */
 function context(): { ctx: ImportContext; expected: Map<number, string> } {
   const expected = new Map<number, string>();
@@ -387,7 +398,7 @@ test("S8 over real listings: every recorded answer of a listing comes out as a s
   const real = globalThis.fetch;
   // The registry flags no store explicitFoil (the production probe sets it), so the listings of stores whose recorded answers assumed that convention are left out.
   const mine = listings.filter((l) => !l.explicitFoil);
-  globalThis.fetch = serve({ "/collections/mtg-singles-all-products/products.json": (u) => (u.searchParams.get("page") === "1" ? productsJson(mine) : '{"products":[]}') });
+  globalThis.fetch = serve({ [goodgamesPath()]: (u) => (u.searchParams.get("page") === "1" ? productsJson(mine) : '{"products":[]}') });
   try {
     const { ctx } = context();
     const res = await importStores(ctx, { only: ["goodgames"] });
@@ -424,7 +435,7 @@ test("S8: an unverified store is published only when it passes admission on this
   const goodgames = storeByKey("goodgames")!;
   const real = globalThis.fetch;
   const log: string[] = [];
-  globalThis.fetch = serve({ "/meta.json": '{"currency":"AUD"}', "/collections/mtg-singles-all-products/products.json": (u) => (u.searchParams.get("page") === "1" ? productsJson(listings.filter((l) => l.store === "goodgames")) : '{"products":[]}') }, log);
+  globalThis.fetch = serve({ "/meta.json": '{"currency":"AUD"}', [goodgamesPath()]: (u) => (u.searchParams.get("page") === "1" ? productsJson(listings.filter((l) => l.store === "goodgames")) : '{"products":[]}') }, log);
   try {
     const { ctx } = context();
     const [r] = await importStores(ctx, { only: ["goodgames"] });
@@ -451,7 +462,7 @@ test("S8: a read that could not be completed pushes ok: false and stages nothing
   const was = goodgames.status;
   (goodgames as { status: string }).status = "verified";
   const real = globalThis.fetch;
-  globalThis.fetch = serve({ "/collections/mtg-singles-all-products/products.json": () => "<html>Just a moment...</html>" });
+  globalThis.fetch = serve({ [goodgamesPath()]: () => "<html>Just a moment...</html>" });
   try {
     const { ctx } = context();
     const [r] = await importStores(ctx, { only: ["goodgames"] });
@@ -477,5 +488,282 @@ test("S8: the public price feeds are OFF unless FEED_SOURCES names them", async 
     assert.deepEqual(res, []);
   } finally {
     globalThis.fetch = real;
+  }
+});
+
+// ── Shopify's limits ──────────────────────────────────────────────────────────
+//
+// Shopify's limits (lib/store-import.ts), against payloads shaped like the ones the stores served on 2026-10-09. No network: `fetch` is a fixture server and the reader's waits are recorded,
+// never slept.
+//
+// WHAT THE FIXTURES REPRODUCE.
+//   - The page window: `/collections/<h>/products.json?limit=250&page=101` answers HTTP 400 `{"errors":"Page * Limit exceeds the 25000 limit."}` (the body Good Games, Misty Mountain and 19 more returned;
+//     their singles collections hold 26,142 to 170,862 products). The first production import read page 101, took the 400 for an unreadable collection and failed all 21 stores.
+//   - A 429 with and without Retry-After, a bot check (HTML where JSON was asked for, "Verifying your connection..."), and the 3-second HTTP 500 a page sometimes answers (Mana Market, pages 15 and 64 of
+//     "magic-the-gathering-singles", both 200 on retry).
+//   - Overlapping collections: Mana Market's 22 per-set collections are subsets of its 19,457-product singles collection; GameTime's 117,380-product catalogue is mostly out of stock beside its 4,367-product
+//     in-stock collection.
+
+const shopifyStore = (collections: string[], base = "https://x.example"): StoreInfo => ({ id: 32001, key: "x", name: "X", base, country: "AU", collections, platform: "shopify", status: "unverified" });
+
+type Answer = { status?: number; body: string; headers?: Record<string, string> };
+type Route = (page: number, u: URL) => Answer | string;
+/** A storefront: robots and the sitemap are 404 unless given; `collections` serves products.json per handle; every request is logged as "<handle>:<page>" (or the path). */
+function shop(collections: Record<string, Route>, extra: Record<string, string> = {}, log: string[] = []): typeof fetch {
+  return (async (input: RequestInfo | URL) => {
+    const u = new URL(String(input));
+    const m = /^\/collections\/([^/]+)\/products\.json$/.exec(u.pathname);
+    if (m) {
+      const page = Number(u.searchParams.get("page"));
+      log.push(`${m[1]}:${page}`);
+      const route = collections[m[1]!];
+      if (!route) return new Response("", { status: 404 });
+      const a = route(page, u);
+      const ans: Answer = typeof a === "string" ? { body: a } : a;
+      return new Response(ans.body, { status: ans.status ?? 200, headers: ans.headers });
+    }
+    log.push(u.pathname);
+    const hit = extra[u.pathname];
+    return hit === undefined ? new Response("", { status: 404 }) : new Response(hit, { status: 200 });
+  }) as typeof fetch;
+}
+/** One page of products: `n` listings named from `from`, in stock unless `inStock` says otherwise. */
+const productsPage = (n: number, from = 0, inStock: boolean | ((i: number) => boolean) = true) =>
+  JSON.stringify({ products: Array.from({ length: n }, (_, k) => ({ title: `Card ${from + k}`, handle: `card-${from + k}`, variants: [{ title: "Near Mint", price: "5.00", available: typeof inStock === "function" ? inStock(from + k) : inStock, sku: null }] })) });
+/** A collection of `total` products served 250 a page the way Shopify serves it: past the window, the 400 the stores returned. */
+const shopifyCollection = (total: number, from = 0, inStock: boolean | ((i: number) => boolean) = true): Route => (page) => {
+  if (page * 250 > SHOPIFY_WINDOW) return { status: 400, body: '{"errors":"Page * Limit exceeds the 25000 limit."}' };
+  const start = (page - 1) * 250;
+  return productsPage(Math.max(0, Math.min(250, total - start)), from + start, inStock);
+};
+const sitemapOf = (...handles: string[]) => ({
+  "/sitemap.xml": `<?xml version="1.0"?><sitemapindex><sitemap><loc>https://x.example/sitemap_collections_1.xml</loc></sitemap></sitemapindex>`,
+  "/sitemap_collections_1.xml": `<?xml version="1.0"?><urlset>${handles.map((h) => `<url><loc>https://x.example/collections/${h}</loc></url>`).join("")}</urlset>`,
+});
+
+async function withFetch<T>(f: typeof fetch, run: () => Promise<T>): Promise<T> {
+  const real = globalThis.fetch;
+  globalThis.fetch = f;
+  waits.length = 0;
+  try {
+    return await run();
+  } finally {
+    globalThis.fetch = real;
+  }
+}
+
+// ── The page window ──────────────────────────────────────────────────────────
+
+test("the page window: a 44,239-product collection is read to page 100 and never past it, and the read is complete, not failed", async () => {
+  assert.equal(SHOPIFY_WINDOW, 25_000);
+  assert.equal(SHOPIFY_MAX_PAGE, 100);
+  const log: string[] = [];
+  const r = await withFetch(shop({ "mtg-singles-instock": shopifyCollection(44_239) }, {}, log), () => fetchStoreProducts(shopifyStore(["mtg-singles-instock"]), { sink: () => undefined }));
+  assert.equal(r.failed, false, r.note);
+  assert.equal(r.count, 25_000);
+  const pages = log.filter((l) => l.startsWith("mtg-singles-instock:")).map((l) => Number(l.split(":")[1]));
+  assert.equal(Math.max(...pages), 100, "page 101 is never asked for");
+  assert.equal(pages.length, 100);
+  assert.match(r.note!, /page window cut mtg-singles-instock at 25,000 products/);
+});
+
+test("a store's other collections reach past the window; a refusal past page 1 ends that collection, on page 1 of a configured handle it fails the store", async () => {
+  // The main collection is cut at the window; a per-set collection holds products past it (25,000..25,299) and is read.
+  const big = shopifyCollection(30_000);
+  const set: Route = (page) => (page === 1 ? productsPage(250, 24_900) : productsPage(50, 25_150));
+  const r = await withFetch(shop({ "mtg-singles": big, "mtg-modern-horizons-3-singles": set }, sitemapOf("mtg-singles", "mtg-modern-horizons-3-singles")), () =>
+    fetchStoreProducts(shopifyStore(["mtg-singles"]), { sink: () => undefined }),
+  );
+  assert.equal(r.failed, false, r.note);
+  assert.equal(r.count, 25_200, "the first 25,000, then the 200 of the set past the window");
+  // A store whose own limit is lower: the 400 at page 3 ends the collection; what pages 1-2 held is kept and the next collection is read.
+  const low: Route = (page) => (page < 3 ? productsPage(250, (page - 1) * 250) : { status: 400, body: '{"errors":"Bad Request"}' });
+  const r2 = await withFetch(shop({ "mtg-singles": low, "magic-singles-extra": shopifyCollection(100, 9_000) }, sitemapOf("magic-singles-extra")), () =>
+    fetchStoreProducts(shopifyStore(["mtg-singles"]), { sink: () => undefined }),
+  );
+  assert.equal(r2.failed, false, r2.note);
+  assert.equal(r2.count, 600);
+  assert.match(r2.note!, /refused mtg-singles at page 3/);
+  // A 400 on page 1 of the configured handle: nothing of it could be read, the store's rows stay.
+  const r3 = await withFetch(shop({ "mtg-singles": () => ({ status: 400, body: "{}" }) }), () => fetchStoreProducts(shopifyStore(["mtg-singles"])));
+  assert.equal(r3.failed, true);
+  assert.match(r3.note!, /\/collections\/mtg-singles could not be read \(HTTP 400\)/);
+});
+
+// ── Refusals: 429, bot checks, 5xx ───────────────────────────────────────────
+
+test("rateLimitWaitMs: Retry-After in seconds or as a date, else a doubling wait; a repeated 429 never waits less than the doubled time; always bounded", () => {
+  const now = Date.parse("2026-10-09T05:00:00Z");
+  assert.equal(rateLimitWaitMs("7", 0, now, PACING), 7_000);
+  assert.equal(rateLimitWaitMs("2.5", 0, now, PACING), 2_500);
+  assert.equal(rateLimitWaitMs("Fri, 09 Oct 2026 05:00:20 GMT", 0, now, PACING), 20_000);
+  assert.equal(rateLimitWaitMs("0", 0, now, PACING), PACING.minWaitMs);
+  assert.equal(rateLimitWaitMs("7", 1, now, PACING), 15_000, "the store asked for 7 s and still refused: the doubling takes over");
+  assert.equal(rateLimitWaitMs(null, 0, now, PACING), 15_000);
+  assert.equal(rateLimitWaitMs(undefined, 1, now, PACING), 30_000);
+  assert.equal(rateLimitWaitMs("", 2, now, PACING), 60_000);
+  assert.equal(rateLimitWaitMs(null, 3, now, PACING), PACING.maxWaitMs);
+  assert.equal(rateLimitWaitMs("3600", 0, now, PACING), PACING.maxWaitMs);
+  assert.equal(rateLimitWaitMs("soon", 0, now, PACING), 15_000, "an unreadable header is no header");
+});
+
+test("a 429 is waited out (Retry-After honoured), the same page is asked again, and the store's later pages are spaced further apart", async () => {
+  let refusals = 0;
+  const log: string[] = [];
+  const route: Route = (page) => {
+    if (page === 2 && refusals < 2) {
+      refusals++;
+      return { status: 429, body: "Too Many Requests", headers: { "Retry-After": "7" } };
+    }
+    return shopifyCollection(999)(page, new URL("https://x.example"));
+  };
+  const r = await withFetch(shop({ "mtg-singles": route }, {}, log), () => fetchStoreProducts(shopifyStore(["mtg-singles"]), { sink: () => undefined }));
+  assert.equal(r.failed, false, r.note);
+  assert.equal(r.count, 999);
+  assert.deepEqual(log.filter((l) => l.startsWith("mtg-singles:")), ["mtg-singles:1", "mtg-singles:2", "mtg-singles:2", "mtg-singles:2", "mtg-singles:3", "mtg-singles:4"]);
+  // page delay, then the two waits (7 s as asked, then the doubled 15 s), then the slower page delay for the rest of the store.
+  assert.deepEqual(waits, [PACING.pageDelayMs, 7_000, 15_000, PACING.slowPageDelayMs, PACING.slowPageDelayMs]);
+  assert.match(r.note!, /2 rate limits waited out \(22 s\)/);
+});
+
+test("a 429 that does not lift fails the read after the bounded retries; a wait that would pass the stage's deadline is not started", async () => {
+  const log: string[] = [];
+  const always429: Route = (page) => (page === 1 ? productsPage(250) : { status: 429, body: "" });
+  const r = await withFetch(shop({ "mtg-singles": always429 }, {}, log), () => fetchStoreProducts(shopifyStore(["mtg-singles"])));
+  assert.equal(r.failed, true);
+  assert.match(r.note!, /\/collections\/mtg-singles could not be read \(rate limited, 4 retries waited out\)/);
+  assert.equal(log.filter((l) => l === "mtg-singles:2").length, 1 + PACING.rateLimitRetries);
+  assert.deepEqual(waits, [PACING.pageDelayMs, 15_000, 30_000, 60_000, PACING.maxWaitMs], "the page delay, then 15, 30, 60 s and the 90 s cap");
+  // Retry-After 60 s with 5 s of the stage left: no wait, a failed read (its rows stay).
+  const late = await withFetch(shop({ "mtg-singles": () => ({ status: 429, body: "", headers: { "Retry-After": "60" } }) }), () =>
+    fetchStoreProducts(shopifyStore(["mtg-singles"]), { deadline: Date.now() + 5_000 }),
+  );
+  assert.equal(late.failed, true);
+  assert.match(late.note!, /rate limited, no time left to wait/);
+  assert.deepEqual(waits, []);
+});
+
+test("a bot check (HTML where JSON was asked for) is waited out once; a transient 5xx is tried twice more; what still fails after that fails the read", async () => {
+  let checks = 0;
+  const once: Route = (page) => (checks++ === 0 ? "<!DOCTYPE html><title>Verifying your connection...</title>" : shopifyCollection(300)(page, new URL("https://x.example")));
+  const r = await withFetch(shop({ "mtg-singles": once }), () => fetchStoreProducts(shopifyStore(["mtg-singles"]), { sink: () => undefined }));
+  assert.equal(r.failed, false, r.note);
+  assert.equal(r.count, 300);
+  const always = await withFetch(shop({ "mtg-singles": () => "<html>Just a moment...</html>" }), () => fetchStoreProducts(shopifyStore(["mtg-singles"])));
+  assert.equal(always.failed, true);
+  assert.match(always.note!, /not JSON \(a bot challenge\?\), 1 retry waited out/);
+  // Mana Market's 3-second 500 (shopify-complexity-score 15060), 200 ten seconds later.
+  let fivehundreds = 0;
+  const flaky: Route = (page) => (page === 2 && fivehundreds++ < 2 ? { status: 500, body: "" } : shopifyCollection(600)(page, new URL("https://x.example")));
+  const f = await withFetch(shop({ "mtg-singles": flaky }), () => fetchStoreProducts(shopifyStore(["mtg-singles"]), { sink: () => undefined }));
+  assert.equal(f.failed, false, f.note);
+  assert.equal(f.count, 600);
+  assert.deepEqual(waits.filter((w) => w !== PACING.pageDelayMs), PACING.retryWaitsMs);
+  const dead = await withFetch(shop({ "mtg-singles": () => ({ status: 503, body: "" }) }), () => fetchStoreProducts(shopifyStore(["mtg-singles"])));
+  assert.equal(dead.failed, true);
+  assert.match(dead.note!, /\(HTTP 503\)/);
+  // A 403 is an answer, not a hiccup: no retry.
+  const log: string[] = [];
+  const no = await withFetch(shop({ "mtg-singles": () => ({ status: 403, body: "" }) }, {}, log), () => fetchStoreProducts(shopifyStore(["mtg-singles"])));
+  assert.equal(no.failed, true);
+  assert.equal(log.filter((l) => l.startsWith("mtg-singles:")).length, 1);
+});
+
+// ── Overlapping collections ──────────────────────────────────────────────────
+
+test("a discovered collection whose full page adds nothing new ends after that page; the configured one is read to its end", async () => {
+  // Mana Market: the singles collection, then per-set collections that are subsets of it.
+  const log: string[] = [];
+  const main = shopifyCollection(1_200);
+  const subset = (from: number): Route => (page) => productsPage(250, from + (page - 1) * 250);
+  const r = await withFetch(
+    shop({ "magic-the-gathering-singles": main, "magic-the-gathering-bloomburrow-singles": subset(0), "magic-the-gathering-foundations-singles": subset(500) }, sitemapOf("magic-the-gathering-bloomburrow-singles", "magic-the-gathering-singles", "magic-the-gathering-foundations-singles"), log),
+    () => fetchStoreProducts(shopifyStore(["magic-the-gathering-singles"]), { sink: () => undefined }),
+  );
+  assert.equal(r.failed, false, r.note);
+  assert.equal(r.count, 1_200);
+  assert.deepEqual(log.filter((l) => /:\d+$/.test(l)), [
+    "magic-the-gathering-singles:1", "magic-the-gathering-singles:2", "magic-the-gathering-singles:3", "magic-the-gathering-singles:4", "magic-the-gathering-singles:5",
+    "magic-the-gathering-bloomburrow-singles:1", "magic-the-gathering-foundations-singles:1",
+  ], "the configured collection first and whole, then one page of each subset");
+  assert.match(r.note!, /2 overlapping collections stopped after a page/);
+});
+
+test("once the store's in-stock singles are read, a discovered catalogue ends at its first page with no new in-stock listing; one that still brings in-stock listings is read on", async () => {
+  // GameTime: "magic-the-gathering" (configured, every product in stock) and the whole catalogue "mtg-singles" (in-stock rows already read, the rest sold out).
+  const log: string[] = [];
+  const inStock = shopifyCollection(600);
+  const catalogue: Route = (page) => productsPage(250, 100_000 + (page - 1) * 250, false);
+  const restock: Route = (page) => (page === 1 ? productsPage(250, 50_000) : productsPage(10, 50_250));
+  const r = await withFetch(shop({ "magic-the-gathering": inStock, "mtg-singles": catalogue, "magic-recently-restocked": restock }, sitemapOf("mtg-singles", "magic-recently-restocked"), log), () =>
+    fetchStoreProducts(shopifyStore(["magic-the-gathering"]), { sink: () => undefined }),
+  );
+  assert.equal(r.failed, false, r.note);
+  assert.deepEqual(log.filter((l) => /:\d+$/.test(l)), ["magic-the-gathering:1", "magic-the-gathering:2", "magic-the-gathering:3", "mtg-singles:1", "magic-recently-restocked:1", "magic-recently-restocked:2"]);
+  assert.equal(r.count, 600 + 250 + 260, "the sold-out page was read once (its rows are out-of-stock offers), the restock collection whole");
+  // Without an in-stock collection read first, a page of sold-out NEW listings does not end the catalogue: they may be the store's only rows.
+  const log2: string[] = [];
+  await withFetch(shop({ "magic-the-gathering": shopifyCollection(600, 0, (i) => i % 2 === 0), "mtg-singles": (page) => (page < 3 ? productsPage(250, 100_000 + (page - 1) * 250, false) : productsPage(0)) }, sitemapOf("mtg-singles"), log2), () =>
+    fetchStoreProducts(shopifyStore(["magic-the-gathering"]), { sink: () => undefined }),
+  );
+  assert.deepEqual(log2.filter((l) => l.startsWith("mtg-singles:")), ["mtg-singles:1", "mtg-singles:2", "mtg-singles:3"]);
+});
+
+test("the superset of an in-stock collection is skipped only when the in-stock one was read to its end: one cut at the window leaves products the superset may reach", async () => {
+  const log: string[] = [];
+  await withFetch(shop({ "mtg-singles-in-stock": shopifyCollection(2_000), "mtg-singles-all-products": shopifyCollection(9_000) }, sitemapOf("mtg-singles-in-stock"), log), () =>
+    fetchStoreProducts(shopifyStore(["mtg-singles-all-products"]), { sink: () => undefined }),
+  );
+  assert.ok(!log.some((l) => l.startsWith("mtg-singles-all-products:")), "a complete in-stock read: the superset is not read");
+  const log2: string[] = [];
+  await withFetch(shop({ "mtg-singles-in-stock": shopifyCollection(40_000), "mtg-singles-all-products": shopifyCollection(90_000) }, sitemapOf("mtg-singles-in-stock"), log2), () =>
+    fetchStoreProducts(shopifyStore(["mtg-singles-all-products"]), { sink: () => undefined }),
+  );
+  assert.ok(log2.includes("mtg-singles-all-products:1"), "the in-stock read stopped at the window: the configured superset is read");
+});
+
+test("two registry rows on one host never read at the same time", async () => {
+  let active = 0;
+  let peak = 0;
+  const f = (async (input: RequestInfo | URL) => {
+    const u = new URL(String(input));
+    if (!u.pathname.endsWith("/products.json")) return new Response("", { status: 404 });
+    active++;
+    peak = Math.max(peak, active);
+    await new Promise((r) => setTimeout(r, 2));
+    active--;
+    return new Response(productsPage(u.searchParams.get("page") === "1" ? 250 : 10), { status: 200 });
+  }) as typeof fetch;
+  await withFetch(f, () => Promise.all([fetchStoreProducts(shopifyStore(["mtg-singles"], "https://shop.example")), fetchStoreProducts(shopifyStore(["mtg-singles"], "https://www.shop.example"))]));
+  assert.equal(peak, 1);
+});
+
+// ── Handles ──────────────────────────────────────────────────────────────────
+
+test("handles: whole-stock in-stock first, the configured ones next, discovered singles, then per-set and slices; Yu-Gi-Oh! 'magic' sets, dice and French sealed are classified", () => {
+  // Real handles of 2026-10-09 sitemaps.
+  for (const h of ["mtg-singles-instock", "magic-the-gathering-cartes-a-lunite-en-stock", "mtg-unite-stock", "mtg-singles-available"]) assert.ok(IN_STOCK_HANDLE.test(h), h);
+  for (const h of ["newest-mtg-singles-in-stock", "mtg-best-selling-singles-with-15-in-stock", "magic-the-gathering-singles-in-stock-excl-premium-collection", "magic-the-gathering-pre-orders", "mtg-new-releases", "wotc-magic-the-gathering-singles-new"]) assert.ok(PARTIAL_HANDLE.test(h), h);
+  for (const h of ["mtg-singles-instock", "magic-the-gathering-singles", "mtg-unite-stock", "magic-the-gathering-cartes-a-lunite-en-stock"]) assert.ok(!PARTIAL_HANDLE.test(h), h);
+  assert.ok(PARTIAL_HANDLE.test("magic-recently-restocked"));
+  for (const h of ["magicians-force", "magician-s-force", "magic-ruler", "legendary-duelists-magical-hero", "champion-of-black-magic", "tactical-try-pack-dark-magic-hero-mikanko", "mtg-dice-in-stock"]) assert.ok(SKIP_HANDLE.test(h), h);
+  for (const h of ["mtg-produits-scelles", "magic-the-gathering-produits-scelles", "mtg-scelle"]) assert.ok(SEALED_HANDLE.test(h), h);
+  for (const h of ["magic-the-gathering-cartes-a-lunite", "carte-singole-magic", "magic-einzelkarten", "losse-mtg-kaarten"]) assert.ok(!SKIP_HANDLE.test(h) && !SEALED_HANDLE.test(h), h);
+  assert.equal(singlesRank("mtg-singles-instock", false), 0);
+  assert.equal(singlesRank("magic-the-gathering", true), 1, "a configured handle precedes the discovered singles handles whatever its name");
+  assert.equal(singlesRank("mtg-singles", false), 2);
+  assert.equal(singlesRank("magic-the-gathering-bloomburrow", false), 3);
+  assert.equal(singlesRank("newest-mtg-singles-in-stock", false), 3, "a slice is never read as the store's in-stock singles");
+});
+
+test("the registry: every configured Shopify handle is a whole-singles collection, never a skipped, sealed, promo or slice handle", () => {
+  for (const s of STORES) {
+    if (platformOf(s) !== "shopify") continue;
+    for (const h of s.collections) {
+      assert.ok(!SKIP_HANDLE.test(h), `${s.key}: ${h} is a skipped handle`);
+      assert.ok(!SEALED_HANDLE.test(h), `${s.key}: ${h} is a sealed handle`);
+      assert.ok(!PARTIAL_HANDLE.test(h), `${s.key}: ${h} is a slice of the stock`);
+      assert.ok(!/friday-night-magic|player-rewards|promos?$|(?:^|-)20\d\d(?:-|$)/.test(h), `${s.key}: ${h} is a promo or a single year's list`);
+    }
   }
 });
