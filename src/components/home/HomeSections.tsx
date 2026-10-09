@@ -36,6 +36,7 @@ export function HomeSections({ data, storeCount }: { data: HomeData; storeCount:
     <>
       <PopularCardsCarousel
         popular={data.popular}
+        stocked={data.stocked}
         chase={data.chase}
         movers={data.biggestMovers}
         recentlyUpdated={data.recentlyUpdated}
@@ -112,7 +113,7 @@ export function HomeSections({ data, storeCount }: { data: HomeData; storeCount:
               ? {
                   "@context": "https://schema.org",
                   "@type": "ItemList",
-                  name: "Most popular Magic: The Gathering cards",
+                  name: data.stocked ? "Most stocked Magic: The Gathering cards" : "Most popular Magic: The Gathering cards",
                   itemListElement: data.popular.map((t, i) => ({ "@type": "ListItem", position: i + 1, name: t.card.name, url: `${SITE_URL}/card/${t.card.slug}` })),
                 }
               : null,

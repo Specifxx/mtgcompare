@@ -6,7 +6,7 @@
 // three small hydrations stand in (getCardsByIds with stores:false, at most 8 ids = at most 8 bucket pairs, never the browse index); each disappears the day the publisher appends the field (REQ-WP15-1, REQ-WP15-2: trailing elements are additive inside v1).
 import { CARD_FLAGS, finishFromIndex, type Finish } from "../constants";
 import { MARKETS, marketFromIndex, type Country } from "../country";
-import { getCardsByIds, getSets } from "./catalog";
+import { getBrowseIndex, getCardsByIds, getSets } from "./catalog";
 import type { HomeFile, HomeTileRow, MarketFile, RecordsFile } from "./plane/formats";
 import { memoByRef, memoKey, optionalOf, planeSource } from "./plane/runtime";
 import type { CardLite, SetLite } from "./types";
@@ -81,6 +81,22 @@ export async function getHomeBoard(): Promise<HomeBoard> {
 }
 export function getHomeFeed(): Promise<HomeFeed> { return getHomeBoard(); }                                                          // P hm/home.json (8 KB) + meta/sets.json; free-safe by construction (one deal per market, counts)
 /** The popular tiles: ranked by the published EDHREC column (Scryfall's edhrec_rank), then market value; never reordered by a Neon counter. The file holds 12. */
+/** Basic lands are in every store's binder: they would fill a supply list on their own. */
+const BASIC_LAND = /^(?:Snow-Covered )?(?:Plains|Island|Swamp|Mountain|Forest|Wastes)$/;
+/** The home page's "Most stocked" tiles: the printings the most stores have in stock, counted on the headline finish and summed over the six markets
+ *  (the browse index's per-market store counts, written by the store stage), dearest first on a tie. Basic lands are left out. One browse index read per
+ *  instance and data ref (memoByRef); before the first store stage every count is 0 and the list is empty, so the page falls back to the popular tiles. */
+export async function getMostStocked(n = 12): Promise<CardLite[]> {
+  const c = await planeSource();
+  const ids = await memoByRef("home:stocked", memoKey(c.ptr), async () => {
+    const ix = await getBrowseIndex({ withOracle: false });
+    return ix.mostStocked(48, (name) => BASIC_LAND.test(name));
+  });
+  if (!ids.length) return [];
+  const byId = await getCardsByIds(ids.slice(0, Math.max(0, n)));
+  return ids.slice(0, Math.max(0, n)).map((id) => byId.get(id)).filter((x): x is CardLite => x != null);
+}
+
 export async function getPopular(n = 12): Promise<HomeTile[]> { return (await getHomeBoard()).popular.slice(0, Math.max(0, n)); }   // P hm/home.json popular tiles (EDHREC rank, then market)
 
 export interface MarketOverview { at: string; basket: { n: number; totalUsd: number; avg: number; median: number }; advancing: number; declining: number; constituents: { id: number; slug: string; name: string; cents: number }[]; sets: { setId: number; n: number; totalCents: number }[] }

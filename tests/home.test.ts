@@ -315,3 +315,36 @@ test("no home file carries One Piece vocabulary", () => {
   for (const f of files) assert.doesNotMatch(codeOnly(read(f)), /One Piece|ONE PIECE|OP Compare|opcompare|Straw Hat|\bLeaders?\b|Parallel|Manga|Treasure Rare|\/leaders|DON!!/, f);
   assert.ok(existsSync(join(process.cwd(), "src/components/home/HomeSections.tsx")));
 });
+
+test("the home page's first tab is the most stocked printings: store counts summed over the six markets, basic lands and non-class-0 rows out, dearest first on a tie", async () => {
+  const { BrowseIndex } = await import("../src/lib/data/plane/browse-index");
+  const { PRICE_MASK } = await import("../src/lib/constants");
+  // Real printings: Sol Ring (FDC 286), Command Tower (FDC 683), Arcane Signet (FDC 682), Island (FDC 275) and a token row (class 1).
+  const rows = [
+    { id: 591004, name: "Sol Ring", cls: 0, head: 0, market: 101, stores: [30, 12, 6, 4, 2, 1] },
+    { id: 591151, name: "Command Tower", cls: 0, head: 0, market: 25, stores: [28, 12, 6, 4, 2, 1] },
+    { id: 591150, name: "Arcane Signet", cls: 0, head: 0, market: 60, stores: [28, 12, 6, 4, 2, 1] },
+    { id: 590990, name: "Island", cls: 0, head: 0, market: 10, stores: [90, 40, 20, 10, 5, 5] },
+    { id: 593000, name: "Soldier", cls: 1, head: 0, market: 5, stores: [99, 0, 0, 0, 0, 0] },
+    { id: 591200, name: "Llanowar Elves", cls: 0, head: 1, market: 30, stores: [0, 0, 0, 0, 0, 0] },
+  ];
+  const ix = Object.assign(new BrowseIndex(), {
+    n: rows.length,
+    id: Int32Array.from(rows.map((r) => r.id)),
+    cls: Uint8Array.from(rows.map((r) => r.cls)),
+    name: rows.map((r) => r.name),
+    mk: Int32Array.from(rows.map((r) => (r.head ? PRICE_MASK.HEADF : 0))),
+    mn: Int32Array.from(rows.map((r) => r.market)),
+    mf: Int32Array.from(rows.map(() => -1)),
+    stores: (() => { const a = new Uint8Array(rows.length * 12); rows.forEach((r, i) => r.stores.forEach((v, m) => (a[(i * 2 + r.head) * 6 + m] = v))); return a; })(),
+  });
+  const basic = (name: string) => /^(?:Snow-Covered )?(?:Plains|Island|Swamp|Mountain|Forest|Wastes)$/.test(name);
+  assert.deepEqual(ix.mostStocked(12, basic), [591004, 591150, 591151], "Sol Ring (55 stores), then the 53-store tie dearest first; Island, the token and a printing in no store are left out");
+  assert.deepEqual(ix.mostStocked(1, basic), [591004]);
+  assert.deepEqual(ix.mostStocked(12), [590990, 591004, 591150, 591151], "without the skip, the basic land ranks first: why the home page passes it");
+  // The carousel names what it shows and falls back to EDHREC's order before the first store stage.
+  const carousel = read("src/components/home/PopularCardsCarousel.tsx"), data = read("src/components/home/home-data.ts");
+  assert.match(carousel, /label: "Most stocked"/);
+  assert.match(carousel, /label: "Popular"/);
+  assert.match(data, /stocked\.length \? stocked\.map\(tileOfLite\) : board\.popular\.map\(tileOfHome\)/);
+});

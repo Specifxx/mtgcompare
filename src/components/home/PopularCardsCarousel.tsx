@@ -24,11 +24,12 @@ type Tab = {
 // cards", "Biggest movers", "Recently updated". Every panel stays in the DOM (renderAllPanels) so all lists are crawlable and feed the
 // page's ItemList JSON-LD.
 //
-// "Popular" is the published EDHREC order (Scryfall's edhrec_rank: how many Commander decks play a card) and says so; no counter of ours
-// sits behind it. "Chase cards" is the catalogue's dearest printings on their market price, a different list: a Black Lotus is chased
+// The first tab is "Most stocked" (owner decision, 2026-10-09): the printings the most stores have in stock across the six markets, from the
+// store stage's counts. Until the first store stage it falls back to the published EDHREC order (Scryfall's edhrec_rank) and says so. "Chase cards" is the catalogue's dearest printings on their market price, a different list: a Black Lotus is chased
 // by collectors, not played in every Commander deck.
 export function PopularCardsCarousel({
   popular,
+  stocked = false,
   chase,
   movers,
   recentlyUpdated,
@@ -36,6 +37,7 @@ export function PopularCardsCarousel({
   storeWord,
 }: {
   popular: TileItem[];
+  stocked?: boolean;
   chase: TileItem[];
   movers: ItemWithDelta[];
   recentlyUpdated: ItemWithDelta[];
@@ -46,15 +48,25 @@ export function PopularCardsCarousel({
     ...(popular.length === 0
       ? []
       : [
-          {
-            key: "popular",
-            label: "Popular",
-            heading: "Most popular Magic cards",
-            description: `The cards Commander players run most (EDHREC's ranking) — compare ${storeCount} ${storeWord} for every one to find the best price.`,
-            allHref: "/browse?sort=popular",
-            allLabel: "View all →",
-            items: popular,
-          },
+          stocked
+            ? {
+                key: "popular",
+                label: "Most stocked",
+                heading: "Most stocked Magic cards",
+                description: `The singles the most stores have in stock right now, across every market we track — compare ${storeCount} ${storeWord} for every one to find the best price.`,
+                allHref: "/browse",
+                allLabel: "View all →",
+                items: popular,
+              }
+            : {
+                key: "popular",
+                label: "Popular",
+                heading: "Most popular Magic cards",
+                description: `The cards Commander players run most (EDHREC's ranking) — compare ${storeCount} ${storeWord} for every one to find the best price.`,
+                allHref: "/browse?sort=popular",
+                allLabel: "View all →",
+                items: popular,
+              },
         ]),
     ...(chase.length === 0
       ? []

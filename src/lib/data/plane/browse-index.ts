@@ -101,6 +101,24 @@ export class BrowseIndex {
   }
   liteAt(i: number, unit?: Finish): CardLite { return liteFromRow(this.rowFor(i, unit)); }
   /** The row of a product id in this index (-1 when it is not a listed row): the key from a flat offer (ix/f `uid` >> 1) or a user's product id to the columns above. */
+  /** The ids of the `k` printings the most stores have in stock: the headline finish's store counts summed over the six markets, the dearest market first on a tie; class 0 only, `skip(name)` leaves rows out (basic lands). [] when no store stage has run. */
+  mostStocked(k: number, skip: (name: string) => boolean = () => false): number[] {
+    const top: { i: number; s: number; v: number }[] = [];
+    const worse = (a: { s: number; v: number }, b: { s: number; v: number }): boolean => a.s < b.s || (a.s === b.s && a.v <= b.v);
+    for (let i = 0; i < this.n; i++) {
+      if (this.cls[i] !== 0 || skip(this.name[i] ?? "")) continue;
+      const fi = this.finishOf(i), base = (i * 2 + fi) * 6;
+      let s = 0;
+      for (let m = 0; m < 6; m++) s += this.stores[base + m]!;
+      if (s === 0) continue;
+      const row = { i, s, v: this.market(i, fi) };
+      if (top.length >= k && worse(row, top[top.length - 1]!)) continue;
+      top.push(row);
+      top.sort((a, b) => b.s - a.s || b.v - a.v || a.i - b.i);
+      if (top.length > k) top.pop();
+    }
+    return top.map((t) => this.id[t.i]!);
+  }
   rowOf(id: number): number { return this.rowOfId.get(id) ?? -1; }
   /** The rows of known ids (listed rows only: an unlisted or gone id is absent and the caller falls back to the bucket fan-in). */
   lookup(ids: readonly number[], unit?: Finish): Map<number, CardLite> { const out = new Map<number, CardLite>(); for (const id of ids) { const i = this.rowOfId.get(id); if (i !== undefined) out.set(id, this.liteAt(i, unit)); } return out; }

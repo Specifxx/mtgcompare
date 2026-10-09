@@ -3,7 +3,7 @@
 // headers.json holds their HTML for five minutes (contract 12.7), so one HTML serves every market and the client localises to the visitor's (CountryProvider).
 import { CARD_FLAGS, RELEASE_SET_KINDS, type Rarity } from "@/lib/constants";
 import { MARKETS, type Country } from "@/lib/country";
-import { getHomeBoard, getHomeStats, getMovers, getRecentlyUpdated, getSets, type CardLite, type HomeBoard, type HomeCard, type SetLite } from "@/lib/data";
+import { getHomeBoard, getHomeStats, getMostStocked, getMovers, getRecentlyUpdated, getSets, type CardLite, type HomeBoard, type HomeCard, type SetLite } from "@/lib/data";
 import type { HomeStats } from "@/lib/home";
 import { usdCentsToCountry } from "@/lib/fx";
 import type { HomeDeal, TopDeals } from "@/lib/top-deals";
@@ -14,8 +14,10 @@ export interface HomeData {
   board: HomeBoard;
   stats: HomeStats;
   renderedAt: string;
-  /** The twelve most popular printings: Scryfall's EDHREC rank, then market value (never a Neon counter). */
+  /** The twelve most stocked printings (the most stores with it in stock, six markets summed); the EDHREC popular tiles until the first store stage. */
   popular: TileItem[];
+  /** true when `popular` is the most stocked list, false when it fell back to the EDHREC order. */
+  stocked: boolean;
   /** The dearest printings in the catalogue, market price only. */
   chase: TileItem[];
   trending: TrendingCard[];
@@ -85,13 +87,14 @@ export function homeSets(sets: readonly SetLite[], today: string): SetLite[] {
 const soft = <T,>(read: () => Promise<T>, fallback: T): Promise<T> => Promise.resolve().then(read).catch(() => fallback);
 
 export async function loadHomeData(): Promise<HomeData> {
-  const [board, stats, sets, risers, fallers, recent] = await Promise.all([
+  const [board, stats, sets, risers, fallers, recent, stocked] = await Promise.all([
     getHomeBoard(),
     getHomeStats(),
     getSets(),
     soft(() => getMovers({ dir: "up", window: 7, minCents: 100, n: 6 }), []),      // P mv files; a failure drops the tab, never the page
     soft(() => getMovers({ dir: "down", window: 7, minCents: 100, n: 6 }), []),
     soft(() => getRecentlyUpdated(24), []),
+    soft(() => getMostStocked(12), []),                                           // the browse index's store counts; empty before the first store stage
   ]);
   const renderedAt = new Date().toISOString(), today = renderedAt.slice(0, 10);
   // Biggest movers: TCGplayer's 7-day market change is one worldwide figure, so the list is the same for every market (prices still localise).
@@ -101,7 +104,8 @@ export async function loadHomeData(): Promise<HomeData> {
     board,
     stats,
     renderedAt,
-    popular: board.popular.map(tileOfHome),
+    popular: stocked.length ? stocked.map(tileOfLite) : board.popular.map(tileOfHome),
+    stocked: stocked.length > 0,
     chase: board.chase.slice(0, CHASE_TILES).map(tileOfHome),
     trending: board.popular.slice(0, 6).map((c) => ({ id: c.id, slug: c.slug, name: c.name, number: c.number, variant: c.variant })),
     biggestMovers: moved.map((c) => ({ ...tileOfLite(c), pct: Math.round((c.change7d ?? 0) * 10) / 10 })),
