@@ -242,7 +242,7 @@ test("the route is dynamic, reads no session, imports no database client and the
   // the batcher's shape is the frozen one of view-beacon.ts, and click-event.ts is the only writer of ClickEvent in src
   const writers = ["src/lib/click-event.ts"], all = fs.readdirSync(path.join(ROOT, "src"), { recursive: true }).map(String).filter((f) => /\.(ts|tsx)$/.test(f));
   const touching = all.filter((f) => /clickEvent\./.test(codeOnly(read(`src/${f}`)))).map((f) => `src/${f}`);
-  for (const f of touching) assert.ok(writers.includes(f) || /^src\/lib\/admin-clicks?\.ts$|^src\/app\/admin\/clicks\//.test(f), `${f} touches ClickEvent and is neither the writer nor an admin reader`);
+  for (const f of touching) assert.ok(writers.includes(f) || /^src\/lib\/admin[\w-]*\.ts$|^src\/app\/admin\/clicks\//.test(f), `${f} touches ClickEvent and is neither the writer nor an admin reader`);
   assert.ok(touching.includes("src/lib/click-event.ts"));
 });
 

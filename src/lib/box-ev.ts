@@ -73,7 +73,7 @@ export function poolOf(card: PoolCard): PoolKey | null {
     if (t.kind === "promo" || t.kind === "edition" || t.kind === "language") return null;
     if (t.chase) alt = true;
   }
-  if (alt) return r === "L" ? null : (ALT_BY_RARITY[r] ?? null);
+  if (alt) return ALT_BY_RARITY[r] ?? null;   // a basic land has no Booster Fun pool: it is not a key
   return STD_BY_RARITY[r] ?? null;
 }
 

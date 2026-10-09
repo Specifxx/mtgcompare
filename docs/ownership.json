@@ -1091,6 +1091,7 @@
   "src/lib/referral.ts": "WP18",
   "src/lib/release-alerts-run.ts": "WP14",
   "src/lib/release-alerts.ts": "WP14",
+  "src/lib/release-countdown.ts": "WP20",
   "src/lib/release-day.ts": "WP14",
   "src/lib/release-schedule.ts": "WP21",
   "src/lib/rise-predictor.ts": "WP07",

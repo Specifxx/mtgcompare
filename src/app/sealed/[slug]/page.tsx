@@ -60,7 +60,12 @@ export default async function SealedDetailPage({ params }: Props) {
   if (!s) notFound();
   const setById = new Map(sets.map((x) => [x.id, x] as const));
   const imageUrl = tcgplayerImage(s.id, "400w");
-  const history = await getUnitHistory({ id: s.id, finish: "N" }).catch(() => []);
+  let history: Awaited<ReturnType<typeof getUnitHistory>> = [];
+  try {
+    history = await getUnitHistory({ id: s.id, finish: "N" });
+  } catch {
+    history = [];   // the chart is decoration: a history read that fails leaves it empty, the page and its indexability stand
+  }
   const vh = visitorHistory(history, country);
   const lite = all.find((x) => x.id === s.id);
   const h = lite

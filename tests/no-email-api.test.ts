@@ -25,7 +25,7 @@ function walk(dir: string): string[] {
 const rel = (f: string) => path.relative(ROOT, f).split(path.sep).join("/");
 const FILES = [...walk(path.join(ROOT, "src")), ...walk(path.join(ROOT, "scripts")), ...walk(path.join(ROOT, ".github"))];
 const MAIL_LIB = "src/lib/email.ts";
-const MAIL_WORKFLOWS = /^\.github\/workflows\/(email[^/]*|import-prices)\.yml$/;
+const MAIL_WORKFLOWS = /^\.github\/workflows\/(email[^/]*|release-day-email|import-prices)\.yml$/;
 
 test("mail provider hosts appear only in src/lib/email.ts", () => {
   const hits = FILES.filter((f) => rel(f) !== MAIL_LIB).flatMap((f) => {

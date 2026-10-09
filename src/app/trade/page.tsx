@@ -7,7 +7,7 @@ import { guidesForTool } from "@/lib/content/tool-guides";
 import { pageOg } from "@/lib/og/meta";
 import { SITE_URL } from "@/lib/site";
 
-// /trade — RiftCompare's trade calculator, for One Piece. Every claim in the
+// /trade — RiftCompare's trade calculator, for Magic. Every claim in the
 // description, intro and JSON-LD is what components/TradeCalculator.tsx does:
 // each card valued at the cheapest in-stock store price for the visitor's
 // market and currency, with a per-card override or a specific store's price.

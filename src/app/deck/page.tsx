@@ -68,7 +68,7 @@ const FAQS = [
   },
   {
     q: "Where do the prices come from?",
-    a: "Each card is priced at its cheapest in-stock listing among the stores MTG Compare reads in your market (TCGplayer's cheapest listing counts in the US), refreshed twice a day. TCGplayer's market price is shown beside it as a reference. A card with only a thin single listing is shown as low only. Totals are item prices; postage is charged by each store.",
+    a: "Each card is priced at its cheapest in-stock listing among the stores MTG Compare reads in your market (TCGplayer's cheapest listing counts in the US), refreshed once a day. TCGplayer's market price is shown beside it as a reference. A card with only a thin single listing is shown as low only. Totals are item prices; postage is charged by each store.",
   },
   {
     q: "Is it free?",

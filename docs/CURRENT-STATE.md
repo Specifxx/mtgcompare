@@ -37,13 +37,19 @@ Entries dated before 2026-10-08 are OP Compare's inherited history (One Piece vo
 - A store listing matches ONE (product, finish) or nothing: the key is the SKU, then SET-NUM in the title, then number + set name, then name + set; a name alone is never a key; the name, set and treatment gates run before the finish step and an ambiguous listing is skipped (`src/lib/match.ts`, `tests/match.test.ts`). [2026-10-08](../DECISIONS.md#L2334)
 - A store's own spelling of a set resolves only through `STORE_SET_ALIASES` (`src/lib/match.ts`), an entry needs three SKU-consistent listings and a pinned real title; the matcher reads no file and no database. [2026-10-08](../DECISIONS.md#L2355)
 - A free-text (eBay) title that names The List is placed on The List's product (set `plst`, number `<set>-<number>`) or on nothing, never on the original printing it reprints. [2026-10-08](../DECISIONS.md#L2361)
+- Store ids are hand-assigned and never reused (feeds 8 and 9, registry 10..32767, `RETIRED_STORE_IDS`); every registry store is unverified until a read admits it (>= 20 matched in-stock listings of tracked units and a matching currency); a store that charges another currency than its market's is listed and never priced. [2026-10-08](../DECISIONS.md#L2649)
+- The store stage streams pages (never holds a catalogue), reads four stores at once, spends at most 700 pages per store and 100 minutes per stage, and treats a read cut short as failed; scrapers identify themselves honestly. [2026-10-08](../DECISIONS.md#L2656)
 
 ## Pages and tools
 
+- Affiliate ids are NEXT_PUBLIC_EBAY_CAMPAIGN_ID and NEXT_PUBLIC_TCGPLAYER_IMPACT_LINK, no default; unset means plain links; the sub-id prefix is mc-. [2026-10-08](../DECISIONS.md#L2663)
 - Taxonomy hubs read the browse engine (`getCardPage`, `getFacetCounts`); /cards/treatment/[key] replaces /cards/printing/[printing]; a colour page is exact (gold cards only on /colors/multicolor). [2026-10-08](../DECISIONS.md#L2375)
 - Box EV uses only Wizards-published slot structures (Play Booster); a slot without a published split is valued at zero until the visitor sets a rate; no pull rate is invented. [2026-10-08](../DECISIONS.md#L2383)
 - Sealed pages and the sealed alert read published files only; MSRPs are listed only with a source and check date, and none are invented. [2026-10-08](../DECISIONS.md#L2389)
 - Commander pages read the ORACLE_FLAGS.COMMANDER bit from the published files; the deck pages are force-dynamic and priced at read time. [2026-10-08](../DECISIONS.md#L2438)
+- Binder rows are units: `isFoil` selects the finish, every write calls normalizeFoil, value = the finish's MARKET (converted, condition-adjusted), a low-only unit is unpriced, history is per unit. [2026-10-08](../DECISIONS.md#L2680)
+- Set checklists contain every listed printing (THIN included); owned means any row for the product whatever the finish; base = no treatment word, all = every treated printing, a promo stamp outside a promo set counts in neither. [2026-10-08](../DECISIONS.md#L2685)
+- Deal Finder rows are limited in the loader (`getDealList`, `getVsEbayList`) by `premium-gates.ts`; pages, routes and the admin preview pass the session's Entitlement and never compare a tier. [2026-10-08](../DECISIONS.md#L2700)
 - outbound clicks are logged anonymously (`ClickEvent`, userId null) through `/api/click`, batched into one insert in the half-hour window shared with the view counter, swept after 90 days; `CLICK_LOG=0` turns it off. [2026-10-08](../DECISIONS.md#L2456)
 - Consent Mode v2 defaults come from `consentDefaultsScript` (src/lib/ga.ts), rendered once by `<ConsentDefaults />` ahead of every Google tag; the footer's privacy settings link re-opens the choice. [2026-10-08](../DECISIONS.md#L2463)
 - the home reads `hm/home.json`, `mk/overview.json` and `mk/records.json` through `src/lib/data/home.ts`; Popular is the EDHREC rank; the page is force-dynamic with no revalidate. [2026-10-08](../DECISIONS.md#L2469)

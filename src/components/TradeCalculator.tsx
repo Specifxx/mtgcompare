@@ -6,7 +6,7 @@ import { tradeGremlin, type TradeTone } from "@/lib/trade-gremlin";
 import { currencyOf, type Country } from "@/lib/country";
 import { money } from "@/lib/format";
 
-// RiftCompare's TradeCalculator, for One Piece. Card search is /api/search
+// RiftCompare's TradeCalculator, for Magic. Card search is /api/search
 // (each hit carries every market's cheapest in-stock price, `low`), and "pick
 // store price" reads the card's QuickView payload, /api/card/[slug], whose
 // per-market rows are the card page's own cheapest open offers. eBay rows are

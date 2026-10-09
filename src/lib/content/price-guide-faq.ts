@@ -5,7 +5,7 @@
 export const PRICE_GUIDE_FAQ: { q: string; a: string }[] = [
   {
     q: "Where do the prices in the Magic price guide come from?",
-    a: "Each row's price is the cheapest in-stock listing MTG Compare found in your market across the stores we track, TCGplayer and, where it matches, eBay. It is an asking price on a live listing, not a record of a sale. Prices are read twice a day, and the TCGplayer figure beside it is TCGplayer's own US market price, built from recent sales.",
+    a: "Each row's price is the cheapest in-stock listing MTG Compare found in your market across the stores we track, TCGplayer and, where it matches, eBay. It is an asking price on a live listing, not a record of a sale. Prices are read once a day, and the TCGplayer figure beside it is TCGplayer's own US market price, built from recent sales.",
   },
   {
     q: "Why is one card listed several times?",

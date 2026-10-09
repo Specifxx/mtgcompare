@@ -2,7 +2,7 @@
 // from the two sides' adjusted values; reacts live as the user tweaks the trade.
 // Shared by the calculator (instant, free) and /api/trade-roast.
 //
-// RiftCompare's lib/trade-gremlin.ts, for One Piece. One difference, on
+// RiftCompare's lib/trade-gremlin.ts, for Magic. One difference, on
 // purpose: MTG Compare has NO language-model key, so "Roast this trade" is
 // RULES-ONLY (wave-2 plan, Track 3 item 4). tradeRoast() below picks a spicier
 // canned line for the same verdict, and the calculator discloses that the

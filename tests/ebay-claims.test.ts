@@ -19,8 +19,7 @@ test("no money-back or buyer-protection copy in pages or components", () => {
 
 // With no eBay secrets the site must read as it did before the eBay API: copy
 // that says we collect eBay prices sits behind a flag that comes from data
-// (getSiteStats().ebayLive: a successful eBay run in the last 3 days, or an
-// eBay row on this board).
+// (getSiteStats().ebayLive, src/lib/data/site.ts: a successful eBay run in the last 3 days).
 test("eBay-collection copy is gated on data, so 'off' keeps the old wording", () => {
   const read = (p: string) => fs.readFileSync(path.join(ROOT, p), "utf8").replace(/\s+/g, " ");
   const gated = (file: string, flag: string, phrase: string) => {
@@ -33,12 +32,12 @@ test("eBay-collection copy is gated on data, so 'off' keeps the old wording", ()
   gated("src/components/PriceBoard.tsx", "hasEbayRow", "eBay&apos;s Buy It Now listings");
   gated("src/lib/home-faq.ts", "opts.ebayLive", "the cheapest matching eBay listing");
   gated("src/components/home/RegionHome.tsx", "ebayLive", "plus the cheapest matching eBay listing");
-  gated("src/app/methodology/page.tsx", "ebayLive", "Twice a day we search eBay");
+  gated("src/app/methodology/page.tsx", "ebayLive", "We search eBay four times a day");
   gated("src/app/methodology/page.tsx", "ebayLive", "an eBay row shows the postage eBay states");
   gated("src/app/about/page.tsx", "ebayLive", "eBay prices are the cheapest matching Buy It Now listing");
   gated("src/app/editorial-policy/page.tsx", "ebayLive", "eBay listing prices");
   // The flag is data: a recent successful ImportRun of kind "ebay".
-  const data = read("src/lib/data.ts");
-  assert.match(data, /ebayLive: Boolean\(ebayRun\)/);
+  const data = read("src/lib/data/site.ts");
+  assert.match(data, /return Boolean\(run\)/);
   assert.match(data, /kind: "ebay", ok: true, finishedAt: \{ gte:/);
 });

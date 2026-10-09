@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { daysUntil } from "../src/app/embed/release-countdown/route";
+import { daysUntil } from "../src/lib/release-countdown";
 
 test("daysUntil counts whole UTC days and never goes negative", () => {
   assert.equal(daysUntil("2026-10-15", new Date("2026-10-08T23:59:00Z")), 7);

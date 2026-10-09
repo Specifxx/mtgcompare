@@ -17,12 +17,12 @@ import { guidesForTool } from "@/lib/content/tool-guides";
 // ─────────────────────────────────────────────────────────────────────────────
 // /tools/box-ev: what is a sealed box actually worth if you open it?
 // ─────────────────────────────────────────────────────────────────────────────
-// REAL ISR. Nothing here reads the country cookie: every card is valued in USD
-// and the CLIENT converts to the viewer's currency, so one cached render serves
+// Rendered per request (it reads the published data, so never at build) and cached by the CDN. Nothing here reads the country cookie: every card is valued in USD
+// and the CLIENT converts to the viewer's currency, so one render serves
 // every visitor and every crawler. Every read is a published-file loader
 // (getSets, getSealedAll, getBoxPools, getSealedDetail), called at the top
 // level of the page and never inside a cache.
-export const revalidate = 86400;
+export const dynamic = "force-dynamic";   // reads the published data: never at build
 
 const TITLE = "Magic: The Gathering Booster Box EV Calculator | MTG Compare";
 const DESCRIPTION =
@@ -191,7 +191,7 @@ export default async function BoxEvPage() {
           <div>
             <p className="text-base font-semibold text-white">Price data is still warming up</p>
             <p className="mt-1 text-sm">
-              This tool runs off the market prices our import reads twice a day. Check back shortly, or{" "}
+              This tool runs off the market prices our import reads once a day. Check back shortly, or{" "}
               <Link href="/browse" className="text-brand-400 hover:underline">browse cards</Link> meanwhile.
             </p>
           </div>

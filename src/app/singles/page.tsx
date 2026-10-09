@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Buy Magic: The Gathering Singles — Compare Prices in Six Markets",
   description:
-    "The cheapest place to buy Magic: The Gathering singles: live prices from stores in the US, Australia, the UK, Singapore, Canada and the EU, plus TCGplayer, refreshed twice a day.",
+    "The cheapest place to buy Magic: The Gathering singles: live prices from stores in the US, Australia, the UK, Singapore, Canada and the EU, plus TCGplayer, refreshed once a day.",
   alternates: { canonical: "/singles" },
   openGraph: pageOg("/singles"),
 };

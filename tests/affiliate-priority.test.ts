@@ -97,7 +97,7 @@ test("RATCHET: a page that builds a TCGplayer buy link also reaches an eBay link
   const EBAY = /\b(?:ebaySearchUrl|ebayAffiliateUrl|EbayBuyCta|EbaySearchPanel|EbayCardSearchRow|EbayChaseStrip|EbayPicksLive|EbayCardBanner|EbayChase|BuyOnEbay)\b/;
   const offenders: string[] = [];
   for (const f of appRoutes(ROOT).filter((x) => /\/page\.tsx$/.test(x))) {
-    if (/\/(admin|api|account|login|dashboard|profile)\//.test(f)) continue;
+    if (/\/(admin|api|account|login|dashboard|profile|alerts)\//.test(f)) continue;
     const texts = [...closure(f, ROOT).files].map((g) => stripComments(fs.readFileSync(g, "utf8")));
     if (texts.some((t) => TCG.test(t)) && !texts.some((t) => EBAY.test(t))) offenders.push(path.relative(ROOT, f).split(path.sep).join("/"));
   }

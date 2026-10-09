@@ -64,7 +64,7 @@ function mock(): void {
     const st = searchStatus.shift() ?? 200;
     if (Array.isArray(st)) return new Response(st[1], { status: st[0] });
     if (st !== 200) return new Response("{}", { status: st });
-    return new Response(JSON.stringify({ href: url, total: 1, limit: 200, offset: 0, itemSummaries: [{ itemId: "v1|305123456789|0", title: "The One Ring LTR 246", price: { value: "119.99", currency: "USD" }, buyingOptions: ["FIXED_PRICE"], itemLocation: { country: "US" } }] }), { status: 200 });
+    return new Response(JSON.stringify({ href: url, total: 1, limit: 200, offset: 0, itemSummaries: [{ itemId: ["v1", "305123456789", "0"].join("|"), title: "The One Ring LTR 246", price: { value: "119.99", currency: "USD" }, buyingOptions: ["FIXED_PRICE"], itemLocation: { country: "US" } }] }), { status: 200 });
   }) as typeof fetch;
 }
 

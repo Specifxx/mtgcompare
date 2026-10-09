@@ -184,7 +184,7 @@ test("the box price starts at the cheapest in-stock tracked STORE offer: never a
 });
 
 test("the page and calculator say what is published and what is left at zero, and the old set-sum page redirects", () => {
-  assert.match(read("src/app/tools/box-ev/page.tsx"), /export const revalidate = 86400/);
+  assert.match(read("src/app/tools/box-ev/page.tsx"), /export const dynamic = "force-dynamic"/);
   const calc = read("src/components/BoxEvCalculator.tsx");
   assert.match(calc, /Wizards of the Coast publishes the slot structure/);
   assert.match(calc, /valued at zero/);

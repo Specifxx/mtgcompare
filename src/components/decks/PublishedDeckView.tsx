@@ -169,7 +169,7 @@ export function PublishedDeckView(props: {
         })}
       </ul>
       <p className="mt-2 text-xs text-slate-500">
-        Prices are each card&apos;s cheapest in-stock listing we track in your market, imported twice a day; postage is extra and Best Basket works out
+        Prices are each card&apos;s cheapest in-stock listing we track in your market, imported once a day; postage is extra and Best Basket works out
         the cheapest delivered order.
       </p>
     </article>

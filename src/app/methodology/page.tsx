@@ -7,6 +7,9 @@ import { DATA_ATTRIBUTION, SCRYFALL_URL, SITE_NAME } from "@/lib/site";
 import { USD_TO } from "@/lib/fx";
 import { pageOg } from "@/lib/og/meta";
 
+// Reads the eBay-live flag from the published data: rendered per request, never at build (CLAUDE.md, contract C26).
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "How We Compare Magic Card Prices",
   description: `Where ${SITE_NAME}'s prices come from, how listings are matched to printings and finishes, how markets and currencies work, and what the reference prices mean.`,
@@ -40,13 +43,15 @@ export default async function Methodology() {
         </li>
         {ebayLive ? (
           <li>
-            <strong>eBay.</strong> Twice a day we search eBay (US, UK, Australia,
-            Spain for EU, and Canada for sealed) for cards worth US$20 or more on
-            TCGplayer (US$50 in the EU) and sealed products worth US$30 or more;
-            cards of US$100 and up daily, the rest every two days. We show the
+            <strong>eBay.</strong> We search eBay four times a day (US, UK,
+            Australia and Spain for EU for singles, and Canada for sealed too)
+            for cards worth US$10 or more on TCGplayer, and for sealed products
+            worth US$60 to US$100 or more depending on the kind; cards of US$50
+            and up daily, the rest every three days. We show the
             cheapest matching Buy It Now listing as an asking price, never
-            re-ranked: it sits among the stores by item price. Canadian card rows
-            are the US listing, shipped from the US. Every market also gets a
+            re-ranked: it sits in its own labelled block, apart from the stores.
+            Canadian card rows are the US listing, shipped from the US. Every
+            market also gets a
             search link to its own eBay. We are an eBay Partner Network affiliate.
           </li>
         ) : (

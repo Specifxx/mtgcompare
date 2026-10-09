@@ -11,12 +11,8 @@ import { JsonLd } from "@/components/ui";
 
 type Props = { params: { slug: string } };
 
-// The authors are a file (lib/blog/index.ts AUTHORS), not a database table, so
-// generating their pages at build is the one static-params case the egress rules
-// allow: it reads no database.
-export function generateStaticParams() {
-  return AUTHORS.map((a) => ({ slug: a.slug }));
-}
+// The page reads the catalogue stats for its post titles, so it is rendered per request and never prerendered (CLAUDE.md: a route that reaches @/lib/data is force-dynamic; no generateStaticParams).
+export const dynamic = "force-dynamic";
 
 export function generateMetadata({ params }: Props): Metadata {
   const a = AUTHORS.find((x) => x.slug === params.slug);

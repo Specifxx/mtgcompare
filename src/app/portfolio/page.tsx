@@ -141,8 +141,13 @@ export default async function PortfolioPage() {
   // The owned-cards Rising picks nudge (surface "nudge:portfolio"): a Premium
   // upsell for a free account, a link into the list for a member. It renders only
   // when there is something true and specific to say, and never fails the page.
-  const emailOn = (await getEmailStatus().catch(() => "off")) === "on";
-  const nudge = await getPremiumNudge(user.id, country).catch(() => null);
+  const emailOn = (await getEmailStatus()) === "on";   // environment only: it cannot fail
+  let nudge: Awaited<ReturnType<typeof getPremiumNudge>> | null = null;
+  try {
+    nudge = await getPremiumNudge(user.id, country);
+  } catch {
+    nudge = null;
+  }
   const ownedNudge = nudge ? nudgeCopy(nudge, "owned", premium ? "member" : "free", emailOn) : null;
 
   return (

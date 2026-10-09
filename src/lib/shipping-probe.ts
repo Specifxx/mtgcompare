@@ -1,6 +1,6 @@
 // Pure helpers for scripts/probe-shipping-rates.ts — the measurement that
 // gives Best Basket each store's REAL postage, read from its own checkout
-// (RiftCompare's lib/shipping-probe.ts, ported for One Piece 2026-10-03: OP
+// (RiftCompare's lib/shipping-probe.ts, ported for Magic 2026-10-03: OP
 // Compare never had postage guesses at all, so an unmeasured store is priced
 // at its market's dearest measured one-card tracked rate, lib/shipping.ts).
 //

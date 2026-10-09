@@ -60,3 +60,5 @@ jobs:
       - name: Alerts, newsletter, digests (read .data/v1; Neon only for the user rows)
         if: ${{ github.event_name != 'workflow_dispatch' || inputs.alerts }}
         run: npx tsx scripts/alerts.ts
+        env:
+          EMAIL_LINK_SECRET: ${{ secrets.EMAIL_LINK_SECRET }}

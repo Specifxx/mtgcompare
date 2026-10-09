@@ -5,6 +5,9 @@ import { getSiteStats } from "@/lib/data";
 import { CONTACT_EMAIL } from "@/lib/site";
 import { pageOg } from "@/lib/og/meta";
 
+// Reads the eBay-live flag from the published data: rendered per request, never at build (CLAUDE.md, contract C26).
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Editorial Policy",
   description:

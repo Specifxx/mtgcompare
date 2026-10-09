@@ -27,7 +27,7 @@ import { RelatedGuides } from "@/components/RelatedGuides";
 import { SetGridControls } from "@/components/sets/SetGridControls";
 import { SetPriceGuide } from "@/components/sets/SetPriceGuide";
 import { JsonLd } from "@/components/ui";
-import { parseBrowse, type BrowseQuery, type SearchParams } from "@/lib/browse";
+import { parseBrowse, toCardQuery, type BrowseQuery, type SearchParams } from "@/lib/browse";
 import { guidesForCatalogue } from "@/lib/content/catalogue-guides";
 import { buildCollectionNarrative } from "@/lib/content/collection-narrative";
 import { checklistGuideRows } from "@/lib/set-price-guide";
@@ -38,23 +38,13 @@ export const dynamic = "force-dynamic";
 type Props = { params: { slug: string }; searchParams: SearchParams };
 
 /** The page's filters as a loader query: this set, the visitor's market currency turned back into the US cents the index prices in. */
-function setQuery(bq: BrowseQuery, setId: number, currency: string, country: ReturnType<typeof getCountry>): Partial<CardQuery> {
-  const types = bq.types.map((t) => t.toLowerCase()).filter((t) => (PRIMARY_TYPES as readonly string[]).includes(t));
-  return {
-    q: bq.q || undefined,
-    setIds: [setId],
-    rarities: bq.rarities.filter(isRarity) as Rarity[],
-    types,
-    treats: bq.printings.filter((k) => TREATMENT_BY_KEY[k]),
-    colors: bq.colors.length ? { mask: colorMask(bq.colors), mode: "any" } : undefined,
-    minCents: bq.min != null ? toUsdCents(bq.min, currency) : null,
-    maxCents: bq.max != null ? toUsdCents(bq.max, currency) : null,
-    pricedIn: bq.priced ? country : undefined,
-    includeUnlisted: false,
-    sort: bq.sort,
-    page: bq.page,
-    per: bq.per as 24 | 48 | 100,
-  };
+function setQuery(bq: BrowseQuery, set: Parameters<typeof toCardQuery>[1][number], currency: string, country: ReturnType<typeof getCountry>): Partial<CardQuery> {
+  const q = toCardQuery({ ...bq, sets: [set.slug] }, [set], country, { floor: false });
+  q.setIds = [set.id];
+  q.minCents = bq.min != null ? toUsdCents(bq.min, currency) : null;
+  q.maxCents = bq.max != null ? toUsdCents(bq.max, currency) : null;
+  q.includeUnlisted = false;
+  return q;
 }
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
@@ -80,7 +70,7 @@ export default async function SetPage({ params, searchParams }: Props) {
   // The checklist is EVERY listed printing of the set (THIN rows included), already priced in the visitor's market.
   const [sets, grid, checklist, highlights, setSealed, valueStats] = await Promise.all([
     getSets(),
-    getCardPage(setQuery(bq, set.id, c.currency, country)),
+    getCardPage(setQuery(bq, set, c.currency, country)),
     getSetChecklist(set.id, country),
     getSetHighlights(set.id, 1),
     getSealedBySet(set.id),

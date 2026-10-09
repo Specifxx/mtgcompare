@@ -36,7 +36,8 @@
     "demand-snapshot.yml",
     "egress-audit.yml",
     "maintenance.yml",
-    "store-health.yml"
+    "store-health.yml",
+    "release-day-email.yml"
    ],
    "note": "the ONE Neon project (pooled URL): private tables only (accounts, billing, watches, alerts, collection, notifications, newsletter, inbox, click events, ledger and eBay data, ImportRun/Meta). Public data is NOT in it (section 12). The importer does not read it",
    "group": "Database and platform"
@@ -269,7 +270,8 @@
     "import-prices.yml",
     "indexnow.yml",
     "search-console.yml",
-    "stripe-setup.yml"
+    "stripe-setup.yml",
+    "release-day-email.yml"
    ],
    "note": "production origin for scripts and the importer's User-Agent",
    "group": "Site identity and links"
@@ -741,7 +743,8 @@
     "import-prices.yml",
     "data-hook.yml",
     "demand-snapshot.yml",
-    "data-rollback.yml"
+    "data-rollback.yml",
+    "ebay-prices.yml"
    ],
    "note": "bearer secret: Vercel cron routes, the warm call /api/data-warm that every publish makes, and the purge of the Neon-backed tags /api/revalidate. Plane data needs no purge (pinned URLs)",
    "group": "Accounts, billing, admin"
@@ -761,7 +764,8 @@
     "data-hook.yml",
     "demand-snapshot.yml",
     "data-watchdog.yml",
-    "data-rollback.yml"
+    "data-rollback.yml",
+    "ebay-prices.yml"
    ],
    "note": "production origin: /api/data-warm and /api/data-status are called after every publish, /api/revalidate only for the Neon-backed tags",
    "group": "Accounts, billing, admin"
@@ -833,7 +837,8 @@
    "wf": [
     "email-weekly.yml",
     "email.yml",
-    "import-prices.yml"
+    "import-prices.yml",
+    "release-day-email.yml"
    ],
    "note": "",
    "group": "Email and notifications"
@@ -850,7 +855,8 @@
    "wf": [
     "email-weekly.yml",
     "email.yml",
-    "import-prices.yml"
+    "import-prices.yml",
+    "release-day-email.yml"
    ],
    "note": "",
    "group": "Email and notifications"
@@ -884,7 +890,8 @@
    "wf": [
     "email-weekly.yml",
     "email.yml",
-    "import-prices.yml"
+    "import-prices.yml",
+    "release-day-email.yml"
    ],
    "note": "script-side only (tests/no-email-api.test.ts)",
    "group": "Email and notifications"
@@ -1628,7 +1635,8 @@
    "wp": "WP01b",
    "default": "unset",
    "where": [
-    "scripts/import.ts"
+    "scripts/import.ts",
+    "scripts/publish-demand.ts"
    ],
    "wf": [],
    "note": "1 = skip the warm call and the status poll after a publish (S13); the pointer has already moved",
@@ -1750,7 +1758,11 @@
     "db-audit.yml",
     "egress-audit.yml",
     "maintenance.yml",
-    "store-health.yml"
+    "store-health.yml",
+    "ebay-prices.yml",
+    "email-weekly.yml",
+    "email.yml",
+    "release-day-email.yml"
    ],
    "note": "owner/name of the PRIVATE data repository (12.4); the same value in Vercel and in Actions",
    "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
@@ -1786,7 +1798,10 @@
    ],
    "wf": [
     "egress-audit.yml",
-    "maintenance.yml"
+    "maintenance.yml",
+    "email-weekly.yml",
+    "email.yml",
+    "release-day-email.yml"
    ],
    "note": "fine-grained personal access token, Contents: read, on the data repository ONLY, at most 1 year (alarm 30 days before expiry). Part of the Data Cache key of every file: a rotation makes the cache cold and is followed by the data-hook workflow",
    "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
@@ -1902,7 +1917,8 @@
     "data-audit.yml",
     "db-audit.yml",
     "maintenance.yml",
-    "store-health.yml"
+    "store-health.yml",
+    "ebay-prices.yml"
    ],
    "note": "fine-grained personal access token, Contents: write (and Administration: read for the size probe), on the data repository ONLY. GITHUB_TOKEN covers only the workflow's own repository. Travels in an http extraheader, never in a URL or a log",
    "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
@@ -1915,7 +1931,8 @@
    "default": "10",
    "where": [
     "src/lib/data/plane/**",
-    "src/app/api/**"
+    "src/app/api/**",
+    "src/lib/card-views-server.ts"
    ],
    "wf": [],
    "note": "the card-view counter samples one view in N and never counts a crawler; 1 = every view, 0 = off (12.12)",
@@ -1929,7 +1946,8 @@
    "default": "30",
    "where": [
     "src/lib/data/plane/**",
-    "src/app/api/**"
+    "src/app/api/**",
+    "src/lib/card-views-server.ts"
    ],
    "wf": [],
    "note": "the counter writes to Neon at most this often per instance (scale-to-zero arithmetic: 12.12)",
@@ -2012,6 +2030,79 @@
    "wf": [],
    "note": "development tooling: 1 writes docs/ownership.json although the plan has problems",
    "group": "Data plane (section 12): the private data repository, its tokens, the reader's tuning"
+  },
+  "EMAIL_STATUS": {
+   "kind": "var",
+   "at": "V",
+   "status": "op",
+   "wp": "WP14",
+   "default": "off",
+   "where": [
+    "src/lib/data/email.ts"
+   ],
+   "wf": [],
+   "note": "on = pages may promise e-mail (mail secrets exist in Actions); environment only, never Neon",
+   "group": "Email and notifications"
+  },
+  "RELEASE_DAY_SEND": {
+   "at": "G",
+   "status": "op",
+   "wp": "WP14",
+   "wf": [
+    "release-day-email.yml"
+   ],
+   "group": "Email and notifications",
+   "kind": "var",
+   "default": "unset: dry",
+   "where": [
+    "scripts/send-release-day.ts"
+   ],
+   "note": "1 = release-day-email.yml really sends"
+  },
+  "SET_SLUG": {
+   "at": "G",
+   "status": "op",
+   "wp": "WP14",
+   "wf": [
+    "release-day-email.yml"
+   ],
+   "group": "Email and notifications",
+   "kind": "var",
+   "default": "none",
+   "where": [
+    "scripts/send-release-day.ts"
+   ],
+   "note": "the set whose release-day blast runs"
+  },
+  "DRY_RUN": {
+   "at": "G",
+   "status": "op",
+   "wp": "WP14",
+   "wf": [
+    "release-day-email.yml"
+   ],
+   "group": "Email and notifications",
+   "kind": "var",
+   "default": "unset",
+   "where": [
+    "scripts/send-release-day.ts"
+   ],
+   "note": "1 = count recipients, send nothing"
+  },
+  "LIMIT": {
+   "at": "G",
+   "status": "op",
+   "wp": "WP14",
+   "wf": [
+    "release-day-email.yml"
+   ],
+   "group": "Email and notifications",
+   "kind": "var",
+   "default": "unset",
+   "where": [
+    "scripts/send-release-day.ts"
+   ],
+   "note": "cap on recipients for one blast"
   }
  }
 }

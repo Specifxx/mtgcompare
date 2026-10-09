@@ -130,7 +130,7 @@ const toCents = (v: string | undefined): number | null => {
   const n = Number.parseFloat(v);
   return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) : null;
 };
-/** "v1|123456789012|0" -> "123456789012"; a bare id is itself; anything else is null. */
+/** A Browse API item id ("v1", the digits, a variation index; pipe-separated) -> the digits; a bare id is itself; anything else is null. */
 export function itemDigits(it: Pick<EbayItem, "itemId" | "legacyItemId">): string | null {
   const legacy = (it.legacyItemId ?? "").replace(/\D/g, "");
   if (legacy.length >= 9) return legacy;

@@ -130,14 +130,14 @@ export function buildCardFaqs(c: FaqContext): { q: string; a: string }[] {
       q: `How much does ${c.displayName} cost?`,
       a:
         c.lowest != null && c.stores > 0
-          ? `The cheapest live price for ${c.name}${num} is currently ${money(c.lowest, c.country)} across ${c.stores} ${c.stores === 1 ? "store" : "stores"} in ${co.place}${c.marketUsd != null ? `, and TCGplayer's market price is ${usd(c.marketUsd)}` : ""}; every other market we cover is compared on this page too. Prices are read twice a day.`
+          ? `The cheapest live price for ${c.name}${num} is currently ${money(c.lowest, c.country)} across ${c.stores} ${c.stores === 1 ? "store" : "stores"} in ${co.place}${c.marketUsd != null ? `, and TCGplayer's market price is ${usd(c.marketUsd)}` : ""}; every other market we cover is compared on this page too. Prices are read once a day.`
           : c.lowest != null
             ? `The cheapest listing for ${c.name}${num} in ${co.place} is ${money(c.lowest, c.country)}, from a marketplace rather than one of the stores we track.${c.marketUsd != null ? ` TCGplayer's market price is ${usd(c.marketUsd)}.` : ""}`
             : c.marketUsd != null
               ? `No store we track in ${co.place} has ${c.name}${num} in stock right now. TCGplayer's market price, built from recent US sales, is ${usd(c.marketUsd)}.`
               : c.preRelease
                 ? `${c.setName} has not been released yet, so ${c.name}${num} has no market price. Pre-order and pre-release listings appear on this page as soon as a store we track lists one.`
-                : `We do not have a live price for ${c.name}${num} right now. Prices refresh twice a day across US, UK, EU, AU, CA and SG stores, so check back for the cheapest place to buy it.`,
+                : `We do not have a live price for ${c.name}${num} right now. Prices refresh once a day across US, UK, EU, AU, CA and SG stores, so check back for the cheapest place to buy it.`,
     },
     { q: `How much is ${c.name} in other currencies?`, a: c.currencyAnswer ? `${c.currencyAnswer}. Each is a real listing in the currency its seller bills in.` : "" },
     {

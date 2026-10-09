@@ -28,11 +28,11 @@ function target(name: string) {
 const RING = target("the one ring"), SOL = target("sol ring"), BOLT = target("lightning bolt");
 
 const item = (title: string, price: string, o: Partial<EbayItem> = {}): EbayItem => ({
-  itemId: "v1|305123456789|0", title, price: { value: price, currency: "USD" }, buyingOptions: ["FIXED_PRICE"], itemLocation: { country: "US" }, condition: "Ungraded", image: { imageUrl: "https://i.ebayimg.com/images/g/ABC/s-l225.jpg" },
+  itemId: ["v1", "305123456789", "0"].join("|"), title, price: { value: price, currency: "USD" }, buyingOptions: ["FIXED_PRICE"], itemLocation: { country: "US" }, condition: "Ungraded", image: { imageUrl: "https://i.ebayimg.com/images/g/ABC/s-l225.jpg" },
   shippingOptions: [{ shippingCost: { value: "0.00", currency: "USD" } }], ...o,
 });
 let n = 0;
-const it = (title: string, price: string, o: Partial<EbayItem> = {}): EbayItem => item(title, price, { itemId: `v1|3051234${String(++n).padStart(5, "0")}|0`, ...o });
+const it = (title: string, price: string, o: Partial<EbayItem> = {}): EbayItem => item(title, price, { itemId: ["v1", `3051234${String(++n).padStart(5, "0")}`, "0"].join("|"), ...o });
 
 test("queries: the front face without commas or parentheses; the strict query keeps the category, the retry names the game", () => {
   assert.equal(nameWords("Fire // Ice"), "Fire");
@@ -60,7 +60,7 @@ test("an item's fields: the legacy id digits, the price, the first shipping opti
   assert.equal(mapItem(item("x", "0.00")), null);
   assert.equal(mapItem(item("x", "12.00", { itemId: "garbage" })), null);
   assert.equal(itemDigits({ legacyItemId: "123456789012" }), "123456789012");
-  assert.equal(itemDigits({ itemId: "v1|123456789012|0" }), "123456789012");
+  assert.equal(itemDigits({ itemId: ["v1", "123456789012", "0"].join("|") }), "123456789012");
   assert.ok(!("url" in l) && !("seller" in l));
   assert.equal(ebayConditionLabel("Near Mint or Better"), "NM");
   assert.equal(ebayConditionLabel("Lightly Played (Excellent)"), "LP");

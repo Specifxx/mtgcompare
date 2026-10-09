@@ -37,7 +37,7 @@ jobs:
       NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL || 'https://mtgcompare.app' }}
       # The published data is read over HTTP at the pointed commit (no checkout): the confirmations and the digest price from it.
       PLANE_REPO: ${{ vars.PLANE_REPO }}
-      PLANE_TOKEN: ${{ secrets.PLANE_TOKEN || secrets.DATA_REPO_TOKEN }}
+      PLANE_TOKEN: ${{ secrets.PLANE_TOKEN }}
     steps:
       - name: Skip unless email and the database are configured
         id: gate

@@ -2,15 +2,11 @@ import { getUpcomingSets } from "@/lib/data";
 import { RELEASE_SET_KINDS } from "@/lib/constants";
 import { embedPage, esc } from "@/lib/embed-html";
 import { SITE_URL } from "@/lib/site";
+import { daysUntil } from "@/lib/release-countdown";
 
 // Days until the next Magic release (set kinds of RELEASE_SET_KINDS). Counted
 // on the server per request, so the widget needs no script.
 export const dynamic = "force-dynamic";
-
-export function daysUntil(date: string, now: Date = new Date()): number {
-  const t = Date.parse(`${date}T00:00:00Z`), n = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-  return Math.max(0, Math.round((t - n) / 86400000));
-}
 
 export async function GET() {
   try {

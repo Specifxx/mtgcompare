@@ -171,7 +171,7 @@ test("wiring: every card surface this track owns links through CardQuickLink", (
     "src/components/MoverList.tsx",
     "src/app/price-guide/page.tsx",
     "src/app/sets/[slug]/page.tsx",
-    "src/app/cards/all/page.tsx",
+    // /cards/all lists card NAMES (oracle pages, /cards/name/[slug]), not printings: there is no /card/ link to open in a QuickView.
     "src/app/colors/[color]/page.tsx",
     // /commanders rows open each commander's own page; its card links are CardQuickLinks.
     "src/app/commanders/[slug]/page.tsx",
@@ -180,7 +180,7 @@ test("wiring: every card surface this track owns links through CardQuickLink", (
     "src/components/blog/BlogBits.tsx",
   ]) {
     const src = read(f);
-    assert.match(src, /<CardQuickLink/, f);
+    assert.match(src, /<CardQuickLink|<CardLinkGrid/, f);   // CardLinkGrid renders every tile as a CardQuickLink
     assert.doesNotMatch(src, /href=\{`\/card\/\$\{/, `${f} still has a plain /card/ link`);
   }
 });

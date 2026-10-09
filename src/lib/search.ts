@@ -117,7 +117,7 @@ export function nicknameTargets(text: string): string[] {
 const dropThe = (s: string): string => (s.startsWith("the ") ? s.slice(4) : s);
 /**
  * How well a folded name matches a folded query: 0 exact, 1 the name starts with it, 2 every query word starts a name word in order, 3 every query word starts a name word, 4 a squashed match inside the name (for queries of four letters or more:
- * "monkeydluffy" finds "Monkey D Luffy"; a short query never matches the middle of a word). null = no match. A leading "the" is optional on both sides.
+ * "jacebeleren" finds "Jace Beleren"; a short query never matches the middle of a word). null = no match. A leading "the" is optional on both sides.
  */
 export function nameTier(nameKey: string, queryKey: string): number | null {
   const n = dropThe(nameKey), q = dropThe(queryKey);

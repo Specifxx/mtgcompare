@@ -231,7 +231,7 @@ export default async function BestBasketPage({ searchParams }: { searchParams: P
         <div className="card-surface p-6 text-center">
           <h2 className="text-lg font-extrabold text-white">Sign in to use Best Basket</h2>
           <p className="mx-auto mt-1 max-w-md text-sm text-slate-400">
-            Best Basket is part of MTG Compare Premium: the cheapest delivered order for your whole list, store by store, postage included.
+            Best Basket is part of MTG Compare Premium: the cheapest order for your whole list, store by store, with postage counted where a store&apos;s rate is known.
           </p>
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
             <Link href={`/login?next=${encodeURIComponent(selfHref(searchParams))}&src=tool_gate`} rel="nofollow" className="btn-primary text-sm">

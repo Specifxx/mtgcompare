@@ -121,7 +121,7 @@ export function TodaysTopDeals({ deals }: { deals: TopDeals }) {
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-2xl text-white">Today&apos;s Top Deals</h2>
-          <p className="mt-1 text-[15px] text-slate-400">The best live opportunities in {info.place} right now — refreshed twice a day.</p>
+          <p className="mt-1 text-[15px] text-slate-400">The best live opportunities in {info.place} right now — refreshed once a day.</p>
         </div>
         <Link href="/tools/deal-finder" className="btn-ghost">
           Browse all deals →

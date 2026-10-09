@@ -31,7 +31,7 @@ jobs:
       EMAIL_REPLY_TO: ${{ vars.EMAIL_REPLY_TO }}
       NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL || 'https://mtgcompare.app' }}
       PLANE_REPO: ${{ vars.PLANE_REPO }}
-      PLANE_TOKEN: ${{ secrets.PLANE_TOKEN || secrets.DATA_REPO_TOKEN }}
+      PLANE_TOKEN: ${{ secrets.PLANE_TOKEN }}
     steps:
       - name: Skip unless email and the database are configured
         id: gate

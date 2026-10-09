@@ -5,6 +5,9 @@ import { getSiteStats } from "@/lib/data";
 import { CONTACT_EMAIL, DATA_ATTRIBUTION, FAN_CONTENT_DISCLAIMER, FAN_CONTENT_POLICY_URL, SCRYFALL_URL, SISTER_SITES, SITE_NAME, UNOFFICIAL_FAN_SITE_NOTICE } from "@/lib/site";
 import { pageOg } from "@/lib/og/meta";
 
+// Reads the eBay-live flag from the published data: rendered per request, never at build (CLAUDE.md, contract C26).
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: `About ${SITE_NAME}`,
   description: `Who runs ${SITE_NAME}, what it does, where its data comes from and how it is paid for.`,

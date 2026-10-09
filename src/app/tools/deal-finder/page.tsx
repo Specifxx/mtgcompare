@@ -90,7 +90,7 @@ const DEAL_FAQS = [
   },
   {
     q: "How often do the numbers update?",
-    a: "Store prices are read twice a day, at 07:00 and 19:00 UTC, and every figure here comes from the same prices the rest of the site runs on; the line above each list says when they were last read. When we collect eBay listings, cards worth US$100 or more are looked up every day and cards from US$20 (US$50 in the EU) every other day, so an eBay row can be up to two days old.",
+    a: "Store prices are read once a day, after the 21:25 UTC import, and every figure here comes from the same prices the rest of the site runs on; the line above each list says when they were last read. When we collect eBay listings, cards worth US$100 or more are looked up every day and cards from US$20 (US$50 in the EU) every other day, so an eBay row can be up to two days old.",
   },
   {
     q: "Does the price include postage?",

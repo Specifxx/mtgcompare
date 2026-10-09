@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { CopyPostButton } from "@/components/CopyPostButton";
 import { storeBadgeSnippet } from "@/lib/store-badge";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { pageOg } from "@/lib/og/meta";
 
 export const metadata: Metadata = {
   title: "Embeds",
   description: `Free price badges, a market index widget and a release countdown you can put on your own site, from ${SITE_NAME}.`,
   alternates: { canonical: "/embed" },
+  openGraph: pageOg("/embed"),
 };
 
 const frame = (path: string, h: number) => `<iframe src="${SITE_URL}${path}" width="260" height="${h}" style="border:0" loading="lazy" title="${SITE_NAME}"></iframe>`;

@@ -141,7 +141,7 @@ test("tier-limits.ts is the one home of the wave-2 tier constants", () => {
   assert.equal(tiers.DECK_WATCH_LIMIT, 10);
   assert.equal(tiers.SEALED_WATCH_LIMIT_PLUS, 10);
   assert.equal(tiers.SEALED_WATCH_HARD_CAP, 200);
-  assert.equal(tiers.SEALED_CHECK_CADENCE, "twice a day");
+  assert.equal(tiers.SEALED_CHECK_CADENCE, "once a day");
   assert.deepEqual([...tiers.SEALED_RRP_MARKETS], [], "no at-RRP alerts until an MSRP table exists");
   assert.equal(tiers.targetAlertLimit("premium"), Infinity);
   assert.equal(tiers.targetAlertLimit("plus"), 25);
