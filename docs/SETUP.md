@@ -128,7 +128,7 @@ Generated from `tests/fixtures/env-names.json`. **Kind:** secret (never committe
 | Name | Kind | Default / when unset | What |
 |---|---|---|---|
 | `NEXT_PUBLIC_SITE_URL` | public | https://mtgcompare.app (placeholder, flagged) | the domain (10.3); read in ONE file |
-| `NEXT_PUBLIC_CONTACT_EMAIL` | public | contact@mtgcompare.invalid (placeholder, flagged) | ONE contact address (requirements 1.4). The default ends in .invalid on purpose: a placeholder on a real domain would deliver every mailto to whoever owns it (WP16-site-identity-and-legal-strings) |
+| `NEXT_PUBLIC_CONTACT_EMAIL` | public | riftcompare@gmail.com | ONE contact address (requirements 1.4). The default ends in .invalid on purpose: a placeholder on a real domain would deliver every mailto to whoever owns it (WP16-site-identity-and-legal-strings) |
 | `NEXT_PUBLIC_DISCORD_URL` | public | unset |  |
 | `NEXT_PUBLIC_ANON_ALERTS` | public | unset |  |
 | `NEXT_PUBLIC_USD_TO_AUD` | public | built-in rate | static fallback exchange rate |

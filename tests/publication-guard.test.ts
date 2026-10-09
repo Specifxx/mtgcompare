@@ -22,7 +22,7 @@ const EMAIL = /[A-Za-z0-9][A-Za-z0-9._%+-]*@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[
 /** Addresses that are not a person: reserved example domains (RFC 2606), the .invalid TLD that can never deliver, one-letter domains used as placeholders in tests, GitHub's own, and this site's placeholder domain. */
 const PLACEHOLDER_DOMAIN = /^(?:(?:[\w-]+\.)*example\.(?:com|org|net)|example\.co\.uk|[\w.-]+\.invalid|[a-z]\.(?:com|co|net)|(?:users\.noreply\.)?github\.com|mtgcompare\.app|localhost)$/i;
 /** The owner's admin default, and the made-up gmail aliases that the plus/dot normalisation code and its tests use as examples. */
-const ALLOWED_PERSONAL = /^(?:mastermisclick@gmail\.com|(?:a\.l\.ice|alice|b\.o\.b|bob)(?:\+[\w-]+)?@(?:gmail|googlemail)\.com)$/i;
+const ALLOWED_PERSONAL = /^(?:mastermisclick@gmail\.com|riftcompare@gmail\.com|(?:a\.l\.ice|alice|b\.o\.b|bob)(?:\+[\w-]+)?@(?:gmail|googlemail)\.com)$/i;
 /** A file extension where an @-name looks like an address (`logo@2x.png`, a package `@scope/name@1.0.0`). */
 const NOT_AN_ADDRESS = /\.(?:png|jpe?g|webp|avif|gif|svg|ico|css|js|json|ts|tsx|woff2?|ttf|map)$/i;
 export function strayAddresses(text: string): string[] {

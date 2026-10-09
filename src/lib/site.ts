@@ -18,7 +18,7 @@ export const SITE_DESCRIPTION =
 // The public contact address. PLACEHOLDER: the .invalid TLD can never deliver,
 // so nothing is ever sent to a stranger's inbox. Set NEXT_PUBLIC_CONTACT_EMAIL
 // (Vercel and GitHub Actions) to the owner's real MTG Compare address.
-export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "contact@mtgcompare.invalid";
+export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "riftcompare@gmail.com";
 // The owner's sister sites, linked from About and the footer. The one place the other two brands are named.
 export const SISTER_SITES = [
   { name: "RiftCompare", url: "https://riftcompare.com", game: "Riftbound" },

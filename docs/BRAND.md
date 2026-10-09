@@ -142,7 +142,7 @@ The owner chose "MTG Compare", and it is used everywhere. Risks, none of which t
 
 | Item | Value | Status |
 |---|---|---|
-| Contact e-mail default | `contact@mtgcompare.invalid` | PLACEHOLDER; `.invalid` can never deliver, so nothing reaches a stranger. Real value: `NEXT_PUBLIC_CONTACT_EMAIL` |
+| Contact e-mail default | `riftcompare@gmail.com` | Owner choice 2026-10-09 (the public contact address; shared with Rift Compare). Override with `NEXT_PUBLIC_CONTACT_EMAIL` |
 | Discord | `NEXT_PUBLIC_DISCORD_URL` (unset: icon, footer link and nav entry render nothing) | unchanged mechanism |
 | X / Twitter | `@mtgcompare` | PLACEHOLDER, unregistered; leave `twitter:site` out until the account exists (the layout sets only `card: summary_large_image`) |
 | Reddit / YouTube | none | do not add `sameAs` entries before real URLs exist |
