@@ -17,7 +17,7 @@ test("the chase strip is on the homepage and never calls eBay or the database", 
   assert.match(strip, /outboundRel\(\)/);
 });
 
-test("the strip reads only the cached loader, and the homepage stays static", () => {
-  assert.match(read("src/components/EbayChase.tsx"), /getChaseStrip/);
+test("the strip reads only the published home feed, and the page stays static", () => {
+  assert.match(read("src/components/EbayChase.tsx"), /getHomeFeed/);
   assert.doesNotMatch(read("src/components/EbayChase.tsx"), /getCountry|cookies\(|headers\(/);
 });

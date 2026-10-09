@@ -238,7 +238,7 @@ test("a healthy main pass: the pool in four markets, tier A, tier B; only comple
   assert.equal(best(488276, 0)!.priceCents, 15_800);
   assert.equal(best(517451, 1)!.priceCents, 179_900);
   assert.equal(best(488276, 1), undefined, "no Extended Art foil listing was found: no row");
-  assert.equal(best(487805, 0, 4)!.priceCents, Math.round(11_950 * 1.37), "Canada is derived from the US search for a US seller", "CA derived");
+  assert.equal(best(487805, 0, 4)!.priceCents, Math.round(11_950 * 1.37), "Canada is derived from the US search for a US seller");
   // the panel of The One Ring (LTR 246): both finishes, the cheapest first, a slab in the Graded tab (PSA 10) that is not an Offer
   const panel = r.store.panels.get("487805|US")!;
   assert.deepEqual(panel.listings.map((x) => [x.finish, x.priceCents]), [[0, 11_950], [1, 14_900], [0, 12_999]]);

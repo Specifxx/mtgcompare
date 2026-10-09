@@ -26,6 +26,12 @@ import type { SetsFile, WeeklyFile } from "../src/lib/data/plane/formats";
 import { PlaneError, type PlaneSource } from "../src/lib/data/plane/source";
 import { readDataModule, realMiniTree } from "./helpers/data-source";
 
+const read = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
+const strip = (s: string) => s.replace(/\{\/\*[\s\S]*?\*\/\}/g, "").replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+const code = (p: string) => strip(read(p));
+const PAGE = "src/app/tools/rising/page.tsx";
+const ADMIN = "src/app/admin/rising/page.tsx";
+
 const DAY = 86400_000;
 const eday = (m: number, d: number) => Math.round(Date.UTC(2026, m - 1, d) / DAY);
 const NONE = { US: null, AU: null, UK: null, SG: null, CA: null, EU: null } as Record<Country, number | null>;
@@ -169,7 +175,7 @@ test("an empty universe is an empty analysis, not a failure", () => {
 
 test("hist/w: 18 weekly closes ending on a Sunday, oldest first; a week with no price is not a point", () => {
   const closes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1200, 0, 1100, 1000, 1050, 1000];
-  assert.deepEqual(weeklyPoints(closes, "2026-10-04"), [[eday(9, 6), 1200], [eday(9, 20), 1100], [eday(9, 27), 1000], [eday(10, 4) - 7, 1050], [eday(10, 4), 1000]].map(([d, c]) => [d, c]).sort((a, b) => a![0]! - b![0]!).filter((p) => p[0]! !== eday(9, 27) || p[1] === 1000));
+  assert.deepEqual(weeklyPoints(closes, "2026-10-04"), [[eday(8, 30), 1200], [eday(9, 13), 1100], [eday(9, 20), 1000], [eday(9, 27), 1050], [eday(10, 4), 1000]]);
   assert.equal(weeklyPoints(Array.from({ length: 30 }, (_, i) => 1000 + i), "2026-10-04").length, MAX_WEEKS, "at most the 18 weeks the file carries");
   assert.deepEqual(weeklyPoints([0, 0, 0], "2026-10-04"), []);
 });
