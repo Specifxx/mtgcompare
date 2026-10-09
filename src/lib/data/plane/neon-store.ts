@@ -39,6 +39,8 @@ const over = (c: RawClient, root: RootClient | null): PlaneSql => ({
 export const prismaSql = (client: RootClient, closeable = false): PlaneSql => { const s = over(client, client); return closeable ? s : { ...s, close: async () => undefined }; };
 
 /** The reader's client: the shared Prisma client of src/lib/db.ts (pooled URL), loaded on first use. */
+/** Host and database name of DATABASE_URL, never the user or password: /api/data-status shows it so the owner can check the site reads the database the import writes. */
+export function databaseWhere(): string { try { const u = new URL(process.env.DATABASE_URL ?? ""); return `${u.hostname}${u.pathname}`; } catch { return "unset"; } }
 export async function readerSql(): Promise<PlaneSql> {
   const { prisma } = (await import("../../db")) as unknown as { prisma: RootClient };
   return prismaSql(prisma);

@@ -12,7 +12,7 @@ import { COUNTRIES } from "@/lib/country";
 import { SITE_URL } from "@/lib/site";
 import { faqLd } from "@/lib/jsonld";
 import { pageOg } from "@/lib/og/meta";
-import { getCatalog, getEmailStatus } from "@/lib/data";
+import { getSets, getEmailStatus } from "@/lib/data";
 import { RARITY_KEYS } from "@/lib/constants";
 import { parseScope } from "@/lib/set-scope";
 import { decodeList, DECK_LINE_CAP } from "@/lib/deck";
@@ -111,8 +111,7 @@ export default async function BestBasketPage({ searchParams }: { searchParams: P
   // "Plan the purchase"): only a known, RELEASED set starts the source; anything
   // else is the ordinary paste tab. An unreleased set is a disabled option.
   const today = new Date().toISOString().slice(0, 10);
-  const cat = await getCatalog();
-  const setOptions: BasketSetOption[] = [...cat.sets]
+  const setOptions: BasketSetOption[] = (await getSets())
     .filter((x) => x.cardCount > 0)
     .sort((a, b) => (b.releasedOn ?? "9999").localeCompare(a.releasedOn ?? "9999"))
     .map((x) => ({ code: x.code, slug: x.slug, name: x.name, released: !!x.releasedOn && x.releasedOn <= today }));

@@ -147,7 +147,7 @@ test("the routes: session first, rate limited, same-origin mutations, a 404 DELE
   assert.match(list, /searchParams[\s\S]*"ids"\) === "1"/);
   assert.match(list, /"targets"\) === "1"/);
   assert.match(list, /rateLimit\(`alerts:watch:\$\{user\.id\}`, 60, 60_000\)/);
-  assert.match(list, /getCatalog\(\)/, "rows are priced from the cached catalogue, not a join");
+  assert.match(list, /getCardLookup\(\{ ids:/, "rows are priced from the published catalogue (getCardLookup), not a join; getCatalog() refuses in production");
   assert.match(one, /if \(removed === 0\) return NextResponse\.json\(\{ error: "Not found" \}, \{ status: 404 \}\)/);
   for (const src of [one, merge]) assert.match(src, /sameOrigin\(req\)/);
 });

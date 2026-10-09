@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { sameOrigin } from "@/lib/admin-guard";
-import { getCatalog } from "@/lib/data";
+import { getCardLookup } from "@/lib/data";
 import { isCountry } from "@/lib/country";
 import { mergeLocalWatches, resolveLocalItems, watchDb } from "@/lib/watchlist-server";
 
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 // POST { items: [{ slug, id? }], market } — the signed-out (localStorage)
 // watchlist, merged into the account on the first signed-in load
-// (lib/use-watchlist.ts). Slugs resolve through the cached catalogue; at most
+// (lib/use-watchlist.ts). Slugs resolve through getCardLookup; at most
 // 200 are imported and they are grandfathered (no free-limit check — the
 // limit applies to adds after the merge). Idempotent.
 export async function POST(req: Request) {
@@ -21,8 +21,12 @@ export async function POST(req: Request) {
   if (!rl.ok) return tooManyRequests(rl.retryAfter);
   const body = (await req.json().catch(() => null)) as { items?: unknown; market?: unknown } | null;
   const market = isCountry(body?.market) ? body.market : "US";
-  const cat = await getCatalog();
-  const ids = resolveLocalItems(body?.items, cat);
+  const raw = Array.isArray(body?.items) ? (body.items as { id?: unknown; slug?: unknown }[]).slice(0, 400) : [];
+  const cat = await getCardLookup({
+    ids: raw.map((x) => x?.id).filter((x): x is number => typeof x === "number" && Number.isSafeInteger(x)),
+    slugs: raw.map((x) => x?.slug).filter((x): x is string => typeof x === "string" && x.length <= 200),
+  });
+  const ids = resolveLocalItems(raw, cat);
   try {
     const { merged } = await mergeLocalWatches(watchDb, user, ids, market);
     return NextResponse.json({ ok: true, merged, cardIds: ids }, { headers: { "Cache-Control": "no-store" } });

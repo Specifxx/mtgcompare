@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { sameOrigin } from "@/lib/admin-guard";
-import { getCatalog } from "@/lib/data";
+import { getCardLookup } from "@/lib/data";
 import { alertsPaused, createWatch, listWatches, targetCount, watchDb, watchedCardIds } from "@/lib/watchlist-server";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -25,7 +25,7 @@ const noStore = { "Cache-Control": "no-store" };
 // ?targets=1 — how many watches carry a target price ("N of 25 used" for a
 // target field rendered away from the watchlist). One indexed count.
 //
-// The full list carries each row's card from the CACHED catalogue (no join):
+// The full list carries each row's card from the published catalogue (getCardLookup, no join):
 // the CardLite a CardTile renders, plus its set code.
 export async function GET(req: Request) {
   const user = await getCurrentUser();
@@ -39,7 +39,8 @@ export async function GET(req: Request) {
     return NextResponse.json({ used: await targetCount(user.id) }, { headers: noStore });
   }
 
-  const [rows, paused, cat] = await Promise.all([listWatches(user.id), alertsPaused(user.email), getCatalog()]);
+  const [rows, paused] = await Promise.all([listWatches(user.id), alertsPaused(user.email)]);
+  const cat = await getCardLookup({ ids: rows.slice(0, 500).map((r) => r.cardId) });
   const items = rows
     .map((r) => {
       const card = cat.byId.get(r.cardId);

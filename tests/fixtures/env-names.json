@@ -277,9 +277,10 @@
     "indexnow.yml",
     "search-console.yml",
     "stripe-setup.yml",
-    "release-day-email.yml"
+    "release-day-email.yml",
+    "seo-preview-gate.yml"
    ],
-   "note": "production origin for scripts and the importer's User-Agent",
+   "note": "production origin for scripts, the importer's User-Agent and the deployment gate on Production",
    "group": "Site identity and links"
   },
   "NEXT_PUBLIC_CONTACT_EMAIL": {
