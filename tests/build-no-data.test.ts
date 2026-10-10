@@ -56,7 +56,7 @@ test("every param-less route of the baseline that exports revalidate is a known 
 });
 
 // ── the CI build job's own gates (ci-build.yml, Annex C checks 23 and 24): the pure parts of scripts/smoke-pages.ts and scripts/check-images.ts, shown to be able to fail ──────────────────────────────────────────────
-import { FORBIDDEN_MARKERS, STATIC_CHECKS, dataRoutePatterns, judge, prerenderedDataRoutes, routePattern, writeFixtureTree, type Fetched } from "../scripts/smoke-pages";
+import { FORBIDDEN_MARKERS, STATIC_CHECKS, dataRoutePatterns, judge, prerenderedDataRoutes, readsData, routePattern, writeFixtureTree, type Fetched } from "../scripts/smoke-pages";
 import { MAX_BYTES, blankComments, markdownMissingAlt, missingAlt, run as imageGuard, scryfallInOptimiser, tagEnd } from "../scripts/check-images";
 
 const HEADERS = JSON.parse(fs.readFileSync(path.join(ROOT, "src/lib/data/plane/headers.json"), "utf8")) as { pagesPublic: string[]; pagesPrivate: string[] };
@@ -65,6 +65,9 @@ test("the build gate reads the build's own manifest: a plane-backed route in .ne
   const bad = prerenderedDataRoutes({ routes: { "/": {}, "/about": {}, "/browse": {}, "/sets/mh3": {}, "/tools/deal-finder": {}, "/privacy": {}, "/blog/x": {} }, dynamicRoutes: { "/card/[slug]": {}, "/sets/[slug]": {}, "/guides/[slug]": {}, "/stores/[slug]": {} } }, pats);
   assert.deepEqual(bad, ["/", "/browse", "/card/x", "/sets/mh3", "/sets/x", "/stores/x", "/tools/deal-finder"].sort(), "home, lists, card, set, store and the Deal Finder are data routes; about, privacy, blog and guides read nothing");
   assert.deepEqual(prerenderedDataRoutes({ routes: { "/about": {}, "/terms": {} }, dynamicRoutes: {} }, pats), [], "a build that prerendered only static pages passes");
+  // --check-build keeps only the prerendered routes whose page reads data: an ISR page under a data pattern that reads nothing (/tools, /tools/selling-fees, /stores/suggest) is fine, a page that reads data or a route with no page found is not
+  for (const r of ["/tools", "/tools/selling-fees", "/stores/suggest"]) assert.equal(readsData(ROOT, r), false, r);
+  for (const r of ["/browse", "/", "/stores/x", "/nope"]) assert.equal(readsData(ROOT, r), true, r);
   assert.ok(routePattern("/sets/:path*").test("/sets") && routePattern("/sets/:path*").test("/sets/a/b") && !routePattern("/sets/:path*").test("/setsx"));
   assert.ok(routePattern("/").test("/") && !routePattern("/").test("/about"));
   assert.ok(HEADERS.pagesPublic.includes("/card/:path*") && HEADERS.pagesPrivate.includes("/tools/deal-finder"), "the lists the gate reads are the ones headers.json carries");

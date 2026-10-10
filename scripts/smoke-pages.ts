@@ -18,6 +18,7 @@ import path from "node:path";
 import { PLANE_FORMAT, type PointerFile } from "../src/lib/data/plane/formats";
 import { fsTree } from "../src/lib/data/plane/tree";
 import { MINI_CUT, dayOf, isoOf, miniFull } from "../tests/helpers/plane-tree";
+import { appRoutes, closure, routeOf } from "../tests/helpers/import-graph";
 
 export const USER_AGENT = "MTGCompare-smoke/1.0 (+https://github.com/Specifxx/mtgcompare)";
 // ── page parsing, shared with status-check, crawl-check and seo-gate ─────────────────────────────────────────────────────────
@@ -135,10 +136,17 @@ export function prerenderedDataRoutes(manifest: { routes?: Record<string, unknow
   const concrete = Object.keys(manifest.routes ?? {}), templates = Object.keys(manifest.dynamicRoutes ?? {}).map((t) => t.replace(/\[\.\.\.[^\]]+\]/g, "x/y").replace(/\[[^\]]+\]/g, "x"));
   return [...concrete, ...templates].filter((r) => patterns.some((re) => re.test(r))).sort();
 }
+/** Whether the page behind a concrete route reaches the data barrel or the database (the import closure tests/build-no-data.test.ts uses). A prerendered route whose page reads neither is an
+ *  ISR page that reads nothing (rule A of that test pins it), such as /tools or /stores/suggest under the /tools and /stores/:path* patterns: not a finding. No page file found: it stays one. */
+export function readsData(src: string, route: string): boolean {
+  const pages = appRoutes(src).filter((f) => /\/page\.tsx?$/.test(f.split(path.sep).join("/")) && routeOf(src, f) === route);
+  if (!pages.length) return true;
+  return pages.some((f) => { const c = closure(f, src); return c.dataLeaf || c.dbLeaf; });
+}
 function checkBuild(root: string): number {
   const mf = path.join(root, ".next", "prerender-manifest.json"), hf = path.join(__dirname, "..", "src", "lib", "data", "plane", "headers.json");
   if (!fs.existsSync(mf)) { console.error(`${mf} does not exist: run npm run build first`); return 2; }
-  const bad = prerenderedDataRoutes(JSON.parse(fs.readFileSync(mf, "utf8")), dataRoutePatterns(JSON.parse(fs.readFileSync(hf, "utf8"))));
+  const bad = prerenderedDataRoutes(JSON.parse(fs.readFileSync(mf, "utf8")), dataRoutePatterns(JSON.parse(fs.readFileSync(hf, "utf8")))).filter((r) => readsData(path.join(__dirname, ".."), r));
   if (bad.length) { console.error(`::error::${bad.length} data-backed route(s) were prerendered at build time (they must be force-dynamic: tests/build-no-data.test.ts):\n  ${bad.slice(0, 20).join("\n  ")}`); return 1; }
   console.log("No plane-backed route is in the prerender manifest: the build rendered nothing that reads data.");
   return 0;
