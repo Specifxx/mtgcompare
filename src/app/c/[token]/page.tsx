@@ -33,7 +33,10 @@ export const metadata: Metadata = {
 
 export default async function SharedCollectionPage({ params }: { params: { token: string } }) {
   const country = getCountry();
-  const shared = await getSharedCollection(params.token, country);
+  // A database that cannot answer is the same 404: the token cannot be
+  // confirmed, and this page is never indexed, so a 404 costs no search entry
+  // (a 500 here failed CI's status check, which runs with the database closed).
+  const shared = await getSharedCollection(params.token, country).catch(() => null);
   // 404 for an unknown OR rotated token — never a "this link expired" page,
   // which would confirm the token had once been real.
   if (!shared) notFound();

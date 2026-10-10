@@ -38,4 +38,4 @@ export function appRoutes(root: string): string[] {
 }
 export const routeOf = (root: string, file: string): string => "/" + path.relative(path.join(root, "src/app"), path.dirname(file)).split(path.sep).filter((s) => !/^\(.*\)$/.test(s)).join("/");
 /** Loaders that read Neon. A public page must not call them from a server component. */
-export const NEON_LOADERS = ["getEbayPanel", "getEbayPicks", "getChaseStrip", "getChaseBanner", "getDecksUsingCard", "getApprovedReviews", "getLaunchPromo", "getLibraryDecks", "getPublishedDeck", "getTopDemand", "getRisingSnapshot", "getCommanderDecks", "recordCardView", "getCurrentUser"];
+export const NEON_LOADERS = ["getEbayPanel", "getEbayPicks", "getChaseStrip", "getChaseBanner", "getDecksUsingCard", "getApprovedReviews", "getLaunchPromo", "getLibraryDecks", "getPublishedDeck", "getTopDemand", "getRisingSnapshot", "getCommanderDecks", "recordCardView", "getCurrentUser", "getSharedCollection"];
