@@ -36,8 +36,18 @@ test("eBay-collection copy is gated on data, so 'off' keeps the old wording", ()
   gated("src/app/methodology/page.tsx", "ebayLive", "an eBay row shows the postage eBay states");
   gated("src/app/about/page.tsx", "ebayLive", "eBay prices are the cheapest matching Buy It Now listing");
   gated("src/app/editorial-policy/page.tsx", "ebayLive", "eBay listing prices");
-  // The flag is data: a recent successful ImportRun of kind "ebay".
+  // The flag is data: a recent successful ImportRun of kind "ebay" that completed a search (an observe-only or budget-stopped run reads the quota and searches nothing).
   const data = read("src/lib/data/site.ts");
-  assert.match(data, /return Boolean\(run\)/);
+  assert.match(data, /return runs\.some\(\(r\) => completedSearches\(r\.summary\) > 0\)/);
   assert.match(data, /kind: "ebay", ok: true, finishedAt: \{ gte:/);
+});
+
+test("a run that searched nothing never makes eBay live", async () => {
+  const { completedSearches } = await import("../src/lib/data/site");
+  assert.equal(completedSearches({ stop: "observe-only", spent: 0, completed: 0 }), 0);
+  assert.equal(completedSearches({ spent: 3, partial: true }), 0);
+  assert.equal(completedSearches(null), 0);
+  assert.equal(completedSearches({ completed: "12" }), 0);
+  assert.equal(completedSearches({ completed: Number.NaN }), 0);
+  assert.equal(completedSearches({ spent: 410, completed: 377 }), 377);
 });

@@ -10,8 +10,8 @@ name: eBay prices
 # run should avoid it too, because the quiet check waits for the quota to stop moving.
 #
 # Each run spends at most min(the day's ledger allowance, the live remaining count minus RiftCompare's reserve, the run's share, max_calls). It reads the live quota first and fails CLOSED:
-# an unreadable quota, an unreachable ledger, a 429 or a kill switch (EBAY_API_ENABLED=0) means zero Browse calls and a green run with the reason on the run page. EBAY_OBSERVE_ONLY=1 (the default
-# for the first week) reads and records the quota and makes no Browse call at all.
+# an unreadable quota, an unreachable ledger, a 429 or a kill switch (EBAY_API_ENABLED=0) means zero Browse calls and a green run with the reason on the run page. EBAY_OBSERVE_ONLY=1 (opt-in since
+# 2026-10-10; unset or 0 spends) reads and records the quota and makes no Browse call at all.
 #
 # It READS a pull of the current published tree (scripts/plane-checkout.sh, which calls scripts/plane-pull.ts) and writes NEON ONLY, in its own tables: eBay data never reaches GitHub (licence) and is never a row of the plane table. It never pushes and never writes the published data,
 # so it shares no concurrency group with the import.
@@ -87,6 +87,8 @@ jobs:
       EBAY_FORCE: ${{ inputs.force && '1' || '' }}
       EBAY_ONLY_MARKET: ${{ inputs.only_market }}
       EBAY_DISPATCH_CAP: ${{ inputs.max_calls }}
+      # The cron line of a scheduled run, empty for a dispatch (a main run): GitHub starts these crons up to seven hours late, so the clock cannot tell the 23:37 main pass from a banner run.
+      EBAY_SCHEDULE: ${{ github.event.schedule }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -115,6 +117,7 @@ jobs:
           EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
           EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
           NEXT_PUBLIC_EBAY_CAMPAIGN_ID: ${{ vars.NEXT_PUBLIC_EBAY_CAMPAIGN_ID }}
-          REVALIDATE_URL: ${{ vars.REVALIDATE_URL }}
+          # The site to purge after a run that wrote (POST /api/revalidate): REVALIDATE_URL, else the site's own address.
+          REVALIDATE_URL: ${{ vars.REVALIDATE_URL || vars.SITE_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: npx tsx scripts/ebay.ts .data

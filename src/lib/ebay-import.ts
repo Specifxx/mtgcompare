@@ -359,7 +359,7 @@ export async function runEbayPass(log: Log, deps: PassDeps, opts: { now?: Date }
   const only = parseOnlyMarket(env.EBAY_ONLY_MARKET);
   const force = env.EBAY_FORCE === "1";
   const dispatchCap = env.EBAY_DISPATCH_CAP;
-  // a dispatched run (a cap or a force) is a main run; a scheduled run is told apart by the clock: the main pass is the 23:37 cron, delayed by GitHub at worst a few hours
+  // deps.schedule (scripts/ebay.ts passes EBAY_SCHEDULE from the workflow): the cron line decides, a dispatch is a main run. Without it (a local run) the clock decides: a cap or a force is a main run, so is 22:00-02:59 UTC
   const hour = now.getUTCHours();
   const purpose: RunPurpose = deps.schedule !== undefined ? purposeOfSchedule(deps.schedule) : force || (dispatchCap != null && dispatchCap !== "") || hour >= 22 || hour < 3 ? "main" : "banner";
   const summary: EbayPassSummary = {

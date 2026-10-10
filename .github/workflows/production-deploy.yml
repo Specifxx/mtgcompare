@@ -5,10 +5,11 @@ name: Production deploy
 # deployment serves today's prices and nothing here is needed to make data appear (CLAUDE.md "Deploys are gated", contract section 13).
 #
 # vercel.json's ignoreCommand (scripts/vercel-ignore-build.sh) skips every push whose commit SUBJECT lacks [deploy]. This workflow lands one empty commit,
-# `release: weekly production deploy [deploy]`, on main every TUESDAY at 08:00 UTC, and Vercel builds that. "Run workflow" deploys now (an urgent release).
+# `release: weekly production deploy [deploy]`, on the production branch every TUESDAY at 08:00 UTC, and Vercel builds that. "Run workflow" deploys now (an urgent release).
 # On a schedule, nothing new since the last release means no commit. The cron is the constant RELEASE_CRON in src/lib/release-schedule.ts; tests/deploy-cadence.test.ts pins the two together.
 #
-# Scheduled workflows run only from the repository's DEFAULT branch, and this one checks out `main`: keep main the default branch (docs/CHROME-SETUP-PROMPT.md).
+# Scheduled workflows run only from the repository's DEFAULT branch, and the release lands on the branch the run started from (github.ref_name: the default branch on a
+# schedule), which must be Vercel's production branch. It named `main` until 2026-10-10, a branch this repository never had, so no weekly release could run.
 on:
   schedule:
     - cron: "0 8 * * 2"
@@ -33,7 +34,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.ref_name }}
           fetch-depth: 2
       - name: Decide whether anything landed since the last release
         id: check
@@ -51,6 +52,7 @@ jobs:
         if: steps.check.outputs.go == 'true'
         env:
           REASON: ${{ inputs.reason }}
+          BRANCH: ${{ github.ref_name }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -59,4 +61,4 @@ jobs:
           else
             git commit --allow-empty -m "release: weekly production deploy [deploy]"
           fi
-          git push origin HEAD:main
+          git push origin "HEAD:$BRANCH"

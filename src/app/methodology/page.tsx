@@ -43,11 +43,12 @@ export default async function Methodology() {
         </li>
         {ebayLive ? (
           <li>
-            <strong>eBay.</strong> We search eBay four times a day (US, UK,
-            Australia and Spain for EU for singles, and Canada for sealed too)
-            for cards worth US$10 or more on TCGplayer, and for sealed products
-            worth US$60 to US$100 or more depending on the kind; cards of US$50
-            and up daily, the rest every three days. We show the
+            <strong>eBay.</strong> We search eBay four times a day. In the US we
+            follow the most valuable cards on TCGplayer: the top few hundred
+            every day and the next several hundred every three days. In the UK,
+            Australia and Spain for the EU we follow a short list of chase cards,
+            and sealed products are searched in those markets and Canada as the
+            daily budget allows. We show the
             cheapest matching Buy It Now listing as an asking price, never
             re-ranked: it sits in its own labelled block, apart from the stores.
             Canadian card rows are the US listing, shipped from the US. Every

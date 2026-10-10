@@ -17,9 +17,9 @@ import { EBAY_BANNER_TAG, TTL, getPlaneStatus } from "./core";
 import { getStoreStats } from "./stores";
 import type { CatalogStats } from "./types";
 
-export interface SiteStats { lastImportAt: string | null; storeOffers: { source: string; market: string; offers: number; inStock: number }[]; ebayLive: boolean }   // ebayLive is the one Neon bit (ImportRun kind "ebay" within 3 days); false when Neon is down
+export interface SiteStats { lastImportAt: string | null; storeOffers: { source: string; market: string; offers: number; inStock: number }[]; ebayLive: boolean }   // ebayLive is the one Neon bit (an ImportRun of kind "ebay" that completed a search within 3 days); false when Neon is down
 
-/** The eBay pass counts as live when it finished OK within this many days (copy that says "we collect eBay prices" shows only then). */
+/** The eBay pass counts as live when a run that completed at least one search finished OK within this many days (copy that says "we collect eBay prices" shows only then). */
 const EBAY_LIVE_DAYS = 3;
 
 /** The row that stands for TCGplayer in the store counts: the US price source, one "store" like OP and RiftCompare count it. Its offers are the cards that carry a TCGplayer price in the US. Pure. */
@@ -45,12 +45,19 @@ async function readPlaneSiteStats(): Promise<{ stats: Omit<SiteStats, "ebayLive"
   return { stats: siteStatsFrom(stores, cat, status?.pointer.publishedAt ?? null), cat };
 }
 
+/** The searches a finished eBay run completed (its ImportRun summary); 0 for a run that only read the quota (observe-only, a reserve, budget or quiet-check stop) or an unreadable summary. Pure. */
+export function completedSearches(summary: unknown): number {
+  const c = summary && typeof summary === "object" ? (summary as { completed?: unknown }).completed : null;
+  return typeof c === "number" && Number.isFinite(c) && c > 0 ? c : 0;
+}
+
 const loadEbayLive = unstable_cache(
   async (): Promise<boolean> => {
-    const run = await prisma.importRun.findFirst({ where: { kind: "ebay", ok: true, finishedAt: { gte: new Date(Date.now() - EBAY_LIVE_DAYS * 86_400_000) } }, select: { id: true } });
-    return Boolean(run);
+    // A run that searched nothing still finishes ok: only one that completed a search makes the copy say we collect eBay prices (four runs a day, so 3 days is about 12 rows).
+    const runs = await prisma.importRun.findMany({ where: { kind: "ebay", ok: true, finishedAt: { gte: new Date(Date.now() - EBAY_LIVE_DAYS * 86_400_000) } }, select: { summary: true }, orderBy: { finishedAt: "desc" }, take: 40 });
+    return runs.some((r) => completedSearches(r.summary) > 0);
   },
-  ["ebay-live-v1"],
+  ["ebay-live-v2"],
   { tags: [EBAY_BANNER_TAG], revalidate: TTL.hours6 },
 );
 

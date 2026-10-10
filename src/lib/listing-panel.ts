@@ -80,6 +80,21 @@ export function itemUrl(market: Country, itemId: string): string {
   return `https://${ITEM_HOST[market] ?? ITEM_HOST.US}/itm/${id.split("|")[1] || id.split("|")[0]}`;
 }
 
+// ── the two public routes (src/app/api/ebay/panel/[productId], src/app/api/ebay/chase) ─────────────────────────────────────────────
+
+/** The panel route's id: digits only, a positive integer below 2^31 (a TCGplayer product id), else null (a 404, and no read of anything). */
+export function panelProductId(raw: string): number | null {
+  if (!/^[1-9][0-9]{0,9}$/.test(raw)) return null;
+  const n = Number(raw);
+  return n <= 2_147_483_647 ? n : null;
+}
+/** What the panel island reads: the listings and slabs only (EbayBest stays server-side), the same JSON for every market so one CDN entry serves every visitor. */
+export const panelPayload = (b: EbayPanelData): EbayPanelData => ({ listings: b.listings, graded: b.graded });
+/** The chase route's wire shape (EbayChaseStrip's Wire): v1, the tiles of the one EbayBanner row, [] when there is none. */
+export const chasePayload = <T>(p: { tiles: T[] } | null): { v: 1; tiles: T[] } => ({ v: 1, tiles: p?.tiles ?? [] });
+/** Cache-Control of the two routes. The rows change at most four times a day (scripts/ebay.ts purges the tag after a run that wrote); a product the pass never searches is a long empty answer. */
+export const EBAY_ROUTE_CACHE = { rows: "public, s-maxage=600, stale-while-revalidate=3600", none: "public, s-maxage=3600, stale-while-revalidate=86400", missing: "public, s-maxage=300" } as const;
+
 /** The listing panel's rows for one market, headline pick first, at most `limit`, none older than the display cap. */
 export function panelFor(data: EbayPanelData, market: Country, now: number, limit = 8): { listings: PanelListing[]; graded: PanelGraded[] } {
   const listings = data.listings.filter((l) => l.market === market && isFresh(l.checkedAt, now, PANEL_MAX_AGE_HOURS)).sort((a, b) => a.rank - b.rank).slice(0, limit);

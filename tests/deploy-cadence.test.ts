@@ -74,9 +74,11 @@ test("the release workflow supplies the marker the gate looks for, and says week
   assert.ok(wf.includes(RELEASE_SUBJECT), "the scheduled release commit subject is RELEASE_SUBJECT");
   assert.ok(isReleaseSubject(RELEASE_SUBJECT));
   assert.match(wf, /contents:\s*write/);
-  assert.match(wf, /git push origin HEAD:main/);
+  assert.match(wf, /git push origin "HEAD:\$BRANCH"/, "back to the branch the run started from");
+  assert.match(wf, /BRANCH: \$\{\{ github\.ref_name \}\}/);
   assert.match(wf, /workflow_dispatch/, "and manually triggerable, or an urgent fix waits up to a week");
-  assert.match(wf, /ref:\s*main/);
+  assert.match(wf, /ref:\s*\$\{\{ github\.ref_name \}\}/, "the default branch on a schedule (the production branch); never a hard-coded name the repository may not have");
+  assert.doesNotMatch(wf, /HEAD:main|ref:\s*main\b/);
 });
 test("the scheduled release's skip-check reads the SUBJECT, not the whole message", () => {
   assert.match(wf, /git log -1 --format=%s/);

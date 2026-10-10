@@ -29,7 +29,7 @@ import { MineDeals } from "./MineDeals";
 export const metadata: Metadata = {
   title: "Magic: The Gathering Deal Finder — Underpriced vs TCGplayer & eBay",
   description:
-    "Magic: The Gathering cards a store or eBay seller in your market sells for less than TCGplayer's market price, the cards whose cheapest copy is on eBay, and the cards a store sells for less than eBay. Direct links to each listing. Cheapest on eBay is free.",
+    "Magic: The Gathering cards a store in your market sells for less than TCGplayer's market price, the cards whose cheapest copy is on eBay, and the cards a store sells for less than eBay. Direct links to each listing. Cheapest on eBay is free.",
   alternates: { canonical: "/tools/deal-finder" },
   openGraph: pageOg("/tools/deal-finder"),
 };
@@ -82,7 +82,7 @@ const EBAY_SEARCHES = [
 const DEAL_FAQS = [
   {
     q: "What does Deal Finder compare?",
-    a: "Three things, one per tab. Underpriced vs TCGplayer sets the cheapest in-stock price we track for each card in your market, at a store or on eBay, against TCGplayer's US market price converted into your currency; a card is listed when it sits at least one whole unit of your currency below it, and in the United States it must also be cheaper than TCGplayer's own lowest listing. Cheapest on eBay lists the cards whose cheapest eBay listing costs less than every store we track. Underpriced vs eBay is the reverse: cards a store sells for less than the cheapest eBay listing. Each list is ranked by how far below the other price it sits.",
+    a: "Three things, one per tab. Underpriced vs TCGplayer sets the cheapest in-stock store price we track for each card in your market against TCGplayer's US market price converted into your currency; a card is listed when it sits at least one whole unit of your currency below it, and in the United States it must also be cheaper than TCGplayer's own lowest listing. Cheapest on eBay lists the cards whose cheapest eBay listing costs less than every store we track. Underpriced vs eBay is the reverse: cards a store sells for less than the cheapest eBay listing. Each list is ranked by how far below the other price it sits.",
   },
   {
     q: "Why is TCGplayer never on the buy side?",
@@ -90,7 +90,7 @@ const DEAL_FAQS = [
   },
   {
     q: "How often do the numbers update?",
-    a: "Store prices are read once a day, after the 21:25 UTC import, and every figure here comes from the same prices the rest of the site runs on; the line above each list says when they were last read. When we collect eBay listings, cards worth US$100 or more are looked up every day and cards from US$20 (US$50 in the EU) every other day, so an eBay row can be up to two days old.",
+    a: "Store prices are read once a day, after the 21:25 UTC import, and every figure here comes from the same prices the rest of the site runs on; the line above each list says when they were last read. When we collect eBay listings, the most valuable cards are looked up every day and the next tier every three days (outside the US only a short list of chase cards), so an eBay row can be up to three days old.",
   },
   {
     q: "Does the price include postage?",
@@ -146,7 +146,7 @@ export default async function DealFinderPage({ searchParams }: { searchParams: D
       {view === "tcg" && country !== "US" ? (
         <>Converted at US$1 = {money(Math.round((USD_TO[info.currency] ?? 1) * 100), country)}, an approximate reference rate. </>
       ) : null}
-      {view !== "tcg" && stats.ebayLive ? <>eBay listings: cards worth US$100+ are refreshed daily, cheaper ones every other day. </> : null}
+      {view !== "tcg" && stats.ebayLive ? <>eBay listings: the most valuable cards are refreshed daily, the next tier every three days. </> : null}
     </p>
   );
   const mineChips = member && view !== "ebay" ? <MineChips params={params} /> : null;
@@ -190,7 +190,7 @@ export default async function DealFinderPage({ searchParams }: { searchParams: D
           <section aria-labelledby="df-tcg">
             <h2 id="df-tcg" className="mb-1 text-xl text-white">Underpriced vs TCGplayer</h2>
             <p className="mb-2 max-w-3xl text-sm leading-relaxed text-slate-400">
-              Cards {withArticle(info.adjective)} store{EBAY_FEED[country] === "own" ? <> or <strong className="text-slate-200">eBay</strong> seller</> : null} is selling
+              Cards {withArticle(info.adjective)} store is selling
               for less than <strong className="text-slate-200">TCGplayer&apos;s</strong> US market price
               {country === "US" ? " — and for less than TCGplayer's own lowest listing" : ` (converted to ${info.currency})`}. Store prices are the item
               price; postage is added at checkout.

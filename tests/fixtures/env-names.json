@@ -278,7 +278,8 @@
     "search-console.yml",
     "stripe-setup.yml",
     "release-day-email.yml",
-    "seo-preview-gate.yml"
+    "seo-preview-gate.yml",
+    "ebay-prices.yml"
    ],
    "note": "production origin for scripts, the importer's User-Agent and the deployment gate on Production",
    "group": "Site identity and links"
@@ -1206,6 +1207,19 @@
    ],
    "wf": [],
    "note": "",
+   "group": "eBay (script-side only; the credentials are GitHub Actions secrets, never Vercel)"
+  },
+  "EBAY_SCHEDULE": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP05",
+   "default": "unset outside Actions (the clock decides the run's purpose); ebay-prices.yml sets it to github.event.schedule, empty for a dispatch (a main run)",
+   "where": [
+    "scripts/ebay.ts"
+   ],
+   "wf": [],
+   "note": "the cron line that started the run: GitHub starts the crons hours late, so the schedule, not the hour, tells the 23:37 main pass from a banner run (2026-10-10)",
    "group": "eBay (script-side only; the credentials are GitHub Actions secrets, never Vercel)"
   },
   "EBAY_FORCE": {

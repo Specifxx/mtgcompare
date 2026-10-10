@@ -50,6 +50,9 @@ async function main(): Promise<number> {
   try {
     const summary = await runEbayPass(log, {
       tree,
+      // The cron line that started the run (ebay-prices.yml sets EBAY_SCHEDULE: empty for a dispatch, which is a main run); unset outside Actions, where the clock decides.
+      // GitHub starts these crons hours late, so the schedule, not the hour, says which run is the 23:37 main pass.
+      schedule: process.env.EBAY_SCHEDULE,
       store: prismaEbayStore(prisma),
       ledger: prismaLedger(prisma),
       revalidate: purge,
