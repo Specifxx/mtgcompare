@@ -94,7 +94,11 @@ test("DP-11 end to end with real git: a kept tag keeps its WHOLE ancestry, so hi
     const s2 = squash({ remote: m.remote, workdir: path.join(m.root, "sq2"), now: () => new Date(Date.parse(ptr.publishedAt) + 3_600_000) }); assert.equal(s2.skipped, null);
     sh(m.root, "--git-dir", m.remote, "reflog", "expire", "--expire=now", "--all"); sh(m.root, "--git-dir", m.remote, "gc", "--prune=now", "-q");
     assert.equal(sh(m.root, "--git-dir", m.remote, "cat-file", "-t", ptr.ref), "commit", "pointer.ref survives the prune: its tag was kept"); assert.equal(sh(m.root, "--git-dir", m.remote, "cat-file", "-t", ptr.prev!), "commit", "so does pointer.prev (the rollback target)");
-    assert.notEqual(spawnSync("git", ["--git-dir", m.remote, "cat-file", "-e", first]).status, 0, "second generation: the first publish is finally unreachable and pruned");
+    // What the squash owes is that NO ref reaches the first publish any more (so the host's gc can drop it). Whether `gc --prune=now` deletes the object at once is the git version's
+    // choice: 2.43 deletes it, the Actions runner's 2.55 kept it (2026-10-10), so the object test runs only where it is deleted and the reachability test runs everywhere.
+    const reachable = sh(m.root, "--git-dir", m.remote, "rev-list", "--all").split("\n");
+    assert.ok(!reachable.includes(first), "second generation: the first publish is unreachable from every branch and tag");
+    if (spawnSync("git", ["--git-dir", m.remote, "cat-file", "-e", first]).status === 0) assert.equal(sh(m.root, "--git-dir", m.remote, "for-each-ref", "--contains", first), "", "an object git kept is still reached by no ref");
     assert.match(showAt(m, ptr.ref, "v1/manifest.json"), /"files"/, "a pinned URL for the served ref still resolves"); assert.equal(head(m).ref, ptr.ref);
   } finally { m.done(); }
 });

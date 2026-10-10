@@ -20,7 +20,8 @@ const REGISTRY: StoreRegistry = { sourceOfStoreId, offerUrl };                  
 export function liveOffersFrom(units: readonly UnitRef[], of: readonly OfferTuple[], px: ReadonlyMap<number, PxRow>, runs: StoreRunsFile | null, o: { market?: Country; includeTcgplayer?: boolean; now?: number; registry?: StoreRegistry } = {}): LiveOffer[] {
   const reg = o.registry ?? REGISTRY;
   const now = o.now ?? Date.now(), want = new Map(units.map((u) => [u.id * 2 + (u.finish === "F" ? 1 : 0), u] as const));
-  const run = new Map<number, { at: Date; ok: boolean }>(); for (const r of runs?.r ?? []) run.set(r[0] * 8 + r[1], { at: new Date(r[2]), ok: r[3] === 1 });
+  // An unparseable run time is stale (the rule of offerLive, core.ts) and dates the row at the epoch: an Invalid Date here would throw in every toISOString() downstream and 500 the page.
+  const run = new Map<number, { at: Date; ok: boolean }>(); for (const r of runs?.r ?? []) { const at = new Date(r[2]); run.set(r[0] * 8 + r[1], Number.isFinite(at.getTime()) ? { at, ok: r[3] === 1 } : { at: new Date(0), ok: false }); }
   const out: LiveOffer[] = [];
   for (const t of of) {
     const u = want.get(t[0]); if (!u) continue;

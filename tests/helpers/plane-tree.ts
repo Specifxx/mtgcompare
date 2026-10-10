@@ -2,7 +2,7 @@
 // It is the fixture generator, not a model of the real catalogue: 700 cards in 3 sets, about a third tracked, prices that drift each day so the tracked set MOVES (units cross the $5 line), a few low-only rows, foil-only rows and THIN rows.
 import { PRICE_MASK } from "../../src/lib/constants";
 import type { CatRow, PxRow, UnRow } from "../../src/lib/data/plane/formats";
-import { bucketPath, cardBucket, fnv1a32, hex2, hex3, histBucket, ixPath, oracleShard, scShard, slugShard, tailBucket } from "../../src/lib/data/plane/shards";
+import { bucketPath, cardBucket, fnv1a32, hex2, hex3, histBucket, ixPath, oracleShard, scShard, sealedDetailPath, slugShard, tailBucket } from "../../src/lib/data/plane/shards";
 import { encodeRuns, appendDay } from "../../src/lib/data/plane/history-codec";
 import { memTree, type MutableTree } from "../../src/lib/data/plane/tree";
 import { addDays } from "../../src/lib/history";
@@ -46,7 +46,10 @@ export function miniCatalog(o: MiniOpts): MutableTree {
     t.write(bucketPath("px", b), j({ v: 1, b, p: list.map((c): PxRow => { const r: PxRow = [c.id, c.mN, c.mF, c.lN, c.lF, c.mask]; if (c.mask & PRICE_MASK.TRACKN) r.push(1.5, -2.5, 900); return r; }) }));
   }
   const slugs = new Map<string, MiniCard[]>(); for (const c of cs) (slugs.get(slugShard(c.slug)) ?? slugs.set(slugShard(c.slug), []).get(slugShard(c.slug))!).push(c);
-  for (let h = 0; h < 256; h++) { const list = slugs.get(hex2(h)); if (list) t.write(`slug/${hex2(h)}.json`, j({ v: 1, h, s: list.map((c) => [c.slug, c.id]).sort((a, b) => ((a[0] as string) < (b[0] as string) ? -1 : 1)), o: [], z: [] })); }
+  // the sealed products' slugs go in `z` of the same shards (getSealedDetail resolves a sealed slug there; with z empty every sealed page of the fixture was a 404)
+  const sealedSlugs = new Map<string, [string, number][]>(); for (const r of miniSealed(o, false)) { const slug = r[1] as string; (sealedSlugs.get(slugShard(slug)) ?? sealedSlugs.set(slugShard(slug), []).get(slugShard(slug))!).push([slug, r[0] as number]); }
+  const bySlug = (a: [string, number], b: [string, number]): number => (a[0] < b[0] ? -1 : 1);
+  for (let h = 0; h < 256; h++) { const list = slugs.get(hex2(h)), z = sealedSlugs.get(hex2(h)); if (list || z) t.write(`slug/${hex2(h)}.json`, j({ v: 1, h, s: (list ?? []).map((c): [string, number] => [c.slug, c.id]).sort(bySlug), o: [], z: (z ?? []).sort(bySlug) })); }
   const scMap: Record<string, Record<string, number[]>> = { tst: {} }; for (const c of cs) (scMap.tst![String(c.id % 400)] ??= []).push(c.id);
   t.write(`sc/${scShard("tst")}.json`, j({ v: 1, h: Number.parseInt(scShard("tst"), 16), s: scMap }));
   const orcl = new Map<number, unknown[][]>(); const maxO = Math.max(...cs.map((c) => c.oracleNo));
@@ -102,7 +105,9 @@ export function addStores(t: MutableTree, o: MiniOpts): MutableTree {
   t.write(ixPath("s", 0), JSON.stringify({ v: 1, at: "x", u: sRows })); t.write(ixPath("f", 0), JSON.stringify({ v: 1, n: flat.uid.length, ...flat }));
   t.write("ss/runs.json", JSON.stringify({ v: 1, at: "x", r: [[10, 0, "x", 1, 100, 90, 80, 10, 5], [11, 0, "x", 1, 100, 90, 80, 10, 5]] }));
   t.write("sl/list-0.json", JSON.stringify({ v: 1, at: "x", chunk: 0, chunks: 1, s: miniSealed(o, true) }));
-  t.write("sl/d/00.json", JSON.stringify({ v: 1, h: 0, p: [[900001, "sealed-900001", [[0, 10, 3500, null, 1, "/s/900001"], [0, 11, 3600, null, 1, "/t/900001"]], "36 packs; includes a promo"], [900002, "sealed-900002", [], 0]] }));
+  // each product's detail row in ITS shard (sealedDetailPath): getSealedDetail reads exactly that file
+  const det = new Map<string, unknown[][]>(); for (const p of [[900001, "sealed-900001", [[0, 10, 3500, null, 1, "/s/900001"], [0, 11, 3600, null, 1, "/t/900001"]], "36 packs; includes a promo"], [900002, "sealed-900002", [], 0]] as unknown[][]) (det.get(sealedDetailPath(p[1] as string)) ?? det.set(sealedDetailPath(p[1] as string), []).get(sealedDetailPath(p[1] as string))!).push(p);
+  for (const [f, p] of det) t.write(f, JSON.stringify({ v: 1, h: Number.parseInt(f.replace(/^sl\/d\/|\.json$/g, ""), 16), p }));
   const b = JSON.parse(t.read("meta/buckets.json")); b.tracked = [...unB.keys()].sort((x, y) => x - y); t.write("meta/buckets.json", JSON.stringify(b));
   return t;
 }

@@ -26,7 +26,7 @@ const jsonResponse = (body: unknown, status = 200): Response => new Response(JSO
 
 test("headers: the build string in CI, the production string with the site address of site.ts elsewhere, never an e-mail address", () => {
   const ci = scryfallHeaders({ GITHUB_ACTIONS: "true" }), ci2 = scryfallHeaders({ CI: "1" }), prod = scryfallHeaders({}), dflt = scryfallHeaders();
-  assert.match(ci["User-Agent"]!, /^MTGCompare-build\/\d/); assert.equal(ci2["User-Agent"], ci["User-Agent"]); assert.equal(prod["User-Agent"], `MTGCompare/1.0 (+${SITE_URL})`, "the one site constant, not a second reading of the environment"); assert.match(dflt["User-Agent"]!, /^MTGCompare\/1\.0 \(\+https:\/\//);
+  assert.match(ci["User-Agent"]!, /^MTGCompare-build\/\d/); assert.equal(ci2["User-Agent"], ci["User-Agent"]); assert.equal(prod["User-Agent"], `MTGCompare/1.0 (+${SITE_URL})`, "the one site constant, not a second reading of the environment"); assert.equal(dflt["User-Agent"], process.env.CI || process.env.GITHUB_ACTIONS ? ci["User-Agent"] : prod["User-Agent"], "no argument: process.env decides (the build string inside Actions, where this suite also runs)");
   for (const h of [ci, prod, dflt]) { assert.equal(h.Accept, "*/*"); assert.ok(!JSON.stringify(h).includes("@"), "no e-mail in a header"); assert.ok(!/opcompare|riftcompare/i.test(h["User-Agent"]!)); }
 });
 
