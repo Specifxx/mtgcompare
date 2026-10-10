@@ -16,8 +16,10 @@ const EMPTY = { listings: [], graded: [] };
 export async function GET(_req: Request, { params }: { params: { productId: string } }) {
   const id = panelProductId(params.productId);
   if (id == null) return NextResponse.json({ error: "not found" }, { status: 404, headers: { "Cache-Control": EBAY_ROUTE_CACHE.missing } });
-  const card = (await getCardsByIds([id], { stores: false }).catch(() => null))?.get(id) ?? null;
-  const searched = card ? card.cls === 0 && card.tracked !== 0 : (await sealedExists([id]).catch(() => new Set<number>())).has(id);
-  if (!searched) return NextResponse.json(EMPTY, { headers: { "Cache-Control": EBAY_ROUTE_CACHE.none } });
+  // A plane read that FAILED is not an answer: it gets the five-minute entry, never the hour that "this product is not searched" earns.
+  let failed = false;
+  const card = (await getCardsByIds([id], { stores: false }).catch(() => { failed = true; return null; }))?.get(id) ?? null;
+  const searched = card ? card.cls === 0 && card.tracked !== 0 : (await sealedExists([id]).catch(() => { failed = true; return new Set<number>(); })).has(id);
+  if (!searched) return NextResponse.json(EMPTY, { headers: { "Cache-Control": failed ? EBAY_ROUTE_CACHE.missing : EBAY_ROUTE_CACHE.none } });
   return NextResponse.json(panelPayload(await getEbayPanel(id)), { headers: { "Cache-Control": EBAY_ROUTE_CACHE.rows } });
 }

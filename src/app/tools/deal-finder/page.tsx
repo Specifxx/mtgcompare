@@ -146,7 +146,9 @@ export default async function DealFinderPage({ searchParams }: { searchParams: D
       {view === "tcg" && country !== "US" ? (
         <>Converted at US$1 = {money(Math.round((USD_TO[info.currency] ?? 1) * 100), country)}, an approximate reference rate. </>
       ) : null}
-      {view !== "tcg" && stats.ebayLive ? <>eBay listings: the most valuable cards are refreshed daily, the next tier every three days. </> : null}
+      {view !== "tcg" && stats.ebayLive && EBAY_FEED[country] === "own" ? (
+        country === "US" ? <>eBay listings: the most valuable cards are refreshed daily, the next tier every three days. </> : <>eBay listings: a short list of chase cards is refreshed daily. </>
+      ) : null}
     </p>
   );
   const mineChips = member && view !== "ebay" ? <MineChips params={params} /> : null;
@@ -237,8 +239,7 @@ export default async function DealFinderPage({ searchParams }: { searchParams: D
                   <MorePremium more={tcg.total - tcg.rows.length} />
                 )}
                 <p className="mt-3 text-[11px] leading-relaxed text-slate-500">
-                  Best price is the cheapest in-stock copy we track: a store&apos;s item price (postage extra) with the condition it lists, or an
-                  eBay listing — &ldquo;delivered&rdquo; includes the seller&apos;s stated postage, &ldquo;+ postage&rdquo; means none was stated.
+                  Best price is the cheapest in-stock copy at a store we track: its item price (postage extra) with the condition it lists.
                   TCGplayer market is a reference from recent US sales, not a price you can check out at.
                 </p>
               </>

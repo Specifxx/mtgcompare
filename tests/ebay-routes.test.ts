@@ -38,7 +38,7 @@ test("the panel route asks Neon only for a product the pass can have searched: a
   const gate = src.indexOf("card.cls === 0 && card.tracked !== 0"), sealed = src.indexOf("sealedExists([id])"), neon = src.indexOf("getEbayPanel(id)");
   assert.ok(gate > 0 && sealed > 0 && neon > 0, "the gate, the sealed check and the read are all there");
   assert.ok(neon > gate && neon > sealed, "getEbayPanel comes after the gate");
-  assert.match(src, /if \(!searched\) return NextResponse\.json\(EMPTY/);
+  assert.match(src, /if \(!searched\) return NextResponse\.json\(EMPTY, \{ headers: \{ "Cache-Control": failed \? EBAY_ROUTE_CACHE\.missing : EBAY_ROUTE_CACHE\.none \} \}\)/, "a failed plane read is a five-minute answer, a real 'not searched' an hour");
   assert.match(src, /if \(id == null\) return NextResponse\.json\(\{ error: "not found" \}, \{ status: 404/);
 });
 

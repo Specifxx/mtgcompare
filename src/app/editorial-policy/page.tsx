@@ -44,8 +44,9 @@ export default async function EditorialPolicy() {
         stores by the data. No store pays to be mentioned.
         {ebayLive ? (
           <>
-            {" "}eBay listing prices (we are an eBay Partner Network affiliate) are
-            ranked by item price like any store&apos;s.
+            {" "}eBay listing prices (we are an eBay Partner Network affiliate) sit
+            in their own labelled block, apart from the stores, and are never
+            ranked among them.
           </>
         ) : null}
       </p>

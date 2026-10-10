@@ -60,8 +60,8 @@ export default async function About() {
         {ebayLive ? (
           <>
             {" "}eBay prices are the cheapest matching Buy It Now listing we found,
-            shown as an asking price among the stores — never moved up or down
-            because they are eBay. {SITE_NAME} is an eBay Partner Network
+            shown as an asking price in its own labelled block, apart from the
+            stores, and never ranked among them. {SITE_NAME} is an eBay Partner Network
             affiliate.
           </>
         ) : null}

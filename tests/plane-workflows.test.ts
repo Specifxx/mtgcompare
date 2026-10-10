@@ -48,7 +48,8 @@ test("the crons are the constants of schedule.ts; the watchdog never runs at min
 });
 test("DP-20: the watchdog carries a keepalive job that writes the CODE repository only, after 30 days, with no [deploy] in the subject", () => {
   const t = read("data-watchdog.yml"); assert.match(t, /keepalive:/); assert.match(t, /contents:\s*write/); assert.ok(t.includes(`-ge ${KEEPALIVE_AFTER_DAYS}`)); const subject = /git commit [^\n]*-m "([^"]+)"/.exec(t)![1]!; assert.ok(!/\[deploy\]/i.test(subject), subject);
-  assert.match(t, /ref:\s*main/);
+  assert.match(t, /ref: "\$\{\{ github\.ref_name \}\}"/, "the code repository's default branch (a schedule runs on it), never `main`, which this repository never had");
+  assert.match(t, /git push origin "HEAD:\$BRANCH"/); assert.doesNotMatch(t, /ref:\s*main\b|HEAD:main/);
 });
 test("the pointed tree is read by `plane-checkout.sh`: the pointed commit, not the branch head, and the token never in the URL", () => {
   const sh = fs.readFileSync(path.join(ROOT, "scripts/plane-checkout.sh"), "utf8"); assert.match(sh, /latest\.json/); assert.match(sh, /extraheader/); assert.ok(!/https:\/\/[^"\s]*\$\{?DATA_REPO_TOKEN/.test(sh), "no https://TOKEN@github.com/ URL");

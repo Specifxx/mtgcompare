@@ -21,6 +21,7 @@ on:
   push:
     branches:
       - main
+      - claude/compassionate-wright-1tr8wt   # the production branch is the default branch; `main` never existed (2026-10-10)
   workflow_dispatch:
 
 concurrency:

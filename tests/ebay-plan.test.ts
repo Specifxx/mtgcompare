@@ -946,7 +946,7 @@ test("the methodology page states what the plan commits to", () => {
   assert.equal(CFG.bIntervalHours, 72);
   assert.ok(page.includes("In the UK, Australia and Spain for the EU we follow a short list of chase cards"), "UK/AU/EU singles: the chase pool only");
   assert.ok(CFG.bannerOtherNames > 0 && CFG.bannerOtherNames < 50);
-  assert.ok(page.includes("sealed products are searched in those markets and Canada"), "sealed");
+  assert.ok(page.includes("Sealed products are searched in all five markets (the US, the UK, Australia, the EU and Canada)"), "sealed");
   assert.deepEqual(SEALED_MARKETS, ["US", "UK", "AU", "EU", "CA"]);
   assert.doesNotMatch(page, /cards worth US\$\d+ or more|and up daily/, "no price floor the budget does not keep");
 });

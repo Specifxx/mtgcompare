@@ -29,7 +29,8 @@ export function foldReleases(rows: readonly { sha?: string; commit?: { message?:
 export async function readReleaseHistory(o: { env?: Record<string, string | undefined>; fetchFn?: typeof fetch; now?: Date } = {}): Promise<ReleaseHistory | null> {
   const f = o.fetchFn ?? fetch;
   try {
-    const res = await f(`https://api.github.com/repos/${repoSlug(o.env)}/commits?sha=main&per_page=100`, {
+    const ref = (o.env ?? process.env).VERCEL_GIT_COMMIT_REF;   // the production branch; without it GitHub lists the default branch (never `main`, which this repository never had)
+    const res = await f(`https://api.github.com/repos/${repoSlug(o.env)}/commits?${ref ? `sha=${encodeURIComponent(ref)}&` : ""}per_page=100`, {
       headers: { Accept: "application/vnd.github+json", "User-Agent": "MTGCompare-admin" },
       next: { revalidate: 3600 },
       signal: AbortSignal.timeout(5000),

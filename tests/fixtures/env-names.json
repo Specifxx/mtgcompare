@@ -170,6 +170,20 @@
    "note": "baked into the build for /admin/deploys (the deployment's own commit)",
    "group": "Database and platform"
   },
+  "VERCEL_GIT_COMMIT_REF": {
+   "kind": "platform",
+   "at": "V",
+   "status": "new",
+   "wp": "WP21",
+   "default": "",
+   "where": [
+    "src/lib/admin-dispatch.ts",
+    "src/lib/deploy-facts.ts"
+   ],
+   "wf": [],
+   "note": "the deployment's branch (the production branch): the admin Run buttons dispatch on it and /admin/deploys lists its commits (2026-10-10)",
+   "group": "Database and platform"
+  },
   "GITHUB_STEP_SUMMARY": {
    "kind": "platform",
    "at": "G",

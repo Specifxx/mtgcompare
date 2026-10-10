@@ -105,7 +105,10 @@ test("the eBay window is 21:05 to 23:30 UTC; the dispatch needs a token and says
   const ok = await dispatchWorkflow("deploy", { reason: "hotfix" }, { env: { GITHUB_DISPATCH_TOKEN: token }, fetchFn: async (url, init) => { seen = { url, body: init.body, auth: init.headers.Authorization! }; return { status: 204, ok: true }; } });
   assert.equal(ok.ok, true);
   assert.equal(seen!.url, "https://api.github.com/repos/Specifxx/mtgcompare/actions/workflows/production-deploy.yml/dispatches");
-  assert.deepEqual(JSON.parse(seen!.body), { ref: "main", inputs: { reason: "hotfix" } });
+  assert.deepEqual(JSON.parse(seen!.body), { ref: "main", inputs: { reason: "hotfix" } }, "no Vercel branch: main");
+  let onRef: string | null = null;
+  await dispatchWorkflow("ebay", {}, { env: { GITHUB_DISPATCH_TOKEN: token, VERCEL_GIT_COMMIT_REF: "claude/compassionate-wright-1tr8wt" }, fetchFn: async (_u, init) => { onRef = (JSON.parse(init.body) as { ref: string }).ref; return { status: 204, ok: true }; } });
+  assert.equal(onRef, "claude/compassionate-wright-1tr8wt", "on Vercel a dispatch runs on the deployment's own branch, the production branch");
   const refused = await dispatchWorkflow("deploy", {}, { env: { GITHUB_DISPATCH_TOKEN: token }, fetchFn: async () => ({ status: 403, ok: false }) });
   assert.doesNotMatch(refused.message, new RegExp(token), "the token never appears in a message");
   assert.equal(repoSlug({ NEXT_PUBLIC_GITHUB_REPO: "../evil" }), "Specifxx/mtgcompare", "a malformed repo falls back");

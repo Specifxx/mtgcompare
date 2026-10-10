@@ -97,7 +97,8 @@ test("the import and every script purge nothing: the only calls to the site are 
 });
 test("/api/revalidate purges exactly the NEON_TAGS behind the bearer secret, and never a page", () => {
   const src = code("src/app/api/revalidate/route.ts");
-  assert.match(src, /for \(const tag of NEON_TAGS\) revalidateTag\(tag\)/);
+  assert.match(src, /const tags = asked\.length \? NEON_TAGS\.filter\(\(t\) => asked\.includes\(t\)\) : \[\.\.\.NEON_TAGS\]/, "every tag, or the asked subset of NEON_TAGS");
+  assert.match(src, /for \(const tag of tags\) revalidateTag\(tag\)/);
   assert.doesNotMatch(src, /revalidatePath/, "published data is not purged by path either");
   assert.match(src, /timingSafeEqual/);
   assert.match(src, /process\.env\.CRON_SECRET/);

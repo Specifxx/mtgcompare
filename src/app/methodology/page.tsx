@@ -46,12 +46,13 @@ export default async function Methodology() {
             <strong>eBay.</strong> We search eBay four times a day. In the US we
             follow the most valuable cards on TCGplayer: the top few hundred
             every day and the next several hundred every three days. In the UK,
-            Australia and Spain for the EU we follow a short list of chase cards,
-            and sealed products are searched in those markets and Canada as the
-            daily budget allows. We show the
+            Australia and Spain for the EU we follow a short list of chase cards.
+            Sealed products are searched in all five markets (the US, the UK,
+            Australia, the EU and Canada) as the daily budget allows. We show the
             cheapest matching Buy It Now listing as an asking price, never
             re-ranked: it sits in its own labelled block, apart from the stores.
-            Canadian card rows are the US listing, shipped from the US. Every
+            Canadian card rows are listings on eBay US from sellers in the US or
+            Canada. Every
             market also gets a
             search link to its own eBay. We are an eBay Partner Network affiliate.
           </li>

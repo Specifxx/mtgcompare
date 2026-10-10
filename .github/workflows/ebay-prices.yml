@@ -117,7 +117,7 @@ jobs:
           EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
           EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
           NEXT_PUBLIC_EBAY_CAMPAIGN_ID: ${{ vars.NEXT_PUBLIC_EBAY_CAMPAIGN_ID }}
-          # The site to purge after a run that wrote (POST /api/revalidate): REVALIDATE_URL, else the site's own address.
-          REVALIDATE_URL: ${{ vars.REVALIDATE_URL || vars.SITE_URL }}
+          # The site to purge after a run that wrote (POST /api/revalidate?tag=ebay-banner): REVALIDATE_URL, else SITE_URL, else the production domain.
+          REVALIDATE_URL: ${{ vars.REVALIDATE_URL || vars.SITE_URL || 'https://mtgcompare.app' }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: npx tsx scripts/ebay.ts .data

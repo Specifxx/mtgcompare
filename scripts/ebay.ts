@@ -21,13 +21,14 @@ import { ebayRunVerdict, parseOnlyMarket } from "../src/lib/ebay-plan";
 
 const log = (...a: unknown[]) => console.log(new Date().toISOString().slice(11, 19), ...a);
 
-/** POST the Neon-backed cache tags (ebay-banner among them) so the next visit reads the fresh rows; a failure only delays the strip until its six-hour entry expires. */
+/** POST the ebay-banner tag (the panels, the chase strip and the ebayLive flag) so the next visit reads the fresh rows; a failure only delays them until their six-hour entries expire, and is a warning on the run page. */
 async function purge(): Promise<void> {
   const base = process.env.REVALIDATE_URL?.replace(/\/+$/, "");
   const secret = process.env.CRON_SECRET;
-  if (!base || !secret) { log("REVALIDATE_URL or CRON_SECRET is not set: the cached panels refresh within six hours."); return; }
-  const res = await fetch(`${base}/api/revalidate`, { method: "POST", headers: { Authorization: `Bearer ${secret}` }, signal: AbortSignal.timeout(20_000) });
+  if (!base || !secret) { log("REVALIDATE_URL or CRON_SECRET is not set: the cached panels refresh within six hours."); console.log("::warning title=eBay purge::REVALIDATE_URL or CRON_SECRET is not set: new eBay rows show within six hours"); return; }
+  const res = await fetch(`${base}/api/revalidate?tag=ebay-banner`, { method: "POST", headers: { Authorization: `Bearer ${secret}` }, signal: AbortSignal.timeout(20_000) });
   log(`revalidate: HTTP ${res.status}`);
+  if (!res.ok) console.log(`::warning title=eBay purge::POST /api/revalidate answered HTTP ${res.status} (CRON_SECRET must match Vercel's): new eBay rows show within six hours`);
 }
 
 async function main(): Promise<number> {
@@ -55,7 +56,7 @@ async function main(): Promise<number> {
       schedule: process.env.EBAY_SCHEDULE,
       store: prismaEbayStore(prisma),
       ledger: prismaLedger(prisma),
-      revalidate: purge,
+      // No `revalidate` here: the purge runs below, AFTER the ImportRun row says ok and how many searches completed, or a visit in between would cache ebayLive=false for six hours.
       // Every 100 calls: a lower bound on the spend survives a timeout kill.
       onProgress: async (spent) => {
         await prisma.importRun.update({ where: { id: run.id }, data: { summary: { spent, partial: true } } });
@@ -63,6 +64,7 @@ async function main(): Promise<number> {
     });
     const verdict = ebayRunVerdict(summary);
     await prisma.importRun.update({ where: { id: run.id }, data: { ok: verdict.ok, finishedAt: new Date(), summary: summary as unknown as object } });
+    if (summary.completed > 0) await purge().catch((e) => log(`revalidate: ${(e as Error).message}`));
     if (!verdict.ok) {
       log(`eBay run failed: ${verdict.reason}.`);
       return 1;

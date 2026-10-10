@@ -40,7 +40,14 @@ jobs:
         id: check
         env:
           EVENT: ${{ github.event_name }}
+          BRANCH: ${{ github.ref_name }}
         run: |
+          # A release lands only on the default branch (the production branch): a dispatch from any other branch would push a release commit there and build only a skipped preview.
+          default="$(git ls-remote --symref origin HEAD | sed -n 's|^ref: refs/heads/\(.*\)\tHEAD$|\1|p')"
+          if [ -n "$default" ] && [ "$BRANCH" != "$default" ]; then
+            echo "::error title=Release::run this workflow from the default branch ($default), not $BRANCH"
+            exit 1
+          fi
           subject="$(git log -1 --format=%s)"
           if [ "$EVENT" = "schedule" ] && printf '%s' "$subject" | grep -qiF '[deploy]'; then
             echo "Newest commit is already a release ($subject) - nothing to deploy this week."

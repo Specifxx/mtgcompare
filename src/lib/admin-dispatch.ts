@@ -22,23 +22,26 @@ export function inImportWindow(now: Date): boolean {
 export interface DispatchResult { ok: boolean; status: number; message: string }
 type FetchLike = (url: string, init: { method: string; headers: Record<string, string>; body: string; signal?: AbortSignal }) => Promise<{ status: number; ok: boolean }>;
 
-/** POST workflow_dispatch on `main`. Never throws; the message never contains the token. */
+/** The branch a dispatch runs on: the deployment's own branch (Vercel's VERCEL_GIT_COMMIT_REF, the production branch, which is the default branch), else `main`. It named `main` alone until 2026-10-10, a branch this repository never had. */
+export const dispatchRef = (env: Record<string, string | undefined>): string => env.VERCEL_GIT_COMMIT_REF || "main";
+/** POST workflow_dispatch on dispatchRef(env). Never throws; the message never contains the token. */
 export async function dispatchWorkflow(key: WorkflowKey, inputs: Record<string, string> = {}, o: { env?: Record<string, string | undefined>; fetchFn?: FetchLike; ref?: string } = {}): Promise<DispatchResult> {
   const env = o.env ?? process.env;
   const token = env.GITHUB_DISPATCH_TOKEN;
   if (!token || !dispatchConfigured(env)) return { ok: false, status: 501, message: "GITHUB_DISPATCH_TOKEN is not set: open the workflow page and press Run workflow there." };
   const fetchFn = o.fetchFn ?? (globalThis.fetch as unknown as FetchLike);
   const url = `https://api.github.com/repos/${repoSlug(env)}/actions/workflows/${WORKFLOWS[key]}/dispatches`;
+  const ref = o.ref ?? dispatchRef(env);
   try {
     const res = await fetchFn(url, {
       method: "POST",
       headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${token}`, "X-GitHub-Api-Version": "2022-11-28", "Content-Type": "application/json", "User-Agent": "MTGCompare-admin" },
-      body: JSON.stringify({ ref: o.ref ?? "main", inputs }),
+      body: JSON.stringify({ ref, inputs }),
       signal: AbortSignal.timeout(8000),
     });
     if (res.status === 204) return { ok: true, status: 204, message: `Dispatched ${WORKFLOWS[key]}.` };
     if (res.status === 401 || res.status === 403) return { ok: false, status: 502, message: "GitHub refused the dispatch token (expired, or lacks Actions: write)." };
-    if (res.status === 404 || res.status === 422) return { ok: false, status: 502, message: `GitHub could not find ${WORKFLOWS[key]} on main, or it has no workflow_dispatch trigger.` };
+    if (res.status === 404 || res.status === 422) return { ok: false, status: 502, message: `GitHub could not find ${WORKFLOWS[key]} on ${ref}, or it has no workflow_dispatch trigger.` };
     return { ok: false, status: 502, message: `GitHub answered ${res.status}.` };
   } catch {
     return { ok: false, status: 502, message: "GitHub did not answer." };

@@ -36,13 +36,16 @@ jobs:
     permissions:
       contents: write
     steps:
+      # The default branch (github.ref_name on a schedule; `main` until 2026-10-10, a branch this repository never had, so the job failed every hour).
       - uses: actions/checkout@v4
-        with: { ref: main, fetch-depth: 1 }
-      - name: "Empty commit when main is older than 30 days (the subject carries no deploy marker, so the gate skips it)"
+        with: { ref: "${{ github.ref_name }}", fetch-depth: 1 }
+      - name: "Empty commit when the default branch is older than 30 days (the subject carries no deploy marker, so the gate skips it)"
+        env:
+          BRANCH: ${{ github.ref_name }}
         run: |
           last=$(git log -1 --format=%ct); now=$(date +%s)
           if [ $(( (now - last) / 86400 )) -ge 30 ]; then
             git config user.name "github-actions"; git config user.email "actions@users.noreply.github.com"
             git commit --allow-empty -m "chore: keep scheduled workflows enabled (no deploy)"
-            git push origin HEAD:main
+            git push origin "HEAD:$BRANCH"
           fi

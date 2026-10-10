@@ -108,6 +108,10 @@ test("POST /api/revalidate purges the Neon-backed tags and the rankings, nothing
     const { POST } = await import("../src/app/api/revalidate/route"), mk = (auth?: string) => new Request("http://x/api/revalidate", { method: "POST", headers: auth ? { authorization: auth } : {} });
     assert.equal((await POST(mk())).status, 401); assert.equal((await POST(mk("Bearer wrong"))).status, 401); assert.deepEqual(tags, []);
     const r = await POST(mk("Bearer cron-secret-for-tests")), j = (await r.json()) as { ok: boolean; revalidated: string[] }; assert.equal(r.status, 200); assert.deepEqual(tags, ["published-decks", "rising-snapshots", "ebay-banner", "rank"]); assert.deepEqual(j.revalidated, tags); assert.equal(r.headers.get("cache-control"), "private, no-store");
+    // ?tag= purges only the asked NEON_TAGS (the eBay pass sends ebay-banner); an unknown tag purges nothing
+    tags.length = 0; const one = (q: string) => POST(new Request(`http://x/api/revalidate${q}`, { method: "POST", headers: { authorization: "Bearer cron-secret-for-tests" } }));
+    const e = await one("?tag=ebay-banner"); assert.equal(e.status, 200); assert.deepEqual(tags, ["ebay-banner"]); assert.deepEqual(((await e.json()) as { revalidated: string[] }).revalidated, ["ebay-banner"]);
+    tags.length = 0; const bad = await one("?tag=ebay-banner&tag=prices"); assert.equal(bad.status, 400); assert.deepEqual(tags, []);
   } finally { if (saved) require.cache[key] = saved; else delete require.cache[key]; delete process.env.CRON_SECRET; }
   for (const f of ["revalidate", "data-warm", "data-status"]) { const src = fs.readFileSync(path.join(ROOT, `src/app/api/${f}/route.ts`), "utf8"); assert.doesNotMatch(src, /PRICES_TAG|CATALOG_TAG|from "@\/lib\/db"/, f); assert.match(src, /export const dynamic = "force-dynamic"/, f); }
 });
