@@ -1103,7 +1103,7 @@
    "at": "G",
    "status": "new",
    "wp": "WP05",
-   "default": "1 for the first 7 days",
+   "default": "0 (spending on since 2026-10-10; 1 = quota reads only)",
    "where": [
     "src/lib/ebay*.ts",
     "scripts/ebay.ts"

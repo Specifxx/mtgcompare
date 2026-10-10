@@ -5,7 +5,7 @@
 //   EBAY_FORCE=1 npx tsx scripts/ebay.ts                               # after a matching change
 //
 // It READS a checkout of the pointed data commit and WRITES NEON ONLY (EbayTrack, EbayBest, EbayPanel, EbayBanner, EbayLedger, the ImportRun row): eBay data is never written to GitHub.
-// The first week is observe-only (EBAY_OBSERVE_ONLY=1: the live quota is read and sampled, zero Browse calls).
+// Observe-only (EBAY_OBSERVE_ONLY=1: the live quota is read and sampled, zero Browse calls) is opt-in since 2026-10-10.
 //
 // Exit codes: 0 when eBay is not configured (a green no-op), when the budget is zero (observe-only, kill switch, no quota, nothing left: the reason is on the run page) or the pass ran; 1 when the keys
 // are set but eBay refuses the token, when the failure breaker stopped the run (searches failing without a 429), when calls were spent and no search completed, or when the pass threw. The calls

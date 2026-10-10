@@ -2753,3 +2753,9 @@ Unverified until the first run with real services: the real Neon pooler and dire
 - **Launch fixes** (the Reddit research found them): TCGplayer banners land on TCGplayer's Magic search; a card name opens its ordinary printing (main set kind, no treatment, not serialized, cheapest MARKET), `/browse` searches default to Best match, and the importer writes the same pick into `nm/`; a Stripe test key keeps checkout closed (buttons disabled, "Checkout opens soon", the route admits admins only); Box EV opens on the newest released set; leftover sister-site copy is gone.
 
 Reversal: `PLANE_BACKEND=neon` (and a redeploy) returns the plane to Neon; `STORE_CONCURRENCY` and `STAGE_BUDGET_MS` are constants in `src/lib/store-import.ts`; a store leaves the registry by moving its id to `RETIRED_STORE_IDS`.
+
+## eBay spends from the first run: observe-only is opt-in — 2026-10-10
+
+2026-10-10. The owner asked for the eBay prices to run at 1,000 calls a day. `DEFAULT_EBAY_CONFIG.observeOnly` is now `false`, so the pass spends as soon as the keyset secrets exist, without a variable to flip; `EBAY_OBSERVE_ONLY=1` still turns it back into quota reads only. Nothing else in the arithmetic moved: the daily budget is 1,000 (`EBAY_DAILY_CALL_BUDGET`), the three banner-only runs plan at most 70 calls each and the 23:37 main run takes the rest of the day's allowance, and every run is still `min(ledger allowance, live remaining - Rift's reserve, run share, EBAY_MAX_CALLS)` (Rift first, fail closed). Found while checking: every scheduled run since launch skipped at the gate because the Actions secrets `EBAY_CLIENT_ID` and `EBAY_CLIENT_SECRET` are empty; `docs/CHROME-EBAY-PROMPT.md` sets them (shared mode: Rift's Production keyset) and the variables.
+
+Reversal: set `EBAY_OBSERVE_ONLY=1` (quota reads only) or `EBAY_API_ENABLED=0` (no call at all).

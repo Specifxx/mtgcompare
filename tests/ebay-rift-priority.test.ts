@@ -75,8 +75,9 @@ test("FAIL CLOSED: every unreadable or unsafe input is zero calls with a named r
   assert.equal(why({}).stop, null);
   assert.deepEqual([why({ cfg: { ...LIVE, apiEnabled: false } }).stop, why({ cfg: { ...LIVE, apiEnabled: false } }).allowance], ["api-disabled", 0]);
   assert.equal(why({ paused: true }).stop, "paused");
-  assert.equal(why({ cfg: DEFAULT_EBAY_CONFIG }).stop, "observe-only", "the first week reads the quota and spends nothing");
-  assert.equal(why({ cfg: DEFAULT_EBAY_CONFIG }).allowance, 0);
+  assert.equal(why({ cfg: { ...DEFAULT_EBAY_CONFIG, observeOnly: true } }).stop, "observe-only", "EBAY_OBSERVE_ONLY=1 reads the quota and spends nothing");
+  assert.equal(why({ cfg: { ...DEFAULT_EBAY_CONFIG, observeOnly: true } }).allowance, 0);
+  assert.deepEqual([why({ cfg: DEFAULT_EBAY_CONFIG }).stop, why({ cfg: DEFAULT_EBAY_CONFIG }).allowance], [null, 1000], "the defaults spend (the owner's go-ahead, 2026-10-10): the day's full 1,000 when Rift leaves room");
   assert.equal(why({ ledger: null }).stop, "ledger-unreachable");
   assert.equal(why({ ledger: ledger(1000, 0, at("2026-07-11T07:00:00Z")) }).stop, "ledger-blocked", "a 429 blocked the window");
   assert.equal(why({ ledger: ledger(1000, 1000) }).stop, "ledger-cap");

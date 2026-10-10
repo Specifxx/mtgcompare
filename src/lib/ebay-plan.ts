@@ -3,8 +3,8 @@
 //
 // MTG Compare shares RiftCompare's eBay keyset (EBAY_KEYSET_MODE=shared, contract 10.1): 5,000 Browse calls a day for both sites. Rift is first. MTG spends
 //   min(ledger allowance, live remaining - reserve(now, reset))   with the reserve covering Rift's own jobs still to run before the quota resets,
-// reads the live remaining count BEFORE and DURING a run, fails closed when it cannot, stops on a 429 and records every call in EbayLedger. The first week is observe-only
-// (EBAY_OBSERVE_ONLY=1: quota reads, zero Browse calls) so Rift's real usage is measured before MTG spends.
+// reads the live remaining count BEFORE and DURING a run, fails closed when it cannot, stops on a 429 and records every call in EbayLedger. Observe-only
+// (EBAY_OBSERVE_ONLY=1: quota reads, zero Browse calls) is opt-in since 2026-10-10: the owner asked for the full 1,000 calls a day.
 //
 // The unit of work is a card NAME (an Oracle) or a sealed product; one search of a name prices every printing of it. Value floors and a score decide who is searched:
 //   tier A  daily          the dearest/most wanted names, up to 45% of the singles slice
@@ -58,7 +58,7 @@ export interface EbayConfig {
   apiEnabled: boolean;              // EBAY_API_ENABLED: the kill switch (0 = no Browse call, ever)
   dailyBudget: number;              // EBAY_DAILY_CALL_BUDGET: MTG's calls a day out of the shared 5,000
   keysetMode: "shared" | "own";     // EBAY_KEYSET_MODE
-  observeOnly: boolean;             // EBAY_OBSERVE_ONLY: quota reads only (default ON until the owner turns it off after a week)
+  observeOnly: boolean;             // EBAY_OBSERVE_ONLY: quota reads only (default OFF since 2026-10-10, the owner's go-ahead: 1 still turns it on)
   quotaReserve: number;             // EBAY_QUOTA_RESERVE: own mode: never spent; shared mode: Rift's own untouchable reserve
   maxCalls: number | null;          // EBAY_MAX_CALLS: per-run cap
   slices: { banner: number; singles: number; sealed: number; buffer: number };   // fractions summing to 1
@@ -82,7 +82,7 @@ export interface EbayConfig {
   otherSiblings: number;            // the other sibling site's planned calls a day (Pokemon)
 }
 export const DEFAULT_EBAY_CONFIG: EbayConfig = {
-  apiEnabled: true, dailyBudget: 1000, keysetMode: "shared", observeOnly: true, quotaReserve: 600, maxCalls: null,
+  apiEnabled: true, dailyBudget: 1000, keysetMode: "shared", observeOnly: false, quotaReserve: 600, maxCalls: null,
   slices: { banner: 0.15, singles: 0.6, sealed: 0.15, buffer: 0.1 },
   minValueCents: 1000, tierAMinCents: 5000, tierAShare: 0.45, bIntervalHours: 72, retryRate: 0.15,
   sealedMinCents: 10000, sealedDeckMinCents: 6000, sealedIntervalHours: 72,

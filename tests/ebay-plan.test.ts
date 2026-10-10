@@ -690,10 +690,10 @@ const unitOf = (r: (typeof NAMES)[number], i: number): Unit => ({
 const UNITS = NAMES.map(unitOf);
 const unitNamed = (n: string) => UNITS.find((u) => u.name === n)!;
 
-test("the defaults are the owner's: 1,000 calls a day, shared keyset, observe-only first, slices 15/60/15/10", () => {
+test("the defaults are the owner's: 1,000 calls a day, shared keyset, spending on (observe-only is opt-in since 2026-10-10), slices 15/60/15/10", () => {
   assert.equal(CFG.dailyBudget, 1000);
   assert.equal(CFG.keysetMode, "shared");
-  assert.equal(CFG.observeOnly, true);
+  assert.equal(CFG.observeOnly, false);
   assert.equal(CFG.apiEnabled, true);
   assert.deepEqual(CFG.slices, { banner: 0.15, singles: 0.6, sealed: 0.15, buffer: 0.1 });
   assert.ok(Math.abs(Object.values(CFG.slices).reduce((a, b) => a + b, 0) - 1) < 1e-9, "the four slices sum to 1");

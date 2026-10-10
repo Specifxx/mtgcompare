@@ -179,8 +179,8 @@ My decision: MTG Compare uses up to 1,000 eBay API calls a day, always **after**
    any other project. Do not edit, regenerate or reconfigure anything in that application, including its notifications.
    (The Marketplace Account Deletion endpoint stays Rift's: one application has one endpoint.)
 3. In GitHub Actions **Variables** set (only the names that `docs/SETUP.md` lists once it exists; set these three now):
-   `EBAY_KEYSET_MODE` = `shared`, `EBAY_OBSERVE_ONLY` = `1` (for the first week the eBay job only reads the remaining quota to
-   measure Rift's usage and spends nothing; I will switch it to `0` myself), `EBAY_DAILY_CALL_BUDGET` = `1000`. Leave
+   `EBAY_KEYSET_MODE` = `shared`, `EBAY_OBSERVE_ONLY` = `0` (spending on; `1` would make the job read the quota only),
+   `EBAY_DAILY_CALL_BUDGET` = `1000`. Leave
    `EBAY_API_ENABLED` unset (it is the kill switch, default on) and leave `EBAY_VERIFICATION_TOKEN` / `EBAY_DELETION_ENDPOINT` unset
    (the deletion endpoint stays Rift's in shared mode).
 4. If the portal asks me to accept an agreement, that is a manual item.

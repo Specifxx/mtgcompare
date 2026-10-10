@@ -179,8 +179,8 @@ test("the catalogue: four names, their best tracked unit is the value, tiers fol
   assert.ok(b.candidates.every((c) => c.marketCents != null), "the pool never sees a low-only unit");
 });
 
-test("observe-only (the default): the quota is read and sampled, the tiers are computed, and NOT ONE Browse call is made", async () => {
-  const r = await run({});
+test("observe-only (EBAY_OBSERVE_ONLY=1): the quota is read and sampled, the tiers are computed, and NOT ONE Browse call is made", async () => {
+  const r = await run({ EBAY_OBSERVE_ONLY: "1" });
   assert.equal(r.summary.stop, "observe-only");
   assert.equal(w.searches.length, 0);
   assert.equal(r.summary.spent, 0);

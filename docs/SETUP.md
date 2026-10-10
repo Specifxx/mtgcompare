@@ -85,7 +85,7 @@ To change a price, edit the prices in `src/lib/plans.ts`, ship it, and re-run St
 eBay listing prices are fetched script-side by **eBay prices** (`ebay-prices.yml` calling `scripts/ebay.ts`), stored in Neon only and shown in their own labelled block. The workflow is a green no-op until both secrets exist.
 
 - `EBAY_KEYSET_MODE=shared` (the default): MTG Compare spends `min(ledger allowance, live remaining - the RiftCompare reserve)` on RiftCompare's existing production keyset, always after Rift's own runs, and logs and alarms any spend it did not make. Copy the production **App ID** and **Cert ID** through the clipboard into the GitHub secrets `EBAY_CLIENT_ID` and `EBAY_CLIENT_SECRET`; never into Vercel, never into chat. `own` is for a keyset of MTG Compare's own. Check with eBay Developer Support that a second site may use one keyset.
-- Start with `EBAY_OBSERVE_ONLY=1` for the first week (the job reads the remaining quota to measure Rift's use and spends nothing), `EBAY_DAILY_CALL_BUDGET=1000`. The owner switches observe-only to `0`.
+- Spending is on by default since 2026-10-10 (the owner's go-ahead): leave `EBAY_OBSERVE_ONLY` unset or `0`, and `EBAY_DAILY_CALL_BUDGET` unset or `1000`. `EBAY_OBSERVE_ONLY=1` turns the pass back into quota reads only. Nothing runs until the Actions secrets `EBAY_CLIENT_ID` and `EBAY_CLIENT_SECRET` exist.
 - The Marketplace Account Deletion endpoint stays RiftCompare's in shared mode (one application has one endpoint). The route `src/app/api/ebay/marketplace-deletion` must stay deployed while a keyset of MTG Compare's own exists; then set `EBAY_VERIFICATION_TOKEN` (new random, 32 to 80 characters of `[A-Za-z0-9_-]`) and `EBAY_DELETION_ENDPOINT` in Vercel before the release, and check `curl -s "SITE_URL/api/ebay/marketplace-deletion?challenge_code=test"` returns `{"challengeResponse":"<64 hex>"}`.
 - **Never dispatch eBay prices within 21:05 to 23:30 UTC**: it shares the daily import's concurrency group and can cancel a pending import. `/admin/ebay` shows the ledger and refuses a manual run inside that window.
 - Smoke test: run eBay prices by hand with `only_market=US` and `max_calls=50` and read the `eBay quota:` line.
@@ -274,7 +274,7 @@ Generated from `tests/fixtures/env-names.json`. **Kind:** secret (never committe
 | `EBAY_CLIENT_ID` | secret | none: eBay stays off (a green no-op run) | tests/no-ebay-api.test.ts: named only in src/lib/ebay*.ts and ebay-prices.yml. The workflow file name is ebay-prices.yml (one name, everywhere) |
 | `EBAY_CLIENT_SECRET` | secret | none |  |
 | `EBAY_KEYSET_MODE` | var | shared | shared (Rift first, then MTG on the same quota) or own (10.1) |
-| `EBAY_OBSERVE_ONLY` | var | 1 for the first 7 days | quota reads only (10.2) |
+| `EBAY_OBSERVE_ONLY` | var | 0 (spending on since 2026-10-10; 1 = quota reads only) | quota reads only (10.2) |
 | `EBAY_API_ENABLED` | var | 1 | KILL SWITCH (requirements 4): 0 = no Browse call at all |
 | `EBAY_DAILY_CALL_BUDGET` | var | 1000 | calls per day for MTG (requirements 4); the ledger enforces it |
 | `EBAY_QUOTA_RESERVE` | var | OP's value | calls always left for Rift |
