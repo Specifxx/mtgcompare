@@ -936,12 +936,17 @@ test("schedule: four crons, the MAIN one at 23:37, every run clear of the import
   assert.deepEqual(EBAY_MARKETS.slice(0, 5), ["US", "UK", "AU", "EU", "CA"]);
 });
 
+// The tier cuts are set by the budget, not by tierAMinCents or minValueCents (the first run cut tier A at US$189.97 and B at US$28.27, and tier C is never
+// searched), so since 2026-10-10 the page names the cadence and the markets, never a price floor the plan does not keep.
 test("the methodology page states what the plan commits to", () => {
   const page = read("src/app/methodology/page.tsx").replace(/\s+/g, " ");
-  const usd = (c: number) => `US$${c / 100}`;
-  assert.ok(page.includes(`cards worth ${usd(CFG.minValueCents)} or more`), "the singles floor");
-  assert.ok(page.includes(`cards of ${usd(CFG.tierAMinCents)} and up daily`), "tier A");
-  assert.ok(page.includes("the rest every three days"), "tier B");
   assert.ok(page.includes("four times a day"), "the runs");
+  assert.ok(page.includes("the top few hundred every day"), "tier A: daily");
+  assert.ok(page.includes("the next several hundred every three days"), "tier B");
   assert.equal(CFG.bIntervalHours, 72);
+  assert.ok(page.includes("In the UK, Australia and Spain for the EU we follow a short list of chase cards"), "UK/AU/EU singles: the chase pool only");
+  assert.ok(CFG.bannerOtherNames > 0 && CFG.bannerOtherNames < 50);
+  assert.ok(page.includes("sealed products are searched in those markets and Canada"), "sealed");
+  assert.deepEqual(SEALED_MARKETS, ["US", "UK", "AU", "EU", "CA"]);
+  assert.doesNotMatch(page, /cards worth US\$\d+ or more|and up daily/, "no price floor the budget does not keep");
 });
