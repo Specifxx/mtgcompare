@@ -94,7 +94,9 @@ export const setReview: Post = {
           body: (
             <p>
               Prices in the first weeks of a set are the least settled: supply is still arriving and hype has not cooled. A figure here is a snapshot of today&apos;s market
-              price, not a forecast. Watch a card from its page to be told when it moves.
+              price, not a forecast. Watch a card from its page to be told when it moves, or follow the <Link href="/blog/magic-card-price-movers">weekly price
+              movers</Link>. At the other end of the newest sets, the <Link href="/blog/cheapest-magic-mythic-rares-by-colour">cheapest mythic rares by colour</Link> cost
+              a fraction of these.
             </p>
           ),
         },

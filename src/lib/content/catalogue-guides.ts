@@ -16,6 +16,7 @@ export const CATALOGUE_GUIDES = {
   ],
   sealed: [
     { slug: "magic-booster-box-prices", reason: "The dearest booster boxes, with the cheapest in-stock price in your market" },
+    { slug: "cheapest-magic-booster-boxes", reason: "The cheapest booster boxes in stock in each market, with the cost per pack" },
     { slug: "where-to-buy-magic-cards", reason: "How the stores we compare differ on price and stock" },
   ],
   sets: [
@@ -33,6 +34,7 @@ export const CATALOGUE_GUIDES = {
     { slug: "magic-set-value-concentration", reason: "Which sets hold the most value, and how concentrated it is" },
   ],
   movers: [
+    { slug: "magic-card-price-movers", reason: "This week's biggest risers and fallers as a report, with the month's moves" },
     { slug: "most-expensive-magic-cards", reason: "The priciest cards right now, with the sets they come from" },
     { slug: "are-magic-cards-cheaper-abroad", reason: "Why a price gap between markets is not always a bargain" },
   ],
