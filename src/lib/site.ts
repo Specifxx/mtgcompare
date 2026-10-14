@@ -20,10 +20,13 @@ export const SITE_DESCRIPTION =
 // The public contact address (owner's choice, shared with Rift Compare). Set
 // NEXT_PUBLIC_CONTACT_EMAIL (Vercel and GitHub Actions) to give MTG Compare its own.
 export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "riftcompare@gmail.com";
-// The owner's sister sites, linked from About and the footer. The one place the other two brands are named.
+// The owner's sister sites, linked from About and the footer. The one place the other brands are named.
+// `covers` is what each one compares, as the footer and About print it: RiftCompare and OP Compare compare card prices,
+// DexCompare compares Pokémon TCG SEALED product (booster boxes, Elite Trainer Boxes, bundles), not singles.
 export const SISTER_SITES = [
-  { name: "RiftCompare", url: "https://riftcompare.com", game: "Riftbound" },
-  { name: "OP Compare", url: "https://opcompare.app", game: "the One Piece Card Game" },
+  { name: "RiftCompare", url: "https://riftcompare.com", game: "Riftbound", covers: "Riftbound" },
+  { name: "OP Compare", url: "https://opcompare.app", game: "the One Piece Card Game", covers: "the One Piece Card Game" },
+  { name: "DexCompare", url: "https://www.dexcompare.app", game: "Pokémon", covers: "Pokémon sealed product" },
 ] as const;
 // The first sister site, kept under the name the footer and About already read.
 export const SISTER_SITE = SISTER_SITES[0];

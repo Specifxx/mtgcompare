@@ -10,6 +10,7 @@ import {
   SITE_NAME,
   UNOFFICIAL_FAN_SITE_NOTICE,
 } from "@/lib/site";
+import { listSeparator } from "@/lib/format";
 import { FooterNav } from "./FooterNav";
 import { PrivacySettingsLink } from "./PrivacySettingsLink";
 import { ShareRow } from "./ShareRow";
@@ -46,6 +47,25 @@ function linkFirst(text: string, word: string, href: string): React.ReactNode {
   );
 }
 
+/** "Also from us: RiftCompare (Riftbound), OP Compare (the One Piece Card Game) and DexCompare (Pokémon sealed product)." Our own sites: plain followed links. */
+export function SisterSites() {
+  return (
+    <p className="mb-2">
+      Also from us:{" "}
+      {SISTER_SITES.map((s, i) => (
+        <span key={s.name}>
+          {listSeparator(i, SISTER_SITES.length)}
+          <a href={s.url} target="_blank" rel="noopener noreferrer" className="tap-link font-semibold text-brand-400 hover:underline">
+            {s.name}
+          </a>{" "}
+          ({s.covers})
+        </span>
+      ))}
+      .
+    </p>
+  );
+}
+
 export function Footer({ newsletter = null }: { newsletter?: React.ReactNode }) {
   return (
     <footer className="border-t border-ink-800 py-8 pl-[var(--sidenav-w)] text-center text-xs text-slate-500">
@@ -76,19 +96,8 @@ export function Footer({ newsletter = null }: { newsletter?: React.ReactNode }) 
           ) : null}
           <a href={`mailto:${CONTACT_EMAIL}`} className="tap-link text-gold hover:underline">{CONTACT_EMAIL}</a>
         </div>
-        {/* Cross-promotion: the owner's sister sites (RiftCompare, OP Compare). */}
-        <p className="mb-2">
-          Playing {SISTER_SITES.map((s) => s.game).join(" or ")} too? Our sister sites{" "}
-          {SISTER_SITES.map((s, i) => (
-            <span key={s.name}>
-              {i ? " and " : ""}
-              <a href={s.url} target="_blank" rel="noopener noreferrer" className="tap-link font-semibold text-brand-400 hover:underline">
-                {s.name}
-              </a>
-            </span>
-          ))}{" "}
-          compare their card prices the same way.
-        </p>
+        {/* Cross-promotion: the owner's sister sites (SISTER_SITES in src/lib/site.ts), each with what it compares. */}
+        <SisterSites />
         <p>
           {SITE_NAME} · Magic: The Gathering card database &amp; price comparison for the US, Australia, the UK, Singapore, Canada and
           the EU. Prices are sourced from public store listings and may be out of date — always confirm on the retailer&apos;s site.

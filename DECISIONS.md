@@ -2832,3 +2832,9 @@ Reversal: delete the route and the registry entry; the links read the registry a
 - Star Trek is CBS Studios' trademark (Universes Beyond): the pre-order page and both posts print `STAR_TREK.trademark`.
 
 Reversal: drop the two posts from `POSTS`; `releases` can stay (an empty registry costs nothing).
+
+## DexCompare joins the sister sites; the footer says what each one compares — 2026-10-14
+
+2026-10-14. The owner's third site, DexCompare (`https://www.dexcompare.app`), is the third entry of `SISTER_SITES` in `src/lib/site.ts`. It compares Pokémon TCG sealed product (booster boxes, Elite Trainer Boxes, bundles) across stores, not singles, so the footer's old line, "Playing Riftbound or the One Piece Card Game too? Our sister sites RiftCompare and OP Compare compare their card prices the same way", would have become untrue. Each entry now carries `covers`, and the footer (`SisterSites` in `Footer.tsx`) and About print "Also from us: RiftCompare (Riftbound), OP Compare (the One Piece Card Game) and DexCompare (Pokémon sealed product)." with the site's serial join (`andList` / `listSeparator` in `src/lib/format.ts`: no comma before the "and", as the site writes its six markets). The links stay plain followed links (`target="_blank" rel="noopener noreferrer"`): they are the owner's own sites, not paid or affiliate links. `SISTER_SITE` is still the first entry (the authors page names RiftCompare, the site MTG Compare is built on). `tests/site-chrome.test.ts` renders the line; `docs/BRAND.md` section 2 has the new copy.
+
+Reversal: drop the entry; the line and About follow the array.

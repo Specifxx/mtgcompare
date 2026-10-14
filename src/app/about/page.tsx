@@ -3,6 +3,7 @@ import Link from "next/link";
 import { StaticPage } from "@/components/StaticPage";
 import { getSiteStats } from "@/lib/data";
 import { CONTACT_EMAIL, DATA_ATTRIBUTION, FAN_CONTENT_DISCLAIMER, FAN_CONTENT_POLICY_URL, SCRYFALL_URL, SISTER_SITES, SITE_NAME, UNOFFICIAL_FAN_SITE_NOTICE } from "@/lib/site";
+import { listSeparator } from "@/lib/format";
 import { pageOg } from "@/lib/og/meta";
 
 // Reads the eBay-live flag from the published data: rendered per request, never at build (CLAUDE.md, contract C26).
@@ -44,8 +45,8 @@ export default async function About() {
         {SITE_NAME} is a sister site of{" "}
         {SISTER_SITES.map((x, i) => (
           <span key={x.name}>
-            {i ? " and " : ""}
-            <a href={x.url}>{x.name}</a> ({x.game})
+            {listSeparator(i, SISTER_SITES.length)}
+            <a href={x.url}>{x.name}</a> ({x.covers})
           </span>
         ))}
         . Same approach, same rules: a price is a live listing you can buy,

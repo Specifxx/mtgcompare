@@ -7,6 +7,11 @@ import { FREE_PORTFOLIO_LIMIT } from "../src/lib/free-limits";
 import vm from "node:vm";
 import { CONSENT_REGIONS, CONSENT_WAIT_NO_CMP_MS, CONSENT_WAIT_WITH_CMP_MS, consentDefaultsScript } from "../src/lib/ga";
 import { CMP_GRACE_MS } from "../src/lib/use-consent";
+import React, { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { SisterSites } from "../src/components/Footer";
+import { andList, listSeparator } from "../src/lib/format";
+import { SISTER_SITES } from "../src/lib/site";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // The site chrome ported from RiftCompare (wave 2, design track): the footer's
@@ -64,6 +69,23 @@ test("the footer carries the share band, the sister sites, the affiliate line, W
   // No email capture in the footer while nothing sends: the newsletter is a
   // slot the collection-alerts track fills only when getEmailStatus() is "on".
   assert.doesNotMatch(src, /type="email"/);
+});
+
+// The sister-site line names each site with what it compares: DexCompare compares Pokémon TCG SEALED product (booster
+// boxes, Elite Trainer Boxes, bundles), not card prices, so "our sister sites compare their card prices the same way" (the
+// line until 2026-10-14, written for two card-price sites) would be false with it. Three names take a serial join.
+test("the footer's sister sites: RiftCompare, OP Compare and DexCompare, each with what it compares, serially joined, as plain links", () => {
+  assert.deepEqual(SISTER_SITES.map((s) => [s.name, s.url]), [["RiftCompare", "https://riftcompare.com"], ["OP Compare", "https://opcompare.app"], ["DexCompare", "https://www.dexcompare.app"]]);
+  (globalThis as { React?: unknown }).React = React;
+  const html = renderToStaticMarkup(createElement(SisterSites));
+  assert.equal(html.replace(/<[^>]+>/g, ""), "Also from us: RiftCompare (Riftbound), OP Compare (the One Piece Card Game) and DexCompare (Pokémon sealed product).");
+  const anchors = html.match(/<a [^>]*>/g) ?? [];
+  assert.equal(anchors.length, 3);
+  for (const a of anchors) assert.match(a, /target="_blank" rel="noopener noreferrer"/, "our own sites: followed, not sponsored or nofollow");
+  assert.doesNotMatch(read("src/components/Footer.tsx"), /compare their card prices/);
+  assert.match(read("src/app/about/page.tsx"), /listSeparator\(i, SISTER_SITES\.length\)[\s\S]*\{x\.covers\}/, "About names the same three the same way");
+  assert.deepEqual([andList([]), andList(["A"]), andList(["A", "B"]), andList(["A", "B", "C"])], ["", "A", "A and B", "A, B and C"]);
+  assert.deepEqual([0, 1, 2].map((i) => listSeparator(i, 3)), ["", ", ", " and "]);
 });
 
 test("the share row reports to GA only, never Vercel custom events", () => {

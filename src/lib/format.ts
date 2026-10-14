@@ -63,3 +63,6 @@ export function andList(items: readonly string[]): string {
   if (items.length <= 1) return items[0] ?? "";
   return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
 }
+
+/** The separator before item `i` of `n` in a sentence list rendered piece by piece (JSX): "", ", " or " and ", as andList joins. */
+export const listSeparator = (i: number, n: number): string => (i === 0 ? "" : i === n - 1 ? " and " : ", ");

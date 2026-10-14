@@ -89,7 +89,7 @@ The brief says dark-first; RiftCompare defaults to dark; OP Compare switched to 
 | `SITE_DESCRIPTION` | `Compare Magic: The Gathering card prices across stores in the US, Australia, the UK, Singapore, Canada and the EU. Every printing and sealed product, priced daily.` (163 characters) |
 | Default page title (`layout.tsx`) | `` `Magic: The Gathering Card Prices — Compare Every Store | ${SITE_NAME}` `` (template stays `%s | MTG Compare`) |
 | Organization JSON-LD | `alternateName: ["MTGCompare", "MTG Compare App"]`, `knowsAbout: ["Magic: The Gathering", "Magic: The Gathering card price comparison", "Trading card game prices", "Sealed trading card products"]` |
-| Sister sites | `SISTER_SITES = [RiftCompare (https://riftcompare.com, Riftbound), OP Compare (https://opcompare.app, the One Piece Card Game)]`; `SISTER_SITE` kept as the first entry so About/Authors still compile |
+| Sister sites | `SISTER_SITES = [RiftCompare (https://riftcompare.com, Riftbound), OP Compare (https://opcompare.app, the One Piece Card Game), DexCompare (https://www.dexcompare.app, Pokémon sealed product)]`, each with `covers` (what it compares: DexCompare compares Pokémon TCG sealed product, not singles; added 2026-10-14); `SISTER_SITE` kept as the first entry so About/Authors still compile |
 | Wordmark | `MTG` + `Compare`, glued; "MTG" white, "Compare" `text-brand-400` (chrome); share images use `OG.brandWord` for "MTG" |
 
 ### 2.2 Share-image copy (`src/lib/og/compose.tsx`)
@@ -121,7 +121,7 @@ The host is derived from `SITE_URL`, so the share images follow a domain change 
 4. **Wizards of the Coast Fan Content disclaimer, verbatim from the policy** (the policy's template with the site name; `Fan Content Policy` links to https://company.wizards.com/en/legal/fancontentpolicy):
    > MTG Compare is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.
 5. **Unofficial fan site:** `MTG Compare is an independent, unofficial fan site. It is not endorsed, sponsored or approved by Wizards of the Coast, Hasbro or Scryfall. TCGplayer and eBay are retailers we link to as an affiliate and do not endorse this site. Magic: The Gathering and its card names, artwork, symbols and set names are trademarks or property of Wizards of the Coast LLC.`
-6. Sister sites: `Playing Riftbound or the One Piece Card Game too? Our sister sites RiftCompare and OP Compare compare their card prices the same way.` (JSX maps over `SISTER_SITES`.)
+6. Sister sites: `Also from us: RiftCompare (Riftbound), OP Compare (the One Piece Card Game) and DexCompare (Pokémon sealed product).` (`SisterSites` in Footer.tsx maps over `SISTER_SITES` with a serial join; plain followed links, `rel="noopener noreferrer"`. Until 2026-10-14 it read `Playing Riftbound or the One Piece Card Game too? Our sister sites RiftCompare and OP Compare compare their card prices the same way.`, which DexCompare, a sealed-product site, would have made untrue.)
 7. `© {year} MTG Compare. All rights reserved.` (unchanged pattern)
 
 The disclaimer asserts the site is "permitted under the Fan Content Policy". `scryfall-terms.md` section 4 explains why a paid Premium tier is the one open legal question; the stock sentence is used as written, and the owner should settle that point (open questions).
