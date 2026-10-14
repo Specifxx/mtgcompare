@@ -118,6 +118,10 @@ export const boosterBoxes: Post = {
               <li>Make sure it is the English product; stores list other languages too.</li>
               <li>Pre-orders lock a price but tie up money for weeks; compare them with the box&apos;s market price after release on its page here.</li>
               <li>Postage on a box is often large: compare delivered totals at checkout, not just the item price.</li>
+              <li>
+                Looking for the other end of the market? The <Link href="/blog/cheapest-magic-booster-boxes">cheapest booster boxes in stock</Link> are listed market by
+                market.
+              </li>
             </ul>
           ),
         },

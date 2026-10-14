@@ -15,6 +15,7 @@ export const START_HERE: readonly HomePick[] = [
 ];
 
 export const MARKET_READS: readonly HomePick[] = [
+  { slug: "magic-card-price-movers", line: "This week's biggest risers and fallers, one printing per row with its finish." },
   { slug: "most-expensive-magic-cards", line: "The priciest cards right now, in a table drawn from our own price data." },
   { slug: "magic-set-value-concentration", line: "Which sets hold the most value, and how much of it sits in the top cards." },
   { slug: "magic-booster-box-prices", line: "The dearest booster boxes side by side, with the cost per pack." },
@@ -35,5 +36,5 @@ export function startHereFor(market?: Country): HomePick[] {
 // the site counts views per article, so that label could not be kept true. Rules
 // for a pick: evergreen and substantial, set-agnostic (no slug names a set), and
 // published in the category its list says (tests/guides.test.ts pins it).
-export const BLOG_PICKS: readonly string[] = ["most-expensive-magic-cards", "magic-set-value-concentration", "magic-booster-box-prices"];
+export const BLOG_PICKS: readonly string[] = ["most-expensive-magic-cards", "commander-staples-prices", "magic-set-value-concentration", "magic-booster-box-prices"];
 export const GUIDE_PICKS: readonly string[] = ["magic-card-rarities-explained", "where-to-buy-magic-cards", CHEAPER_ABROAD_SLUG];

@@ -1,10 +1,12 @@
-import { MAIN_SET_KINDS, RARITY_KEYS, RELEASE_SET_KINDS, rarityLabel } from "../constants";
+import { MAIN_SET_KINDS, RARITY_KEYS, RELEASE_SET_KINDS, fold, rarityLabel } from "../constants";
 import type { Country } from "../country";
 import { MARKETS } from "../country";
-import { getCardPage, getIndexSeries, getMarketOverview, getMarketRecords, getSealedBySet, getSealedPage, getSetIndex, getSetHighlights, getSiteStats, getCatalogStats } from "../data";
-import type { SetIndex, SetLite } from "../data";
+import { getCardPage, getIndexSeries, getMarketOverview, getMarketRecords, getMovers, getSealedBySet, getSealedPage, getSetIndex, getSetHighlights, getSiteStats, getCatalogStats, namePrintings, resolveOracles } from "../data";
+import type { CardLite, CardQuery, NameHit, SealedLite, SetIndex, SetLite } from "../data";
+import { memoByRef, memoKey, planeSource } from "../data/plane/runtime";
 import { PREORDER_RELEASES, isOut, orderProducts, releaseDateOf, releaseSets, type PreorderRelease } from "../preorders";
-import type { PostContext, RarityRow, ReleaseView, SetBoard } from "./types";
+import { BLING_TREATMENTS, COLOUR_GROUPS, COMMANDER_STAPLES, MONTH_MOVER_ROWS, MOVER_FLOOR_CENTS, MOVER_ROWS, MYTHIC_ROWS, TREATED_ROWS, cheapestPerCard, newestExpansions, stapleRows, type StapleRow } from "./select";
+import type { MoversView, MythicBoards, PostContext, RarityRow, ReleaseView, SetBoard } from "./types";
 
 const dearest = (sort: "value" = "value") => ({ sort, page: 1, per: 100 as const });
 
@@ -47,9 +49,69 @@ async function releaseView(release: PreorderRelease, index: SetIndex): Promise<R
   return { release, sets, releasedOn, out: isOut(releasedOn, today), sealed, cards };
 }
 
+// ── the optional sections of the data-driven posts (movers, cheapest mythics by colour, Commander staples, cheapest boxes) ────────────────────
+// Each is built ONCE per instance and data commit (memoByRef, the data layer's memo of derived shapes, keyed by the pointer: never
+// unstable_cache, and no loader runs inside a cache callback), because postContext runs for every post render, for /blog (every post's hero)
+// and for every blog share image. What one build costs is in DECISIONS.md ("Four data-driven posts", 2026-10-14); a request after the first
+// pays a map lookup. A build that fails is not kept (memoByRef drops a rejected promise, the next request builds again) and THIS request gets
+// null for the section: the post says the data could not be read, so a bad read degrades one post, never /blog or the other posts. The loaders
+// are exported for tests/blog-posts.test.ts; pages reach them only through postContext.
+export async function perCommit<T>(name: string, build: () => Promise<T>): Promise<T | null> {
+  try {
+    const { ptr } = await planeSource();
+    return await memoByRef(`blog:${name}`, memoKey(ptr), build);
+  } catch (err) {
+    console.warn(`[blog] the ${name} section could not be read: ${err instanceof Error ? err.message : String(err)}`);
+    return null;
+  }
+}
+
+/** The four published movers feeds (mv/<dir>-<7|30>-a.json: headline units, one per card), at the floor of the movers post. 4 small files and one hydration of at most 70 ids. */
+export async function loadMovers(): Promise<MoversView> {
+  const feed = (dir: "up" | "down", window: 7 | 30, n: number) => getMovers({ dir, window, minCents: MOVER_FLOOR_CENTS, n });
+  const [up7, down7, up30, down30] = await Promise.all([feed("up", 7, MOVER_ROWS + 5), feed("down", 7, MOVER_ROWS + 5), feed("up", 30, MONTH_MOVER_ROWS + 5), feed("down", 30, MONTH_MOVER_ROWS + 5)]);
+  return { up7, down7, up30, down30 };
+}
+
+/** The newest expansions' cheapest mythic rares: one engine query per colour group and one over the special frames (8 in-memory queries, 48 rows each, no file beyond the browse index). */
+export async function loadMythics(): Promise<MythicBoards> {
+  const { sets } = await getSetIndex();
+  const picks = newestExpansions(sets, new Date().toISOString().slice(0, 10));
+  if (!picks.length) return { sets: [], groups: [], treated: [] };
+  const page = (extra: Partial<CardQuery>) => getCardPage({ setIds: picks.map((s) => s.id), rarities: ["M"], sort: "price-asc", page: 1, per: 48, ...extra });
+  const [groups, treated] = await Promise.all([
+    Promise.all(COLOUR_GROUPS.map(async (g) => ({ key: g.key, cards: cheapestPerCard((await page({ colors: g.colors })).items, MYTHIC_ROWS) }))),
+    page({ treats: [...BLING_TREATMENTS] }).then((p) => cheapestPerCard(p.items, TREATED_ROWS)),
+  ]);
+  return { sets: picks, groups, treated };
+}
+
+/**
+ * COMMANDER_STAPLES by name: resolveOracles (the name table, then the Oracle shards of the matched cards: at most one small file per staple)
+ * and namePrintings (ONE pass over the browse index for every staple), which prices each card at its ORDINARY printing: the cheapest plain
+ * printing of a main or Commander set by MARKET price, the printing the site's search opens for the name (search.ts ordinaryPrinting).
+ */
+export async function loadStaples(): Promise<StapleRow[]> {
+  const oracles = await resolveOracles(COMMANDER_STAPLES.map((s) => fold(s.name)));
+  const hits = [...oracles.values()].map((o): NameHit => ({ oracleNo: o.no, name: o.name, oracleSlug: o.slug, topSlug: "", nPrint: o.nPrint, topCents: null }));
+  const printings = hits.length ? await namePrintings(hits) : new Map<number, CardLite>();
+  return stapleRows(COMMANDER_STAPLES, oracles, printings, fold);
+}
+
+/** Every released Booster Box product, cheapest TCGplayer market first (in-memory pages over the sealed list the booster-box post already reads; at most 5 pages). */
+export async function loadCheapBoxes(): Promise<SealedLite[]> {
+  const out: SealedLite[] = [];
+  for (let page = 1; page <= 5; page++) {
+    const r = await getSealedPage({ kind: "Booster Box", presale: false, sort: "price-asc", page, per: 100 });
+    out.push(...r.items);
+    if (page >= r.pages) break;
+  }
+  return out;
+}
+
 /** The bounded views every post draws from. One request, a few dozen in-memory queries and published files; never the whole catalogue. */
 export async function postContext(country: Country): Promise<PostContext> {
-  const [stats, site, index, setIndex, overview, top, topFoil, boxes, rarities, recs] = await Promise.all([
+  const [stats, site, index, setIndex, overview, top, topFoil, boxes, rarities, recs, movers, mythics, staples, cheapBoxes] = await Promise.all([
     getCatalogStats(),
     getSiteStats(),
     getIndexSeries(),
@@ -60,6 +122,10 @@ export async function postContext(country: Country): Promise<PostContext> {
     getSealedPage({ kind: "Booster Box", presale: false, sort: "value", page: 1, per: 48 }),
     Promise.all(RARITY_KEYS.filter((r) => r === "M" || r === "R" || r === "U" || r === "C").map(rarityRow)),
     Promise.all(MARKETS.map((m) => getMarketRecords(m))),
+    perCommit("movers", loadMovers),
+    perCommit("mythics", loadMythics),
+    perCommit("staples", loadStaples),
+    perCommit("boxes", loadCheapBoxes),
   ]);
   const totals = new Map(overview.sets.map((s) => [s.setId, { n: s.n, total: s.totalCents }] as const));
   const [newest, boards, releases] = await Promise.all([newestSet(setIndex.sets, totals), valueBoards(setIndex.sets, totals), Promise.all(PREORDER_RELEASES.map((r) => releaseView(r, setIndex)))]);
@@ -80,6 +146,10 @@ export async function postContext(country: Country): Promise<PostContext> {
     boards,
     boxes: boxes.items,
     releases,
+    movers,
+    mythics,
+    staples,
+    cheapBoxes,
     country,
   };
 }
