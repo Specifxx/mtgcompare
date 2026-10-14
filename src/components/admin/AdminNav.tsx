@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 // Grouped as the landing page groups them: Money, Data, Site, People, Previews.
 const LINKS = [
+  { href: "/admin/health", label: "Health" },
   { href: "/admin/accounts", label: "Accounts" },
   { href: "/admin/subscriptions", label: "Subscriptions" },
   { href: "/admin/premium", label: "Interest" },
@@ -25,7 +26,7 @@ const LINKS = [
 ];
 
 // The admin bar's links, with the current section highlighted.
-export function AdminNav() {
+export function AdminNav({ inboxOpen = null }: { inboxOpen?: number | null }) {
   const path = usePathname() ?? "/admin";
   const cls = (active: boolean) => (active ? "text-sm font-semibold text-white" : "text-sm text-slate-300 hover:text-white");
   return (
@@ -36,6 +37,7 @@ export function AdminNav() {
       {LINKS.map((l) => (
         <Link key={l.href} href={l.href} className={cls(path === l.href || path.startsWith(`${l.href}/`))}>
           {l.label}
+          {l.href === "/admin/inbox" && inboxOpen ? <span className="ml-1.5 rounded-full bg-brand-500 px-1.5 py-0.5 text-[11px] font-bold text-white" aria-label={`${inboxOpen} open`}>{inboxOpen}</span> : null}
         </Link>
       ))}
       <Link href="/" className="ml-auto text-sm text-slate-400 hover:text-white">

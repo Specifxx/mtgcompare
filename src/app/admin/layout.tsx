@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { AdminNav } from "@/components/admin/AdminNav";
 import { AdminNoAnalytics } from "@/components/admin/AdminNoAnalytics";
 import { adminMetadata, isAdminViewer } from "@/lib/admin";
+import { openInboxCount } from "@/lib/admin-ops";
 
 export const dynamic = "force-dynamic";
 export const generateMetadata = (): Promise<Metadata> => adminMetadata({ title: { default: "Admin · MTG Compare", template: "%s · Admin" } });
@@ -13,13 +14,14 @@ export const generateMetadata = (): Promise<Metadata> => adminMetadata({ title: 
 // (a notFound() thrown HERE would send an empty client-only error shell).
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   if (!(await isAdminViewer())) return <>{children}</>;
+  const inboxOpen = await openInboxCount();   // the number beside "Inbox": every queue, so it is visible on every admin page
   return (
     <>
       <AdminNoAnalytics />
       {/* Inside the root layout's container now (wave 2): a hairline bar at
           the top of the content column rather than a full-bleed band. */}
       <div className="-mt-6 mb-6 border-b border-ink-700">
-        <AdminNav />
+        <AdminNav inboxOpen={inboxOpen} />
       </div>
       {children}
     </>

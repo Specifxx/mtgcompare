@@ -1,0 +1,67 @@
+name: Ops watch
+
+# THE OWNER'S EYES ON THE SITE (2026-10-14: "I'm not going to keep checking Neon, the limits, the inbox"). Hourly, minute 23: scripts/ops-watch.ts checks every area against its limit (published data, Neon storage and, with
+# the optional Neon key, transfer and compute, the eBay budget and pass, mail, the store scrapers, the release age and the last runs of the scheduled jobs), writes the snapshot the /admin/health page and the admin home
+# show (Meta `ops.health`), and E-MAILS the owner (OPS_ALERT_EMAIL) when a problem is NEW or got WORSE, again once a day while it stays red, and once an hour when something NEW lands in the inbox
+# (reports, store suggestions, feedback, contact messages, support tickets). It never mails an unchanged problem every hour.
+#
+# GREEN WITHOUT ITS SECRETS: no DATABASE_URL means nothing to watch; no OPS_ALERT_EMAIL or no mail secrets (RESEND_API_KEY, EMAIL_FROM) means the dashboard still updates and no e-mail goes out. The job always exits 0: a
+# failing monitor is a `::warning` and the dashboard's red "the watch has stopped" light, not one more red workflow.
+# OPTIONAL: NEON_API_KEY and NEON_PROJECT_ID (secrets) add the monthly transfer (5 GB) and compute (100 hours) limits of the Neon free plan.
+#
+# WHEN. Minute 23 of every hour: clear of the import (21:25 to 22:25), the eBay passes (:37), the watchdog (:17) and the squash. Its own concurrency group: it reads, and writes three Meta rows.
+on:
+  schedule:
+    - cron: "23 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ops-watch
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PLANE_BACKEND: ${{ vars.PLANE_BACKEND }}
+      PLANE_REPO: ${{ vars.PLANE_REPO }}
+      PLANE_BRANCH: ${{ vars.PLANE_BRANCH }}
+      DATA_REPO_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+    steps:
+      - name: Nothing configured
+        if: env.DATABASE_URL == ''
+        run: echo "DATABASE_URL is not set for Actions - there is nothing to watch (a green no-op)."
+      - uses: actions/checkout@v4
+        if: env.DATABASE_URL != ''
+      - uses: actions/setup-node@v4
+        if: env.DATABASE_URL != ''
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        if: env.DATABASE_URL != ''
+        run: |
+          npm ci
+          npx prisma generate
+      - name: Pull the published tree (Neon by default, the pointed commit with PLANE_BACKEND=github)
+        if: ${{ env.DATABASE_URL != '' && ((env.PLANE_BACKEND != 'github') || (env.PLANE_REPO != '' && env.DATA_REPO_TOKEN != '')) }}
+        run: bash scripts/plane-checkout.sh .data
+      - name: Watch
+        if: env.DATABASE_URL != ''
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          OPS_ALERT_EMAIL: ${{ vars.OPS_ALERT_EMAIL }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_REPLY_TO: ${{ vars.EMAIL_REPLY_TO }}
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+        run: |
+          if [ -d .data/v1 ]; then export PLANE_DIR="$PWD/.data"; fi
+          npx tsx scripts/ops-watch.ts

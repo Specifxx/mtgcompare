@@ -8,6 +8,8 @@ import { getAdminHomeCounts } from "@/lib/admin-accounts";
 import { deployLevel, type Level } from "@/lib/admin-alarms";
 import { loadEbayBudget, loadFootprint } from "@/lib/admin-db-footprint";
 import { loadPublication } from "@/lib/admin-publication";
+import { loadOpsView } from "@/lib/admin-ops";
+import { overall } from "@/lib/ops-health";
 import { currentDeploy, readReleaseHistory } from "@/lib/deploy-facts";
 import { deployAgeDays } from "@/lib/release-schedule";
 import { int } from "@/lib/format";
@@ -63,9 +65,11 @@ const settle = async <T,>(p: Promise<T>): Promise<T | null> => p.catch(() => nul
 export default async function AdminHome() {
   const user = await requireAdminPage();
   const now = new Date();
-  const [counts, pub, ebay, db, hist] = await Promise.all([getAdminHomeCounts(), settle(loadPublication(now)), settle(loadEbayBudget()), settle(loadFootprint()), settle(readReleaseHistory({ now }))]);
+  const [counts, pub, ebay, db, hist, ops] = await Promise.all([getAdminHomeCounts(), settle(loadPublication(now)), settle(loadEbayBudget()), settle(loadFootprint()), settle(readReleaseHistory({ now })), settle(loadOpsView(now))]);
   const age = deployAgeDays(hist?.commits[0]?.at ?? currentDeploy().builtAt, now);
   const lights: { href: string; label: string; level: Level }[] = [
+    // The hourly ops watch: the worst of its checks, or red when the watch itself has stopped (src/lib/ops-health.ts).
+    { href: "/admin/health", label: "Health", level: ops?.watch === "bad" ? "bad" : ops?.snapshot ? overall(ops.snapshot.checks) : "unknown" },
     { href: "/admin/data", label: "Data", level: pub?.view.level ?? "unknown" },
     { href: "/admin/ebay", label: "eBay", level: ebay ? (ebay.latched ? "bad" : ebay.spend.level) : "unknown" },
     { href: "/admin/database", label: "Database", level: db?.level ?? "unknown" },
