@@ -111,7 +111,7 @@ export async function getMarketOverview(): Promise<MarketOverview> {
     sets: f.sets.map(([setId, n, totalCents]) => ({ setId, n, totalCents })),
   };
 }
-/** P mk/records.json (stores only, never TCGplayer's own listing or an eBay ask) + the cards of its rows. A row is a unit (uid = id * 2 + finish); `home` is the cheapest STORE price at home in the home currency, which the file holds as converted + saving. */
+/** P mk/records.json + the cards of its rows, each in the row's own finish. A gap row is a unit (uid = id * 2 + finish) compared with itself (src/lib/market-gaps.ts): `home` is the cheapest local price in the home currency (stores; in the US TCGplayer's own lowest listing too), which the file holds as converted + saving; the cheaper market is always a STORE, never TCGplayer or an eBay ask. */
 export async function getMarketRecords(home: Country): Promise<MarketRecords> {
   const { src } = await planeSource(), f = await optionalOf<RecordsFile>(src, "mk/records.json");
   if (!f) return { gaps: [], highs: [], lows: [] };

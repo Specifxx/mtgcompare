@@ -11,7 +11,8 @@ import type { Finish, Rarity, UnitRef } from "./constants";
 import { TCGCSV_BASE, chooseSetToks, finishPrices, isSealedProduct, labelOf, oracleSlugOf, parseSealed, parseTcgName, productClass, sealedSlugOf, setCodeOf, setDisplayName, setSlugOf, slugBase, withProductSuffix, type ParsedName, type PriceRowLike, type TcgcsvGroup, type TcgcsvPrice, type TcgcsvProduct } from "./catalog";
 import { completenessPicks, flagChangeGuard, headlineOf, inCatalogue, isIndexable, isThin, marketOnlyCents, popularity, trackConfigHash, trackScoreCents, unitTracked, unitValueCents, type GuardVerdict, type TrackConfig } from "./track";
 import { addDays, dayIso, dayNum, daysBetween, nextIndex } from "./history";
-import { usdCentsToCountry, toUsdCents } from "./fx";
+import { usdCentsToCountry } from "./fx";
+import { unitGap, type GapUnit } from "./market-gaps";
 import { buildScryfallIndex, claimByIds, fetchBulkListing, fetchSets, joinProduct, parseSets, slimScryfall, streamDefaultCards, streamDefaultCardsFile, strictOracleName, type JoinResult, type LinkLevel, type ScryfallRow, type ScryfallSet } from "./scryfall";
 import type { MatchRow } from "./match";
 import { isOrdinaryPrinting, ordinaryRank, type PrintingFacts } from "./search";
@@ -836,7 +837,6 @@ function writeBrowseIndex(w: Writer, t: TreeView, listed: RowView[], oracles: Ma
 // ── the free views: movers, market, records, home, sitemaps (everything a signed-out visitor sees; nothing ranked beyond the public lists of OP) ─────────────────────────
 const MIN_BUY = 300, MIN_BELOW = 100, MAX_BELOW_PCT = 75;                        // the "Underpriced vs TCGplayer" predicate of deals.ts, the counts the home page quotes
 const RELEASE_KINDS: readonly string[] = ["expansion", "core", "masters", "commander"];
-const currencyOfCountry = (c: Country): string => ({ US: "USD", AU: "AUD", UK: "GBP", SG: "SGD", CA: "CAD", EU: "EUR" })[c];
 function writeViews(w: Writer, t: TreeView, ctx: ImportContext, view: RowView[], listed: RowView[], repOf: Map<number, RowView>, un: Map<number, UnAgg>, stats: Map<number, UnitStat> | undefined, sealedRows: SealedRow[], at: string): void {
   const snap = ctx.snapshot; const setById = new Map(snap.sets.map((s) => [s.id, s]));
   const scOf = (r: RowView): string => ((r.c[5] as string | 0) || setById.get(r.c[4])?.tok || "");
@@ -873,21 +873,15 @@ function writeViews(w: Writer, t: TreeView, ctx: ImportContext, view: RowView[],
   const setStats = new Map<number, [number, number]>(); for (const x of basket) { const e = setStats.get(x.r.c[4]) ?? [0, 0]; e[0]++; e[1] += x.v; setStats.set(x.r.c[4], e); }
   const overview: MarketFile = { v: 1, at, basket: { n: vals.length, totalUsd: total, avg: vals.length ? Math.round(total / vals.length) : 0, median: vals.length ? vals[Math.floor(vals.length / 2)]! : 0 }, adv, dec, cons, sets: [...setStats].sort((a, b) => a[0] - b[0]).map(([id, [n, tt]]) => [id, n, tt] as [number, number, number]) };
   w.put("mk/overview.json", j(overview));
-  // records: the biggest cross-market STORE gaps per home market (stores only, never TCGplayer's price), and the 90-day highs and lows of tracked units
-  const XMIN_HOME = 500, XMIN_PCT = 15, XMAX_PCT = 70, XMIN_SAVE = 500, TOPN = 10;
+  // records: the biggest cross-market gaps per home market, each ONE unit compared with itself (src/lib/market-gaps.ts: the cheapest local option, TCGplayer's own low
+  // included in the US, against another market's cheapest STORE copy, with the unit's TCGplayer market as the outlier check), and the 90-day highs and lows of tracked units.
+  // The row keeps its v1 shape: `converted + saving` is the local price.
+  const TOPN = 10;
+  const gapUnits = [...un].map(([uid, a]) => { const r = rowById(view, Math.floor(uid / 2)), f = (uid % 2) as 0 | 1; return { uid, u: { storeMin: a.smin, marketUsd: r ? marketOfUnit(r.p, f) : null, tcgLowUsd: r ? (f === 0 ? r.p[3] : r.p[4]) : null } satisfies GapUnit }; });
   const gaps: RecordsFile["gaps"] = {};
   MARKETS.forEach((home, hi) => {
     const rows: RecordsFile["gaps"][string] = [];
-    for (const [uid, a] of un) {
-      const h = a.smin[hi]; if (h == null || h < XMIN_HOME) continue; let bestRow: RecordsFile["gaps"][string][number] | null = null;
-      MARKETS.forEach((away, ai) => {
-        if (ai === hi) return; const v = a.smin[ai]; if (v == null) return;
-        const conv = usdCentsToCountry(toUsdCents(v, currencyOfCountry(away)), home); const save = h - conv; const pct = Math.round((save / h) * 1000) / 10;
-        if (pct < XMIN_PCT || pct > XMAX_PCT || save < XMIN_SAVE) return;
-        if (!bestRow || save > bestRow[5]) bestRow = [uid, hi, ai, v, conv, save, pct];
-      });
-      if (bestRow) rows.push(bestRow);
-    }
+    for (const { uid, u } of gapUnits) { const g = unitGap(u, home); if (g) rows.push([uid, hi, MARKETS.indexOf(g.away), g.awayCents, g.awayConverted, g.saving, g.pct]); }
     gaps[home] = rows.sort((x, y) => y[5] - x[5] || y[6] - x[6] || x[0] - y[0]).slice(0, TOPN);
   });
   const trk = units.filter((u) => u.cents >= 500).map((u) => ({ u, hi: statOf(u.r.p, u.f).hi })).filter((x): x is { u: U; hi: number } => x.hi != null && x.hi > 0);

@@ -14,11 +14,11 @@ import { LogoMark } from "@/components/Logo";
 import { ScrollDepthTracker } from "@/components/ScrollDepthTracker";
 import { ARTICLE_PROSE } from "@/components/prose";
 import { JsonLd } from "@/components/ui";
-import { collectMentions } from "@/components/blog/mentions";
+import { collectMentions, shopCards as unitsToCards, shopPicks } from "@/components/blog/mentions";
 import { ShareRow } from "@/components/blog/ShareRow";
 import { AUTHOR, POSTS, postHref } from "@/lib/blog";
 import { postContext } from "@/lib/blog/context";
-import { getCardLookup, getSealedDetail } from "@/lib/data";
+import { getCardLookup, getCardsByIds, getSealedDetail, type CardLite } from "@/lib/data";
 import type { Post } from "@/lib/blog/types";
 import { longDate, shortDate } from "@/lib/format";
 import { getCountry } from "@/lib/get-country";
@@ -42,17 +42,20 @@ export async function ArticleView({ post, section }: { post: Post; section: "blo
   const updated = ctx.cat.pricesAt.slice(0, 10);
   const more = POSTS.filter((p) => p.slug !== post.slug && (p.category ?? "blog") === (post.category ?? "blog")).concat(POSTS.filter((p) => p.slug !== post.slug && (p.category ?? "blog") !== (post.category ?? "blog"))).slice(0, 3);
   // The shop strip: the hero cards, then every other card and product the post
-  // names, in order of first mention (components/blog/mentions.ts).
+  // names, in order of first mention (components/blog/mentions.ts), each in the
+  // finish the post priced it in: a table's foil row is a foil row here too, so
+  // the strip never quotes the other finish of a card under the same name.
   const mentioned = collectMentions([...body.summary, body.lede, ...body.sections.map((x) => x.body)]);
-  const shopSlugs = [...new Set([...body.heroCards.map((c) => c.slug), ...mentioned.cards])];
+  const units = [...body.heroCards.map((c) => ({ slug: c.slug, finish: c.headFinish })), ...mentioned.units];
+  const shopSlugs = [...new Set(units.map((u) => u.slug))];
   const [lookup, sealedDetails] = await Promise.all([
     getCardLookup({ slugs: shopSlugs.slice(0, 12) }),
     Promise.all(mentioned.sealed.slice(0, 6).map((slug) => getSealedDetail(slug))),
   ]);
-  const shopCards = shopSlugs
-    .map((slug) => lookup.bySlug.get(slug))
-    .filter((c): c is NonNullable<typeof c> => Boolean(c))
-    .slice(0, 6);
+  const picks = shopPicks(units, lookup.bySlug, 6);
+  const viewIds = (f: "N" | "F") => picks.filter((p) => !p.headline && p.finish === f).map((p) => p.id);
+  const [foilViews, normalViews] = await Promise.all((["F", "N"] as const).map((f) => (viewIds(f).length ? getCardsByIds(viewIds(f), { unit: f }) : Promise.resolve(new Map<number, CardLite>()))));
+  const shopCards = unitsToCards(picks, lookup.bySlug, (id, f) => (f === "F" ? foilViews : normalViews).get(id));
   const shopSealed = sealedDetails.filter((x): x is NonNullable<typeof x> => Boolean(x)).slice(0, shopCards.length ? 2 : 4);
   return (
     <div>

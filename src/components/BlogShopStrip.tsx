@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { cardEbayQuery, ebayLabel, ebaySearchUrl, magicEbayQuery, outboundRel } from "@/lib/affiliate";
+import { finishLabel } from "@/lib/constants";
 import { COUNTRIES, type Country } from "@/lib/country";
 import type { CardLite, SealedLite, SetLite } from "@/lib/data";
 import { money } from "@/lib/format";
@@ -15,6 +16,9 @@ import CardQuickLink from "./CardQuickLink";
 // reader's own eBay. A search, so it says "Search", never "Buy": it claims no
 // listing exists. Rendered on the server with the post (same request, same
 // cached catalogue), so it needs no fetch and no client state.
+// Each card is ONE unit, the finish the post priced (ArticleView): a Foil unit
+// says so beside its price, links to the card page's Foil tab and searches eBay
+// for the foil.
 export function BlogShopStrip({
   cards,
   sealed = [],
@@ -62,10 +66,11 @@ export function BlogShopStrip({
       <ul className="divide-y divide-ink-800">
         {cards.map((card) => {
           const p = price(card);
-          const label = `${card.name}${card.variant ? ` (${card.variant})` : ""}`;
+          const foil = card.headFinish === "F";
+          const label = `${card.name}${card.variant ? ` (${card.variant})` : ""}${foil ? ` ${finishLabel(card, "F").toLowerCase()}` : ""}`;
           return (
-            <li key={`c-${card.id}`} className={row}>
-              <CardQuickLink slug={card.slug} className="group flex min-w-0 flex-1 basis-56 items-center gap-3">
+            <li key={`c-${card.id}-${card.headFinish}`} className={row}>
+              <CardQuickLink slug={card.slug} finish={card.headFinish} className="group flex min-w-0 flex-1 basis-56 items-center gap-3">
                 {card.hasImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={cardImage.thumb(card.id)} alt={cardImageAlt({ name: card.name, variant: card.label, setCode: card.setCode, number: card.number })} loading="lazy" className="h-14 w-10 shrink-0 rounded-sm bg-ink-800 object-cover" />
@@ -77,6 +82,7 @@ export function BlogShopStrip({
                     {card.name}
                   </span>
                   <span className="block truncate text-xs text-slate-500">
+                    {foil && !card.variant?.includes(finishLabel(card, "F")) ? `${finishLabel(card, "F")} · ` : ""}
                     {card.variant ? `${card.variant} · ` : ""}
                     {setById.get(card.setId)?.code ?? ""}
                     {card.number ? ` · ${card.number}` : ""}
@@ -87,7 +93,7 @@ export function BlogShopStrip({
                 <span className="num block font-semibold text-accent">{p.text}</span>
                 <span className="block text-[11px] text-slate-500">{p.note}</span>
               </span>
-              {ebayBtn(cardEbayQuery(card), label)}
+              {ebayBtn(cardEbayQuery({ ...card, foil: foil && !/\bfoil\b/i.test(card.variant ?? "") }), label)}
             </li>
           );
         })}

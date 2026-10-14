@@ -5,7 +5,7 @@ import { Breadcrumbs, Faq, JsonLd } from "@/components/ui";
 import { COUNTRIES, COUNTRY_LIST, MARKETS, currencyOf, normalizeCountry, type Country } from "@/lib/country";
 import { getMarketRecords, type CardLite } from "@/lib/data";
 import { finishLabel } from "@/lib/constants";
-import { XMARKET_MIN_SAVING_CENTS } from "@/lib/deals";
+import { GAP_HOME_MAX_MARKET, GAP_MIN_SAVING_CENTS } from "@/lib/market-gaps";
 import { money } from "@/lib/format";
 import { USD_TO, usdCentsToCountry } from "@/lib/fx";
 import { getCountry } from "@/lib/get-country";
@@ -15,9 +15,11 @@ import { pageOg } from "@/lib/og/meta";
 // The free cross-market board (RiftCompare's /market/records, ported with MTG
 // Compare's data). Two kinds of board:
 //   • Biggest cross-market gaps — the cheapest in-stock STORE price for the same
-//     printing in another market, converted at our reference rate, against the
-//     cheapest store price here. Stores only (never TCGplayer's own listing or an
-//     eBay ask), ranked by money saved, before postage or customs.
+//     printing AND finish in another market, converted at our reference rate,
+//     against the cheapest price here (in the US TCGplayer's own lowest listing
+//     counts as a local option; the cheaper market is always a store, never an
+//     eBay ask), ranked by money saved, before postage or customs. A local ask far
+//     above the unit's TCGplayer market is skipped (src/lib/market-gaps.ts).
 //   • 90-day records — from TCGplayer's market price history (the 90-day high and
 //     the 30-day change of a card's unit): cards at a fresh 90-day high, and cards
 //     furthest below theirs. The history is young, so these are 90-day records,
@@ -41,7 +43,7 @@ const RECORDS_SHOWN = 10;
 function CardCell({ card, finish }: { card: CardLite; finish: "N" | "F" }) {
   const img = imageFor(card, "thumb");
   return (
-    <CardQuickLink slug={card.slug} className="flex min-w-0 items-center gap-2 hover:text-brand-400" title={card.name}>
+    <CardQuickLink slug={card.slug} finish={finish} className="flex min-w-0 items-center gap-2 hover:text-brand-400" title={card.name}>
       {img ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={img} alt="" width={28} height={40} loading="lazy" decoding="async" className="h-10 w-7 shrink-0 rounded bg-ink-800 object-cover" />
@@ -52,7 +54,7 @@ function CardCell({ card, finish }: { card: CardLite; finish: "N" | "F" }) {
         <span className="block truncate text-sm font-semibold text-white">
           {card.name}
           {card.variant ? <span className="font-normal text-slate-400"> ({card.variant})</span> : null}
-          {finish === "F" ? <span className="font-normal text-slate-400"> · {finishLabel(card, "F")}</span> : null}
+          {finish === "F" && !card.variant?.includes(finishLabel(card, "F")) ? <span className="font-normal text-slate-400"> · {finishLabel(card, "F")}</span> : null}
         </span>
         <span className="block text-[11px] text-slate-500">
           {card.setCode} · {card.number ?? "—"}
@@ -95,7 +97,7 @@ export default async function MarketRecordsPage({ searchParams }: { searchParams
   const FAQS = [
     {
       q: "Can I actually buy at the cross-market price?",
-      a: "Sometimes. Both figures are live in-stock store prices, converted into one currency at our reference rate, but international postage, customs and whether that market's stores ship to you are not included — on a cheap card they will usually swallow the gap. It is most useful on expensive singles.",
+      a: `Sometimes. Both figures are in-stock prices for the same printing in the same finish, converted into one currency at our reference rate. In the United States the local figure is the cheaper of the stores and TCGplayer's own lowest listing, since a US buyer can order there. A card whose cheapest local price is more than ${GAP_HOME_MAX_MARKET} times its TCGplayer market price is left out: that is one store's asking price, not the market's. International postage, customs and whether that market's stores ship to you are not included — on a cheap card they will usually swallow the gap. It is most useful on expensive singles.`,
     },
     {
       q: "Which exchange rate do you use?",
@@ -151,7 +153,7 @@ export default async function MarketRecordsPage({ searchParams }: { searchParams
           <Board
             id="gaps"
             heading="Biggest cross-market price gaps"
-            blurb={`Cards a store in another market sells for meaningfully less than the cheapest store in ${info.place}, ranked by the money saved before postage or customs. Converted at our reference rate so the two figures compare.`}
+            blurb={`The same printing and finish, sold for meaningfully less by a store in another market than the cheapest ${country === "US" ? "store or TCGplayer listing" : "store"} in ${info.place}, ranked by the money saved before postage or customs. Converted at our reference rate so the two figures compare.`}
             rows={gaps.map((g) => ({
               key: g.card.id * 2 + (g.finish === "F" ? 1 : 0),
               cell: <CardCell card={g.card} finish={g.finish} />,
@@ -174,7 +176,7 @@ export default async function MarketRecordsPage({ searchParams }: { searchParams
           <section id="gaps" className="scroll-mt-24">
             <h2 className="text-xl text-white">Biggest cross-market price gaps</h2>
             <p className="mt-1 text-sm text-slate-400">
-              {`No card is at least ${money(XMARKET_MIN_SAVING_CENTS, country)} cheaper at a store in another market than in ${info.place} right now, or the stores of ${info.place} have not been read yet today.`}
+              {`No card is at least ${money(GAP_MIN_SAVING_CENTS, country)} cheaper at a store in another market than in ${info.place} right now, or the stores of ${info.place} have not been read yet today.`}
             </p>
           </section>
         )}
