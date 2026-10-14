@@ -19,6 +19,7 @@ import { int } from "@/lib/format";
 import { getCountry } from "@/lib/get-country";
 import { newestBoosterSet } from "@/lib/selectors";
 import { pageOg } from "@/lib/og/meta";
+import { livePreorderPages, longDateOf } from "@/lib/preorders";
 import { SITE_URL } from "@/lib/site";
 
 const TITLE = "Magic: The Gathering Sealed Products — Booster Box & Bundle Prices";
@@ -53,6 +54,8 @@ export default async function SealedPage({ searchParams }: { searchParams: Recor
   const rows = sortSealed(filterSealed(sealed, query, ctx), query.sort, ctx);
   const soldOut = new Set(soldOutIds?.[country] ?? []);
   const newest = newestBoosterSet(allSets);
+  // Releases with a pre-order page (lib/preorders.ts), while they are still ahead.
+  const preorders = livePreorderPages(allSets, new Date().toISOString().slice(0, 10));
   const sets = allSets
     .filter((s) => s.sealedCount > 0)
     .sort((a, b) => (b.releasedOn ?? "").localeCompare(a.releasedOn ?? ""))
@@ -108,6 +111,18 @@ export default async function SealedPage({ searchParams }: { searchParams: Recor
           </Link>
         </div>
       ) : null}
+
+      {preorders.map((p) => (
+        <div key={p.path} className="card-surface mt-4 flex flex-wrap items-center gap-3 border-gold/40 p-4">
+          <span className="rounded bg-gold/15 px-2 py-0.5 text-xs font-bold text-gold">Pre-order</span>
+          <p className="flex-1 text-[15px] text-slate-200">
+            <span className="font-semibold text-white">{p.label}</span> releases {longDateOf(p.releasedOn)}: every store&apos;s pre-order price for its boxes, bundles and decks, cheapest first.
+          </p>
+          <Link href={p.path} className="btn-primary min-h-10">
+            Compare {p.label} pre-orders →
+          </Link>
+        </div>
+      ))}
 
       <div className="mt-6 flex flex-col gap-6 xl:flex-row">
         <SealedFilters types={types} sets={sets} currency={c.currency} />

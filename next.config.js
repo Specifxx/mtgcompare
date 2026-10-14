@@ -29,8 +29,9 @@ const nextConfig = {
       { source: "/tools/buy-list", destination: "/tools/best-basket?source=watchlist", permanent: true },
       { source: "/tools/box-value", destination: "/tools/box-ev", permanent: true },
       { source: "/bulk-pricer", destination: "/deck", permanent: true },
-      // There is no pre-order price page: the sets still to come are the "Coming up" part of
-      // /release-dates, each linking to its set page, where pre-order listings are priced. An
+      // There is no standing pre-order price page: the sets still to come are the "Coming up" part
+      // of /release-dates, each linking to its set page and, while a release has one, to its own
+      // pre-order page (src/lib/preorders.ts: /star-trek-preorders, retired on release day). An
       // old /preorders URL lands there; it was a page.tsx that only redirected (and the nav's
       // "Pre-order prices") until 2026-10-09 (tests/nav-routes.test.ts).
       { source: "/preorders", destination: "/release-dates", permanent: true },

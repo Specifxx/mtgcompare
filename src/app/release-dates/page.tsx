@@ -8,6 +8,7 @@ import { pageOg } from "@/lib/og/meta";
 import { DATA_TABLE } from "@/components/prose";
 import { ReleaseCountdownTimer } from "@/components/ReleaseCountdownTimer";
 import { ReleaseAlertSlot } from "@/components/ReleaseAlertSlot";
+import { livePreorderPages, preorderPathFor } from "@/lib/preorders";
 
 // Every route that reaches the published data is dynamic: a build reads no data host (CLAUDE.md, contract C26).
 export const dynamic = "force-dynamic";
@@ -26,7 +27,10 @@ function daysUntil(iso: string): number {
 
 export default async function ReleaseDates() {
   const today = new Date().toISOString().slice(0, 10);
-  const main = (await getSets()).filter((s) => RELEASE_SET_KINDS.includes(s.kind) && s.releasedOn);
+  const all = await getSets();
+  const main = all.filter((s) => RELEASE_SET_KINDS.includes(s.kind) && s.releasedOn);
+  // A release with a pre-order page (lib/preorders.ts) links it while it is still ahead; /preorders itself stays a redirect here.
+  const preorders = livePreorderPages(all, today);
   const upcoming = main
     .filter((s) => s.releasedOn! > today)
     .sort((a, b) => a.releasedOn!.localeCompare(b.releasedOn!));
@@ -34,6 +38,7 @@ export default async function ReleaseDates() {
     .filter((s) => s.releasedOn! <= today)
     .sort((a, b) => b.releasedOn!.localeCompare(a.releasedOn!));
   const next = upcoming[0];
+  const nextPreorders = next ? preorderPathFor(next, today) : null;
   return (
     <div>
       <Breadcrumbs trail={[{ name: "Release dates" }]} />
@@ -56,6 +61,15 @@ export default async function ReleaseDates() {
             </Link>{" "}
             ({next.code}), out {longDate(next.releasedOn)} —{" "}
             {int(Math.max(0, daysUntil(next.releasedOn!)))} days from today.
+            {nextPreorders ? (
+              <>
+                {" "}
+                <Link href={nextPreorders} className="text-brand-400 hover:underline">
+                  Compare {next.code} pre-order prices
+                </Link>
+                .
+              </>
+            ) : null}
           </InShort>
           {/* The day line above is server-computed (no-JS and crawlers); the ticking
               timer starts from the same date at 00:00 UTC. */}
@@ -89,6 +103,19 @@ export default async function ReleaseDates() {
               </Link>
             ))}
           </div>
+          {preorders.length ? (
+            <p className="mt-4 text-sm text-slate-300">
+              Pre-order prices, store by store:{" "}
+              {preorders.map((p, i) => (
+                <span key={p.path}>
+                  {i ? " · " : ""}
+                  <Link href={p.path} className="font-semibold text-brand-400 hover:underline">
+                    {p.label} pre-orders →
+                  </Link>
+                </span>
+              ))}
+            </p>
+          ) : null}
         </section>
       ) : null}
       <section className="mt-10">

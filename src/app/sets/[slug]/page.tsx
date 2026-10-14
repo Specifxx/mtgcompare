@@ -19,6 +19,7 @@ import { getCountry } from "@/lib/get-country";
 import { withArticle } from "@/lib/filter-chips";
 import { median } from "@/lib/selectors";
 import { pageOgOwnImage } from "@/lib/og/meta";
+import { preorderPathFor } from "@/lib/preorders";
 import { BrowseFilters } from "@/components/BrowseFilters";
 import { EbayPicks } from "@/components/EbayPicks";
 import { FilterChips } from "@/components/FilterChips";
@@ -94,6 +95,8 @@ export default async function SetPage({ params, searchParams }: Props) {
   const kind = SET_KINDS[set.kind]?.label ?? "Set";
   const future =
     set.releasedOn && set.releasedOn > new Date().toISOString().slice(0, 10);
+  // A release with a pre-order page (lib/preorders.ts) links it from its set pages until release day.
+  const preorderPath = preorderPathFor(set, new Date().toISOString().slice(0, 10));
 
   return (
     <div>
@@ -126,6 +129,18 @@ export default async function SetPage({ params, searchParams }: Props) {
           <p key={i}>{p}</p>
         ))}
       </div>
+
+      {preorderPath ? (
+        <div className="card-surface mt-6 flex flex-wrap items-center gap-3 border-gold/40 p-4">
+          <span className="chip bg-gold/20 font-semibold text-gold">Pre-order</span>
+          <p className="min-w-0 flex-1 basis-56 text-[15px] text-slate-200">
+            {set.name} releases {longDate(set.releasedOn)}. Compare every store&apos;s pre-order price for its boxes, bundles and decks, in {c.currency}.
+          </p>
+          <Link href={preorderPath} className="btn-primary min-h-10">
+            Compare pre-orders →
+          </Link>
+        </div>
+      ) : null}
 
       <ReleaseAlertSlot setSlug={set.slug} setName={set.name} releasedOn={set.releasedOn} source="set" className="mt-6 max-w-2xl" />
 

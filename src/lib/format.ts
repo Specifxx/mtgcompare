@@ -57,3 +57,9 @@ export function moneyCode(cents: number | null | undefined, currency: string | n
     return `${(cents / 100).toFixed(2)} ${currency.toUpperCase()}`;
   }
 }
+
+/** "A", "A and B", "A, B and C": a list in a sentence, the site's style (no comma before the "and"). */
+export function andList(items: readonly string[]): string {
+  if (items.length <= 1) return items[0] ?? "";
+  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
+}

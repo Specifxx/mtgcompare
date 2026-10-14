@@ -75,8 +75,8 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/cards", label: "By type & rarity", keywords: ["type", "rarity", "treatment", "foil", "etched", "borderless", "showcase", "extended art", "serialized", "mythic", "rare", "creature", "instant", "planeswalker"] },
       { href: "/cards/all", label: "Every card (A-Z)", keywords: ["all cards", "every card", "full list", "complete list", "card index", "a-z", "list of all magic cards"] },
       { href: "/gallery", label: "Card gallery", keywords: ["gallery", "card gallery", "full art", "browse art", "card images"] },
-      // No "Pre-order prices" entry: there is no pre-order page (/preorders only redirects here). The sets still to come are listed on /release-dates and each
-      // links to its set page, where pre-order listings are priced, so the pre-order words land here.
+      // No "Pre-order prices" entry: there is no standing pre-order page (/preorders only redirects here). The sets still to come are listed on /release-dates,
+      // which links each set page and, for a release that has one, its own pre-order page (lib/preorders.ts, retired on release day), so the pre-order words land here.
       { href: "/release-dates", label: "Release dates", keywords: ["release date", "release dates", "countdown", "when", "next set", "upcoming", "when does the next set come out", "preorder", "pre-order", "pre order", "presale", "upcoming set", "prerelease", "release week"] },
       { href: "/singles", label: "Buy singles", keywords: ["singles", "buy singles", "cheapest single"] },
     ],

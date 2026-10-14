@@ -6,6 +6,7 @@ import { MARKETS, type Country } from "@/lib/country";
 import { getHomeBoard, getHomeStats, getMostStocked, getMovers, getRecentlyUpdated, getSets, type CardLite, type HomeBoard, type HomeCard, type SetLite } from "@/lib/data";
 import type { HomeStats } from "@/lib/home";
 import { usdCentsToCountry } from "@/lib/fx";
+import { preorderPathFor } from "@/lib/preorders";
 import type { HomeDeal, TopDeals } from "@/lib/top-deals";
 import type { TileItem } from "./PopularCardsCarousel";
 import type { TrendingCard } from "./TrendingChips";
@@ -26,7 +27,7 @@ export interface HomeData {
   dealsByCountry: Record<Country, TopDeals>;
   /** The newest and upcoming sets for "Explore the database", upcoming first, at most SET_TILES. */
   sets: SetLite[];
-  nextSet: { name: string; code: string; slug: string; releasedOn: string | null } | null;
+  nextSet: { name: string; code: string; slug: string; releasedOn: string | null; preorderPath: string | null } | null;
   newestSetCode?: string;
 }
 
@@ -112,7 +113,7 @@ export async function loadHomeData(): Promise<HomeData> {
     recentlyUpdated: recent.map((r) => ({ ...tileOfLite(r.card), pct: r.pct })),
     dealsByCountry: topDealsOf(board),
     sets: homeSets(sets, today),
-    nextSet: next ? { name: next.name, code: next.code, slug: next.slug, releasedOn: next.releasedOn } : null,
+    nextSet: next ? { name: next.name, code: next.code, slug: next.slug, releasedOn: next.releasedOn, preorderPath: preorderPathFor(next, today) } : null,
     newestSetCode: board.newest[0]?.code,
   };
 }

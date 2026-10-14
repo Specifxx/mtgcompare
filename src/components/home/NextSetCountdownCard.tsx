@@ -3,8 +3,9 @@ import Link from "next/link";
 // RiftCompare's NextSetCountdownCard: one centred line under "Explore the
 // database" — "<Set> is coming · N days to go — Full release details →".
 // Nothing renders once the set is out (Explore's "New" chip covers it then)
-// or when nothing upcoming is listed.
-export function NextSetCountdownCard({ set, now }: { set: { name: string; code: string; slug: string; releasedOn: string | null } | null | undefined; now: number }) {
+// or when nothing upcoming is listed. A set with a pre-order page
+// (lib/preorders.ts) links it too.
+export function NextSetCountdownCard({ set, now }: { set: { name: string; code: string; slug: string; releasedOn: string | null; preorderPath?: string | null } | null | undefined; now: number }) {
   if (!set) return null;
   const releaseMs = set.releasedOn ? Date.parse(`${set.releasedOn}T00:00:00Z`) : NaN;
   const hasDate = !Number.isNaN(releaseMs);
@@ -28,6 +29,11 @@ export function NextSetCountdownCard({ set, now }: { set: { name: string; code: 
       <Link href={`/sets/${set.slug}`} className="tap-link font-semibold text-brand-300 underline-offset-2 hover:underline">
         Every {set.code} card listed so far →
       </Link>
+      {set.preorderPath ? (
+        <Link href={set.preorderPath} className="tap-link font-semibold text-brand-300 underline-offset-2 hover:underline">
+          {set.code} pre-order prices →
+        </Link>
+      ) : null}
     </p>
   );
 }
