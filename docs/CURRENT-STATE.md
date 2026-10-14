@@ -77,7 +77,8 @@ Entries dated before 2026-10-08 are OP Compare's inherited history (One Piece vo
 ## Brand and share images
 
 - the palette is "Arcane Ink" (tokens in `globals.css`, pinned by `tests/theme.test.ts`); the default theme is dark; the mark is `MARK_PATHS` and every icon is generated from it (`npm run icons`); no Wizards marks. [2026-10-08](../DECISIONS.md#L2502)
-- every `src/app/**/opengraph-image.tsx` is a thin route that exports only `runtime = "nodejs"`, `dynamic = "force-dynamic"`, `alt`, `size` (1200x630), `contentType` and `default` (no `revalidate`); the image is cached by the CDN through `OG_CACHED`. [2026-10-08](../DECISIONS.md#L2515)
+- every `src/app/**/opengraph-image.tsx` is a thin route that exports only `runtime = "nodejs"`, `dynamic = "force-dynamic"`, `alt`, `size` (1200x630), `contentType` and `default` (no `revalidate`). [2026-10-08](../DECISIONS.md#L2515)
+- a drawn share image is kept a day by the CDN (`OG_CACHED`: `public, max-age=0, s-maxage=86400, stale-while-revalidate=86400`), a fallback one minute (`OG_AFTER_ERROR`); `tests/og.test.ts` checks the header the routes return; on Vercel a curl shows `public, max-age=0` (the CDN strips `s-maxage`), so the cache is judged by `x-vercel-cache` and `age`. [2026-10-14](../DECISIONS.md#L2858)
 - site identity (name, domain, contact, sister sites, the Wizards and Scryfall strings) lives only in `src/lib/site.ts`; the domain and the contact address are placeholders until the owner decides. [2026-10-08](../DECISIONS.md#L2522)
 
 ## Safety nets and ratchets

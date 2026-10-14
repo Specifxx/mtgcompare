@@ -6,6 +6,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import React from "react";
 import { CARD_FLAGS, PRICE_MASK, type Finish } from "../src/lib/constants";
@@ -20,6 +21,8 @@ import { OG_AFTER_ERROR, OG_CACHED } from "../src/lib/og/respond";
 import { ogPriceLines, pickGuideRows, setBoxImage, setPreviewCards, setTopRows, showMoveColumn, storesTracked, toRow } from "../src/lib/og/select";
 import { SET_STATS, badgeText, clip, clipWords, fitStats, ogDate, ogDelta, ogMoney, rarityTone, setTitleSize, splitEdition, statWidth } from "../src/lib/og/theme";
 import { slugify } from "../src/lib/catalog";
+import { resetPlaneForTests } from "../src/lib/data/plane/runtime";
+import { writeFixtureTree } from "../scripts/smoke-pages";
 
 const ROOT = path.resolve(__dirname, "..");
 const APP = path.join(ROOT, "src", "app");
@@ -141,9 +144,38 @@ test("pageOg: OG_BASE plus the page's url and the default image; extra fields ov
 });
 
 // ── Cache headers ────────────────────────────────────────────────────────────
-test("share images send a 6 h CDN header, fallbacks one minute; never ImageResponse's immutable year", () => {
-  assert.equal(OG_CACHED, "public, max-age=0, s-maxage=21600, stale-while-revalidate=86400");
+/** A Cache-Control value as directive -> seconds (or true for a bare directive). */
+function cacheDirectives(h: string | null): Map<string, number | true> {
+  const out = new Map<string, number | true>();
+  for (const part of (h ?? "").split(",")) {
+    const [k, v] = part.trim().toLowerCase().split("=");
+    if (k) out.set(k, v === undefined ? true : Number(v));
+  }
+  return out;
+}
+const DAY = 86400;
+/** The owner's rule (2026-10-14): a drawn image stays at the CDN at least a day, may be served stale while it redraws, and is never kept by a browser. */
+function assertLongCdnCache(h: string | null, what: string): void {
+  const d = cacheDirectives(h);
+  assert.ok(d.get("public") === true, `${what}: public (${h})`);
+  assert.equal(d.get("max-age"), 0, `${what}: no browser cache (${h})`);
+  assert.ok(Number(d.get("s-maxage")) >= DAY, `${what}: s-maxage of at least a day (${h})`);
+  assert.ok(Number(d.get("stale-while-revalidate")) > 0, `${what}: stale-while-revalidate (${h})`);
+  assert.ok(!d.has("immutable") && !d.has("no-store"), `${what}: ${h}`);
+}
+/** A fallback (read error, unknown slug) is kept one minute, never a day: a card shared minutes before its import must not pin the placeholder. */
+function assertShortCdnCache(h: string | null, what: string): void {
+  const d = cacheDirectives(h);
+  assert.equal(d.get("max-age"), 0, `${what}: ${h}`);
+  assert.ok(Number(d.get("s-maxage")) <= 60, `${what}: one minute at most (${h})`);
+  assert.ok(!d.has("stale-while-revalidate") && !d.has("immutable"), `${what}: ${h}`);
+}
+
+test("share images send a day at the CDN and a day of stale-while-revalidate, fallbacks one minute; never ImageResponse's immutable year", () => {
+  assert.equal(OG_CACHED, "public, max-age=0, s-maxage=86400, stale-while-revalidate=86400");
   assert.equal(OG_AFTER_ERROR, "public, max-age=0, s-maxage=60");
+  assertLongCdnCache(OG_CACHED, "OG_CACHED");
+  assertShortCdnCache(OG_AFTER_ERROR, "OG_AFTER_ERROR");
   const src = fs.readFileSync(path.join(ROOT, "src", "lib", "og", "images.tsx"), "utf8");
   assert.match(src, /export const fallbackOg = \(\) => ogResponse\(<FallbackImage \/>, OG_AFTER_ERROR\);/);
   // Every non-fallback ogResponse( … ) passes OG_CACHED.
@@ -154,6 +186,65 @@ test("share images send a 6 h CDN header, fallbacks one minute; never ImageRespo
   }
   const respond = fs.readFileSync(path.join(ROOT, "src", "lib", "og", "respond.ts"), "utf8");
   assert.match(respond, /"cache-control": cacheControl/, "the key must be lowercase to replace ImageResponse's default");
+});
+
+// The header the route modules really return, not the constant: each route is imported and called as Next calls it, over the
+// smoke fixture tree (scripts/smoke-pages.ts, the tree ci-build.yml serves). Next 14's generated image route returns this Response
+// untouched (no Cache-Control of its own, unlike sitemap/robots), so this is the header the CDN reads. Art fetches are refused
+// (network-free: the placeholder path). The deck and Rising images read Neon and are covered by the source test above.
+test("the image routes' own responses: a drawn image is kept a day at the CDN, an unknown slug's fallback one minute", async () => {
+  (globalThis as unknown as { React: typeof React }).React = React;
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "og-headers-"));
+  writeFixtureTree(dir);
+  const was = process.env.PLANE_DIR;
+  const realFetch = globalThis.fetch;
+  process.env.PLANE_DIR = dir;
+  resetPlaneForTests();
+  globalThis.fetch = (async () => {
+    throw new Error("no network in tests");
+  }) as typeof fetch;
+  type Route = (props?: { params: Record<string, string> }) => Promise<Response>;
+  const route = async (rel: string): Promise<Route> => (await import(path.join(APP, rel))).default as Route;
+  try {
+    const drawn: [string, string, Record<string, string> | undefined][] = [
+      ["card", "card/[slug]/opengraph-image.tsx", { slug: "card-1001-s100" }],
+      ["set", "sets/[slug]/opengraph-image.tsx", { slug: "set-100" }],
+      ["sealed", "sealed/[slug]/opengraph-image.tsx", { slug: "sealed-900001" }],
+      ["blog", "blog/[slug]/opengraph-image.tsx", { slug: "most-expensive-magic-cards" }],
+      ["guide", "guides/[slug]/opengraph-image.tsx", { slug: "most-expensive-magic-cards" }],
+    ];
+    for (const [what, rel, params] of drawn) {
+      const res = await (await route(rel))(params ? { params } : undefined);
+      assert.equal(res.status, 200, what);
+      assert.equal(res.headers.get("content-type"), "image/png", what);
+      assertLongCdnCache(res.headers.get("cache-control"), `${what} image`);
+      const buf = Buffer.from(await res.arrayBuffer());
+      assert.deepEqual([...buf.subarray(0, 4)], [0x89, 0x50, 0x4e, 0x47], `${what}: a PNG`);
+    }
+    // The fixture's cards are all under the guide's US$10 floor, so the home and /price-guide images draw the fallback here:
+    // either way the header is one of the two, never Next's or ImageResponse's.
+    for (const rel of ["opengraph-image.tsx", "price-guide/opengraph-image.tsx"]) {
+      const h = (await (await route(rel))()).headers.get("cache-control");
+      assert.ok(h === OG_CACHED || h === OG_AFTER_ERROR, `${rel}: ${h}`);
+    }
+    const unknown: [string, string][] = [
+      ["card/[slug]/opengraph-image.tsx", "no-such-card"],
+      ["sets/[slug]/opengraph-image.tsx", "no-such-set"],
+      ["sealed/[slug]/opengraph-image.tsx", "no-such-box"],
+      ["blog/[slug]/opengraph-image.tsx", "no-such-post"],
+    ];
+    for (const [rel, slug] of unknown) {
+      const res = await (await route(rel))({ params: { slug } });
+      assert.equal(res.status, 200, `${rel} (${slug}): a fallback image, never a 404 or 500`);
+      assertShortCdnCache(res.headers.get("cache-control"), `${rel} (${slug})`);
+    }
+  } finally {
+    globalThis.fetch = realFetch;
+    if (was === undefined) delete process.env.PLANE_DIR;
+    else process.env.PLANE_DIR = was;
+    resetPlaneForTests();
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 // ── 4. Real fixtures ─────────────────────────────────────────────────────────

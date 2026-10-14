@@ -7,8 +7,11 @@ import { PRINTINGS, RARITIES } from "../constants";
 
 export const OG_SIZE = { width: 1200, height: 630 } as const;
 
-/** 6 h: how long the CDN keeps a share image (OG_CACHED in respond.ts); the routes are force-dynamic, so this is the only freshness bound. */
-export const OG_REVALIDATE = 21600;
+/** A day: how long the CDN keeps a share image (OG_CACHED in respond.ts); the routes are force-dynamic, so this is the only freshness bound. One publish a day, so a cached image is at most about one publish behind. */
+export const OG_REVALIDATE = 86400;
+
+/** A day: how long past OG_REVALIDATE the CDN may still serve the old image while it draws the new one in the background. */
+export const OG_STALE = 86400;
 
 export const OG = {
   page: "#08070f",
