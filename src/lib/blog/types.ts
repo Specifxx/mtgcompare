@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { Country } from "../country";
 import type { CardLite, CardMini, CatalogStats, IndexPoint, MarketOverview, MarketRecords, SealedLite, SetLite, SiteStats } from "../data";
+import type { StapleRow } from "./select";
 
 // Every post is built from MTG Compare's published price data at request time
 // (through the same cached, bounded loaders as the price pages), so a figure in
@@ -28,6 +29,21 @@ export interface SetBoard {
   top: CardMini[];
 }
 
+/** The free movers feeds the movers post reads (the /movers lists): the headline unit of each tracked card worth at least MOVER_FLOOR_CENTS, largest move first. Empty until the history holds a week (a month for the 30-day lists). */
+export interface MoversView {
+  up7: CardLite[];
+  down7: CardLite[];
+  up30: CardLite[];
+  down30: CardLite[];
+}
+
+/** The newest released expansions and, per colour group (COLOUR_GROUPS), the cheapest printing of each of their cheapest mythic rares; `treated` is the same over the special frames only. `sets` is empty when no expansion qualifies. */
+export interface MythicBoards {
+  sets: SetLite[];
+  groups: { key: string; cards: CardLite[] }[];
+  treated: CardLite[];
+}
+
 export interface PostContext {
   /** The day the prices are from; a title may quote its month. */
   cat: { pricesAt: string };
@@ -50,6 +66,16 @@ export interface PostContext {
   boards: SetBoard[];
   /** The dearest Booster Box products, dearest first (up to 40). */
   boxes: SealedLite[];
+  // The four optional sections below are built once per instance and data commit (context.ts, `perCommit`). null means the section could not be
+  // read on this request: the post says so and never presents it as "nothing to show".
+  /** The movers post: this week's and this month's risers and fallers. */
+  movers: MoversView | null;
+  /** The colour post: the cheapest mythic rares of the newest expansions. */
+  mythics: MythicBoards | null;
+  /** The staples post: COMMANDER_STAPLES (select.ts), each with its Oracle card and the printing it is priced at. */
+  staples: StapleRow[] | null;
+  /** The cheapest-boxes post: every released Booster Box product we list, cheapest TCGplayer market first (unpriced last). */
+  cheapBoxes: SealedLite[] | null;
   country: Country;
 }
 
