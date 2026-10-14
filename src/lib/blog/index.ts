@@ -1,5 +1,9 @@
 import { setConcentration } from "./posts/set-concentration";
 import { boosterBoxes } from "./posts/booster-boxes";
+import { cheapBoxes } from "./posts/cheap-boxes";
+import { cheapMythics } from "./posts/cheap-mythics";
+import { commanderStaples } from "./posts/commander-staples";
+import { priceMovers } from "./posts/price-movers";
 import { cheaperAbroad } from "./posts/cheaper-abroad";
 import { mostExpensive } from "./posts/most-expensive";
 import { rarities } from "./posts/rarities";
@@ -8,9 +12,11 @@ import { whereToBuy } from "./posts/where-to-buy";
 import type { Post } from "./types";
 
 // Newest first. Adding a post: write it in posts/, add it here — the blog
-// index, sitemap, RSS feed and share images follow. Seven posts on purpose: each
-// is built from the data, so a post exists only where the data can carry it.
-export const POSTS: Post[] = [mostExpensive, setConcentration, setReview, boosterBoxes, rarities, whereToBuy, cheaperAbroad];
+// index, sitemap, RSS feed and share images follow. Few posts on purpose: each
+// is built from the data, so a post exists only where the data can carry it,
+// and refreshes itself with every import (the 2026-10-14 four: movers, Commander
+// staples, cheapest mythics by colour, cheapest boxes; DECISIONS.md).
+export const POSTS: Post[] = [priceMovers, commanderStaples, cheapMythics, cheapBoxes, mostExpensive, setConcentration, setReview, boosterBoxes, rarities, whereToBuy, cheaperAbroad];
 
 export function postBySlug(slug: string): Post | undefined {
   return POSTS.find((p) => p.slug === slug);
