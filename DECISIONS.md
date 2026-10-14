@@ -2821,3 +2821,14 @@ Reversal: `unitGap` is the only place the rule lives; the 2x and 0.5x are `GAP_H
 - `force-dynamic`, no `revalidate`, `pageOg`, a row of `FIXED` in `src/lib/sitemap-sections.ts` and of `pagesPublic` in `headers.json` (CDN-cached like `/sealed`). The page is `PreorderView` (pure, rendered by `tests/preorders.test.ts`) behind a loader, `loadPreorder`.
 
 Reversal: delete the route and the registry entry; the links read the registry and disappear with it.
+
+## The Star Trek posts read their release through PostContext.releases — 2026-10-14
+
+2026-10-14. Two release posts ship with the pre-order page: "Where to buy MTG Star Trek" (`where-to-buy-magic-star-trek`) and "MTG Star Trek spoilers: the card list so far" (`magic-star-trek-spoilers`), both dated 2026-10-14, category blog (RiftCompare's `where-to-buy-riftbound-radiance` and `riftbound-radiance-spoilers`).
+
+- **Data path.** Posts read only the bounded loaders of `src/lib/blog/context.ts`, and a post's `build` is synchronous on the context. `PostContext` therefore gains `releases`: for each entry of `PREORDER_RELEASES`, its sets, its sealed rows in display order (`getSealedBySet`, two in-memory reads of the memoised list) and up to 100 listed singles per set in collector order (`getCardPage`, one browse-index query each). It is loaded for every post render, the blog and guide indexes and the share images, because those build every post for its hero cards; the cost is a few in-memory queries, no new file and no detail read. Where to buy uses each product's per-market `low` and `stores` from the sealed list (the cheapest fresh in-stock offer per market, TCGplayer's lowest listing counting in the US, and the store count), so a market's table is that market's cheapest live price, never a conversion; the store-by-store detail stays on the pre-order page.
+- **The spoiler list is the catalogue.** A card appears when TCGplayer lists it (the same rows as the set page), with its own image (TCGplayer's scan, else Scryfall's, hotlinked unmodified and drawn whole: `CardGallery` in `BlogBits.tsx`) and a price only where one exists; the post says plainly that fan trackers count more reveals than it holds (playgroup.gg counted 131 on 14 October against our 35 TRK printings). No oracle text is quoted; mechanics names that only fan trackers report (Assimilate, Face a Dilemma, Federation, Spacecraft and station) are attributed and dated. With nothing in the catalogue, both posts say so ("No Star Trek cards revealed in our data yet") instead of breaking (`tests/star-trek-posts.test.ts`).
+- **Released state.** From release day (the catalogue's date) the where-to-buy tables are live prices and the copy says so; neither post needs editing.
+- Star Trek is CBS Studios' trademark (Universes Beyond): the pre-order page and both posts print `STAR_TREK.trademark`.
+
+Reversal: drop the two posts from `POSTS`; `releases` can stay (an empty registry costs nothing).

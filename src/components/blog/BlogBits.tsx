@@ -2,7 +2,7 @@ import CardQuickLink from "../CardQuickLink";
 import type { Country } from "@/lib/country";
 import type { CardLite, SetLite } from "@/lib/data";
 import { money } from "@/lib/format";
-import { cardImage } from "@/lib/images";
+import { cardImage, imageFor } from "@/lib/images";
 import { headline } from "@/lib/price";
 import { DATA_TABLE } from "@/components/prose";
 
@@ -100,6 +100,47 @@ export function CardLink({ c }: { c: CardLite }) {
       {c.name}
       {c.variant ? ` (${c.variant})` : ""}
     </CardQuickLink>
+  );
+}
+
+/**
+ * A gallery of card tiles (the release posts' card lists): each card's own image, whole (TCGplayer's scan, else Scryfall's,
+ * hotlinked unmodified: object-contain, so Scryfall's artist and copyright line is never cropped), its number and the price
+ * the visitor's market has for it, or "No price yet". Every tile is a CardQuickLink.
+ */
+export function CardGallery({ cards, country }: { cards: CardLite[]; country: Country }) {
+  return (
+    <div className="not-prose my-5 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+      {cards.map((c) => {
+        const img = imageFor(c, "tile");
+        const h = headline(c, country);
+        return (
+          <CardQuickLink key={c.id} slug={c.slug} className="group flex flex-col overflow-hidden rounded-lg border border-ink-800 bg-ink-900 hover:border-ink-600">
+            <div className="bg-ink-850 p-2">
+              {img ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={img} alt={`${c.name}${c.variant ? ` (${c.variant})` : ""} ${c.setCode} ${c.number ?? ""} Magic card`.replace(/\s+/g, " ").trim()} loading="lazy" decoding="async" width={300} height={419} className="aspect-[300/419] w-full rounded-md bg-ink-800 object-contain" />
+              ) : (
+                <span className="grid aspect-[300/419] w-full place-items-center rounded-md bg-ink-800 text-xs text-slate-500">No image yet</span>
+              )}
+            </div>
+            <div className="flex flex-1 flex-col gap-0.5 p-2.5">
+              <span className="line-clamp-2 text-sm font-semibold leading-snug text-white group-hover:text-brand-400">
+                {c.name}
+                {c.variant ? <span className="font-normal text-slate-400"> ({c.variant})</span> : null}
+              </span>
+              <span className="text-[11px] text-slate-500">
+                {c.setCode}
+                {c.number ? ` · ${c.number}` : ""}
+              </span>
+              <span className="num mt-auto pt-1 text-sm font-semibold">
+                {h.kind === "listing" ? <span className="text-accent">{money(h.cents, country)}</span> : h.kind === "reference" ? <span className="text-slate-400">≈ {money(h.cents, country)}</span> : <span className="text-xs font-normal text-slate-500">No price yet</span>}
+              </span>
+            </div>
+          </CardQuickLink>
+        );
+      })}
+    </div>
   );
 }
 

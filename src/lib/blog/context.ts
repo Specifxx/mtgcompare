@@ -1,9 +1,10 @@
 import { MAIN_SET_KINDS, RARITY_KEYS, RELEASE_SET_KINDS, rarityLabel } from "../constants";
 import type { Country } from "../country";
 import { MARKETS } from "../country";
-import { getCardPage, getIndexSeries, getMarketOverview, getMarketRecords, getSealedPage, getSetIndex, getSetHighlights, getSiteStats, getCatalogStats } from "../data";
-import type { SetLite } from "../data";
-import type { PostContext, RarityRow, SetBoard } from "./types";
+import { getCardPage, getIndexSeries, getMarketOverview, getMarketRecords, getSealedBySet, getSealedPage, getSetIndex, getSetHighlights, getSiteStats, getCatalogStats } from "../data";
+import type { SetIndex, SetLite } from "../data";
+import { PREORDER_RELEASES, isOut, orderProducts, releaseDateOf, releaseSets, type PreorderRelease } from "../preorders";
+import type { PostContext, RarityRow, ReleaseView, SetBoard } from "./types";
 
 const dearest = (sort: "value" = "value") => ({ sort, page: 1, per: 100 as const });
 
@@ -36,6 +37,16 @@ async function valueBoards(sets: readonly SetLite[], totals: Map<number, { n: nu
   return Promise.all(pick.map(async (set) => ({ set, n: totals.get(set.id)!.n, total: totals.get(set.id)!.total, top: await getSetHighlights(set.id, 5) })));
 }
 
+/** A release with a pre-order page as the data holds it: its sets, its sealed rows (two in-memory reads of the memoised list) and up to 100 listed singles per set (one browse-index query each). */
+async function releaseView(release: PreorderRelease, index: SetIndex): Promise<ReleaseView> {
+  const sets = releaseSets(release, index.byTok), releasedOn = releaseDateOf(release, sets), today = new Date().toISOString().slice(0, 10);
+  const [sealed, cards] = await Promise.all([
+    Promise.all(sets.map((s) => getSealedBySet(s.id))).then((lists) => orderProducts(release, lists.flat(), sets)),
+    Promise.all(sets.map(async (set) => { const page = await getCardPage({ setIds: [set.id], sort: "number", page: 1, per: 100 }); return { set, items: page.items, total: page.total }; })),
+  ]);
+  return { release, sets, releasedOn, out: isOut(releasedOn, today), sealed, cards };
+}
+
 /** The bounded views every post draws from. One request, a few dozen in-memory queries and published files; never the whole catalogue. */
 export async function postContext(country: Country): Promise<PostContext> {
   const [stats, site, index, setIndex, overview, top, topFoil, boxes, rarities, recs] = await Promise.all([
@@ -51,7 +62,7 @@ export async function postContext(country: Country): Promise<PostContext> {
     Promise.all(MARKETS.map((m) => getMarketRecords(m))),
   ]);
   const totals = new Map(overview.sets.map((s) => [s.setId, { n: s.n, total: s.totalCents }] as const));
-  const [newest, boards] = await Promise.all([newestSet(setIndex.sets, totals), valueBoards(setIndex.sets, totals)]);
+  const [newest, boards, releases] = await Promise.all([newestSet(setIndex.sets, totals), valueBoards(setIndex.sets, totals), Promise.all(PREORDER_RELEASES.map((r) => releaseView(r, setIndex)))]);
   const records = Object.fromEntries(MARKETS.map((m, i) => [m, recs[i]])) as PostContext["records"];
   return {
     cat: { pricesAt: stats.pricesAt },
@@ -68,6 +79,7 @@ export async function postContext(country: Country): Promise<PostContext> {
     newest,
     boards,
     boxes: boxes.items,
+    releases,
     country,
   };
 }

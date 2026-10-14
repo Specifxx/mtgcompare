@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { Country } from "../country";
 import type { CardLite, CardMini, CatalogStats, IndexPoint, MarketOverview, MarketRecords, SealedLite, SetLite, SiteStats } from "../data";
+import type { PreorderRelease } from "../preorders";
 
 // Every post is built from MTG Compare's published price data at request time
 // (through the same cached, bounded loaders as the price pages), so a figure in
@@ -28,6 +29,21 @@ export interface SetBoard {
   top: CardMini[];
 }
 
+/** A release with a pre-order page (lib/preorders.ts PREORDER_RELEASES), as the published data holds it today: what the release posts read. */
+export interface ReleaseView {
+  release: PreorderRelease;
+  /** The release's sets in the catalogue, main set first. */
+  sets: SetLite[];
+  /** The main set's release date in the catalogue, else the announced one (YYYY-MM-DD). */
+  releasedOn: string;
+  /** Released on or before the day of the request. */
+  out: boolean;
+  /** The release's sealed products (every set), in display order (orderProducts). */
+  sealed: SealedLite[];
+  /** Per set, in `sets` order: its listed singles in collector order (at most 100) and how many it has. */
+  cards: { set: SetLite; items: CardLite[]; total: number }[];
+}
+
 export interface PostContext {
   /** The day the prices are from; a title may quote its month. */
   cat: { pricesAt: string };
@@ -50,6 +66,8 @@ export interface PostContext {
   boards: SetBoard[];
   /** The dearest Booster Box products, dearest first (up to 40). */
   boxes: SealedLite[];
+  /** The releases with a pre-order page (lib/preorders.ts), for the release posts. */
+  releases: ReleaseView[];
   country: Country;
 }
 

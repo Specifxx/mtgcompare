@@ -4,13 +4,16 @@ import { cheaperAbroad } from "./posts/cheaper-abroad";
 import { mostExpensive } from "./posts/most-expensive";
 import { rarities } from "./posts/rarities";
 import { setReview } from "./posts/set-review";
+import { starTrekSpoilers } from "./posts/star-trek-spoilers";
+import { whereToBuyStarTrek } from "./posts/star-trek-where-to-buy";
 import { whereToBuy } from "./posts/where-to-buy";
 import type { Post } from "./types";
 
 // Newest first. Adding a post: write it in posts/, add it here — the blog
-// index, sitemap, RSS feed and share images follow. Seven posts on purpose: each
-// is built from the data, so a post exists only where the data can carry it.
-export const POSTS: Post[] = [mostExpensive, setConcentration, setReview, boosterBoxes, rarities, whereToBuy, cheaperAbroad];
+// index, sitemap, RSS feed and share images follow. Each post is built from the
+// data, so a post exists only where the data can carry it: the two Star Trek
+// posts read the release's catalogue rows (PostContext.releases).
+export const POSTS: Post[] = [whereToBuyStarTrek, starTrekSpoilers, mostExpensive, setConcentration, setReview, boosterBoxes, rarities, whereToBuy, cheaperAbroad];
 
 export function postBySlug(slug: string): Post | undefined {
   return POSTS.find((p) => p.slug === slug);
