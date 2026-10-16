@@ -110,7 +110,7 @@ function Grid({ items }: { items: ArticleListItem[] }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((a) => (
-        <Link key={a.slug} href={a.href} className="card-surface group flex flex-col overflow-hidden hover:border-ink-600">
+        <Link prefetch={false} key={a.slug} href={a.href} className="card-surface group flex flex-col overflow-hidden hover:border-ink-600">
           <div className="grid h-36 grid-cols-3 gap-1 bg-ink-850 p-2">
             {a.hero.slice(0, 3).map((id) => (
               // eslint-disable-next-line @next/next/no-img-element

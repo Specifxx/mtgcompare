@@ -31,6 +31,7 @@ import { SITE_URL } from "@/lib/site";
 import { pageOgOwnImage } from "@/lib/og/meta";
 import { GuideBuyLinks } from "./GuideBuyLinks";
 import { DATA_TABLE } from "@/components/prose";
+import { chipSetLabels, filterSets } from "@/lib/filter-sets";
 
 // Reads the browse engine and the published market views: rendered per request, cached at the CDN (contract 7.5).
 export const dynamic = "force-dynamic";
@@ -74,7 +75,7 @@ export default async function PriceGuidePage({ searchParams }: { searchParams: S
   const hrefSet = (slug: string) => guideHref(searchParams, { set: slug });
   const sortHref = (asc: string, desc: string) => guideHref(searchParams, { sort: gq.sort === desc ? asc : desc });
   const guides = guidesForCatalogue("price-guide");
-  const setsByCode = Object.fromEntries(sets.flatMap((x) => [[x.slug, `${x.name} (${x.code})`], [x.code.toLowerCase(), `${x.name} (${x.code})`]]));
+  const setsByCode = chipSetLabels(sets, searchParams);
 
   return (
     <div>
@@ -143,7 +144,7 @@ export default async function PriceGuidePage({ searchParams }: { searchParams: S
               {byRow.map(({ set: s, priced: n, top, value }) => (
                 <tr key={s.id}>
                   <td>
-                    <Link href={hrefSet(s.slug)} className="font-semibold text-brand-400 hover:underline">
+                    <Link prefetch={false} href={hrefSet(s.slug)} className="font-semibold text-brand-400 hover:underline">
                       {s.name}
                     </Link>{" "}
                     <span className="text-xs text-slate-500">{s.code}</span>
@@ -179,7 +180,7 @@ export default async function PriceGuidePage({ searchParams }: { searchParams: S
             Filters
           </label>
           <div className="mt-3 hidden peer-checked:block lg:mt-0 lg:block">
-            <BrowseFilters q={{ ...gq.browse, sort: gq.sort as SortKey, per: gq.size }} sets={sets} country={country} action="/price-guide" />
+            <BrowseFilters q={{ ...gq.browse, sort: gq.sort as SortKey, per: gq.size }} sets={filterSets(sets)} country={country} action="/price-guide" />
           </div>
         </aside>
         <div className="min-w-0">

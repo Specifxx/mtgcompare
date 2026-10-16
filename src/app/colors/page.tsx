@@ -41,7 +41,7 @@ export default async function ColorsPage() {
       </div>
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {rows.map(({ p, total, top }) => (
-          <Link key={p.slug} href={`/colors/${p.slug}`} className="card-surface group relative overflow-hidden p-5 hover:border-ink-600">
+          <Link prefetch={false} key={p.slug} href={`/colors/${p.slug}`} className="card-surface group relative overflow-hidden p-5 hover:border-ink-600">
             <span className="absolute inset-y-0 left-0 w-1.5" style={{ background: p.hex }} />
             <h2 className="text-2xl text-white group-hover:text-brand-400">{p.label}</h2>
             <p className="text-sm text-slate-400">{p.tagline}</p>

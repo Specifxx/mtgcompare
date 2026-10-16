@@ -10,6 +10,7 @@ Entries dated before 2026-10-08 are OP Compare's inherited history (One Piece vo
 
 - Preview and development builds are off; a preview builds only for a `[preview]` commit subject the owner asked for; production deploys weekly (Tuesday 08:00 UTC) or on `[deploy]` / a manual run when the owner says now. [2026-10-08](../DECISIONS.md#L2053)
 - Production ships code once a week (Tuesday 08:00 UTC, `production-deploy.yml`, `RELEASE_CRON`); data is published daily and never needs a deploy; `[deploy]` is added to a commit subject only when the owner says a release is urgent. [2026-10-08](../DECISIONS.md#L2632)
+- On Vercel a force-dynamic page's own `private, no-store` beats the config's `Cache-Control`, so pages are CDN-cached only through `Vercel-CDN-Cache-Control` (`headers.json` `pagesCdn`, six hours plus a day stale): market-neutral public pages only, proven by `tests/headers-allowlist.test.ts`; a page that reads `getCountry()` needs a market-neutral render first. The plane LRU counts 3x the text and skips `ix/*`; `getBrowseIndex` builds one full index per commit. Function memory is a dashboard setting (2 GB or 4 GB under Fluid), not `vercel.json`. [2026-10-16](../DECISIONS.md#L2914)
 
 ## Catalogue, import and the published data
 
@@ -63,7 +64,7 @@ Entries dated before 2026-10-08 are OP Compare's inherited history (One Piece vo
 - Editorial posts read only the bounded loaders in `src/lib/blog/context.ts`; no post, page or share image calls `getCatalog()`. [2026-10-08](../DECISIONS.md#L2528)
 - The data-driven posts' optional sections (movers, cheapest mythics by colour, Commander staples, cheapest boxes, and since 2026-10-16 the Star Trek posts' lookups, `PostContext.starTrek`) are built once per instance and data commit (`perCommit` in `src/lib/blog/context.ts`: `memoByRef`, never `unstable_cache`) and are null, said as "could not be read", when a read fails; they rank by MARKET price, one unit per card, the finish named; a Commander staple is priced at its ordinary printing and leaves the tables when Scryfall marks it banned in Commander. [2026-10-14](../DECISIONS.md#L2842)
 - The Fan Content sentence and the unofficial-fan-site notice exist once, in `src/lib/site.ts`; About, Terms and the footer import them. [2026-10-08](../DECISIONS.md#L2536)
-- robots.ts blocks GPTBot, CCBot, Google-Extended and Bytespider; search/answer crawlers are allowed. [2026-10-08](../DECISIONS.md#L2610)
+- robots.ts blocks GPTBot, CCBot, Google-Extended, Bytespider and (2026-10-16) twelve backlink and data crawlers; search/answer crawlers, Ahrefs and Semrush are allowed; no query-string URL is crawled (`/*?`), with `/_next/`, share images and icons allowed. [2026-10-08](../DECISIONS.md#L2610), [2026-10-16](../DECISIONS.md#L2914)
 
 ## Decks and Commander
 

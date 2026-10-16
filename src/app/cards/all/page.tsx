@@ -52,7 +52,7 @@ export default async function AllCardsPage({ searchParams }: Props) {
       <ul className="mt-6 columns-1 gap-6 text-sm sm:columns-2 lg:columns-3">
         {items.map((o) => (
           <li key={o.no} className="break-inside-avoid py-0.5">
-            <Link href={`/cards/name/${o.slug}`} className="text-slate-200 hover:text-brand-400 hover:underline">
+            <Link prefetch={false} href={`/cards/name/${o.slug}`} className="text-slate-200 hover:text-brand-400 hover:underline">
               {o.name}
             </Link>{" "}
             <span className="text-xs text-slate-500">({o.nPrint})</span>

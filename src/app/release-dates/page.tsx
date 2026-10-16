@@ -88,6 +88,7 @@ export default async function ReleaseDates() {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {upcoming.map((s) => (
               <Link
+                prefetch={false}
                 key={s.id}
                 href={`/sets/${s.slug}`}
                 className="card-surface p-4 hover:border-ink-600"
@@ -138,6 +139,7 @@ export default async function ReleaseDates() {
                   </td>
                   <td>
                     <Link
+                      prefetch={false}
                       href={`/sets/${s.slug}`}
                       className="font-semibold text-brand-400 hover:underline"
                     >

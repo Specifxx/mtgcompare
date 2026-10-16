@@ -41,7 +41,7 @@ export default async function CardsHub() {
         <SectionHeader title="By colour" action={<Link href="/colors" className="text-sm text-brand-400 hover:underline">All colours →</Link>} />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {COLOR_KEYS.map((k) => (
-            <Link key={k} href={`/colors/${COLORS[k].slug}`} className="card-surface p-4 hover:border-ink-600">
+            <Link prefetch={false} key={k} href={`/colors/${COLORS[k].slug}`} className="card-surface p-4 hover:border-ink-600">
               <p className="flex items-center gap-2 text-lg font-bold text-white">
                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: COLORS[k].hex }} />
                 {COLORS[k].label}
@@ -59,7 +59,7 @@ export default async function CardsHub() {
         <SectionHeader title="By card type" />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {TYPE_FACETS.filter((f) => (counts.type[f.key] ?? 0) > 0).map((f) => (
-            <Link key={f.slug} href={`/cards/type/${f.slug}`} className="card-surface p-4 hover:border-ink-600">
+            <Link prefetch={false} key={f.slug} href={`/cards/type/${f.slug}`} className="card-surface p-4 hover:border-ink-600">
               <p className="text-lg font-bold text-white">{f.label}</p>
               <p className="num mt-2 text-xs text-slate-500">{int(counts.type[f.key] ?? 0)} printings</p>
             </Link>
@@ -70,7 +70,7 @@ export default async function CardsHub() {
         <SectionHeader title="By rarity" action={<Link href="/cards/rarity" className="text-sm text-brand-400 hover:underline">Compare rarities →</Link>} />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {RARITY_FACETS.filter((f) => (counts.rarity[f.key] ?? 0) > 0).map((f) => (
-            <Link key={f.slug} href={`/cards/rarity/${f.slug}`} className="card-surface p-4 hover:border-ink-600">
+            <Link prefetch={false} key={f.slug} href={`/cards/rarity/${f.slug}`} className="card-surface p-4 hover:border-ink-600">
               <p className={`text-lg font-bold ${RARITIES[f.key]?.tone ?? "text-white"}`}>{f.label}</p>
               <p className="num mt-2 text-xs text-slate-500">{int(counts.rarity[f.key] ?? 0)} printings</p>
             </Link>
@@ -82,7 +82,7 @@ export default async function CardsHub() {
           <SectionHeader title={`By treatment: ${KIND_TITLE[kind]?.toLowerCase() ?? kind}`} />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {treatments.filter((f) => (TREATMENT_BY_KEY[f.key]?.kind ?? "art") === kind).map((f) => (
-              <Link key={f.slug} href={`/cards/treatment/${f.slug}`} className="card-surface p-4 hover:border-ink-600">
+              <Link prefetch={false} key={f.slug} href={`/cards/treatment/${f.slug}`} className="card-surface p-4 hover:border-ink-600">
                 <p className="flex items-center gap-2 text-base font-bold text-white">
                   <span className="h-2.5 w-2.5 rounded-full" style={{ background: TREATMENT_BY_KEY[f.key]?.dot ?? TREATMENT_KIND_DOT[TREATMENT_BY_KEY[f.key]?.kind ?? "art"] }} />
                   {f.label}

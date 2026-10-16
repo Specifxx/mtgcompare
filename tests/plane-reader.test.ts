@@ -63,8 +63,9 @@ test("a 429 trips the circuit breaker for 60 s: raw is skipped (the API serves),
   t += 61_000; assert.deepEqual(await s.json("c.json"), { raw: 1 }); assert.equal(rawCalls, 2);
 });
 test("the LRU is bounded by bytes and evicts the oldest", async () => {
-  const h = host((u) => res(200, body({ pad: "x".repeat(400), u }))); const p = plane(h, { lruBytes: 1000 }); const s = p.source(REF);
-  for (const f of ["a", "b", "c", "d"]) await s.json(`${f}.json`); assert.ok(p.stats.lruBytes <= 1000 + 500, `lruBytes ${p.stats.lruBytes}`);
+  // An entry counts 3x its text (text + parse, 2026-10-16): each ~500-character file here counts ~1,500 bytes.
+  const h = host((u) => res(200, body({ pad: "x".repeat(400), u }))); const p = plane(h, { lruBytes: 3000 }); const s = p.source(REF);
+  for (const f of ["a", "b", "c", "d"]) await s.json(`${f}.json`); assert.ok(p.stats.lruBytes <= 3000 + 1700, `lruBytes ${p.stats.lruBytes}`);
   const before = h.seen.length; await s.json("a.json"); assert.equal(h.seen.length, before + 1, "the oldest entry was evicted and is fetched again");
 });
 test("the BUILD fetches nothing: every read during `next build` throws PlaneError(build) and sends no request", async () => {
@@ -159,7 +160,7 @@ test("core: the pointer, the status, the catalogue counts and the browse index m
   useDir(real); const ptr = (await core.getDataRef())!; assert.equal(ptr.seq, 7); assert.equal(ptr.ref, "b".repeat(40)); assert.equal(core.planeHealth().hostUsed, "dir");
   const st = (await core.getPlaneStatus())!; assert.equal(st.counts.cards, (await cat.getCatalogStats()).cards); const stats = await cat.getCatalogStats(); assert.equal(stats.pricesAt, ptr.publishedAt); assert.equal(stats.pricedByMarket.US, stats.cards); assert.equal(stats.pricedByMarket.AU, 0);
   const full = await cat.getBrowseIndex(); assert.equal(await cat.getBrowseIndex({ withStores: false, withOracle: false }), full); assert.equal(await cat.getBrowseIndex({ withOracle: false }), full); assert.equal(full.hasOracle, true);
-  useDir(real); const light = await cat.getBrowseIndex({ withOracle: false }); assert.equal(light.hasOracle, false); assert.notEqual(await cat.getBrowseIndex(), light, "a poorer index does not serve a richer request");
+  useDir(real); const first = await cat.getBrowseIndex({ withOracle: false }); assert.equal(first.hasOracle, true, "one index per ref (2026-10-16): a request for less still builds the full index"); assert.equal(await cat.getBrowseIndex(), first, "and every later request shares it");
   const top = full.query(core.canonicalQuery({ sort: "value", per: 24 })); assert.ok(top.items.slice(0, 5).every((c) => c.marketUsd != null && c.id !== ID.living), "a low-only listing ($203,067.70) never tops sort: value");
   assert.equal(top.items[0]!.id, 630946, "Traveling Chocobo (foil only, $1,845.60) heads by its headline market"); assert.equal(full.query(core.canonicalQuery({ sort: "value", per: 24, finish: "F" })).items[0]!.id, ID.birds, "the Foil unit view ranks the Foil markets: Birds of Paradise 7ED at $3,980.75");
 });
@@ -300,4 +301,10 @@ test("a rotation needs no deploy: the pointer is read from PLANE_REPO and every 
   } finally {
     globalThis.fetch = realFetch; delete process.env.PLANE_BACKEND; if (was.repo === undefined) delete process.env.PLANE_REPO; else process.env.PLANE_REPO = was.repo; if (was.token !== undefined) process.env.PLANE_TOKEN = was.token; useDir(undefined);
   }
+});
+test("an LRU entry counts its heap (3x the text), and the browse index chunks (ix/*) are never kept: the index holds them (2026-10-16)", async () => {
+  const h = host((u) => res(200, body({ u }))); const p = plane(h); const s = p.source(REF);
+  const t = await s.text("meta/x.json"); assert.equal(p.stats.lruBytes, t.length * 3);
+  await s.text("ix/k-0.json"); await s.text("ix/k-0.json"); assert.equal(p.stats.lruBytes, t.length * 3, "ix/* is not remembered");
+  assert.equal(h.seen.filter((x) => x.url.includes("ix/k-0.json")).length, 2, "a second ix read fetches again (the index reads each chunk once per ref)");
 });

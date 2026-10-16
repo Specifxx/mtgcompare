@@ -22,6 +22,7 @@ export const metadata: Metadata = {
 function SetCard({ s, valueCents }: { s: SetLite; valueCents: number | null }) {
   return (
     <Link
+      prefetch={false}
       href={`/sets/${s.slug}`}
       className="card-surface group flex flex-col p-4 hover:border-ink-600"
     >
@@ -99,6 +100,7 @@ export default async function SetsPage() {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {upcoming.map((s) => (
               <Link
+                prefetch={false}
                 key={s.id}
                 href={`/sets/${s.slug}`}
                 className="card-surface flex items-center justify-between gap-3 p-4 hover:border-ink-600"
