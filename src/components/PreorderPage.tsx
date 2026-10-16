@@ -6,10 +6,10 @@ import { ReleaseAlertSlot } from "@/components/ReleaseAlertSlot";
 import { Breadcrumbs, JsonLd } from "@/components/ui";
 import { COUNTRIES, type Country } from "@/lib/country";
 import { getSealedBySet, getSealedDetail, getSetIndex, type SealedLite, type SetLite } from "@/lib/data";
-import { andList } from "@/lib/format";
+import { andList, money } from "@/lib/format";
 import { getCountry } from "@/lib/get-country";
 import { faqPage, webPage } from "@/lib/jsonld";
-import { boardSummary, commanderDeckNames, dateRangeOf, daysUntil, isOut, lineOf, longDateOf, orderProducts, preorderRows, releaseDateOf, releaseSets, type PreorderRelease, type PreorderRow } from "@/lib/preorders";
+import { attributed, boardSummary, commanderDeckNames, dateRangeOf, daysUntil, eventFacts, factsCheckedOn, isOut, lineMsrp, lineOf, longDateOf, orderProducts, preorderRows, releaseDateOf, releaseSets, type PreorderRelease, type PreorderRow } from "@/lib/preorders";
 import { sealedEbayQuery } from "@/lib/sealed-quick-view";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -34,15 +34,20 @@ const todayIso = () => new Date().toISOString().slice(0, 10);
 
 function faqsFor(r: PreorderRelease, date: string, decks: string[], hasCollector: boolean, hasCollectorsEdition: boolean): { q: string; a: string }[] {
   const L = r.label;
-  const reported = r.facts.filter((f) => f.kind === "reported").map((f) => f.text.replace(/\.$/, "").replace(/^\w/, (x) => x.toLowerCase()));
+  const events = attributed(eventFacts(r));
+  const pack = lineMsrp(r, "Play Booster");
   return [
     {
       q: `How much does a ${L} Play Booster display cost to pre-order?`,
-      a: `Pre-order prices vary between stores because nothing has shipped and each store sets its own opening price. This page lists every tracked store's pre-order price in your market, cheapest first, beside TCGplayer's lowest listing in the US. We show no list price: we quote one only with a published source and its date, and none is cited for ${L}.`,
+      a: `Pre-order prices vary between stores because nothing has shipped and each store sets its own opening price. This page lists every tracked store's pre-order price in your market, cheapest first, beside TCGplayer's lowest listing in the US. ${
+        pack && r.msrp
+          ? `Wizards of the Coast sets a US MSRP of ${money(pack.usdCents, "US")} per Play Booster (${r.msrp.source.label}, ${longDateOf(r.msrp.source.published)}) and publishes none for a display, so we quote none for one.`
+          : `We show no list price: we quote one only with a published source and its date, and none is cited for ${L}.`
+      }`,
     },
     {
       q: `When does Magic: The Gathering ${L} release?`,
-      a: `${longDateOf(date)}.${r.facts.some((f) => f.kind === "official" && /releases on/.test(f.text)) ? ` That is the date on ${r.productSource.label} (read ${longDateOf(r.productSource.checked)}).` : ""}${reported.length ? ` Fan trackers report that ${reported.join(", and that ")}.` : ""}`,
+      a: `${longDateOf(date)}.${r.facts.some((f) => f.kind === "official" && /releases on/.test(f.text)) ? ` That is the date on ${r.productSource.label} (read ${longDateOf(r.productSource.checked)}).` : ""}${events ? ` ${events}` : ""}`,
     },
     ...(hasCollector && r.lines.some((l) => l.name === "Collector Booster")
       ? [{ q: `What is the difference between a ${L} Play Booster and a Collector Booster?`, a: `The Play Booster is the set's main booster, the one to open and to play with. The Collector Booster is ${r.lines.find((l) => l.name === "Collector Booster")!.detail.replace(/^\w/, (x) => x.toLowerCase())} They are priced very differently, so compare each with its own kind.` }]
@@ -229,15 +234,34 @@ export function PreorderView({ release, data, alert }: { release: PreorderReleas
             <a href={release.productSource.url} target="_blank" rel="noopener noreferrer" className={linkCls}>
               {release.productSource.label}
             </a>
-            , read {longDateOf(release.productSource.checked)}. We show no list price: we quote one only with a published source and its date, and none is cited for {L}. The prices above are what stores are actually asking.
+            , read {longDateOf(release.productSource.checked)}.{" "}
+            {release.msrp ? (
+              <>
+                The US MSRPs are Wizards&apos; own, from{" "}
+                <a href={release.msrp.source.url} target="_blank" rel="noopener noreferrer" className={linkCls}>
+                  {release.msrp.source.label}
+                </a>{" "}
+                of {longDateOf(release.msrp.source.published)} (read {longDateOf(release.msrp.checked)}): suggested prices in US dollars, not what any store charges. The prices above are what stores are actually asking.
+              </>
+            ) : (
+              <>We show no list price: we quote one only with a published source and its date, and none is cited for {L}. The prices above are what stores are actually asking.</>
+            )}
           </p>
           <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-            {release.lines.map((l) => (
-              <div key={l.name} className="rounded-lg border border-white/5 bg-white/[0.02] p-4">
-                <dt className="font-bold text-white">{l.name}</dt>
-                <dd className="mt-1.5 text-sm leading-relaxed text-slate-400">{l.detail}</dd>
-              </div>
-            ))}
+            {release.lines.map((l) => {
+              const msrp = lineMsrp(release, l.name);
+              return (
+                <div key={l.name} className="rounded-lg border border-white/5 bg-white/[0.02] p-4">
+                  <dt className="font-bold text-white">{l.name}</dt>
+                  <dd className="mt-1.5 text-sm leading-relaxed text-slate-400">{l.detail}</dd>
+                  {msrp ? (
+                    <dd className="num mt-2 text-xs text-slate-500">
+                      US MSRP {money(msrp.usdCents, "US")} a {msrp.each}
+                    </dd>
+                  ) : null}
+                </div>
+              );
+            })}
           </dl>
           {decks.length ? <p className="mt-4 text-sm text-slate-400">TCGplayer lists the Commander decks as {andList(decks)}.</p> : null}
         </section>
@@ -245,7 +269,7 @@ export function PreorderView({ release, data, alert }: { release: PreorderReleas
 
       <section className="card-surface mt-6 p-6">
         <h2 className="text-xl font-extrabold text-white">
-          What is confirmed, as of {longDateOf(release.productSource.checked)}
+          What is confirmed, as of {longDateOf(factsCheckedOn(release))}
         </h2>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-slate-400 marker:text-brand-400">
           {official.map((f) => (
@@ -319,6 +343,19 @@ export function PreorderView({ release, data, alert }: { release: PreorderReleas
         <Link href="/blog/magic-star-trek-spoilers" className="btn-ghost">
           {L} spoilers so far
         </Link>
+        {release.key === "star-trek" ? (
+          <>
+            <Link href="/blog/magic-star-trek-release-date-products" className="btn-ghost">
+              {L} release date and products
+            </Link>
+            <Link href="/blog/magic-star-trek-commander-decks" className="btn-ghost">
+              {L} Commander decks
+            </Link>
+            <Link href="/blog/magic-star-trek-mechanics-explained" className="btn-ghost">
+              {L} mechanics explained
+            </Link>
+          </>
+        ) : null}
         {sets.map((s) => (
           <Link key={s.id} href={`/sets/${s.slug}`} className="btn-ghost">
             {s.name} card list

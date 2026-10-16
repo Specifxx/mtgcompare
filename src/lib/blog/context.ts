@@ -1,12 +1,13 @@
 import { MAIN_SET_KINDS, RARITY_KEYS, RELEASE_SET_KINDS, fold, rarityLabel } from "../constants";
 import type { Country } from "../country";
 import { MARKETS } from "../country";
-import { getCardPage, getIndexSeries, getMarketOverview, getMarketRecords, getMovers, getSealedBySet, getSealedPage, getSetIndex, getSetHighlights, getSiteStats, getCatalogStats, namePrintings, resolveOracles } from "../data";
+import { getCardPage, getIndexSeries, getKeywordIndex, getMarketOverview, getMarketRecords, getMovers, getSealedBySet, getSealedPage, getSetIndex, getSetHighlights, getSiteStats, getCatalogStats, namePrintings, resolveOracles } from "../data";
 import type { CardLite, CardQuery, NameHit, SealedLite, SetIndex, SetLite } from "../data";
 import { memoByRef, memoKey, planeSource } from "../data/plane/runtime";
-import { PREORDER_RELEASES, isOut, orderProducts, releaseDateOf, releaseSets, type PreorderRelease } from "../preorders";
+import { PREORDER_RELEASES, STAR_TREK, isOut, orderProducts, releaseDateOf, releaseSets, type PreorderRelease } from "../preorders";
 import { BLING_TREATMENTS, COLOUR_GROUPS, COMMANDER_STAPLES, MONTH_MOVER_ROWS, MOVER_FLOOR_CENTS, MOVER_ROWS, MYTHIC_ROWS, TREATED_ROWS, cheapestPerCard, newestExpansions, stapleRows, type StapleRow } from "./select";
-import type { MoversView, MythicBoards, PostContext, RarityRow, ReleaseView, SetBoard } from "./types";
+import { NAMED_CARDS, SHOCK_LANDS, STAR_TREK_KEYWORDS } from "./star-trek";
+import type { MoversView, MythicBoards, PostContext, RarityRow, ReleaseView, SetBoard, StarTrekView } from "./types";
 
 const dearest = (sort: "value" = "value") => ({ sort, page: 1, per: 100 as const });
 
@@ -49,7 +50,7 @@ async function releaseView(release: PreorderRelease, index: SetIndex): Promise<R
   return { release, sets, releasedOn, out: isOut(releasedOn, today), sealed, cards };
 }
 
-// ── the optional sections of the data-driven posts (movers, cheapest mythics by colour, Commander staples, cheapest boxes) ────────────────────
+// ── the optional sections of the data-driven posts (movers, cheapest mythics by colour, Commander staples, cheapest boxes, Star Trek) ──────────
 // Each is built ONCE per instance and data commit (memoByRef, the data layer's memo of derived shapes, keyed by the pointer: never
 // unstable_cache, and no loader runs inside a cache callback), because postContext runs for every post render, for /blog (every post's hero)
 // and for every blog share image. What one build costs is in DECISIONS.md ("Four data-driven posts", 2026-10-14); a request after the first
@@ -109,9 +110,25 @@ export async function loadCheapBoxes(): Promise<SealedLite[]> {
   return out;
 }
 
+/**
+ * The Star Trek posts' lookups (blog/star-trek.ts): NAMED_CARDS and the ten shock lands by name through resolveOracles (the name table, then
+ * one small Oracle shard per matched name), the main set's printings of the shock lands (one engine query, 10 Oracle numbers), and the keyword
+ * index (the memoised keyword table /keywords reads) filtered to the set's mechanics. A name the catalogue lacks is simply absent: the post
+ * names the card without a link.
+ */
+export async function loadStarTrek(): Promise<StarTrekView> {
+  const [{ byTok }, keywords, oracles] = await Promise.all([getSetIndex(), getKeywordIndex(), resolveOracles([...NAMED_CARDS, ...SHOCK_LANDS])]);
+  const main = byTok.get(STAR_TREK.toks[0]!);
+  const shockNos = SHOCK_LANDS.map((n) => oracles.get(fold(n))?.no).filter((n): n is number => n != null);
+  const shocks = main && shockNos.length ? (await getCardPage({ setIds: [main.id], oracleNos: shockNos, sort: "number", page: 1, per: 48 })).items : [];
+  const named = new Map(NAMED_CARDS.map((n) => fold(n)).flatMap((k) => { const o = oracles.get(k); return o ? [[k, o] as const] : []; }));
+  const want = new Set<string>(STAR_TREK_KEYWORDS);
+  return { oracles: named, shocks, keywords: keywords.filter((k) => want.has(k.slug)) };
+}
+
 /** The bounded views every post draws from. One request, a few dozen in-memory queries and published files; never the whole catalogue. */
 export async function postContext(country: Country): Promise<PostContext> {
-  const [stats, site, index, setIndex, overview, top, topFoil, boxes, rarities, recs, movers, mythics, staples, cheapBoxes] = await Promise.all([
+  const [stats, site, index, setIndex, overview, top, topFoil, boxes, rarities, recs, movers, mythics, staples, cheapBoxes, starTrek] = await Promise.all([
     getCatalogStats(),
     getSiteStats(),
     getIndexSeries(),
@@ -126,6 +143,7 @@ export async function postContext(country: Country): Promise<PostContext> {
     perCommit("mythics", loadMythics),
     perCommit("staples", loadStaples),
     perCommit("boxes", loadCheapBoxes),
+    perCommit("star-trek", loadStarTrek),
   ]);
   const totals = new Map(overview.sets.map((s) => [s.setId, { n: s.n, total: s.totalCents }] as const));
   const [newest, boards, releases] = await Promise.all([newestSet(setIndex.sets, totals), valueBoards(setIndex.sets, totals), Promise.all(PREORDER_RELEASES.map((r) => releaseView(r, setIndex)))]);
@@ -150,6 +168,7 @@ export async function postContext(country: Country): Promise<PostContext> {
     mythics,
     staples,
     cheapBoxes,
+    starTrek,
     country,
   };
 }

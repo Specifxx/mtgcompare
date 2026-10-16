@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { Country } from "../country";
-import type { CardLite, CardMini, CatalogStats, IndexPoint, MarketOverview, MarketRecords, SealedLite, SetLite, SiteStats } from "../data";
+import type { CardLite, CardMini, CatalogStats, IndexPoint, KeywordRow, MarketOverview, MarketRecords, OracleMini, SealedLite, SetLite, SiteStats } from "../data";
 import type { PreorderRelease } from "../preorders";
 import type { StapleRow } from "./select";
 
@@ -60,6 +60,16 @@ export interface MythicBoards {
   treated: CardLite[];
 }
 
+/** What the Star Trek posts look up beyond the release view (blog/star-trek.ts): the Oracle cards they name, the main set's shock lands, the mechanics' keyword pages. */
+export interface StarTrekView {
+  /** fold(name) -> the Oracle card, for each of NAMED_CARDS the catalogue has: the post links its name page, /cards/name/<slug>. */
+  oracles: Map<string, OracleMini>;
+  /** The main set's printings of the ten shock lands in our data (every treatment), in collector order. */
+  shocks: CardLite[];
+  /** The Star Trek mechanics that have a keyword page (a card with them is in the catalogue), with how many Oracle cards carry each. */
+  keywords: KeywordRow[];
+}
+
 export interface PostContext {
   /** The day the prices are from; a title may quote its month. */
   cat: { pricesAt: string };
@@ -84,7 +94,7 @@ export interface PostContext {
   boxes: SealedLite[];
   /** The releases with a pre-order page (lib/preorders.ts), for the release posts. */
   releases: ReleaseView[];
-  // The four optional sections below are built once per instance and data commit (context.ts, `perCommit`). null means the section could not be
+  // The five optional sections below are built once per instance and data commit (context.ts, `perCommit`). null means the section could not be
   // read on this request: the post says so and never presents it as "nothing to show".
   /** The movers post: this week's and this month's risers and fallers. */
   movers: MoversView | null;
@@ -94,6 +104,8 @@ export interface PostContext {
   staples: StapleRow[] | null;
   /** The cheapest-boxes post: every released Booster Box product we list, cheapest TCGplayer market first (unpriced last). */
   cheapBoxes: SealedLite[] | null;
+  /** The Star Trek posts: the cards they name, the shock lands, the keyword pages. */
+  starTrek: StarTrekView | null;
   country: Country;
 }
 

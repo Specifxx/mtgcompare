@@ -16,7 +16,7 @@ import cfg from "../src/lib/data/plane/headers.json";
 import { staticEntries } from "../src/lib/sitemap-sections";
 import { SITE_URL } from "../src/lib/site";
 import {
-  PREORDER_PAGES, PREORDER_RELEASES, STAR_TREK, boardSummary, commanderDeckNames, dateRangeOf, daysUntil, isOut, lineOf, livePreorderPages, longDateOf, orderProducts, preorderPathFor, preorderRows, releaseDateOf, releaseSets,
+  PREORDER_PAGES, PREORDER_RELEASES, STAR_TREK, attributed, boardSummary, commanderDeckNames, dateRangeOf, daysUntil, eventFacts, factsCheckedOn, isOut, lineMsrp, lineOf, livePreorderPages, longDateOf, orderProducts, preorderPathFor, preorderRows, releaseDateOf, releaseSets,
 } from "../src/lib/preorders";
 
 const ROOT = path.resolve(__dirname, "..");
@@ -55,8 +55,24 @@ test("the registry: Star Trek is TRK and its Commander decks TRC, one page; the 
   for (const r of PREORDER_RELEASES) {
     for (const f of r.facts) assert.match(f.checked, /^\d{4}-\d{2}-\d{2}$/, f.text);
     assert.ok(r.facts.every((f) => /^https:\/\//.test(f.source.url)), "every fact has a source");
-    assert.ok(!r.facts.some((f) => /\$|€|£|\bMSRP\b|\bRRP\b/.test(f.text)), "no price is a fact: Wizards' page prints none");
+    assert.ok(!r.facts.some((f) => /\$|€|£|\bMSRP\b|\bRRP\b/.test(f.text)), "no price is a fact: an MSRP lives in `msrp`, with its own source");
+    if (r.msrp) {
+      assert.match(r.msrp.source.url, /^https:\/\/magic\.wizards\.com\//, "an MSRP is the publisher's own");
+      assert.match(r.msrp.source.published, /^\d{4}-\d{2}-\d{2}$/);
+      assert.match(r.msrp.checked, /^\d{4}-\d{2}-\d{2}$/);
+      for (const row of r.msrp.rows) {
+        assert.ok(r.lines.some((l) => l.name === row.line), `${row.line} is a product line`);
+        assert.ok(Number.isInteger(row.usdCents) && row.usdCents > 0, row.line);
+      }
+    }
   }
+  // Wizards' Collecting Star Trek article (14 July 2026, read 16 October 2026): the eight figures, and none for a Prerelease Pack or a box
+  assert.deepEqual(STAR_TREK.msrp?.rows.map((x) => [x.line, x.usdCents]), [["Play Booster", 699], ["Collector Booster", 3799], ["Commander Deck", 7499], ["Collector's Edition Commander Deck", 15999], ["Bundle", 6999], ["Beam Me Up Bundle", 9999], ["Draft Night", 11999], ["Scene Box", 4199]]);
+  assert.equal(lineMsrp(STAR_TREK, "Prerelease Pack"), null);
+  assert.equal(STAR_TREK.prerelease?.kind, "official", "Wizards lists the prerelease since 16 October 2026");
+  assert.equal(factsCheckedOn(STAR_TREK), "2026-10-16");
+  assert.equal(attributed(eventFacts(STAR_TREK)), "Wizards of the Coast's Collecting Star Trek article says that prerelease events run from 6 to 12 November 2026, and that the MTG Arena release is 10 November 2026.");
+  assert.equal(attributed([{ text: "A thing happens.", kind: "reported", source: { label: "x", url: "https://x.test" }, checked: "2026-10-16" }]), "Fan trackers report that a thing happens.");
 });
 
 test("a set links its pre-order page until release day, and never once it is out", () => {
@@ -205,11 +221,18 @@ test("the page before release: a pre-order heading and countdown, each product's
   assert.doesNotMatch(html, /InStock/);
   assert.match(html, /"lowPrice":"138\.99","offerCount":2/);
   assert.match(t, /What each Star Trek product is/);
-  assert.match(t, /Reported by fan trackers: prerelease events run from 6 to 12 November 2026/);
-  assert.match(t, /Prerelease events, which fan trackers report for 6 to 12 November 2026/);
+  assert.match(t, /What is confirmed, as of 16 October 2026/);
+  assert.match(t, /Prerelease events run from 6 to 12 November 2026\. \( Wizards of the Coast's Collecting Star Trek article , 16 October 2026\)/);
+  assert.match(t, /Prerelease events, which Wizards lists for 6 to 12 November 2026/);
+  assert.doesNotMatch(t, /Reported by fan trackers/);
   assert.match(t, /ALERT SLOT/);
-  for (const href of ["/blog/where-to-buy-magic-star-trek", "/blog/magic-star-trek-spoilers", "/sets/trk-star-trek", "/sets/trc-commander-star-trek", "/release-dates", "/sealed/star-trek-play-booster-display"]) assert.match(html, new RegExp(`href="${href}"`), href);
-  assert.doesNotMatch(t, /\bMSRP\b|\bRRP\b/);
+  for (const href of ["/blog/where-to-buy-magic-star-trek", "/blog/magic-star-trek-spoilers", "/blog/magic-star-trek-release-date-products", "/blog/magic-star-trek-commander-decks", "/blog/magic-star-trek-mechanics-explained", "/sets/trk-star-trek", "/sets/trc-commander-star-trek", "/release-dates", "/sealed/star-trek-play-booster-display"]) assert.match(html, new RegExp(`href="${href}"`), href);
+  // Wizards' US MSRPs, each beside its product line and with its source; never a box's, never an RRP
+  assert.match(t, /The US MSRPs are Wizards' own, from Wizards of the Coast's Collecting Star Trek article of 14 July 2026 \(read 16 October 2026\)/);
+  assert.match(t, /Play Booster The set's main booster[^]*?US MSRP US\$6\.99 a booster Draft Night/);
+  assert.match(t, /US MSRP US\$159\.99 a deck/);
+  assert.match(html, /Wizards of the Coast sets a US MSRP of US\$6\.99 per Play Booster \(Wizards of the Coast's Collecting Star Trek article, 14 July 2026\) and publishes none for a display/);
+  assert.doesNotMatch(t, /\bRRP\b/);
 });
 
 test("from release day the page retires itself: no pre-order lists, no PreOrder offers, links to live prices", () => {

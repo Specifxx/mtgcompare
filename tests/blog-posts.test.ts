@@ -205,7 +205,7 @@ function baseCtx(over: Partial<PostContext> = {}): PostContext {
     overview: { at: "", basket: { n: 0, totalUsd: 0, avg: 0, median: 0 }, advancing: 0, declining: 0, constituents: [], sets: [] },
     records: Object.fromEntries(MARKETS.map((m) => [m, { gaps: [], highs: [], lows: [] }])) as unknown as PostContext["records"],
     top: [], topFoil: [], rarities: [], newest: null, boards: [], boxes: [], releases: [],
-    movers: { up7: [], down7: [], up30: [], down30: [] }, mythics: { sets: [], groups: [], treated: [] }, staples: [], cheapBoxes: [], country: "US", ...over,
+    movers: { up7: [], down7: [], up30: [], down30: [] }, mythics: { sets: [], groups: [], treated: [] }, staples: [], cheapBoxes: [], starTrek: null, country: "US", ...over,
   };
 }
 
@@ -306,7 +306,8 @@ test("postContext over a full published tree: every post builds; the optional se
   await withTree(dir, async () => {
     const { postContext, perCommit } = await import("../src/lib/blog/context");
     const ctx = await postContext("US");
-    assert.ok(ctx.movers && ctx.mythics && ctx.staples && ctx.cheapBoxes, "every section was read");
+    assert.ok(ctx.movers && ctx.mythics && ctx.staples && ctx.cheapBoxes && ctx.starTrek, "every section was read");
+    assert.ok(ctx.starTrek.oracles instanceof Map && Array.isArray(ctx.starTrek.shocks) && Array.isArray(ctx.starTrek.keywords), "the Star Trek lookups read the published tree");
     assert.ok(ctx.mythics.sets.length > 0 && ctx.mythics.groups.some((g) => g.cards.length > 0));
     for (const p of POSTS) {
       const b = p.build(ctx);

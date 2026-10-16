@@ -2,21 +2,21 @@ import Link from "next/link";
 import { Callout, SimpleTable } from "@/components/blog/BlogBits";
 import { COUNTRY_LIST } from "../../country";
 import { andList, money } from "../../format";
-import { STAR_TREK, commanderDeckNames, daysUntil, longDateOf, type PreorderFact } from "../../preorders";
+import { STAR_TREK, attributed, commanderDeckNames, daysUntil, eventFacts, lineMsrp, longDateOf } from "../../preorders";
 import type { Post, PostContext, ReleaseView } from "../types";
 import { plural } from "../util";
 
 // Where to buy Magic: The Gathering | Star Trek (RiftCompare's "where-to-buy-riftbound-radiance", built from MTG Compare's
 // data): every market's cheapest live price for each Star Trek product the catalogue holds, and how many stores list it,
 // from the sealed list (SealedLite.low / stores: the cheapest in-stock offer per market, TCGplayer's lowest listing
-// counting in the US). Dated facts come from lib/preorders.ts; no price is typed, no MSRP quoted (none is published).
-// From release day the same tables are live prices and the copy says so.
+// counting in the US). Dated facts come from lib/preorders.ts; no price is typed. Wizards' US MSRPs (lib/preorders.ts, sourced
+// and dated) are named once and listed in the release-date post: the tables here are what stores ask. From release day the
+// same tables are live prices and the copy says so.
 const ROWS_PER_MARKET = 12;
 const STAR_TREK_PATH = STAR_TREK.path;
 
 export const starTrekRelease = (ctx: Pick<PostContext, "releases">): ReleaseView | null => ctx.releases.find((r) => r.release.key === STAR_TREK.key) ?? null;
 const today = () => new Date().toISOString().slice(0, 10);
-const reportedText = (f: PreorderFact) => f.text.replace(/\.$/, "").replace(/^\w/, (x) => x.toLowerCase());
 
 export const whereToBuyStarTrek: Post = {
   slug: "where-to-buy-magic-star-trek",
@@ -27,8 +27,8 @@ export const whereToBuyStarTrek: Post = {
   category: "blog",
   faq: [
     { q: "Where can I pre-order Magic: The Gathering Star Trek?", a: "From game stores that sell Magic and from online retailers in every market we track. This post lists, market by market, the cheapest price we track for each Star Trek product today and how many stores list it; the Star Trek pre-order page compares every store's price, product by product, in your currency." },
-    { q: "When does Magic: The Gathering Star Trek come out?", a: "On 13 November 2026, according to Wizards of the Coast's Star Trek product page, read on 14 October 2026. Fan trackers report prerelease events from 6 to 12 November 2026 and the MTG Arena release on 10 November 2026." },
-    { q: "How much does a Star Trek Play Booster display cost?", a: "Wizards of the Coast's product page prints no price, so there is no list price to quote. Pre-order prices differ by market and by store: the tables in this post show today's cheapest in each market, and the pre-order page lists every store we track." },
+    { q: "When does Magic: The Gathering Star Trek come out?", a: "On 13 November 2026, according to Wizards of the Coast's Star Trek product page, read on 14 October 2026. Wizards' Collecting Star Trek article lists prerelease events from 6 to 12 November 2026 and the MTG Arena release on 10 November 2026; every date is in our [Star Trek release date guide](/blog/magic-star-trek-release-date-products)." },
+    { q: "How much does a Star Trek Play Booster display cost?", a: "Wizards of the Coast sets a US MSRP of US$6.99 per Play Booster in its Collecting Star Trek article of 14 July 2026, but none for a display, so we quote none. Pre-order prices differ by market and by store: the tables in this post show today's cheapest in each market, and the pre-order page lists every store we track." },
     { q: "Should I pre-order Star Trek or wait for release?", a: "If you want to open product, pre-ordering at a good price is reasonable, because what runs out is a store's allocation. If you want particular cards, waiting is usually cheaper: singles are at their most volatile around the prerelease and release, and settle a few weeks later." },
     { q: "Can I buy Star Trek from a store in another country?", a: "Often, but a sealed box ships as a parcel: international postage and any import tax are not in the prices here and can remove a saving. Compare the delivered cost at the store's checkout before you order from abroad." },
   ],
@@ -54,7 +54,8 @@ export const whereToBuyStarTrek: Post = {
     const displayHere = display && display.low[ctx.country] != null ? { cents: display.low[ctx.country]!, stores: display.stores[ctx.country] } : null;
     const decks = commanderDeckNames(products);
     const deckProducts = products.filter((p) => p.kind === "Commander Deck").length;
-    const reported = STAR_TREK.facts.filter((f) => f.kind === "reported");
+    const events = attributed(eventFacts(STAR_TREK));
+    const pack = lineMsrp(STAR_TREK, "Play Booster");
     const cards = (rv?.cards ?? []).flatMap((x) => x.items);
     const hero = [...cards].filter((c) => c.hasImage).sort((a, b) => (b.marketUsd ?? -1) - (a.marketUsd ?? -1)).slice(0, 3);
     const setLink = main ? (
@@ -67,7 +68,15 @@ export const whereToBuyStarTrek: Post = {
       summary: [
         <>
           <strong>Magic: The Gathering Star Trek {out ? "released" : "releases"} on {longDateOf(date)}</strong>
-          {!out && days > 0 ? `, ${plural(days, "day")} from today` : ""}. Wizards of the Coast has published no price for any of its products.
+          {!out && days > 0 ? `, ${plural(days, "day")} from today` : ""}.{" "}
+          {pack ? (
+            <>
+              Wizards of the Coast&apos;s US MSRP is {money(pack.usdCents, "US")} for a Play Booster; every product&apos;s is in{" "}
+              <Link href="/blog/magic-star-trek-release-date-products">our Star Trek release date and products guide</Link>. The prices below are what stores ask.
+            </>
+          ) : (
+            "Wizards of the Coast has published no price for any of its products."
+          )}
         </>,
         products.length ? (
           <>
@@ -108,12 +117,22 @@ export const whereToBuyStarTrek: Post = {
                 {STAR_TREK.productSource.label} (read {longDateOf(STAR_TREK.productSource.checked)}) lists {STAR_TREK.lines.length} product lines:{" "}
                 {andList(STAR_TREK.lines.map((l) => l.name))}. {decks.length ? `TCGplayer lists the Commander decks as ${andList(decks)}.` : ""} What is in each, in
                 Wizards&apos; words, is on the <Link href={STAR_TREK_PATH}>pre-order page</Link>
-                {setLink ? <>, and the cards revealed so far are on the {setLink}</> : null}.
+                {setLink ? <>, and the cards revealed so far are on the {setLink}</> : null}. Every product&apos;s contents and dates are in{" "}
+                <Link href="/blog/magic-star-trek-release-date-products">the Star Trek release date and products guide</Link>, and the four decks in{" "}
+                <Link href="/blog/magic-star-trek-commander-decks">the Star Trek Commander decks guide</Link>.
               </p>
-              <Callout title="No list price yet">
-                Wizards&apos; product page prints no price for any Star Trek product, so we quote none. Every figure in this post is what a store or TCGplayer is asking
-                today, and stores change pre-order prices as their allocations firm up.
-              </Callout>
+              {STAR_TREK.msrp ? (
+                <Callout title="List price and store price">
+                  Wizards&apos; product page prints no price, but its Collecting Star Trek article of {longDateOf(STAR_TREK.msrp.source.published)} sets a US MSRP for each
+                  product line, which our release date guide lists. An MSRP is a suggested price in US dollars, not what any store charges; every other figure in this post is what
+                  a store or TCGplayer is asking today, in each market&apos;s currency, and stores change pre-order prices as their allocations firm up.
+                </Callout>
+              ) : (
+                <Callout title="No list price yet">
+                  Wizards&apos; product page prints no price for any Star Trek product, so we quote none. Every figure in this post is what a store or TCGplayer is asking
+                  today, and stores change pre-order prices as their allocations firm up.
+                </Callout>
+              )}
             </>
           ),
         },
@@ -161,7 +180,7 @@ export const whereToBuyStarTrek: Post = {
           ) : (
             <>
               <p>
-                {reported.length ? <>Fan trackers report that {reported.map(reportedText).join(", and that ")}. </> : null}
+                {events ? <>{events} </> : null}
                 Those are the days the first copies are opened and the first singles change hands; on release day stores ship their pre-orders.
               </p>
               <ul>

@@ -1,7 +1,8 @@
-// The two Star Trek release posts (src/lib/blog/posts/star-trek-*.tsx): built from the release's catalogue rows that
-// lib/blog/context.ts loads (PostContext.releases), with no price typed and no MSRP; graceful when the catalogue holds
-// nothing yet; switched to their released copy from release day. Rendered to markup here so the sentences are read as a
-// visitor reads them.
+// The two Star Trek release posts of 2026-10-14 (src/lib/blog/posts/star-trek-where-to-buy.tsx, star-trek-spoilers.tsx): built
+// from the release's catalogue rows that lib/blog/context.ts loads (PostContext.releases), with no price typed and Wizards' US
+// MSRP named only with its source; graceful when the catalogue holds nothing yet; switched to their released copy from release
+// day. Rendered to markup here so the sentences are read as a visitor reads them. The three posts of 2026-10-16 are
+// tests/star-trek-guides.test.ts.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import React, { createElement } from "react";
@@ -48,9 +49,13 @@ test("both posts are blog posts of 2026-10-14, registered newest first, and link
     assert.ok(p.title({ cat: { pricesAt: "2026-10-14" } }).length <= 60);
     assert.ok((p.faq?.length ?? 0) >= 4);
   }
-  assert.deepEqual(POSTS.slice(0, 2).map(postHref), ["/blog/where-to-buy-magic-star-trek", "/blog/magic-star-trek-spoilers"]);
-  assert.match(html(whereToBuyStarTrek.build(ctx([view()]))), /href="\/blog\/magic-star-trek-spoilers"/);
-  assert.match(html(starTrekSpoilers.build(ctx([view()]))), /href="\/blog\/where-to-buy-magic-star-trek"/);
+  assert.deepEqual(POSTS.slice(3, 5).map(postHref), ["/blog/where-to-buy-magic-star-trek", "/blog/magic-star-trek-spoilers"], "after the three posts of 2026-10-16");
+  const where = html(whereToBuyStarTrek.build(ctx([view()]))), spoilers = html(starTrekSpoilers.build(ctx([view()])));
+  assert.match(where, /href="\/blog\/magic-star-trek-spoilers"/);
+  assert.match(spoilers, /href="\/blog\/where-to-buy-magic-star-trek"/);
+  // and both link the three guides of 2026-10-16
+  for (const h of [where, spoilers]) for (const slug of ["magic-star-trek-release-date-products", "magic-star-trek-commander-decks"]) assert.match(h, new RegExp(`href="/blog/${slug}"`), slug);
+  assert.match(spoilers, /href="\/blog\/magic-star-trek-mechanics-explained"/);
 });
 
 test("where to buy: each market's cheapest live price per product from the catalogue, store counts, and a graceful line where there is none", () => {
@@ -63,9 +68,11 @@ test("where to buy: each market's cheapest live price per product from the catal
   assert.match(t, /Star Trek Commander Deck - Klingon Fury US\$59\.99 TCGplayer only/, "a price with no store is TCGplayer's, and says so");
   assert.match(t, /Buying Star Trek in Australia 1 Star Trek product with a live pre-order in Australia today, in AUD/);
   assert.match(t, /No store we track in Singapore lists a Star Trek pre-order yet/);
-  assert.match(t, /Fan trackers report that prerelease events run from 6 to 12 November 2026, and that the MTG Arena release is 10 November 2026/);
-  assert.match(t, /Wizards of the Coast has published no price/);
-  assert.doesNotMatch(t, /\bMSRP\b|\bRRP\b|list price of/, "no list price is quoted");
+  assert.match(t, /Wizards of the Coast's Collecting Star Trek article says that prerelease events run from 6 to 12 November 2026, and that the MTG Arena release is 10 November 2026/);
+  assert.match(t, /Wizards of the Coast's US MSRP is US\$6\.99 for a Play Booster/, "the one MSRP named is Wizards', and it says whose");
+  assert.match(t, /its Collecting Star Trek article of 14 July 2026 sets a US MSRP for each product line/);
+  assert.doesNotMatch(t, /\bRRP\b|list price of/);
+  assert.doesNotMatch(t, /Fan trackers report/, "the dates are Wizards' since 16 October 2026");
 });
 
 test("spoilers: the release's cards in collector order with their images and only real prices; the Commander set's empty state; dated, sourced facts", () => {

@@ -5,7 +5,10 @@
 //
 // The next release is one entry of PREORDER_RELEASES: the set tokens (Set.tok, write-once) of the release, its route, the
 // publisher's product lines and the dated facts. Everything priced comes from the published data: the products are the
-// catalogue's sealed rows of those sets, never a hand-typed id, price or MSRP (none is announced; src/lib/msrp.ts).
+// catalogue's sealed rows of those sets, never a hand-typed id or price. The one exception is the publisher's own US MSRP
+// per product line (`msrp`), copied from the announcement that sets it, with its source and the day it was read, and shown
+// only as "US MSRP": it is never a store price, never ranked, never an alert's threshold (src/lib/msrp.ts, the per-product
+// table the alerts would read, stays empty; DECISIONS.md, "Three Star Trek posts", 2026-10-16).
 //
 // Self-retiring: a page is a pre-order page while its main set's release date (the catalogue's, else the announced one) is
 // in the future; from release day it points at the set page and /sealed. `/preorders` stays a redirect to /release-dates
@@ -53,12 +56,25 @@ export interface PreorderRelease {
   trademark?: string;
   /** Prerelease events (YYYY-MM-DD, inclusive), when known, and who says so: the "when to pre-order" copy names them. */
   prerelease?: { from: string; to: string; kind: PreorderFact["kind"] };
+  /** The publisher's suggested US retail price per product line (`line` is a PreorderLine name), when it published one: the announcement (and its date) and the day it was read. */
+  msrp?: PreorderMsrp;
+}
+
+/** Suggested US retail prices as the publisher announced them, in US cents, per product line ("each" names the unit a price is for). */
+export interface PreorderMsrp {
+  source: { label: string; url: string; published: string };
+  /** YYYY-MM-DD the announcement was read. */
+  checked: string;
+  rows: readonly { line: string; usdCents: number; each: string }[];
 }
 
 const WIZARDS_STAR_TREK = { label: "Wizards of the Coast's Star Trek product page", url: "https://magic.wizards.com/en/products/star-trek", checked: "2026-10-14" };
-const PLAYGROUP_STAR_TREK = { label: "playgroup.gg's Star Trek tracker", url: "https://playgroup.gg/sets/star-trek" };
+// Wizards' first-look article (14 July 2026): set codes, legality, the important dates, the four Commander decks by name, the
+// mechanics, each product's contents and the US MSRPs. Read 16 October 2026; its editor's note says the Beginner Box was cancelled.
+export const WIZARDS_COLLECTING_STAR_TREK = { label: "Wizards of the Coast's Collecting Star Trek article", url: "https://magic.wizards.com/en/news/feature/collecting-star-trek" };
+export const PLAYGROUP_STAR_TREK = { label: "playgroup.gg's Star Trek tracker", url: "https://playgroup.gg/sets/star-trek" };
 
-/** Magic: The Gathering | Star Trek (TRK) and Commander: Star Trek (TRC). Read 14 October 2026; Wizards' page prints no prices. */
+/** Magic: The Gathering | Star Trek (TRK) and Commander: Star Trek (TRC). The product page (read 14 October 2026) prints no prices; Wizards' Collecting Star Trek article (read 16 October 2026) sets the US MSRPs and the dates. */
 export const STAR_TREK: PreorderRelease = {
   key: "star-trek",
   path: "/star-trek-preorders",
@@ -82,10 +98,31 @@ export const STAR_TREK: PreorderRelease = {
     { text: "Star Trek releases on 13 November 2026.", kind: "official", source: WIZARDS_STAR_TREK, checked: "2026-10-14" },
     { text: "The products are Play Boosters, Collector Boosters, a Bundle, the Beam Me Up Bundle, Draft Night, four Commander Decks, four Collector's Edition Commander Decks and two Scene Boxes. No price is printed.", kind: "official", source: WIZARDS_STAR_TREK, checked: "2026-10-14" },
     { text: "Headliner Signed cards, autographed by the actors, can be pulled from Collector Boosters.", kind: "official", source: WIZARDS_STAR_TREK, checked: "2026-10-14" },
-    { text: "Prerelease events run from 6 to 12 November 2026.", kind: "reported", source: PLAYGROUP_STAR_TREK, checked: "2026-10-14" },
-    { text: "The MTG Arena release is 10 November 2026.", kind: "reported", source: PLAYGROUP_STAR_TREK, checked: "2026-10-14" },
+    // Reported by fan trackers until 16 October 2026, when the Collecting Star Trek article was read: Wizards states them there.
+    { text: "Prerelease events run from 6 to 12 November 2026.", kind: "official", source: WIZARDS_COLLECTING_STAR_TREK, checked: "2026-10-16" },
+    { text: "The MTG Arena release is 10 November 2026.", kind: "official", source: WIZARDS_COLLECTING_STAR_TREK, checked: "2026-10-16" },
+    { text: "The four Commander decks are Federation Fleet, Landing Party, Klingon Fury and We Are the Borg, each also sold as a Collector's Edition in Surge Foil.", kind: "official", source: WIZARDS_COLLECTING_STAR_TREK, checked: "2026-10-16" },
+    { text: "Three new mechanics, Assimilate, Face a Dilemma and Federation, and the return of Spacecraft and station from Edge of Eternities.", kind: "official", source: WIZARDS_COLLECTING_STAR_TREK, checked: "2026-10-16" },
+    { text: "The set codes are TRK for the main set, TRC for the Commander decks and SDS for the stardates cards, and TRK is legal in every format, Standard included.", kind: "official", source: WIZARDS_COLLECTING_STAR_TREK, checked: "2026-10-16" },
+    { text: "The Star Trek Beginner Box has been cancelled.", kind: "official", source: WIZARDS_COLLECTING_STAR_TREK, checked: "2026-10-16" },
   ],
-  prerelease: { from: "2026-11-06", to: "2026-11-12", kind: "reported" },
+  prerelease: { from: "2026-11-06", to: "2026-11-12", kind: "official" },
+  // "MSRPs for Magic: The Gathering | Star Trek will be set as follows", in Wizards' order. No figure for the Prerelease Pack (none is
+  // published) and none for a display or a case: a box's price is never derived from a pack's.
+  msrp: {
+    source: { ...WIZARDS_COLLECTING_STAR_TREK, published: "2026-07-14" },
+    checked: "2026-10-16",
+    rows: [
+      { line: "Play Booster", usdCents: 699, each: "booster" },
+      { line: "Collector Booster", usdCents: 3799, each: "booster" },
+      { line: "Commander Deck", usdCents: 7499, each: "deck" },
+      { line: "Collector's Edition Commander Deck", usdCents: 15999, each: "deck" },
+      { line: "Bundle", usdCents: 6999, each: "bundle" },
+      { line: "Beam Me Up Bundle", usdCents: 9999, each: "bundle" },
+      { line: "Draft Night", usdCents: 11999, each: "kit" },
+      { line: "Scene Box", usdCents: 4199, each: "box" },
+    ],
+  },
   trademark: "Star Trek and related marks are trademarks of CBS Studios Inc.; MTG Compare is not affiliated with CBS Studios.",
 };
 
@@ -108,6 +145,36 @@ export function livePreorderPages(sets: readonly Pick<SetLite, "tok" | "released
     const date = byTok.get(r.toks[0]!)?.releasedOn ?? r.announced;
     return r.toks.some((t) => byTok.has(t)) && !isOut(date, today) ? [{ path: r.path, label: r.label, releasedOn: date }] : [];
   });
+}
+
+/** The US MSRP of one of the release's product lines (a PreorderLine name), or null when the publisher published none. */
+export function lineMsrp(r: Pick<PreorderRelease, "msrp">, line: string): { usdCents: number; each: string } | null {
+  return r.msrp?.rows.find((x) => x.line === line) ?? null;
+}
+
+/** The newest day any of the release's facts was read: "what is confirmed, as of" that day. */
+export function factsCheckedOn(r: Pick<PreorderRelease, "facts" | "productSource">): string {
+  return r.facts.reduce((d, f) => (f.checked > d ? f.checked : d), r.productSource.checked);
+}
+
+/** A fact as a clause ("Prerelease events run ...." -> "prerelease events run ..."). */
+export const factClause = (f: Pick<PreorderFact, "text">): string => f.text.replace(/\.$/, "").replace(/^\w/, (x) => x.toLowerCase());
+
+/** The release's side dates (prerelease events, the MTG Arena release): the facts that name them, official first. */
+export function eventFacts(r: Pick<PreorderRelease, "facts">): PreorderFact[] {
+  const ev = r.facts.filter((f) => /\bprerelease\b|\bmtg arena\b/i.test(f.text));
+  return [...ev.filter((f) => f.kind === "official"), ...ev.filter((f) => f.kind === "reported")];
+}
+
+/** Facts said as sentences that name who says them: "<source> says that a, and that b." per official source, then "Fan trackers report that c." */
+export function attributed(facts: readonly PreorderFact[]): string {
+  const bySource = new Map<string, PreorderFact[]>();
+  for (const f of facts) if (f.kind === "official") (bySource.get(f.source.label) ?? bySource.set(f.source.label, []).get(f.source.label)!).push(f);
+  const reported = facts.filter((f) => f.kind === "reported");
+  return [
+    ...[...bySource].map(([label, fs]) => `${label} says that ${fs.map(factClause).join(", and that ")}.`),
+    ...(reported.length ? [`Fan trackers report that ${reported.map(factClause).join(", and that ")}.`] : []),
+  ].join(" ");
 }
 
 /** The release's sets in the catalogue, main set first; a token the catalogue lacks is skipped. */
