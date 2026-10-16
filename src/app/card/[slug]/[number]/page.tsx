@@ -42,7 +42,7 @@ export default async function SetNumberPage({ params }: Props) {
           const h = headline(c, country);
           return (
             <li key={c.id}>
-              <Link href={`/card/${c.slug}`} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-ink-800/60">
+              <Link prefetch={false} href={`/card/${c.slug}`} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-ink-800/60">
                 <span className="min-w-0 truncate text-sm font-semibold text-white">
                   {c.name}
                   {c.label ? <span className="text-slate-400"> ({c.label})</span> : null}

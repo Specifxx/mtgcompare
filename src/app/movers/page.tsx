@@ -134,7 +134,7 @@ export default async function MoversPage() {
         <h2 className="mb-3 text-lg font-bold text-white">Browse prices by set</h2>
         <div className="flex flex-wrap gap-2">
           {releasedSets(sets).slice(0, 12).map((s) => (
-            <Link key={s.id} href={`/sets/${s.slug}`} className="chip border border-ink-700 bg-ink-850 text-slate-200 hover:border-ink-600 hover:text-white">
+            <Link prefetch={false} key={s.id} href={`/sets/${s.slug}`} className="chip border border-ink-700 bg-ink-850 text-slate-200 hover:border-ink-600 hover:text-white">
               {s.code} {s.name}
             </Link>
           ))}

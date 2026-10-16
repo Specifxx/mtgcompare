@@ -28,6 +28,7 @@ import { getCardPage, getSets, suggestNames } from "@/lib/data";
 import { int } from "@/lib/format";
 import { getCountry } from "@/lib/get-country";
 import { pageOg } from "@/lib/og/meta";
+import { chipSetLabels, filterSets } from "@/lib/filter-sets";
 
 // Reads the browse engine (in memory behind getCardPage) and the visitor's market: rendered per request, cached at the CDN (contract 7.5).
 export const dynamic = "force-dynamic";
@@ -71,7 +72,7 @@ export default async function BrowsePage({
             Filters &amp; sort
           </label>
           <div className="mt-3 hidden peer-checked:block lg:mt-0 lg:block">
-            <BrowseFilters q={q} sets={sets} country={country} />
+            <BrowseFilters q={q} sets={filterSets(sets)} country={country} />
             {/* A search defaults to "Best match" (relevance), a plain list to value:
                 the default is what the URL leaves out. */}
             <FormCleaner
@@ -107,7 +108,7 @@ export default async function BrowsePage({
           </div>
 
           <FilterChips
-            sets={Object.fromEntries(sets.flatMap((s) => [[s.slug, `${s.name} (${s.code})`], [s.code.toLowerCase(), `${s.name} (${s.code})`]]))}
+            sets={chipSetLabels(sets, searchParams)}
             symbol="US$"
             adjective={c.adjective}
           />

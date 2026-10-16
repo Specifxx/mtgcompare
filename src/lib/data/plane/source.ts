@@ -82,7 +82,10 @@ export class HttpPlane {
     const key = `${this.cfg.repo}@${ref}/${rel}`;
     const hit = this.lru.get(key); if (hit) { this.lru.delete(key); this.lru.set(key, hit); this.stats.lruHits++; return hit.v as { text: string; parsed: unknown }; }
     const running = this.inflight.get(key); if (running) return running as Promise<{ text: string; parsed: unknown }>;
-    const p = this.withPermit(() => this.chain(ref, rel, prev)).then((r) => { this.remember(key, r, r.text.length); return r; }).finally(() => this.inflight.delete(key));
+    // HEAP, NOT TEXT (2026-10-16, DECISIONS.md "The CDN finally caches the public pages"): an entry holds the text AND its parse, measured at ~3.3-4.1x the text's
+    // length, so counting the text alone let a 64 MB cap hold ~220 MB. Counted x3, as the Neon reader does. The browse index chunks (ix/*) are not kept at all:
+    // BrowseIndex.load reads each once per ref and keeps the data in its own typed arrays (memoByRef), so a second copy here was 13 MB of text and ~32 MB of heap for nothing.
+    const p = this.withPermit(() => this.chain(ref, rel, prev)).then((r) => { if (!rel.startsWith("ix/")) this.remember(key, r, r.text.length * 3); return r; }).finally(() => this.inflight.delete(key));
     this.inflight.set(key, p); return p;
   }
   private async chain(ref: string, rel: string, prev: string | null): Promise<{ text: string; parsed: unknown }> {

@@ -86,7 +86,7 @@ export function CardFacetPage({
             .filter((s) => s.slug !== facet.slug && (!siblingCounts || (siblingCounts[s.key] ?? 0) > 0))
             .map((s) => (
               <li key={s.slug}>
-                <Link href={`${siblingBase}/${s.slug}`} className="chip border border-ink-700 bg-ink-850 text-slate-200 hover:border-ink-600">
+                <Link prefetch={false} href={`${siblingBase}/${s.slug}`} className="chip border border-ink-700 bg-ink-850 text-slate-200 hover:border-ink-600">
                   {s.label}
                 </Link>
               </li>

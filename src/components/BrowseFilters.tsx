@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { COLORS, COLOR_LETTERS, FORMAT_LABEL, FORMAT_UI, PRIMARY_TYPES, PRIMARY_TYPE_LABEL, RARITIES, RARITY_KEYS, SET_KINDS, TREATMENTS, TREATMENT_KIND_DOT, type TreatmentKind } from "@/lib/constants";
 import { COUNTRIES, type Country } from "@/lib/country";
 import type { BrowseQuery } from "@/lib/browse";
-import type { SetLite } from "@/lib/data";
+import type { FilterSet } from "@/lib/filter-sets";
 import { canonical, clearFilters, priceInput, toggle, values, withArticle } from "@/lib/filter-chips";
 
 function Section({ title, open = false, children }: { title: string; open?: boolean; children: React.ReactNode }) {
@@ -49,7 +49,7 @@ const TREATMENT_GROUPS: { kind: TreatmentKind; label: string }[] = [
 // results in the background; the copy resyncs whenever the URL changes (a
 // chip removed, Back/Forward). Still a real GET form with named inputs, so it
 // works without JavaScript (the "Show results" button submits it then).
-export function BrowseFilters({ q, sets, country, action = "/browse", hide = [] }: { q: BrowseQuery; sets: SetLite[]; country: Country; action?: string; hide?: string[] }) {
+export function BrowseFilters({ q, sets, country, action = "/browse", hide = [] }: { q: BrowseQuery; sets: FilterSet[]; country: Country; action?: string; hide?: string[] }) {
   const c = COUNTRIES[country];
   const router = useRouter();
   const params = useSearchParams();

@@ -1034,6 +1034,7 @@
   "src/lib/entry-source.ts": "WP18",
   "src/lib/facets.ts": "WP01a",
   "src/lib/filter-chips.ts": "WP07",
+  "src/lib/filter-sets.ts": "WP07",
   "src/lib/format-currency.ts": "WP01a",
   "src/lib/format.ts": "WP01a",
   "src/lib/free-limits.ts": "WP18",

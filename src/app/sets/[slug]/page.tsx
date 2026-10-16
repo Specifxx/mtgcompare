@@ -32,6 +32,7 @@ import { parseBrowse, toCardQuery, type BrowseQuery, type SearchParams } from "@
 import { guidesForCatalogue } from "@/lib/content/catalogue-guides";
 import { buildCollectionNarrative } from "@/lib/content/collection-narrative";
 import { checklistGuideRows } from "@/lib/set-price-guide";
+import { chipSetLabels } from "@/lib/filter-sets";
 
 // Every route that reaches the published data is dynamic: a build reads no data host (CLAUDE.md, contract C26).
 export const dynamic = "force-dynamic";
@@ -87,7 +88,7 @@ export default async function SetPage({ params, searchParams }: Props) {
   });
   const guideRows = checklistGuideRows(checklist);
   const guides = guidesForCatalogue("sets");
-  const setsByCode = Object.fromEntries(sets.flatMap((x) => [[x.slug, `${x.name} (${x.code})`], [x.code.toLowerCase(), `${x.name} (${x.code})`]]));
+  const setsByCode = chipSetLabels(sets, searchParams);
   const priced = checklist.filter((x) => x.minCents != null);
   const med = median(priced.map((x) => x.minCents!));
   const top = highlights[0];
@@ -266,7 +267,7 @@ export default async function SetPage({ params, searchParams }: Props) {
               Filters
             </label>
             <div className="mt-3 hidden peer-checked:block lg:mt-0 lg:block">
-              <BrowseFilters q={bq} sets={sets} country={country} action={`/sets/${set.slug}`} hide={["set"]} />
+              <BrowseFilters q={bq} sets={[]} country={country} action={`/sets/${set.slug}`} hide={["set"]} />
             </div>
           </aside>
           <div className="min-w-0">

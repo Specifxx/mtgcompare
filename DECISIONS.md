@@ -2910,3 +2910,58 @@ Not done: the community posts and the OP Compare and DexCompare pieces of the pa
 - Unchanged: schema.org PreOrder offers (never InStock), the US MSRPs beside each product line, affiliate tags and click attributes (new surfaces `preorder_marketplace_ebay` and `preorder_marketplace_tcgplayer`; retailers `ebay_listing`, `ebay_sealed_search`, `tcgplayer`), the FAQ and related links. Each product block has an id (its slug), so the strip's deal links to it. Checked at 390 px and 1280 px with no horizontal scroll, on the live page's rows of 16 October rendered locally.
 
 Reversal: `PreorderProduct` back to one ranked list (`splitRows` unused), drop the strip and `PreorderEbayRow`.
+
+## The CDN finally caches the public pages; one browse index per commit; robots stops the query crawl — 2026-10-16
+
+**Owner**, with Vercel's numbers for 10–17 October:
+- MTG Compare cost $2.81: Fluid CPU $1.19 and Fast Origin Transfer $1.01 (17 GB).
+- It served 414K function invocations against ~725 real analytics events, so this is crawler traffic.
+- Average function memory was 820 MB of 2 GB.
+- Top routes: `/card/[slug]` (26K per 12 h), `/guides/[slug]`, `/sealed/[slug]`, `/sets/[slug]`, `/price-guide`, `/blog`, `/tools/box-ev`.
+
+The owner asked for long caching, the memory found and fixed, smaller payloads and a tighter robots.txt.
+
+**What was found.**
+- **No page was ever CDN-cached.** Every public page answered `private, no-cache, no-store` with `x-vercel-cache: MISS`. `headers.json`'s `public, s-maxage=300` reaches pages through `next.config.js` `headers()`, but on Vercel a function's own `Cache-Control` beats the config's. A force-dynamic page sends `private, no-store` (Next's `send-payload`). The contract's five-minute CDN copy existed only under `next start`, which is what the smoke test runs. So every crawler hit was a full render.
+- **Most top routes read the visitor's market.** `getCountry()` reads the `country` cookie, then IP geo. That covers card, sealed, `sets/[slug]`, price guide, browse, `cards/*`, colours, commanders, the pre-order page and, through `postContext(country)`, every article. One CDN copy of those would show one visitor's market to the next. Vercel's CDN does not key on a cookie or on geo, and a page cannot set its own `Vary`.
+- **Memory** (measured with real-scale synthetic data through the real reader):
+  - The plane LRU counted only the text of each file while holding the text and its parse, about 3.5× the counted bytes. A 64 MB cap (`PLANE_LRU_MB`, GitHub backend) held ~220 MB of heap.
+  - It also kept the browse index's 40 chunk files: 13 MB of text and ~32 MB of heap that the index already holds in typed arrays.
+  - `getBrowseIndex` built one ~35 MB index per column variant, and the first caller chose the variant. The card page (no oracle columns) and the articles (no store columns) each built one, so two were common and four were possible.
+  - Next's in-memory fetch cache (50 MB) and Prisma (~22 MB) make up the rest.
+- **Production reads the plane from GitHub** (`PLANE_BACKEND=github`, 2026-10-09). The Neon default in CLAUDE.md is the code default only.
+
+**What changed.**
+- **`Vercel-CDN-Cache-Control: public, s-maxage=21600, stale-while-revalidate=86400` on the market-neutral public pages** (`headers.json` `pagesCdn`, wired in `next.config.js`).
+  - The pages: the home and the five region homes, `/singles`, `/gallery`, `/market`, `/movers`, `/stores` and its pages, `/sets`, `/keywords/*`, `/search`, `/tools`, `/tools/box-ev`, `/tools/selling-fees` and `/release-dates`.
+  - Vercel's CDN reads this header before the function's `Cache-Control` and strips it from the browser's copy (Vercel's Cache-Control documentation, "Functions have priority over config files" and the `Vercel-CDN-Cache-Control` table).
+  - Six hours because the plane publishes once a day; a release purges the CDN.
+  - `tests/headers-allowlist.test.ts` walks each listed page's server import closure and layouts. It fails if any calls `getCountry`, `cookies`, `headers`, `getCurrentUser`, `currentEntitlement` or `draftMode`, or if the data barrel imports a per-visitor module. Adding `/browse` fails it, as it should.
+- **The plane LRU counts an entry at three times its text** (as the Neon reader does) and never keeps `ix/*`.
+- **`getBrowseIndex` always builds the full index** (stores and oracle columns), one per instance and commit. A request for fewer columns shares it. The extra read is 2.7 MB, once.
+- **Payloads.**
+  - `BrowseFilters` gets the six set fields it reads (`filterSets`), and nothing on `/sets/[slug]`, where the set filter is hidden.
+  - `FilterChips` gets labels only for the sets the URL names (`chipSetLabels`), not every set under two keys.
+  - Together that was ~150 KB of RSC on each `/browse`, `/price-guide` and `/sets/[slug]` render.
+  - `prefetch={false}` on 26 list links: the sets index (483 links), commanders, the A–Z names, keywords, release dates, market, movers, gallery, stores, the price guide's set table, index constituents, the home sections, facet chips and the article lists. A prefetch of a dynamic route is a function invocation.
+- **robots.txt.**
+  - `Disallow: /*?`: no sitemap URL has a query. Every card page links its other finish as `?finish=`, which canonicalises back to the bare URL, so the 35,000 card pages were crawled about twice.
+  - The Allows keep `/_next/` (assets carry `?dpl=`), the share images and the icons.
+  - Twelve backlink, data and minor-engine crawlers are blocked. Ahrefs and Semrush stay allowed.
+
+**Not done, and why.**
+- **Function memory cannot be lowered in `vercel.json`.** Vercel's documentation says a `memory` key there is ignored with a build warning. Under Fluid compute on Pro the choices are 2 GB / 1 vCPU (the default) or 4 GB, set under Project Settings → Functions. The memory fixes above raise how many requests one instance carries; they do not change the 2 GB rate.
+- **The market-dependent pages are not cached.** Caching them needs a market-neutral render: every market's rows computed on the server and the visitor's picked in the browser, as OP Compare's `/card/[slug]` does (`src/lib/per-market.ts`, `src/components/card/CardMarket.tsx`, `tests/card-isr.test.ts` there). That is the next step for `/card/[slug]`, the largest route.
+- **The articles** need the same, because `postContext(country)` prices every section in the visitor's market.
+- **`/tools/box-ev` still ships 462 KB of calculator data.** With the CDN copy it renders about four times a day instead of on every hit. Loading other sets' pools on demand would shrink it further.
+- **Prisma is still constructed at import.** Making it lazy saves ~22 MB per instance, but a proxy around the shared client touches every member library. Not worth the risk in this change.
+
+**What to watch** (Vercel Observability, 24 h after the release):
+- **Edge Requests:** `x-vercel-cache: HIT` on `/`, `/sets` and `/tools/box-ev` (curl twice; Vercel strips the header, so judge by `x-vercel-cache` and `age`).
+- **Functions:** invocations on those routes should fall to a few per day. Memory should drop well under 820 MB. Card invocations should fall as the `?finish=` crawl stops.
+
+Reversal:
+- drop `pagesCdn` and the `next.config.js` line;
+- `getBrowseIndex` back to per-variant memos;
+- `remember(key, r, r.text.length)` for every path;
+- remove `/*?` from robots.ts.

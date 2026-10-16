@@ -47,7 +47,7 @@ export default async function KeywordsHub() {
           <p className="mb-3 mt-1 text-sm text-slate-400">{g.sub}</p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {g.list.map((k) => (
-              <Link key={k.slug} href={`/keywords/${k.slug}`} className="card-surface p-4 hover:border-ink-600">
+              <Link prefetch={false} key={k.slug} href={`/keywords/${k.slug}`} className="card-surface p-4 hover:border-ink-600">
                 <p className="font-bold text-white">{k.label}</p>
                 {KEYWORD_BY_SLUG.get(k.slug) ? <p className="mt-1 text-sm text-slate-400">{KEYWORD_BY_SLUG.get(k.slug)!.summary}</p> : null}
                 <p className="num mt-2 text-xs text-slate-500">{int(k.count)} cards</p>

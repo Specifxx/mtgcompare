@@ -91,7 +91,7 @@ export default async function CommandersPage({ searchParams }: { searchParams: S
       ) : (
         <div className="mt-6 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
           {(res?.items ?? []).map((o) => (
-            <Link key={o.no} href={`/commanders/${o.slug}`} className="card-surface flex items-center gap-3 p-3 hover:border-ink-600">
+            <Link prefetch={false} key={o.no} href={`/commanders/${o.slug}`} className="card-surface flex items-center gap-3 p-3 hover:border-ink-600">
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-semibold text-white">{o.name}</span>
                 <span className="block truncate text-xs text-slate-400">{o.typeLine}</span>

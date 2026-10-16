@@ -68,6 +68,10 @@ const nextConfig = {
       // Sitemaps, feeds, llms files and image routes are route handlers and set publicDataHeaders() themselves (Next adds its own Cache-Control to metadata routes, so a header here would double).
       ...plane.pagesPublic.map((source) => ({ source, headers: [{ key: "Cache-Control", value: plane.public }] })),
       ...plane.pagesPrivate.map((source) => ({ source, headers: [{ key: "Cache-Control", value: plane.private }] })),
+      // ON VERCEL THE TWO LINES ABOVE ARE INERT FOR PAGES: a force-dynamic page sends its own `private, no-store`, and a function's Cache-Control beats the config's.
+      // Vercel-CDN-Cache-Control beats both and stays at the CDN, so the market-neutral public pages get a real six-hour CDN copy (headers.json pagesCdn; DECISIONS.md,
+      // "The CDN finally caches the public pages").
+      ...plane.pagesCdn.map((source) => ({ source, headers: [{ key: "Vercel-CDN-Cache-Control", value: plane.cdn }] })),
     ];
   },
 };

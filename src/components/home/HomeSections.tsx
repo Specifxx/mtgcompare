@@ -56,6 +56,7 @@ export function HomeSections({ data, storeCount }: { data: HomeData; storeCount:
             const isNew = !upcoming && (s.releasedOn ?? "") >= newCutoff;
             return (
               <Link
+                prefetch={false}
                 key={s.id}
                 href={`/sets/${s.slug}`}
                 className="card-surface flex flex-col gap-1 p-4 transition-colors duration-200 hover:border-brand-500 hover:bg-ink-800"
@@ -74,6 +75,7 @@ export function HomeSections({ data, storeCount }: { data: HomeData; storeCount:
         <Reveal stagger className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-7">
           {COLOUR_TILES.map((c) => (
             <Link
+              prefetch={false}
               key={c.slug}
               href={`/colors/${c.slug}`}
               className="card-surface flex flex-col gap-1 p-4 transition-colors duration-200 hover:border-brand-500 hover:bg-ink-800"

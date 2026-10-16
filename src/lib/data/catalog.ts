@@ -228,10 +228,13 @@ export async function sealedExists(ids: readonly number[]): Promise<Set<number>>
 // ── the browse index (M) and the transition shim ────────────────────────────────────────────────────────────────────────────
 /** Server-only: the typed-array engine, one per instance and ref (M). The replacement for every "scan cat.cards" caller. Resolve it BEFORE a closure that an unstable_cache wraps. Both column groups are loaded by default (ix/s and ix/o together are 2.7 MB of the 13.2);
  *  pass false to skip one. An index of this ref that already holds more serves a request for less. A build that fails is not remembered. */
-export async function getBrowseIndex(o: { withStores?: boolean; withOracle?: boolean } = {}): Promise<BrowseIndex> {
-  const withStores = o.withStores !== false, withOracle = o.withOracle !== false, c = await planeSource(), name = (s: boolean, r: boolean): string => `ix:${s}:${r}`;
-  for (const [s, r] of [[withStores, withOracle], [true, true], [withStores, true], [true, withOracle]] as const) { const hit = peekByRef<BrowseIndex>(name(s, r), memoKey(c.ptr)); if (hit) return hit; }
-  return memoByRef(name(withStores, withOracle), memoKey(c.ptr), async () => BrowseIndex.load(c.src, (await setsView(c)).list, { withStores, withOracle }));
+// ONE INDEX PER REF (2026-10-16, DECISIONS.md "The CDN finally caches the public pages"). The options say what a caller NEEDS; the instance always builds the full
+// index, because the first request decided the variant and the next route that needed more built another: the card page (no oracle) and the articles (no stores)
+// held two ~35 MB indexes, and four were possible. The full one costs 2.7 MB more to read once and serves every request. A richer index serves a poorer request.
+export async function getBrowseIndex(_o: { withStores?: boolean; withOracle?: boolean } = {}): Promise<BrowseIndex> {
+  const c = await planeSource(), name = "ix:true:true";
+  const hit = peekByRef<BrowseIndex>(name, memoKey(c.ptr)); if (hit) return hit;
+  return memoByRef(name, memoKey(c.ptr), async () => BrowseIndex.load(c.src, (await setsView(c)).list, { withStores: true, withOracle: true }));
 }
 let shimWarned = false; let shimMemo: { ref: string; at: number; v: Promise<Catalog> } | null = null;
 /** @deprecated TRANSITION SHIM (src/lib/data/catalog-shim.ts): every LISTED class-0 row from the browse index, 5-minute memo, one console.warn per process, REFUSES in a production deployment. Deleted at M3 (ratchet: tests/no-get-catalog.test.ts). */

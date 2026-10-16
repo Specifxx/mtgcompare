@@ -63,7 +63,7 @@ export default async function KeywordPage({ params, searchParams }: Props) {
           <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {r.items.map((o) => (
               <li key={o.no} className="card-surface p-3">
-                <Link href={`/cards/name/${o.slug}`} className="font-semibold text-white hover:text-brand-400">
+                <Link prefetch={false} href={`/cards/name/${o.slug}`} className="font-semibold text-white hover:text-brand-400">
                   {o.name}
                 </Link>
                 <p className="mt-0.5 text-xs text-slate-400">
@@ -82,7 +82,7 @@ export default async function KeywordPage({ params, searchParams }: Props) {
         <ul className="flex flex-wrap gap-2">
           {index.filter((x) => x.slug !== r.keyword!.slug && KEYWORD_BY_SLUG.has(x.slug)).map((x) => (
             <li key={x.slug}>
-              <Link href={`/keywords/${x.slug}`} className="chip border border-ink-700 bg-ink-850 text-slate-200 hover:border-ink-600">
+              <Link prefetch={false} href={`/keywords/${x.slug}`} className="chip border border-ink-700 bg-ink-850 text-slate-200 hover:border-ink-600">
                 {keywordLabel(x.slug)}
               </Link>
             </li>

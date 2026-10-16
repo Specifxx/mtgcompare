@@ -13,6 +13,11 @@ export function nextHeaderEntries(): { source: string; headers: { key: string; v
     ...PRIVATE_SOURCES.map((source) => ({ source, headers: [{ key: "Cache-Control", value: PRIVATE_CACHE_CONTROL }] })),
   ];
 }
+/** The CDN copy of the market-neutral public pages (2026-10-16): Vercel-CDN-Cache-Control, which Vercel's CDN reads before the page function's own `private, no-store` and never forwards to the browser. Every CDN source is also a PUBLIC source; tests/headers-allowlist.test.ts proves each page's server render reads no market, cookie, header or session. */
+export const CDN_CACHE_CONTROL: string = cfg.cdn;
+export const CDN_SOURCES: readonly string[] = cfg.pagesCdn;
+export const cdnHeaderEntries = (): { source: string; headers: { key: string; value: string }[] }[] =>
+  CDN_SOURCES.map((source) => ({ source, headers: [{ key: "Vercel-CDN-Cache-Control", value: CDN_CACHE_CONTROL }] }));
 /** For route handlers (sitemaps, feeds, llms.txt, image routes) that set their own header: `new Response(body, { headers: publicDataHeaders({ "content-type": "application/xml" }) })`. */
 export const publicDataHeaders = (extra: Record<string, string> = {}): Record<string, string> => ({ ...extra, "cache-control": PUBLIC_DATA_CACHE_CONTROL });
 export const privateHeaders = (extra: Record<string, string> = {}): Record<string, string> => ({ ...extra, "cache-control": PRIVATE_CACHE_CONTROL });

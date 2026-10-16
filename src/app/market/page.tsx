@@ -188,6 +188,7 @@ export default async function MarketPage() {
                 <tr key={s.id}>
                   <td>
                     <Link
+                      prefetch={false}
                       href={`/sets/${s.slug}`}
                       className="font-semibold text-brand-400 hover:underline"
                     >

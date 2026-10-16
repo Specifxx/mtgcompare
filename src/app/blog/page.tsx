@@ -71,6 +71,7 @@ export default async function BlogIndex() {
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {posts.map(({ p, title, hero }, i) => (
           <Link
+            prefetch={false}
             key={p.slug}
             href={postHref(p)}
             className="card-surface group flex flex-col overflow-hidden hover:border-ink-600"

@@ -84,6 +84,7 @@ export default async function StoresPage() {
                     <tr key={s.key}>
                       <td>
                         <Link
+                          prefetch={false}
                           href={`/stores/${s.key}`}
                           className="font-semibold text-slate-100 hover:text-brand-400"
                         >

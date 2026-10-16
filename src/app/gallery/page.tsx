@@ -56,7 +56,7 @@ export default async function GalleryHub() {
             <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {group.map((s) => (
                 <li key={s.id}>
-                  <Link href={`/sets/${s.slug}/gallery`} className="card-surface block p-3 transition-colors hover:border-ink-600">
+                  <Link prefetch={false} href={`/sets/${s.slug}/gallery`} className="card-surface block p-3 transition-colors hover:border-ink-600">
                     <span className="block text-sm font-semibold text-white">{s.name}</span>
                     <span className="num block text-xs text-slate-400">
                       {s.code} · {int(counts.get(s.id) ?? 0)} cards{s.releasedOn ? ` · ${longDate(s.releasedOn)}` : ""}
