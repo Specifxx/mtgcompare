@@ -2867,3 +2867,20 @@ Cost: the first blog render after a publish on an instance does the work above; 
 - **Seen, not changed.** Under `next start` the images below `/card`, `/sets`, `/sealed` and `/decks` carry a second Cache-Control line, the page rule of `headers.json` (`public, s-maxage=300, stale-while-revalidate=600`; `/card/:path*` and the others match the image path too), and `/rising/<token>/opengraph-image` a second `private, no-store`. On Vercel the function's own header replaces the config one: the live card image has one `cache-control` line and was a HIT at 405 s, past the page rule's 300, and `/rising/abc/opengraph-image` answers one `public, max-age=0`. Production is unaffected; a self-hosted `next start` would send both lines. Fixing it means changing the frozen page patterns of `headers.json`.
 
 Reversal: `OG_REVALIDATE` back to 21600 in `src/lib/og/theme.ts`, and the expected string in tests/og.test.ts.
+
+## IndexNow posts for the sitemap's host and fails loudly: a stale SITE_URL made every run a 422 — 2026-10-16
+
+Date: 2026-10-16
+
+The owner reported, from Bing Webmaster Tools and the job log, that IndexNow had never accepted a URL for mtgcompare.app: every daily run logged `batch 1: 8479 URLs → HTTP 422` and `IndexNow: 0 of 8479 URLs submitted.` and finished green. The guess at the time was that sharing RiftCompare's key was the problem. It is not: OP Compare uses the same key and the same script shape and got `HTTP 200` for 8,408 URLs the day before, and IndexNow verifies a key per host (the key file each host serves).
+
+**The cause.** The job's environment printed `SITE_URL: https://mtgcompare.vercel.app`: the repository variable `SITE_URL` (which `vars.SITE_URL || 'https://mtgcompare.app'` prefers) still names the old Vercel host. The script read the sitemap there (the same deployment answers) and posted `host: mtgcompare.vercel.app` with the sitemap's own URLs, which are all on `https://mtgcompare.app`. IndexNow answers 422 when a URL is not on the request's host.
+
+**The change** (`scripts/indexnow-submit.ts`):
+- `submissionPlan()` takes the origin of the sitemap's own `<loc>`s (the canonical host the pages declare), sends only URLs on it (any other is left out and counted), and names the key file there (`<origin>/indexnow.txt`). SITE_URL now only says where to read the sitemap; when its host differs from the sitemap's, the run warns and says what to set the variable to.
+- The run FAILS (exit 1) when IndexNow refuses any batch, logging the status and the first 500 characters of IndexNow's answer; when the key file never serves `INDEXNOW_KEY`; and when the sitemap lists no URLs. Without `INDEXNOW_KEY` it still skips quietly (IndexNow off by choice). A silent 0-of-N on a green run is how this went unnoticed for a week; the ops watch reads the workflow's conclusion.
+- `tests/sitemap-sections.test.ts` pins the plan (the live failure's hosts), the request's host and the three failure exits.
+
+**Owner action (optional, recommended):** set the `SITE_URL` repository variable to `https://mtgcompare.app`, or delete it so the workflows' fallback applies. Seven other workflows read it (`ebay-prices`, `email`, `email-weekly`, `release-day-email`, `search-console`, `seo-preview-gate`, `stripe-setup`); the IndexNow run no longer depends on it.
+
+**Not changed:** the key (shared with RiftCompare and OP Compare, served at `/indexnow.txt`), the schedule, the default sections.

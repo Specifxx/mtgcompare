@@ -226,6 +226,24 @@ test("IndexNow follows the sitemap index (it used to submit the child sitemap UR
   assert.deepEqual(await urlsToSubmit("https://x.test", "static", 10_000, get), ["https://x.test/a"], "a plain urlset still works");
 });
 
+test("IndexNow posts for the sitemap's own host, never SITE_URL's (a stale repository variable made every batch a 422), and fails the run on a refusal", async () => {
+  const { submissionPlan } = await import("../scripts/indexnow-submit");
+  // The live failure: SITE_URL said the vercel.app host, the sitemap's URLs are on the canonical host.
+  const plan = submissionPlan(["https://mtgcompare.app/", "https://mtgcompare.app/sets/fdn-foundations", "https://elsewhere.test/x"]);
+  assert.ok(plan);
+  assert.equal(plan.host, "mtgcompare.app");
+  assert.equal(plan.keyLocation, "https://mtgcompare.app/indexnow.txt", "the key file is checked and named on the host the URLs are on");
+  assert.deepEqual(plan.urls, ["https://mtgcompare.app/", "https://mtgcompare.app/sets/fdn-foundations"]);
+  assert.equal(plan.dropped, 1, "a URL on another host is left out, never sent to make the whole batch a 422");
+  assert.equal(submissionPlan([]), null);
+  const src = read("scripts/indexnow-submit.ts");
+  assert.match(src, /host: plan\.host, key, keyLocation: plan\.keyLocation/, "the request names the plan's host");
+  assert.doesNotMatch(src, /new URL\(site\)\.host/, "SITE_URL's host is never the request's");
+  assert.match(src, /if \(sent < plan\.urls\.length\) \{[\s\S]*?process\.exitCode = 1/, "a refusal fails the run (it used to log 0 of N and pass)");
+  assert.match(src, /never served INDEXNOW_KEY[\s\S]*?process\.exitCode = 1/, "a key file that never serves the key fails the run");
+  assert.match(src, /await r\.text\(\)/, "IndexNow's own answer is logged with a refusal");
+});
+
 test("the workflows: IndexNow runs after the daily publish, the Search Console job submits the index and each child, and every script names itself", () => {
   const yml = read(".github/workflows/indexnow.yml");
   assert.match(yml, /cron: "15 23 \* \* \*"/, "23:15 UTC: after the import window (21:05 to 23:30 starts retries earlier; phase 2 is done by about 22:40)");
