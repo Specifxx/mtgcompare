@@ -2,7 +2,7 @@ import Link from "next/link";
 import { COUNTRIES, MARKETS } from "@/lib/country";
 import type { SiteStats } from "@/lib/data";
 import { int } from "@/lib/format";
-import { STORES } from "@/lib/stores";
+import { checkedStoresIn } from "@/lib/stores";
 
 // Live per-market store counts for the where-to-buy and cheaper-abroad posts
 // (RiftCompare's ArticleMarketData): how many stores MTG Compare reads in each
@@ -12,7 +12,7 @@ import { STORES } from "@/lib/stores";
 // board's job, per card.
 export function ArticleMarketData({ stats }: { stats: SiteStats }) {
   const rows = MARKETS.map((m) => {
-    const tracked = STORES.filter((s) => s.country === m).length;
+    const tracked = checkedStoresIn(m).length;
     const inStock = stats.storeOffers.filter((o) => o.market === m && o.source.startsWith("store:")).reduce((a, o) => a + o.inStock, 0);
     return { m, tracked, inStock };
   });

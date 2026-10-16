@@ -49,6 +49,11 @@ export function storesIn(country: Country): StoreInfo[] {
   return STORES.filter((s) => s.country === country);
 }
 
+/** The stores the daily import reads in a market: the registry's, without the two public price feeds (off until their terms are agreed, contract 10.11). /stores lists the same stores; TCGplayer and eBay are marketplaces, never in this count. */
+export function checkedStoresIn(country: Country): StoreInfo[] {
+  return STORES.filter((s) => s.country === country && platformOf(s) !== "feed");
+}
+
 /** The feeds the importer may read: the keys in FEED_SOURCES ("cardkingdom,manapool"). Empty = both off (10.11). */
 export function enabledFeeds(env: Record<string, string | undefined> = process.env): StoreInfo[] {
   const on = new Set((env.FEED_SOURCES ?? "").split(",").map((k) => k.trim().toLowerCase()).filter(Boolean));

@@ -716,6 +716,7 @@
   "src/components/PremiumNudgeCard.tsx": "WP18",
   "src/components/PremiumProofLine.tsx": "WP18",
   "src/components/PremiumSlideIn.tsx": "WP18",
+  "src/components/PreorderEbayRow.tsx": "WP20",
   "src/components/PreorderPage.tsx": "WP20",
   "src/components/PreorderPriceTable.tsx": "WP20",
   "src/components/PreorderProduct.tsx": "WP20",

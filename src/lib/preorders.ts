@@ -18,6 +18,7 @@ import { COUNTRIES, type Country } from "./country";
 import type { OfferRow, SealedLite, SetLite } from "./data";
 import { buyRow, type BuyRow } from "./quick-view";
 import { offerStock, type OfferStock } from "./sealed-offers";
+import { checkedStoresIn } from "./stores";
 
 /** Box before pack, cases last (data/sealed.ts getSealedBySet's order). */
 const sealedKindRank = (k: SealedKind): number => (k === "Booster Box" ? 0 : k === "Booster Pack" ? 1 : k === "Case" ? 99 : 2 + SEALED_KINDS.indexOf(k));
@@ -240,6 +241,44 @@ export function boardSummary(rows: readonly PreorderRow[]): { cheapest: Preorder
     openStores: rows.filter((r) => r.state === "open" && !r.tcgplayer).length,
     soldOut: rows.filter((r) => r.state === "soldout").length,
   };
+}
+
+// ── the page's layout (DECISIONS.md, "The pre-order page: marketplaces on top, stores in price order", 2026-10-16) ──────────────────
+// Every product block opens with its marketplaces, eBay then TCGplayer, in a labelled group of their own: never numbered, never
+// "Cheapest", never counted as a store. Below them the stores, cheapest open pre-order first, numbered; stale and sold-out rows last.
+
+/** A product's rows split for the page: TCGplayer's row (the marketplace group, any state) and the stores' rows in board order. */
+export function splitRows(rows: readonly PreorderRow[]): { tcgplayer: PreorderRow | null; stores: PreorderRow[] } {
+  return { tcgplayer: rows.find((r) => r.tcgplayer) ?? null, stores: rows.filter((r) => !r.tcgplayer) };
+}
+
+/** How many stores the daily import reads in a market (the registry without the off feeds: /stores and the buying guides' count). */
+export const storesCheckedIn = (country: Country): number => checkedStoresIn(country).length;
+
+/** Distinct stores with an open pre-order for any of the release's products in the visitor's market. TCGplayer and eBay are not stores. */
+export function storesTakingPreorders(boards: readonly { rows: readonly PreorderRow[] }[]): number {
+  return new Set(boards.flatMap((b) => b.rows.filter((r) => r.state === "open" && !r.tcgplayer).map((r) => r.source))).size;
+}
+
+/** Across all six markets: distinct stores with an open offer (in their market's currency) for any of the release's products, and how many markets they are in. */
+export function releaseReach(offers: readonly OfferRow[], now: number = Date.now()): { stores: number; markets: number } {
+  const stores = new Set<string>(), markets = new Set<string>();
+  for (const o of offers) {
+    if (!o.source.startsWith("store:") || o.currency !== COUNTRIES[o.market as Country]?.currency) continue;
+    if (offerStock({ priceCents: o.priceCents, inStock: o.inStock, lastSeen: o.updatedAt }, now) !== "open") continue;
+    stores.add(o.source);
+    markets.add(o.market);
+  }
+  return { stores: stores.size, markets: markets.size };
+}
+
+/** The strip's headline deal: the Play Booster display's cheapest open row (store or TCGplayer), else the first product in display order that has one. */
+export function headlineDeal<T extends Pick<SealedLite, "name" | "kind">>(r: PreorderRelease, boards: readonly { s: T; rows: readonly PreorderRow[] }[]): { s: T; row: PreorderRow; box: boolean } | null {
+  const open = (b: { rows: readonly PreorderRow[] }) => b.rows.find((x) => x.state === "open") ?? null;
+  const box = boards.find((b) => b.s.kind === "Booster Box" && lineOf(r, b.s.name)?.name === "Play Booster" && open(b));
+  if (box) return { s: box.s, row: open(box)!, box: true };
+  const first = boards.find((b) => open(b));
+  return first ? { s: first.s, row: open(first)!, box: false } : null;
 }
 
 /** "13 November 2026" from YYYY-MM-DD. */

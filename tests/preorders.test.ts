@@ -15,8 +15,9 @@ import type { OfferRow, SealedLite, SetLite } from "../src/lib/data";
 import cfg from "../src/lib/data/plane/headers.json";
 import { staticEntries } from "../src/lib/sitemap-sections";
 import { SITE_URL } from "../src/lib/site";
+import { checkedStoresIn, storesIn } from "../src/lib/stores";
 import {
-  PREORDER_PAGES, PREORDER_RELEASES, STAR_TREK, attributed, boardSummary, commanderDeckNames, dateRangeOf, daysUntil, eventFacts, factsCheckedOn, isOut, lineMsrp, lineOf, livePreorderPages, longDateOf, orderProducts, preorderPathFor, preorderRows, releaseDateOf, releaseSets,
+  PREORDER_PAGES, PREORDER_RELEASES, STAR_TREK, attributed, boardSummary, commanderDeckNames, dateRangeOf, daysUntil, eventFacts, factsCheckedOn, headlineDeal, isOut, lineMsrp, lineOf, livePreorderPages, longDateOf, orderProducts, preorderPathFor, preorderRows, releaseDateOf, releaseReach, releaseSets, splitRows, storesCheckedIn, storesTakingPreorders,
 } from "../src/lib/preorders";
 
 const ROOT = path.resolve(__dirname, "..");
@@ -173,12 +174,52 @@ test("the page: PreOrder availability, never InStock; no eBay row, no database; 
   assert.doesNotMatch(page, /schema\.org\/InStock|availability: *"InStock"/);
   assert.doesNotMatch(page, /@\/lib\/db["']|getEbayPanel|getCatalog\(/);
   assert.doesNotMatch(page, /\b(?:6|12|13) November\b|2026-11-/, "no date typed into the shared page: they are the registry's");
-  const card = read("src/components/PreorderProduct.tsx");
+  const card = read("src/components/PreorderProduct.tsx") + read("src/components/PreorderEbayRow.tsx");
+  assert.doesNotMatch(read("src/components/PreorderEbayRow.tsx"), /@\/lib\/db["']|getEbayPanel|prisma/, "eBay rows reach the page only through the /api panel route, in the browser");
+  assert.match(read("src/components/PreorderEbayRow.tsx"), /^"use client";/);
+  assert.match(read("src/components/PreorderEbayRow.tsx"), /PANEL_ENDPOINT/);
   for (const a of card.match(/<a\s[^>]*target="_blank"[^>]*>/gs) ?? []) {
     assert.match(a, /rel=\{outboundRel\(\)\}/);
     assert.match(a, /data-retailer=/);
     assert.match(a, /data-page=/);
+    assert.match(a, /data-surface=/);
   }
+});
+
+test("the page's layout rules: TCGplayer is split from the stores, stores taking pre-orders and the reach across markets count stores only, the headline deal is the Play Booster box", () => {
+  const rows = preorderRows([offer({ source: "store:a", priceCents: 14999 }), offer({ source: "tcgplayer", priceCents: 13000 }), offer({ source: "store:b", priceCents: 14500 }), offer({ source: "store:c", priceCents: 12000, inStock: false })], "US", "/star-trek-preorders", NOW);
+  const { tcgplayer, stores } = splitRows(rows);
+  assert.equal(tcgplayer?.source, "tcgplayer");
+  assert.deepEqual(stores.map((r) => r.source), ["store:b", "store:a", "store:c"], "the stores keep their ranking: open cheapest first, sold out last");
+  assert.equal(splitRows([]).tcgplayer, null);
+  // distinct stores with an open pre-order in the market, over every product; TCGplayer is never one
+  const other = preorderRows([offer({ source: "store:b", priceCents: 6000 }), offer({ source: "store:d", priceCents: 6100 }), offer({ source: "tcgplayer", priceCents: 5000 })], "US", "/x", NOW);
+  assert.equal(storesTakingPreorders([{ rows }, { rows: other }]), 3, "a, b and d");
+  assert.equal(storesTakingPreorders([]), 0);
+  // every market: open store offers in their market's currency, eBay and TCGplayer never, stale and sold-out never
+  const reach = releaseReach([
+    offer({ source: "store:a", priceCents: 100 }),
+    offer({ source: "store:a", priceCents: 200 }),
+    offer({ source: "store:au1", priceCents: 300, market: "AU", currency: "AUD" }),
+    offer({ source: "store:ca1", priceCents: 300, market: "CA", currency: "USD" }),                   // charges another currency: never priced
+    offer({ source: "store:uk1", priceCents: 300, market: "UK", currency: "GBP", inStock: false }),
+    offer({ source: "store:sg1", priceCents: 300, market: "SG", currency: "SGD", updatedAt: "2026-10-09T06:00:00.000Z" }),
+    offer({ source: "tcgplayer", priceCents: 100 }),
+    offer({ source: "ebay", priceCents: 100 }),
+  ], NOW);
+  assert.deepEqual(reach, { stores: 2, markets: 2 });
+  // the strip's deal: the Play Booster display's cheapest open row, even when another product is cheaper; else the first product with one
+  const box: { s: Pick<SealedLite, "name" | "kind">; rows: typeof rows } = { s: { name: "Star Trek - Play Booster Display", kind: "Booster Box" }, rows };
+  const pack: { s: Pick<SealedLite, "name" | "kind">; rows: typeof rows } = { s: { name: "Star Trek - Play Booster Pack", kind: "Booster Pack" }, rows: other };
+  const deal = headlineDeal(STAR_TREK, [pack, box]);
+  assert.equal(deal?.s.name, "Star Trek - Play Booster Display");
+  assert.equal(deal?.row.source, "tcgplayer", "the box's cheapest open row, TCGplayer's lowest listing included: the strip then says 'on TCGplayer'");
+  assert.equal(headlineDeal(STAR_TREK, [pack])?.box, false);
+  assert.equal(headlineDeal(STAR_TREK, [{ s: box.s, rows: [] }]), null);
+  // the count the strip and the buying guides print: the registry's stores, the off price feeds left out (as /stores lists them)
+  assert.equal(storesCheckedIn("US"), checkedStoresIn("US").length);
+  assert.ok(checkedStoresIn("US").every((x) => x.platform !== "feed") && checkedStoresIn("US").length === storesIn("US").length - 2, "Card Kingdom and Mana Pool are not read");
+  assert.match(read("src/components/ArticleMarketData.tsx"), /checkedStoresIn\(m\)/);
 });
 
 test("linked while it is live: /release-dates, the set pages, /sealed and the home's next-set line; /preorders stays a redirect", () => {
@@ -206,17 +247,32 @@ const DATA: PreorderData = {
     { s: display, rows: preorderRows([offer({ source: "store:a", priceCents: 13899 }), offer({ source: "tcgplayer", priceCents: 15142 }), offer({ source: "store:d", priceCents: 12999, inStock: false })], "US", "/star-trek-preorders", NOW) },
     { s: product(8, "Star Trek Commander Deck - Klingon Fury", "Commander Deck", 24770), rows: [] },
   ],
+  reach: { stores: 14, markets: 3 },
 };
 
 test("the page before release: a pre-order heading and countdown, each product's sellers with sold-out ones marked, PreOrder structured data, dated sources", () => {
   const html = render(DATA), t = plain(html);
   assert.match(t, /Pre-order · releases 13 November 2026 · 30 days to go/);
   assert.match(t, /Magic: The Gathering Star Trek pre-order prices/);
-  assert.match(t, /Star Trek - Play Booster Display Play Booster · TRK · TCGplayer market US\$151\.42 From · US US\$138\.99 1 store/);
-  assert.match(t, /1 a Cheapest pre-order open · postage at checkout US\$138\.99 Pre-order →/);
-  assert.match(t, /TCGplayer TCGplayer lowest listing/);
+  // the strip: stores checked (the registry), stores taking pre-orders, the Play Booster box's cheapest and who has it, the countdown; the reach across markets
+  assert.match(t, new RegExp(`${storesCheckedIn("US")} US stores checked 1 taking pre-orders US\\$138\\.99 cheapest Play Booster box, at a 30 days to release`));
+  assert.match(html, /href="#star-trek-play-booster-display"/, "the deal links its product block");
+  assert.match(t, /Across all 6 markets we track, 14 stores list Star Trek pre-orders, in 3 markets\. eBay and TCGplayer are not counted as stores\./);
+  // each block: the marketplaces first (eBay, then TCGplayer, unnumbered), then the stores, cheapest first and numbered; a sold-out store last, unnumbered, not buyable
+  assert.match(t, /Star Trek - Play Booster Display Play Booster · TRK From · US US\$138\.99 1 store Marketplaces e b a y Search eBay Every eBay listing for this product, pre-orders included Search eBay → → TCGplayer Lowest listing postage at checkout US\$151\.42 Buy on TCGplayer → → Stores, cheapest first · 1 taking pre-orders 1 a Cheapest pre-order open · postage at checkout US\$138\.99 Pre-order → → – d sold out · last seen 2d ago US\$129\.99 Check →/);
+  const block = html.slice(html.indexOf('id="star-trek-play-booster-display"'));
+  const at = (x: string) => block.indexOf(x);
+  assert.ok(at('data-group="marketplaces"') > 0 && at('data-group="marketplaces"') < at('data-group="stores"'), "the marketplaces sit above the stores");
+  assert.ok(at('data-marketplace="ebay"') < at('data-marketplace="tcgplayer"'), "eBay first, then TCGplayer");
+  const storesGroup = block.slice(at('data-group="stores"'), block.indexOf("</section>"));
+  assert.doesNotMatch(storesGroup, /TCGplayer|ebay/i, "no marketplace inside the store ranking");
+  assert.equal((storesGroup.match(/Cheapest</g) ?? []).length, 1);
+  assert.match(block, /data-surface="preorder_marketplace_ebay"[^>]*>|data-surface="preorder_marketplace_ebay"/);
+  assert.match(block, /data-retailer="ebay_sealed_search"/, "before the browser loads a listing, the eBay line is the affiliate search");
+  assert.match(block, /href="https:\/\/www\.ebay\.com\/sch\/i\.html\?_nkw=Magic%20The%20Gathering%20Star%20Trek%20-%20Play%20Booster%20Display/);
+  assert.match(block, /data-surface="preorder_marketplace_tcgplayer"/);
   assert.match(t, /sold out · last seen/, "a sold-out store is shown as such");
-  assert.match(t, /No US store we track lists a pre-order for this yet/);
+  assert.match(t, /Star Trek Commander Deck - Klingon Fury Commander Deck · TRC Marketplaces e b a y Search eBay [^]*? TCGplayer No listing yet TCGplayer has no price for this yet Check TCGplayer → → Stores, cheapest first No US store we track lists a pre-order for this yet/);
   assert.match(html, /"availability":"https:\/\/schema\.org\/PreOrder"/);
   assert.doesNotMatch(html, /InStock/);
   assert.match(html, /"lowPrice":"138\.99","offerCount":2/);
@@ -242,4 +298,19 @@ test("from release day the page retires itself: no pre-order lists, no PreOrder 
   assert.match(html, /href="\/sealed\?set=trk-star-trek"/);
   assert.doesNotMatch(html, /schema\.org\/PreOrder/);
   assert.doesNotMatch(t, /ALERT SLOT|When to pre-order/);
+});
+
+test("another market: its own stores and currency; TCGplayer is a US reference in US dollars, never a pre-order; the strip counts that market's stores", () => {
+  const au: PreorderData = {
+    ...DATA,
+    country: "AU",
+    boards: [{ s: display, rows: preorderRows([offer({ source: "store:au1", priceCents: 24995, market: "AU", currency: "AUD" }), offer({ source: "store:au2", priceCents: 22995, market: "AU", currency: "AUD" }), offer({ source: "tcgplayer", priceCents: 15142 })], "AU", "/star-trek-preorders", NOW) }],
+    reach: null,
+  };
+  const html = renderToStaticMarkup(createElement(PreorderView, { release: STAR_TREK, data: au })), t = plain(html);
+  assert.match(t, new RegExp(`${storesCheckedIn("AU")} Australian stores checked 2 taking pre-orders A\\$229\\.95 cheapest Play Booster box, at au2`));
+  assert.match(t, /TCGplayer Market price US site, in US dollars · a reference, not a pre-order ≈ US\$151\.42 Check TCGplayer →/);
+  assert.match(t, /Stores, cheapest first · 2 taking pre-orders 1 au2 Cheapest pre-order open[^]*?A\$229\.95 Pre-order → → 2 au1 pre-order open[^]*?A\$249\.95/);
+  assert.match(html, /href="https:\/\/www\.ebay\.com\.au\/sch\//, "the visitor's own eBay");
+  assert.doesNotMatch(t, /Across all/, "no reach line without the figure");
 });

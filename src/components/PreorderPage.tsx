@@ -4,12 +4,12 @@ import { HubFaq } from "@/components/HubFaq";
 import { PreorderProduct } from "@/components/PreorderProduct";
 import { ReleaseAlertSlot } from "@/components/ReleaseAlertSlot";
 import { Breadcrumbs, JsonLd } from "@/components/ui";
-import { COUNTRIES, type Country } from "@/lib/country";
+import { COUNTRIES, MARKETS, type Country } from "@/lib/country";
 import { getSealedBySet, getSealedDetail, getSetIndex, type SealedLite, type SetLite } from "@/lib/data";
-import { andList, money } from "@/lib/format";
+import { andList, int, money } from "@/lib/format";
 import { getCountry } from "@/lib/get-country";
 import { faqPage, webPage } from "@/lib/jsonld";
-import { attributed, boardSummary, commanderDeckNames, dateRangeOf, daysUntil, eventFacts, factsCheckedOn, isOut, lineMsrp, lineOf, longDateOf, orderProducts, preorderRows, releaseDateOf, releaseSets, type PreorderRelease, type PreorderRow } from "@/lib/preorders";
+import { attributed, boardSummary, commanderDeckNames, dateRangeOf, daysUntil, eventFacts, factsCheckedOn, headlineDeal, isOut, lineMsrp, lineOf, longDateOf, orderProducts, preorderRows, releaseDateOf, releaseReach, releaseSets, storesCheckedIn, storesTakingPreorders, type PreorderRelease, type PreorderRow } from "@/lib/preorders";
 import { sealedEbayQuery } from "@/lib/sealed-quick-view";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -74,10 +74,10 @@ function faqsFor(r: PreorderRelease, date: string, decks: string[], hasCollector
   ];
 }
 
-/** Per product: its rows in the visitor's market. One read of the product's detail file each (offers in every market, filtered here). */
-async function boardsFor(products: SealedLite[], country: Country, path: string): Promise<{ s: SealedLite; rows: PreorderRow[] }[]> {
+/** Per product: its rows in the visitor's market, and across every market how many stores list the release (the strip's footnote). One read of the product's detail file each (offers in every market). */
+async function boardsFor(products: SealedLite[], country: Country, path: string): Promise<{ boards: { s: SealedLite; rows: PreorderRow[] }[]; reach: { stores: number; markets: number } }> {
   const details = await Promise.all(products.map((p) => getSealedDetail(p.slug)));
-  return products.map((s, i) => ({ s, rows: preorderRows(details[i]?.offers ?? [], country, path) }));
+  return { boards: products.map((s, i) => ({ s, rows: preorderRows(details[i]?.offers ?? [], country, path) })), reach: releaseReach(details.flatMap((d) => d?.offers ?? [])) };
 }
 
 /** What the page shows, read from the published data: the release's sets, its products in display order, and (until release day) each product's rows in the visitor's market. */
@@ -87,13 +87,32 @@ export interface PreorderData {
   sets: SetLite[];
   products: SealedLite[];
   boards: { s: SealedLite; rows: PreorderRow[] }[];
+  /** Every market: distinct stores with an open pre-order for the release, and the markets they are in (null once the release is out). */
+  reach?: { stores: number; markets: number } | null;
 }
 
 export async function loadPreorder(release: PreorderRelease, country: Country, today: string): Promise<PreorderData> {
   const sets = releaseSets(release, (await getSetIndex()).byTok);
   const products = orderProducts(release, (await Promise.all(sets.map((s) => getSealedBySet(s.id)))).flat(), sets);
-  const boards = isOut(releaseDateOf(release, sets), today) ? [] : await boardsFor(products, country, release.path);
-  return { country, today, sets, products, boards };
+  const live = isOut(releaseDateOf(release, sets), today) ? null : await boardsFor(products, country, release.path);
+  return { country, today, sets, products, boards: live?.boards ?? [], reach: live?.reach ?? null };
+}
+
+/** One figure of the strip under the intro: a number and what it counts; the headline deal links to its product. */
+function SummaryStat({ value, label, href, accent = false }: { value: string; label: string; href?: string; accent?: boolean }) {
+  const body = (
+    <>
+      <span className={`num block text-xl font-extrabold leading-tight sm:text-2xl ${accent ? "text-accent" : "text-white"}`}>{value}</span>
+      <span className="mt-0.5 block text-xs leading-snug text-slate-400">{label}</span>
+    </>
+  );
+  return href ? (
+    <a href={href} className="card-surface block min-w-0 px-3 py-2.5 hover:border-ink-600">
+      {body}
+    </a>
+  ) : (
+    <div className="card-surface min-w-0 px-3 py-2.5">{body}</div>
+  );
 }
 
 /** The route's component: the visitor's market, today's data, the release alert while the set is ahead. */
@@ -105,7 +124,7 @@ export async function PreorderPage({ release }: { release: PreorderRelease }) {
 
 /** The page itself, from loaded data (pure: tests/preorders.test.ts renders it). `alert` is the release-alert mount, shown only before release day. */
 export function PreorderView({ release, data, alert }: { release: PreorderRelease; data: PreorderData; alert?: React.ReactNode }) {
-  const { country, today, sets, products, boards } = data;
+  const { country, today, sets, products, boards, reach } = data;
   const info = COUNTRIES[country];
   const main: SetLite | null = sets[0] ?? null;
   const date = releaseDateOf(release, sets);
@@ -118,6 +137,8 @@ export function PreorderView({ release, data, alert }: { release: PreorderReleas
   const setCodeOf = new Map(sets.map((s) => [s.id, s.code] as const));
   const official = release.facts.filter((f) => f.kind === "official"), reported = release.facts.filter((f) => f.kind === "reported");
   const linkCls = "text-brand-400 underline-offset-2 hover:underline";
+  // The strip under the intro: what a visitor (or a link post) needs in one line, all of it from the loaded data.
+  const checked = storesCheckedIn(country), taking = storesTakingPreorders(boards), deal = headlineDeal(release, boards);
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -167,8 +188,29 @@ export function PreorderView({ release, data, alert }: { release: PreorderReleas
       <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
         {out
           ? `${L} released on ${longDateOf(date)}, so its products are priced with every other set: live prices, not pre-orders, are on the sealed and set pages.`
-          : `Nothing has shipped yet, so every store is simply picking an opening price, and they are picking different ones. Below, each ${L} product lists the pre-orders of the stores we track in ${info.place}, cheapest first, in ${info.currency}${country === "US" ? ", beside TCGplayer's lowest listing" : ""}. Sold-out stores stay on the list, marked. Prices refresh once a day.`}
+          : `Nothing has shipped yet, so every store is simply picking an opening price, and they are picking different ones. Each ${L} product below starts with the marketplaces, eBay and TCGplayer, then every store we track in ${info.place} that takes pre-orders, cheapest first, in ${info.currency}. Sold-out stores stay on the list, marked. Prices refresh once a day.`}
       </p>
+
+      {!out ? (
+        <>
+          <section aria-label={`${L} pre-orders at a glance`} className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4" data-preorder-summary="">
+            <SummaryStat value={int(checked)} label={`${info.adjective} stores checked`} />
+            <SummaryStat value={int(taking)} label="taking pre-orders" />
+            <SummaryStat
+              value={deal ? money(deal.row.priceCents, country) : "None yet"}
+              label={deal ? `${deal.box ? "cheapest Play Booster box" : `cheapest: ${deal.s.name}`}, ${deal.row.tcgplayer ? "on TCGplayer" : `at ${deal.row.label}`}` : "no pre-order listed yet"}
+              href={deal ? `#${deal.s.slug}` : undefined}
+              accent
+            />
+            <SummaryStat value={days > 0 ? int(days) : "Today"} label={days > 0 ? (days === 1 ? "day to release" : "days to release") : "release day"} />
+          </section>
+          {reach && reach.stores ? (
+            <p className="mt-2 text-xs text-slate-500 [font-feature-settings:'lnum'_1]">
+              Across all {MARKETS.length} markets we track, {int(reach.stores)} {reach.stores === 1 ? "store lists" : "stores list"} {L} pre-orders, in {reach.markets} {reach.markets === 1 ? "market" : "markets"}. eBay and TCGplayer are not counted as stores.
+            </p>
+          ) : null}
+        </>
+      ) : null}
 
       {!out && products.length ? (
         <div className="mt-4">
@@ -190,7 +232,7 @@ export function PreorderView({ release, data, alert }: { release: PreorderReleas
         <div className="mt-5 space-y-4">
           <h2 className="sr-only">{L} pre-order prices by product</h2>
           {boards.map(({ s, rows }) => (
-            <PreorderProduct key={s.id} s={s} rows={rows} line={lineOf(release, s.name)} setCode={s.setId != null ? setCodeOf.get(s.setId) ?? null : null} country={country} page={release.path.slice(1)} />
+            <PreorderProduct key={s.id} s={s} rows={rows} line={lineOf(release, s.name)} setCode={s.setId != null ? setCodeOf.get(s.setId) ?? null : null} country={country} page={release.path.slice(1)} loc={release.path} />
           ))}
         </div>
       ) : (
