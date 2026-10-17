@@ -16,7 +16,7 @@ import { PriceWatchButton } from "./PriceWatchButton";
 export type CardTileCard = Pick<
   CardLite,
   "id" | "slug" | "name" | "number" | "rarity" | "variant" | "printing" | "hasImage" | "marketUsd" | "low" | "stores"
->;
+> & { thin?: boolean };   // THIN: outside the relevant quarter, shown without a price
 
 // RiftCompare's CardTile, markup and classes verbatim: a cv-auto card-surface
 // that lifts on hover, the art in an aspect-[5/7] box tinted with the rarity
@@ -88,7 +88,9 @@ export function CardTile({ card, setCode, country: fixed, priority = false }: { 
           </p>
           <div className="mt-auto flex flex-wrap items-end justify-between gap-x-2 gap-y-0.5 pt-1">
             <div className="min-w-[min(6.5rem,100%)] flex-1">
-              {h.kind === "listing" ? (
+              {card.thin && h.kind !== "listing" ? (
+                <div className="text-sm font-medium text-slate-500">Price not tracked</div>
+              ) : h.kind === "listing" ? (
                 <>
                   <div className="text-[11px] text-slate-500">from</div>
                   <div className="truncate text-base font-bold leading-tight text-accent sm:text-lg">{money(h.cents, country)}</div>

@@ -14,13 +14,13 @@ const cheaperFirst = (a: CardLite, b: CardLite): number => (a.marketUsd ?? Infin
 
 // ── weekly movers ────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-/** Store prices, price history and weekly moves exist for units worth this much and up (the importer's TRACK_FLOOR_CENTS, contract 5.3): the posts quote it, never a typed figure. */
+/** The importer's TRACK_FLOOR_CENTS: a unit of a RELEVANT row (track.ts relevantRows, the top quarter) worth this much and up has store prices, history and weekly moves. */
 export const TRACKED_FROM_CENTS = TRACK_DEFAULTS.trackFloorCents;
 /**
  * The movers post ranks only cards worth at least this much today (TCGplayer market, US cents). It is the floor at which a unit's price
- * history is kept, so every row has a recorded week, and a 30-cent card that doubles never tops the list.
+ * history is kept, so every row has a recorded week, and a 30-cent card that doubles never tops the list. Fixed at 50 cents: the track floor fell to 20 on 2026-10-17.
  */
-export const MOVER_FLOOR_CENTS = TRACKED_FROM_CENTS;
+export const MOVER_FLOOR_CENTS = 50;
 /** Rows per table: the week's risers and fallers, then the month's. */
 export const MOVER_ROWS = 15;
 export const MONTH_MOVER_ROWS = 10;

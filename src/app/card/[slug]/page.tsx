@@ -5,7 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CardArt, CardTile } from "@/components/CardTile";
 import { CardStickyBuyBar } from "@/components/CardStickyBuyBar";
-import { CardBuyPair, CardTopBuy } from "@/components/CardTopBuy";
+import { CardBuyPair, CardTopBuy, UntrackedPriceNotice } from "@/components/CardTopBuy";
 import { EbayBuyCta } from "@/components/EbayBuyCta";
 import { EbayCardBanner } from "@/components/EbayCardBanner";
 import { TcgMarketPrice } from "@/components/TcgMarketPrice";
@@ -109,7 +109,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const c = await getCardDetail(params.slug);
   if (!c) return { title: "Card not found" };
   const t = displayTitle(c);
-  const title = cardTitle({ name: c.name, variant: c.variant, number: c.number, setName: c.set.name, setCode: c.set.code, printing: c.printing, hasPrice: c.marketUsd != null || c.offers.some((o) => o.inStock) });
+  // A THIN printing is outside the relevant quarter: no price anywhere on the page, so none in its title or description either.
+  const priced = !c.thin;
+  const title = cardTitle({ name: c.name, variant: c.variant, number: c.number, setName: c.set.name, setCode: c.set.code, printing: c.printing, hasPrice: priced && (c.marketUsd != null || c.offers.some((o) => o.inStock)) });
   const description = cardMetaDescription({
     displayName: t,
     number: c.number,
@@ -120,15 +122,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     cardType: c.cardType,
     colors: c.colors,
     textBit: c.oracle?.oracleText ? c.oracle.oracleText.split("\n")[0]!.slice(0, 110) : null,
-    marketUsd: c.marketUsd,
-    lowUsCents: c.low.US ?? null,
+    marketUsd: priced ? c.marketUsd : null,
+    lowUsCents: priced ? (c.low.US ?? null) : null,
     aliases: aliasesFor(c.slug),
   });
   return {
     title: { absolute: title },
     description,
     alternates: { canonical: `/card/${c.slug}` },
-    // A THIN page (a price under the index floor) stays reachable and out of search results.
+    // A THIN page (outside the relevant quarter, RELEVANT_SHARE) stays reachable and out of search results.
     ...(c.thin ? { robots: { index: false, follow: true } } : {}),
     // No `images`: the sibling opengraph-image.tsx draws the 1200×630 share card.
     openGraph: pageOgOwnImage(`/card/${c.slug}`, { title: `${t} | ${SITE_NAME}` }),
@@ -140,6 +142,8 @@ export default async function CardPage({ params, searchParams }: Props) {
   const co = COUNTRIES[country];
   const card = await getCardDetail(params.slug);
   if (!card) notFound();
+  // Outside the relevant quarter (the THIN bit, track.ts relevantRows): no price board, store rows, history or price FAQ; the TCGplayer and eBay buttons stay.
+  const untracked = card.thin;
 
   // The unit on show: a price belongs to a (product, finish). ?finish= picks the tab; the default is the headline unit.
   const finishes: Finish[] = availableFinishes(card.mask).length ? availableFinishes(card.mask) : [card.headFinish];
@@ -161,7 +165,7 @@ export default async function CardPage({ params, searchParams }: Props) {
   const trackedFinish = (trackedBits(card.mask) & (finish === "N" ? 1 : 2)) !== 0;
   const mask = colorMask(card.colors);
   const typeKey = PRIMARY_TYPES[card.ptype];
-  const cheaperMax = marketUsd != null ? marketUsd - 1 : null;
+  const cheaperMax = marketUsd != null && !untracked ? marketUsd - 1 : null;
   const [history, printingsPage, setTopPage, cheaperPage] = await Promise.all([
     trackedFinish ? safe(getUnitHistory({ id: card.id, finish }, 365), [] as HistoryPoint[]) : Promise.resolve([] as HistoryPoint[]),
     card.oracleNo != null ? safe(getCardPage({ oracleNo: card.oracleNo, sort: "value", per: 48 }), null) : Promise.resolve(null),
@@ -172,6 +176,7 @@ export default async function CardPage({ params, searchParams }: Props) {
   ]);
   const printings: CardLite[] = printingsPage?.items ?? [];
   const siblings = printings.filter((x) => x.id !== card.id && x.setId === card.set.id);
+  const trackedPrinting = untracked ? ([...printings].filter((x) => !x.thin && x.id !== card.id).sort((a, b) => (a.marketUsd ?? Infinity) - (b.marketUsd ?? Infinity))[0] ?? null) : null;
   const fromSet = (setTopPage?.items ?? []).filter((x) => x.id !== card.id && x.slug !== card.slug).slice(0, 6);
   const title = displayTitle(card);
   const vh = visitorHistory(history, country);
@@ -253,13 +258,13 @@ export default async function CardPage({ params, searchParams }: Props) {
     keywords: keys.map((k) => k.name),
     legalIn,
     commander: isCommander,
-    marketUsd,
-    change7d: unitChange7d,
-    change30d: unitChange30d,
-    high90Usd: unitHigh90,
-    baseline: marketViews.find((m) => m.country === country)!,
-    markets: marketViews,
-    printings: siblings.map((x) => ({ label: PRINTING_SHORT[x.printing] ?? "Other", marketUsd: x.marketUsd })),
+    marketUsd: untracked ? null : marketUsd,
+    change7d: untracked ? null : unitChange7d,
+    change30d: untracked ? null : unitChange30d,
+    high90Usd: untracked ? null : unitHigh90,
+    baseline: untracked ? { ...marketViews.find((m) => m.country === country)!, lowestCents: null, secondCents: null, storeCount: 0, listingCount: 0 } : marketViews.find((m) => m.country === country)!,
+    markets: untracked ? [] : marketViews,
+    printings: untracked ? [] : siblings.map((x) => ({ label: PRINTING_SHORT[x.printing] ?? "Other", marketUsd: x.marketUsd })),
     setContext: null,
     sameNameElsewhere: sameNameCount(card, printings),
   });
@@ -305,7 +310,7 @@ export default async function CardPage({ params, searchParams }: Props) {
           brand: { "@type": "Brand", name: "Magic: The Gathering" },
           category: "Trading card",
           url: `${SITE_URL}/card/${card.slug}`,
-          ...(inMarket.length
+          ...(inMarket.length && !untracked
             ? {
                 offers: {
                   "@type": "AggregateOffer",
@@ -324,7 +329,7 @@ export default async function CardPage({ params, searchParams }: Props) {
             : {}),
         }}
       />
-      {faqs.length ? <JsonLd data={faqLd(faqs)} /> : null}
+      {faqs.length && !untracked ? <JsonLd data={faqLd(faqs)} /> : null}
       <Breadcrumbs
         trail={[
           { href: "/browse", name: "Cards" },
@@ -390,7 +395,7 @@ export default async function CardPage({ params, searchParams }: Props) {
                 </p>
               </div>
               <div className="flex shrink-0 items-start gap-2">
-                <PriceWatchButton cardId={card.id} slug={card.slug} name={title} variant="responsive" />
+                {untracked ? null : <PriceWatchButton cardId={card.id} slug={card.slug} name={title} variant="responsive" />}
                 <ShareButton responsive />
               </div>
             </div>
@@ -408,7 +413,7 @@ export default async function CardPage({ params, searchParams }: Props) {
                   >
                     {f === "N" ? "Non-foil" : finishLabel(card, "F")}
                     <span className="num ml-2 text-slate-400">
-                      {(() => {
+                      {untracked ? "" : (() => {
                         const q = finishPrice(card, f);
                         const v = q?.market ?? q?.low ?? null;
                         return v != null ? usd(v) : "";
@@ -418,6 +423,12 @@ export default async function CardPage({ params, searchParams }: Props) {
                 ))}
               </div>
             ) : null}
+            {untracked ? (
+              <UntrackedPriceNotice name={card.name} tracked={trackedPrinting ? { slug: trackedPrinting.slug, label: `${trackedPrinting.name} (${trackedPrinting.setCode}${trackedPrinting.label ? `, ${trackedPrinting.label}` : ""})` } : null}>
+                <CardBuyPair tcgHref={tcgHref} ebayHref={ebayBuyHref} ebayName={ebayLabel(country)} preRelease={preRelease} page="card" slug={card.slug} />
+              </UntrackedPriceNotice>
+            ) : (
+              <>
             <CardBuyPair tcgHref={tcgHref} ebayHref={ebayBuyHref} ebayName={ebayLabel(country)} preRelease={preRelease} page="card" slug={card.slug} />
             <CardTopBuy best={best} country={country} page="card" slug={card.slug} />
             <PriceDropAlertCta
@@ -430,6 +441,8 @@ export default async function CardPage({ params, searchParams }: Props) {
               preorder={preRelease}
               emailOn={emailOn}
             />
+              </>
+            )}
             {oracle ? (
               <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-400">
                 <span className="font-semibold uppercase tracking-wider">Colour identity</span>
@@ -437,6 +450,8 @@ export default async function CardPage({ params, searchParams }: Props) {
               </div>
             ) : null}
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {untracked ? null : (
+              <>
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                   Cheapest · {co.place}
@@ -461,7 +476,9 @@ export default async function CardPage({ params, searchParams }: Props) {
                 </p>
                 {elsewhere ? <p className="mt-0.5 text-[11px] text-slate-500">{elsewhere}</p> : null}
               </div>
-              {stats.slice(0, 2).map((s) => (
+              </>
+              )}
+              {stats.slice(0, untracked ? 4 : 2).map((s) => (
                 <div key={s.label}>
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                     {s.label}
@@ -476,7 +493,7 @@ export default async function CardPage({ params, searchParams }: Props) {
 
           {/* A card from an unreleased set, or one no market stocks: eBay's
               search is the way to buy it (RiftCompare's EbayBuyCta). */}
-          {preRelease || noListingAnywhere ? (
+          {!untracked && (preRelease || noListingAnywhere) ? (
             <EbayBuyCta
               query={ebayQuery}
               name={title}
@@ -490,6 +507,8 @@ export default async function CardPage({ params, searchParams }: Props) {
 
           <ReleaseAlertSlot setSlug={card.set.slug} setName={card.set.name} releasedOn={card.set.releasedOn} source="card" cardId={card.id} cardName={title} unreleasedOnly />
 
+          {untracked ? null : (
+          <>
           <p className="text-right text-xs text-slate-400">
             Cheapest first by item price; postage is added at each store&apos;s
             checkout.{" "}
@@ -519,6 +538,8 @@ export default async function CardPage({ params, searchParams }: Props) {
               reference with its affiliate button, then the card's eBay banner
               and TCGplayer's (ads: hidden for Plus and Premium members). */}
           <TcgMarketPrice marketUsd={marketUsd} country={country} href={tcgHref} page="card" card={card.slug} />
+          </>
+          )}
           <EbayCardBanner country={country} query={ebayQuery} name={title} page="card" card={card.slug} />
           <TcgplayerBanner country={country} page="card" card={card.slug} />
           {cardText ? <div className="lg:hidden">{cardText}</div> : null}
@@ -539,6 +560,7 @@ export default async function CardPage({ params, searchParams }: Props) {
             </section>
           ) : null}
 
+          {untracked ? null : (
           <section className="card-surface p-5">
             <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="text-lg text-white">{vh.title}</h2>
@@ -555,6 +577,7 @@ export default async function CardPage({ params, searchParams }: Props) {
               empty={trackedFinish ? `Price history starts ${history[0] ? longDate(history[0].day) : "with the first import"} — the chart draws once there are two days of prices.` : "This card is not price-tracked yet, so there is no history chart. TCGplayer and eBay buy links above are live."}
             />
           </section>
+          )}
 
           <InlineSignupPrompt surface="card" title="Get the top deals in your market, free" body="A free account shows Deal Finder's three biggest savings in your market right now, and is how you get Plus or Premium when you want them." />
 
@@ -612,6 +635,7 @@ export default async function CardPage({ params, searchParams }: Props) {
             </div>
           </section>
 
+          {untracked || !faqs.length ? null : (
           <section className="card-surface p-5">
             <h2 className="font-bold text-white">Frequently asked questions</h2>
             <dl className="mt-3 space-y-4">
@@ -624,9 +648,12 @@ export default async function CardPage({ params, searchParams }: Props) {
             </dl>
           </section>
 
-          <CardMarketsTable offers={offers} name={card.name} country={country} />
+          )}
+
+          {untracked ? null : <CardMarketsTable offers={offers} name={card.name} country={country} />}
           <AdSlot slot="card" thin={!state.hasListings && card.marketUsd == null} />
 
+          {untracked ? null : (
           <section className="card-surface p-5" aria-label="Do more with this price">
             <h2 className="font-bold text-white">Do more with this price</h2>
             <ul className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -640,6 +667,7 @@ export default async function CardPage({ params, searchParams }: Props) {
               ))}
             </ul>
           </section>
+          )}
 
           <section className="card-surface p-5">
             <h2 className="mb-3 text-lg text-white">Card details</h2>
@@ -692,7 +720,7 @@ export default async function CardPage({ params, searchParams }: Props) {
           </section>
 
           {/* The last in-column section: captured eBay listings and slabs. */}
-          <EbayCardPanel productId={card.id} country={country} query={ebayQuery} name={title} card={card.slug} rawCents={unitLow[country] ?? null} preRelease={preRelease} />
+          {untracked ? null : <EbayCardPanel productId={card.id} country={country} query={ebayQuery} name={title} card={card.slug} rawCents={unitLow[country] ?? null} preRelease={preRelease} />}
         </div>
       </div>
 
@@ -766,7 +794,7 @@ export default async function CardPage({ params, searchParams }: Props) {
       <RecentlyViewed className="mt-10" record={{ slug: card.slug, name: card.name, variant: card.label, setCode: card.set.code, number: card.number, img: card.hasImage ? cardImage.thumb(card.id) : null }} />
 
       <RelatedGuides guides={guides} className="card-surface mt-10 p-5" />
-      <CardStickyBuyBar
+      {untracked ? null : <CardStickyBuyBar
         boardId="price-comparison"
         price={best ? money(best.priceCents, country) : undefined}
         store={best?.label}
@@ -780,7 +808,7 @@ export default async function CardPage({ params, searchParams }: Props) {
         slug={card.slug}
         name={title}
         cardId={card.id}
-      />
+      />}
     </div>
   );
 }

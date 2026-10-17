@@ -15,9 +15,10 @@ export interface TrackConfig {
   catalogFloorCents: number;     // CATALOG_FLOOR_CENTS            1       a class-0 single gets a catalogue row when its score >= this (1 = every priced single; 25 / 50 are the fallback ladder if the published bytes bind)
   catalogExitRatio: number;      // CATALOG_EXIT_RATIO             0.8     a member stays LISTED while score >= ratio x floor
   oracleComplete: boolean;       // CATALOG_ORACLE_COMPLETE        1       every priced class-0 oracle keeps at least its TOP printing listed, whatever the floor (a no-op at floor 1)
-  indexFloorCents: number;       // INDEX_FLOOR_CENTS              50      a listed class-0 row below this score is THIN (noindex, no sitemap entry); same 0.8 band
+  indexFloorCents: number;       // INDEX_FLOOR_CENTS              50      a listed class-0 row below this score is THIN (noindex, no sitemap entry); same 0.8 band. With RELEVANT_SHARE on it is the cut's lower bound
+  relevantShare: number;         // RELEVANT_SHARE                 0.25    the share of listed class-0 rows that are RELEVANT (relevantRows): priced, tracked and indexed; every other row is THIN and untracked. 0 or >= 1 = off (the index floor alone)
   specialFloorCents: number;     // CATALOG_SPECIAL_FLOOR_CENTS    2000    class 1-4 (token, art, oversized, helper) enter at this best unit value; 0 = never catalogue them
-  trackFloorCents: number;       // TRACK_FLOOR_CENTS              50      a UNIT (card, finish) is tracked when its own TCGplayer MARKET >= this (500 until 2026-10-17: every staple under $5 had no store prices)
+  trackFloorCents: number;       // TRACK_FLOOR_CENTS              20      a UNIT (card, finish) of a RELEVANT row is tracked when its own TCGplayer MARKET >= this (500, then 50, until 2026-10-17: the relevance cut now decides which rows, the floor only drops bulk)
   trackExitRatio: number;        // TRACK_EXIT_RATIO               0.8
   lowBasis: boolean;             // TRACK_LOW_BASIS                0       1 = units priced only by a thin low may be tracked
   popBoost: boolean;             // TRACK_POP_BOOST                0       1 = tracking uses the popularity-boosted score (+24% units)
@@ -32,7 +33,7 @@ export interface TrackConfig {
   maxGuardTrips: number;         // IMPORT_GUARD_MAX_TRIPS         3       the Nth consecutive trip is accepted: a real, persistent repricing cannot lock the old flags forever
 }
 export const TRACK_DEFAULTS: TrackConfig = {
-  catalogFloorCents: 1, catalogExitRatio: 0.8, oracleComplete: true, indexFloorCents: 50, specialFloorCents: 2000, trackFloorCents: 50, trackExitRatio: 0.8, lowBasis: false, popBoost: false, perOracleCap: 0,
+  catalogFloorCents: 1, catalogExitRatio: 0.8, oracleComplete: true, indexFloorCents: 50, relevantShare: 0.25, specialFloorCents: 2000, trackFloorCents: 20, trackExitRatio: 0.8, lowBasis: false, popBoost: false, perOracleCap: 0,
   clipCents: 200_000, catalogMaxRows: 200_000, trackMaxUnits: 120_000, offerRowsBudget: 650_000, maxListedChange: 0.05, maxTrackedChange: 0.15, acceptFlagChange: false, maxGuardTrips: 3,
 };
 const num = (v: string | undefined, d: number): number => { const n = v == null || v === "" ? NaN : Number(v); return Number.isFinite(n) && n >= 0 ? n : d; };
@@ -41,7 +42,7 @@ export function trackConfigFromEnv(env: Record<string, string | undefined> = pro
   const d = TRACK_DEFAULTS;
   return {
     catalogFloorCents: num(env.CATALOG_FLOOR_CENTS, d.catalogFloorCents), catalogExitRatio: num(env.CATALOG_EXIT_RATIO, d.catalogExitRatio), oracleComplete: flag(env.CATALOG_ORACLE_COMPLETE, d.oracleComplete),
-    indexFloorCents: num(env.INDEX_FLOOR_CENTS, d.indexFloorCents), specialFloorCents: num(env.CATALOG_SPECIAL_FLOOR_CENTS, d.specialFloorCents),
+    indexFloorCents: num(env.INDEX_FLOOR_CENTS, d.indexFloorCents), relevantShare: num(env.RELEVANT_SHARE, d.relevantShare), specialFloorCents: num(env.CATALOG_SPECIAL_FLOOR_CENTS, d.specialFloorCents),
     trackFloorCents: num(env.TRACK_FLOOR_CENTS, d.trackFloorCents), trackExitRatio: num(env.TRACK_EXIT_RATIO, d.trackExitRatio), lowBasis: env.TRACK_LOW_BASIS === "1", popBoost: env.TRACK_POP_BOOST === "1",
     perOracleCap: num(env.TRACK_PER_ORACLE_CAP, d.perOracleCap), clipCents: num(env.PRICE_CLIP_CENTS, d.clipCents), catalogMaxRows: num(env.CATALOG_MAX_ROWS, d.catalogMaxRows), trackMaxUnits: num(env.TRACK_MAX_UNITS, d.trackMaxUnits),
     offerRowsBudget: num(env.OFFER_ROWS_BUDGET, d.offerRowsBudget), maxListedChange: num(env.IMPORT_MAX_LISTED_CHANGE, d.maxListedChange), maxTrackedChange: num(env.IMPORT_MAX_TRACKED_CHANGE, d.maxTrackedChange),
@@ -50,7 +51,7 @@ export function trackConfigFromEnv(env: Record<string, string | undefined> = pro
 }
 /** The policy-relevant part of the config as a stable string. The importer stores it in the published catalogue state; a different value on the next run means an operator changed a dial on purpose (F10 releases once). Guard and cap fields are NOT part of it. */
 export function trackConfigHash(cfg: TrackConfig): string {
-  return [cfg.catalogFloorCents, cfg.catalogExitRatio, cfg.oracleComplete ? 1 : 0, cfg.indexFloorCents, cfg.specialFloorCents, cfg.trackFloorCents, cfg.trackExitRatio, cfg.lowBasis ? 1 : 0, cfg.popBoost ? 1 : 0, cfg.perOracleCap, cfg.clipCents].join("|");
+  return [cfg.catalogFloorCents, cfg.catalogExitRatio, cfg.oracleComplete ? 1 : 0, cfg.indexFloorCents, cfg.specialFloorCents, cfg.trackFloorCents, cfg.trackExitRatio, cfg.lowBasis ? 1 : 0, cfg.popBoost ? 1 : 0, cfg.perOracleCap, cfg.clipCents, cfg.relevantShare].join("|");
 }
 export interface UnitValues { n: number | null; f: number | null }          // unitValueCents(...).cents per finish
 
@@ -93,6 +94,29 @@ export function isThin(score: number, wasIndexable: boolean, cls: number, cfg: T
   if (cls !== CARD_CLASS.CARD) return true;
   if (cfg.indexFloorCents <= 0) return false;
   return !(score >= cfg.indexFloorCents || (wasIndexable && score >= cfg.catalogExitRatio * cfg.indexFloorCents));
+}
+/** A listed class-0 row that may compete for relevance. `cheapCents` is its Normal market when it may be its oracle's CHEAP printing (HASN, a market, not serialized, not NOTPLAY), else null. */
+export interface RelevanceCandidate { id: number; oracleKey: string | null; score: number; cheapCents: number | null; wasRelevant: boolean }
+/** RELEVANT (owner, 2026-10-17: "only the 25% most relevant cards are priced and indexed"): the rows that keep store prices, history and a place in search engines; every other listed row is THIN.
+ *  A row's relevance is its score (price x (1 + 2 x EDHREC popularity)), except that its oracle's cheapest regular Normal printing takes the oracle's BEST score: a popular card's cheapest copy is the one people buy
+ *  (a pure value cut left every Sol Ring, Command Tower and Arcane Signet under $2.29 out). The cut is the score of the row at `relevantShare` of the candidates (never under the index floor), with the 0.8 Schmitt band
+ *  for rows that were relevant. Share off (0 or >= 1): the index floor alone, as before. Pure and order-independent (ties: the cut is a score, so equal scores are in or out together). */
+export function relevantRows(rows: readonly RelevanceCandidate[], cfg: TrackConfig): { ids: Set<number>; cutCents: number } {
+  const best = new Map<string, number>(), cheap = new Map<string, RelevanceCandidate>();
+  for (const r of rows) {
+    if (!r.oracleKey) continue;
+    best.set(r.oracleKey, Math.max(best.get(r.oracleKey) ?? 0, r.score));
+    if (r.cheapCents != null && r.cheapCents > 0) { const c = cheap.get(r.oracleKey); if (!c || r.cheapCents < c.cheapCents! || (r.cheapCents === c.cheapCents && r.id < c.id)) cheap.set(r.oracleKey, r); }
+  }
+  const rel = rows.map((r) => (r.oracleKey && cheap.get(r.oracleKey) === r ? Math.max(r.score, best.get(r.oracleKey)!) : r.score));
+  let cut = cfg.indexFloorCents;
+  if (cfg.relevantShare > 0 && cfg.relevantShare < 1 && rows.length) {
+    const sorted = [...rel].sort((a, b) => b - a);
+    cut = Math.max(cut, sorted[Math.max(1, Math.ceil(cfg.relevantShare * rows.length)) - 1]!);
+  }
+  const ids = new Set<number>();
+  rows.forEach((r, i) => { if (cut <= 0 || rel[i]! >= cut || (r.wasRelevant && rel[i]! >= cfg.catalogExitRatio * cut)) ids.add(r.id); });
+  return { ids, cutCents: cut };
 }
 /** A page is a sitemap/index candidate iff LISTED, not THIN, not GONE, class 0, and (tracked or TOP). The whole of 4.4 in one place. */
 export function isIndexable(mask: number, cls: number): boolean {

@@ -13,21 +13,42 @@ const at50 = { ...cfg, catalogFloorCents: 50 };
 
 test("the dials: defaults, every env name, junk falls back, and the hash covers the policy dials only", () => {
   assert.deepEqual(cfg, {
-    catalogFloorCents: 1, catalogExitRatio: 0.8, oracleComplete: true, indexFloorCents: 50, specialFloorCents: 2000, trackFloorCents: 50, trackExitRatio: 0.8, lowBasis: false, popBoost: false, perOracleCap: 0,
+    catalogFloorCents: 1, catalogExitRatio: 0.8, oracleComplete: true, indexFloorCents: 50, relevantShare: 0.25, specialFloorCents: 2000, trackFloorCents: 20, trackExitRatio: 0.8, lowBasis: false, popBoost: false, perOracleCap: 0,
     clipCents: 200_000, catalogMaxRows: 200_000, trackMaxUnits: 120_000, offerRowsBudget: 650_000, maxListedChange: 0.05, maxTrackedChange: 0.15, acceptFlagChange: false, maxGuardTrips: 3,
   });
   assert.deepEqual(T.trackConfigFromEnv({}), cfg);
   assert.equal(T.trackConfigFromEnv({ CATALOG_FLOOR_CENTS: "25", TRACK_LOW_BASIS: "1", TRACK_FLOOR_CENTS: "abc" }).catalogFloorCents, 25);
-  assert.equal(T.trackConfigFromEnv({ TRACK_FLOOR_CENTS: "abc" }).trackFloorCents, 50, "junk falls back to the default");
-  assert.equal(T.trackConfigFromEnv({ TRACK_FLOOR_CENTS: "-5" }).trackFloorCents, 50, "a negative dial falls back");
+  assert.equal(T.trackConfigFromEnv({ TRACK_FLOOR_CENTS: "abc" }).trackFloorCents, 20, "junk falls back to the default");
+  assert.equal(T.trackConfigFromEnv({ TRACK_FLOOR_CENTS: "-5" }).trackFloorCents, 20, "a negative dial falls back");
+  assert.equal(T.trackConfigFromEnv({ RELEVANT_SHARE: "0.4" }).relevantShare, 0.4);
+  assert.equal(T.trackConfigFromEnv({ RELEVANT_SHARE: "0" }).relevantShare, 0, "0 turns the cut off");
   assert.deepEqual(
     T.trackConfigFromEnv({ CATALOG_ORACLE_COMPLETE: "0", IMPORT_ACCEPT_FLAG_CHANGE: "1", INDEX_FLOOR_CENTS: "75", IMPORT_GUARD_MAX_TRIPS: "0", TRACK_LOW_BASIS: "1", TRACK_POP_BOOST: "1", TRACK_PER_ORACLE_CAP: "3" }),
     { ...cfg, oracleComplete: false, acceptFlagChange: true, indexFloorCents: 75, maxGuardTrips: 1, lowBasis: true, popBoost: true, perOracleCap: 3 },
   );
-  assert.equal(T.trackConfigHash(cfg), "1|0.8|1|50|2000|50|0.8|0|0|0|200000");
+  assert.equal(T.trackConfigHash(cfg), "1|0.8|1|50|2000|20|0.8|0|0|0|200000|0.25");
   assert.equal(T.trackConfigHash(cfg), T.trackConfigHash({ ...cfg, maxListedChange: 0.5, catalogMaxRows: 1, acceptFlagChange: true }), "guard and cap fields are not policy");
   assert.notEqual(T.trackConfigHash(cfg), T.trackConfigHash({ ...cfg, catalogFloorCents: 25 }));
   assert.notEqual(T.trackConfigHash(cfg), T.trackConfigHash({ ...cfg, trackFloorCents: 200 }));
+  assert.notEqual(T.trackConfigHash(cfg), T.trackConfigHash({ ...cfg, relevantShare: 0.3 }), "the relevance share is policy: changing it releases F10 once");
+});
+
+test("relevance: the top quarter by score, a popular card's cheapest copy takes its oracle's best score, a 0.8 band for rows that were relevant, never under the index floor, off at 0", () => {
+  const row = (id: number, score: number, o: Partial<T.RelevanceCandidate> = {}): T.RelevanceCandidate => ({ id, oracleKey: null, score, cheapCents: null, wasRelevant: false, ...o });
+  const rows = Array.from({ length: 20 }, (_, i) => row(i + 1, (20 - i) * 100));   // scores 2000, 1900, ... 100
+  const a = T.relevantRows(rows, cfg);
+  assert.equal(a.cutCents, 1600, "25% of 20 rows is 5: the cut is the 5th score");
+  assert.deepEqual([...a.ids].sort((x, y) => x - y), [1, 2, 3, 4, 5]);
+  const band = T.relevantRows(rows.map((r) => (r.id === 7 || r.id === 9 ? { ...r, wasRelevant: true } : r)), cfg);
+  assert.deepEqual([band.ids.has(7), band.ids.has(9)], [true, false], "1400 >= 0.8 x 1600 stays; 1200 does not");
+  // Sol Ring: a $40 printing and a $1 one; the $1 one is the oracle's cheapest regular Normal printing, so it is as relevant as the $40 one; a $1 foil-only printing of it is not
+  const sol = [...rows, row(101, 12_000, { oracleKey: "sol" }), row(102, 300, { oracleKey: "sol", cheapCents: 100 }), row(103, 290, { oracleKey: "sol", cheapCents: 120 }), row(104, 300, { oracleKey: "sol" })];
+  const b = T.relevantRows(sol, cfg);
+  assert.deepEqual([b.ids.has(101), b.ids.has(102), b.ids.has(103), b.ids.has(104)], [true, true, false, false]);
+  assert.equal(T.relevantRows([row(1, 30), row(2, 20), row(3, 10), row(4, 5)], cfg).ids.size, 0, "a cut under the index floor rises to it: nothing under 50 cents of score is relevant");
+  assert.equal(T.relevantRows(rows, { ...cfg, relevantShare: 0 }).ids.size, 20, "share 0: the index floor alone");
+  assert.equal(T.relevantRows(rows, { ...cfg, relevantShare: 0, indexFloorCents: 0 }).ids.size, 20);
+  assert.equal(T.relevantRows([], cfg).ids.size, 0);
 });
 
 test("popularity and score: EDHREC rank and the Reserved List, clipped for scoring only, never rounded", () => {
@@ -150,7 +171,8 @@ test("fixtures 692998 and 630946: a $298 and a $1,845 foil are tracked on their 
   for (const id of [692998, 630946]) { const p = policy(id); assert.deepEqual([p.trackedN, p.trackedF, p.headline.finish], [false, true, "F"], String(id)); }
 });
 test("fixtures 496078 and 80110: a 25 cent Forest and a 10 cent common are listed (floor 1 cent) but THIN: a page and a search hit, no sitemap entry", () => {
-  for (const id of [496078, 80110, 4536, 286903]) { const p = policy(id); assert.deepEqual([p.listed, p.thin, p.trackedN, p.trackedF], [true, true, false, false], String(id)); }
+  const cfg = { ...T.TRACK_DEFAULTS, trackFloorCents: 50 };   // in the importer a THIN row is never tracked (relevantRows); policy() sees one row, so the units are judged at a 50-cent floor here
+  for (const id of [496078, 80110, 4536, 286903]) { const p = policy(id, cfg); assert.deepEqual([p.listed, p.thin, p.trackedN, p.trackedF], [true, true, false, false], String(id)); }
 });
 test("fixture 638920 Plains Galaxy Foil at $4.21: below the floor, but a unit that was tracked stays tracked down to $4.00", () => {
   const cfg = { ...T.TRACK_DEFAULTS, trackFloorCents: 500 };   // the band mechanism at the old $5 line, where these real fixtures sit (the default is 50 cents since 2026-10-17)

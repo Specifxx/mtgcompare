@@ -1,3 +1,5 @@
+import Link from "next/link";
+import type { ReactNode } from "react";
 import type { Country } from "@/lib/country";
 import { money } from "@/lib/format";
 import { outboundRel } from "@/lib/affiliate";
@@ -68,6 +70,32 @@ export function CardBuyPair({
       <a href={ebayHref} target="_blank" rel={outboundRel()} data-retailer="ebay_search" data-page={page} data-card={slug} data-surface="card_buy_pair_ebay" className="btn-ebay min-h-11">
         {preRelease ? `Search ${ebayName} →` : `Buy on ${ebayName} →`}
       </a>
+    </div>
+  );
+}
+
+/**
+ * A printing outside the relevant quarter (the catalogue's THIN bit: noindex,
+ * untracked): no price board, no store rows, no history. The notice says why
+ * and hands the visitor to the TCGplayer product page and an eBay search (both
+ * affiliate-tagged by the page), and to a tracked printing of the same card when
+ * there is one.
+ */
+export function UntrackedPriceNotice({ name, tracked, children }: { name: string; tracked: { slug: string; label: string } | null; children: ReactNode }) {
+  return (
+    <div className="mt-4 rounded-lg border border-ink-700 bg-ink-850 p-4" data-untracked="">
+      <p className="text-sm font-semibold text-white">We don&apos;t compare prices for this printing</p>
+      <p className="mt-1 text-sm leading-relaxed text-slate-400">
+        MTG Compare tracks store prices for the most relevant quarter of Magic printings: the staples people play, the cheapest copy of each, and the cards worth real money. You can still find {name} on TCGplayer or eBay.
+      </p>
+      {children}
+      {tracked ? (
+        <p className="mt-3 text-sm">
+          <Link href={`/card/${tracked.slug}`} className="text-brand-400 hover:underline">
+            Compare store prices for {tracked.label} →
+          </Link>
+        </p>
+      ) : null}
     </div>
   );
 }

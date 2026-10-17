@@ -45,7 +45,7 @@ export const cheapMythics: Post = {
     },
     {
       q: "Are these prices the same in my market?",
-      a: `TCGplayer's market price is a US dollar figure. The last column of each table is the cheapest in-stock listing we track in your market, which exists for cards worth about ${money(TRACKED_FROM_CENTS, "US")} and up; for cheaper cards it is a reference converted from the US price.`,
+      a: `TCGplayer's market price is a US dollar figure. The last column of each table is the cheapest in-stock listing we track in your market, which exists for the printings we price-track (the most relevant quarter of Magic, from about ${money(TRACKED_FROM_CENTS, "US")}); for the rest it is a reference converted from the US price.`,
     },
   ],
   build: ({ mythics, country }) => {

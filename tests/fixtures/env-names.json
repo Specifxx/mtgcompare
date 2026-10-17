@@ -1365,7 +1365,22 @@
    "wf": [
     "import-prices.yml"
    ],
-   "note": "a listed row below this score is THIN: noindex, no sitemap entry (read only by trackConfigFromEnv)",
+   "note": "a listed row below this score is THIN: noindex, no sitemap entry; with RELEVANT_SHARE on, the lower bound of the relevance cut (read only by trackConfigFromEnv)",
+   "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
+  },
+  "RELEVANT_SHARE": {
+   "kind": "var",
+   "at": "G",
+   "status": "new",
+   "wp": "WP01a",
+   "default": "0.25",
+   "where": [
+    "src/lib/track.ts"
+   ],
+   "wf": [
+    "import-prices.yml"
+   ],
+   "note": "the share of listed class-0 rows that are relevant (priced, tracked, indexed); every other row is THIN and untracked; 0 = off (read only by trackConfigFromEnv)",
    "group": "Importer and publisher (GitHub Actions variables, never Vercel variables)"
   },
   "CATALOG_SPECIAL_FLOOR_CENTS": {
@@ -1388,7 +1403,7 @@
    "at": "G",
    "status": "new",
    "wp": "WP01a",
-   "default": "50",
+   "default": "20",
    "where": [
     "src/lib/track.ts"
    ],

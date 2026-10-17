@@ -27,6 +27,7 @@ function Ribbon({ card }: { card: Tile }) {
 }
 
 function MiniPrice({ card }: { card: Tile }) {
+  if (card.thin) return <p className="text-xs text-slate-500">Price not tracked</p>;
   if (card.valueUsd == null) return <p className="text-xs text-slate-500">No TCGplayer price</p>;
   return (
     <div>

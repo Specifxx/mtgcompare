@@ -9,7 +9,7 @@ import { CARD_CLASS, printingOf, CARD_FLAGS, COLOR_BIT, GROUP_TREATMENTS, LINK, 
 import { MARKETS, type Country } from "./country";
 import type { Finish, Rarity, UnitRef } from "./constants";
 import { TCGCSV_BASE, chooseSetToks, finishPrices, isSealedProduct, labelOf, oracleSlugOf, parseSealed, parseTcgName, productClass, sealedSlugOf, setCodeOf, setDisplayName, setSlugOf, slugBase, withProductSuffix, type ParsedName, type PriceRowLike, type TcgcsvGroup, type TcgcsvPrice, type TcgcsvProduct } from "./catalog";
-import { completenessPicks, flagChangeGuard, headlineOf, inCatalogue, isIndexable, isThin, marketOnlyCents, popularity, trackConfigHash, trackScoreCents, unitTracked, unitValueCents, type GuardVerdict, type TrackConfig } from "./track";
+import { completenessPicks, flagChangeGuard, headlineOf, inCatalogue, isIndexable, marketOnlyCents, popularity, relevantRows, trackConfigHash, trackScoreCents, unitTracked, unitValueCents, type GuardVerdict, type TrackConfig } from "./track";
 import { addDays, dayIso, dayNum, daysBetween, nextIndex } from "./history";
 import { usdCentsToCountry } from "./fx";
 import { unitGap, type GapUnit } from "./market-gaps";
@@ -441,10 +441,16 @@ export async function importCatalog(base: Pick<ImportContext, "log" | "cfg" | "p
     const picks = completenessPicks(cardsAll.filter((k) => k.c.cls === 0 && (k.vn || k.vf)).map((k) => ({ id: k.c.id, oracleId: k.oracleKey, marketCents: Math.max(k.pr.marketN ?? 0, k.pr.marketF ?? 0) || null, valueCents: Math.max(k.vn?.cents ?? 0, k.vf?.cents ?? 0) })), listedOracles);
     for (const id of picks) if (!listedNow.has(id)) { listedNow.add(id); forcedThin.add(id); }
   }
+  // relevance (the owner's 25% cut): the listed class-0 rows that keep a price board, store offers, history and an index entry; every other listed row is THIN and untracked
+  const relevant = relevantRows(cardsAll.filter((k) => k.c.cls === 0 && listedNow.has(k.c.id) && !forcedThin.has(k.c.id)).map((k) => ({
+    id: k.c.id, oracleKey: k.oracleKey, score: k.score, wasRelevant: k.wasMask !== undefined && (k.wasMask & PRICE_MASK.LISTED) !== 0 && (k.wasMask & PRICE_MASK.THIN) === 0,
+    cheapCents: (k.pr.mask & PRICE_MASK.HASN) && (k.pr.marketN ?? 0) > 0 && !(k.c.flags & (CARD_FLAGS.SERIAL | CARD_FLAGS.NOTPLAY)) ? k.pr.marketN : null,
+  })), cfg);
+  log(`relevance: ${relevant.ids.size} rows from a score of ${Math.round(relevant.cutCents)} (share ${cfg.relevantShare})`);
   // tracking: the effective floor first (the offer budget), then the per-unit hysteresis
   const unitValue = (k: PricedCard, f: Finish): number | null => { const v = f === "N" ? k.vn : k.vf; if (!v) return null; const cents = cfg.popBoost ? v.cents * (1 + 2 * k.pop) : v.cents; return cents; };
   const effectiveFloor = ((): number => {
-    const vals: number[] = []; for (const k of cardsAll) if (k.c.cls === 0 && listedNow.has(k.c.id)) for (const f of FINISHES) { const v = unitValue(k, f); const lb = (f === "N" ? k.vn : k.vf)?.lowBasis; if (v != null && !(lb && !cfg.lowBasis) && v >= cfg.trackFloorCents) vals.push(v); }
+    const vals: number[] = []; for (const k of cardsAll) if (k.c.cls === 0 && relevant.ids.has(k.c.id)) for (const f of FINISHES) { const v = unitValue(k, f); const lb = (f === "N" ? k.vn : k.vf)?.lowBasis; if (v != null && !(lb && !cfg.lowBasis) && v >= cfg.trackFloorCents) vals.push(v); }
     if (vals.length * OFFERS_PER_UNIT <= cfg.offerRowsBudget) return cfg.trackFloorCents;
     vals.sort((a, b) => b - a); return vals[Math.max(0, Math.floor(cfg.offerRowsBudget / OFFERS_PER_UNIT) - 1)] ?? cfg.trackFloorCents;
   })();
@@ -452,11 +458,11 @@ export async function importCatalog(base: Pick<ImportContext, "log" | "cfg" | "p
   for (const k of cardsAll) {
     let m = k.pr.mask; const was = k.wasMask ?? 0; const priced = k.vn !== null || k.vf !== null; const listed = listedNow.has(k.c.id);
     if (listed) m |= PRICE_MASK.LISTED;
-    if (listed && k.c.cls === 0 && (forcedThin.has(k.c.id) || isThin(k.score, (was & PRICE_MASK.LISTED) !== 0 && (was & PRICE_MASK.THIN) === 0, 0, cfg))) m |= PRICE_MASK.THIN;
+    if (listed && k.c.cls === 0 && !relevant.ids.has(k.c.id)) m |= PRICE_MASK.THIN;
     if (listed && k.c.cls !== 0) m |= PRICE_MASK.THIN;
     if (k.c.cls === 0 && listed) {
       if (!priced) { m |= was & STAR_BITS; if (was & PRICE_MASK.TRACKN) m |= PRICE_MASK.HASN; if (was & PRICE_MASK.TRACKF) m |= PRICE_MASK.HASF; }   // a price outage is "unknown", not "zero": keep the tracked bits, and the HAS bit of each (the validator refuses a tracked unit that has no price row at all)
-      else for (const f of FINISHES) { const v = unitValue(k, f); if (unitTracked(v, (was & (f === "N" ? PRICE_MASK.TRACKN : PRICE_MASK.TRACKF)) !== 0, (f === "N" ? k.vn : k.vf)?.lowBasis ?? false, tcfg, 0)) m |= f === "N" ? PRICE_MASK.TRACKN : PRICE_MASK.TRACKF; }
+      else if (relevant.ids.has(k.c.id)) for (const f of FINISHES) { const v = unitValue(k, f); if (unitTracked(v, (was & (f === "N" ? PRICE_MASK.TRACKN : PRICE_MASK.TRACKF)) !== 0, (f === "N" ? k.vn : k.vf)?.lowBasis ?? false, tcfg, 0)) m |= f === "N" ? PRICE_MASK.TRACKN : PRICE_MASK.TRACKF; }
     }
     k.pr.mask = m;
   }
@@ -527,7 +533,7 @@ export async function importCatalog(base: Pick<ImportContext, "log" | "cfg" | "p
     if (present.has(id)) continue;
     const gid = carry.setOf.get(id); if (gid !== undefined && held.has(gid)) { absentCards.push([id, mask]); continue; }
     let m: number;
-    if (mask & PRICE_MASK.GONEP || mask & PRICE_MASK.GONE) { m = (mask & ~(PRICE_MASK.LISTED | STAR_BITS | PRICE_MASK.TOP | PRICE_MASK.CHEAP | PRICE_MASK.GONEP)) | PRICE_MASK.GONE; goneNow++; } else m = mask | PRICE_MASK.GONEP;
+    if (mask & PRICE_MASK.GONEP || mask & PRICE_MASK.GONE) { m = (mask & ~(PRICE_MASK.LISTED | PRICE_MASK.THIN | STAR_BITS | PRICE_MASK.TOP | PRICE_MASK.CHEAP | PRICE_MASK.GONEP)) | PRICE_MASK.GONE; goneNow++; } else m = mask | PRICE_MASK.GONEP;
     absentCards.push([id, m]);
   }
   const sealedRows: SealedModelRow[] = []; const sealedSlugTaken = new Set<string>([...carry.sealed.values()].map((s) => s.slug)); const sealedPresent = new Set<number>();
