@@ -17,6 +17,7 @@ import { Breadcrumbs, Delta, JsonLd, StatTile } from "@/components/ui";
 import { finishLabel, rarityLabel } from "@/lib/constants";
 import { COUNTRIES } from "@/lib/country";
 import { getCardPage, getCatalogStats, getMarketOverview, getSetValueStats, getSets } from "@/lib/data";
+import { withoutMarketKey } from "@/lib/data/plane/headers";
 import { int, money, usd } from "@/lib/format";
 import { getCountry } from "@/lib/get-country";
 import { imageFor } from "@/lib/images";
@@ -44,7 +45,7 @@ const DESCRIPTION =
 // size, market override or page after the first is noindex,follow with the
 // canonical on /price-guide. A page title carries its page number.
 export function generateMetadata({ searchParams }: { searchParams: SearchParams }): Metadata {
-  const q = parseGuide(searchParams);
+  const q = parseGuide(withoutMarketKey(searchParams));
   return {
     title: q.page > 1 ? `${TITLE} (page ${q.page})` : TITLE,
     description: DESCRIPTION,
@@ -54,7 +55,8 @@ export function generateMetadata({ searchParams }: { searchParams: SearchParams 
   };
 }
 
-export default async function PriceGuidePage({ searchParams }: { searchParams: SearchParams }) {
+export default async function PriceGuidePage({ searchParams: raw }: { searchParams: SearchParams }) {
+  const searchParams = withoutMarketKey(raw);
   const own = getCountry();
   const gq = parseGuide(searchParams);
   const country = gq.market ?? own;

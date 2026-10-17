@@ -15,7 +15,8 @@ const AI_TRAINING_BLOCKED = ["GPTBot", "CCBot", "Google-Extended", "Bytespider"]
 // 59,000-URL long tail for someone else's index and send no visitors, as on
 // RiftCompare. AhrefsBot and SemrushBot stay allowed. A bot that ignores
 // robots.txt needs the Vercel Firewall instead.
-const BULK_BLOCKED = ["meta-externalagent", "Meta-ExternalAgent", "MJ12bot", "DotBot", "PetalBot", "DataForSeoBot", "BLEXBot", "Barkrowler", "serpstatbot", "SeekportBot", "ImagesiftBot", "Timpibot"];
+// Shapbot joined them on 2026-10-17 (owner).
+const BULK_BLOCKED = ["meta-externalagent", "Meta-ExternalAgent", "MJ12bot", "DotBot", "PetalBot", "DataForSeoBot", "BLEXBot", "Barkrowler", "serpstatbot", "SeekportBot", "ImagesiftBot", "Timpibot", "Shapbot", "ShapBot"];
 
 // QUERY-STRING URLS ARE NOT CRAWLED (2026-10-16). No sitemap URL carries one,
 // and every page that reads one canonicalises to its bare URL: each card page

@@ -13,6 +13,7 @@ import { Breadcrumbs, InShort, SectionHeader, StatTile } from "@/components/ui";
 import { PRIMARY_TYPES, SET_KINDS, TREATMENT_BY_KEY, colorMask, isRarity, type Rarity } from "@/lib/constants";
 import { COUNTRIES } from "@/lib/country";
 import { getCardPage, getSealedBySet, getSetBySlug, getSetChecklist, getSetHighlights, getSets, getSetValueStats, type CardQuery } from "@/lib/data";
+import { withoutMarketKey } from "@/lib/data/plane/headers";
 import { toUsdCents } from "@/lib/fx";
 import { int, longDate, money } from "@/lib/format";
 import { getCountry } from "@/lib/get-country";
@@ -59,11 +60,12 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     alternates: { canonical: `/sets/${s.slug}` },
     openGraph: pageOgOwnImage(`/sets/${s.slug}`),
     // A filtered, sorted or paged grid is a slice of the same list: noindex, follow.
-    ...(Object.keys(searchParams).length ? { robots: { index: false, follow: true } } : {}),
+    ...(Object.keys(withoutMarketKey(searchParams)).length ? { robots: { index: false, follow: true } } : {}),
   };
 }
 
-export default async function SetPage({ params, searchParams }: Props) {
+export default async function SetPage({ params, searchParams: raw }: Props) {
+  const searchParams = withoutMarketKey(raw);
   const country = getCountry();
   const c = COUNTRIES[country];
   const set = await getSetBySlug(params.slug);
