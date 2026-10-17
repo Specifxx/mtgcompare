@@ -79,22 +79,36 @@ test("every CDN-cached page renders the same for every visitor: no market, cooki
   }
 });
 
-// ── THE MARKET PAGES' CDN COPY (2026-10-17, DECISIONS.md "Crawlers get the US copy from the CDN") ─────────────────────────────────────────
-// A market page renders in getCountry()'s market. next.config.js caches it a day only for a request that certainly renders the US one (a country=US cookie, or no
-// cookie and a US IP), and rewrites every other request to ?_mk=1, a cache key that is never stored. These tests hold the rules against getCountry itself.
+// ── THE MARKET PAGES' CDN COPY, ONE PER MARKET (2026-10-17, DECISIONS.md "Crawlers get the US copy from the CDN", "Every market gets its own CDN copy") ─────
+// A market page renders in getCountry()'s market. next.config.js makes the market the cache key: a US render keeps the bare URL, another market's render is
+// rewritten to ?_mk=<cookie or IP country>, and a request the rules cannot place goes to ?_mk=1, never stored. These tests hold the rules against getCountry itself.
 import { CDN_MARKET_CACHE_CONTROL, CDN_MARKET_SOURCES, MARKET_KEY, withoutMarketKey } from "../src/lib/data/plane/headers";
-import { COUNTRY_COOKIE, isCountry, normalizeCountry } from "../src/lib/country";
+import { COUNTRY_COOKIE, MARKETS, isCountry, normalizeCountry } from "../src/lib/country";
 
 type Cond = { type: string; key: string; value?: string };
 type Rule = { source: string; has?: Cond[]; missing?: Cond[]; headers?: { key: string; value: string }[]; destination?: string };
 type Req = { cookie?: string; geo?: string; query?: Record<string, string> };
-/** Next's matchHas (shared/lib/router/utils/prepare-destination.js): a value is an anchored regex; an empty value means "present"; `missing` fails on any match. */
-const condMatches = (c: Cond, r: Req): boolean => {
+/** Next's matchHas (shared/lib/router/utils/prepare-destination.js): a value is an anchored regex whose named groups become destination params; an empty value
+ *  means "present"; `missing` fails on any match. Returns the captured params, or null. */
+const RX = new Map<string, RegExp>();
+const condMatch = (c: Cond, r: Req): Record<string, string> | null => {
   const v = c.type === "cookie" ? (c.key === COUNTRY_COOKIE ? r.cookie : undefined) : c.type === "header" ? (c.key.toLowerCase() === "x-vercel-ip-country" ? r.geo : undefined) : c.type === "query" ? r.query?.[c.key] : undefined;
-  if (!v) return false;
-  return c.value === undefined ? true : new RegExp(`^${c.value}$`).test(v);
+  if (!v) return null;
+  if (c.value === undefined) return {};
+  let rx = RX.get(c.value); if (!rx) RX.set(c.value, (rx = new RegExp(`^${c.value}$`)));
+  const m = rx.exec(v); return m ? { ...(m.groups ?? {}) } : null;
 };
+const condMatches = (c: Cond, r: Req): boolean => condMatch(c, r) !== null;
 const ruleMatches = (x: Rule, r: Req): boolean => (x.has ?? []).every((c) => condMatches(c, r)) && !(x.missing ?? []).some((c) => condMatches(c, r));
+/** The cache key a request ends on: the rewrite's `_mk` (its `:params` filled from the `has` captures), else the one the URL arrived with, else "" (the bare URL). */
+const keyOf = (rewrites: Rule[], r: Req): string => {
+  const hit = rewrites.filter((x) => ruleMatches(x, r));
+  assert.ok(hit.length <= 1, `the rewrites overlap for ${JSON.stringify(r)}: their order would decide the key`);
+  if (!hit.length) return r.query?.[MARKET_KEY] ?? "";
+  const params = Object.assign({}, ...(hit[0]!.has ?? []).map((c) => condMatch(c, r) ?? {})) as Record<string, string>;
+  const q = new URLSearchParams(hit[0]!.destination!.split("?")[1]!.replace(/:(\w+)/g, (_, k: string) => params[k] ?? `:${k}`));
+  return q.get(MARKET_KEY)!;
+};
 /** getCountry() (src/lib/get-country.ts): the cookie when it names a market, else the IP country, else the US. */
 const marketOf = (r: Req): string => (isCountry(r.cookie) ? r.cookie : r.geo ? normalizeCountry(r.geo) : "US");
 const CONFIG = path.join(process.cwd(), "next.config.js");
@@ -104,7 +118,7 @@ const loadConfig = async (): Promise<{ headers: Rule[]; rewrites: Rule[] }> => {
   return { headers: await c.headers(), rewrites: (await c.rewrites()).beforeFiles };
 };
 
-test("market pages: a day at the CDN, public pages only, wired in next.config.js as a US copy plus a key of their own for everyone else", { skip: !fs.existsSync(CONFIG) }, async () => {
+test("market pages: a day at the CDN, public pages only, wired in next.config.js as one copy per market", { skip: !fs.existsSync(CONFIG) }, async () => {
   assert.equal(CDN_MARKET_CACHE_CONTROL, "public, s-maxage=86400, stale-while-revalidate=86400", "a day: the owner's minimum is twelve hours and the plane publishes once a day");
   assert.equal(MARKET_KEY, "_mk");
   const { headers, rewrites } = await loadConfig();
@@ -114,34 +128,56 @@ test("market pages: a day at the CDN, public pages only, wired in next.config.js
     assert.ok(!CDN_SOURCES.some((n) => n === s || patternMatches(n, sample(s)) || patternMatches(s, sample(n))), `${s} is also a market-neutral CDN source: one copy would serve every market`);
     assert.ok(!/opengraph-image|:\w+\*/.test(s), `${s}: no catch-all, so a share image (its own one-minute fallback) never takes the page's day`);
     const hs = headers.filter((h) => h.source === s && h.headers?.some((x) => x.key === "Vercel-CDN-Cache-Control")), rs = rewrites.filter((x) => x.source === s);
-    assert.equal(hs.length, 2, `${s}: two CDN rules (a US cookie; no cookie and a US IP)`);
+    assert.equal(hs.length, 4, `${s}: four CDN rules (US cookie, US IP, market cookie, market IP)`);
     for (const h of hs) assert.deepEqual(h.headers, [{ key: "Vercel-CDN-Cache-Control", value: CDN_MARKET_CACHE_CONTROL }]);
-    assert.equal(rs.length, 2, `${s}: two rewrites (a non-US cookie; no cookie and a non-US IP)`);
-    for (const x of rs) assert.equal(x.destination, `${s}?${MARKET_KEY}=1`);
+    assert.equal(rs.length, 4, `${s}: four rewrites (market cookie, market IP, a cookie naming no market, an unplaced request)`);
+    for (const x of rs) assert.ok(x.destination === `${s}?${MARKET_KEY}=:mk` || x.destination === `${s}?${MARKET_KEY}=1`, x.destination);
   }
   assert.ok(CDN_MARKET_SOURCES.includes("/card/:slug") && CDN_MARKET_SOURCES.includes("/sealed/:slug") && CDN_MARKET_SOURCES.includes("/sets/:slug") && CDN_MARKET_SOURCES.includes("/price-guide") && CDN_MARKET_SOURCES.includes("/guides/:slug") && CDN_MARKET_SOURCES.includes("/blog/:slug"));
 });
 
-test("market pages: the cached copy is always the US render, a crawler's request is cached, and every other market reads and writes a key of its own", { skip: !fs.existsSync(CONFIG) }, async () => {
+test("market pages: the lists in headers.json are exactly getCountry's markets and the IP countries normalizeCountry sends to them", () => {
+  assert.deepEqual(["US", ...cfg.marketCookies].sort(), [...MARKETS].sort());
+  const A = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", codes = [...A].flatMap((a) => [...A].map((b) => a + b));
+  assert.deepEqual([...cfg.marketGeo].sort(), codes.filter((c) => normalizeCountry(c) !== "US").sort(), "marketGeo must list every country code normalizeCountry places outside the US, and no other");
+});
+
+test("market pages: a stored copy always holds its key's market, every reader of a key renders that market, and crawlers in every market are cached", { skip: !fs.existsSync(CONFIG) }, async () => {
   const src = fs.readFileSync(path.join(process.cwd(), "src/lib/get-country.ts"), "utf8");
   const ck = src.indexOf("cookies().get(COUNTRY_COOKIE)"), geo = src.indexOf('headers().get("x-vercel-ip-country")');
   assert.ok(ck > 0 && geo > ck, "getCountry reads the country cookie, then the IP country: the rules below mirror exactly that order");
   const { headers, rewrites } = await loadConfig();
-  const cookies = [undefined, "", "US", "UK", "EU", "AU", "SG", "CA", "us", "XX", "AUS"], geos = [undefined, "US", "GB", "DE", "AU", "SG", "CA", "JP", "us"], queries: (Record<string, string> | undefined)[] = [undefined, { [MARKET_KEY]: "1" }, { finish: "foil" }];
-  for (const s of CDN_MARKET_SOURCES) {
+  const A = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", allGeo = [undefined, "us", "gb", "de", ...[...A].flatMap((a) => [...A].map((b) => a + b))];
+  const cookies = [undefined, "", "US", "UK", "EU", "AU", "SG", "CA", "us", "uk", "XX", "AUS", "XAUX", "USA", "GB"];
+  const queries: (Record<string, string> | undefined)[] = [undefined, { finish: "foil" }, { [MARKET_KEY]: "1" }, { [MARKET_KEY]: "UK" }];
+  CDN_MARKET_SOURCES.forEach((s, i) => {
     const hs = headers.filter((h) => h.source === s && h.headers?.some((x) => x.key === "Vercel-CDN-Cache-Control")), rs = rewrites.filter((x) => x.source === s);
+    const geos = i === 0 ? allGeo : [undefined, "US", "GB", "DE", "FR", "AU", "SG", "CA", "NZ", "JP", "us"];
+    const stored = new Map<string, string>(), reads: { key: string; market: string; at: string }[] = [];
     for (const cookie of cookies) for (const g of geos) for (const query of queries) {
-      const r: Req = { cookie, geo: g, query }, market = marketOf(r), cached = hs.some((h) => ruleMatches(h, r)), rewritten = rs.some((x) => ruleMatches(x, r)), keyed = rewritten || !!query?.[MARKET_KEY];
+      const r: Req = { cookie, geo: g, query }, market = marketOf(r), key = keyOf(rs, r), cached = hs.some((h) => ruleMatches(h, r)), crafted = query?.[MARKET_KEY] !== undefined;
       const at = `${s} cookie=${cookie} geo=${g} query=${JSON.stringify(query)}`;
-      if (cached) assert.equal(market, "US", `${at}: a stored copy must be a US render`);
-      if (cached) assert.ok(!keyed, `${at}: the US copy lives on the bare URL`);
-      if (!keyed) assert.equal(market, "US", `${at}: only a US render may read the bare URL's copy`);
-      if (market !== "US") assert.ok(keyed && !cached, `${at}: a ${market} render needs its own key, never stored`);
+      if (crafted) { assert.ok(!cached, `${at}: a URL that arrives carrying ${MARKET_KEY} is never stored`); continue; }
+      if (key === "") assert.equal(market, "US", `${at}: only a US render reads the bare URL`);
+      if (key === "1") assert.ok(!cached, `${at}: the unplaced key is never stored`);
+      if (cached) {
+        assert.notEqual(key, "1", at);
+        const had = stored.get(key); assert.ok(had === undefined || had === market, `${at}: key ${key || "(bare)"} would hold both ${had} and ${market}`); stored.set(key, market);
+      }
+      reads.push({ key, market, at });
     }
-    assert.ok(hs.some((h) => ruleMatches(h, { geo: "US" })), `${s}: a crawler (no cookie, US IP) must be cached`);
-    assert.ok(hs.some((h) => ruleMatches(h, { cookie: "US", geo: "GB" })), `${s}: a US cookie is the US render wherever the visitor is`);
-    assert.ok(rs.some((x) => ruleMatches(x, { cookie: "UK", geo: "US" })) && rs.some((x) => ruleMatches(x, { geo: "GB" })), `${s}: UK visitors are rewritten`);
-  }
+    for (const x of reads) { const held = stored.get(x.key); if (held !== undefined) assert.equal(x.market, held, `${x.at}: reads key ${x.key || "(bare)"}, which holds a ${held} render`); }
+    const cachedAt = (r: Req): string | null => (hs.some((h) => ruleMatches(h, r)) ? keyOf(rs, r) : null);
+    assert.equal(cachedAt({ geo: "US" }), "", `${s}: a US crawler (no cookie) is cached on the bare URL`);
+    assert.equal(cachedAt({ cookie: "US", geo: "GB" }), "", `${s}: a US cookie is the US render wherever the visitor is`);
+    assert.equal(cachedAt({ geo: "GB" }), "GB", `${s}: a UK crawler is cached on its own key`);
+    assert.equal(cachedAt({ geo: "DE" }), "DE", `${s}: a German visitor is cached on its own key`);
+    assert.equal(cachedAt({ cookie: "UK", geo: "US" }), "UK", `${s}: a UK cookie is cached on the UK key`);
+    assert.equal(cachedAt({ cookie: "EU" }), "EU", `${s}: an EU cookie is cached on the EU key`);
+    assert.equal(cachedAt({ geo: "JP" }), null, `${s}: a country the rules do not place is rendered, never stored`);
+    assert.equal(cachedAt({ cookie: "XAUX", geo: "GB" }), null, `${s}: a cookie that names no market is rendered, never stored`);
+    assert.equal(keyOf(rs, { cookie: "XAUX", geo: "GB" }), "1", `${s}: a cookie that names no market never reads another market's copy`);
+  });
 });
 
 const APP_ROOT = path.join(process.cwd(), "src/app");
