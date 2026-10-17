@@ -1,21 +1,31 @@
 // The one source of the Cache-Control of plane-backed pages (contract 12.7.6): tests/headers-allowlist.test.ts reads the same file.
 const plane = require("./src/lib/data/plane/headers.json");
 
-// THE MARKET PAGES' CDN COPY (headers.json pagesCdnMarket; DECISIONS.md, "Crawlers get the US copy from the CDN"). A market page renders in getCountry()'s
-// market: the country cookie when it names a market, else Vercel's IP country. Only a request that certainly renders the US one is cached; every other request
-// is rewritten to ?_mk=1 so it neither reads nor writes that copy, and its own key is never stored. Each rule pairs with one branch of getCountry().
-const US_COOKIE = { type: "cookie", key: "country", value: "US" };
+// THE MARKET PAGES' CDN COPY, ONE PER MARKET (headers.json pagesCdnMarket; DECISIONS.md, "Crawlers get the US copy from the CDN" and "Every market gets its own
+// CDN copy"). A market page renders in getCountry()'s market: the country cookie when it names a market, else Vercel's IP country. The market becomes the cache
+// key: a US render keeps the bare URL, another market's render is rewritten to ?_mk=<its cookie> or, with no cookie, ?_mk=<its IP country>, and anything the
+// rules cannot place is rewritten to ?_mk=1 and never stored. The four rewrites never overlap, so their order does not matter.
+const K = plane.marketKey;
+const any = (list) => list.join("|");
 const ANY_COOKIE = { type: "cookie", key: "country" };
+const US_COOKIE = { type: "cookie", key: "country", value: "US" };
+const MARKET_COOKIE = { type: "cookie", key: "country", value: `(?<mk>${any(plane.marketCookies)})` };
+const NAMED_COOKIE = { type: "cookie", key: "country", value: `(?:${any(["US", ...plane.marketCookies])})` };
 const US_GEO = { type: "header", key: "x-vercel-ip-country", value: "US" };
-const KEYED = { type: "query", key: plane.marketKey };
+const MARKET_GEO = { type: "header", key: "x-vercel-ip-country", value: `(?<mk>${any(plane.marketGeo)})` };
+const KEYED = { type: "query", key: K };
 const marketCdn = [{ key: "Vercel-CDN-Cache-Control", value: plane.cdnMarket }];
-const usCopy = (source) => [
+const marketCopy = (source) => [
   { source, has: [US_COOKIE], missing: [KEYED], headers: marketCdn },
   { source, has: [US_GEO], missing: [ANY_COOKIE, KEYED], headers: marketCdn },
+  { source, has: [MARKET_COOKIE], missing: [KEYED], headers: marketCdn },
+  { source, has: [MARKET_GEO], missing: [ANY_COOKIE, KEYED], headers: marketCdn },
 ];
-const ownKey = (source) => [
-  { source, has: [ANY_COOKIE], missing: [US_COOKIE], destination: `${source}?${plane.marketKey}=1` },
-  { source, missing: [ANY_COOKIE, US_GEO], destination: `${source}?${plane.marketKey}=1` },
+const marketKey = (source) => [
+  { source, has: [MARKET_COOKIE], destination: `${source}?${K}=:mk` },
+  { source, has: [MARKET_GEO], missing: [ANY_COOKIE], destination: `${source}?${K}=:mk` },
+  { source, has: [ANY_COOKIE], missing: [NAMED_COOKIE], destination: `${source}?${K}=1` },
+  { source, missing: [ANY_COOKIE, US_GEO, MARKET_GEO], destination: `${source}?${K}=1` },
 ];
 
 /** @type {import('next').NextConfig} */
@@ -89,13 +99,13 @@ const nextConfig = {
       // Vercel-CDN-Cache-Control beats both and stays at the CDN, so the market-neutral public pages get a real day-long CDN copy (headers.json pagesCdn; DECISIONS.md,
       // "The CDN finally caches the public pages").
       ...plane.pagesCdn.map((source) => ({ source, headers: [{ key: "Vercel-CDN-Cache-Control", value: plane.cdn }] })),
-      // The pages that read the visitor's market: a day at the CDN for a US render only (above).
-      ...plane.pagesCdnMarket.flatMap(usCopy),
+      // The pages that read the visitor's market: a day at the CDN, one copy per market (above).
+      ...plane.pagesCdnMarket.flatMap(marketCopy),
     ];
   },
   async rewrites() {
-    // Before the filesystem, so the page itself answers on its own cache key: a non-US visitor never reads the US copy a crawler filled.
-    return { beforeFiles: plane.pagesCdnMarket.flatMap(ownKey), afterFiles: [], fallback: [] };
+    // Before the filesystem, so the page itself answers on its market's cache key: a visitor only ever reads a copy rendered for their market.
+    return { beforeFiles: plane.pagesCdnMarket.flatMap(marketKey), afterFiles: [], fallback: [] };
   },
 };
 

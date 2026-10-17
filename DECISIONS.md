@@ -3040,3 +3040,60 @@ Reversal:
 - remove `pagesCdnMarket` and its `next.config.js` `headers()` line and `rewrites()`;
 - `cdn` back to 21600;
 - drop the four `withoutMarketKey` calls.
+
+## Every market gets its own CDN copy of the market pages — 2026-10-17
+
+**Owner**, after the entry above went live: "cache the non-US markets too and deploy".
+
+**What production showed first** (`/card/sol-ring-fic-356`, curled from a US address right after the release):
+- With no cookie, the page was a MISS, then a HIT in US$.
+- With `country=UK` it was a MISS twice, in £. With `country=EU` it was a MISS twice, in €.
+- The next request with no cookie was still a HIT with a rising `age`, in US$.
+- The neutral `/` and `/cards` were HITs with the UK cookie too, so a cookie does not make Vercel skip the cache.
+- So a request rewritten by a `beforeFiles` rule is cached under the rewritten URL, and the rule's own query is part of the key. That was the condition the entry above set before caching any other market.
+
+**What changed.**
+- **The market is the cache key** (`next.config.js`, `headers.json` `marketCookies`, `marketGeo`).
+  - A US render keeps the bare URL, as before.
+  - A request with a `country` cookie naming AU, UK, SG, CA or EU is rewritten to `?_mk=<cookie>`.
+  - A request with no cookie, from a country that `normalizeCountry` places in one of those markets, is rewritten to `?_mk=<IP country>`. That covers GB, AU, SG, CA and the 27 EU members (plus the literal UK and EU).
+  - All of these are cached a day, like the US copy.
+  - Keys per IP country rather than per market mean the eurozone holds up to 27 copies of a page instead of one. That is a little lower hit rate for exact keys that can never collide: no cookie value is also a country that maps elsewhere.
+- **Anything the rules cannot place** is rewritten to `?_mk=1` and never stored, as before. That means a cookie naming no market, or no cookie with an IP country outside the lists (Japan, New Zealand, no header). Such a request renders US prices (or its geo's) fresh.
+- **A URL that arrives carrying `_mk` is never stored.** A crafted `?_mk=UK` can read the UK copy, which is the visitor's own choice, but it can never write one.
+- **The four rewrites per page are mutually exclusive**, so Vercel's rule order cannot change a key. The named-cookie alternation is wrapped in a group (`(?:US|AU|…)`): Next anchors a `has` value as `^value$`, and a bare alternation would anchor only its first and last branch.
+
+**Tests** (`tests/headers-allowlist.test.ts`):
+- `marketGeo` must equal the set of two-letter codes that `normalizeCountry` places outside the US, and `marketCookies` plus US must equal `MARKETS`.
+- The real `next.config.js` rules are evaluated with Next's `has` semantics, named captures filling `:mk`, for 15 cookies × all 676 country codes (plus none and lowercase) × 4 query shapes. The checks:
+  - at most one rewrite matches;
+  - no key is ever stored with two markets;
+  - every reader of a stored key renders that key's market;
+  - the bare URL is read only by US renders;
+  - the `1` key is never stored;
+  - a crafted `_mk` is never stored.
+- Three mutations each fail the suite: an unanchored named-cookie list, the country rewrite without its no-cookie condition, and a cache rule without its `_mk` guard.
+
+**Checked locally** (`next build`, then `next start` on the fixture tree, headers sent by hand). For each request: the cache key it lands on, whether it is cached, and the currency.
+
+| Request | Key | Cached | Currency |
+|---|---|---|---|
+| US crawler | bare | yes | US$ |
+| GB, no cookie | `_mk=GB` | yes | £ |
+| DE, no cookie | `_mk=DE` | yes | € |
+| AU, no cookie | `_mk=AU` | yes | A$ |
+| JP, no cookie | `_mk=1` | no | US$ |
+| No country header | `_mk=1` | no | US$ |
+| UK cookie from the US | `_mk=UK` | yes | £ |
+| EU cookie from GB | `_mk=EU` | yes | € |
+| US cookie from GB | bare | yes | US$ |
+| `XAUX` cookie from GB | `_mk=1` | no | £ |
+| Crafted `?_mk=UK` with a UK cookie | `_mk=UK` | no | £ |
+
+No `_mk` reached an href or a robots meta on `/sets/[slug]`, `/browse`, `/price-guide` or `/sealed` from GB.
+
+**What to watch:**
+- `curl -s -D - -o /dev/null -H 'cookie: country=UK' https://mtgcompare.app/card/<slug>` twice should now show MISS, then HIT in £.
+- Function invocations from non-US crawlers and visitors should fall the way US ones did.
+
+Reversal: the four `marketCopy` rules back to the two US ones, and the four `marketKey` rewrites back to the two `?_mk=1` ones (the entry above).
