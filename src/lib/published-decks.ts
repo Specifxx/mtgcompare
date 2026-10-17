@@ -38,7 +38,7 @@ export interface PricedCard {
 /**
  * A deck's total in every market: Σ qty × the unit's cheapest price there. A market where any card has no price is `null`, never a partial sum passed off as
  * the deck's cost. The US also counts the unit's TCGplayer price (`usd`) when no listing is tracked for it, so a deck of cheap cards still has a US total;
- * other markets have store rows only for cards worth $5 and up, so their total exists only when every card has one.
+ * other markets have store rows only for tracked cards (TCGplayer market 50 cents and up since 2026-10-17), so their total exists only when every card has one.
  */
 export function deckTotals(lines: { qty: number; card: PricedCard | null | undefined }[]): MarketTotals {
   const out: MarketTotals = {};

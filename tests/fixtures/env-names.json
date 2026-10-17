@@ -1388,7 +1388,7 @@
    "at": "G",
    "status": "new",
    "wp": "WP01a",
-   "default": "500",
+   "default": "50",
    "where": [
     "src/lib/track.ts"
    ],
@@ -1493,7 +1493,7 @@
    "at": "G",
    "status": "new",
    "wp": "WP01a",
-   "default": "70000",
+   "default": "120000",
    "where": [
     "src/lib/track.ts"
    ],
@@ -1508,7 +1508,7 @@
    "at": "G",
    "status": "new",
    "wp": "WP01a",
-   "default": "450000",
+   "default": "650000",
    "where": [
     "src/lib/track.ts"
    ],

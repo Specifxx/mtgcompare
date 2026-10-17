@@ -17,23 +17,23 @@ export interface TrackConfig {
   oracleComplete: boolean;       // CATALOG_ORACLE_COMPLETE        1       every priced class-0 oracle keeps at least its TOP printing listed, whatever the floor (a no-op at floor 1)
   indexFloorCents: number;       // INDEX_FLOOR_CENTS              50      a listed class-0 row below this score is THIN (noindex, no sitemap entry); same 0.8 band
   specialFloorCents: number;     // CATALOG_SPECIAL_FLOOR_CENTS    2000    class 1-4 (token, art, oversized, helper) enter at this best unit value; 0 = never catalogue them
-  trackFloorCents: number;       // TRACK_FLOOR_CENTS              500     a UNIT (card, finish) is tracked when its own TCGplayer MARKET >= this
+  trackFloorCents: number;       // TRACK_FLOOR_CENTS              50      a UNIT (card, finish) is tracked when its own TCGplayer MARKET >= this (500 until 2026-10-17: every staple under $5 had no store prices)
   trackExitRatio: number;        // TRACK_EXIT_RATIO               0.8
   lowBasis: boolean;             // TRACK_LOW_BASIS                0       1 = units priced only by a thin low may be tracked
   popBoost: boolean;             // TRACK_POP_BOOST                0       1 = tracking uses the popularity-boosted score (+24% units)
   perOracleCap: number;          // TRACK_PER_ORACLE_CAP           0       0 = off; K keeps the K best tracked printings of one oracle by score (ties: lower id)
   clipCents: number;             // PRICE_CLIP_CENTS               200000  V is clipped here for SCORING only, never for display
   catalogMaxRows: number;        // CATALOG_MAX_ROWS               200000  the importer refuses to write a larger catalogue (F6); was 130,000 when rows cost Neon bytes
-  trackMaxUnits: number;         // TRACK_MAX_UNITS                70000   same for units
-  offerRowsBudget: number;       // OFFER_ROWS_BUDGET              450000  after the store stage, offers of the lowest-value units are pruned until the published offer shards fit (section 12 may re-express it in bytes)
+  trackMaxUnits: number;         // TRACK_MAX_UNITS                120000  same for units (about 71,000 at the 50-cent floor)
+  offerRowsBudget: number;       // OFFER_ROWS_BUDGET              650000  the published offer rows (import.ts budgetOffers: every unit keeps its cheapest offers per market first, then the dearest units get the rest)
   maxListedChange: number;       // IMPORT_MAX_LISTED_CHANGE       0.05    F10: more than 5% of EXISTING rows changing LISTED in one import keeps the old flags (unless released, below)
   maxTrackedChange: number;      // IMPORT_MAX_TRACKED_CHANGE      0.15    F10: more than 15% of EXISTING tracked units changing keeps the old track bits
   acceptFlagChange: boolean;     // IMPORT_ACCEPT_FLAG_CHANGE      0       1 = accept this run's flag changes once (an explicit, logged override)
   maxGuardTrips: number;         // IMPORT_GUARD_MAX_TRIPS         3       the Nth consecutive trip is accepted: a real, persistent repricing cannot lock the old flags forever
 }
 export const TRACK_DEFAULTS: TrackConfig = {
-  catalogFloorCents: 1, catalogExitRatio: 0.8, oracleComplete: true, indexFloorCents: 50, specialFloorCents: 2000, trackFloorCents: 500, trackExitRatio: 0.8, lowBasis: false, popBoost: false, perOracleCap: 0,
-  clipCents: 200_000, catalogMaxRows: 200_000, trackMaxUnits: 70_000, offerRowsBudget: 450_000, maxListedChange: 0.05, maxTrackedChange: 0.15, acceptFlagChange: false, maxGuardTrips: 3,
+  catalogFloorCents: 1, catalogExitRatio: 0.8, oracleComplete: true, indexFloorCents: 50, specialFloorCents: 2000, trackFloorCents: 50, trackExitRatio: 0.8, lowBasis: false, popBoost: false, perOracleCap: 0,
+  clipCents: 200_000, catalogMaxRows: 200_000, trackMaxUnits: 120_000, offerRowsBudget: 650_000, maxListedChange: 0.05, maxTrackedChange: 0.15, acceptFlagChange: false, maxGuardTrips: 3,
 };
 const num = (v: string | undefined, d: number): number => { const n = v == null || v === "" ? NaN : Number(v); return Number.isFinite(n) && n >= 0 ? n : d; };
 const flag = (v: string | undefined, d: boolean): boolean => (v == null || v === "" ? d : v === "1" || v.toLowerCase() === "true");

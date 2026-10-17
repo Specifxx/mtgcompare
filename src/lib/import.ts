@@ -986,6 +986,27 @@ const aggregateInfo = new WeakMap<ImportContext, { offersPruned: number; dropped
 /** What the last aggregate() of this context did beyond its return value (the run summary's offersPruned). */
 export const aggregateInfoOf = (ctx: ImportContext): { offersPruned: number; dropped: number } => aggregateInfo.get(ctx) ?? { offersPruned: 0, dropped: 0 };
 const better = (a: OfferTuple, b: OfferTuple): boolean => (a[5] !== b[5] ? a[5] > b[5] : a[4] !== b[4] ? (a[4] ?? 0) < (b[4] ?? 0) : a[3] !== b[3] ? a[3] < b[3] : a[6] < b[6]);   // in stock first, best condition, lowest price, lowest path
+/** Rows of one (unit, market) every unit keeps before any dearer unit gets more: its cheapest live offers. Lowered to 2, then 1, when the floor alone does not fit the budget. */
+export const OFFER_FLOOR_PER_MARKET = 3;
+/**
+ * The published offer rows under OFFER_ROWS_BUDGET (2026-10-17). Until then the cheapest UNITS lost every row until the rest fitted, so with 395 stores every card under about US$10
+ * (Sol Ring, Lightning Bolt, Swords to Plowshares...) showed TCGplayer only. Now: 1. every (unit, market) keeps its OFFER_FLOOR_PER_MARKET cheapest rows, live ones first (2, then 1, if
+ * that alone is over budget; if one each is still over, the dearest units' floors win); 2. what is left goes to the remaining rows of the dearest units. Under budget nothing changes.
+ * Pure; the input order of equal rows does not matter (ties break on store id, then path).
+ */
+export function budgetOffers(rows: readonly OfferTuple[], budget: number, valueOf: (uid: number) => number, live: (o: OfferTuple) => boolean): OfferTuple[] {
+  if (rows.length <= budget) return [...rows];
+  const byPair = new Map<string, OfferTuple[]>();
+  for (const o of rows) { const k = `${o[0]}|${o[1]}`; const a = byPair.get(k); if (a) a.push(o); else byPair.set(k, [o]); }
+  const rank = (a: OfferTuple, b: OfferTuple): number => Number(live(b)) - Number(live(a)) || a[3] - b[3] || a[2] - b[2] || (a[6] < b[6] ? -1 : a[6] > b[6] ? 1 : 0);
+  const groups = [...byPair.values()].map((g) => g.sort(rank));
+  const byValue = (a: OfferTuple, b: OfferTuple): number => valueOf(b[0]) - valueOf(a[0]) || a[0] - b[0] || a[1] - b[1] || rank(a, b);
+  let k = OFFER_FLOOR_PER_MARKET, floor: OfferTuple[] = [];
+  for (; k >= 1; k--) { floor = groups.flatMap((g) => g.slice(0, k)); if (floor.length <= budget) break; }
+  if (floor.length > budget) return floor.sort(byValue).slice(0, budget);
+  const rest = groups.flatMap((g) => g.slice(Math.max(1, k))).sort(byValue);
+  return [...floor, ...rest.slice(0, budget - floor.length)];
+}
 /** S9. Folds the staged store offers (ctx.offers) and TCGplayer's own lows into un, of, ss and sl/d, then re-derives everything that quotes them (boards, index columns, flat offers, sealed lists, home, records) through writeCatalogueFiles.
  *  A pair (store, market) that was READ this run replaces its rows; a pair that failed or was not read keeps its rows and its run row (their age reads them out of stock after 72 hours). One row per (unit, market, store): in stock first, best condition, lowest price, lowest path.
  *  Offers are pruned by unit value when the published rows would pass OFFER_ROWS_BUDGET. eBay is never an input. */
@@ -1000,23 +1021,18 @@ export function aggregate(ctx: ImportContext, stores: readonly StoreResult[]): {
   const fresh: OfferTuple[] = []; for (const o of stage?.cards ?? []) if (ctx.tracked.has(o.uid) && okPairs.has(`${o.store}|${o.market}`)) fresh.push([o.uid, o.market, o.store, o.priceCents, o.condition, o.inStock, o.path]);
   const best = new Map<string, OfferTuple>();
   for (const o of [...kept, ...fresh]) { const k = `${o[0]}|${o[1]}|${o[2]}`; const cur = best.get(k); if (!cur || better(o, cur)) best.set(k, o); }
-  let rows = [...best.values()];
+  const rows = [...best.values()];
   // the run rows (ss/runs.json): fresh reads replace their pair, the others stay
   const prevRuns = new Map<string, StoreRunRow>(); for (const r of readJson<StoreRunsFile>(t, "ss/runs.json")?.r ?? []) prevRuns.set(`${r[0]}|${r[1]}`, r);
   const perPair = new Map<string, { offers: number; inStock: number; singles: number; sealed: number; cheapest: number }>();
   const pair = (s: number, m: number): { offers: number; inStock: number; singles: number; sealed: number; cheapest: number } => { const k = `${s}|${m}`; let e = perPair.get(k); if (!e) perPair.set(k, (e = { offers: 0, inStock: 0, singles: 0, sealed: 0, cheapest: 0 })); return e; };
   const runAt = (s: number, m: number): number => { const r = reads.get(`${s}|${m}`); if (r?.ok) return Date.parse(r.at); const p = prevRuns.get(`${s}|${m}`); return p ? Date.parse(p[2]) : 0; };
   const fresher = (o: OfferTuple): boolean => o[5] === 1 && asOf - runAt(o[2], o[1]) <= STALE_HOURS * 3_600_000;
-  // offer budget: drop the offers of the cheapest units until the rows fit
+  // offer budget: only the of/ shards are cut (budgetOffers); the aggregates, the store runs and the store pages below count EVERY row
   const valueOf = new Map<number, number>(); for (const f of t.files()) if (f.startsWith("px/")) for (const r of readJson<{ p: PxRow[] }>(t, f)?.p ?? []) { valueOf.set(r[0] * 2, r[1] ?? r[3] ?? 0); valueOf.set(r[0] * 2 + 1, r[2] ?? r[4] ?? 0); }
-  let pruned = 0;
-  if (rows.length > ctx.cfg.offerRowsBudget) {
-    const byUnit = new Map<number, OfferTuple[]>(); for (const o of rows) { const a = byUnit.get(o[0]); if (a) a.push(o); else byUnit.set(o[0], [o]); }
-    const order = [...byUnit.keys()].sort((a, b) => (valueOf.get(a) ?? 0) - (valueOf.get(b) ?? 0) || a - b); let n = rows.length; const drop = new Set<number>();
-    for (const u of order) { if (n <= ctx.cfg.offerRowsBudget) break; n -= byUnit.get(u)!.length; drop.add(u); }
-    pruned = rows.length - n; rows = rows.filter((o) => !drop.has(o[0]));
-  }
   rows.sort((a, b) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2]);
+  const published = budgetOffers(rows, ctx.cfg.offerRowsBudget, (u) => valueOf.get(u) ?? 0, fresher);
+  const pruned = rows.length - published.length;
   // un: one row per tracked unit
   const price = new Map<number, PxRow>(); for (const f of t.files()) if (f.startsWith("px/")) for (const r of readJson<{ p: PxRow[] }>(t, f)?.p ?? []) price.set(r[0], r);
   const agg = new Map<number, UnAgg>(); for (const u of ctx.tracked) agg.set(u, { low: MARKETS.map(() => null), stores: MARKETS.map(() => 0), smin: MARKETS.map(() => null) });
@@ -1029,7 +1045,7 @@ export function aggregate(ctx: ImportContext, stores: readonly StoreResult[]): {
   for (const [uid, a] of agg) { const p = price.get(Math.floor(uid / 2)); const lo = p ? (uid % 2 === 0 ? p[3] : p[4]) : null; if (lo != null) a.low[0] = a.low[0] == null ? lo : Math.min(a.low[0]!, lo); }
   for (const o of rows) { if (!fresher(o)) continue; const a = agg.get(o[0]); if (a && a.smin[o[1]] === o[3]) pair(o[2], o[1]).cheapest++; }
   const byBucket = new Map<number, UnRow[]>(); for (const [uid, a] of [...agg].sort((x, y) => x[0] - y[0])) { const b = cardBucket(Math.floor(uid / 2)); const l = byBucket.get(b) ?? []; l.push([uid, a.low, a.stores, a.smin]); byBucket.set(b, l); }
-  const ofBucket = new Map<number, OfferTuple[]>(); for (const o of rows) { const b = cardBucket(Math.floor(o[0] / 2)); const l = ofBucket.get(b) ?? []; l.push(o); ofBucket.set(b, l); }
+  const ofBucket = new Map<number, OfferTuple[]>(); for (const o of published) { const b = cardBucket(Math.floor(o[0] / 2)); const l = ofBucket.get(b) ?? []; l.push(o); ofBucket.set(b, l); }
   for (const [b, u] of [...byBucket].sort((x, y) => x[0] - y[0])) w.put(bucketPath("un", b), `{"v":1,"b":${b},"at":"${at}","u":[\n${lines(u)}\n]}`);
   for (const [b, o] of [...ofBucket].sort((x, y) => x[0] - y[0])) w.put(bucketPath("of", b), `{"v":1,"b":${b},"at":"${at}","o":[\n${lines(o)}\n]}`);
   w.sweep((f) => f.startsWith("un/") || f.startsWith("of/"));

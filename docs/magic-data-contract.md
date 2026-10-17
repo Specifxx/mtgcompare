@@ -246,7 +246,7 @@ Value coverage must name its denominator: the research total of $1,968,727 ("mar
    2b. **Oracle completeness** (`CATALOG_ORACLE_COMPLETE=1`, `completenessPicks`): every priced class-0 oracle keeps at least its `TOP` printing listed whatever the floor (`TOP` ranks by MARKET, ties by the higher display value, then the lower id). At floor 50 it adds 11,762 rows, at 25 3,030, at 10 182, at 1 none. Deck lines, CSV rows, search, the name hubs and the commander pages can therefore always resolve an oracle.
 3. **Index** (class 0): a listed row is THIN while `score < INDEX_FLOOR_CENTS` (50), with the same 0.8 Schmitt band (`isThin(score, wasIndexable, cls, cfg)`; a new row has `wasIndexable = false`). Thin rows are `noindex, follow`, absent from every sitemap, present everywhere else.
 4. **Specials** (class 1 to 4: tokens, art cards, oversized, helpers): listed only when the best unit value (no popularity) is at least `CATALOG_SPECIAL_FLOOR_CENTS` (2,000), same 0.8 exit; never tracked, never joined to an oracle, never `TOP`, always THIN. `0` disables them. A $215 Treasure token (fixture 165632) stays reachable; the 5,764 token-class products do not bloat the catalogue.
-5. **Tracking** (per unit): enter when the unit's MARKET value >= `TRACK_FLOOR_CENTS` (500); stay while >= `0.8 x 500` = $4.00 (`unitTracked`). A thin low is not a price: 1,392 no-market products hold $820k of single-listing "value", so `TRACK_LOW_BASIS=0`.
+5. **Tracking** (per unit): enter when the unit's MARKET value >= `TRACK_FLOOR_CENTS` (50 since 2026-10-17; 500 before, which left every staple under $5 without store prices); stay while >= `0.8 x 50` = $0.40 (`unitTracked`). A thin low is not a price: 1,392 no-market products hold $820k of single-listing "value", so `TRACK_LOW_BASIS=0`.
 6. **Hysteresis is the only memory**, and it is read from the previously PUBLISHED catalogue (the `LISTED`, `THIN`, `TRACKN`, `TRACKF`, `GONEP` bits), never from Neon (C25). There is no day counter and no extra column. A unit between $4.00 and $5.00 keeps whichever state it had. The catalogue is therefore path-dependent for the 8,293 class-0 rows whose score sits in the 40 to 50 cent band: a fresh build lists them by the floor (1 cent) and indexes none of them until 50, a long-lived one keeps the indexed ones until 40. Annex C check 1 carries a range, not a point.
 7. **Unpriced rows**: `inCatalogue` is evaluated only for priced rows. A class-0 row with no price on either finish keeps its previous `LISTED` **and its `TRACKN`/`TRACKF` bits** (a price outage is "unknown", not "zero"; the draft kept `LISTED` only, then `unitTracked(null, ...)` untracked the unit and its offers were deleted); a NEW unpriced row is listed only when its oracle is on the Reserved List (65 today); it carries no tracked bits.
 8. **Absent products and groups**: a product missing from a COMPLETE day (F1 passed) gets `GONEP`; the second consecutive complete day without it gets `GONE`, loses `LISTED` and its tracked bits; the row stays (C4). It returns when TCGCSV lists it again. A whole GROUP that is absent, or comes back with under 90% of yesterday's products or priced rows, is HELD (5.4 F2b): no row of it changes state.
@@ -289,7 +289,7 @@ An untracked card page shows: header and art, oracle facts (type, mana pips, tex
 | `CATALOG_ORACLE_COMPLETE` | 1 | keeps every priced oracle resolvable at any floor |
 | `INDEX_FLOOR_CENTS` | 50 | 33,640 THIN rows; raising it shrinks the sitemap |
 | `CATALOG_SPECIAL_FLOOR_CENTS` | 2000 | 195 specials; 0 = none |
-| `TRACK_FLOOR_CENTS` | 500 | 28,538 units; a $2 floor is 47,850 units and 440,000 offers |
+| `TRACK_FLOOR_CENTS` | 50 (500 until 2026-10-17) | about 71,000 units at 50 cents (28,538 at 500); `OFFER_ROWS_BUDGET` 650,000 with a per-market floor of 3 offers per unit (`budgetOffers`) |
 | `TRACK_EXIT_RATIO` | 0.8 | $4.00 exit |
 | `TRACK_LOW_BASIS` | 0 | 1 adds 921 units on 873 printings that no one has paid for |
 | `TRACK_POP_BOOST` | 0 | 1 tracks by the popularity-boosted score: about +24% units, +20% printings [S: SCALE] |
@@ -359,7 +359,7 @@ Every surface reads the same helpers (`headlineOf`, `otherFinish`, `defaultFinis
 | Foil-only product (`FOILONLY`) | one price, labelled by `finishLabel`; no Normal tab; headline Foil |
 | Shared id with a star twin (`STAR`, 1,204 ids) | one card; Normal unit = the printing without a star, Foil unit = the star printing; `displayNumber` switches |
 | Normal row exists but both values are null | `HASN` set, no value; the headline falls to Foil; the Normal tab shows "no price" |
-| A Foil unit crosses the $5 floor | tracked from the next import; its alert baselines without sending; hysteresis at $4.00 (5.3) |
+| A Foil unit crosses the 50-cent floor | tracked from the next import; its alert baselines without sending; hysteresis at $0.40 (5.3) |
 | TCGplayer row contradicts Scryfall's `finishes` (31 rows) | TCGplayer wins (it is the price source); counted `finishConflicts` |
 | Etched id and base id both joined | rule E decides the flag; the products stay two cards in one family |
 | Reserved List card with no price | listed, `noindex`, no tabs, "no price" |

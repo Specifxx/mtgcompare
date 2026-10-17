@@ -3097,3 +3097,14 @@ No `_mk` reached an href or a robots meta on `/sets/[slug]`, `/browse`, `/price-
 - Function invocations from non-US crawlers and visitors should fall the way US ones did.
 
 Reversal: the four `marketCopy` rules back to the two US ones, and the four `marketKey` rewrites back to the two `?_mk=1` ones (the entry above).
+
+## Cheap cards get store prices: a 50-cent track floor and a per-market offer floor — 2026-10-17
+
+2026-10-17. The owner asked why MTG Compare does badly on Reddit. Of 30 Commander staples on the live site, 19 showed TCGplayer only in every market: Sol Ring, Arcane Signet, Command Tower, Lightning Bolt, Counterspell, Swords to Plowshares, Path to Exile, Cultivate, the Boots and Greaves, even Dockside Extortionist and Birds of Paradise at US$7 to US$8. A Redditor's first search showed "1 store" under a "394 stores" headline. Two cuts did it:
+
+- **Nothing under US$5 was tracked.** `TRACK_FLOOR_CENTS` was 500, and only a tracked unit keeps store offers, history and alerts. It is now **50 cents** (about 71,000 units instead of 28,500; hysteresis to 40 cents). `TRACK_MAX_UNITS` goes from 70,000 to 120,000. Changing the floor changes `trackConfigHash`, so F10 lets the first run's mass track change through (`config-changed`) instead of holding the old bits for three days.
+- **Over `OFFER_ROWS_BUDGET` the cheapest units lost every row.** `aggregate` dropped whole units, cheapest first, and computed the store counts and cheapest-store prices AFTER the cut. Now the aggregates, the store runs and the per-store pages count every row, and only the `of/` shards are cut, by `budgetOffers`: every (unit, market) keeps its 3 cheapest live offers (2, then 1, if the floor alone is over budget; the dearest units' floors win beyond that), and what is left goes to the remaining rows of the dearest units. The budget goes from 450,000 to 650,000 rows (`tests/offer-budget.test.ts`).
+- **Budgets.** `of` files may be 700 KB (about 430 KB expected at 650,000 rows) and `hist/p` 950 KB (about 2.5 times the units, as history accumulates toward 730 days); `ix/s`, the index family that grows with tracked units, measured 226 KB and should land near 600 KB under its 950 KB cap. The validator still refuses any file over its budget, so a miss shows as a failed publish, never as a broken page.
+- **What a cheap card's page now says.** "In stock at N stores" counts every store; the price board lists the cheapest few when the card's other offers did not fit the budget.
+
+Reversal: `TRACK_FLOOR_CENTS=500` and `OFFER_ROWS_BUDGET=450000` (Actions variables) restore the old coverage; `budgetOffers` is harmless under budget.

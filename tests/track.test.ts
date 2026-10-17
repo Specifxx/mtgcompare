@@ -13,18 +13,18 @@ const at50 = { ...cfg, catalogFloorCents: 50 };
 
 test("the dials: defaults, every env name, junk falls back, and the hash covers the policy dials only", () => {
   assert.deepEqual(cfg, {
-    catalogFloorCents: 1, catalogExitRatio: 0.8, oracleComplete: true, indexFloorCents: 50, specialFloorCents: 2000, trackFloorCents: 500, trackExitRatio: 0.8, lowBasis: false, popBoost: false, perOracleCap: 0,
-    clipCents: 200_000, catalogMaxRows: 200_000, trackMaxUnits: 70_000, offerRowsBudget: 450_000, maxListedChange: 0.05, maxTrackedChange: 0.15, acceptFlagChange: false, maxGuardTrips: 3,
+    catalogFloorCents: 1, catalogExitRatio: 0.8, oracleComplete: true, indexFloorCents: 50, specialFloorCents: 2000, trackFloorCents: 50, trackExitRatio: 0.8, lowBasis: false, popBoost: false, perOracleCap: 0,
+    clipCents: 200_000, catalogMaxRows: 200_000, trackMaxUnits: 120_000, offerRowsBudget: 650_000, maxListedChange: 0.05, maxTrackedChange: 0.15, acceptFlagChange: false, maxGuardTrips: 3,
   });
   assert.deepEqual(T.trackConfigFromEnv({}), cfg);
   assert.equal(T.trackConfigFromEnv({ CATALOG_FLOOR_CENTS: "25", TRACK_LOW_BASIS: "1", TRACK_FLOOR_CENTS: "abc" }).catalogFloorCents, 25);
-  assert.equal(T.trackConfigFromEnv({ TRACK_FLOOR_CENTS: "abc" }).trackFloorCents, 500, "junk falls back to the default");
-  assert.equal(T.trackConfigFromEnv({ TRACK_FLOOR_CENTS: "-5" }).trackFloorCents, 500, "a negative dial falls back");
+  assert.equal(T.trackConfigFromEnv({ TRACK_FLOOR_CENTS: "abc" }).trackFloorCents, 50, "junk falls back to the default");
+  assert.equal(T.trackConfigFromEnv({ TRACK_FLOOR_CENTS: "-5" }).trackFloorCents, 50, "a negative dial falls back");
   assert.deepEqual(
     T.trackConfigFromEnv({ CATALOG_ORACLE_COMPLETE: "0", IMPORT_ACCEPT_FLAG_CHANGE: "1", INDEX_FLOOR_CENTS: "75", IMPORT_GUARD_MAX_TRIPS: "0", TRACK_LOW_BASIS: "1", TRACK_POP_BOOST: "1", TRACK_PER_ORACLE_CAP: "3" }),
     { ...cfg, oracleComplete: false, acceptFlagChange: true, indexFloorCents: 75, maxGuardTrips: 1, lowBasis: true, popBoost: true, perOracleCap: 3 },
   );
-  assert.equal(T.trackConfigHash(cfg), "1|0.8|1|50|2000|500|0.8|0|0|0|200000");
+  assert.equal(T.trackConfigHash(cfg), "1|0.8|1|50|2000|50|0.8|0|0|0|200000");
   assert.equal(T.trackConfigHash(cfg), T.trackConfigHash({ ...cfg, maxListedChange: 0.5, catalogMaxRows: 1, acceptFlagChange: true }), "guard and cap fields are not policy");
   assert.notEqual(T.trackConfigHash(cfg), T.trackConfigHash({ ...cfg, catalogFloorCents: 25 }));
   assert.notEqual(T.trackConfigHash(cfg), T.trackConfigHash({ ...cfg, trackFloorCents: 200 }));
@@ -74,6 +74,7 @@ test("oracle completeness: every priced oracle keeps its TOP printing; market ra
 });
 
 test("units: tracked at the market floor with a 20% band; a thin low never tracks; classes 1 to 4 never track", () => {
+  const cfg = { ...T.TRACK_DEFAULTS, trackFloorCents: 500 };   // the band mechanism at the old $5 line, where these real fixtures sit (the default is 50 cents since 2026-10-17)
   assert.deepEqual([T.unitTracked(500, false, false, cfg), T.unitTracked(499, false, false, cfg), T.unitTracked(400, true, false, cfg), T.unitTracked(399, true, false, cfg)], [true, false, true, false]);
   assert.deepEqual([T.unitTracked(100000, false, true, cfg), T.unitTracked(100000, false, true, { ...cfg, lowBasis: true }), T.unitTracked(9999, false, false, cfg, CARD_CLASS.TOKEN), T.unitTracked(null, true, false, cfg)], [false, true, false, false]);
 });
@@ -112,7 +113,7 @@ test("F10: a mass flag change is refused, then released by a changed dial, an ex
 interface Fx { productId: number; name: string; prices: { Normal?: { market: number | null; low: number | null }; Foil?: { market: number | null; low: number | null } }; expect: { cls: number | "sealed"; hasN: boolean; hasF: boolean }; scryfall: { edhrec_rank: number | null; reserved: boolean }[] }
 const fixtures: Fx[] = JSON.parse(fs.readFileSync(path.resolve(__dirname, "fixtures/magic-products.json"), "utf8"));
 const byId = new Map(fixtures.map((f) => [f.productId, f]));
-function policy(id: number): { cls: number; score: number; listed: boolean; thin: boolean; trackedN: boolean; trackedF: boolean; lowOnlyN: boolean; lowOnlyF: boolean; headline: { cents: number | null; finish: string }; best: number | null } {
+function policy(id: number, cfg: typeof T.TRACK_DEFAULTS = T.TRACK_DEFAULTS): { cls: number; score: number; listed: boolean; thin: boolean; trackedN: boolean; trackedF: boolean; lowOnlyN: boolean; lowOnlyF: boolean; headline: { cents: number | null; finish: string }; best: number | null } {
   const f = byId.get(id)!;
   const rows = finishPrices(Object.entries(f.prices).map(([subTypeName, p]) => ({ productId: id, subTypeName, marketPrice: p.market, lowPrice: p.low })));
   const n = T.unitValueCents(rows.n), fv = T.unitValueCents(rows.f);
@@ -133,7 +134,8 @@ test("fixture 2831 Birds of Paradise (7th Edition, shared id): both finishes tra
   assert.ok(p.score > 200_000, "the clip is for scoring only: 200,000 cents times (1 + 2 pop)");
 });
 test("fixture 3077 Shivan Dragon: the Foil row is a thin low ($8.97): shown, never tracked, never the best value", () => {
-  const p = policy(3077);
+  const cfg = { ...T.TRACK_DEFAULTS, trackFloorCents: 500 };   // the band mechanism at the old $5 line, where these real fixtures sit (the default is 50 cents since 2026-10-17)
+  const p = policy(3077, cfg);
   assert.deepEqual([p.listed, p.trackedN, p.trackedF, p.lowOnlyN, p.lowOnlyF, p.best], [true, false, false, false, true, 91]);
 });
 test("fixture 449401 Living Artifact: a $203,067.70 single thin listing is listed and scored (clipped) but never tracked and never ranked", () => {
@@ -151,7 +153,8 @@ test("fixtures 496078 and 80110: a 25 cent Forest and a 10 cent common are liste
   for (const id of [496078, 80110, 4536, 286903]) { const p = policy(id); assert.deepEqual([p.listed, p.thin, p.trackedN, p.trackedF], [true, true, false, false], String(id)); }
 });
 test("fixture 638920 Plains Galaxy Foil at $4.21: below the floor, but a unit that was tracked stays tracked down to $4.00", () => {
-  const p = policy(638920);
+  const cfg = { ...T.TRACK_DEFAULTS, trackFloorCents: 500 };   // the band mechanism at the old $5 line, where these real fixtures sit (the default is 50 cents since 2026-10-17)
+  const p = policy(638920, cfg);
   assert.deepEqual([p.trackedF, T.unitTracked(421, true, false, cfg), T.unitTracked(421, false, false, cfg)], [false, true, false]);
 });
 test("fixture 165632 Treasure Token at $215.24: a special is listed at $20 and above, always THIN, never tracked; the Art Card at $4 low is not listed", () => {

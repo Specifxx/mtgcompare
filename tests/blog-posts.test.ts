@@ -75,7 +75,7 @@ test("movers: priced class-0 units at or above the floor, the right way, one row
     erayo,
     lite(541332, { change7d: 25 }),                 // Ezio Auditore da Firenze (Foil Etched): a foil-only product, ranked by its Foil unit
     lite(2831, { change7d: 18.5 }),                 // Birds of Paradise (7th Edition), US$22.89
-    lite(238617, { change7d: 60 }),                 // Counterspell (MH2), US$3.94: under the floor however far it moves
+    lite(496078, { change7d: 60 }),                 // a 25-cent Forest: under the 50-cent floor however far it moves (Counterspell at US$3.94 cleared it on 2026-10-17)
     lite(165632, { change7d: 90 }),                 // Treasure Token (2018 Lunar New Year), US$215.24: a token never counts
     lite(8989, { change7d: 50 }),                   // Black Lotus (Unlimited): only a single US$18,149.99 listing, low only, never ranked
     lite(560662, { change7d: -5 }),                 // African Swallow - Birds of Paradise: a fall is not a riser
@@ -85,8 +85,8 @@ test("movers: priced class-0 units at or above the floor, the right way, one row
   assert.deepEqual(ids(up), [12430, 541332, 2831], "Erayo, Ezio Auditore da Firenze, Birds of Paradise");
   assert.equal(up[1]!.headFinish, "F", "the foil-only product is shown in the unit it is priced in");
   assert.ok(up.every((c) => (c.marketUsd ?? 0) >= MOVER_FLOOR_CENTS && !c.lowOnly && c.cls === 0));
-  const down = moverList([lite(456592, { change7d: -12 }), lite(692998, { change7d: -8 }), lite(513650, { change7d: -30 }), lite(2831, { change7d: 3 })], "down", 7);
-  assert.deepEqual(ids(down), [456592, 692998], "Megatron - Blightsteel Colossus and Stingcaster Mage; Brazen Borrower (US$1.61) is under the floor; a riser is not a faller");
+  const down = moverList([lite(456592, { change7d: -12 }), lite(692998, { change7d: -8 }), lite(80110, { change7d: -30 }), lite(2831, { change7d: 3 })], "down", 7);
+  assert.deepEqual(ids(down), [456592, 692998], "Megatron - Blightsteel Colossus and Stingcaster Mage; a 10-cent common is under the floor; a riser is not a faller");
   // ties go to the dearer card; the 30-day lists read the 30-day change only
   const tie = moverList([lite(12430, { change7d: 10 }), lite(560662, { change7d: 10 })], "up", 7);
   assert.deepEqual(ids(tie), [560662, 12430], "African Swallow (US$44.23) before Erayo (US$23.21)");
@@ -240,11 +240,11 @@ test("a section that could not be read (null) or holds nothing builds a short ho
 });
 
 test("the movers post: risers and fallers tables of real cards, the finish named, the month only when it exists; the shop strip finds the cards", () => {
-  const up7 = [lite(12430, { change7d: 40.2 }), lite(541332, { change7d: 25 }), lite(238617, { change7d: 60 })];
+  const up7 = [lite(12430, { change7d: 40.2 }), lite(541332, { change7d: 25 }), lite(496078, { change7d: 60 })];
   const down7 = [lite(456592, { change7d: -12 })];
   const b = postBySlug("magic-card-price-movers")!.build(baseCtx({ movers: { up7, down7, up30: [], down30: [] } }));
   assert.deepEqual(b.sections.map((s) => s.id), ["risers", "fallers", "why", "reading", "method"]);
-  assert.equal(b.sections[0]!.title, "The 2 biggest risers this week", "Counterspell (US$3.94) is under the floor");
+  assert.equal(b.sections[0]!.title, "The 2 biggest risers this week", "the 25-cent Forest is under the floor");
   assert.deepEqual(b.heroCards.map((c) => c.id), [12430, 456592, 541332]);
   const m = collectMentions(b.sections.map((s) => s.body));
   for (const c of [...up7.slice(0, 2), ...down7]) assert.ok(m.cards.includes(c.slug), c.slug);
