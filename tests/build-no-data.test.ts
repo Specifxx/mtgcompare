@@ -63,8 +63,8 @@ const HEADERS = JSON.parse(fs.readFileSync(path.join(ROOT, "src/lib/data/plane/h
 test("the build gate reads the build's own manifest: a plane-backed route in .next/prerender-manifest.json is named, and the dynamic templates match too", () => {
   const pats = dataRoutePatterns(HEADERS);
   const bad = prerenderedDataRoutes({ routes: { "/": {}, "/about": {}, "/browse": {}, "/sets/mh3": {}, "/tools/deal-finder": {}, "/privacy": {}, "/blog/x": {} }, dynamicRoutes: { "/card/[slug]": {}, "/sets/[slug]": {}, "/guides/[slug]": {}, "/stores/[slug]": {} } }, pats);
-  assert.deepEqual(bad, ["/", "/browse", "/card/x", "/sets/mh3", "/sets/x", "/stores/x", "/tools/deal-finder"].sort(), "home, lists, card, set, store and the Deal Finder are data routes; about, privacy, blog and guides read nothing");
-  assert.deepEqual(prerenderedDataRoutes({ routes: { "/about": {}, "/terms": {} }, dynamicRoutes: {} }, pats), [], "a build that prerendered only static pages passes");
+  assert.deepEqual(bad, ["/", "/about", "/blog/x", "/browse", "/card/x", "/guides/x", "/sets/mh3", "/sets/x", "/stores/x", "/tools/deal-finder"].sort(), "home, lists, card, set, store, the Deal Finder, /about and the articles are data routes (the articles price their cards, 2026-10-17); privacy reads nothing");
+  assert.deepEqual(prerenderedDataRoutes({ routes: { "/privacy": {}, "/terms": {} }, dynamicRoutes: {} }, pats), [], "a build that prerendered only static pages passes");
   // --check-build keeps only the prerendered routes whose page reads data: an ISR page under a data pattern that reads nothing (/tools, /tools/selling-fees, /stores/suggest) is fine, a page that reads data or a route with no page found is not
   for (const r of ["/tools", "/tools/selling-fees", "/stores/suggest"]) assert.equal(readsData(ROOT, r), false, r);
   for (const r of ["/browse", "/", "/stores/x", "/nope"]) assert.equal(readsData(ROOT, r), true, r);

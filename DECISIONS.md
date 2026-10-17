@@ -2965,3 +2965,78 @@ Reversal:
 - `getBrowseIndex` back to per-variant memos;
 - `remember(key, r, r.text.length)` for every path;
 - remove `/*?` from robots.ts.
+
+## Crawlers get the US copy from the CDN: the market pages cached a day, no ISR; Shapbot blocked — 2026-10-17
+
+**Owner:** the Vercel bill is mostly crawler traffic on pages that are not cached. Crawler hits should come from the CDN, with as few function runs and ISR writes as possible, and the site must stay visible to search and AI crawlers. The brief asked for ISR (an empty `generateStaticParams`, `dynamicParams`, `revalidate = 86400`, twelve hours at the least), with everything per-visitor moved to the client or middleware, plus a robots.txt that keeps the AI search crawlers and blocks Shapbot. The owner asked for the release now.
+
+**What the build showed** (`next build` with no data host, before this change):
+- 197 of 216 routes are dynamic (ƒ). The static ones (○) are pages that read no data: `/about`-style text, `/tools`, `/tools/selling-fees` (both `revalidate = 86400`), the icons, `robots.txt`.
+- `/decks/commander/[commander]` shows ● but is `force-dynamic`: its empty `generateStaticParams` marks it, and nothing is prerendered.
+- There is no ISR page that reads data, so MTG pays almost no ISR writes. That differs from RiftCompare and DexCompare, where ISR writes were the largest line.
+
+**Why each public page is dynamic:**
+- Every page that reads the published data is `force-dynamic` by rule, so a build reads no data host (`tests/build-no-data.test.ts`).
+- **The 2026-10-16 entry gave the market-neutral pages a CDN copy, but that release had not shipped.** Production still answered `private, no-cache, no-store` and `x-vercel-cache: MISS` on every page today.
+- **The busiest routes read the visitor's market.** `getCountry()` reads the `country` cookie, then `x-vercel-ip-country`. That covers `/card/[slug]` (26K requests in 12 h), `/sealed`, `/sealed/[slug]`, `/sets/[slug]`, `/sets/[slug]/gallery`, `/price-guide`, `/browse`, `/blog`, `/blog/[slug]`, `/guides`, `/guides/[slug]` (through `ArticleView`), `/learn`, the `/cards/*` hubs, `/colors/[color]`, `/commanders/[slug]`, `/market/records` and the pre-order page.
+- Nothing else per-visitor reaches them: no session or entitlement read, and the root layout reads nothing (`tests/headers-allowlist.test.ts` walks every closure).
+- The member pages and paid tools stay private, by design.
+
+**Why not ISR.**
+- An ISR write is billed per 8 KB, at $4 per million units. A live card page is ~270 KB of HTML (139 KB of markup and 122 KB of RSC payload), plus the RSC route. At roughly 35 units, one write costs as much as ten or more renders.
+- A crawler reads a long-tail page about once a day, so with `revalidate = 86400` nearly every crawler hit would pay a render AND a write. That is the pattern that made ISR writes RiftCompare's largest line (5.2K writes against 1.1K reads on `/card/[id]`; 2026-10-17 entries there).
+- The CDN copy pays the render only, with no write.
+- ISR would also break two rules here:
+  - Builds read no data (the param-less `/price-guide`, `/blog`, `/guides` and `/sealed` would prerender at build).
+  - Prices publish daily without a deploy.
+- **So every public page stays `force-dynamic`, and the caching is `Vercel-CDN-Cache-Control`, whose priority over the function's `private, no-store` was verified on OP Compare and DexCompare.**
+
+**What changed.**
+- **The market pages get a day at the CDN for the US render** (`headers.json` `pagesCdnMarket`, wired in `next.config.js`).
+  - Vercel's CDN keys on the URL, not on a cookie or a country. A `Vary` set in `next.config.js` would have to survive the page's own `Vary` (on Vercel a function's header beats the config's), and `Vary: Cookie` is never cached. So one copy per URL must be the copy only for requests that certainly render it.
+  - `Vercel-CDN-Cache-Control: public, s-maxage=86400, stale-while-revalidate=86400` is set only when the request has a `country=US` cookie, or has no `country` cookie and `x-vercel-ip-country: US`. Each rule mirrors one branch of `getCountry()`. Crawlers carry no cookie and nearly all crawl from US addresses.
+  - Every other request (a non-US cookie, or no cookie and a non-US or unknown country) gets a `beforeFiles` rewrite to the same page with `?_mk=1`. That is a cache key of its own that is never stored. A non-US visitor therefore never reads the US copy and never writes one.
+  - A request that arrives already carrying `_mk` is never stored, so nobody can plant a US page on the key non-US visitors read.
+  - These are static rules (`has`/`missing`): no middleware, so no function runs per request. Vercel documents `has` on `x-vercel-ip-country` for exactly this kind of geo routing.
+- **The pages that hand their whole `searchParams` on strip the key first** (`withoutMarketKey`): `/browse`, `/price-guide`, `/sets/[slug]` and `/sealed`. Otherwise a non-US page would carry `?_mk=1` into its pagination and filter links, and `/sets/[slug]` would call itself noindex. Pages that read one known key (`page`, `finish`, `market`) are untouched.
+- **The market-neutral CDN copy goes from six hours to a day** (`cdn`, the owner's twelve-hour minimum; the plane publishes once a day and a release empties the CDN). Ten more neutral, data-reading pages join it: `/cards`, `/cards/all`, `/cards/rarity`, `/cards/printing/[printing]`, `/colors`, `/commanders`, `/about`, `/methodology`, `/editorial-policy`, `/authors/[slug]`. `/blog`, `/guides`, `/learn` and those four text pages are added to `pagesPublic`.
+- **robots.txt:** Shapbot (both spellings) joins the blocked bulk crawlers. The rest already matched the brief and stays:
+  - OAI-SearchBot, ChatGPT-User and PerplexityBot (with Perplexity-User and the Claude agents) have their own allowed group with the same disallows as everyone.
+  - Googlebot and Bingbot use `*`.
+  - `/api/` is disallowed.
+  - `Disallow: /*?` keeps every query URL out, which covers search, filters and the `?page=` pagination (no paginated URL is path-based).
+
+**Tests** (`tests/headers-allowlist.test.ts`, `tests/robots-policy.test.ts`):
+- The rules are loaded from the real `next.config.js` and evaluated with Next's own `has`/`missing` semantics: anchored regex, and an empty value means "present".
+- That runs for 11 cookies × 9 countries × 3 queries on every source. Four properties are checked:
+  - a stored copy is always a US render;
+  - only a US render reads the bare URL;
+  - every other market is keyed and never stored;
+  - a crawler's request is cached.
+- Dropping the cookie condition from the US-IP rule, or disabling the non-US rewrite, fails the suite.
+- Each market page's server closure may read the visitor only through `getCountry()`.
+- A page that passes `searchParams` on whole must call `withoutMarketKey`.
+
+**Checked locally** (`next build` with no data host, then `next start` on the fixture tree, sending `x-vercel-ip-country` and the cookie by hand):
+- A crawler on `/card/<slug>` (no cookie, US) is served the bare page with `Vercel-CDN-Cache-Control: public, s-maxage=86400, stale-while-revalidate=86400`, in US$. So is a `country=US` cookie from a GB address.
+- No cookie from GB, DE, JP or no address at all, a `country=UK` cookie from a US address, or an invalid cookie: the page segment arrives as `__PAGE__?{"_mk":"1"}`, there is no CDN header, and the prices are in £, €, US$, US$, £ and US$ respectively.
+- A crafted `?_mk=1` with a US cookie is not cached.
+- No `_mk` reaches an href or a robots meta on any of the 13 market pages fetched from GB. RSC requests follow the same rules. Share images get no CDN rule.
+- The route table is unchanged (216 routes; the caching is at the CDN, not in the build), and `smoke-pages.ts --check-build` passes.
+
+**Not done, and why.**
+- **Share images stay as they are.** They are already a day at the CDN (`OG_CACHED`, 2026-10-14), MISS then HIT live today. An ISR copy of a 1200×630 PNG would cost a write of 15–40 units per image per day, and a fallback must keep its one-minute life.
+- **No ISR rebuilds to narrow.** No job calls `revalidatePath` on price pages. The plane is never purged (pinned URLs). The only tag purges are the eBay banner (after an eBay run that wrote) and member decks, and both touch the Data Cache, not pages. `/tools` and `/tools/selling-fees` regenerate at most once a day each and read no data.
+- **The non-US copies are not cached.** Caching them per market (`?_mk=<market>` and one CDN rule per market) is safe only once production shows that a rewritten request reads its own key. The live check below is the first step.
+- **Payload.** The card page's 365-day history chart is drawn on the server: 16 KB of SVG, not repeated in the RSC payload. The bulk of the 122 KB payload is per-printing rows in six markets. Trimming it is a separate change.
+
+**What to watch** (24 h after the release):
+- `curl -sI https://mtgcompare.app/card/<slug>` twice from a US address should show MISS, then HIT with a rising `age`.
+- With `-H 'cookie: country=UK'` it should answer MISS every time, with £ prices.
+- Function invocations on `/card/[slug]`, `/sets/[slug]`, `/sealed/[slug]`, `/guides/[slug]` and `/price-guide` should fall to about one per page per region per day.
+- ISR writes stay at ~0.
+
+Reversal:
+- remove `pagesCdnMarket` and its `next.config.js` `headers()` line and `rewrites()`;
+- `cdn` back to 21600;
+- drop the four `withoutMarketKey` calls.

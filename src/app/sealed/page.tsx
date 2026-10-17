@@ -8,6 +8,7 @@ import { SealedSort } from "@/components/SealedSort";
 import { SealedTile } from "@/components/SealedTile";
 import { AffiliateDisclosure } from "@/components/AffiliateDisclosure";
 import { Breadcrumbs, JsonLd } from "@/components/ui";
+import { withoutMarketKey } from "@/lib/data/plane/headers";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SEALED_KINDS } from "@/lib/constants";
 import { ebaySearchUrl, outboundRel } from "@/lib/affiliate";
@@ -29,7 +30,7 @@ const DESCRIPTION =
 // A filtered /sealed is a thin slice of the same list: noindex, follow, with the
 // canonical on the unfiltered page (sort and layout alone do not count).
 export function generateMetadata({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }): Metadata {
-  const filtered = isSealedFiltered(parseSealedQuery(searchParams));
+  const filtered = isSealedFiltered(parseSealedQuery(withoutMarketKey(searchParams)));
   return {
     title: TITLE,
     description: DESCRIPTION,
@@ -44,7 +45,7 @@ export default async function SealedPage({ searchParams }: { searchParams: Recor
   const c = COUNTRIES[country];
   const [allSets, sealed, soldOutIds] = await Promise.all([getSets(), getSealedAll(), getSealedSoldOut().catch(() => null)]);
   const setById = new Map(allSets.map((x) => [x.id, x] as const));
-  const query = parseSealedQuery(searchParams);
+  const query = parseSealedQuery(withoutMarketKey(searchParams));
   const filtered = isSealedFiltered(query);
   const ctx: SealedCtx = {
     country,

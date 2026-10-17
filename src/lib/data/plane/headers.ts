@@ -18,6 +18,16 @@ export const CDN_CACHE_CONTROL: string = cfg.cdn;
 export const CDN_SOURCES: readonly string[] = cfg.pagesCdn;
 export const cdnHeaderEntries = (): { source: string; headers: { key: string; value: string }[] }[] =>
   CDN_SOURCES.map((source) => ({ source, headers: [{ key: "Vercel-CDN-Cache-Control", value: CDN_CACHE_CONTROL }] }));
+/** The pages that render in the visitor's market (2026-10-17): next.config.js caches only their certainly-US requests and rewrites every other one to `?_mk=1`, a key of its own that is never stored (headers.json, cdnMarketComment). */
+export const CDN_MARKET_CACHE_CONTROL: string = cfg.cdnMarket;
+export const CDN_MARKET_SOURCES: readonly string[] = cfg.pagesCdnMarket;
+export const MARKET_KEY: string = cfg.marketKey;
+/** A market page's searchParams without the rewrite's cache key, for any page that hands the whole object on (a parser, a link builder, Object.keys): a non-US visitor's page would otherwise carry `_mk` into its links and its robots. */
+export function withoutMarketKey<T extends object>(sp: T): T {
+  if (!(MARKET_KEY in sp)) return sp;
+  const { [MARKET_KEY]: _, ...rest } = sp as Record<string, unknown>;
+  return rest as T;
+}
 /** For route handlers (sitemaps, feeds, llms.txt, image routes) that set their own header: `new Response(body, { headers: publicDataHeaders({ "content-type": "application/xml" }) })`. */
 export const publicDataHeaders = (extra: Record<string, string> = {}): Record<string, string> => ({ ...extra, "cache-control": PUBLIC_DATA_CACHE_CONTROL });
 export const privateHeaders = (extra: Record<string, string> = {}): Record<string, string> => ({ ...extra, "cache-control": PRIVATE_CACHE_CONTROL });

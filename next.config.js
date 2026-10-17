@@ -1,6 +1,23 @@
 // The one source of the Cache-Control of plane-backed pages (contract 12.7.6): tests/headers-allowlist.test.ts reads the same file.
 const plane = require("./src/lib/data/plane/headers.json");
 
+// THE MARKET PAGES' CDN COPY (headers.json pagesCdnMarket; DECISIONS.md, "Crawlers get the US copy from the CDN"). A market page renders in getCountry()'s
+// market: the country cookie when it names a market, else Vercel's IP country. Only a request that certainly renders the US one is cached; every other request
+// is rewritten to ?_mk=1 so it neither reads nor writes that copy, and its own key is never stored. Each rule pairs with one branch of getCountry().
+const US_COOKIE = { type: "cookie", key: "country", value: "US" };
+const ANY_COOKIE = { type: "cookie", key: "country" };
+const US_GEO = { type: "header", key: "x-vercel-ip-country", value: "US" };
+const KEYED = { type: "query", key: plane.marketKey };
+const marketCdn = [{ key: "Vercel-CDN-Cache-Control", value: plane.cdnMarket }];
+const usCopy = (source) => [
+  { source, has: [US_COOKIE], missing: [KEYED], headers: marketCdn },
+  { source, has: [US_GEO], missing: [ANY_COOKIE, KEYED], headers: marketCdn },
+];
+const ownKey = (source) => [
+  { source, has: [ANY_COOKIE], missing: [US_COOKIE], destination: `${source}?${plane.marketKey}=1` },
+  { source, missing: [ANY_COOKIE, US_GEO], destination: `${source}?${plane.marketKey}=1` },
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
@@ -69,10 +86,16 @@ const nextConfig = {
       ...plane.pagesPublic.map((source) => ({ source, headers: [{ key: "Cache-Control", value: plane.public }] })),
       ...plane.pagesPrivate.map((source) => ({ source, headers: [{ key: "Cache-Control", value: plane.private }] })),
       // ON VERCEL THE TWO LINES ABOVE ARE INERT FOR PAGES: a force-dynamic page sends its own `private, no-store`, and a function's Cache-Control beats the config's.
-      // Vercel-CDN-Cache-Control beats both and stays at the CDN, so the market-neutral public pages get a real six-hour CDN copy (headers.json pagesCdn; DECISIONS.md,
+      // Vercel-CDN-Cache-Control beats both and stays at the CDN, so the market-neutral public pages get a real day-long CDN copy (headers.json pagesCdn; DECISIONS.md,
       // "The CDN finally caches the public pages").
       ...plane.pagesCdn.map((source) => ({ source, headers: [{ key: "Vercel-CDN-Cache-Control", value: plane.cdn }] })),
+      // The pages that read the visitor's market: a day at the CDN for a US render only (above).
+      ...plane.pagesCdnMarket.flatMap(usCopy),
     ];
+  },
+  async rewrites() {
+    // Before the filesystem, so the page itself answers on its own cache key: a non-US visitor never reads the US copy a crawler filled.
+    return { beforeFiles: plane.pagesCdnMarket.flatMap(ownKey), afterFiles: [], fallback: [] };
   },
 };
 

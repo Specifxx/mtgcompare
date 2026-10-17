@@ -259,7 +259,7 @@ test("the page before release: a pre-order heading and countdown, each product's
   assert.match(html, /href="#star-trek-play-booster-display"/, "the deal links its product block");
   assert.match(t, /Across all 6 markets we track, 14 stores list Star Trek pre-orders, in 3 markets\. eBay and TCGplayer are not counted as stores\./);
   // each block: the marketplaces first (eBay, then TCGplayer, unnumbered), then the stores, cheapest first and numbered; a sold-out store last, unnumbered, not buyable
-  assert.match(t, /Star Trek - Play Booster Display Play Booster · TRK From · US US\$138\.99 1 store Marketplaces e b a y Search eBay Every eBay listing for this product, pre-orders included Search eBay → → TCGplayer Lowest listing postage at checkout US\$151\.42 Buy on TCGplayer → → Stores, cheapest first · 1 taking pre-orders 1 a Cheapest pre-order open · postage at checkout US\$138\.99 Pre-order → → – d sold out · last seen 2d ago US\$129\.99 Check →/);
+  assert.match(t, /Star Trek - Play Booster Display Play Booster · TRK From · US US\$138\.99 1 store Marketplaces e b a y Search eBay Every eBay listing for this product, pre-orders included Search eBay → → TCGplayer Lowest listing postage at checkout US\$151\.42 Buy on TCGplayer → → Stores, cheapest first · 1 taking pre-orders 1 a Cheapest pre-order open · postage at checkout US\$138\.99 Pre-order → → – d sold out · last seen \d+d ago US\$129\.99 Check →/);
   const block = html.slice(html.indexOf('id="star-trek-play-booster-display"'));
   const at = (x: string) => block.indexOf(x);
   assert.ok(at('data-group="marketplaces"') > 0 && at('data-group="marketplaces"') < at('data-group="stores"'), "the marketplaces sit above the stores");

@@ -25,6 +25,7 @@ import {
 } from "@/lib/browse";
 import { COUNTRIES } from "@/lib/country";
 import { getCardPage, getSets, suggestNames } from "@/lib/data";
+import { withoutMarketKey } from "@/lib/data/plane/headers";
 import { int } from "@/lib/format";
 import { getCountry } from "@/lib/get-country";
 import { pageOg } from "@/lib/og/meta";
@@ -42,10 +43,11 @@ export const metadata: Metadata = {
 };
 
 export default async function BrowsePage({
-  searchParams,
+  searchParams: raw,
 }: {
   searchParams: SearchParams;
 }) {
+  const searchParams = withoutMarketKey(raw);
   const country = getCountry();
   const c = COUNTRIES[country];
   const q = parseBrowse(searchParams);
