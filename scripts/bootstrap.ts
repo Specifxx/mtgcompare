@@ -35,7 +35,7 @@ export async function bootstrap(env: NodeJS.ProcessEnv = process.env, now: () =>
   const before = new Map(tree.files().map((f) => [f, sha256(tree.read(f))] as const));
   const r = await buildPhase(tree, { prev, prevStatus, cutDay }, { phase: "catalog", priceDay, tcgcsv, scryfall, env: e });
   // validate like the publisher does: the phase-aware validator and the write-once rules
-  const v = validateTree(tree, { phase: "catalog", prev: prevStatus?.counts ? { cards: prevStatus.counts.cards, listed: prevStatus.counts.listed, tracked: prevStatus.counts.tracked, oracles: prevStatus.counts.oracles } : null, histCut: Number(r.built.histCut.replace(/-/g, "")) });
+  const v = validateTree(tree, { phase: "catalog", prev: r.built.prevCounts ?? null, histCut: Number(r.built.histCut.replace(/-/g, "")) });
   const problems = [...v.problems.map((p) => `${p.code}: ${p.message}`), ...writeOnceProblems(prevState, tree).map((p) => `${p.code}: ${p.message}`)];
   // the manifest, the status and the pointer (the order of publisher.ts: the pointer is the last file written)
   const files = tree.files().filter((f) => f !== "manifest.json" && f !== "status.json").map((f) => [f, tree.size(f), sha256(tree.read(f)).slice(0, 16)] as [string, number, string]);

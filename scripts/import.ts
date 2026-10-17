@@ -96,6 +96,14 @@ export interface PhaseArgs {
 type Built = Awaited<ReturnType<PublishInput["build"]>>;
 export interface PhaseResult { built: Built; summary: Partial<ImportSummaryV1>; ok: boolean }
 
+/** The counts COUNT_COLLAPSE compares against. A changed policy (trackConfigHash differs from the previous publish's: an operator moved a dial on purpose, as F10's `config-changed`) exempts the TRACKED count once,
+ *  because moving a dial is meant to move it (RELEVANT_SHARE on 2026-10-17 took 71,729 tracked units to 39,307); cards, listed and oracles stay guarded. Same day's phase 2 carries phase 1's hash, so it compares normally. */
+export function collapseBaseline(prevStatus: StatusFile | null, hash: string): { cards: number; listed: number; tracked: number; oracles: number } | null {
+  const c = prevStatus?.counts; if (!c) return null;
+  const changed = !!prevStatus?.config?.trackConfigHash && prevStatus.config.trackConfigHash !== hash;
+  return { cards: c.cards, listed: c.listed, tracked: changed ? 0 : c.tracked, oracles: c.oracles };
+}
+
 /** gz size of a tree by family, for status.json (the admin panel's bytes by kind and the repository budget). */
 export function familiesOf(tree: MutableTree): StatusFile["families"] {
   const by = new Map<string, [number, number, number]>();
@@ -169,7 +177,7 @@ export async function buildPhase(tree: MutableTree, c: { prev: PointerFile | nul
     runs: [run, ...(c.prevStatus?.runs ?? [])].slice(0, 30),
     refusals: c.prevStatus?.refusals ?? [],
   };
-  return { built: { counts: { cards: v.counts.cards, units: v.counts.tracked, files: v.counts.files - bookkeeping }, histCut, status }, summary: { ...summary, timings: { ...(summary.timings ?? {}), total: Date.now() - started } }, ok: true };
+  return { built: { counts: { cards: v.counts.cards, units: v.counts.tracked, files: v.counts.files - bookkeeping }, histCut, status, prevCounts: collapseBaseline(c.prevStatus, trackConfigHash(cfg)) }, summary: { ...summary, timings: { ...(summary.timings ?? {}), total: Date.now() - started } }, ok: true };
 }
 const truthy = (v: string | undefined): boolean => v === "1" || v?.toLowerCase() === "true";
 const runsOfDay = (s: StatusFile | null, day: string): number => (s?.runs ?? []).filter((r) => r.kind === "full" && r.at.slice(0, 10) >= day).length;

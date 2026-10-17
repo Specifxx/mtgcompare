@@ -5,7 +5,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import { bootstrap } from "../scripts/bootstrap";
-import { buildPhase } from "../scripts/import";
+import { buildPhase, collapseBaseline } from "../scripts/import";
 import { goneReport } from "../scripts/prune-catalog";
 import { aggregate, aggregateInfoOf, importCatalog, snapshotFromTree, writeCatalogueFiles, type ImportContext, type OfferStage } from "../src/lib/import";
 import { loadPrevState, type PrevState } from "../src/lib/data/plane/prevstate";
@@ -250,6 +250,21 @@ test("F10 trips are counted once a day: phase 2 carries the count of phase 1 ins
     assert.equal(full.built.status.config?.guardTrips.flagChange, 1, "one tripping day is one trip, however many phases the day has");
     const quiet = await buildPhase(tree, { prev: ptr, prevStatus: { ...status, config: { ...status.config, guardTrips: { flagChange: 2 } } } as StatusFile, cutDay: false }, { phase: "full", priceDay: "2026-10-07", tcgcsv: ptr.tcgcsv, scryfall: ptr.scryfall, env, now: NOW, deps: { importStores: async () => [], storeId: () => TEST_STORE } });
     assert.equal(quiet.built.status.config?.guardTrips.flagChange, 2, "a day that did not trip leaves the count as phase 1 wrote it");
+  } finally { t.done(); }
+});
+
+test("COUNT_COLLAPSE: a changed policy exempts the tracked count once (RELEVANT_SHARE 0 to 0.25 halves it on purpose); cards, listed and oracles stay guarded; the same policy compares normally", async () => {
+  const st = (hash: string) => ({ counts: { cards: 1000, listed: 990, tracked: 700, oracles: 400 }, config: { trackConfigHash: hash } }) as unknown as StatusFile;
+  assert.deepEqual(collapseBaseline(st("a"), "a"), { cards: 1000, listed: 990, tracked: 700, oracles: 400 });
+  assert.deepEqual(collapseBaseline(st("a"), "b"), { cards: 1000, listed: 990, tracked: 0, oracles: 400 });
+  assert.equal(collapseBaseline(null, "a"), null);
+  const t = tmpRoot(); const plane = path.join(t.root, "plane"); try {
+    const d1 = miniMagicDay(path.join(t.root, "d1"));
+    const a = await bootstrap({ ...importEnv(path.join(t.root, "e1"), d1), PLANE_DIR: plane }, NOW); assert.deepEqual(a.problems, []);
+    const before = (JSON.parse(fs.readFileSync(path.join(plane, "status.json"), "utf8")) as StatusFile).counts.tracked;
+    const b = await bootstrap({ ...importEnv(path.join(t.root, "e2"), d1, { RELEVANT_SHARE: "0.25" }), PLANE_DIR: plane }, NOW); assert.deepEqual(b.problems, [], "the cut publishes");
+    const after = (JSON.parse(fs.readFileSync(path.join(plane, "status.json"), "utf8")) as StatusFile).counts.tracked;
+    assert.ok(after < before * 0.9, `tracked fell from ${before} to ${after}: the case the exemption is for`);
   } finally { t.done(); }
 });
 
