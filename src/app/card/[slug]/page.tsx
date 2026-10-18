@@ -66,7 +66,7 @@ import { cardImageAlt } from "@/lib/image-alt";
 import { ReleaseAlertSlot } from "@/components/ReleaseAlertSlot";
 import { finishPrice, headline } from "@/lib/price";
 import { pageOgOwnImage } from "@/lib/og/meta";
-import { cheapestBuyRow, isPreRelease } from "@/lib/quick-view";
+import { LAST_KNOWN_DAYS, cheapestBuyRow, isPreRelease } from "@/lib/quick-view";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { isStoreSource } from "@/lib/stores";
 import { aliasesFor } from "@/lib/card-aliases";
@@ -175,7 +175,7 @@ export default async function CardPage({ params, searchParams }: Props) {
   const [history, pastHistory, printingsPage, setTopPage, cheaperPage] = await Promise.all([
     trackedFinish ? safe(getUnitHistory({ id: card.id, finish }, 365), [] as HistoryPoint[]) : Promise.resolve([] as HistoryPoint[]),
     // A unit that left tracking keeps its series (history-codec.ts): read it only for the last known price of a unit with none now; the chart stays tracked-only.
-    wantKnown && !trackedFinish ? safe(getUnitHistory({ id: card.id, finish }, 365), [] as HistoryPoint[]) : Promise.resolve([] as HistoryPoint[]),
+    wantKnown && !trackedFinish ? safe(getUnitHistory({ id: card.id, finish }, LAST_KNOWN_DAYS), [] as HistoryPoint[]) : Promise.resolve([] as HistoryPoint[]),
     card.oracleNo != null ? safe(getCardPage({ oracleNo: card.oracleNo, sort: "value", per: 48 }), null) : Promise.resolve(null),
     safe(getCardPage({ setIds: [card.set.id], sort: "value", per: 24 }), null),
     cheaperMax != null && cheaperMax > 0 && typeKey && typeKey !== "other"

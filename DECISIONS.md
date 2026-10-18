@@ -3138,7 +3138,8 @@ Reversal: `RELEVANT_SHARE=0` (an Actions variable) restores the index floor alon
 
 **Where.**
 - `/card/[slug]`: the "Cheapest" tile, which showed "—", and on a THIN page that lost its price, one tile in the stats grid under the "We don't compare prices" notice.
-- The QuickView, from the 90 days of history its payload already carries. The payload gains `lastKnownOk` (the market-free half of the rule), and `/api/card/[slug]` reads history for an eligible unit even when nothing on the card is tracked.
+- The QuickView. The payload gains `lastKnownOk` (the market-free half of the rule), and for an eligible unit `/api/card/[slug]` reads the card page's year of history (`LAST_KNOWN_DAYS`, 365), even when nothing on the card is tracked. It sends `lastKnownPoints`: each market's newest point with its own low, plus the newest point with a TCGplayer market, as whole points. Selecting from those gives exactly what the card page selects from the full year, so the popup and the page agree even when the price left more than the chart's 90 days ago (a Codex review finding on #4). The chart still draws only 90 days.
+- **The window is a year, not the 730 days the history keeps.** A price over a year old is not a useful guide to today's, and looking further would double the history the card page reads for these units. Both surfaces share the one constant.
 - Not the finish tab chips, which show only TCGplayer's USD quote and stay blank.
 - Not the markets table, which lists only markets with listings; there is no per-market history to fill it from.
 

@@ -105,7 +105,7 @@ export function QuickView({
   const m = data?.markets[country];
   const best = m?.rows[0] ?? null;
   // No row in this market and no TCGplayer market: the unit's own series may hold its last known price (muted, dated, display only).
-  const lastKnown = data && m && !best && data.marketUsd == null && data.lastKnownOk ? lastKnownPrice({ kind: "none" }, visitorHistory(data.history ?? [], country)) : null;
+  const lastKnown = data && m && !best && data.marketUsd == null && data.lastKnownOk ? lastKnownPrice({ kind: "none" }, visitorHistory(data.lastKnownPoints ?? [], country)) : null;
   const name = data ? display(data) : label;
   const ebay = ebayLabel(country);
 

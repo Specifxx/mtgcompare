@@ -10,7 +10,7 @@ import { PRICE_MASK, unitKey } from "../src/lib/constants";
 import type { HistoryPoint, Quote } from "../src/lib/data";
 import { usdCentsToCountry } from "../src/lib/fx";
 import { lastKnownEligible, lastKnownPrice, visitorHistory } from "../src/lib/price-history-view";
-import { quickViewLastKnownOk } from "../src/lib/quick-view";
+import { LAST_KNOWN_DAYS, QUICKVIEW_HISTORY_DAYS, lastKnownPoints, quickViewHistory, quickViewLastKnownOk } from "../src/lib/quick-view";
 import { encodeRuns } from "../src/lib/data/plane/history-codec";
 import { memTree } from "../src/lib/data/plane/tree";
 import { bucketPath, histBucket, tailBucket } from "../src/lib/data/plane/shards";
@@ -51,6 +51,25 @@ test("nothing when the unit has a current price, or when its history holds none"
   assert.equal(lastKnownPrice({ kind: "reference" }, visitorHistory(h, "US")), null);
   assert.equal(lastKnownPrice(NONE, visitorHistory([], "US")), null);
   assert.equal(lastKnownPrice(NONE, visitorHistory([pt("2026-09-12", null), pt("2026-09-13", 0)], "AU")), null);
+});
+
+test("the popup picks what the card page picks: the few points it is sent give the same last known price as the page's year of history, even when the price left more than 90 days ago", () => {
+  assert.equal(LAST_KNOWN_DAYS, 365);
+  const today = "2026-10-18";
+  const h = [
+    pt("2026-03-02", 280, [null, null, 210, null, null, null]),
+    pt("2026-04-20", 300, [null, 1450, null, null, null, null]),
+    pt("2026-05-30", 310, [295, null, null, null, null, null]),
+    pt("2026-06-10", null, [null, null, null, 520, null, null]),
+    pt("2026-06-12", 0),
+  ];
+  assert.equal(quickViewHistory(h, today, QUICKVIEW_HISTORY_DAYS).length, 0, "the popup's 90-day chart window holds none of these days");
+  const sent = lastKnownPoints(h);
+  assert.ok(sent.length <= 7 && sent.every((p) => h.includes(p)), "whole original points, at most one per market plus the reference");
+  for (const c of ["US", "AU", "UK", "SG", "CA", "EU"] as const) assert.deepEqual(lastKnownPrice(NONE, visitorHistory(sent, c)), lastKnownPrice(NONE, visitorHistory(h, c)), c);
+  assert.deepEqual(lastKnownPrice(NONE, visitorHistory(sent, "SG")), { cents: 520, day: "2026-06-10", kind: "listing" });
+  assert.deepEqual(lastKnownPrice(NONE, visitorHistory(sent, "US")), { cents: 295, day: "2026-05-30", kind: "listing" });
+  assert.deepEqual(lastKnownPoints([]), []);
 });
 
 // ── eligibility ───────────────────────────────────────────────────────────────────────────────────────────────────────
