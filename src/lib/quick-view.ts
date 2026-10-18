@@ -13,6 +13,7 @@ import { compareBoardRows, ebayRetailer, postageLine, retailerSubId } from "./bo
 import { COUNTRIES, MARKETS, type Country } from "./country";
 import { availableFinishes, finishLabel, tcgplayerUrl, type Finish } from "./constants";
 import type { CardDetail, HistoryPoint, OfferRow } from "./data";
+import { lastKnownEligible } from "./price-history-view";
 import { isEbaySource, sourceLabel } from "./stores";
 
 /** Rows per market in the popup; the full page lists the rest ("See all N"). */
@@ -105,6 +106,13 @@ export interface QuickViewPayload {
   markets: Record<Country, QuickViewMarket>;
   /** The last QUICKVIEW_HISTORY_DAYS of the card's US price history (the card page's chart series). */
   history: HistoryPoint[];
+  /** The unit has no current TCGplayer quote (on a THIN row: no quote on either finish and no live listing anywhere): in a market with no listing either, the popup may show its last known price from `history` (DECISIONS "Last known price"). Display only. */
+  lastKnownOk: boolean;
+}
+
+/** The market-free half of lastKnownEligible for the popup's unit; the popup adds its own market's half (no row there, no TCGplayer market). The route reads history for it even when nothing is tracked. */
+export function quickViewLastKnownOk(c: Pick<CardDetail, "thin" | "n" | "f" | "offers">, finish: Finish): boolean {
+  return lastKnownEligible(c, finish, { kind: "none" }, c.offers.some((o) => o.finish === finish && o.inStock));
 }
 
 /** Days of price history the popup's chart shows (the card page shows a year). */
@@ -170,6 +178,7 @@ export function quickViewPayload(
     finishes: availableFinishes(c.mask),
     markets,
     history: quickViewHistory(history, today),
+    lastKnownOk: quickViewLastKnownOk(c, finish),
   };
 }
 

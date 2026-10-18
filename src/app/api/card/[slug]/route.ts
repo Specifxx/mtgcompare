@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { availableFinishes, parseFinishParam } from "@/lib/constants";
 import { getCardDetail, getEbayPanel, getUnitHistory } from "@/lib/data";
 import { itemUrl } from "@/lib/listing-panel";
-import { quickViewPayload } from "@/lib/quick-view";
+import { quickViewLastKnownOk, quickViewPayload } from "@/lib/quick-view";
 
 // The card QuickView's data (components/QuickView.tsx): one card's facts, every
 // market's cheapest open rows (affiliate-tagged), its eBay searches and the
@@ -22,7 +22,8 @@ export async function GET(req: Request, { params }: { params: { slug: string } }
   if (!card) return NextResponse.json({ error: "not found" }, { status: 404, headers: { "Cache-Control": "public, s-maxage=300" } });
   const asked = parseFinishParam(new URL(req.url).searchParams.get("finish"))?.finish;
   const finish = asked && availableFinishes(card.mask).includes(asked) ? asked : card.headFinish;
-  const history = card.tracked ? await getUnitHistory({ id: card.id, finish }, 90).catch(() => []) : [];
+  // History draws the chart of a tracked card; a unit with no current price also reads its own series for its last known price (quickViewLastKnownOk).
+  const history = card.tracked || quickViewLastKnownOk(card, finish) ? await getUnitHistory({ id: card.id, finish }, 90).catch(() => []) : [];
   const panel = card.tracked ? await getEbayPanel(card.id).catch(() => ({ listings: [], graded: [] })) : { listings: [], graded: [] };
   return NextResponse.json(quickViewPayload(card, undefined, history, panel.graded.map((g) => ({ market: g.market, grader: g.grader, grade: g.grade, priceCents: g.priceCents, currency: g.currency, url: itemUrl(g.market, g.itemId) })), finish), {
     headers: { "Cache-Control": "public, s-maxage=600, stale-while-revalidate=3600" },

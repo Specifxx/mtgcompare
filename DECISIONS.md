@@ -3121,3 +3121,45 @@ Reversal: `TRACK_FLOOR_CENTS=500` and `OFFER_ROWS_BUDGET=450000` (Actions variab
 - **Tests.** The mini-day harness runs with `RELEVANT_SHARE=0`: a few dozen rows would leave the store-stage tests a handful of units. `relevantRows` is table-tested in `tests/track.test.ts`.
 
 Reversal: `RELEVANT_SHARE=0` (an Actions variable) restores the index floor alone. `TRACK_FLOOR_CENTS=50` restores the earlier tracking floor. The card page's `untracked` branches are keyed on the THIN bit and are harmless at any share.
+
+## Last known price: a unit with no current price shows the last one its own history holds, muted and dated — 2026-10-18
+
+2026-10-18, the owner (shared with the sister sites): "There's a lot of cards with no prices, but in history they did have a price. So maybe we could still have a price on the card, but we make it a different color, and in very fine print, it's like last known price."
+
+**When.** The unit on show (product + finish) has no current price in the visitor's market: no listing there (stores, and TCGplayer's own low in the US), no TCGplayer market and no TCGplayer low (`lastKnownEligible`, `src/lib/price-history-view.ts`). A sold-out listing seen in the market keeps its "Last seen" tile first.
+- **A "low only" unit is not eligible.** It has a current, if thin, price, and keeps its own display rule.
+- **A THIN row qualifies only when the whole card lost its price**: no TCGplayer quote on either finish and nothing listed anywhere. The 2026-10-17 entry hides the current price of the other three quarters on purpose, and an older figure beside a withheld fresher one would mislead. In practice this is the common case on this site: a relevant card whose TCGplayer row goes empty scores 0 and falls to THIN the same day, keeping its tracked bits and its series (rule 7 of 5.3, `history-codec.ts`).
+
+**What.** The most recent day of the unit's OWN series with a price in that market (`lastKnownPrice`), read the way the live headline (`price.ts` `headline`) reads a day: the market's own low first, else TCGplayer's market converted at today's indicative rate, shown with "≈" as the live reference is.
+- The page passes `visitorHistory(getUnitHistory({ id, finish }, 365), country)`: the chart's own read for a tracked unit; for an untracked one, a second read made only when the unit is eligible. The chart itself stays tracked-only.
+- v4 history carries TCGplayer's market only, so today the value is always that market (≈ in every market, US included). If a later history format adds per-market lows, a market's own low wins on its day, and another market's low is never borrowed. Another finish or printing is never read: the series is keyed by `UnitKey`.
+
+**Look.** `src/components/LastKnownPrice.tsx`: the figure in `text-slate-400` (the secondary text colour, never `text-accent`, the price numeral colour), and "Last known price · 4 January 2026" in fine print (`longDate`). The tile's eyebrow reads "No current price · <market>" instead of "Cheapest". A `title` says whose price it was and that it is not a current one. No buy button, "cheapest", "from" or savings maths sits beside it.
+
+**Where.**
+- `/card/[slug]`: the "Cheapest" tile, which showed "—", and on a THIN page that lost its price, one tile in the stats grid under the "We don't compare prices" notice.
+- The QuickView, from the 90 days of history its payload already carries. The payload gains `lastKnownOk` (the market-free half of the rule), and `/api/card/[slug]` reads history for an eligible unit even when nothing on the card is tracked.
+- Not the finish tab chips, which show only TCGplayer's USD quote and stay blank.
+- Not the markets table, which lists only markets with listings; there is no per-market history to fill it from.
+
+**Never.** Sorts, ranking, range filters, indexes, `TOP`, the chase pool, value statistics, movers and Rising, Deal Finder, Demand Finder, alerts and `PriceAlert`, Best Basket and deck pricing, collection and portfolio values, eBay references (a last known price is not a reference), "cheapest"/"from" claims, JSON-LD, titles, meta descriptions, the FAQ and the prose, share images, sitemaps, THIN/LISTED/index decisions, and the published plane. No plane field was added.
+
+**Tests** (`tests/last-known-price.test.ts`):
+- Selection: the newest priced day in any point order; the market's own low before the reference on the same day; another market's low never borrowed; nothing when a current price exists or the series is empty.
+- Eligibility, including the THIN and low-only cases and the QuickView's half.
+- A loader test on the golden tree: the Normal unit's last price is its own, although the Foil and a neighbouring printing in the same `hist/p` file have later, dearer days.
+- The guard: only six files may name a last known price (the selection, the component, the card page, the QuickView and its payload and route), so any ranking, total, alert, eBay, JSON-LD helper, share image, sitemap or plane module that starts reading it fails. On the card page, `generateMetadata`, every `<JsonLd>`, `ebayJsonLdOffers`, the FAQ and prose builders, the buy bars, the alert CTA, the board, the TCGplayer reference, the eBay panel and the markets table must not mention it. Injecting it into the JSON-LD or into `price.ts` fails the suite.
+
+**Checked locally** (`next build`, then `next start` on the fixture tree, with two cards edited to lose their price):
+- A relevant card's Normal tab: "No current price · the United States ≈ US$4.95 Last known price · 4 January 2026", and in AU "≈ A$7.43".
+- A THIN card that lost every price: the notice, then "≈ US$5.19 Last known price · 4 January 2026".
+- The priced Foil tab of the first card is unchanged. Neither page's JSON-LD or meta description carries the value.
+
+**Tiles and list rows are not done.** They read the browse index (`ix/k`, `ix/p`, `ix/s`), `px` and the set boards (`st/`), and none of them carries a last price, while reading a history file per tile is out of the question. Doing it means:
+- `recordHistory` (S10, which already merges every series it appends and hands its stats to the catalogue writer through `statsOf`) computes `[cents, day]` for each eligible unit.
+- An additive sparse array in `ix/p` (`[row, finish, cents, day]`, about 25 bytes per unit), and a trailing column in `st/` rows.
+- New `CardLite` fields that the query engine must never sort or filter on, and the tile, price-guide and link-grid components.
+- The golden format samples, the row-width checks and this guard, which would then have to tell the hydrator from the query engine.
+Bytes are not the obstacle: even 10,000 eligible units add about 250 KB spread over the dozen `ix/p` chunks, each well under its 950,000-byte cap. It is a pipeline and format change across three frozen families, left for the owner to ask for.
+
+Reversal: drop `lastKnownEligible`/`lastKnownPrice` and the component, and the two price spots fall back to "—" and "No price yet". Nothing published depends on it.
