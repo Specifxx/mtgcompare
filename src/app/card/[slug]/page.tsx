@@ -14,6 +14,7 @@ import { LineChart } from "@/components/LineChart";
 import { PriceBoard } from "@/components/PriceBoard";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { CardViewBeacon } from "@/components/CardViewBeacon";
+import { LastKnownPrice } from "@/components/LastKnownPrice";
 import { DecksUsingCard } from "@/components/decks/DecksUsingCard";
 import { ShareButton } from "@/components/ShareButton";
 import { CardConversionCta } from "@/components/CardConversionCta";
@@ -65,11 +66,11 @@ import { cardImageAlt } from "@/lib/image-alt";
 import { ReleaseAlertSlot } from "@/components/ReleaseAlertSlot";
 import { finishPrice, headline } from "@/lib/price";
 import { pageOgOwnImage } from "@/lib/og/meta";
-import { cheapestBuyRow, isPreRelease } from "@/lib/quick-view";
+import { LAST_KNOWN_DAYS, cheapestBuyRow, isPreRelease } from "@/lib/quick-view";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { isStoreSource } from "@/lib/stores";
 import { aliasesFor } from "@/lib/card-aliases";
-import { visitorHistory } from "@/lib/price-history-view";
+import { lastKnownEligible, lastKnownPrice, visitorHistory } from "@/lib/price-history-view";
 import { PRINTING_SHORT } from "@/lib/content/card-narrative";
 import { faqLd } from "@/lib/jsonld";
 import { buildNarrative } from "@/lib/content/card-narrative";
@@ -160,14 +161,21 @@ export default async function CardPage({ params, searchParams }: Props) {
   const unitHigh90 = finish === card.headFinish ? card.high90Usd : unit?.high90 != null ? unit.high90 : null;
   const h = headline({ low: unitLow as CardLite["low"], stores: unitStores as CardLite["stores"], marketUsd }, country);
   const offers = card.offers.filter((o) => o.finish === finish);
+  // No current price in this market: a sold-out listing seen here fills the price spot first ("Last seen"), then the unit's
+  // OWN history (its last known price, muted and dated: lastKnownEligible, DECISIONS "Last known price"), else "—".
+  // Display only: nothing below (JSON-LD, metadata, FAQ, narrative, buy bars, alerts, eBay) reads `lastKnown`.
+  const seen = lastSeen(offers, country);
+  const wantKnown = (card.thin || !seen) && lastKnownEligible(card, finish, h, offers.some((o) => o.inStock));
 
   const oracle = card.oracle;
   const trackedFinish = (trackedBits(card.mask) & (finish === "N" ? 1 : 2)) !== 0;
   const mask = colorMask(card.colors);
   const typeKey = PRIMARY_TYPES[card.ptype];
   const cheaperMax = marketUsd != null && !untracked ? marketUsd - 1 : null;
-  const [history, printingsPage, setTopPage, cheaperPage] = await Promise.all([
+  const [history, pastHistory, printingsPage, setTopPage, cheaperPage] = await Promise.all([
     trackedFinish ? safe(getUnitHistory({ id: card.id, finish }, 365), [] as HistoryPoint[]) : Promise.resolve([] as HistoryPoint[]),
+    // A unit that left tracking keeps its series (history-codec.ts): read it only for the last known price of a unit with none now; the chart stays tracked-only.
+    wantKnown && !trackedFinish ? safe(getUnitHistory({ id: card.id, finish }, LAST_KNOWN_DAYS), [] as HistoryPoint[]) : Promise.resolve([] as HistoryPoint[]),
     card.oracleNo != null ? safe(getCardPage({ oracleNo: card.oracleNo, sort: "value", per: 48 }), null) : Promise.resolve(null),
     safe(getCardPage({ setIds: [card.set.id], sort: "value", per: 24 }), null),
     cheaperMax != null && cheaperMax > 0 && typeKey && typeKey !== "other"
@@ -180,6 +188,7 @@ export default async function CardPage({ params, searchParams }: Props) {
   const fromSet = (setTopPage?.items ?? []).filter((x) => x.id !== card.id && x.slug !== card.slug).slice(0, 6);
   const title = displayTitle(card);
   const vh = visitorHistory(history, country);
+  const lastKnown = wantKnown ? lastKnownPrice(h, trackedFinish ? vh : visitorHistory(pastHistory, country)) : null;
 
   const stats: { label: string; value: string }[] = [];
   if (oracle?.manaCost) stats.push({ label: "Mana cost", value: oracle.manaCost });
@@ -220,7 +229,6 @@ export default async function CardPage({ params, searchParams }: Props) {
 
   // ── Price state, narrative, FAQ, cross-links ──
   const state = priceState(offers, country, { marketUsd, setKind: card.set.kind, printing: card.printing });
-  const seen = lastSeen(offers, country);
   const elsewhere = elsewhereLine(state);
   const today = new Date().toISOString().slice(0, 10);
   const keys = cardKeywords(oracle?.keywords ?? []).map((sl) => KEYWORD_BY_SLUG.get(sl)).filter((k): k is NonNullable<typeof k> => !!k);
@@ -450,12 +458,22 @@ export default async function CardPage({ params, searchParams }: Props) {
               </div>
             ) : null}
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {untracked ? null : (
+              {untracked ? (
+                lastKnown ? (
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">No current price · {co.place}</p>
+                    <LastKnownPrice known={lastKnown} country={country} className="mt-1" />
+                  </div>
+                ) : null
+              ) : (
               <>
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                  Cheapest · {co.place}
+                  {lastKnown ? "No current price" : "Cheapest"} · {co.place}
                 </p>
+                {lastKnown ? (
+                  <LastKnownPrice known={lastKnown} country={country} className="mt-1" />
+                ) : (
                 <p className="num mt-1 text-xl font-bold text-accent">
                   {h.kind === "listing"
                     ? money(h.cents, country)
@@ -465,6 +483,7 @@ export default async function CardPage({ params, searchParams }: Props) {
                         ? money(seen.priceCents, country)
                         : "—"}
                 </p>
+                )}
                 {h.kind === "none" && seen ? <p className="mt-0.5 text-[11px] text-slate-500">Last seen {ago(seen.at)}</p> : null}
               </div>
               <div>
@@ -478,7 +497,7 @@ export default async function CardPage({ params, searchParams }: Props) {
               </div>
               </>
               )}
-              {stats.slice(0, untracked ? 4 : 2).map((s) => (
+              {stats.slice(0, untracked ? (lastKnown ? 3 : 4) : 2).map((s) => (
                 <div key={s.label}>
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                     {s.label}

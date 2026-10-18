@@ -13,6 +13,7 @@ import { compareBoardRows, ebayRetailer, postageLine, retailerSubId } from "./bo
 import { COUNTRIES, MARKETS, type Country } from "./country";
 import { availableFinishes, finishLabel, tcgplayerUrl, type Finish } from "./constants";
 import type { CardDetail, HistoryPoint, OfferRow } from "./data";
+import { lastKnownEligible } from "./price-history-view";
 import { isEbaySource, sourceLabel } from "./stores";
 
 /** Rows per market in the popup; the full page lists the rest ("See all N"). */
@@ -105,6 +106,36 @@ export interface QuickViewPayload {
   markets: Record<Country, QuickViewMarket>;
   /** The last QUICKVIEW_HISTORY_DAYS of the card's US price history (the card page's chart series). */
   history: HistoryPoint[];
+  /** The unit has no current TCGplayer quote (on a THIN row: no quote on either finish and no live listing anywhere): in a market with no listing either, the popup may show its last known price from `lastKnownPoints` (DECISIONS "Last known price"). Display only. */
+  lastKnownOk: boolean;
+  /** When `lastKnownOk`: each market's newest day with its own low, and the newest day with a TCGplayer market, over the card page's year (LAST_KNOWN_DAYS), whole points, so the popup picks exactly what the card page picks even when the price left more than QUICKVIEW_HISTORY_DAYS ago. Empty otherwise. */
+  lastKnownPoints: HistoryPoint[];
+}
+
+/** How far back a last known price is looked for: the card page's chart year, on both the card page and the popup. */
+export const LAST_KNOWN_DAYS = 365;
+
+/**
+ * The few points a last known price can come from: for every market, the newest point carrying that market's own low, and
+ * the newest point carrying TCGplayer's market (the converted reference). lastKnownPrice over these is the same as over the
+ * whole series: it takes the newest day with either figure for the market, preferring the market's low on that day, and both
+ * candidate days are kept whole.
+ */
+export function lastKnownPoints(history: HistoryPoint[]): HistoryPoint[] {
+  const keep = new Map<string, HistoryPoint>();
+  const newest = (has: (p: HistoryPoint) => boolean): void => {
+    let best: HistoryPoint | null = null;
+    for (const p of history) if (has(p) && (!best || p.day > best.day)) best = p;
+    if (best) keep.set(best.day, best);
+  };
+  newest((p) => p.marketUsd != null && p.marketUsd > 0);
+  MARKETS.forEach((_, i) => newest((p) => (p.lows ? (p.lows[i] ?? 0) > 0 : i === 0 && p.lowUsd != null && p.lowUsd > 0)));
+  return [...keep.values()].sort((a, b) => (a.day < b.day ? -1 : 1));
+}
+
+/** The market-free half of lastKnownEligible for the popup's unit; the popup adds its own market's half (no row there, no TCGplayer market). The route reads history for it even when nothing is tracked. */
+export function quickViewLastKnownOk(c: Pick<CardDetail, "thin" | "n" | "f" | "offers">, finish: Finish): boolean {
+  return lastKnownEligible(c, finish, { kind: "none" }, c.offers.some((o) => o.finish === finish && o.inStock));
 }
 
 /** Days of price history the popup's chart shows (the card page shows a year). */
@@ -170,6 +201,8 @@ export function quickViewPayload(
     finishes: availableFinishes(c.mask),
     markets,
     history: quickViewHistory(history, today),
+    lastKnownOk: quickViewLastKnownOk(c, finish),
+    lastKnownPoints: quickViewLastKnownOk(c, finish) ? lastKnownPoints(history) : [],
   };
 }
 

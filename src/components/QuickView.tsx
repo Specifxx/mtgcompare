@@ -8,11 +8,13 @@ import { ago, money, usd } from "@/lib/format";
 import { usdCentsToCountry } from "@/lib/fx";
 import { cardImageAlt, FALLBACK_ALT } from "@/lib/image-alt";
 import { cardImage } from "@/lib/images";
+import { lastKnownPrice, visitorHistory } from "@/lib/price-history-view";
 import type { QuickViewPayload } from "@/lib/quick-view";
 import { pushRecentCard } from "@/lib/recently-viewed";
 import { ColorDots, Delta, PrintingBadge, RarityBadge } from "./ui";
 import { useCountry } from "./CountryProvider";
 import { Icon } from "./Icon";
+import { LastKnownPrice } from "./LastKnownPrice";
 import { LineChart } from "./LineChart";
 import { ReportPriceButton } from "./ReportPriceButton";
 import { TcgMarketPrice } from "./TcgMarketPrice";
@@ -102,6 +104,8 @@ export function QuickView({
   const href = `/card/${slug}`;
   const m = data?.markets[country];
   const best = m?.rows[0] ?? null;
+  // No row in this market and no TCGplayer market: the unit's own series may hold its last known price (muted, dated, display only).
+  const lastKnown = data && m && !best && data.marketUsd == null && data.lastKnownOk ? lastKnownPrice({ kind: "none" }, visitorHistory(data.lastKnownPoints ?? [], country)) : null;
   const name = data ? display(data) : label;
   const ebay = ebayLabel(country);
 
@@ -202,7 +206,11 @@ export function QuickView({
                   or TCGplayer's market price marked ≈ when no store has it. */}
               <div className="mt-3 flex flex-wrap items-end justify-between gap-3 rounded-lg bg-ink-950/50 p-3">
                 <div className="min-w-0">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Cheapest · {co.place}</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{lastKnown ? "No current price" : "Cheapest"} · {co.place}</p>
+                  {lastKnown ? (
+                    <LastKnownPrice known={lastKnown} country={country} className="mt-0.5" />
+                  ) : (
+                  <>
                   <p className="num text-2xl font-extrabold text-accent">
                     {best ? money(best.priceCents, country) : data.marketUsd != null ? `≈ ${money(usdCentsToCountry(data.marketUsd, country), country)}` : "—"}
                   </p>
@@ -215,6 +223,8 @@ export function QuickView({
                           : "TCGplayer market price, converted — no store we track has it"
                         : "No price yet"}
                   </p>
+                  </>
+                  )}
                 </div>
                 <div className="text-right">
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">7 days</p>
