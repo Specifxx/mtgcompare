@@ -15,7 +15,9 @@ import { guidesForTool } from "@/lib/content/tool-guides";
 // item 4). RiftCompare's rule stands: the tool never prints a "current"
 // commission percentage that can go stale — the seller types their own rate
 // from their dashboard, and we do the stacked-fee math. Pure: no data reads.
-export const revalidate = 86400;
+// Pure (no data, no request): a plain static page, never regenerated. It was ISR (revalidate a day) until 2026-10-19, and on Vercel its regeneration answered
+// Googlebot with intermittent 500s while every other static page (no revalidate) stayed a clean HIT.
+export const dynamic = "force-static";
 
 const TITLE = "Magic: The Gathering Selling Fee Calculator — Net Proceeds | MTG Compare";
 const DESCRIPTION =

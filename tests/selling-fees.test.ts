@@ -59,5 +59,6 @@ test("Selling fees: the presets are TCGplayer, eBay and another marketplace; the
   assert.match(ui, /custom: \{/);
   assert.match(ui, /useState\(""\)/, "commission starts blank");
   assert.match(ui, /setCommissionPct\(""\)/, "switching marketplace clears it");
-  assert.match(read("src/app/tools/selling-fees/page.tsx"), /export const revalidate = 86400/);
+  assert.match(read("src/app/tools/selling-fees/page.tsx"), /export const dynamic = "force-static"/, "a pure page is plain static, never an ISR regeneration");
+  assert.doesNotMatch(read("src/app/tools/selling-fees/page.tsx"), /export const revalidate/);
 });

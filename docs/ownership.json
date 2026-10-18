@@ -1393,6 +1393,7 @@
   "tests/nudge-gate.test.ts": "WP18",
   "tests/oauth-email-verified.test.ts": "WP18",
   "tests/offer-budget.test.ts": "WP01b",
+  "tests/crawl-hygiene.test.ts": "WP19",
   "tests/offer-read.test.ts": "WP02",
   "tests/og.test.ts": "WP16",
   "tests/ops-watch.test.ts": "WP19",

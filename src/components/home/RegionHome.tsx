@@ -3,6 +3,7 @@ import { EbayChase } from "@/components/EbayChase";
 import { CountryLock } from "@/components/CountryProvider";
 import { COUNTRIES, type Country } from "@/lib/country";
 import { getSiteStats } from "@/lib/data";
+import { postHrefBySlug } from "@/lib/blog";
 import { breadcrumb, faqPage, ldJson, webPage } from "@/lib/jsonld";
 import { CHEAPER_ABROAD_SLUG, COUNTRY_GUIDE_SLUGS, REGION_HOME_PATH } from "@/lib/seo";
 import { CinematicHero } from "./CinematicHero";
@@ -82,10 +83,10 @@ export async function RegionHome({ region }: { region: Exclude<Country, "US"> })
           <Link href="/deck" className="font-semibold text-brand-300 underline-offset-2 hover:underline">
             Price a decklist →
           </Link>
-          <Link href={`/blog/${COUNTRY_GUIDE_SLUGS[region]}`} className="font-semibold text-brand-300 underline-offset-2 hover:underline">
+          <Link href={postHrefBySlug(COUNTRY_GUIDE_SLUGS[region])} className="font-semibold text-brand-300 underline-offset-2 hover:underline">
             Where to buy Magic cards →
           </Link>
-          <Link href={`/blog/${CHEAPER_ABROAD_SLUG}`} className="font-semibold text-brand-300 underline-offset-2 hover:underline">
+          <Link href={postHrefBySlug(CHEAPER_ABROAD_SLUG)} className="font-semibold text-brand-300 underline-offset-2 hover:underline">
             Is it cheaper abroad? →
           </Link>
         </div>

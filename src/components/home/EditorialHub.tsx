@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { Country } from "@/lib/country";
-import { POSTS } from "@/lib/blog";
+import { POSTS, postHref } from "@/lib/blog";
 import { MARKET_READS, startHereFor, type HomePick } from "@/lib/content/featured";
 import { postTitle } from "@/lib/seo";
 import { HomeUpdatedAgo } from "./HeroStats";
@@ -37,7 +37,7 @@ export function EditorialHub({ updatedAt, renderedAt, market }: { updatedAt: str
       if (!post) return [];
       return [
         {
-          href: `/blog/${post.slug}`,
+          href: postHref(post),
           title: postTitle(post, updatedAt),
           line: p.line,
           ...(withDate ? { date: { iso: post.date, label: "Updated" } } : { readMins: post.minutes }),
@@ -48,9 +48,9 @@ export function EditorialHub({ updatedAt, renderedAt, market }: { updatedAt: str
   const startHere = resolve(startHereFor(market), false);
   const news: Teaser[] = [...POSTS]
     .sort((a, b) => b.date.localeCompare(a.date))
-    .filter((p) => !startHere.some((t) => t.href === `/blog/${p.slug}`))
+    .filter((p) => !startHere.some((t) => t.href === postHref(p)))
     .slice(0, NEWS_COUNT)
-    .map((p) => ({ href: `/blog/${p.slug}`, title: postTitle(p, updatedAt), line: p.description, date: { iso: p.date } }));
+    .map((p) => ({ href: postHref(p), title: postTitle(p, updatedAt), line: p.description, date: { iso: p.date } }));
   const reads = resolve([...MARKET_READS], true).filter((t) => !news.some((n) => n.href === t.href) && !startHere.some((s) => s.href === t.href));
 
   if (!startHere.length && !news.length) return null;

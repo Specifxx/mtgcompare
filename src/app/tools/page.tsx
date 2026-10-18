@@ -22,7 +22,9 @@ import { FREE_DEAL_ROWS } from "@/lib/plans";
 // account's notifications, so nothing here promises an email.
 const LIST_BADGE = "Plus";
 
-export const revalidate = 86400;
+// Pure (no data, no request): a plain static page, never regenerated. It was ISR (revalidate a day) until 2026-10-19, and on Vercel its regeneration answered
+// Googlebot with intermittent 500s while every other static page (no revalidate) stayed a clean HIT.
+export const dynamic = "force-static";
 
 const TITLE = "Free Magic: The Gathering Tools & Calculators | MTG Compare";
 const DESCRIPTION =

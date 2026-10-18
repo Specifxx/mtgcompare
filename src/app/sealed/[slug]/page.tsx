@@ -37,9 +37,10 @@ type Props = { params: { slug: string } };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const s = await getSealedDetail(params.slug);
   if (!s) return { title: "Product not found" };
-  const t = `${s.name} Price`;
+  // The whole name, never its first 50 characters: a cut kept "Universes Beyond: The Lord of the Rings: Tales of" for every product of the set (duplicate titles; the
+  // product type and the variant are at the END of a TCGplayer sealed name). Google shortens a long title itself.
   return {
-    title: { absolute: t.length <= 60 ? t : `${s.name.slice(0, 50)} Price` },
+    title: { absolute: `${s.name} Price` },
     description: `${s.name}: live Magic: The Gathering sealed prices compared across stores in the US, Australia, the UK, Singapore, Canada and the EU${s.marketUsd ? `. TCGplayer market price ${usd(s.marketUsd)}` : ""}.`,
     alternates: { canonical: `/sealed/${s.slug}` },
     // No `images`: the sibling opengraph-image.tsx draws the 1200×630 share card.

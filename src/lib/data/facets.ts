@@ -40,7 +40,9 @@ export async function getKeywordIndex(): Promise<KeywordRow[]> {
   return [...t].map(([slug, nos]) => ({ slug, label: keywordLabel(slug), count: nos.length })).sort((a, b) => b.count - a.count || (a.label < b.label ? -1 : 1));
 }
 export async function getKeywordPage(slug: string, page: number, per: 24 | 48 | 100 = 48): Promise<{ keyword: KeywordRow | null; total: number; items: OracleMini[] }> {
-  const s = String(slug ?? "").toLowerCase(), nos = (await keywordTable()).get(s);
+  // Next 14 hands the route param over percent-encoded ("10%2C000-needles" for the /keywords/10,000-needles the index links): decode before the lookup
+  const raw = String(slug ?? ""); let dec = raw; try { dec = decodeURIComponent(raw); } catch { /* a stray "%" is a literal */ }
+  const s = dec.toLowerCase(), nos = (await keywordTable()).get(s);
   if (!nos) return { keyword: null, total: 0, items: [] };
   const p = Math.max(1, Math.floor(Number(page)) || 1), want = nos.slice((p - 1) * per, p * per), keyword = { slug: s, label: keywordLabel(s), count: nos.length };
   const { src } = await planeSource(), by = new Map<string, number[]>();

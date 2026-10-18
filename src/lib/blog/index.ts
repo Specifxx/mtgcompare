@@ -61,3 +61,8 @@ export const AUTHOR = {
 export function postHref(p: Pick<Post, "slug" | "category">): string {
   return p.category === "guide" ? `/guides/${p.slug}` : `/blog/${p.slug}`;
 }
+/** postHref by slug, for links that name a post by its slug: a guide linked as /blog/<slug> is a 308 to /guides/<slug>, which crawlers count as a redirect, not a page. */
+export function postHrefBySlug(slug: string): string {
+  const p = POSTS.find((x) => x.slug === slug);
+  return p ? postHref(p) : `/blog/${slug}`;
+}

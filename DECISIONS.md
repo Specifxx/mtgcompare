@@ -3164,3 +3164,16 @@ Reversal: `RELEVANT_SHARE=0` (an Actions variable) restores the index floor alon
 Bytes are not the obstacle: even 10,000 eligible units add about 250 KB spread over the dozen `ix/p` chunks, each well under its 950,000-byte cap. It is a pipeline and format change across three frozen families, left for the owner to ask for.
 
 Reversal: drop `lastKnownEligible`/`lastKnownPrice` and the component, and the two price spots fall back to "—" and "No price yet". Nothing published depends on it.
+
+## What Googlebot found: two flaky tool pages, comma keywords, links through redirects — 2026-10-19
+
+2026-10-19. The owner: a week after the sitemaps went in, Search Console shows only the homepage indexed. A crawl of 2,500 pages from the homepage with Googlebot's user agent, plus 400 random sitemap URLs, found the site technically sound: every sitemap URL answered 200, no sitemap URL carried `noindex` or an `X-Robots-Tag`, every page's canonical was itself, the sitemap files match the published `sm/` lists exactly, robots.txt allows `/_next/` (the `?dpl=` CSS and JS included) and the median page answered in 0.4 s. What it did find, and what changed:
+
+- **`/tools` and `/tools/selling-fees` answered 500 intermittently**, both linked from the homepage. They were the only two pages with `export const revalidate` (a day) and no data; on Vercel they sat at `x-vercel-cache: STALE` while every other static page was a clean `HIT`, and a local build regenerates them fine, so it is a Vercel ISR regeneration failure we cannot see the log of. Neither reads anything, so both are `force-static` now: built once, never regenerated.
+- **`/keywords/<slug>` 404'd for a slug with a comma** (`10,000-needles`, `in-you,-all-things-are-possible`), linked from `/keywords`: Next 14 hands the param over percent-encoded and `getKeywordPage` looked it up raw. It decodes first.
+- **Internal links through a 308**: the homepage linked three guides as `/blog/<slug>` (`postHrefBySlug`, `postHref` now), and card pages linked `/cards/printing/<x>`, the legacy redirect to `/cards/treatment/<x>` (linked directly now).
+- **Duplicate sealed titles**: the title was the first 50 characters of the name, so every Tales of Middle-earth product read "Universes Beyond: The Lord of the Rings: Tales of Price". It is the whole name now; Google shortens a long title itself.
+
+`tests/crawl-hygiene.test.ts` pins all four. Not changed, on purpose: about 1% of crawl requests stalled 30 s, but the same URLs answered in under a second on retry and the sandbox's own proxy produced the same failure on unrelated URLs, so it is unconfirmed; the biggest set pages are 2 to 5 MB of HTML (the full price-guide table, twice over in the RSC payload), slow but far under Google's 15 MB.
+
+What was left is not a bug: a week-old domain with about 42,000 sitemap URLs and almost no links in is crawled slowly, and most URLs sit in "Discovered, currently not indexed" until Google decides the site is worth more crawl. The THIN card pages (three in four since 2026-10-17) correctly show as "Excluded by noindex tag".

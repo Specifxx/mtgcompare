@@ -82,7 +82,7 @@ import { marketPriceListSentence, compareMarkets } from "@/lib/market-comparison
 import { KEYWORDS, KEYWORD_BY_SLUG, cardKeywords } from "@/lib/keywords";
 import { marketRows } from "@/lib/quick-view";
 import { MARKETS } from "@/lib/country";
-import { facetBySlug, PRINTING_FACETS, RARITY_FACETS, TYPE_FACETS } from "@/lib/facets";
+import { facetBySlug, PRINTING_FACETS, RARITY_FACETS, TREATMENT_FACETS, TYPE_FACETS } from "@/lib/facets";
 import { ago } from "@/lib/format";
 
 type Props = { params: { slug: string }; searchParams?: { finish?: string } };
@@ -303,6 +303,8 @@ export default async function CardPage({ params, searchParams }: Props) {
   const typeFacet = typeKey && typeKey !== "other" ? facetBySlug(TYPE_FACETS, typeKey) : undefined;
   const rarityFacet = card.rarity ? RARITY_FACETS.find((f) => f.key === card.rarity) : undefined;
   const printingFacet = PRINTING_FACETS.find((f) => f.key === card.printing);
+  // /cards/printing/<x> is a legacy 308 to /cards/treatment/<x>: link the treatment page itself (a link through a redirect is a wasted crawl)
+  const treatmentFacet = printingFacet ? facetBySlug(TREATMENT_FACETS, printingFacet.slug) : undefined;
   const guides = guidesForCatalogue("card");
 
   const ebayLd = ebayJsonLdOffers(inMarket, co.currency, isoCountry(country));
@@ -634,8 +636,8 @@ export default async function CardPage({ params, searchParams }: Props) {
                   More {rarityFacet.label} cards →
                 </Link>
               ) : null}
-              {printingFacet && card.printing !== "standard" ? (
-                <Link href={`/cards/printing/${printingFacet.slug}`} className="chip bg-ink-800 text-slate-400 transition-colors hover:bg-ink-700 hover:text-slate-200">
+              {printingFacet && treatmentFacet && card.printing !== "standard" ? (
+                <Link href={`/cards/treatment/${treatmentFacet.slug}`} className="chip bg-ink-800 text-slate-400 transition-colors hover:bg-ink-700 hover:text-slate-200">
                   More {printingFacet.label} cards →
                 </Link>
               ) : null}
