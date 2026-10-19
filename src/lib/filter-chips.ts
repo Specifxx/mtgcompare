@@ -8,7 +8,7 @@
 // "?color=white&color=blue" link still works and is rewritten on the next change.
 import { COLORS, FORMAT_LABEL, PRIMARY_TYPE_LABEL, TREATMENT_BY_KEY, rarityLabel, type Format, type PrimaryType } from "./constants";
 import { keywordLabel } from "./keywords";
-import { defaultSort } from "./browse";
+import { RELEVANCE, defaultSort } from "./browse";
 
 /** The multi-value keys, in the order chips and the URL list them. */
 export const MULTI_KEYS = ["set", "color", "rarity", "type", "treat"] as const;
@@ -30,11 +30,22 @@ export function values(sp: ParamsLike, key: string): string[] {
 /** A single-value key as written (the first non-empty value, trimmed). Never split on commas: the search words are one value ("Jace, the Mind Sculptor", "Borrowing 100,000 Arrows"). */
 const single = (sp: ParamsLike, key: string): string => sp.getAll(key).map((v) => v.trim()).find(Boolean) ?? "";
 
+/** The search words of a query (`q`, trimmed; "" = no search). */
+export const searchOf = (sp: ParamsLike): string => single(sp, "q");
+
+/**
+ * Keys that route a request and never belong in a link a filter writes: `page` (any change starts again at page 1) and the CDN's market key (`_mk`, headers.json
+ * `marketKey`, which next.config.js adds by a rewrite to a non-US visitor's market pages; tests/filter-chips.test.ts pins it to MARKET_KEY). Kept out here rather than
+ * imported, so this client-side module never reaches src/lib/data.
+ */
+export const ROUTING_KEYS: readonly string[] = ["page", "_mk"];
+
 /**
  * The canonical query: known keys in URL_ORDER, multi-values as one CSV,
  * empty values and defaults dropped (the default sort is Best match when the
  * URL carries search words: browseDefaults), and never `page` (any filter change
- * starts again at page 1). Unknown keys (e.g. utm_*) are kept at the end.
+ * starts again at page 1) or the market key (ROUTING_KEYS). Unknown keys (e.g.
+ * utm_*) are kept at the end.
  */
 export function canonical(sp: ParamsLike & { keys(): IterableIterator<string> }, defaults: Record<string, string> = browseDefaults(single(sp, "q"))): URLSearchParams {
   const out = new URLSearchParams();
@@ -46,7 +57,7 @@ export function canonical(sp: ParamsLike & { keys(): IterableIterator<string> },
     out.set(k, v);
   }
   for (const k of new Set(sp.keys())) {
-    if ((URL_ORDER as readonly string[]).includes(k) || k === "page") continue;
+    if ((URL_ORDER as readonly string[]).includes(k) || ROUTING_KEYS.includes(k)) continue;
     for (const v of sp.getAll(k)) if (v) out.append(k, v);
   }
   return out;
@@ -86,9 +97,11 @@ export function withArticle(adjective: string): string {
 
 const title = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 
-/** Every active filter as a removable chip, in panel order. The search words (q) are not a chip. */
+/** Every active filter as a removable chip, in panel order. The search words (q) come first, quoted: since 2026-10-19 they are typed in the filter panel and are a filter like the others. */
 export function activeChips(sp: ParamsLike, labels: ChipLabels): Chip[] {
   const chips: Chip[] = [];
+  const words = searchOf(sp);
+  if (words) chips.push({ key: "q", value: "", label: `“${words}”` });
   for (const v of values(sp, "set")) chips.push({ key: "set", value: v, label: labels.set?.(v) ?? v.toUpperCase() });
   for (const v of values(sp, "color")) chips.push({ key: "color", value: v, label: colorLabel(v) });
   if (values(sp, "color").length > 1 && (sp.get("cmode") === "exact" || sp.get("cmode") === "within")) chips.push({ key: "cmode", value: "", label: sp.get("cmode") === "exact" ? "Exactly these colors" : "Only these colors" });
@@ -136,12 +149,35 @@ export function removeChip(sp: URLSearchParams, chip: Pick<Chip, "key" | "value"
   return next;
 }
 
-/** "Clear all": every filter off, but the search words and the chosen sort and page size stay. */
-export function clearFilters(sp: ParamsLike): URLSearchParams {
+/**
+ * "Clear all": every filter off, the search words included (they are a chip and a box of the panel); the chosen sort and page size stay. `keepSearch` is for a panel
+ * that does not hold the search box (the price guide's search is its toolbar's): its Clear leaves the words alone. "Best match" exists only with words, so it goes
+ * with them.
+ */
+export function clearFilters(sp: ParamsLike, o: { keepSearch?: boolean } = {}): URLSearchParams {
   const next = new URLSearchParams();
-  for (const k of ["q", "sort", "per"]) {
+  for (const k of o.keepSearch ? ["q", "sort", "per"] : ["sort", "per"]) {
     const v = sp.get(k);
     if (v) next.set(k, v);
+  }
+  return withSearch(next, o.keepSearch ? searchOf(sp) : "");
+}
+
+/** Longest search the box sends: parseBrowse reads no more than 80 characters of `q`. */
+export const SEARCH_MAX = 80;
+
+/**
+ * The query after the panel's search box: the words trimmed (blank removes the search), every other filter, the sort and the page size kept. canonical() then drops
+ * `page` (back to page 1) and the market key. "Best match" (sort=relevance) exists only with words, so clearing them drops it too.
+ */
+export function withSearch(sp: ParamsLike & { keys(): IterableIterator<string> }, text: string): URLSearchParams {
+  const next = new URLSearchParams();
+  for (const k of new Set(sp.keys())) for (const v of sp.getAll(k)) next.append(k, v);
+  const words = text.trim().slice(0, SEARCH_MAX).trim();
+  if (words) next.set("q", words);
+  else {
+    next.delete("q");
+    if (next.get("sort") === RELEVANCE) next.delete("sort");
   }
   return next;
 }

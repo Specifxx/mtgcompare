@@ -1,10 +1,12 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { SORTS } from "@/lib/browse";
+import { sortOptions } from "@/lib/browse";
 
 // Sort and page size for a set's card grid, as URL state like the filters.
-export function SetGridControls({ basePath, sort, per }: { basePath: string; sort: string; per: number }) {
+// `options` is the sort list (browse.ts sortOptions): "Best match" leads it,
+// and is the default, when the grid is searched (the filter panel's `q`).
+export function SetGridControls({ basePath, sort, per, options = sortOptions("") }: { basePath: string; sort: string; per: number; options?: readonly { value: string; label: string }[] }) {
   const router = useRouter();
   const params = useSearchParams();
   const push = (key: string, value: string) => {
@@ -19,9 +21,9 @@ export function SetGridControls({ basePath, sort, per }: { basePath: string; sor
       <label className="flex items-center gap-2 text-sm text-slate-400">
         <span className="hidden sm:inline">Sort</span>
         <select aria-label="Sort cards" value={sort} onChange={(e) => push("sort", e.target.value)} className={field}>
-          {Object.entries(SORTS).map(([v, l]) => (
-            <option key={v} value={v}>
-              {l}
+          {options.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
             </option>
           ))}
         </select>

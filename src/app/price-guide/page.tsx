@@ -182,7 +182,8 @@ export default async function PriceGuidePage({ searchParams: raw }: { searchPara
             Filters
           </label>
           <div className="mt-3 hidden peer-checked:block lg:mt-0 lg:block">
-            <BrowseFilters q={{ ...gq.browse, sort: gq.sort as SortKey, per: gq.size }} sets={filterSets(sets)} country={country} action="/price-guide" />
+            {/* The guide's search box is its toolbar's, just above: the panel leaves it out rather than show two boxes for one `q`. */}
+            <BrowseFilters q={{ ...gq.browse, sort: gq.sort as SortKey, per: gq.size }} sets={filterSets(sets)} country={country} action="/price-guide" hide={["q"]} />
           </div>
         </aside>
         <div className="min-w-0">

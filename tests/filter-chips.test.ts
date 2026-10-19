@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { withArticle, activeChips, canonical, clearFilters, priceInput, removeChip, toggle, values } from "../src/lib/filter-chips";
+import { withArticle, activeChips, canonical, clearFilters, priceInput, removeChip, toggle, values, ROUTING_KEYS, SEARCH_MAX, searchOf, withSearch } from "../src/lib/filter-chips";
+import { MARKET_KEY } from "../src/lib/data/plane/headers";
 import { DEFAULT_FLOOR_CENTS, NO_SET, RELEVANCE, defaultSort, isFiltered, parseBrowse, sortOptions, toCardQuery } from "../src/lib/browse";
 import { COLORS } from "../src/lib/constants";
 import type { SetLite } from "../src/lib/data";
@@ -38,15 +39,17 @@ test("toggle a value on and off (colors and rarities case-insensitively)", () =>
   assert.equal(toggle(sp("rarity=M"), "rarity", "m").has("rarity"), false);
 });
 
-test("chips: one per value, labelled, price as a range, q never a chip", () => {
+test("chips: one per value, labelled, price as a range; the search words are the first chip, quoted", () => {
   const chips = activeChips(sp("q=sol+ring&set=mh3-modern-horizons-3&color=white&rarity=M&treat=borderless&type=creature&finish=foil&format=modern&priced=1&min=5"), labels);
   assert.deepEqual(
     chips.map((c) => c.label),
-    ["Modern Horizons 3 (MH3)", "White", "Mythic Rare", "Creature", "Borderless", "Foil prices", "Playable in Modern", "Has an Australian listing", "From US$5"],
+    ["“sol ring”", "Modern Horizons 3 (MH3)", "White", "Mythic Rare", "Creature", "Borderless", "Foil prices", "Playable in Modern", "Has an Australian listing", "From US$5"],
   );
+  assert.deepEqual(chips[0], { key: "q", value: "", label: "“sol ring”" });
   assert.equal(activeChips(sp("max=20"), labels)[0].label, "Up to US$20");
   assert.equal(activeChips(sp("min=5&max=20"), labels)[0].label, "US$5–US$20");
-  assert.deepEqual(activeChips(sp("q=sheoldred&sort=name"), labels), []);
+  assert.deepEqual(activeChips(sp("q=sheoldred&sort=name"), labels).map((c) => c.key), ["q"], "the sort is no chip");
+  assert.deepEqual(activeChips(sp("q=++&sort=name"), labels), [], "blank words are no search");
   assert.equal(activeChips(sp("set=zzz-unknown"), labels)[0].label, "ZZZ-UNKNOWN");
   assert.deepEqual(activeChips(sp("color=colorless,multicolor,u"), labels).map((c) => c.label), ["Colorless", "Multicolor", "Blue"]);
   assert.equal(activeChips(sp("color=white,blue&cmode=exact"), labels).at(-1)!.label, "Exactly these colors");
@@ -57,7 +60,33 @@ test("removing chips and clearing", () => {
   assert.equal(removeChip(sp("min=5&max=10&color=red"), { key: "price", value: "" }).toString(), "color=red");
   assert.equal(removeChip(sp("priced=1&color=red"), { key: "priced", value: "" }).toString(), "color=red");
   assert.equal(removeChip(sp("finish=foil&color=red"), { key: "finish", value: "" }).toString(), "color=red");
-  assert.equal(clearFilters(sp("q=sol+ring&color=red&sort=name&per=24&page=2")).toString(), "q=sol+ring&sort=name&per=24");
+  assert.equal(canonical(removeChip(sp("q=sol+ring&color=red&page=3"), { key: "q", value: "" })).toString(), "color=red", "the search chip removes the words and keeps the filters");
+  assert.equal(clearFilters(sp("q=sol+ring&color=red&sort=name&per=24&page=2")).toString(), "sort=name&per=24", "Clear all clears the search words too: they are a filter of the panel");
+  assert.equal(clearFilters(sp("q=sol+ring&color=red&sort=relevance")).toString(), "", "Best match goes with the words");
+  assert.equal(clearFilters(sp("q=sol+ring&color=red&sort=name&per=24&page=2"), { keepSearch: true }).toString(), "q=sol+ring&sort=name&per=24", "a panel without the search box (the price guide's) leaves the words alone");
+});
+
+test("the panel's search box: the words trimmed into q, every other filter, sort and size kept, page 1, never the market key", () => {
+  const was = sp("set=mh3&color=white,blue&finish=foil&sort=price-asc&per=24&page=4&_mk=AU&utm_source=x");
+  const next = canonical(withSearch(was, "  sol ring "));
+  assert.equal(next.toString(), "q=sol+ring&set=mh3&color=white%2Cblue&finish=foil&sort=price-asc&per=24&utm_source=x");
+  assert.equal(next.get("page"), null, "a new search starts at page 1");
+  assert.equal(next.get(MARKET_KEY), null, "the CDN's market key never reaches a link the panel writes");
+  assert.equal(canonical(withSearch(sp("q=sol+ring&rarity=M&sort=relevance"), "   ")).toString(), "rarity=M", "blank words remove the search, and Best match with it");
+  assert.equal(canonical(withSearch(sp("q=sol+ring&rarity=M&sort=value"), "")).toString(), "rarity=M", "Most valuable is the default again without words");
+  assert.equal(canonical(withSearch(sp("rarity=M"), "Jace, the Mind Sculptor")).get("q"), "Jace, the Mind Sculptor", "commas are part of the words");
+  assert.equal(withSearch(sp(""), "x".repeat(200)).get("q")!.length, SEARCH_MAX, "no more than parseBrowse reads");
+  assert.equal(SEARCH_MAX, 80);
+  assert.equal(parseBrowse({ q: "y".repeat(200) }).q.length, SEARCH_MAX);
+  assert.equal(searchOf(sp("q=+sol+ring+")), "sol ring");
+  assert.equal(searchOf(sp("color=red")), "");
+});
+
+test("canonical never carries the market key (headers.json marketKey) or the page: a non-US visitor's rewritten query stays out of every filter link", () => {
+  assert.ok(ROUTING_KEYS.includes(MARKET_KEY), "ROUTING_KEYS names the same key next.config.js rewrites (it is spelled out there so this client module never imports src/lib/data)");
+  assert.equal(canonical(sp(`${MARKET_KEY}=1&color=red&page=2`)).toString(), "color=red");
+  assert.equal(canonical(toggle(sp(`${MARKET_KEY}=UK&q=bolt`), "rarity", "C")).toString(), "q=bolt&rarity=C");
+  assert.equal(canonical(removeChip(sp(`${MARKET_KEY}=AU&q=bolt&color=red`), { key: "color", value: "red" })).toString(), "q=bolt");
 });
 
 test("price boxes", () => {
