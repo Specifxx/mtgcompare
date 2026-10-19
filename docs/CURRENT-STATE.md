@@ -43,6 +43,7 @@ Entries dated before 2026-10-08 are OP Compare's inherited history (One Piece vo
 - A store's own spelling of a set resolves only through `STORE_SET_ALIASES` (`src/lib/match.ts`), an entry needs three SKU-consistent listings and a pinned real title; the matcher reads no file and no database. [2026-10-08](../DECISIONS.md#L2355)
 - A free-text (eBay) title that names The List is placed on The List's product (set `plst`, number `<set>-<number>`) or on nothing, never on the original printing it reprints. [2026-10-08](../DECISIONS.md#L2361)
 - Store ids are hand-assigned and never reused (feeds 8 and 9, registry 10..32767, `RETIRED_STORE_IDS`); every registry store is unverified until a read admits it (>= 20 matched in-stock listings of tracked units and a matching currency); a store that charges another currency than its market's is listed and never priced. [2026-10-08](../DECISIONS.md#L2649)
+- A store that sells no singles carries `sealedOnly` (Beaches TCG, id 415): only a sealed match becomes its offer. In a sealed title "Single" right before "Play/Collector Booster Pack" is one pack, and "assorted" names no product. [2026-10-19](../DECISIONS.md#L3181)
 - The store stage streams pages (never holds a catalogue), reads four stores at once, spends at most 700 pages per store and 100 minutes per stage, and treats a read cut short as failed; scrapers identify themselves honestly. [2026-10-08](../DECISIONS.md#L2656)
 
 ## Pages and tools

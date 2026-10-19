@@ -659,6 +659,33 @@ test("sealed titles are answered by the words that tell products apart, and neve
   assert.ok(sealed.every((x) => !rowById.has(x.id)), "a sealed product is never a card row");
 });
 
+// Beaches TCG (beachestcg.com.au, AU, 2026-10-19): real titles of its Magic collection. tests/store-platforms.test.ts reads the whole collection through the stage.
+test("'Single' right before a Play or Collector Booster Pack is one pack (Beaches TCG), and nowhere else", () => {
+  const w = (t: string) => sealedWords(t).join(" ");
+  const id = (t: string) => { const r = matchSealedTitle(t, sealed); return "id" in r ? r.id : r.miss; };
+  assert.equal(w("MTG Reality Fracture Single Play Booster Pack"), w("Reality Fracture - Play Booster"));
+  assert.equal(id("MTG Reality Fracture Single Play Booster Pack"), 692979);
+  assert.equal(id("MTG The Hobbit Single - Play Booster Pack"), 692959, "the store's dash sits between the word and the pack");
+  assert.equal(id("MTG Reality Fracture - Single Collector Booster Pack"), 692982);
+  assert.equal(id("MTG The Hobbit - Single Collector Booster Pack"), 692962);
+  assert.equal(id("Strixhaven - Single Collector Booster Pack"), "no-product", "one pack, but of which Strixhaven (School of Mages or Secrets of)? Still a skip");
+  assert.ok(sealedWords("MTG Reality Fracture Single Bundle").includes("single"), "only before a booster pack");
+  assert.ok(sealedWords("Reality Fracture Single Play Booster Display").includes("single"), "a box is not one pack");
+  assert.ok(sealed.every((s) => !sealedWords(s.name).includes("single")), "no TCGplayer sealed name carries the word");
+});
+
+test("an assorted product is none of the products it may be (Beaches TCG), and an event ticket is never a product", () => {
+  const id = (t: string) => { const r = matchSealedTitle(t, sealed); return "id" in r ? r.id : r.miss; };
+  const one = (title: string, productType = "Magic The Gathering") => fmt(matchStoreProduct({ title, skus: [null], productType, variantTitle: "Default Title" }, ix));
+  assert.equal(id("MTG Star Trek - Commander Deck (Assorted see instore for availability)"), "not-sealed");
+  assert.equal(id("MTG Star Trek - Scene Box (assorted)"), "not-sealed");
+  assert.equal(one("MTG Star Trek - Commander Deck (Assorted see instore for availability)"), "miss:not-a-single", "four decks (and their Collector's Editions): the buyer gets one of them");
+  assert.equal(one("MTG Star Trek - Scene Box (assorted)"), "miss:not-a-single");
+  assert.equal(one("MTG Star Trek - Collector Commander (Assorted see instore for availability)"), "miss:nokey");
+  assert.equal(one("Magic the Gathering - Prerelease - Star Trek - 11th November @ 6:30pm", "Event Entry"), "miss:name-setname-not-in-catalogue", "a seat at a prerelease, not a Prerelease Pack");
+  assert.ok(sealed.every((s) => !/assorted/i.test(s.name)), "no TCGplayer sealed name carries the word");
+});
+
 // ── conditions and variants ──
 test("conditionRank and conditionLabel: the condition a real variant title states, none when it states none", () => {
   const cases: [string, number, string | null][] = [

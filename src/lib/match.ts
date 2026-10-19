@@ -878,13 +878,17 @@ export function matchByName(title: string, idx: NameIndex): number | null {
 // ── Sealed products ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 const SEALED_NOISE = new Set(["the", "a", "of", "and", "magic", "gathering", "mtg", "tcg", "english", "eng", "en", "sealed", "new", "factory", "trading", "card", "game", "wizards", "coast"]);
-const SEALED_NOT_FOR_US = /\b(?:empty|opened|open box|damaged|storage box|deck box|sleeves?|playmat|binder|card case|toploader|acrylic|protector|magnetic|lot of|bundle of|repack|break|mystery|random|bulk|ita|italiano|german|deutsch|de|fr|jp|jpn|spanish|french|italian|japanese)\b/i;
+// "assorted" (2026-10-19, Beaches TCG: "MTG Star Trek - Commander Deck (Assorted see instore for availability)", "MTG Star Trek - Scene Box (assorted)"): the buyer gets one of several products, so the listing is none of
+// them, like "random" and "mystery". No TCGplayer sealed name carries the word (0 of 3,765 on 2026-10-19).
+const SEALED_NOT_FOR_US = /\b(?:empty|opened|open box|damaged|storage box|deck box|sleeves?|playmat|binder|card case|toploader|acrylic|protector|magnetic|lot of|bundle of|repack|break|mystery|random|assorted|bulk|ita|italiano|german|deutsch|de|fr|jp|jpn|spanish|french|italian|japanese)\b/i;
 /**
  * The words that tell sealed products apart: noise and a parenthesised pack count dropped ("(12 Packs)"), "display" read as "box", "Booster Pack" as "booster", plural forms singular. Equal sets of words are the same
- * product ("Play Pack" is not a "Play Booster": the pack stays a word there).
+ * product ("Play Pack" is not a "Play Booster": the pack stays a word there). "Single" right before "Play Booster Pack" / "Collector Booster Pack" is a pack count ("one pack", Beaches TCG's
+ * "MTG Reality Fracture Single Play Booster Pack", "MTG The Hobbit - Single Collector Booster Pack"); no TCGplayer sealed name carries the word (0 of 3,765 on 2026-10-19), and nowhere else is it dropped.
  */
 export function sealedWords(text: string): string[] {
   let t = fold(decodeEntities(text).replace(/\([^)]*\b\d+\s*(?:packs?|boosters?|buste|boxes|ct|count|cards?)\b[^)]*\)/gi, " ")).replace(/\buniverses beyond\b(?!\s+booster)/g, " ");
+  t = t.replace(/\bsingle (?=(?:play|collector) booster pack\b)/g, " ");
   t = t.replace(/\bbooster packs?\b/g, "booster").replace(/\bminimal packaging\b/g, " minimal ");
   const out = new Set<string>();
   for (let w of t.split(" ")) {

@@ -477,7 +477,8 @@ export function offerDraftOf(productId: number, finish: Finish, variants: readon
 /**
  * The offers of ONE listing: the matcher answers once per VARIANT (a product with Normal and Foil variants answers with both finishes), the variants that answered the same (product, finish) compete (best
  * condition in stock, then cheapest; a unit with no buyable variant is an out-of-stock draft at its cheapest price). `matched` counts the LISTING once. The plausibility rule drops a price far from TCGplayer's
- * market of the finish it matched ("implausible-price"). A listing none of whose variants matched counts the first miss that is not a language miss.
+ * market of the finish it matched ("implausible-price"). A listing none of whose variants matched counts the first miss that is not a language miss. At a sealed-only store (StoreInfo.sealedOnly) a card answer is the
+ * miss "sealed-only-store".
  */
 export function matchListing(store: StoreInfo, p: StoreListing, si: StageIndex, tally: StoreTally): void {
   tally.products++;
@@ -488,7 +489,9 @@ export function matchListing(store: StoreInfo, p: StoreListing, si: StageIndex, 
   );
   const groups = new Map<string, { id: number; finish: Finish; sealed: boolean; variants: ShopifyVariant[] }>();
   let miss: string | null = null;
-  answers.forEach((a, i) => {
+  answers.forEach((answer, i) => {
+    // A sealed-only store (StoreInfo.sealedOnly) lists no singles: an answer on a card is a misreading of an event ticket or a sealed title, never an offer.
+    const a = !("miss" in answer) && store.sealedOnly && answer.path !== "sealed" ? { miss: "sealed-only-store" } : answer;
     if ("miss" in a) {
       if (!miss || (miss === "language-option" && a.miss !== "language-option")) miss = a.miss;
       return;

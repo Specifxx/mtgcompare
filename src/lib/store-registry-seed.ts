@@ -415,4 +415,8 @@ export const SEED_STORES: readonly StoreInfo[] = [
   { id: 412, key: "foxfablehaven", name: "Fox Fable Haven", base: "https://foxfablehaven.com", country: "US", collections: ["bulk-magic"], status: "unverified" },
   { id: 413, key: "deepdivegames", name: "Deep Dive Games", base: "https://deep-dive-games.myshopify.com", country: "US", collections: ["magic-the-gathering-singles"], status: "unverified" },
   { id: 414, key: "guardiangamesllc", name: "Guardian Games", base: "https://guardian-games-llc.myshopify.com", country: "US", collections: ["magic-the-gathering-singles"], status: "unverified" },
+  // Added 2026-10-19 at the owner's request: BeachesTCG, Mona Vale NSW (Shopify qf1nsm-k0, AUD, ships to AU only). Sealed product and event tickets, no singles: "magic-the-gathering" (64 products) is its one Magic
+  // collection and the only Magic handle in its sitemap. The dry run of that day matched 14 of its 22 in-stock Magic products, under the admission rule's 20: listed and read daily, published from the first read
+  // that admits it.
+  { id: 415, key: "beachestcg", name: "Beaches TCG", base: "https://beachestcg.com.au", country: "AU", collections: ["magic-the-gathering"], sealedOnly: true, status: "unverified" },
 ];
