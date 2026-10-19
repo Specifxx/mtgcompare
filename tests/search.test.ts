@@ -301,6 +301,36 @@ test("the 57 real products: names, reskin names, set + number, set + name, finis
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
+test("the search words only NARROW the page's own filters (the filter panel's search box, 2026-10-19): a set + number, a typed set and a name stay inside a set page, a ticked rarity and the unit view", async () => {
+  const dir = writePlaneDir(realMiniTree());
+  try {
+    await over(dir, async () => {
+      const { searchCards, getCardPage } = await import("../src/lib/data");
+      const SEVENTH = 2, MH2 = 2809, PROMO_PACK_BRO = 3160;                                 // the fixture's TCGplayer group ids (7th Edition, Modern Horizons 2, Promo Pack: The Brothers' War)
+      // a set and a number name one product directly: kept only when the page's filters hold it too
+      assert.deepEqual(ids(await searchCards("7ed 231")), [2831], "no page filter: the header search finds it as before");
+      assert.deepEqual(ids(await searchCards("7ed 231", { setIds: [SEVENTH] })), [2831], "on its own set's page");
+      assert.deepEqual(ids(await searchCards("7ed 231", { setIds: [MH2] })), [], "never on another set's page");
+      assert.deepEqual(ids(await searchCards("7ed 231", { rarities: ["R"] })), [2831]);
+      assert.deepEqual(ids(await searchCards("7ed 231", { rarities: ["C"] })), [], "a ticked rarity holds for a set + number too");
+      assert.deepEqual(ids(await searchCards("7ed 231", { maxCents: 100 })), [], "and a price range (Birds of Paradise 7ED is far over US$1)");
+      const foil = await searchCards("7ed 231", { finish: "F" });
+      assert.deepEqual([ids(foil), foil.items[0]!.headFinish], [[2831], "F"], "the page's unit view: a set + number is priced at the finish the page shows");
+      assert.equal((await searchCards("7ed 231", { finish: "N" })).items[0]!.headFinish, "N");
+      // a set the words name narrows the page's sets, it never replaces them (ppbro is a TCGplayer token, so the planner filters by the group id)
+      assert.deepEqual(ids(await searchCards("skitterbeam set:ppbro")), [453935]);
+      assert.deepEqual(ids(await searchCards("skitterbeam set:ppbro", { setIds: [SEVENTH] })), [], "a promo-pack card never shows on the 7th Edition page");
+      assert.deepEqual(ids(await searchCards("skitterbeam set:ppbro", { setIds: [PROMO_PACK_BRO, SEVENTH] })), [453935], "two ticked sets: the words pick one of them");
+      // what a set page asks (sets/[slug]/page.tsx setQuery): the names of that set only
+      const setPage = (q: string, setId: number) => getCardPage({ q, setIds: [setId], includeUnlisted: false });
+      assert.deepEqual(ids(await setPage("birds", SEVENTH)), [2831]);
+      assert.deepEqual(ids(await setPage("dragon", SEVENTH)), [3077], "a word of the name, not only its start");
+      assert.deepEqual(ids(await setPage("birds", MH2)), [], "a name the set does not have is an empty grid, not the card elsewhere");
+      assert.deepEqual(ids(await setPage("birds of paradise 7ed", MH2)), []);
+    });
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
 const SAMPLE = process.env.PLANE_SAMPLE_DIR ? path.dirname(path.resolve(process.env.PLANE_SAMPLE_DIR)) : path.resolve(__dirname, "../.data");
 test("THE REAL CATALOGUE (Annex C check 9; skipped without a dataset): mh3 6, bolt m11, fire ice, war room, black lotus lea, the reskin names, nicknames", { skip: !fs.existsSync(path.join(SAMPLE, "v1", "ix", "dict.json")) }, async () => {
   await over(SAMPLE, async () => {

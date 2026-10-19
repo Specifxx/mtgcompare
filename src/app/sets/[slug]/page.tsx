@@ -29,7 +29,7 @@ import { RelatedGuides } from "@/components/RelatedGuides";
 import { SetGridControls } from "@/components/sets/SetGridControls";
 import { SetPriceGuide } from "@/components/sets/SetPriceGuide";
 import { JsonLd } from "@/components/ui";
-import { parseBrowse, toCardQuery, type BrowseQuery, type SearchParams } from "@/lib/browse";
+import { parseBrowse, sortOptions, toCardQuery, type BrowseQuery, type SearchParams } from "@/lib/browse";
 import { guidesForCatalogue } from "@/lib/content/catalogue-guides";
 import { buildCollectionNarrative } from "@/lib/content/collection-narrative";
 import { checklistGuideRows } from "@/lib/set-price-guide";
@@ -274,7 +274,7 @@ export default async function SetPage({ params, searchParams: raw }: Props) {
           </aside>
           <div className="min-w-0">
             <FilterChips basePath={`/sets/${set.slug}`} sets={setsByCode} symbol={c.symbol} adjective={c.adjective} />
-            <SetGridControls basePath={`/sets/${set.slug}`} sort={bq.sort} per={bq.per} />
+            <SetGridControls basePath={`/sets/${set.slug}`} sort={bq.sort} per={bq.per} options={sortOptions(bq.q.trim())} />
             {/* The owned overlay (a client island that
                 learns the visitor from /api/me; the page reads no session. */}
             <SetOwnedProvider setSlug={set.slug} enabled={!future}>

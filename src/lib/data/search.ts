@@ -155,6 +155,33 @@ async function setFilter(ix: BrowseIndex, code: string): Promise<Pick<CardQuery,
   return set ? { setIds: [set.id] } : null;
 }
 
+type SetPick = Pick<CardQuery, "sc" | "setIds">;
+/**
+ * A set the words name, ANDed with the set filter the page already has (a set page, a ticked set): the words narrow the page, never replace its sets. null = the two
+ * cannot both hold, so nothing matches ("bolt set:ppbro" on the 7th Edition page). A page without a set filter takes the words' set as it is.
+ */
+function andSet(page: SetPick, words: SetPick): SetPick | null {
+  const out: SetPick = {}, a = page.sc?.trim().toLowerCase() || undefined, b = words.sc?.trim().toLowerCase() || undefined;
+  if (a && b && a !== b) return null;
+  if (a ?? b) out.sc = a ?? b;
+  const mine = page.setIds?.length ? page.setIds : null, theirs = words.setIds?.length ? words.setIds : null;
+  if (mine && theirs) { const both = mine.filter((id) => theirs.includes(id)); if (!both.length) return null; out.setIds = both; }
+  else if (mine ?? theirs) out.setIds = [...(mine ?? theirs)!];
+  return out;
+}
+/** The keys of a canonical query that only order or page it: any other key is a filter of the page. */
+const ORDER_KEYS: ReadonlySet<string> = new Set(["sort", "page", "per"]);
+/**
+ * The 1 to 3 products a set and a number name, kept only when they also pass the page's own filters (a set page, a ticked rarity, a price range, the unit view):
+ * typed words narrow a list, never widen it. With no filter beyond the words (the header search, /api/search) every product found is kept, as before.
+ */
+function withinPage(ix: BrowseIndex, o: Partial<CardQuery>, rows: CardLite[], finish: Finish | undefined): CardLite[] {
+  const page = canonicalQuery({ ...o, q: undefined });
+  if (!rows.length || !Object.keys(page).some((k) => !ORDER_KEYS.has(k))) return rows;
+  const keep = new Set(ix.select(canonicalQuery({ ...o, q: undefined, ...(finish ? { finish } : {}) })).map((i) => ix.id[i]!));
+  return rows.filter((c) => keep.has(c.id));
+}
+
 /** The best tier at which a printing's name, a face of it or its printed (reskin) name matches. */
 function printingTier(name: string, alt: string | undefined, qk: string): number {
   let t = nameTier(fold(name), qk) ?? 9;
@@ -188,11 +215,11 @@ export async function planSearch(q: string, o: Partial<CardQuery> = {}): Promise
   const parsed = await parseQuery(q), base: Partial<CardQuery> = { ...o, q: undefined };
   const ix = await indexFor(o);
   if (parsed.set && parsed.number) {
-    const rows = [...(await resolveBySetNumber([{ set: parsed.set, number: parsed.number }])).values()].flat();
+    const rows = withinPage(ix, o, [...(await resolveBySetNumber([{ set: parsed.set, number: parsed.number }])).values()].flat(), parsed.finish ?? o.finish);
     if (rows.length || !parsed.text) return { query: base, direct: rows, parsed };
   }
   const query: Partial<CardQuery> = { ...base };
-  if (parsed.set) { const f = await setFilter(ix, parsed.set); if (!f) return { query: base, direct: [], parsed }; Object.assign(query, f); }
+  if (parsed.set) { const f = await setFilter(ix, parsed.set), s = f && andSet(query, f); if (!s) return { query: base, direct: [], parsed }; Object.assign(query, s); }
   if (parsed.finish) query.finish = parsed.finish;
   if (parsed.treat.length) query.treats = parsed.treat;
   if (parsed.text) {
@@ -201,9 +228,9 @@ export async function planSearch(q: string, o: Partial<CardQuery> = {}): Promise
       const words = text.split(" "), codes = await setCodes();
       for (const [code, rest] of [[words[words.length - 1]!, words.slice(0, -1)], [words[0]!, words.slice(1)]] as const) {
         if (!rest.length || !codes.has(code)) continue;
-        const f = await setFilter(ix, code); if (!f) continue;
-        const inSet = oraclesInSet(ix, f, rest.join(" "));
-        if (inSet.length) { nos = inSet; text = rest.join(" "); Object.assign(query, f); break; }
+        const f = await setFilter(ix, code), s = f && andSet(query, f); if (!s) continue;
+        const inSet = oraclesInSet(ix, s, rest.join(" "));
+        if (inSet.length) { nos = inSet; text = rest.join(" "); Object.assign(query, s); break; }
       }
     }
     if (!nos.length) return { query, direct: [], parsed };
@@ -270,7 +297,7 @@ export async function searchCards(q: string, o: Partial<CardQuery> = {}): Promis
   if (!fold(typed)) return ix.query(cq);
   const plan = await planSearch(typed, o);
   if (plan.direct) {
-    const unit = plan.parsed.finish, rows = unit && plan.direct.length ? [...(await getCardsByIds(plan.direct.map((c) => c.id), { unit })).values()] : plan.direct;
+    const unit = plan.parsed.finish ?? cq.finish, rows = unit && plan.direct.length ? [...(await getCardsByIds(plan.direct.map((c) => c.id), { unit })).values()] : plan.direct;   // the page's unit view holds for a set + number too
     return pageOf(rows.slice(0, cq.per), rows.length, 1, cq.per);
   }
   const page = await answer(ix, plan.query, byRelevance, plan.parsed.text);
@@ -278,7 +305,7 @@ export async function searchCards(q: string, o: Partial<CardQuery> = {}): Promis
   const nos = (await rankedNames(fold(typed), CANDIDATES)).map((h) => h.oracleNo!).filter((n) => !!n);
   if (!nos.length) return page;
   const again: Partial<CardQuery> = { ...o, q: undefined, oracleNos: nos };
-  if (plan.parsed.set) { const f = await setFilter(ix, plan.parsed.set); if (f) Object.assign(again, f); }
+  if (plan.parsed.set) { const f = await setFilter(ix, plan.parsed.set); if (f) { const s = andSet(o, f); if (!s) return page; Object.assign(again, s); } }
   return answer(ix, again, byRelevance, fold(typed));
 }
 

@@ -1281,6 +1281,7 @@
   "tests/email-brevo-ip-block.test.ts": "WP14",
   "tests/env-names.test.ts": "WP19",
   "tests/filter-chips.test.ts": "WP07",
+  "tests/filter-search.test.ts": "WP07",
   "tests/finish.test.ts": "WP01a",
   "tests/fixtures/env-names.json": "WP19",
   "tests/fixtures/magic-products.json": "WP01a",
