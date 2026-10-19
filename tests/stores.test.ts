@@ -45,17 +45,21 @@ test("each platform's store carries what its reader needs", () => {
   }
 });
 
-test("the registry is the 67 seed stores, the 13 ShadowPOS stores, the 324 stores of the 2026-10-09 sweep and the two feeds, every one unverified until the production probe admits it (10.26)", () => {
-  assert.equal(STORES.length, 406);
+test("the registry is the 67 seed stores, the 13 ShadowPOS stores, the 324 stores of the 2026-10-09 sweep, Beaches TCG (2026-10-19) and the two feeds, every one unverified until the production probe admits it (10.26)", () => {
+  assert.equal(STORES.length, 407);
   assert.equal(STORES.filter((s) => platformOf(s) === "feed").length, 2);
   assert.equal(STORES.filter((s) => platformOf(s) === "shadowpos").length, 37);
-  assert.equal(STORES.filter((s) => platformOf(s) === "shopify").length, 367);
+  assert.equal(STORES.filter((s) => platformOf(s) === "shopify").length, 368);
   for (const s of STORES) assert.equal(s.status, "unverified", s.key);
   for (const s of STORES) if (platformOf(s) === "shadowpos") assert.ok(s.collections.length === 0, `${s.key}: ShadowPOS has one search, no collections`);
 });
 
 test("a storefront that charges another currency than its market's says so (the importer refuses it): The Mythic Store and The CG Realm charge CAD in the US", () => {
   assert.deepEqual(STORES.filter((s) => s.currency).map((s) => [s.key, s.country, s.currency]).sort(), [["cgrealm", "US", "CAD"], ["mythicstore", "US", "CAD"]]);
+});
+
+test("a store that sells no singles says so (only its sealed matches become offers): Beaches TCG, sealed product and event tickets from one Magic collection", () => {
+  assert.deepEqual(STORES.filter((s) => s.sealedOnly).map((s) => [s.id, s.key, s.country, s.collections]), [[415, "beachestcg", "AU", ["magic-the-gathering"]]]);
 });
 
 test("the public price feeds are present and OFF: FEED_SOURCES is empty until the owner has the terms in writing (10.11)", () => {

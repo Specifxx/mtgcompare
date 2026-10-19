@@ -767,3 +767,146 @@ test("the registry: every configured Shopify handle is a whole-singles collectio
     }
   }
 });
+
+// ── Beaches TCG: a sealed-only store, its whole Magic collection ─────────────
+// tests/fixtures/stores/beachestcg-products.json: the store's magic-the-gathering collection on 2026-10-19 (64 products: sealed product and one prerelease ticket, no singles) and the TCGplayer sealed products of
+// the ten sets its titles name. The cards are the matcher's real slice (rows.json), every unit of it tracked, so a title misread as a single would have a unit to land on.
+interface BeachesFx { products: { title: string; handle: string; product_type: string; tags: string[]; variants: Record<string, unknown>[] }[]; sealed: [number, string, string, number | null][] }
+const beaches = JSON.parse(fixture("beachestcg-products.json")) as BeachesFx;
+const beachesTree = () => {
+  const t = memTree();
+  const codes = [...new Set(beaches.sealed.map((s) => s[2]))];
+  t.write("meta/sets.json", JSON.stringify({ v: 1, at: "x", sets: codes.map((c, i) => [i + 1, `set-${i + 1}`, c.toLowerCase(), c, c, c, "expansion", "2026-01-01", 0, c]) }));
+  t.write("sl/list-0.json", JSON.stringify({ v: 1, at: "x", chunk: 0, chunks: 1, s: beaches.sealed.map(([id, name, code, market]) => [id, `s-${id}`, name, codes.indexOf(code) + 1, "", 0, 0, 0, market, null, 0, 0, null]) }));
+  return t;
+};
+const everyUnit = new Set(allRows.flatMap((r) => [...(r.hasN ? [uidOf(r.id, "N")] : []), ...(r.hasF ? [uidOf(r.id, "F")] : [])]));
+const beachesListings: StoreListing[] = beaches.products.map((p) => ({ title: p.title, handle: p.handle, product_type: p.product_type, tags: p.tags, variants: p.variants.map(shopifyVariant) }));
+
+test("Beaches TCG: every product of its Magic collection becomes one sealed offer or a named skip, never a single", () => {
+  const s = storeByKey("beachestcg")!;
+  assert.deepEqual([s.id, s.country, s.collections, s.sealedOnly], [415, "AU", ["magic-the-gathering"], true]);
+  const bsi = buildStageIndex({ match: allRows, work: beachesTree(), tracked: everyUnit });
+  const name = new Map(beaches.sealed.map((x) => [x[0], x[1]]));
+  const outcome = (l: StoreListing): string => {
+    const one = newTally();
+    matchListing(s, l, bsi, one);
+    return one.drafts.length ? one.drafts.map((d) => `${d.inStock ? "in stock" : "sold out"} ${name.get(d.productId) ?? `CARD ${d.productId}`}`).join(", ") : `miss:${Object.keys(one.misses).join(",")}`;
+  };
+  // The title as the store writes it -> what the import keeps. A skip names the matcher's reason.
+  const want: [string, string][] = [
+    ["MTG Marvel Super Heroes - Gift Bundle", "in stock Marvel Super Heroes - Gift Bundle"],
+    ["Magic the Gathering - Prerelease - Star Trek - 11th November @ 6:30pm", "miss:name-setname-not-in-catalogue"],          // a seat at the prerelease (product type "Event Entry"), not a Prerelease Pack
+    ["MTG Magic Star Trek - Bundle", "in stock Star Trek - Bundle"],
+    ["MTG Star Trek - Beam Me Up Bundle", "in stock Star Trek - Beam Me Up Bundle"],
+    ["MTG Star Trek - Play Booster Pack", "miss:implausible-price"],                                                   // A$10.99 (US$7.33) under half TCGplayer's pre-release market of US$14.96
+    ["MTG Star Trek - Play Booster Box", "in stock Star Trek - Play Booster Display"],
+    ["MTG Star Trek - Collector Booster Pack", "in stock Star Trek - Collector Booster Pack"],
+    ["MTG Star Trek - Collector Booster Box", "in stock Star Trek - Collector Booster Display"],
+    ["MTG Star Trek - Commander Deck (Assorted see instore for availability)", "miss:not-a-single"],                    // one of four decks: none of them
+    ["MTG Star Trek - Collector Commander (Assorted see instore for availability)", "miss:nokey"],
+    ["MTG Star Trek - Scene Box (assorted)", "miss:not-a-single"],
+    ["MTG Reality Fracture Single Play Booster Pack", "in stock Reality Fracture - Play Booster"],                       // "Single": one pack
+    ["MTG Reality Fracture - Bundle", "in stock Reality Fracture - Bundle"],
+    ["MTG The Hobbit Single - Play Booster Pack", "in stock The Hobbit - Play Booster Pack"],
+    ["MTG Marvel Super Heroes - Collector Booster Box", "in stock Marvel Super Heroes - Collector Booster Display"],
+    ["MTG Marvel Super Heroes - Jumpstart Booster", "in stock Marvel Super Heroes - Jumpstart Booster Pack"],
+    ["Spiderman - Play Booster Box", "miss:sealed-no-product"],                                                        // TCGplayer's set is "Marvel's Spider-Man": no alias for a store's spelling without SKUs
+    ["Spiderman - Gift Bundle", "miss:sealed-no-product"],
+    ["Spiderman - Collector Booster Box", "miss:sealed-no-product"],
+    ["Teenage Mutant Ninja Turtles - Play Booster Pack", "in stock Teenage Mutant Ninja Turtles - Play Booster Pack"],
+    ["Teenage Mutant Ninja Turtles - Play Booster Display", "in stock Teenage Mutant Ninja Turtles - Play Booster Display"],
+    ["Teenage Mutant Ninja Turtles - Commander Deck", "miss:sealed-no-product"],                                         // names no deck ("Turtle Power!")
+    ["Teenage Mutant Ninja Turtles - Bundle", "in stock Teenage Mutant Ninja Turtles - Bundle"],
+    ["MTG Reality Fracture - Prerelease Pack", "sold out Reality Fracture - Prerelease Pack"],
+    ["MTG Reality Fracture - Secret Lair Bundle", "sold out Reality Fracture - Secret Lair Bundle"],
+    ["MTG Reality Fracture - Single Collector Booster Pack", "sold out Reality Fracture - Collector Booster"],
+    ["MTG Reality Fracture - Play Booster Box", "sold out Reality Fracture - Play Booster Display"],
+    ["MTG Reality Fracture - Collector Booster Box", "sold out Reality Fracture - Collector Booster Display"],
+    ["MTG Reality Fracture - Commander Deck", "miss:sealed-no-product"],                                                // names no deck ("Multiverse Reforged")
+    ["MTG The Hobbit - Prerelease Pack", "sold out The Hobbit - Prerelease Pack"],
+    ["MTG The Hobbit - Bundle", "sold out The Hobbit - Bundle"],
+    ["MTG The Hobbit - Gift Bundle", "sold out The Hobbit - Gift Bundle"],
+    ["MTG The Hobbit - Single Collector Booster Pack", "sold out The Hobbit - Collector Booster Pack"],
+    ["MTG The Hobbit - Collector Booster Box", "sold out The Hobbit - Collector Booster Display"],
+    ["MTG The Hobbit - Play Booster Box", "sold out The Hobbit - Play Booster Display"],
+    ["MTG Marvel Super Heroes - Beginner Box", "miss:nokey"],                                                           // "Beginner Box" is not a sealed word of the matcher
+    ["MTG Marvel Super Heroes - Collector Booster Pack", "sold out Marvel Super Heroes - Collector Booster Pack"],
+    ["MTG Marvel Super Heroes - Play Booster Pack", "sold out Marvel Super Heroes - Play Booster Pack"],
+    ["MTG Marvel Super Heroes - Play Booster Box", "sold out Marvel Super Heroes - Play Booster Display"],
+    ["Spiderman - Play Booster Pack", "miss:sealed-no-product"],
+    ["Spiderman - Collector Booster Pack", "miss:sealed-no-product"],
+    ["Avatar: The Last Airbender - Commander's Bundle", "sold out Avatar: The Last Airbender - Commander's Bundle"],
+    ["Lorwyn Eclipsed - Collector Booster Box", "sold out Lorwyn Eclipsed - Collector Booster Display"],
+    ["Lorwyn Eclipsed - Play Booster Box", "sold out Lorwyn Eclipsed - Play Booster Display"],
+    ["Lorwyn Eclipsed - Play Booster", "sold out Lorwyn Eclipsed - Play Booster Pack"],
+    ["Teenage Mutant Ninja Turtles - Collector Booster", "sold out Teenage Mutant Ninja Turtles - Collector Booster Pack"],
+    ["Teenage Mutant Ninja Turtles - Collector Booster Display", "sold out Teenage Mutant Ninja Turtles - Collector Booster Display"],
+    ["Teenage Mutant Ninja Turtles - Prerelease Pack", "sold out Teenage Mutant Ninja Turtles - Prerelease Pack"],
+    ["Teenage Mutant Ninja Turtles - Turtle Team-Up", "miss:nokey"],                                                    // "Team-Up" is not a sealed word of the matcher
+    ["Teenage Mutant Ninja Turtles - Pizza Bundle", "sold out Teenage Mutant Ninja Turtles - Pizza Bundle"],
+    ["Lorwyn Eclipsed - Bundle", "sold out Lorwyn Eclipsed - Bundle"],
+    ["Magic - Commander Deck - Dance of the Elements", "miss:sealed-no-product"],                                       // names no set: a deck name alone is never a key
+    ["Magic - Commander Deck - Blight Curse", "miss:sealed-no-product"],
+    ["Strixhaven - Play Booster Pack", "miss:sealed-no-product"],                                                      // Strixhaven: School of Mages or Secrets of Strixhaven: never guessed
+    ["Strixhaven - Play Booster Box", "miss:sealed-no-product"],
+    ["Strixhaven - Bundle", "miss:sealed-no-product"],
+    ["Strixhaven - Single Collector Booster Pack", "miss:sealed-no-product"],
+    ["Strixhaven - Collector Booster Box", "miss:sealed-no-product"],
+    ["Magic - Commander Deck - Silverquill Influence", "miss:sealed-no-product"],
+    ["Magic - Commander Deck - Prismari Artistry", "miss:sealed-no-product"],
+    ["Magic - Commander Deck - Witherbloom Pestilence", "miss:sealed-no-product"],
+    ["Magic - Commander Deck - Lorehold Spirit", "miss:sealed-no-product"],
+    ["Magic - Commander Deck - Quandrix Unlimited", "miss:sealed-no-product"],
+    ["Magic Secrets of Strixhaven Codex Bundle", "sold out Secrets of Strixhaven - Codex Bundle"],
+  ];
+  assert.deepEqual(beachesListings.map((l) => [l.title, outcome(l)]), want);
+  const all = newTally();
+  for (const l of beachesListings) matchListing(s, l, bsi, all);
+  assert.equal(all.products, 64);
+  assert.equal(all.drafts.length, 38);
+  assert.ok(all.drafts.every((d) => name.has(d.productId) && d.finish === "N" && d.condition === null), "sealed offers only");
+  assert.equal(all.drafts.filter((d) => d.inStock).length, 14, "14 of its 22 in-stock Magic products: under the admission rule's 20");
+});
+
+test("Beaches TCG through the stage: its one Magic collection is read, and it is not admitted until a read matches 20 in-stock listings; admitted, it stages sealed offers only", async () => {
+  const s = storeByKey("beachestcg")!;
+  const real = globalThis.fetch;
+  const log: string[] = [];
+  const collections = ["boardgames", "dragon-ball-tcg", "dueling-guard", "events", "folders", "gundam-tcg", "latest-items", "magic-the-gathering", "miscellaneous-tcgs", "more-tcgs", "one-piece", "ongoing-sales", "playmats", "pokemon-slabs", "pokemon-tcg", "riftbound-tcg", "sleeves", "tcg-accessories", "tcg-accessories-1", "top-loaders", "Magic-The-Gathering-logo_4af8aa45-d1d6-441a-aee9-e4384dd7c8ed.jpg"];
+  globalThis.fetch = serve({
+    "/meta.json": '{"currency":"AUD"}',
+    "/sitemap.xml": `<?xml version="1.0"?><sitemapindex><sitemap><loc>${s.base}/sitemap_collections_1.xml?from=445423517908&amp;to=451616080084</loc></sitemap></sitemapindex>`,
+    "/sitemap_collections_1.xml": sitemap(...collections),
+    "/collections/magic-the-gathering/products.json": (u) => (u.searchParams.get("page") === "1" ? JSON.stringify({ products: beaches.products }) : '{"products":[]}'),
+  }, log);
+  const ctxOf = () => ({ log: () => undefined, match: allRows, work: beachesTree(), tracked: everyUnit, cfg: { trackFloorCents: 500, trackExitRatio: 0.8 }, offers: { cards: [], sealed: [], reads: [] } }) as unknown as ImportContext;
+  try {
+    const ctx = ctxOf();
+    const [r] = await importStores(ctx, { only: ["beachestcg"] });
+    assert.equal(r!.failed, false, r!.note);
+    assert.equal(r!.products, 64);
+    assert.equal(r!.skipped, "not admitted: 14 matched in-stock listings (needs 20)");
+    assert.deepEqual([ctx.offers!.reads, ctx.offers!.cards, ctx.offers!.sealed], [[], [], []], "nothing is published for the pair");
+    assert.deepEqual(log.filter((u) => u.includes("/products.json")), [`/collections/magic-the-gathering/products.json?limit=250&page=1&country=AU`], "one page of its one Magic collection, priced in AU");
+    // Admitted (a read with 20 matched in-stock listings, or the owner's hand): sealed offers of the store in AU, no card.
+    (s as { status: string }).status = "verified";
+    const ok = ctxOf();
+    const [v] = await importStores(ok, { only: ["beachestcg"] });
+    assert.deepEqual([v!.cards, v!.sealed, v!.inStock], [0, 38, 14]);
+    assert.deepEqual(ok.offers!.reads.map((x) => [x.store, x.market, x.ok]), [[415, 1, true]]);
+    for (const o of ok.offers!.sealed) { assert.equal(o.store, 415); assert.equal(o.market, 1); assert.ok(o.path.startsWith("/products/"), o.path); }
+    assert.equal(ok.offers!.sealed.find((o) => o.productId === 706138)?.priceCents, 34999, "Star Trek - Play Booster Display at A$349.99");
+  } finally {
+    globalThis.fetch = real;
+    (s as { status: string }).status = "unverified";
+  }
+});
+
+test("a sealed-only store never turns a listing into a single: the same three ShadowPOS cards make no offer there", () => {
+  const got = parseShadowposPage(fixture("shadowpos-page.html"), "https://gameandcompany.com")!;
+  const open = offersOf(store("shadowpos", "US", "https://gameandcompany.com"), got);
+  assert.equal(open.drafts.length, 4);
+  const sealedOnly = offersOf({ ...store("shadowpos", "US", "https://gameandcompany.com"), sealedOnly: true }, got);
+  assert.deepEqual([sealedOnly.matched, sealedOnly.drafts.length, sealedOnly.misses], [0, 0, { "sealed-only-store": 3 }]);
+});

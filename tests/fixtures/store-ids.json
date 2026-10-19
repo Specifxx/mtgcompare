@@ -2434,6 +2434,12 @@
    "key": "guardiangamesllc",
    "kind": "seed",
    "market": "US"
+  },
+  {
+   "id": 415,
+   "key": "beachestcg",
+   "kind": "seed",
+   "market": "AU"
   }
  ]
 }

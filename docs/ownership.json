@@ -1318,6 +1318,7 @@
   "tests/fixtures/status.sample.json": "WP21",
   "tests/fixtures/store-ids.json": "WP04",
   "tests/fixtures/stores": "WP04",
+  "tests/fixtures/stores/beachestcg-products.json": "WP04",
   "tests/fixtures/stores/bigcommerce-category.html": "WP04",
   "tests/fixtures/stores/ecwid-products.json": "WP04",
   "tests/fixtures/stores/ecwid-storefront.html": "WP04",

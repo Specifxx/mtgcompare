@@ -23,6 +23,8 @@ export interface StoreInfo {
   ecwidStoreId?: number;
   /** Stores whose bare title means foil (explicitFoil) vs nonfoil. The matcher never infers a finish from the headline (C2). */
   explicitFoil?: boolean;
+  /** A store that sells no singles (Beaches TCG: sealed product and event tickets only, 2026-10-19): only a sealed match becomes an offer; a listing the matcher reads as a single is a miss ("sealed-only-store"). */
+  sealedOnly?: boolean;
   status: StoreStatus;                // every seed store is "unverified" until the first production probe admits it (10.26)
   verifiedAt?: string;
   maxPages?: number;
