@@ -3206,3 +3206,45 @@ Reversal: move 415 to `RETIRED_STORE_IDS` and drop its row and its postage entry
 `tests/filter-search.test.ts` renders the panel (the box, its label, `type="search"`, `enterKeyHint`, the one `q` field, the copy, the price guide's hidden field, which pages show it); `tests/filter-chips.test.ts` pins the URL the box writes (words trimmed, filters kept, page and `_mk` dropped, Best match with the words) and the chip and Clear rules; `tests/search.test.ts` pins the narrowing over the 57 real products.
 
 Reversal: drop the box (or pass `hide={["q"]}`) and the panel carries `q` hidden again; `activeChips` and `clearFilters` can leave the words out again on their own. The planner's narrowing is independent of the box and should stay.
+
+## One card page for every market: all markets on the server, the visitor's picked in the browser; `/card/:slug` is one CDN copy — 2026-10-19
+
+**Owner:** the Vercel bill is crawler-driven (about 414K function invocations a week against about 725 analytics events); the costs are Fluid CPU and Fast Origin Transfer. "/card/[slug] should render the same page for every market … as OP Compare does", then move it from `pagesCdnMarket` to `pagesCdn`; make its HTML smaller; no ISR (billed per write, 2026-10-17).
+
+- **The page reads no visitor.** `src/app/card/[slug]/page.tsx` has no `getCountry()`, cookie or header: it renders on `BASELINE = DEFAULT_COUNTRY` (the US), and its metadata, JSON-LD offers and FAQPage are the US market's, the same as a crawler saw before (Googlebot crawls from the US). Every part that depends on the market is computed on the server for all six markets with `perMarket` / `perMarketList` (`src/lib/per-market.ts`, OP's, identical values stored once) and drawn by the client islands of `src/components/card/CardMarket.tsx` (`MarketTiles`, `MarketBoard`, `MarketTable`, `MarketHistory`, `MarketFaq`, the buy blocks, the banners, the eBay panel…), which read the market from `CountryProvider`. The first client render uses `DEFAULT_COUNTRY` like the server, so hydration matches; the cookie, then `/api/geo`, switch it after mount, with no server render. Relative times take the server's `now` so "2 h ago" hydrates identically.
+- **The server-only work stays on the server.** The board rows (`boardModel`, `src/lib/board-model.ts`: sorted, tagged `tcg`/`ebay`/`paid`, empty flags left out), the markets table (`marketsTableData`) and the buy rows arrive resolved; the islands never import the store registry, a loader or the board helpers (`tests/card-cdn.test.ts` walks their import closure: the one `src/lib/data` module they reach is the eBay panel's pure crawler check). `PriceBoard` and `CardMarketsTable` are now thin server wrappers over the same views, so sealed and the other pages render as before.
+- **The CDN.** `/card/:slug` moved from `pagesCdnMarket` to `pagesCdn`: one unconditional `Vercel-CDN-Cache-Control` rule and no `?_mk=` rewrite, so a card is one CDN copy for every visitor instead of up to one per market key. A crawler from Europe, Australia or Asia now hits the copy the US crawl made. Still `force-dynamic`, still no ISR.
+- **Smaller HTML.** Measured locally on the 2026-10-08 `.data` tree, mean of 11 cards (bare-URL HTML, the inline RSC payload inside it, and the `RSC: 1` route payload a client navigation fetches):
+  - before: HTML 241.8 KB, inline RSC 108.3 KB, RSC route 95.1 KB;
+  - after: HTML 224.0 KB (−7%), inline RSC 90.5 KB (−16%), RSC route 79.6 KB (−16%), while carrying all six markets.
+  - What went: the related-card tiles got a whole `CardLite` each (`tileCard`, `src/lib/tile.ts`, keeps the fields a tile draws: 25.8 KB to 6.4 KB on the sample); the history chart got a label per point and a year of days (`thinHistory`, `src/lib/chart.ts`: every day of the last 90, the last day of each week before; the chart draws a year in under 600 px, so the dropped days were never visible); the one-market server components' duplicated props; and the root `not-found.tsx`, which Next 14 renders into every page's RSC payload, no longer reads the plane (popular cards and sets were 7.7 KB per page, and a plane read per 404).
+  - What is left is site-wide: the layout chrome (header, menus, footer: about 66 KB of markup and 22 KB of RSC) is on every page. It is the next thing to cut, for every route at once.
+  - Bytes sent per crawled card per day fall more than the page does: one CDN copy is filled once, not once per market key.
+- **Sealed and sets stay market pages.** Not a small change: `/sets/[slug]` sorts, filters and paginates its card list by the visitor's market price on the server, and `/sealed/[slug]` has its own board, chart, box-EV block and FAQ per market. Each needs the same island split; the card page was the route with the most URLs (DECISIONS 2026-10-16: 26K runs per 12 h).
+
+`tests/card-cdn.test.ts` pins the CDN rule (no `has`, no rewrite), the absent visitor reads, the baseline JSON-LD, every island and the absence of the one-market components, the islands' import closure, `perMarket`, `boardModel` and `thinHistory`. `tests/headers-allowlist.test.ts` now expects `/card/:slug` in the market-neutral sources.
+
+Reversal: put `/card/:slug` back in `pagesCdnMarket`, then (if wanted) render the page on `getCountry()` again with the server components; the islands work either way.
+
+## Crawlers stop finding the thin pages: no href from list pages, commander hubs with nothing indexable leave the map — 2026-10-19
+
+**Owner:** "sitemap and internal links should cover only cards above INDEX_FLOOR. Thin pages should be noindex and not linked from list pages, so crawlers stop finding them. Report how many URLs are in the sitemap before and after."
+
+- **Already so:** a THIN row (outside the relevant quarter, which `relevantRows` never lets reach under `INDEX_FLOOR_CENTS`) is `noindex` and out of the cards sitemap (the section is exactly `isIndexable`, 2026-10-17). The published seq 40 has 98,990 listed card pages, 71,514 THIN, and 26,415 in the sitemap.
+- **No href for a thin card.** `CardAnchor` (`src/components/CardQuickLink.tsx`) draws a non-thin card as the usual `<Link prefetch={false}>` and a thin one as `<span role="link" tabIndex={0} data-card-href>`: a click (or the QuickView), Enter, a middle or modified click still open it for a person, but there is no `href` for a crawler to follow. The THIN bit reaches the tile grids (`CardTileClient`, via `tileCard`), `CardLinkGrid` (name, commander, colour, rarity and type hubs), the set price guide and `/price-guide`. Locally the M19 set page draws 157 thin printings as spans. The set checklist still contains every printing (2026-10-08): only its link changes.
+- **Commander hubs.** A commander whose every printing is THIN and who has no published deck is `noindex, follow` and out of the commanders sitemap (`idxOracles`, `src/lib/import.ts`).
+- **Sitemap URLs, seq 40:** before 41,762 (static 858, sets 401, sealed 3,760, commanders 3,467, card names 6,861, cards 26,415); after 39,940 (commanders 1,645, the rest unchanged). The card pages were already right; the effect that matters is the ~72,000 thin URLs losing their internal links, so a crawler that found them through set pages stops re-finding them.
+
+`tests/crawl-budget.test.ts` pins the sitemap filter, `CardAnchor`'s thin branch (no `href`, keyboard reachable), every list surface passing the bit, and the commander rule.
+
+Reversal: drop the `thin` props (every surface falls back to `<Link>`), and the `idxOracles` filter and the commander `robots` line.
+
+## Firewall rules for the crawler bill, and where the remaining invocations come from — 2026-10-19
+
+**Owner:** "Write firewall rules in a doc I can paste into Vercel: rate-limit unverified bots on /card/*, and block known AI/SEO scrapers that ignore robots.txt", and the ten routes most likely behind the remaining invocations.
+
+`docs/vercel-firewall.md` holds both. Four rules, rolled out in Log mode first: bypass our own `MTGCompare-*` jobs (else Bot Protection would challenge the status, smoke and crawl checks); deny the robots.txt-disallowed crawlers and the scraping libraries on non-`/api/` paths (the API keeps Stripe's webhook and eBay's deletion call); rate-limit `/card/` (which covers its share image) at 120 a minute per IP, plus JA4 on Pro; and the Bot Protection managed ruleset in Challenge mode. That ruleset is the only part of the firewall that verifies a bot (custom rules see a user agent, which can be faked), so it, not a user-agent rule, is the "unverified bots" rule. The AI Bots ruleset stays on Allow: Deny would also block the AI search agents robots.txt invites (2026-10-17).
+
+The top-ten list ranks the 2026-10-16 entry's measured routes by URL count, CDN copies per URL and what still misses. Only the first seven are measured, and the order is inference; Vercel Observability → Functions is the check.
+
+Reversal: delete the rules in the dashboard; nothing in the code depends on them.

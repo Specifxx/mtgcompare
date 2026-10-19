@@ -17,6 +17,8 @@ export interface SetPriceGuideRow {
   priceCents: number | null;
   /** In-stock stores in that market. */
   stores: number;
+  /** THIN: listed without an href (CardAnchor), so crawlers never reach it from the guide. */
+  thin?: boolean;
 }
 
 /** Every card, dearest first; cards with no live price last, by card number. */
@@ -48,6 +50,7 @@ export function checklistGuideRows(cards: readonly ChecklistCard[]): SetPriceGui
         number: c.number,
         priceCents: c.minCents,
         stores: c.stores,
+        ...(c.thin ? { thin: true } : {}),
       }),
     ),
   );

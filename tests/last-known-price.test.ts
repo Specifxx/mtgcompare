@@ -132,7 +132,7 @@ const ROOT = path.resolve(__dirname, "..");
 const walk = (d: string): string[] => (fs.existsSync(d) ? fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : /\.(ts|tsx|js|mjs|cjs|json)$/.test(e.name) ? [path.join(d, e.name)] : [])) : []);
 const rel = (f: string): string => path.relative(ROOT, f).split(path.sep).join("/");
 /** The ONLY files that may name a last known price: the selection, the component that draws it, and the two price spots that show it (the card page and the QuickView, with its payload and route). */
-const ALLOWED = new Set(["src/lib/price-history-view.ts", "src/components/LastKnownPrice.tsx", "src/app/card/[slug]/page.tsx", "src/components/QuickView.tsx", "src/lib/quick-view.ts", "src/app/api/card/[slug]/route.ts"]);
+const ALLOWED = new Set(["src/lib/price-history-view.ts", "src/components/LastKnownPrice.tsx", "src/app/card/[slug]/page.tsx", "src/components/card/CardMarket.tsx", "src/components/QuickView.tsx", "src/lib/quick-view.ts", "src/app/api/card/[slug]/route.ts"]);
 const NAME = /last[-_ ]?known/i;
 
 test("no ranking, sort, filter, index, deal, alert, basket, deck, collection, eBay, sitemap, share image, JSON-LD helper or plane file names the last known price", () => {
@@ -159,13 +159,18 @@ test("the card page: JSON-LD, the title and description, the FAQ, the prose, the
   const src = fs.readFileSync(path.join(ROOT, "src/app/card/[slug]/page.tsx"), "utf8");
   const meta = src.slice(src.indexOf("export async function generateMetadata"), src.indexOf("export default async function CardPage"));
   assert.ok(meta.length > 200 && !NAME.test(meta), "generateMetadata (title, description, robots, Open Graph)");
-  const blocks = ["<JsonLd", "ebayJsonLdOffers(", "buildCardFaqs(", "buildNarrative(", "<CardStickyBuyBar", "<CardTopBuy", "<CardBuyPair", "<PriceDropAlertCta", "<PriceBoard", "<TcgMarketPrice", "<EbayCardPanel", "<CardMarketsTable", "<CardNoListings", "priceState(", "priceToolChips("];
+  // Since 2026-10-19 the buy bars, the board, the reference and the eBay panel are the market islands (components/card/CardMarket.tsx), fed by the server models.
+  const blocks = ["<JsonLd", "ebayJsonLdOffers(", "buildCardFaqs(", "buildNarrative(", "<MarketStickyBuyBar", "<MarketTopBuy", "<MarketBuyPair", "<MarketAlertCta", "<MarketBoard", "boardModel(", "<MarketTcgReference", "<MarketEbayPanel", "<MarketTable", "marketsTableData(", "<MarketNoListings", "cheapestBuyRow(", "priceState(", "priceToolChips("];
   for (const b of blocks) {
     const at = all(src, b); assert.ok(at.length > 0, `${b} is on the page`);
     for (const i of at) assert.ok(!NAME.test(segment(src, i)), `${b} must not read the last known price`);
   }
   const ld = all(src, "<JsonLd").map((i) => segment(src, i)).join("\n");
-  assert.ok(/AggregateOffer/.test(ld) && /inMarket/.test(ld) && !/history|pastHistory|\bvh\b/.test(ld), "the structured data prices only the live listings in the market");
+  assert.ok(/AggregateOffer/.test(ld) && /inBaseline/.test(ld) && !/history|pastHistory|\bvh\b/.test(ld), "the structured data prices only the live listings in the market");
+  // In the islands, only the two price spots draw it.
+  const islands = fs.readFileSync(path.join(ROOT, "src/components/card/CardMarket.tsx"), "utf8");
+  const fns = islands.split(/\nexport function /).slice(1).map((b) => ({ name: b.slice(0, b.indexOf("(")), body: b }));
+  assert.deepEqual(fns.filter((f) => /lastKnown|LastKnown/.test(f.body)).map((f) => f.name).sort(), ["MarketLastKnown", "MarketTiles"]);
 });
 
 test("the component is muted, labelled and not a buy surface", () => {

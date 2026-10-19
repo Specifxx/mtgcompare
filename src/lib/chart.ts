@@ -90,3 +90,14 @@ export function linePath(ys: (number | null)[], X: (i: number) => number, Y: (v:
   });
   return d;
 }
+
+/** Daily points for the chart's last DAILY_DAYS, one per week before (the last day of each ISO week): the "All" view spans a year and draws the same line from
+ *  ~100 points as from 365, and every point is shipped once per card page. The 7D, 30D and 90D views keep every day. */
+export const DAILY_DAYS = 90;
+export function thinHistory<T extends { day: string }>(h: readonly T[]): T[] {
+  if (h.length <= DAILY_DAYS) return [...h];
+  const cut = h.length - DAILY_DAYS, out: T[] = [];
+  const week = (d: string) => Math.floor((Date.parse(`${d}T00:00:00Z`) / 86_400_000 + 3) / 7);   // days since 1970-01-05 (a Monday) / 7
+  for (let i = 0; i < cut; i++) if (i === cut - 1 || week(h[i]!.day) !== week(h[i + 1]!.day)) out.push(h[i]!);
+  return [...out, ...h.slice(cut)];
+}

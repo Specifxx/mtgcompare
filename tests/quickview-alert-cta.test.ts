@@ -23,8 +23,8 @@ test("QuickView renders the compact alert with its own placement, after the eBay
 
 test("the card page puts it under the top buy block, with the site's email status", () => {
   const page = read("src/app/card/[slug]/page.tsx");
-  const top = page.indexOf("<CardTopBuy");
-  const at = page.indexOf("<PriceDropAlertCta");
+  const top = page.indexOf("<MarketTopBuy");
+  const at = page.indexOf("<MarketAlertCta");
   assert.ok(top > 0 && at > top);
   assert.match(page, /emailOn=\{emailOn\}/);
   assert.match(page, /const emailOn = \(await getEmailStatus\(\)\) === "on"/);

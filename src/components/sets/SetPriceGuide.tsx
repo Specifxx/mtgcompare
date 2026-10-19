@@ -35,7 +35,7 @@ export function SetPriceGuide({ setName, rows, country, adjective, currency }: {
             {rows.map((r) => (
               <tr key={r.id}>
                 <td className="px-4 py-1.5">
-                  <CardQuickLink slug={r.slug} className="text-slate-100 hover:text-brand-300 hover:underline">
+                  <CardQuickLink slug={r.slug} thin={r.thin} className="text-slate-100 hover:text-brand-300 hover:underline">
                     {r.name}
                   </CardQuickLink>{" "}
                   <span className="num text-xs text-slate-500">{r.number}</span>

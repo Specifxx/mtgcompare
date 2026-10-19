@@ -4,28 +4,37 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CardArt, CardTile } from "@/components/CardTile";
-import { CardStickyBuyBar } from "@/components/CardStickyBuyBar";
-import { CardBuyPair, CardTopBuy, UntrackedPriceNotice } from "@/components/CardTopBuy";
+import { UntrackedPriceNotice } from "@/components/CardTopBuy";
 import { EbayBuyCta } from "@/components/EbayBuyCta";
-import { EbayCardBanner } from "@/components/EbayCardBanner";
-import { TcgMarketPrice } from "@/components/TcgMarketPrice";
-import { TcgplayerBanner } from "@/components/TcgplayerBanner";
-import { LineChart } from "@/components/LineChart";
-import { PriceBoard } from "@/components/PriceBoard";
 import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { CardViewBeacon } from "@/components/CardViewBeacon";
-import { LastKnownPrice } from "@/components/LastKnownPrice";
 import { DecksUsingCard } from "@/components/decks/DecksUsingCard";
 import { ShareButton } from "@/components/ShareButton";
 import { CardConversionCta } from "@/components/CardConversionCta";
-import { CardMarketsTable } from "@/components/CardMarketsTable";
-import { EbayCardPanel } from "@/components/EbayCardPanel";
-import { CardNoListings } from "@/components/CardNoListings";
+import {
+  MarketAlertCta,
+  MarketBanners,
+  MarketBoard,
+  MarketBuyPair,
+  MarketEbayPanel,
+  MarketFaq,
+  MarketHistory,
+  MarketLastKnown,
+  MarketNoListings,
+  MarketParagraphs,
+  MarketPlace,
+  MarketStickyBuyBar,
+  MarketTable,
+  MarketTcgReference,
+  MarketTiles,
+  MarketTopBuy,
+  type HistoryTuple,
+  type MarketTile,
+} from "@/components/card/CardMarket";
 import { KeywordText } from "@/components/KeywordTooltip";
 import { RelatedGuides } from "@/components/RelatedGuides";
 import { InlineSignupPrompt } from "@/components/InlineSignupPrompt";
 import { PriceWatchButton } from "@/components/PriceWatchButton";
-import { PriceDropAlertCta } from "@/components/PriceDropAlertCta";
 import { enabledProviders } from "@/lib/oauth";
 import {
   Breadcrumbs,
@@ -37,7 +46,7 @@ import {
   SectionHeader,
   StatTile,
 } from "@/components/ui";
-import { affiliateUrl, cardEbayQuery, ebayLabel, ebaySearchUrl, outboundRel } from "@/lib/affiliate";
+import { affiliateUrl, cardEbayQuery, outboundRel } from "@/lib/affiliate";
 import {
   availableFinishes,
   colorMask,
@@ -57,11 +66,12 @@ import {
   trackedBits,
   type Finish,
 } from "@/lib/constants";
-import { COUNTRIES, isoCountry } from "@/lib/country";
+import { COUNTRIES, DEFAULT_COUNTRY, MARKETS, isoCountry, type Country } from "@/lib/country";
 import { getCardDetail, getCardPage, getEmailStatus, getUnitHistory, type CardLite, type HistoryPoint } from "@/lib/data";
-import { longDate, money, usd } from "@/lib/format";
-import { getCountry } from "@/lib/get-country";
+import { longDate, usd } from "@/lib/format";
 import { cardImage } from "@/lib/images";
+import { tileCard } from "@/lib/tile";
+import { thinHistory } from "@/lib/chart";
 import { cardImageAlt } from "@/lib/image-alt";
 import { ReleaseAlertSlot } from "@/components/ReleaseAlertSlot";
 import { finishPrice, headline } from "@/lib/price";
@@ -79,11 +89,12 @@ import { buildCardFaqs, cardMetaDescription, cardTitle } from "@/lib/card-seo";
 import { cheaperAlternatives, priceToolChips, sameCharacter, sameNameCount } from "@/lib/card-related";
 import { elsewhereLine, lastSeen, priceState } from "@/lib/card-price-state";
 import { marketPriceListSentence, compareMarkets } from "@/lib/market-comparison";
+import { boardModel } from "@/lib/board-model";
+import { marketsTableData } from "@/lib/markets-table";
+import { perMarket, perMarketList, pickMarketList } from "@/lib/per-market";
 import { KEYWORDS, KEYWORD_BY_SLUG, cardKeywords } from "@/lib/keywords";
 import { marketRows } from "@/lib/quick-view";
-import { MARKETS } from "@/lib/country";
 import { facetBySlug, PRINTING_FACETS, RARITY_FACETS, TREATMENT_FACETS, TYPE_FACETS } from "@/lib/facets";
-import { ago } from "@/lib/format";
 
 type Props = { params: { slug: string }; searchParams?: { finish?: string } };
 
@@ -104,6 +115,16 @@ async function safe<T>(p: Promise<T>, empty: T): Promise<T> {
   } catch {
     return empty;
   }
+}
+
+/** The market the cached HTML is rendered on: its metadata, JSON-LD and first paint (the islands re-draw the visitor's after hydration). */
+const BASELINE: Country = DEFAULT_COUNTRY;
+const pickKnown = <T,>(pm: { values: T[]; at: Record<Country, number> }, m: Country): T => pm.values[pm.at[m]]!;
+/** A history day's per-market lows without the trailing nulls (most cards are listed in one or two markets). */
+function trimNulls(a: (number | null)[]): (number | null)[] {
+  let n = a.length;
+  while (n > 0 && a[n - 1] == null) n--;
+  return a.slice(0, n);
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -139,10 +160,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function CardPage({ params, searchParams }: Props) {
-  const country = getCountry();
-  const co = COUNTRIES[country];
+  // ONE PAGE FOR EVERY MARKET (DECISIONS.md, "One card page for every market", 2026-10-19): nothing here reads the visitor
+  // (no getCountry, cookie or header), so Vercel's CDN keeps one copy per URL. The HTML is rendered on the baseline market and
+  // its metadata and JSON-LD state that market; every market-dependent part is computed below for ALL markets (lib/per-market.ts)
+  // and drawn by the islands of components/card/CardMarket.tsx in the market CountryProvider resolves.
   const card = await getCardDetail(params.slug);
   if (!card) notFound();
+  const co = COUNTRIES[BASELINE];
+  // The render's clock: "updated 3h ago" reads the same on the server and in the hydrating browser.
+  const now = Date.now();
   // Outside the relevant quarter (the THIN bit, track.ts relevantRows): no price board, store rows, history or price FAQ; the TCGplayer and eBay buttons stay.
   const untracked = card.thin;
 
@@ -155,17 +181,16 @@ export default async function CardPage({ params, searchParams }: Props) {
   const unitLow = unit?.low ?? (finish === card.headFinish ? card.low : NO_LOW);
   const unitStores = unit?.stores ?? (finish === card.headFinish ? card.stores : NO_STORES);
   const marketUsd = quote?.market ?? null;
-  const lowOnlyUsd = marketUsd == null ? (quote?.low ?? null) : null;
   const unitChange7d = finish === card.headFinish ? card.change7d : (unit?.change7d ?? null);
   const unitChange30d = finish === card.headFinish ? card.change30d : (unit?.change30d ?? null);
   const unitHigh90 = finish === card.headFinish ? card.high90Usd : unit?.high90 != null ? unit.high90 : null;
-  const h = headline({ low: unitLow as CardLite["low"], stores: unitStores as CardLite["stores"], marketUsd }, country);
+  const headOf = (m: Country) => headline({ low: unitLow as CardLite["low"], stores: unitStores as CardLite["stores"], marketUsd }, m);
   const offers = card.offers.filter((o) => o.finish === finish);
-  // No current price in this market: a sold-out listing seen here fills the price spot first ("Last seen"), then the unit's
+  const anyInStock = offers.some((o) => o.inStock);
+  // No current price in a market: a sold-out listing seen there fills the price spot first ("Last seen"), then the unit's
   // OWN history (its last known price, muted and dated: lastKnownEligible, DECISIONS "Last known price"), else "—".
   // Display only: nothing below (JSON-LD, metadata, FAQ, narrative, buy bars, alerts, eBay) reads `lastKnown`.
-  const seen = lastSeen(offers, country);
-  const wantKnown = (card.thin || !seen) && lastKnownEligible(card, finish, h, offers.some((o) => o.inStock));
+  const wantKnown = (m: Country): boolean => (card.thin || !lastSeen(offers, m)) && lastKnownEligible(card, finish, headOf(m), anyInStock);
 
   const oracle = card.oracle;
   const trackedFinish = (trackedBits(card.mask) & (finish === "N" ? 1 : 2)) !== 0;
@@ -175,7 +200,7 @@ export default async function CardPage({ params, searchParams }: Props) {
   const [history, pastHistory, printingsPage, setTopPage, cheaperPage] = await Promise.all([
     trackedFinish ? safe(getUnitHistory({ id: card.id, finish }, 365), [] as HistoryPoint[]) : Promise.resolve([] as HistoryPoint[]),
     // A unit that left tracking keeps its series (history-codec.ts): read it only for the last known price of a unit with none now; the chart stays tracked-only.
-    wantKnown && !trackedFinish ? safe(getUnitHistory({ id: card.id, finish }, LAST_KNOWN_DAYS), [] as HistoryPoint[]) : Promise.resolve([] as HistoryPoint[]),
+    !trackedFinish && MARKETS.some(wantKnown) ? safe(getUnitHistory({ id: card.id, finish }, LAST_KNOWN_DAYS), [] as HistoryPoint[]) : Promise.resolve([] as HistoryPoint[]),
     card.oracleNo != null ? safe(getCardPage({ oracleNo: card.oracleNo, sort: "value", per: 48 }), null) : Promise.resolve(null),
     safe(getCardPage({ setIds: [card.set.id], sort: "value", per: 24 }), null),
     cheaperMax != null && cheaperMax > 0 && typeKey && typeKey !== "other"
@@ -187,8 +212,8 @@ export default async function CardPage({ params, searchParams }: Props) {
   const trackedPrinting = untracked ? ([...printings].filter((x) => !x.thin && x.id !== card.id).sort((a, b) => (a.marketUsd ?? Infinity) - (b.marketUsd ?? Infinity))[0] ?? null) : null;
   const fromSet = (setTopPage?.items ?? []).filter((x) => x.id !== card.id && x.slug !== card.slug).slice(0, 6);
   const title = displayTitle(card);
-  const vh = visitorHistory(history, country);
-  const lastKnown = wantKnown ? lastKnownPrice(h, trackedFinish ? vh : visitorHistory(pastHistory, country)) : null;
+  const knownSeries = trackedFinish ? history : pastHistory;
+  const known = perMarket((m) => (wantKnown(m) ? lastKnownPrice(headOf(m), visitorHistory(knownSeries, m)) : null));
 
   const stats: { label: string; value: string }[] = [];
   if (oracle?.manaCost) stats.push({ label: "Mana cost", value: oracle.manaCost });
@@ -201,20 +226,18 @@ export default async function CardPage({ params, searchParams }: Props) {
   const legalities = oracle ? FORMAT_UI.map((f) => ({ f, s: legalityOf(oracle.legal, f) })).filter((x) => x.s !== "unknown") : [];
   const legalIn = legalities.filter((x) => x.s === "legal" || x.s === "restricted").map((x) => FORMAT_LABEL[x.f]);
 
-  const inMarket = offers.filter((o) => o.market === country && o.inStock);
-  // "N stores" counts real stores only; the TCGplayer row is a listing, not a store.
-  const inStores = inMarket.filter((o) => isStoreSource(o.source));
+  const inMarketOf = (m: Country) => offers.filter((o) => o.market === m && o.inStock);
+  const inBaseline = inMarketOf(BASELINE);
   // The buy surfaces (top block, sticky bar, TCGplayer reference) tag their
   // links with the card's own path, like the board's rows ("-card" sub-ids).
   const loc = `/card/${card.slug}`;
-  const best = cheapestBuyRow(offers, country, loc);
+  const best = perMarket((m) => cheapestBuyRow(offers, m, loc));
   const tcgHref = affiliateUrl(tcgplayerUrl(card.id, finish), "tcgplayer", loc);
   const preRelease = isPreRelease(card.set.releasedOn, new Date().toISOString().slice(0, 10));
   // Alert copy promises an email only once a mailer is configured (cached Meta flag).
   const emailOn = (await getEmailStatus()) === "on";
-  const noListingAnywhere = !offers.some((o) => o.inStock);
+  const noListingAnywhere = !anyInStock;
   const ebayQuery = cardEbayQuery({ name: card.name, setName: card.set.name, variant: card.label, number: card.label ? card.number : null, foil: finish === "F" });
-  const ebayBuyHref = ebaySearchUrl(country, ebayQuery, "card-buy-pair");
   const imageAlt = cardImageAlt({ name: card.name, variant: card.label, setName: card.set.name, setCode: card.set.code, number: card.number, finish, finishWord: finishLabel(card, finish) === "Non-foil" ? null : finishLabel(card, finish) });
   const cardText = oracle?.oracleText ? (
     <div className="card-surface p-4">
@@ -227,9 +250,31 @@ export default async function CardPage({ params, searchParams }: Props) {
     </div>
   ) : null;
 
-  // ── Price state, narrative, FAQ, cross-links ──
-  const state = priceState(offers, country, { marketUsd, setKind: card.set.kind, printing: card.printing });
-  const elsewhere = elsewhereLine(state);
+  // ── Price state, narrative, FAQ, cross-links: every market's, the baseline's for the JSON-LD ──
+  const stateOpts = { marketUsd, setKind: card.set.kind, printing: card.printing };
+  const state = priceState(offers, BASELINE, stateOpts);   // hasListings and isEmpty do not depend on the market
+  const tiles = perMarket((m): MarketTile => {
+    const h = headOf(m), seen = lastSeen(offers, m);
+    return {
+      kind: h.kind,
+      cents: h.kind === "none" ? null : h.cents,
+      seen: seen ? { cents: seen.priceCents, at: seen.at } : null,
+      lastKnown: wantKnown(m) ? pickKnown(known, m) : null,
+      // "N stores" counts real stores only; the TCGplayer row is a listing, not a store.
+      stores: inMarketOf(m).filter((o) => isStoreSource(o.source)).length,
+      elsewhere: elsewhereLine(priceState(offers, m, stateOpts)),
+    };
+  });
+  const noListings = perMarket((m) => {
+    const st = priceState(offers, m, stateOpts);
+    return !st.hasListings || (st.noRetailChannel && !st.inMarket) ? st : null;
+  });
+  const boards = perMarket((m) => boardModel(offers, m, { page: "card", ebayQuery }));
+  const tables = perMarket((m) => marketsTableData(offers, card.name, m));
+  const unpriced = perMarket((m) => inMarketOf(m).length === 0);
+  const raw = Object.fromEntries(MARKETS.map((m) => [m, unitLow[m] ?? null])) as Record<Country, number | null>;
+  const historyRows: HistoryTuple[] = thinHistory(history).map((p) => [p.day, p.marketUsd, trimNulls(p.lows ?? [p.lowUsd])]);
+  const historyEmpty = trackedFinish ? `Price history starts ${history[0] ? longDate(history[0].day) : "with the first import"} — the chart draws once there are two days of prices.` : "This card is not price-tracked yet, so there is no history chart. TCGplayer and eBay buy links above are live.";
   const today = new Date().toISOString().slice(0, 10);
   const keys = cardKeywords(oracle?.keywords ?? []).map((sl) => KEYWORD_BY_SLUG.get(sl)).filter((k): k is NonNullable<typeof k> => !!k);
   const marketViews = MARKETS.map((m) => {
@@ -245,57 +290,64 @@ export default async function CardPage({ params, searchParams }: Props) {
     };
   });
   const baseSibling = siblings.find((x) => x.printing === "standard");
-  const narrative = buildNarrative({
-    name: card.name,
-    variant: card.label,
-    number: card.number,
-    printing: card.printing,
-    setName: card.set.name,
-    setCode: card.set.code,
-    setKind: card.set.kind,
-    releasedOn: card.set.releasedOn,
-    today,
-    rarity: card.rarity,
-    cardType: card.cardType,
-    typeLine: oracle?.typeLine ?? null,
-    colors: card.colors,
-    manaCost: oracle?.manaCost || null,
-    manaValue: oracle ? oracle.manaValue : null,
-    pt: oracle?.pt ?? null,
-    loyalty: oracle?.loyalty ?? null,
-    keywords: keys.map((k) => k.name),
-    legalIn,
-    commander: isCommander,
-    marketUsd: untracked ? null : marketUsd,
-    change7d: untracked ? null : unitChange7d,
-    change30d: untracked ? null : unitChange30d,
-    high90Usd: untracked ? null : unitHigh90,
-    baseline: untracked ? { ...marketViews.find((m) => m.country === country)!, lowestCents: null, secondCents: null, storeCount: 0, listingCount: 0 } : marketViews.find((m) => m.country === country)!,
-    markets: untracked ? [] : marketViews,
-    printings: untracked ? [] : siblings.map((x) => ({ label: PRINTING_SHORT[x.printing] ?? "Other", marketUsd: x.marketUsd })),
-    setContext: null,
-    sameNameElsewhere: sameNameCount(card, printings),
+  const paras = perMarketList((m) => {
+    const baseline = marketViews.find((v) => v.country === m)!;
+    return buildNarrative({
+      name: card.name,
+      variant: card.label,
+      number: card.number,
+      printing: card.printing,
+      setName: card.set.name,
+      setCode: card.set.code,
+      setKind: card.set.kind,
+      releasedOn: card.set.releasedOn,
+      today,
+      rarity: card.rarity,
+      cardType: card.cardType,
+      typeLine: oracle?.typeLine ?? null,
+      colors: card.colors,
+      manaCost: oracle?.manaCost || null,
+      manaValue: oracle ? oracle.manaValue : null,
+      pt: oracle?.pt ?? null,
+      loyalty: oracle?.loyalty ?? null,
+      keywords: keys.map((k) => k.name),
+      legalIn,
+      commander: isCommander,
+      marketUsd: untracked ? null : marketUsd,
+      change7d: untracked ? null : unitChange7d,
+      change30d: untracked ? null : unitChange30d,
+      high90Usd: untracked ? null : unitHigh90,
+      baseline: untracked ? { ...baseline, lowestCents: null, secondCents: null, storeCount: 0, listingCount: 0 } : baseline,
+      markets: untracked ? [] : marketViews,
+      printings: untracked ? [] : siblings.map((x) => ({ label: PRINTING_SHORT[x.printing] ?? "Other", marketUsd: x.marketUsd })),
+      setContext: null,
+      sameNameElsewhere: sameNameCount(card, printings),
+    }).paragraphs;
   });
-  const cmpHere = compareMarkets(offers, co.currency);
-  const faqs = buildCardFaqs({
-    name: card.name,
-    displayName: title,
-    number: card.number,
-    setName: card.set.name,
-    setCode: card.set.code,
-    rarity: card.rarity,
-    cardType: card.cardType,
-    colors: card.colors,
-    printing: card.printing,
-    country,
-    lowest: h.kind === "listing" ? h.cents : null,
-    stores: h.kind === "listing" ? h.stores : 0,
-    printingCount: siblings.length,
-    marketUsd,
-    baseMarketUsd: baseSibling?.marketUsd ?? null,
-    currencyAnswer: cmpHere.quotes.length >= 2 ? marketPriceListSentence(cmpHere) : null,
-    preRelease,
+  const faqs = perMarketList((m) => {
+    if (untracked) return [];
+    const h = headOf(m), cmp = compareMarkets(offers, COUNTRIES[m].currency);
+    return buildCardFaqs({
+      name: card.name,
+      displayName: title,
+      number: card.number,
+      setName: card.set.name,
+      setCode: card.set.code,
+      rarity: card.rarity,
+      cardType: card.cardType,
+      colors: card.colors,
+      printing: card.printing,
+      country: m,
+      lowest: h.kind === "listing" ? h.cents : null,
+      stores: h.kind === "listing" ? h.stores : 0,
+      printingCount: siblings.length,
+      marketUsd,
+      baseMarketUsd: baseSibling?.marketUsd ?? null,
+      currencyAnswer: cmp.quotes.length >= 2 ? marketPriceListSentence(cmp) : null,
+      preRelease,
+    });
   });
+  const baselineFaqs = pickMarketList(faqs, BASELINE);
   const cheaper = cheaperPage ? cheaperAlternatives(card, cheaperPage.items) : [];
   const sameChar = sameCharacter(card, printings);
   const tools = priceToolChips({ cardType: card.cardType, name: card.name, setSlug: card.set.slug, hasSealed: card.set.sealedCount > 0, priced: state.hasListings || marketUsd != null });
@@ -306,8 +358,9 @@ export default async function CardPage({ params, searchParams }: Props) {
   // /cards/printing/<x> is a legacy 308 to /cards/treatment/<x>: link the treatment page itself (a link through a redirect is a wasted crawl)
   const treatmentFacet = printingFacet ? facetBySlug(TREATMENT_FACETS, printingFacet.slug) : undefined;
   const guides = guidesForCatalogue("card");
+  const anyKnown = known.values.some((k) => k != null);
 
-  const ebayLd = ebayJsonLdOffers(inMarket, co.currency, isoCountry(country));
+  const ebayLd = ebayJsonLdOffers(inBaseline, co.currency, isoCountry(BASELINE));
   return (
     <div>
       <JsonLd
@@ -320,18 +373,18 @@ export default async function CardPage({ params, searchParams }: Props) {
           brand: { "@type": "Brand", name: "Magic: The Gathering" },
           category: "Trading card",
           url: `${SITE_URL}/card/${card.slug}`,
-          ...(inMarket.length && !untracked
+          ...(inBaseline.length && !untracked
             ? {
                 offers: {
                   "@type": "AggregateOffer",
                   priceCurrency: co.currency,
                   lowPrice: (
-                    Math.min(...inMarket.map((o) => o.priceCents)) / 100
+                    Math.min(...inBaseline.map((o) => o.priceCents)) / 100
                   ).toFixed(2),
                   highPrice: (
-                    Math.max(...inMarket.map((o) => o.priceCents)) / 100
+                    Math.max(...inBaseline.map((o) => o.priceCents)) / 100
                   ).toFixed(2),
-                  offerCount: inMarket.length,
+                  offerCount: inBaseline.length,
                   availability: "https://schema.org/InStock",
                   ...(ebayLd.length ? { offers: ebayLd } : {}),
                 },
@@ -339,7 +392,7 @@ export default async function CardPage({ params, searchParams }: Props) {
             : {}),
         }}
       />
-      {faqs.length && !untracked ? <JsonLd data={faqLd(faqs)} /> : null}
+      {baselineFaqs.length ? <JsonLd data={faqLd(baselineFaqs)} /> : null}
       <Breadcrumbs
         trail={[
           { href: "/browse", name: "Cards" },
@@ -435,19 +488,19 @@ export default async function CardPage({ params, searchParams }: Props) {
             ) : null}
             {untracked ? (
               <UntrackedPriceNotice name={card.name} tracked={trackedPrinting ? { slug: trackedPrinting.slug, label: `${trackedPrinting.name} (${trackedPrinting.setCode}${trackedPrinting.label ? `, ${trackedPrinting.label}` : ""})` } : null}>
-                <CardBuyPair tcgHref={tcgHref} ebayHref={ebayBuyHref} ebayName={ebayLabel(country)} preRelease={preRelease} page="card" slug={card.slug} />
+                <MarketBuyPair tcgHref={tcgHref} ebayQuery={ebayQuery} preRelease={preRelease} page="card" slug={card.slug} />
               </UntrackedPriceNotice>
             ) : (
               <>
-            <CardBuyPair tcgHref={tcgHref} ebayHref={ebayBuyHref} ebayName={ebayLabel(country)} preRelease={preRelease} page="card" slug={card.slug} />
-            <CardTopBuy best={best} country={country} page="card" slug={card.slug} />
-            <PriceDropAlertCta
+            <MarketBuyPair tcgHref={tcgHref} ebayQuery={ebayQuery} preRelease={preRelease} page="card" slug={card.slug} />
+            <MarketTopBuy best={best} page="card" slug={card.slug} />
+            <MarketAlertCta
               cardId={card.id}
               slug={card.slug}
               name={title}
               cardPath={loc}
               providers={enabledProviders()}
-              unpriced={inMarket.length === 0}
+              unpriced={unpriced}
               preorder={preRelease}
               emailOn={emailOn}
             />
@@ -460,46 +513,8 @@ export default async function CardPage({ params, searchParams }: Props) {
               </div>
             ) : null}
             <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {untracked ? (
-                lastKnown ? (
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">No current price · {co.place}</p>
-                    <LastKnownPrice known={lastKnown} country={country} className="mt-1" />
-                  </div>
-                ) : null
-              ) : (
-              <>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                  {lastKnown ? "No current price" : "Cheapest"} · {co.place}
-                </p>
-                {lastKnown ? (
-                  <LastKnownPrice known={lastKnown} country={country} className="mt-1" />
-                ) : (
-                <p className="num mt-1 text-xl font-bold text-accent">
-                  {h.kind === "listing"
-                    ? money(h.cents, country)
-                    : h.kind === "reference"
-                      ? `≈ ${money(h.cents, country)}`
-                      : seen
-                        ? money(seen.priceCents, country)
-                        : "—"}
-                </p>
-                )}
-                {h.kind === "none" && seen ? <p className="mt-0.5 text-[11px] text-slate-500">Last seen {ago(seen.at)}</p> : null}
-              </div>
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                  In stock at · {co.code}
-                </p>
-                <p className="num mt-1 text-xl font-bold text-white">
-                  {inStores.length} {inStores.length === 1 ? "store" : "stores"}
-                </p>
-                {elsewhere ? <p className="mt-0.5 text-[11px] text-slate-500">{elsewhere}</p> : null}
-              </div>
-              </>
-              )}
-              {stats.slice(0, untracked ? (lastKnown ? 3 : 4) : 2).map((s) => (
+              {untracked ? <MarketLastKnown known={known} /> : <MarketTiles tiles={tiles} now={now} />}
+              {stats.slice(0, untracked ? (anyKnown ? 3 : 4) : 2).map((s) => (
                 <div key={s.label}>
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                     {s.label}
@@ -538,16 +553,13 @@ export default async function CardPage({ params, searchParams }: Props) {
             </Link>
           </p>
 
-          {!state.hasListings || (state.noRetailChannel && !state.inMarket) ? (
-            <CardNoListings cardId={card.id} name={title} slug={card.slug} country={country} state={state} setName={card.set.name} setSlug={card.set.slug} preRelease={preRelease} inStockPrintings={inStockPrintings} />
-          ) : null}
+          <MarketNoListings states={noListings} cardId={card.id} name={title} slug={card.slug} setName={card.set.name} setSlug={card.set.slug} preRelease={preRelease} inStockPrintings={inStockPrintings} />
 
-          <PriceBoard
+          <MarketBoard
+            boards={boards}
             productId={card.id}
             finish={finish}
-            offers={offers}
-            country={country}
-            ebayQuery={ebayQuery}
+            now={now}
             page="card"
             id="price-comparison"
             slug={card.slug}
@@ -558,11 +570,10 @@ export default async function CardPage({ params, searchParams }: Props) {
           {/* Under the comparison, never in it: TCGplayer's market price as a
               reference with its affiliate button, then the card's eBay banner
               and TCGplayer's (ads: hidden for Plus and Premium members). */}
-          <TcgMarketPrice marketUsd={marketUsd} country={country} href={tcgHref} page="card" card={card.slug} />
+          <MarketTcgReference marketUsd={marketUsd} href={tcgHref} page="card" card={card.slug} />
           </>
           )}
-          <EbayCardBanner country={country} query={ebayQuery} name={title} page="card" card={card.slug} />
-          <TcgplayerBanner country={country} page="card" card={card.slug} />
+          <MarketBanners query={ebayQuery} name={title} page="card" card={card.slug} />
           {cardText ? <div className="lg:hidden">{cardText}</div> : null}
 
           {legalities.length ? (
@@ -581,24 +592,7 @@ export default async function CardPage({ params, searchParams }: Props) {
             </section>
           ) : null}
 
-          {untracked ? null : (
-          <section className="card-surface p-5">
-            <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="text-lg text-white">{vh.title}</h2>
-              <p className="text-xs text-slate-400">
-                TCGplayer market shown in {vh.currency} at an indicative rate{vh.lowSince && vh.lowDays < history.length ? `; ${co.place} listing history starts ${longDate(vh.lowSince)}` : ""}
-              </p>
-            </div>
-            <LineChart
-              series={[
-                { label: `Cheapest ${co.adjective} listing`, color: "#a259e6", points: vh.low.points },
-                { label: "TCGplayer market (converted)", color: "#e9b73a", points: vh.market.points, dashed: true },
-              ]}
-              format={(v) => money(Math.round(v), country)}
-              empty={trackedFinish ? `Price history starts ${history[0] ? longDate(history[0].day) : "with the first import"} — the chart draws once there are two days of prices.` : "This card is not price-tracked yet, so there is no history chart. TCGplayer and eBay buy links above are live."}
-            />
-          </section>
-          )}
+          {untracked ? null : <MarketHistory history={historyRows} empty={historyEmpty} />}
 
           <InlineSignupPrompt surface="card" title="Get the top deals in your market, free" body="A free account shows Deal Finder's three biggest savings in your market right now, and is how you get Plus or Premium when you want them." />
 
@@ -606,9 +600,7 @@ export default async function CardPage({ params, searchParams }: Props) {
           <section className="card-surface p-5" aria-label={`About ${card.name}`}>
             <h2 className="font-bold text-white">About {card.name}</h2>
             <div className="mt-3 max-w-3xl space-y-3 text-sm leading-relaxed text-slate-300">
-              {narrative.paragraphs.map((p, i) => (
-                <p key={i}>{p}</p>
-              ))}
+              <MarketParagraphs paras={paras} />
               {oracle?.oracleText ? (
                 <p className="text-slate-400">
                   <KeywordText text={oracle.oracleText.replace(/\n+/g, " ")} />
@@ -656,22 +648,9 @@ export default async function CardPage({ params, searchParams }: Props) {
             </div>
           </section>
 
-          {untracked || !faqs.length ? null : (
-          <section className="card-surface p-5">
-            <h2 className="font-bold text-white">Frequently asked questions</h2>
-            <dl className="mt-3 space-y-4">
-              {faqs.map((f) => (
-                <div key={f.q}>
-                  <dt className="font-semibold text-white">{f.q}</dt>
-                  <dd className="mt-1 max-w-3xl text-sm leading-relaxed text-slate-400">{f.a}</dd>
-                </div>
-              ))}
-            </dl>
-          </section>
+          <MarketFaq faqs={faqs} />
 
-          )}
-
-          {untracked ? null : <CardMarketsTable offers={offers} name={card.name} country={country} />}
+          {untracked ? null : <MarketTable tables={tables} name={card.name} />}
           <AdSlot slot="card" thin={!state.hasListings && card.marketUsd == null} />
 
           {untracked ? null : (
@@ -741,7 +720,7 @@ export default async function CardPage({ params, searchParams }: Props) {
           </section>
 
           {/* The last in-column section: captured eBay listings and slabs. */}
-          {untracked ? null : <EbayCardPanel productId={card.id} country={country} query={ebayQuery} name={title} card={card.slug} rawCents={unitLow[country] ?? null} preRelease={preRelease} />}
+          {untracked ? null : <MarketEbayPanel productId={card.id} query={ebayQuery} name={title} card={card.slug} raw={raw} preRelease={preRelease} />}
         </div>
       </div>
 
@@ -749,15 +728,14 @@ export default async function CardPage({ params, searchParams }: Props) {
         <section id="printings" className="mt-10 scroll-mt-20">
           <SectionHeader
             title={`Other printings of ${card.name} in ${card.set.name}`}
-            sub={`The same card in other art and frames from this set — priced in ${co.place}.`}
+            sub={<>The same card in other art and frames from this set — priced in <MarketPlace />.</>}
           />
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {siblings.slice(0, 12).map((s) => (
               <CardTile
                 key={s.id}
-                card={s}
+                card={tileCard(s)}
                 setCode={s.setCode}
-                country={country}
               />
             ))}
           </div>
@@ -769,7 +747,7 @@ export default async function CardPage({ params, searchParams }: Props) {
           <SectionHeader title={`Cheaper ${card.colors[0] ?? ""} ${(card.cardType ?? "card").toLowerCase()}s in ${card.set.name}`.replace(/\s+/g, " ")} sub="Same set, colour and type, strictly cheaper on TCGplayer." />
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {cheaper.map((s) => (
-              <CardTile key={s.id} card={s} setCode={card.set.code} country={country} />
+              <CardTile key={s.id} card={tileCard(s)} setCode={card.set.code} />
             ))}
           </div>
         </section>
@@ -780,7 +758,7 @@ export default async function CardPage({ params, searchParams }: Props) {
           <SectionHeader title={`${card.name} in other sets`} sub="Every other printing with this name, one per set." />
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {sameChar.map((s) => (
-              <CardTile key={s.id} card={s} setCode={s.setCode} country={country} />
+              <CardTile key={s.id} card={tileCard(s)} setCode={s.setCode} />
             ))}
           </div>
         </section>
@@ -800,9 +778,8 @@ export default async function CardPage({ params, searchParams }: Props) {
             {fromSet.map((s) => (
               <CardTile
                 key={s.id}
-                card={s}
+                card={tileCard(s)}
                 setCode={card.set.code}
-                country={country}
               />
             ))}
           </div>
@@ -815,21 +792,7 @@ export default async function CardPage({ params, searchParams }: Props) {
       <RecentlyViewed className="mt-10" record={{ slug: card.slug, name: card.name, variant: card.label, setCode: card.set.code, number: card.number, img: card.hasImage ? cardImage.thumb(card.id) : null }} />
 
       <RelatedGuides guides={guides} className="card-surface mt-10 p-5" />
-      {untracked ? null : <CardStickyBuyBar
-        boardId="price-comparison"
-        price={best ? money(best.priceCents, country) : undefined}
-        store={best?.label}
-        href={best?.href}
-        retailer={best?.retailer}
-        ebay={best?.ebay}
-        tcgHref={tcgHref}
-        ebayHref={ebayBuyHref}
-        ebayName={ebayLabel(country)}
-        page="card"
-        slug={card.slug}
-        name={title}
-        cardId={card.id}
-      />}
+      {untracked ? null : <MarketStickyBuyBar best={best} boardId="price-comparison" tcgHref={tcgHref} ebayQuery={ebayQuery} page="card" slug={card.slug} name={title} cardId={card.id} />}
     </div>
   );
 }

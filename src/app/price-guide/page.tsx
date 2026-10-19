@@ -232,6 +232,7 @@ export default async function PriceGuidePage({ searchParams: raw }: { searchPara
                     <td>
                       <CardQuickLink
                         slug={x.slug}
+                        thin={x.thin}
                         className="group flex min-w-0 items-center gap-3"
                       >
                         {x.hasImage ? (

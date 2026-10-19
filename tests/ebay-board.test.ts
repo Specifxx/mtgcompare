@@ -55,13 +55,15 @@ test("links re-tag at render as mc-<mkt>-ebay-<page>-product", () => {
 });
 
 test("the board: eBay button, basis line, search strip relabel, disclosure on first paint", () => {
-  const src = fs.readFileSync(path.resolve(__dirname, "../src/components/PriceBoard.tsx"), "utf8");
+  // The board is drawn by PriceBoardView from a server-resolved model (lib/board-model.ts) since 2026-10-19: the paid flag is set there.
+  const src = fs.readFileSync(path.resolve(__dirname, "../src/components/PriceBoardView.tsx"), "utf8");
+  assert.match(fs.readFileSync(path.resolve(__dirname, "../src/lib/board-model.ts"), "utf8"), /if \(isPaidLink\(x\.url\)\) r\.paid = true;/);
   assert.match(src, /btn-ebay/);
   assert.match(src, /Buy on eBay →/);
   assert.match(src, /Cheapest matching listing we found/);
   assert.match(src, /More listings on \$\{ebayLabel\(country\)\} →/);
   assert.match(src, /Search \$\{ebayLabel\(country\)\} →/);
-  assert.match(src, /isPaidLink\(o\.url\)/);
+  assert.match(src, /\{o\.paid \? /);
   assert.match(src, /eBay Partner Network affiliate/);
   const disc = src.indexOf("eBay Partner Network affiliate");
   const openDetails = src.lastIndexOf("<details", disc);

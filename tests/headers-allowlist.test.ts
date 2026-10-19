@@ -133,7 +133,9 @@ test("market pages: a day at the CDN, public pages only, wired in next.config.js
     assert.equal(rs.length, 4, `${s}: four rewrites (market cookie, market IP, a cookie naming no market, an unplaced request)`);
     for (const x of rs) assert.ok(x.destination === `${s}?${MARKET_KEY}=:mk` || x.destination === `${s}?${MARKET_KEY}=1`, x.destination);
   }
-  assert.ok(CDN_MARKET_SOURCES.includes("/card/:slug") && CDN_MARKET_SOURCES.includes("/sealed/:slug") && CDN_MARKET_SOURCES.includes("/sets/:slug") && CDN_MARKET_SOURCES.includes("/price-guide") && CDN_MARKET_SOURCES.includes("/guides/:slug") && CDN_MARKET_SOURCES.includes("/blog/:slug"));
+  // /card/:slug left this list on 2026-10-19: it renders every market and picks the visitor's in the browser (one CDN copy, tests/card-cdn.test.ts)
+  assert.ok(!CDN_MARKET_SOURCES.includes("/card/:slug") && CDN_SOURCES.includes("/card/:slug"), "the card page is one market-neutral copy");
+  assert.ok(CDN_MARKET_SOURCES.includes("/sealed/:slug") && CDN_MARKET_SOURCES.includes("/sets/:slug") && CDN_MARKET_SOURCES.includes("/price-guide") && CDN_MARKET_SOURCES.includes("/guides/:slug") && CDN_MARKET_SOURCES.includes("/blog/:slug"));
 });
 
 test("market pages: the lists in headers.json are exactly getCountry's markets and the IP countries normalizeCountry sends to them", () => {

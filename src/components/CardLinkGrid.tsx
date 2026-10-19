@@ -41,7 +41,7 @@ export function CardLinkGrid({ cards, country, note }: { cards: Tile[]; country:
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
       {cards.map((card) => (
-        <CardQuickLink key={card.id} slug={card.slug} className="group card-surface flex flex-col overflow-hidden hover:border-ink-600">
+        <CardQuickLink key={card.id} slug={card.slug} thin={card.thin} className="group card-surface flex flex-col overflow-hidden hover:border-ink-600">
           <div className="relative bg-ink-850 p-3">
             <Ribbon card={card} />
             <CardArt id={card.id} hasImage={hasImageFor(card)} alt={`${card.name}${card.label ? ` (${card.label})` : ""} ${card.setCode} ${card.number ?? ""} Magic card`.replace(/\s+/g, " ")} />

@@ -240,5 +240,6 @@ test("card search opens a card hit in the QuickView; the TCGplayer banner is an 
   assert.match(banner, /data-ad-placement/);
   assert.match(banner, />Ad</);
   assert.match(banner, /affiliateUrl\(/);
-  assert.match(read("src/app/card/[slug]/page.tsx"), /<TcgplayerBanner/);
+  assert.match(read("src/app/card/[slug]/page.tsx"), /<MarketBanners /);
+  assert.match(read("src/components/card/CardMarket.tsx"), /<TcgplayerBanner /);
 });

@@ -32,6 +32,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${o.name} — Commander Prices, Printings & Decks`,
     description: `${o.name}, a ${identityName(o.identity).toLowerCase()} Magic commander: every printing priced across stores${c.decks.length ? ` and ${c.decks.length} published deck${c.decks.length === 1 ? "" : "s"}` : ""}.`,
     alternates: { canonical: `/commanders/${o.slug}` },
+    // Every printing THIN (outside the relevant quarter) and no published deck: nothing here a search engine should index (DECISIONS.md, "Crawlers stop finding the thin pages")
+    ...(c.printings.some((p) => !p.thin) || c.decks.length ? {} : { robots: { index: false, follow: true } }),
     openGraph: pageOg(`/commanders/${o.slug}`),
   };
 }

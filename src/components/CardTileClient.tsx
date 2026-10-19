@@ -2,7 +2,7 @@
 
 import { cardImageAlt } from "@/lib/image-alt";
 import { useRef } from "react";
-import Link from "next/link";
+import { CardAnchor } from "./CardQuickLink";
 import type { Country } from "@/lib/country";
 import type { CardLite } from "@/lib/data";
 import { money } from "@/lib/format";
@@ -42,7 +42,7 @@ export function CardTile({ card, setCode, country: fixed, priority = false }: { 
   function onPointerDown(e: React.PointerEvent) {
     downRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
   }
-  function onClick(e: React.MouseEvent<HTMLAnchorElement>) {
+  function onClick(e: React.MouseEvent<HTMLElement>) {
     if (!qv || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     const down = downRef.current;
     if (down && (Math.abs(e.clientX - down.x) > 8 || Math.abs(e.clientY - down.y) > 8 || Date.now() - down.t > 600)) return;
@@ -57,9 +57,9 @@ export function CardTile({ card, setCode, country: fixed, priority = false }: { 
       <div className="absolute right-2 top-2 z-30">
         <PriceWatchButton cardId={card.id} slug={card.slug} name={card.name} />
       </div>
-      <Link
+      <CardAnchor
         href={`/card/${card.slug}`}
-        prefetch={false}
+        thin={card.thin}
         onPointerDown={onPointerDown}
         onClick={onClick}
         onPointerEnter={warm}
@@ -112,7 +112,7 @@ export function CardTile({ card, setCode, country: fixed, priority = false }: { 
             ) : null}
           </div>
         </div>
-      </Link>
+      </CardAnchor>
     </div>
   );
 }

@@ -937,7 +937,7 @@ function writeViews(w: Writer, t: TreeView, ctx: ImportContext, view: RowView[],
     v: 1,
     sets: section("sets", snap.sets.filter((s) => !["art-series", "oversized"].includes(s.kind)).map((s) => s.slug)),
     sealed: section("sealed", sealedRows.filter((s) => !(s[7] & SEALED_FLAGS.GONE)).map((s) => s[1])),
-    commanders: section("commanders", oracleSlugs.filter((o) => o.flags & ORACLE_FLAGS.COMMANDER && o.nPrint > 0).map((o) => o.slug)),
+    commanders: section("commanders", oracleSlugs.filter((o) => o.flags & ORACLE_FLAGS.COMMANDER && o.nPrint > 0 && idxOracles.has(o.no)).map((o) => o.slug)),   // a commander whose every printing is THIN is noindex (its page) and out of the map, like the name hubs
     names: section("names", oracleSlugs.filter((o) => o.nPrint >= 2 && idxOracles.has(o.no)).map((o) => o.slug)),
     cards: section("cards", indexable.map((r) => r.c[1])), urls: { cards: indexable.length },
   };

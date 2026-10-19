@@ -29,7 +29,7 @@ test("eBay-collection copy is gated on data, so 'off' keeps the old wording", ()
     const cond = src.lastIndexOf(`${flag} ?`, at);
     assert.ok(cond > 0 && at - cond < 400, `${file}: "${phrase}" must sit inside {${flag} ? … }`);
   };
-  gated("src/components/PriceBoard.tsx", "hasEbayRow", "eBay&apos;s Buy It Now listings");
+  gated("src/components/PriceBoardView.tsx", "hasEbayRow", "eBay&apos;s Buy It Now listings");
   gated("src/lib/home-faq.ts", "opts.ebayLive", "the cheapest matching eBay listing");
   gated("src/components/home/RegionHome.tsx", "ebayLive", "plus the cheapest matching eBay listing");
   gated("src/app/methodology/page.tsx", "ebayLive", "We search eBay four times a day");
