@@ -161,7 +161,7 @@ test("every pre-order route: force-dynamic, no revalidate, the release's own can
     assert.match(page, /^export const dynamic = "force-dynamic";$/m, r.path);
     assert.doesNotMatch(page, /export const revalidate|generateStaticParams|@\/lib\/db["']/, r.path);
     assert.match(page, new RegExp(`canonical: "${r.path}"`));
-    assert.match(page, new RegExp(`openGraph: pageOg\\("${r.path}"`));
+    assert.match(page, new RegExp(`openGraph: pageOg(?:OwnImage)?\\("${r.path}"`));
     assert.match(page, /<PreorderPage release=\{STAR_TREK\} \/>/);
     assert.ok(entries.includes(r.path), `${r.path} is in the static sitemap`);
     assert.ok((cfg.pagesPublic as string[]).includes(r.path), `${r.path} is CDN-cached like /sealed`);
