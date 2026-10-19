@@ -75,6 +75,18 @@ for (const file of ogRoutes) {
   });
 }
 
+test("the /star-trek-preorders image is static: its three Scryfall scans are on disk, traced, and it shows no price", () => {
+  for (const f of ["janeway.jpg", "kirk.jpg", "enterprise.jpg"]) {
+    const buf = fs.readFileSync(path.join(ROOT, "public", "og", "star-trek", f));
+    assert.deepEqual([...buf.subarray(0, 2)], [0xff, 0xd8], `${f}: a JPEG`);
+  }
+  const cfg = fs.readFileSync(path.join(ROOT, "next.config.js"), "utf8");
+  assert.match(cfg, /outputFileTracingIncludes:[^}]*opengraph-image[^}]*public\/og/);
+  const src = fs.readFileSync(path.join(ROOT, "src", "lib", "og", "images.tsx"), "utf8");
+  const body = src.slice(src.indexOf("export async function starTrekPreorderOg"));
+  assert.doesNotMatch(body.slice(0, body.indexOf("\n}\n")), /ogMoney|get[A-Z]\w*\(|fetch\(/, "no price, no loader, no network");
+});
+
 test("the image loaders read the data layer only: no database, no cache of their own, no eBay, no paid loader", () => {
   const src = fs.readFileSync(path.join(ROOT, "src", "lib", "og", "images.tsx"), "utf8");
   assert.doesNotMatch(src, /from "\.\.\/db"|@\/lib\/db|unstable_cache|prisma/);
@@ -212,6 +224,8 @@ test("the image routes' own responses: a drawn image is kept a day at the CDN, a
       ["sealed", "sealed/[slug]/opengraph-image.tsx", { slug: "sealed-900001" }],
       ["blog", "blog/[slug]/opengraph-image.tsx", { slug: "most-expensive-magic-cards" }],
       ["guide", "guides/[slug]/opengraph-image.tsx", { slug: "most-expensive-magic-cards" }],
+      // Static: reads public/og/star-trek from disk, no data and no network.
+      ["star-trek-preorders", "star-trek-preorders/opengraph-image.tsx", undefined],
     ];
     for (const [what, rel, params] of drawn) {
       const res = await (await route(rel))(params ? { params } : undefined);
@@ -563,7 +577,7 @@ test("brand fonts are bundled as TTF/OTF (never WOFF2), each with its licence be
 test("every composition renders to a PNG under 1 MB with the bundled fonts", async () => {
   // tsx compiles JSX in the classic runtime (React.createElement); Next uses the automatic one.
   (globalThis as unknown as { React: typeof React }).React = React;
-  const { GuideImage, FallbackImage, SetImage, CardImage, SealedImage, BlogImage } = await import("../src/lib/og/compose");
+  const { GuideImage, FallbackImage, SetImage, CardImage, SealedImage, BlogImage, PreorderImage } = await import("../src/lib/og/compose");
   const { ImageResponse } = require("next/dist/compiled/@vercel/og/index.node.js");
   const fonts = await loadOgFonts();
   const rows = pickGuideRows(catOf([F.ancestral(), F.timeWalk(), F.oneRing(), F.counterspellBeta(), F.solRing(), F.birdsFoil()]));
@@ -598,6 +612,7 @@ test("every composition renders to a PNG under 1 MB with the bundled fonts", asy
       }),
     ],
     ["blog", React.createElement(BlogImage, { title: "The most valuable Magic cards right now: Time Walk, Ancestral Recall and the rest of the Power Nine", arts: [null, null, null] })],
+    ["preorder", React.createElement(PreorderImage, { out: "OUT 13 NOVEMBER 2026", name: "Star Trek", line: "Play Boosters, Collector Boosters and Commander decks at every store we track, side by side.", markets: ["US", "AU", "UK", "SG", "CA", "EU"], arts: [null, null, null] })],
   ];
   for (const [name, el] of els) {
     const res = new ImageResponse(el, { width: 1200, height: 630, fonts });

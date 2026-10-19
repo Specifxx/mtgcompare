@@ -653,3 +653,81 @@ export function BlogImage({ title, arts, badge = "BLOG", footer = `Live prices f
     </Canvas>
   );
 }
+
+// ── Pre-order pages (/star-trek-preorders) ─────────────────────────────────────
+// Static, after RiftCompare's /radiance-preorders card: words left, three real card scans fanned right (the middle one
+// raised, brass-edged). No price and no live count: every platform caches a share image, so it says only what stays true.
+export interface PreorderImageProps {
+  /** "OUT 13 NOVEMBER 2026". */
+  out: string;
+  name: string;
+  line: string;
+  markets: string[];
+  /** Three data: URIs (left, middle, right); a null draws <Art>'s placeholder. */
+  arts: (string | null)[];
+}
+
+export function PreorderImage({ out, name, line, markets, arts }: PreorderImageProps) {
+  // Left, right, then middle last so the raised card sits on top. Boxes are the scan's 5:7, so `contain` draws it whole.
+  const pose = [
+    { left: -30, top: 120, w: 228, h: 318, rot: -9 },
+    { left: 86, top: 62, w: 258, h: 360, rot: 0 },
+    { left: 230, top: 120, w: 228, h: 318, rot: 9 },
+  ];
+  return (
+    <Canvas
+      padding="48px 0 48px 60px"
+      bg="radial-gradient(circle at 80% 45%, rgba(145,64,218,0.38) 0%, rgba(145,64,218,0) 55%), radial-gradient(circle at 5% 0%, rgba(220,185,94,0.14) 0%, rgba(220,185,94,0) 40%)"
+    >
+      <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: 620 }}>
+        <Lockup mark={50} text={32} />
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div
+            style={{
+              display: "flex",
+              alignSelf: "flex-start",
+              padding: "7px 16px",
+              borderRadius: 999,
+              background: "rgba(220,185,94,0.14)",
+              border: `2px solid ${OG.gold}`,
+              ...F.bold,
+              fontSize: 22,
+              letterSpacing: 2.4,
+              color: OG.gold,
+            }}
+          >
+            {out}
+          </div>
+          <div style={{ display: "flex", marginTop: 20, ...F.brand, fontSize: 80, lineHeight: 1, color: OG.white }}>{name}</div>
+          <div style={{ display: "flex", marginTop: 8, ...F.display, fontSize: 52, lineHeight: 1.1, color: OG.brandWord, letterSpacing: -1 }}>pre-order prices</div>
+          <div style={{ display: "flex", marginTop: 20, ...F.semi, fontSize: 27, lineHeight: 1.3, color: OG.slate300 }}>{line}</div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          {markets.map((m) => (
+            <div key={m} style={{ display: "flex", marginRight: 10, padding: "7px 14px", borderRadius: 10, background: OG.ink800, border: `1.5px solid ${OG.ink700}`, ...F.bold, fontSize: 21, color: OG.slate100 }}>
+              {m}
+            </div>
+          ))}
+          <div style={{ display: "flex", marginLeft: 6, ...F.bold, fontSize: 22, color: OG.gold, letterSpacing: 1 }}>Daily</div>
+        </div>
+      </div>
+      <div style={{ display: "flex", position: "relative", flex: 1 }}>
+        {[0, 2, 1].map((i) => {
+          const p = pose[i];
+          return (
+            <div key={i} style={{ display: "flex", position: "absolute", left: p.left, top: p.top, transform: `rotate(${p.rot}deg)` }}>
+              <Art
+                src={arts[i]}
+                width={p.w}
+                height={p.h}
+                radius={12}
+                border={false}
+                shadow={i === 1 ? `0 0 0 3px ${OG.gold}, 0 22px 48px rgba(0,0,0,0.7)` : "0 18px 40px rgba(0,0,0,0.65)"}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </Canvas>
+  );
+}

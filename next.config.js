@@ -38,7 +38,7 @@ const nextConfig = {
     // Share images read their brand fonts from src/lib/og/fonts at runtime
     // (lib/og/fonts.ts); trace them into every opengraph-image function. The
     // key is matched against the route (e.g. /card/[slug]/opengraph-image).
-    outputFileTracingIncludes: { "opengraph-image": ["./src/lib/og/fonts/*.ttf"] },
+    outputFileTracingIncludes: { "opengraph-image": ["./src/lib/og/fonts/*.ttf", "./public/og/**/*.jpg"] },
   },
   // www.mtgcompare.app → mtgcompare.app, whatever the Vercel domain settings say,
   // so search engines only ever see the apex host the canonical URLs name.

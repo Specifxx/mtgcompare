@@ -6,6 +6,8 @@
 // FallbackImage: an unfurl must produce an image, never a 500. Every image is
 // sent with OG_CACHED, every fallback with OG_AFTER_ERROR (see respond.ts).
 // Card art is imageFor(c, "og"): a JPEG on both image hosts.
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import type { ImageResponse } from "next/og";
 import { PRINTINGS, SET_KINDS, finishLabel, rarityLabel } from "../constants";
 import { MARKETS } from "../country";
@@ -27,8 +29,10 @@ import { imageFor } from "../images";
 import { hotListName } from "../rising-snapshot";
 import { postBySlug } from "../blog";
 import { postContext } from "../blog/context";
+import { STAR_TREK, longDateOf } from "../preorders";
+import { checkedStoresIn } from "../stores";
 import { ogArt, withArt } from "./art";
-import { BlogImage, CardImage, FallbackImage, GuideImage, SealedImage, SetImage, type GuideVariant } from "./compose";
+import { BlogImage, CardImage, FallbackImage, GuideImage, PreorderImage, SealedImage, SetImage, type GuideVariant } from "./compose";
 import { OG_AFTER_ERROR, OG_CACHED, ogResponse } from "./respond";
 import { ogDate } from "./theme";
 import { ogPriceLines, pickGuideRows, sealedArt, setBoxImage, setPreviewCards, setTopRows, storesTracked } from "./select";
@@ -233,4 +237,36 @@ export async function risingOg(token: string): Promise<ImageResponse> {
 /** US cents as "$123" / "$12.34" for an image headline. */
 function ogDollars(cents: number): string {
   return cents >= 100_000 ? `$${Math.round(cents / 100).toLocaleString("en-US")}` : `$${(cents / 100).toFixed(2)}`;
+}
+
+/** The Star Trek scans in public/og/star-trek (Scryfall's "normal" JPEGs, unmodified, whole cards): left, middle, right. */
+export const STAR_TREK_OG_ART = ["janeway.jpg", "kirk.jpg", "enterprise.jpg"] as const;
+
+/**
+ * /star-trek-preorders: a static image (RiftCompare's /radiance-preorders model). Reads no data and no network: the date is the
+ * announced one in lib/preorders.ts, the markets are those with stores in the registry, and the art is read from disk
+ * (next.config.js traces public/og into the image functions). A missing scan draws the placeholder, never a 500.
+ */
+export async function starTrekPreorderOg(): Promise<ImageResponse> {
+  const arts = await Promise.all(
+    STAR_TREK_OG_ART.map(async (f) => {
+      try {
+        const buf = await readFile(path.join(process.cwd(), "public", "og", "star-trek", f));
+        return `data:image/jpeg;base64,${buf.toString("base64")}`;
+      } catch (err) {
+        warn(`star-trek art ${f}`, err);
+        return null;
+      }
+    }),
+  );
+  return ogResponse(
+    <PreorderImage
+      out={`OUT ${longDateOf(STAR_TREK.announced).toUpperCase()}`}
+      name={STAR_TREK.label}
+      line="Play Boosters, Collector Boosters and Commander decks at every store we track, side by side."
+      markets={MARKETS.filter((m) => checkedStoresIn(m).length > 0)}
+      arts={arts}
+    />,
+    OG_CACHED,
+  );
 }
