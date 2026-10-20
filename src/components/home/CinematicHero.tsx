@@ -65,30 +65,30 @@ export function CinematicHero({
           w-full because it is the flex row's only in-flow item. */}
       <div className="w-full pl-[var(--sidenav-w)]">
         <div className="container-app relative z-10 w-full py-5 text-center sm:py-10">
-          <div className="animate-fade-in [animation-delay:80ms] hidden items-center justify-center gap-2 sm:flex">
+          <div className="hidden items-center justify-center gap-2 sm:flex">
             <BrandLogo className="h-8 w-8" />
             <span className="text-lg font-extrabold tracking-tight text-white">
               MTG<span className="text-brand-400">Compare</span>
             </span>
           </div>
-          <h1 className="animate-fade-in [animation-delay:160ms] mx-auto max-w-4xl text-2xl font-extrabold leading-[1.15] tracking-tight text-white sm:mt-4 sm:text-4xl lg:text-5xl">
+          <h1 className="mx-auto max-w-4xl text-2xl font-extrabold leading-[1.15] tracking-tight text-white sm:mt-4 sm:text-4xl lg:text-5xl">
             <span className="text-brand-400">MTG</span> Card Prices{region ? ` in ${SHORT_PLACE[region.code]}` : ""}
           </h1>
-          <p className="animate-fade-in [animation-delay:240ms] mx-auto mt-2 max-w-2xl text-base text-slate-300 sm:mt-4">
+          <p className="mx-auto mt-2 max-w-2xl text-base text-slate-300 sm:mt-4">
             <strong className="block text-base font-semibold text-white sm:text-xl">Buy Magic: The Gathering cards at the best price</strong>
-            <span className="hidden sm:inline">
+            <span className="mt-1 block text-sm sm:mt-0 sm:inline sm:text-base">
               Price check any card and find the cheapest place to buy: live Magic card prices from every {heroAdjective} store we track, plus
               five more markets in their own currency: {otherMarkets}, updated daily.
             </span>
           </p>
-          <div className="relative z-20 animate-fade-in [animation-delay:300ms] mx-auto mt-6 hidden max-w-2xl sm:block">
+          <div className="relative z-20 mx-auto mt-6 hidden max-w-2xl sm:block">
             <Suspense fallback={<div className="input mx-auto h-12 max-w-2xl" />}>
               <CardSearch size="lg" placeholder="Search any Magic card…" />
             </Suspense>
           </div>
           <TrendingChips cards={trendingCards} />
           <HeroStats totalCards={totalCards} statsByCountry={statsByCountry} updatedAt={updatedAt} renderedAt={renderedAt} lockCountry={region?.code} />
-          <div className="animate-fade-in [animation-delay:360ms] mt-6 flex flex-col items-center gap-2">
+          <div className="mt-6 flex flex-col items-center gap-2">
             <Link
               href="/browse"
               className="tap-link rounded text-sm font-semibold text-slate-300 underline-offset-4 outline-none transition-colors hover:text-brand-400 hover:underline focus-visible:ring-2 focus-visible:ring-brand-400"

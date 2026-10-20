@@ -3248,3 +3248,14 @@ Reversal: drop the `thin` props (every surface falls back to `<Link>`), and the 
 The top-ten list ranks the 2026-10-16 entry's measured routes by URL count, CDN copies per URL and what still misses. Only the first seven are measured, and the order is inference; Vercel Observability → Functions is the check.
 
 Reversal: delete the rules in the dashboard; nothing in the code depends on them.
+
+## Nothing on a public page waits for JS to be visible — 2026-10-20
+
+**Owner:** "remove the fade on the hero" and "a lot of pages aren't indexed, even the homepage, because Google's crawler is a smartphone, so everything needs to be visible."
+
+- **The hero no longer fades in.** The staggered `animate-fade-in [animation-delay:…]` classes (fill `both`, so opacity 0 until the animation ran) came off every hero element, the `<h1>` included, and off the trending chips. The hero is visible on first paint with no JS.
+- **On a phone the hero now shows what desktop shows**: the market sentence (was `hidden sm:inline`). The hero search box stays desktop-only because the mobile header already carries the same search, and the logo lockup is decorative.
+- **`<Reveal>` is a plain wrapper.** It used to add `reveal-init`/`reveal-stagger` (opacity 0) before paint and lift it with an IntersectionObserver, so the homepage's sections were invisible until scrolled to. Its props stay so call sites need no change; the CSS classes are now unused.
+- **Audited live with the Googlebot smartphone user agent (curl and Playwright at 390px):** `/`, `/browse`, `/sets`, a set page, a card page, `/sealed`, `/star-trek-preorders`, `/price-guide`, `/guides` and `/blog` all return 200 with a self canonical, no `noindex` and no `X-Robots-Tag`; the main content's links are the same in the HTML at 390px and at 1280px; a card page's prices are in the server HTML; `/?_mk=1` returns 200 with the bare canonical; robots.txt's `Disallow: /*?` is outranked by `Allow: /_next/` (longest match), so CSS, JS and `/_next/image` stay crawlable, and card images are Scryfall's own host. What looked hidden at 390px was the collapsed filter drawer of `/browse` and `/price-guide` (in the HTML, opened by a button) and the homepage's inactive tab panels (hidden at every width, in the HTML).
+
+Reversal: restore the classes in `CinematicHero.tsx`/`TrendingChips.tsx` and the old `Reveal.tsx` from git.
