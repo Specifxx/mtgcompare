@@ -74,7 +74,7 @@ export const GUIDES: readonly Guide[] = [
   {
     slug: "magic-sealed-products-explained",
     title: "Magic: The Gathering sealed products explained",
-    description: "Every kind of Magic sealed product, from Play and Collector Booster boxes to Bundles, Commander decks and Prerelease Packs: what each is, and what's in stock today.",
+    description: "Every kind of Magic sealed product, from Play and Collector Booster boxes to Bundles and Commander decks: what each is, and what's in stock today.",
     kicker: "Product types",
     published: D,
     updated: D,

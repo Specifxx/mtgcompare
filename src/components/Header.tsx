@@ -53,6 +53,9 @@ export function Header({ region }: { region: Region | null }) {
                   {n.label}
                 </NavLink>
               ))}
+              <NavLink href="/blog" className="whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors">
+                Blog
+              </NavLink>
               {/* A discreet, labelled sponsored item (xl and up only): eBay's search, tagged. Not a section of the site. */}
               <EbayNavLink region={region} />
             </nav>

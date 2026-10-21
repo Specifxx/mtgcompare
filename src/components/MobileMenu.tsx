@@ -192,6 +192,21 @@ export function MenuSheet({ region, pathname, onClose: close }: { region: Region
                 </li>
               );
             })}
+            <li>
+              <Link
+                href="/blog"
+                prefetch={false}
+                onClick={close}
+                aria-current={isActivePath(pathname, "/blog") ? "page" : undefined}
+                className="group flex min-h-11 items-center gap-3 rounded-xl px-2 text-[15px] font-medium transition-colors hover:bg-raised"
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-raised text-muted group-hover:text-ink">
+                  <Glyph name="book" />
+                </span>
+                <span className="flex-1">Blog</span>
+                <Icon name="arrow-right" size={16} className="text-faint" />
+              </Link>
+            </li>
           </ul>
         </nav>
       )}

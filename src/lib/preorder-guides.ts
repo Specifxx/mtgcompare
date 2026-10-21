@@ -3,8 +3,8 @@
 // just what stores ask for it. Ported from Rift Compare's /radiance-preorders,
 // which became that site's biggest pre-release landing page.
 //
-// Facts only, each from The Pokémon Company's own announcement (pokemon.com,
-// press.pokemon.com) and dated: no prices here. The page's prices are the
+// Facts only, each from Wizards of the Coast's own announcements (magic.wizards.com,
+// the Wizards Play Network) and dated: no prices here. The page's prices are the
 // stores' live pre-order listings (ProductStat + Offer), and US MSRP comes from
 // lib/rrp.ts like everywhere else — never typed twice.
 //
@@ -12,7 +12,7 @@
 // lib/sets.ts (isPreorderSet). From release day the page says it is out, points
 // at the set page, drops out of the sitemap and is noindexed. A guide can then
 // be deleted at leisure; nothing else depends on it.
-import { SET_BY_CODE, SET_BY_SLUG, type PokemonSet } from "./sets";
+import { SET_BY_CODE, SET_BY_SLUG, type MtgSet as PokemonSet } from "./sets";
 import type { TypeKey } from "./sealed-title";
 
 export interface PreorderProduct {
@@ -66,75 +66,52 @@ export interface PreorderGuide {
   checked: string;
 }
 
+// Empty since the Magic port (2026-10-21): the one guide here was a Pokémon set's. A Magic set's guide needs its own sourced facts
+// in this shape; until one is written, Star Trek's dates and products are in src/content/star-trek.ts (the guides and the blog).
 export const PREORDER_GUIDES: PreorderGuide[] = [
   {
-    // The dates, card count and headliners: pokemon.com, "The Pokémon TCG: Mega Evolution—Delta Reign Expansion Arrives November 6,
-    // 2026" (read 2026-10-14), and press.pokemon.com's product page (release date, read 2026-10-16). The set's make-up, the new
-    // Legendary Stadiums and the product line-up (ETB contents) as PokéGuardian reported them from TPCi's press kit on 2026-08-20.
-    // The prerelease (Build & Battle Box from 24 October at select Play! Pokémon stores, its 40-card deck and four promos) and the
-    // Pokémon Center's first pre-order wave: ICv2, 2026-10-01. Pack counts per product are lib/packs.ts's, not restated here.
-    // Read again 2026-10-16. Left out because no source we could reach confirms them: the English secret-rare list, the Pokémon
-    // Center ETB's contents, the 18-pack display's and the blisters' list prices, and the checklane blisters' promos.
-    setCode: "me6",
-    fullName: "Mega Evolution—Delta Reign",
-    prereleaseFrom: "2026-10-24",
-    liveDate: "2026-11-05",
-    cardCount: "over 135 cards",
-    headliners: ["Mega Rayquaza ex", "Mega Golurk ex", "Mega Malamar ex", "Mega Golisopod ex"],
-    makeup: [
-      "4 Mega Evolution Pokémon ex: Mega Rayquaza ex, Mega Golurk ex, Mega Malamar ex and Mega Golisopod ex",
-      "6 other Pokémon ex",
-      "6 Stadium cards that make three Legendary Stadiums",
-      "14 illustration rare Pokémon",
-      "17 ultra rare Pokémon and Trainer cards",
-      "6 special illustration rare Pokémon and Supporter cards",
-    ],
-    makeupSource: "The Pokémon Company’s set description, as PokéGuardian reported it on 20 August 2026",
+    // Wizards of the Coast's Star Trek product page (read 2026-10-14: the release date and the product line-up) and its "Collecting
+    // Magic: The Gathering | Star Trek" article (published 2026-07-14, read 2026-10-16: the prerelease dates, the MTG Arena date,
+    // the four Commander decks by name and every product's contents). Carried over from the old MTG Compare's lib/preorders.ts
+    // and lib/blog/star-trek.ts, where each line is dated. Left out because Wizards has not published them: the card count, the
+    // face commanders and the decklists. Pack counts are lib/packs.ts's, list prices lib/rrp.ts's.
+    setCode: "trk",
+    fullName: "Magic: The Gathering | Star Trek",
+    prereleaseFrom: "2026-11-06",
+    liveDate: "2026-11-10",
+    cardCount: "",
+    headliners: [],
+    makeup: [],
+    makeupSource: "Wizards of the Coast's Collecting Star Trek article, read 16 October 2026",
     newFeature: {
-      name: "Legendary Stadiums",
-      text: "A new kind of Stadium: two Stadium cards played as a pair, whose artwork joins up when they sit side by side. A booster pack that holds a Legendary Stadium holds both halves. Legendary Summit is the first one revealed",
-      source: "PokéGuardian, 20 August 2026",
+      name: "Assimilate",
+      text: "The assimilate keyword action gives you control of a creature or puts a creature card onto the battlefield under your control. Either way, a +1/+1 counter is put on that creature, and it becomes a Borg artifact creature and loses its other creature types",
+      source: "Wizards of the Coast, 14 July 2026",
     },
-    prerelease: {
-      where: "participating Play! Pokémon stores",
-      deckCards: 40,
-      promos: ["Masquerain", "Magmortar", "Enamorus", "Kommo-o"],
-      source: "ICv2, 1 October 2026",
-    },
+    prerelease: null,
     notes: [
-      {
-        text: "Pokémon Center opened pre-orders for the booster display, the Elite Trainer Box and the booster bundle, and its first wave sold out quickly",
-        source: "ICv2, 1 October 2026",
-      },
+      { text: "Wizards cancelled the Star Trek Beginner Box", source: "Wizards of the Coast, 14 July 2026" },
+      { text: "Headliner Signed cards, autographed by the actors, can be pulled from Collector Boosters of every language, and are always in English", source: "Wizards of the Coast, 14 July 2026" },
     ],
     products: [
-      { type: "booster-box", contents: "36 Delta Reign booster packs of 10 cards (the booster display)" },
+      { type: "play-booster-box", contents: "30 Play Boosters of 14 Magic cards (the Play Booster display)" },
+      { type: "collector-booster-box", contents: "12 Collector Boosters of 15 cards" },
       {
-        type: "etb",
-        contents:
-          "9 booster packs, a full-art foil Kyogre promo, 65 card sleeves, 40 Energy cards, a player's guide, 6 damage-counter dice, a coin-flip die, a plastic coin, a collector's box with 6 dividers and a Pokémon TCG Live code card",
+        type: "bundle",
+        contents: "9 Play Boosters, 30 basic lands (15 traditional foil and 15 non-foil), 1 traditional foil promo card, 2 reference cards, an oversized spindown life counter and a card-storage box",
       },
-      { type: "pc-etb", contents: "The Pokémon Center edition of the Elite Trainer Box, sold by Pokémon Center and resold by stores" },
-      { type: "booster-bundle", contents: "6 booster packs" },
-      // Reported at US$21.99 for this set (PokéGuardian, 2026-08-20); lib/rrp.ts's Mega Evolution tier says $29.99, and neither
-      // pokemon.com nor Pokémon Center could be read to settle it (2026-10-16). Not printed until one is confirmed.
-      {
-        type: "build-battle",
-        contents: "4 Delta Reign booster packs, a 40-card ready-to-play deck and one of four foil promo cards: the kit Prerelease events are played with",
-        msrp: false,
-      },
-      { type: "blister", contents: "1-pack and 3-pack blisters, plus checklane blisters" },
-      { type: "sleeved-booster", contents: "One 10-card booster pack in a sleeve" },
-      { type: "booster-pack", contents: "One 10-card booster pack" },
+      { type: "special-bundle", contents: "The Beam Me Up Bundle: 8 Play Boosters and 1 Collector Booster, the Bundle's 30 basic lands, 2 of the 8 traditional foil Beam Me Up Bundle promo cards, 2 reference cards, a spindown life counter and a storage box" },
+      { type: "draft-night", contents: "12 Play Boosters, 1 Collector Booster, 90 non-foil basic lands, 10 non-foil double-sided tokens and a draft insert: a kit for a Pick-Two Draft with four players" },
+      { type: "commander-deck", contents: "Four ready-to-play 100-card decks, Federation Fleet, Landing Party, Klingon Fury and We Are the Borg, each also sold as a Collector's Edition in surge foil" },
+      { type: "scene-box", contents: "Two boxes, Enterprise-Q and Divergent Timeline: 3 Play Boosters, 6 traditional foil borderless scene cards that make one picture, 6 art cards and a display easel" },
+      { type: "prerelease-pack", contents: "6 Play Boosters, 1 traditional foil rare or mythic rare, a deck box and a spindown die: what you play with at a prerelease event", msrp: false },
+      { type: "play-booster", contents: "One Play Booster of 14 Magic cards" },
+      { type: "collector-booster", contents: "One Collector Booster of 15 cards" },
     ],
     sources: [
-      {
-        label: "pokemon.com: the Mega Evolution—Delta Reign expansion arrives November 6, 2026",
-        url: "https://www.pokemon.com/us/news/the-pokemon-tcg-mega-evolution-delta-reign-expansion-arrives-november-6-2026",
-      },
-      { label: "press.pokemon.com: Pokémon TCG: Mega Evolution—Delta Reign (release date)", url: "https://press.pokemon.com/en/products/Pokemon-TCG-Mega-EvolutionDelta-Reign" },
-      { label: "PokéGuardian: Mega Evolution—Delta Reign revealed (20 August 2026)", url: "https://www.pokeguardian.com/3231721_pokemon-tcg-mega-evolution-delta-reign-revealed" },
-      { label: "ICv2: Pokémon TCG moves right on to Mega Evolution—Delta Reign (1 October 2026)", url: "https://icv2.com/articles/news/view/63514" },
+      { label: "Wizards of the Coast: Magic: The Gathering | Star Trek", url: "https://magic.wizards.com/en/products/star-trek" },
+      { label: "Wizards of the Coast: Collecting Magic: The Gathering | Star Trek (14 July 2026)", url: "https://magic.wizards.com/en/news/feature/collecting-star-trek" },
+      { label: "Wizards Play Network: Star Trek dates and details", url: "https://wpn.wizards.com/en/news/star-trek-dates-and-details" },
     ],
     checked: "2026-10-16",
   },

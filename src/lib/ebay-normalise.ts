@@ -204,7 +204,7 @@ export function normaliseSetChase(raw: unknown, marketplace: MarketplaceId, now:
 // ─── Sealed product ────────────────────────────────────────────────────────────
 
 /** The product types the generic "Sealed Pokémon" feed shows: whole products a buyer compares, not packs, blisters, decks or tins. */
-export const SEALED_FEED_TYPES: ReadonlySet<TypeKey> = new Set<TypeKey>(["booster-box", "etb", "pc-etb", "booster-bundle", "upc", "collection", "build-battle-stadium", "booster-box-case", "etb-case"]);
+export const SEALED_FEED_TYPES: ReadonlySet<TypeKey> = new Set<TypeKey>(["play-booster-box", "collector-booster-box", "draft-booster-box", "set-booster-box", "bundle", "gift-bundle", "special-bundle", "commander-deck", "commander-deck-set", "secret-lair", "play-booster-box-case", "collector-booster-box-case"]);
 
 // ─── Several units in one listing ──────────────────────────────────────────────
 // "Surging Sparks ETB x2", "Two … Elite Trainer Boxes", "2 ETBs", "Set of Two", "Double Pack", "Qty 2", "(2)", "- 4 Boxes",
@@ -225,8 +225,8 @@ const MULTI_UNIT: readonly RegExp[] = [
   /\bcostco\b/i,
 ];
 // "N-pack" is the product itself for a blister, a booster bundle, a tin or a deck ("3 Pack Blister", "6-Pack Booster Bundle").
-const CASE_TYPES = new Set<TypeKey>(["booster-box-case", "etb-case", "booster-bundle-case"]);
-const PACK_COUNT_OK = new Set<TypeKey>(["blister", "booster-bundle", "tin", "deck", "build-battle"]);
+const CASE_TYPES = new Set<TypeKey>(["play-booster-box-case", "collector-booster-box-case", "bundle-case"]);
+const PACK_COUNT_OK = new Set<TypeKey>(["bundle", "gift-bundle", "special-bundle", "prerelease-pack", "draft-night", "scene-box", "starter"]);
 
 /** Does the title sell several units (or a multi-pack of a single-unit product)? */
 export function multiUnit(title: string, type: TypeKey): boolean {

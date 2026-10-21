@@ -1,50 +1,28 @@
-// Official US MSRP (The Pokémon Company International's list prices), so US
-// pages can say "below MSRP" — a fact about today's listing, not history.
+// US MSRP, so US pages can say "below MSRP": a fact about today's listing, not history.
 //
-// US only: TPCi publishes US MSRP (Pokémon Center list prices and its news
-// posts); no other region has an official, published RRP, so the site never
-// prints one there. Two tiers are on shelves at once since the late-2025
-// increase: Scarlet & Violet-era sets and Mega Evolution-era sets. Earlier
-// series carried different prices (a Sword & Shield pack at $3.99, its ETB at $39.99) and
-// are left out rather than guessed.
-import { SET_BY_CODE } from "./sets";
+// US only, and only where Wizards of the Coast published a list price for the set's product line: Wizards stopped printing MSRPs
+// for most sets, and the site never invents one (CLAUDE.md). Each entry names its source. A box's price is never derived from a
+// pack's, and a line whose products differ in price (a Commander deck and its Collector's Edition) has no entry.
 import { TYPE_BY_LABEL, type TypeKey } from "./sealed-title";
 
-export const RRP_AS_OF = "2026-09";
+export const RRP_AS_OF = "2026-10";
 
-const TIERS: Record<string, Partial<Record<TypeKey, number>>> = {
-  // Pokémon Center list prices, 2023–2025: booster pack $4.49, booster display
-  // box $161.64 (36 × $4.49), booster bundle $26.94, ETB $49.99, PC ETB $59.99.
-  // ($3.99 a pack was the Sword & Shield price; the series change raised it.)
-  "Scarlet & Violet": {
-    "booster-pack": 449,
-    "sleeved-booster": 449,
-    "booster-box": 16164, // 36 × $4.49
-    "booster-bundle": 2694, // 6 × $4.49
-    etb: 4999,
-    "pc-etb": 5999,
-    "build-battle": 2999,
-  },
-  // pokemon.com Mega Evolution product pages, TCGplayer ME buyer's guide
-  // ("$4.49 per booster pack"), Pokémon Center's $59.99 ME PC ETB, 30th
-  // Celebration list prices, 2025–2026: the same list prices as Scarlet & Violet.
-  "Mega Evolution": {
-    "booster-pack": 449,
-    "sleeved-booster": 449,
-    "booster-box": 16164, // 36 × $4.49
-    "booster-bundle": 2694, // 6 × $4.49
-    etb: 4999,
-    "pc-etb": 5999,
-    "build-battle": 2999,
+const BY_SET: Record<string, Partial<Record<TypeKey, number>>> = {
+  // Wizards' "Collecting Magic: The Gathering | Star Trek" article (published 14 July 2026, read 16 October 2026): "MSRPs for
+  // Magic: The Gathering | Star Trek will be set as follows". Its Commander Deck ($74.99) and Collector's Edition ($159.99), Beam
+  // Me Up Bundle ($99.99) and Scene Box ($41.99) are multi-product lines here, so they carry no per-type MSRP.
+  trk: {
+    "play-booster": 699,
+    "collector-booster": 3799,
+    bundle: 6999,
+    "draft-night": 11999,
   },
 };
 
-/** US MSRP in cents for a set product, or null when TPCi publishes none we trust. */
+/** US MSRP in cents for a set product, or null when Wizards publishes none we trust. */
 export function usMsrpCents(type: TypeKey, setCode: string | null): number | null {
   if (!setCode) return null;
-  const series = SET_BY_CODE.get(setCode)?.series;
-  if (!series) return null;
-  return TIERS[series]?.[type] ?? null;
+  return BY_SET[setCode]?.[type] ?? null;
 }
 
 /** usMsrpCents() by the product type LABEL a Product row carries; null outside the US. */
@@ -55,4 +33,4 @@ export function usMsrpForCard(market: string, typeLabel: string, setCode: string
 }
 
 /** The one-line disclosure that goes wherever an MSRP is printed. */
-export const RRP_NOTE = `MSRP is TPCi's US list price (as of ${RRP_AS_OF}); stores set their own.`;
+export const RRP_NOTE = `MSRP is Wizards of the Coast's announced US list price (as of ${RRP_AS_OF}); stores set their own.`;

@@ -257,15 +257,14 @@ export const SEALED_QUERIES = [
 
 /** The high-value types that get their own feed (a type page's strip), with what they search for. */
 export const TYPE_FEEDS: readonly { type: TypeKey; query: string }[] = [
-  { type: "booster-box", query: "booster box sealed" },
-  { type: "etb", query: "elite trainer box sealed" },
-  { type: "pc-etb", query: "pokemon center elite trainer box sealed" },
-  { type: "upc", query: "ultra premium collection sealed" },
-  { type: "booster-box-case", query: "booster box case sealed" },
-  { type: "etb-case", query: "elite trainer box case sealed" },
-  { type: "booster-bundle-case", query: "booster bundle case sealed" },
-  { type: "build-battle-stadium", query: "build and battle stadium sealed" },
-  { type: "collection", query: "premium collection box sealed" },
+  { type: "play-booster-box", query: "play booster box sealed" },
+  { type: "collector-booster-box", query: "collector booster box sealed" },
+  { type: "bundle", query: "bundle sealed" },
+  { type: "gift-bundle", query: "gift bundle sealed" },
+  { type: "commander-deck", query: "commander deck sealed" },
+  { type: "secret-lair", query: "secret lair sealed" },
+  { type: "play-booster-box-case", query: "play booster box case sealed" },
+  { type: "collector-booster-box-case", query: "collector booster box case sealed" },
 ];
 
 // Sets named with a common word: a keyword search for "Evolutions", "Generations" or "Celebrations" returns cards of every set.

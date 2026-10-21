@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { money } from "@/lib/format";
 import type { RegionInfo } from "@/lib/regions";
-import { FAMILY, type FamilyKey } from "../live";
+import { FAMILY, type FamilyKey } from "../families";
 import type { GuideData } from "./data";
 import { GUIDE_BY_SLUG } from "./index";
 import { GuideBody, guideHref, Lede, LiveBlock, NoneYet, PriceTable, Prose, StackTable, storesPhrase, whereToBuy, type BodyProps, type GuideOutline } from "./kit";

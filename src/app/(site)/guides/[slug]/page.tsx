@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Ago } from "@/components/Ago";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { countryFaqs, COUNTRY_GUIDE, BOX, marketLines, setByCode } from "@/content/guides/country-prices";
+import { countryFaqs, COUNTRY_GUIDE, marketLines, setByCode } from "@/content/guides/country-prices";
 import { countryOutline, CountryBody } from "@/content/guides/country-prices-body";
 import { loadCountryData } from "@/content/guides/country-prices-data";
 import { Toc, TocDisclosure } from "@/content/guides/kit";
@@ -12,7 +12,7 @@ import { formatRelease } from "@/lib/release";
 import { articleJsonLd, jsonLd, ogCardImage, pageMeta } from "@/lib/seo";
 
 // /guides/<slug>: the guides that compare every market at once, so they belong to no region (one canonical URL, no hreflang). Today
-// there is one, "Pokémon booster box prices by country" (src/content/guides/country-prices*.ts{,x}); any other slug is a 404, and
+// there is one, "Magic booster box prices by country" (src/content/guides/country-prices*.ts{,x}); any other slug is a 404, and
 // next.config.js still sends every other /guides/<old slug> of the old site to /about before it gets here.
 //
 // Never at build, so a build reads no data (src/lib/build-env.ts).
@@ -43,8 +43,8 @@ export default async function CrossMarketGuide({ params }: Params) {
   if (params.slug !== COUNTRY_GUIDE.slug) notFound();
   const data = await loadCountryData();
   const toc = countryOutline(data).sections.map(({ id, title }) => ({ id, title }));
-  const lead = data.sets[0] ? setByCode(data.sets[0]) : null;
-  const faqs = countryFaqs(lead ? { set: lead, lines: marketLines(data.cards, lead.code, BOX) } : null, data.today);
+  const lead = data.sets[0];
+  const faqs = countryFaqs(lead ? { name: setByCode(lead)?.name ?? lead, lines: marketLines(data.cards, lead, "play-box") } : null);
   const ld = [
     articleJsonLd({ title: COUNTRY_GUIDE.title, description: COUNTRY_GUIDE.description, path: COUNTRY_GUIDE.path, published: COUNTRY_GUIDE.published, updated: COUNTRY_GUIDE.updated }),
     {

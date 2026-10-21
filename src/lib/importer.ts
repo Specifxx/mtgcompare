@@ -82,17 +82,21 @@ const LOW_OUTLIER = 0.25;
 // while its set is recent (HIGH_OUTLIER_MAX_AGE_DAYS) — an out-of-print box
 // really can ask 3x the next store's old stock.
 const HIGH_OUTLIER: Partial<Record<TypeKey, number>> = {
-  "booster-pack": 4,
-  "sleeved-booster": 4,
-  blister: 4,
-  "booster-bundle": 4,
-  "build-battle": 4,
-  "booster-box": 3,
-  etb: 3,
-  "pc-etb": 3,
-  collection: 3,
+  "play-booster": 4,
+  "collector-booster": 4,
+  "draft-booster": 4,
+  "set-booster": 4,
+  "jumpstart-booster": 4,
+  bundle: 4,
+  "prerelease-pack": 4,
+  "play-booster-box": 3,
+  "collector-booster-box": 3,
+  "draft-booster-box": 3,
+  "set-booster-box": 3,
+  "gift-bundle": 3,
+  "commander-deck": 3,
 };
-const HIGH_OUTLIER_RECENT_ONLY = new Set<TypeKey>(["booster-box", "etb", "pc-etb", "collection"]);
+const HIGH_OUTLIER_RECENT_ONLY = new Set<TypeKey>(["play-booster-box", "collector-booster-box", "draft-booster-box", "set-booster-box", "gift-bundle", "commander-deck"]);
 const HIGH_OUTLIER_MAX_AGE_DAYS = 548; // 18 months
 // A store whose in-stock prices sit under this share of the market median on
 // SUSPECT_STORE_MIN products isn't selling at those prices: it shows "in stock"
@@ -127,7 +131,7 @@ const MARKETPLACE_HIGH = 20;
 // set's units is a placeholder. A real case holds 6–25 units (booster bundle
 // cases, 25, list at 20–36x a bundle); the two over 60x asked 100x and 136x.
 const CASE_MAX_UNITS = 60;
-const CASE_UNIT: Partial<Record<TypeKey, TypeKey>> = { "booster-box-case": "booster-box", "etb-case": "etb", "booster-bundle-case": "booster-bundle" };
+const CASE_UNIT: Partial<Record<TypeKey, TypeKey>> = { "play-booster-box-case": "play-booster-box", "collector-booster-box-case": "collector-booster-box", "bundle-case": "bundle" };
 // A marketplace read that comes back with fewer than this share of the offers
 // it had last time is broken (a short catalogue that still looked whole),
 // unless it had only a handful to begin with.

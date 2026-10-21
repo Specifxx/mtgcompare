@@ -20,7 +20,7 @@ import { money, plural, timeAgo } from "@/lib/format";
 import type { RegionInfo } from "@/lib/regions";
 import { formatRelease } from "@/lib/release";
 import { TYPE_BY_KEY } from "@/lib/sealed-title";
-import { familyOf, perPackOf, whereText } from "../live";
+import { familyOf, perPackOf, whereText } from "../families";
 export { whereText };
 import type { GuideData } from "./data";
 import type { Guide } from "./index";
@@ -113,7 +113,6 @@ export function Note({ children }: { children: ReactNode }) {
   );
 }
 
-/** The MSRP disclosure, wherever an MSRP is printed (rrp.ts RRP_NOTE). */
 
 // ─── Links ─────────────────────────────────────────────────────────────────────
 
@@ -124,8 +123,6 @@ export const typeHref = (r: RegionInfo, type: string): string | null => {
 };
 export const productHref = (r: RegionInfo, p: Pick<ProductCardData, "slug">) => `/${r.region}/p/${p.slug}`;
 export const guideHref = (r: RegionInfo, slug: string) => `/${r.region}/guides/${slug}`;
-
-}
 
 /** A row of internal links as quiet buttons: the next step after a section. */
 export function NextLinks({ links }: { links: { href: string; label: string; icon?: "tag" | "store" | "calendar" | "arrow-right" | "search" }[] }) {

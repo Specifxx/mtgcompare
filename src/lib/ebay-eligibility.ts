@@ -16,10 +16,10 @@ export const GATED_MAX_USD = 600;
 
 
 /** Always worth their own listings (when they clear US$25): the products whose price is real money. */
-export const ALWAYS_TYPES: ReadonlySet<TypeKey> = new Set<TypeKey>(["booster-box", "booster-box-case", "etb", "pc-etb", "etb-case", "booster-bundle-case", "upc", "build-battle-stadium"]);
+export const ALWAYS_TYPES: ReadonlySet<TypeKey> = new Set<TypeKey>(["play-booster-box", "collector-booster-box", "draft-booster-box", "set-booster-box", "jumpstart-booster-box", "play-booster-box-case", "collector-booster-box-case", "bundle-case", "gift-bundle", "special-bundle", "commander-deck-set", "draft-night"]);
 /** Worth them only at US$50 or more (core), or between US$25 and 50 when the budget reaches (extension). */
-export const GATED_TYPES: ReadonlySet<TypeKey> = new Set<TypeKey>(["collection", "tin", "deck", "booster-bundle", "build-battle", "blister"]);
-// booster-pack and sleeved-booster are never eligible.
+export const GATED_TYPES: ReadonlySet<TypeKey> = new Set<TypeKey>(["bundle", "commander-deck", "secret-lair", "prerelease-pack", "scene-box", "starter", "deck", "collection"]);
+// Single booster packs are never eligible.
 
 export type Tier = "core" | "extension" | "no";
 

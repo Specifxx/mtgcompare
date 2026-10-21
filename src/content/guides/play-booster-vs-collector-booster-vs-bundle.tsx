@@ -2,7 +2,7 @@
 // src/content/star-trek.ts), what each costs in the region today (the cheapest open boxes, Bundles and loose packs), and which suits
 // whom (general guidance, no value claims).
 import Link from "next/link";
-import { FAMILY } from "../live";
+import { FAMILY } from "../families";
 import { STAR_TREK_PRODUCTS, WIZARDS_COLLECTING_STAR_TREK } from "../star-trek";
 import { GUIDE_BY_SLUG } from "./index";
 import { Decisions, FactRows, GuideBody, guideHref, Lede, linesOf, LiveBlock, Note, PriceTable, Prose, storesPhrase, whereToBuy, type BodyProps, type GuideOutline, type GuideSection } from "./kit";

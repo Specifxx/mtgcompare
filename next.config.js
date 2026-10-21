@@ -35,7 +35,7 @@ const securityHeaders = [
 // browser. The data only changes with a release, and a release empties the CDN. Safe because no page reads a cookie, a header or
 // the session: one copy is right for every visitor (tests/cache-ttl.test.ts walks them).
 const CDN_CACHE = "public, s-maxage=86400, stale-while-revalidate=86400";
-const CDN_PAGES = ["/:region(au|us|uk|ca|nz|eu|sg)", "/:region(au|us|uk|ca|nz|eu|sg)/:path*", "/guides/:slug"];
+const CDN_PAGES = ["/:region(au|us|uk|ca|nz|eu|sg)", "/:region(au|us|uk|ca|nz|eu|sg)/:path*", "/guides/:slug", "/blog", "/blog/:slug"];
 
 const nextConfig = {
   reactStrictMode: true,
@@ -75,6 +75,14 @@ const nextConfig = {
       { source: "/:path(premium|login|account|profile|dashboard|portfolio|watching|watchlist|alerts|newsletter|unsubscribe|support|feedback|learn|methodology|editorial-policy|creators|authors|admin)", destination: "/about", permanent: true },
       { source: "/:path(premium|login|account|profile|dashboard|portfolio|watching|watchlist|alerts|newsletter|unsubscribe|support|feedback|learn|methodology|editorial-policy|creators|authors|admin)/:rest*", destination: "/about", permanent: true },
       // Blog and guide redirects (old slugs that no longer exist) go below this line.
+      // The old site's singles-only posts (src/lib/blog/index.ts DROPPED_POSTS) go to the blog; its /guides/<slug> posts to their
+      // /blog/<slug>, or the blog when dropped (OLD_GUIDE_POSTS). tests/guides.test.ts checks both lists against these rules. The
+      // last rule sends every other /guides/<slug> to the US guides, except the one region-less guide that lives there.
+      { source: "/blog/:slug(magic-star-trek-spoilers|magic-card-price-movers|commander-staples-prices|cheapest-magic-mythic-rares-by-colour|most-expensive-magic-cards|magic-set-value-concentration|newest-magic-set-chase-cards|magic-card-rarities-explained)", destination: "/blog", permanent: true },
+      { source: "/guides/:slug(where-to-buy-magic-cards|are-magic-cards-cheaper-abroad)", destination: "/blog/:slug", permanent: true },
+      { source: "/guides/magic-card-rarities-explained", destination: "/blog", permanent: true },
+      { source: "/guides", destination: "/us/guides", permanent: true },
+      { source: "/guides/:path((?!magic-booster-box-prices-by-country$).*)", destination: "/us/guides", permanent: true },
     ];
   },
   async headers() {

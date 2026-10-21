@@ -38,9 +38,9 @@ export function openWhere(open: readonly { marketplace: boolean }[], noun: strin
 }
 
 /**
- * The product page's <title>. Open somewhere: "Pokémon Pitch Black Elite Trainer Box — from $54.99 at 19 US stores and on TCGplayer"
+ * The product page's <title>. Open somewhere: "MTG Bloomburrow Bundle — from $54.99 at 19 US stores and on TCGplayer"
  * ("from" is the cheapest open offer, which may be TCGplayer's: the "and on TCGplayer" keeps it from reading as a store's price). Nothing
- * open: "Pokémon Pitch Black Elite Trainer Box — price & stock in the UK". Templated with " | MTG Compare" when that fits in 65 characters.
+ * open: "MTG Bloomburrow Bundle — price & stock in the UK". Templated with " | MTG Compare" when that fits in 65 characters.
  */
 export function productTitle(o: { name: string; market: string; inName: string; cheapestCents: number | null; where: string | null }): PageTitle {
   const name = withMtg(o.name);
@@ -88,7 +88,7 @@ export interface FactsInput {
   openStores: number;
   storeCount: number;
   tcgOpen: boolean;
-  /** US only: TPCi's list price for the product line (rrp.ts), explained by RRP_NOTE in "How these prices work". */
+  /** US only: Wizards' announced list price for the product line (rrp.ts), explained by RRP_NOTE in "How these prices work". */
   msrp: number | null;
   /** Other regions' summaries (p.stats), in the order the page lists regions. */
   elsewhere: { region: string; name: string; flag: string; inName: string; market: string; lowestPriceCents: number | null; open: boolean }[];
@@ -130,16 +130,15 @@ function sentenceList(parts: string[]): string {
 
 // ─── Value check ───────────────────────────────────────────────────────────────
 
-// How a product type reads inside a sentence ("ETB A$9.80", "The booster box is cheaper per pack").
+// How a product type reads inside a sentence ("Bundle A$9.80", "The Play Booster Box is cheaper per pack").
 const SHORT_TYPE: Record<string, string> = {
-  "Booster Box": "booster box",
-  "Elite Trainer Box": "ETB",
-  "Pokémon Center Elite Trainer Box": "Pokémon Center ETB",
-  "Booster Bundle": "bundle",
-  Blister: "blister",
-  "Sleeved Booster": "sleeved booster",
-  "Booster Pack": "booster pack",
-  "Build & Battle Box": "Build & Battle Box",
+  "Play Booster Box": "Play Booster Box",
+  "Draft Booster Box": "Draft Booster Box",
+  "Set Booster Box": "Set Booster Box",
+  Bundle: "Bundle",
+  "Play Booster Pack": "Play Booster",
+  "Draft Booster Pack": "Draft Booster",
+  "Set Booster Pack": "Set Booster",
 };
 
 export function shortType(label: string): string {
@@ -156,8 +155,8 @@ export interface ValueCheck {
 /**
  * The product's price per pack against the set's other formats in this region today, from cheapestPerPackByType over the same-set rows
  * the page already loaded (relatedWithFormats, plus this product): either it is the cheapest way to buy the set's packs ("At A$7.50 a pack
- * this is the cheapest way to buy Chaos Rising packs in Australia today (ETB A$9.80, bundle A$9.16 a pack)"), or another format is
- * ("The booster box is cheaper per pack today: A$6.10 a pack →"). Null when there is nothing to compare: the product is not open, has no
+ * this is the cheapest way to buy Bloomburrow packs in Australia today (Bundle A$9.80 a pack)"), or another format is
+ * ("The Play Booster Box is cheaper per pack today: A$6.10 a pack →"). Null when there is nothing to compare: the product is not open, has no
  * fixed pack count, or no other format of the set is open in the region.
  */
 export function valueCheck(o: { slug: string; productType: string; perPack: number | null; setName: string | null; market: string; inName: string; region: string; picks: readonly PerPackPick[] }): ValueCheck | null {

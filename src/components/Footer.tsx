@@ -11,6 +11,7 @@ type FooterLink = { href: string; label: string };
 export function footerColumns(region: Region | null): { title: string; links: FooterLink[] }[] {
   const site: FooterLink[] = [
     { href: "/about", label: "About & how it works" },
+    { href: "/blog", label: "Blog" },
     { href: "/about#stores", label: "For stores" },
     { href: "/contact", label: "Contact" },
     { href: "/terms", label: "Terms" },

@@ -3,7 +3,7 @@
 // cheapest box of each kind in the region with its price per pack where the count is known.
 import Link from "next/link";
 import type { RegionInfo } from "@/lib/regions";
-import { FAMILY } from "../live";
+import { FAMILY } from "../families";
 import { STAR_TREK_PRODUCTS, WIZARDS_COLLECTING_STAR_TREK } from "../star-trek";
 import type { GuideData } from "./data";
 import { GUIDE_BY_SLUG } from "./index";

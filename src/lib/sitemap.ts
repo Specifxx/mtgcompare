@@ -8,6 +8,7 @@
 import type { MetadataRoute } from "next";
 import { guidesFor } from "../content/guides";
 import { COUNTRY_GUIDE } from "../content/guides/country-prices";
+import { POSTS, postPath } from "./blog";
 import { openPreorderGuides } from "./preorder-guides";
 import { REGION_LIST, regionOfMarket, type Region, type RegionInfo } from "./regions";
 import { PRODUCT_TYPES } from "./sealed-title";
@@ -79,6 +80,9 @@ export function staticSitemap(lastmod: Partial<Record<string, Date | null>>, act
   for (const r of REGION_LIST) for (const g of guidesFor(r.region)) out.push(url(`/${r.region}/guides/${g.slug}`, null, "weekly", 0.6));
   // The one guide that compares every market, at its single region-less URL.
   out.push(url(COUNTRY_GUIDE.path, null, "weekly", 0.6));
+  // The blog: its index and every post (the registry is pure). No lastmod, as the guides.
+  out.push(url("/blog", null, "weekly", 0.5));
+  for (const p of POSTS) out.push(url(postPath(p.slug), null, "weekly", 0.6));
   return out;
 }
 

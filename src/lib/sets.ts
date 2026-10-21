@@ -25,6 +25,8 @@ export interface MtgSet {
   aliases?: string[]; // extra regex sources (case-insensitive, matched on the accent-folded title)
   /** Booster lines sold for the set (draft/set/play/collector/jumpstart). Undefined: none (Commander-only releases). */
   boosters?: BoosterLine[];
+  /** Pokémon-era field (a set sold without a 36-pack box). Never set for Magic; kept so older readers compile. */
+  noBoosterBox?: boolean;
   /** Overrides the set's name pattern (for names that are a prefix of another set's, like "Jumpstart"). */
   pattern?: string;
 }
@@ -37,6 +39,7 @@ const DSC: BoosterLine[] = ["draft", "set", "collector"];
 
 type Row = [code: string, name: string, date: string, series: string, boosters?: BoosterLine[]];
 
+// Set Boosters began with Zendikar Rising (September 2020): Throne of Eldraine to Core Set 2021 sold Draft and Collector Boosters.
 // Series: "Standard" (premier sets), "Universes Beyond", "Masters & Horizons", "Commander", "Supplemental".
 const ROWS: Row[] = [
   // Announced: Wizards' Star Trek product page (read 2026-10-14) gives 13 November 2026.
@@ -95,10 +98,10 @@ const ROWS: Row[] = [
   ["znr", "Zendikar Rising", "2020-09-25", "Standard", DSC],
   ["2xm", "Double Masters", "2020-08-07", "Masters & Horizons", ["draft", "collector"]],
   ["jmp", "Jumpstart", "2020-07-17", "Supplemental", ["jumpstart"]],
-  ["m21", "Core Set 2021", "2020-07-03", "Standard", DSC],
-  ["iko", "Ikoria: Lair of Behemoths", "2020-04-24", "Standard", DSC],
-  ["thb", "Theros Beyond Death", "2020-01-24", "Standard", DSC],
-  ["eld", "Throne of Eldraine", "2019-10-04", "Standard", DSC],
+  ["m21", "Core Set 2021", "2020-07-03", "Standard", ["draft", "collector"]],
+  ["iko", "Ikoria: Lair of Behemoths", "2020-04-24", "Standard", ["draft", "collector"]],
+  ["thb", "Theros Beyond Death", "2020-01-24", "Standard", ["draft", "collector"]],
+  ["eld", "Throne of Eldraine", "2019-10-04", "Standard", ["draft", "collector"]],
   ["c19", "Commander 2019", "2019-08-23", "Commander"],
   ["m20", "Core Set 2020", "2019-07-12", "Standard", ["draft"]],
   ["mh1", "Modern Horizons", "2019-06-14", "Masters & Horizons", ["draft"]],
@@ -134,7 +137,7 @@ const ALIASES: Record<string, string[]> = {
   msh: ["\\bmarvel\\s*super\\s*heroes\\b"],
   tmt: ["\\btmnt\\b", "\\bninja\\s*turtles\\b"],
   tla: ["\\blast\\s*airbender\\b"],
-  spm: ["\\bspider\\s*-?\\s*man\\b"],
+  spm: ["(?<!\\bsuper\\s*heroes\\b.*)\\bspider\\s*-?\\s*man\\b(?!.*\\bsuper\\s*heroes\\b)"],
   tdm: ["\\bdragonstorm\\b"],
   fin: ["\\bfinal\\s*fantasy\\b"],
   dsk: ["\\bduskmourn\\b"],
@@ -145,7 +148,7 @@ const ALIASES: Record<string, string[]> = {
   lci: ["\\blost\\s*caverns\\b"],
   who: ["\\bdoctor\\s*who\\b"],
   // "Lord of the Rings Tales of MiddleEarth", "LOTR". The Hobbit is its own set (hob), named first by length.
-  ltr: ["\\blord\\s*of\\s*the\\s*rings\\b", "\\btales\\s*of\\s*middle\\s*-?\\s*earth\\b", "\\blotr\\b"],
+  ltr: ["(?<!\\bhobbit\\b.*)\\blord\\s*of\\s*the\\s*rings\\b(?!.*\\bhobbit\\b)", "\\btales\\s*of\\s*middle\\s*-?\\s*earth\\b", "\\blotr\\b"],
   mat: ["\\bmachine\\s*:?\\s*(?:-\\s*)?the\\s*aftermath\\b"],
   one: ["\\ball\\s*will\\s*be\\s*one\\b"],
   bro: ["\\bbrothers'?\\s*war\\b"],
@@ -159,7 +162,7 @@ const ALIASES: Record<string, string[]> = {
   mid: ["\\bmidnight\\s*hunt\\b"],
   afr: ["\\bforgotten\\s*realms\\b"],
   // "Commander 2021 (Strixhaven)" decks are Strixhaven's; "Secrets of Strixhaven" is longer and is tried first.
-  stx: ["\\bstrixhaven\\b", "\\bcommander\\s*2021\\b"],
+  stx: ["(?<!\\bsecrets\\s*of\\s*)\\bstrixhaven\\b", "\\bcommander\\s*2021\\b"],
   tsr: ["\\btime\\s*spiral\\s*:?\\s*remastered\\b"],
   "2xm": ["\\b2xm\\b"],
   m21: ["\\bm21\\b", "\\bcore\\s*(?:set\\s*)?2021\\b"],

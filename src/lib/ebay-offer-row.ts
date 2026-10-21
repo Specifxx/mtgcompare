@@ -56,7 +56,7 @@ export function wrongPackCount(title: string, packs: number | null | undefined):
 
 // Products of several units: their listings state ONE unit's packs ("Booster Box Case 6 Boxes 36 Packs Each", "Stadium: 2 Build & Battle
 // Boxes + 3 Booster Packs"), which is no reason to doubt them.
-const SEVERAL_UNITS: ReadonlySet<TypeKey> = new Set(["booster-box-case", "etb-case", "booster-bundle-case", "build-battle-stadium"]);
+const SEVERAL_UNITS: ReadonlySet<TypeKey> = new Set(["play-booster-box-case", "collector-booster-box-case", "bundle-case", "commander-deck-set"]);
 
 /** The pack count the eBay row checks listings against: the product's (lib/packs.ts), or null for a product of several units. */
 export function rowPacks(type: TypeKey | null | undefined, packs: number | null): number | null {

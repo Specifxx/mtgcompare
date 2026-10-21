@@ -66,7 +66,7 @@ test("every data page is force-dynamic, not ISR, and Vercel's CDN keeps it for 6
     assert.equal(ttlOf(s.text), null, `${s.path}: no revalidate: an ISR write costs about twenty renders`);
     assert.doesNotMatch(s.text, /generateStaticParams/, `${s.path}: nothing is prerendered`);
   }
-  for (const sample of ["/au", "/us/p/pitch-black-booster-box", "/uk/sealed/page/2", "/sg/stores/x/page/3", "/guides/pokemon-booster-box-prices-by-country"]) {
+  for (const sample of ["/au", "/us/p/pitch-black-booster-box", "/uk/sealed/page/2", "/sg/stores/x/page/3", "/guides/magic-booster-box-prices-by-country"]) {
     assert.ok(rules.some((r) => matches(r.source, sample)), `${sample} is not covered by a CDN rule`);
   }
   for (const never of ["/api/ebay/au", "/api/browse/au", "/api/revalidate", "/about"]) {

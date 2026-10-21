@@ -2,8 +2,8 @@
 //
 // Data comes from TCGplayer's public search API — the endpoint its own website
 // searches with, no credentials (the same client Rift Compare runs, see
-// src/lib/tcgplayer.ts there). One query returns the whole English Pokémon
-// sealed catalogue, ~2,940 products, 50 per page (the API's maximum: 51 is a
+// src/lib/tcgplayer.ts there). One query returns the whole Magic: The Gathering
+// sealed catalogue (productLineName "magic", 2,915 products on 2026-10-21), 50 per page (the API's maximum: 51 is a
 // 400). Each product carries a preview of its cheapest listings, filtered at
 // the source (searchBody) to live, standard, English, in-stock listings.
 //
@@ -99,7 +99,7 @@ export function searchBody(from: number) {
     algorithm: "sales_synonym_v2",
     from,
     size: PAGE_SIZE,
-    filters: { term: { productLineName: ["pokemon"], productTypeName: ["Sealed Products"] }, range: {}, match: {} },
+    filters: { term: { productLineName: ["magic"], productTypeName: ["Sealed Products"] }, range: {}, match: {} },
     listingSearch: {
       context: { cart: {} },
       // Filters the per-product listing preview, not the products: a product
@@ -197,7 +197,7 @@ function overDeadline(deadline: number): string {
 }
 
 /**
- * The whole English Pokémon sealed catalogue, one page at a time. All or
+ * The whole Magic: The Gathering sealed catalogue, one page at a time. All or
  * nothing: a page that still fails after its retries throws, because a
  * catalogue missing its last pages would delete those products' offers.
  *
@@ -227,7 +227,7 @@ export async function readTcgplayerCatalogue(opts: CatalogueReadOptions = {}): P
 }
 
 export function tcgProductUrl(p: Pick<TcgProduct, "productId" | "productLineUrlName" | "setUrlName" | "productUrlName">): string {
-  const slug = [p.productLineUrlName ?? "pokemon", p.setUrlName, p.productUrlName]
+  const slug = [p.productLineUrlName ?? "magic", p.setUrlName, p.productUrlName]
     .filter(Boolean)
     .join("-")
     .normalize("NFKD")
@@ -263,21 +263,19 @@ export async function tcgImageExists(url: string): Promise<boolean> {
 }
 
 /**
- * The title identify() reads for a TCGplayer product: its name, prefixed with
- * its set only when identify() finds the name a set product with no set in it
- * ("Elite Trainer Box [Mewtwo X]" in "XY - BREAKthrough"). Measured over the
- * live catalogue on 2026-09-27 (2,219 products with a buyable listing):
- * this identifies 1,605, 1,566 of them onto a product the stores' titles also
- * identify to. Prefixing every name with its set identified 3 more but put 529
- * fewer on the stores' products: TCGplayer files collections and tins under a
- * set that the stores' titles (and so their groupKeys) don't carry.
+ * The title identify() reads for a TCGplayer product: its name, prefixed with its set only when identify() finds the name a set
+ * product with no set in it. TCGplayer's Magic names carry their set ("Bloomburrow - Play Booster Display", "Foundations
+ * Commander Deck - Calling All Angels", "Universes Beyond: Fallout - Science! Commander Deck"; read 2026-10-21), so the prefix is
+ * rarely needed. Its set names are "Commander: Bloomburrow" for a release's decks and "Universes Beyond: Fallout" for a UB set;
+ * both lead-ins are dropped before the set is read. Secret Lair products are filed under "Secret Lair Drop Series", which is never
+ * prefixed: a drop has no set.
  */
 export function tcgTitle(p: Pick<TcgProduct, "productName" | "setName">): string {
   const name = (p.productName ?? "").trim();
   if (identify(name) !== "no-set") return name;
-  // "SWSH07: Evolving Skies", "XY - BREAKthrough", "ME: Ascended Heroes".
-  const set = (p.setName ?? "").replace(/^(?:SV|SWSH|SM|XY|ME|BW)\d{0,2}(?:\.\d)?\s*[:\-–]\s*/i, "").trim();
-  return set && detectSet(set) ? `${set} ${name}` : name;
+  const set = (p.setName ?? "").replace(/^(?:commander|universes\s*beyond)\s*:\s*/i, "").trim();
+  if (!set || /secret\s*lair/i.test(set)) return name;
+  return detectSet(set) ? `${set} ${name}` : name;
 }
 
 /** Is this listing's price partly in its shipping? */

@@ -2,7 +2,7 @@
 // what a pack costs in the region's cheapest boxes today against the cheapest loose Collector Boosters, and the questions to ask.
 import Link from "next/link";
 import type { RegionInfo } from "@/lib/regions";
-import { FAMILY } from "../live";
+import { FAMILY } from "../families";
 import { STAR_TREK_PRODUCTS, WIZARDS_COLLECTING_STAR_TREK } from "../star-trek";
 import type { GuideData } from "./data";
 import { GUIDE_BY_SLUG } from "./index";

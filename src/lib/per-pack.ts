@@ -1,14 +1,14 @@
 // Price per booster pack, by product type: the set page's "cheapest way to buy <set> packs" strip, and every page that
-// compares a box with an ETB or a bundle by what a pack costs (the product page's value check, the deals and cheapest-packs
+// compares a Play Booster Box with a Bundle by what a pack costs (the product page's value check, the deals and cheapest-packs
 // pages). Pure: no database, so it works on cards a page already loaded, and in the browser.
 import type { ProductCardData } from "./data";
 import { cardOpen } from "./compact";
 import { packsForLabel, perPackCents } from "./packs";
 
-// The pack-bearing types a buyer weighs against each other, in the order the
-// strip shows them. Anything whose pack count varies per product (tins,
-// collections) has no honest per-pack price and is left out.
-export const PACK_TYPES = ["Booster Box", "Elite Trainer Box", "Pokémon Center Elite Trainer Box", "Booster Bundle", "Blister", "Sleeved Booster", "Booster Pack", "Build & Battle Box"];
+// The pack-bearing types a buyer weighs against each other, in the order the strip shows them. Only one booster line's packs are
+// compared (a Play Booster against a Play Booster): a Collector Booster is a different pack at five times the price, so it is not
+// "the cheapest way to buy packs". Anything whose pack count varies or mixes lines (Gift Bundles, Draft Night) is left out.
+export const PACK_TYPES = ["Play Booster Box", "Bundle", "Play Booster Pack", "Draft Booster Box", "Draft Booster Pack", "Set Booster Box", "Set Booster Pack"];
 
 /** One type's cheapest open product per pack: the product, its price per pack (cents) and the packs it holds. */
 export interface PerPackPick {

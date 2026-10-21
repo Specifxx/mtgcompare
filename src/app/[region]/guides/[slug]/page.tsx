@@ -112,13 +112,19 @@ export default async function GuidePage({ params }: { params: { region: string; 
         </ul>
         {g.topic.types && g.topic.types.length > 0 && (
           <ul role="list" className="mt-4 flex flex-wrap gap-2">
-            {g.topic.types.map((t) => (
-              <li key={t}>
-                <Link href={typeHref(r, t)} prefetch={false} className="chip min-h-10">
-                  {TYPE_BY_KEY.get(t)!.plural} in {r.inName}
-                </Link>
-              </li>
-            ))}
+            {g.topic.types.flatMap((t) => {
+              const href = typeHref(r, t);
+              const info = (TYPE_BY_KEY as ReadonlyMap<string, { plural: string }>).get(t);
+              return href && info
+                ? [
+                    <li key={t}>
+                      <Link href={href} prefetch={false} className="chip min-h-10">
+                        {info.plural} in {r.inName}
+                      </Link>
+                    </li>,
+                  ]
+                : [];
+            })}
           </ul>
         )}
         {more.length > 0 && (

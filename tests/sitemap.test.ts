@@ -97,13 +97,13 @@ test("static sitemap: every guide in each region it is offered in, and nowhere e
       assert.equal(urls.has(u), guideRegions(g).includes(r.region), u);
     }
   }
-  assert.ok(urls.has(`${SITE_URL}/us/guides/pokemon-tcg-msrp`));
-  // The new guides: Build & Battle in every region, and the one by-country page at its region-less URL.
-  for (const r of REGION_LIST) assert.ok(urls.has(`${SITE_URL}/${r.region}/guides/pokemon-build-and-battle-box`), r.region);
-  assert.equal(entries.filter((e) => e.url === `${SITE_URL}/guides/pokemon-booster-box-prices-by-country`).length, 1);
-  assert.equal(`${SITE_URL}${COUNTRY_GUIDE.path}`, `${SITE_URL}/guides/pokemon-booster-box-prices-by-country`);
-  assert.ok(!urls.has(`${SITE_URL}/au/guides/pokemon-tcg-msrp`));
-  const at = entries.find((e) => e.url === `${SITE_URL}/uk/guides/how-many-packs-in-pokemon-products`)!;
+  assert.ok(urls.has(`${SITE_URL}/us/guides/magic-msrp`));
+  // The one by-country page at its region-less URL, and the blog.
+  assert.ok(urls.has(`${SITE_URL}/blog`) && urls.has(`${SITE_URL}/blog/magic-star-trek-release-date-products`));
+  assert.equal(entries.filter((e) => e.url === `${SITE_URL}/guides/magic-booster-box-prices-by-country`).length, 1);
+  assert.equal(`${SITE_URL}${COUNTRY_GUIDE.path}`, `${SITE_URL}/guides/magic-booster-box-prices-by-country`);
+  assert.ok(!urls.has(`${SITE_URL}/au/guides/magic-msrp`));
+  const at = entries.find((e) => e.url === `${SITE_URL}/uk/guides/how-many-packs-in-magic-products`)!;
   assert.deepEqual([at.changeFrequency, at.priority, at.lastModified], ["weekly", 0.6, undefined], "editorial: no import-time lastmod");
   assert.equal(urls.size, entries.length, "no duplicate URLs");
 });
