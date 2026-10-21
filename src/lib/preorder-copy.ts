@@ -11,7 +11,7 @@ import { REGION_LIST, type RegionInfo } from "./regions";
 import { usMsrpCents } from "./rrp";
 import { offerStock, rankOffers, type SealedOffer } from "./sealed-offers";
 import { TYPE_BY_LABEL, type TypeKey } from "./sealed-title";
-import type { MtgSet as PokemonSet } from "./sets";
+import type { MtgSet as MtgSet } from "./sets";
 
 type R = Pick<RegionInfo, "market" | "inName" | "adjective" | "currency">;
 
@@ -24,12 +24,12 @@ export function dayMonth(iso: string): string {
  * The <title>: the pre-order prices the page is for, and the release date people search for ("delta reign release date"). Before
  * release only; from release day the page is noindexed and says the set is out.
  */
-export function preorderTitle(set: Pick<PokemonSet, "name">, r: R, pre: boolean): HubTitle {
+export function preorderTitle(set: Pick<MtgSet, "name">, r: R, pre: boolean): HubTitle {
   return hubTitle(pre ? `${set.name} pre-orders in ${r.inName}: prices & release date` : `${set.name} released: sealed prices in ${r.inName}`);
 }
 
 /** The meta description: the dates first (the answer to the search), then what the page compares. At most 160 characters. */
-export function preorderDescription(set: Pick<PokemonSet, "name" | "releaseDate">, guide: Pick<PreorderGuide, "prereleaseFrom">, r: R, pre: boolean): string {
+export function preorderDescription(set: Pick<MtgSet, "name" | "releaseDate">, guide: Pick<PreorderGuide, "prereleaseFrom">, r: R, pre: boolean): string {
   if (!pre) return `MTG ${set.name} released on ${formatRelease(set.releaseDate)}. See live ${set.name} sealed prices across ${r.adjective} stores.`;
   const prerelease = guide.prereleaseFrom ? `, prerelease from ${dayMonth(guide.prereleaseFrom)}` : "";
   return `MTG ${set.name} is out ${formatRelease(set.releaseDate)}${prerelease}. Compare booster box, bundle and Commander deck pre-orders at ${r.adjective} stores, in ${r.currency}.`;
@@ -45,7 +45,7 @@ export interface GlanceFact {
 }
 
 /** The release date, the prerelease, MTG Arena and (when Wizards has said) the set's size, from the guide and sets.ts: the box under the H1. */
-export function glanceFacts(set: Pick<PokemonSet, "releaseDate">, guide: PreorderGuide): GlanceFact[] {
+export function glanceFacts(set: Pick<MtgSet, "releaseDate">, guide: PreorderGuide): GlanceFact[] {
   const out: GlanceFact[] = [{ key: "release", label: "Release date (English)", iso: set.releaseDate }];
   if (guide.prereleaseFrom) {
     out.push({
@@ -78,7 +78,7 @@ const VALUE_NAME: Partial<Record<TypeKey, string>> = { "play-booster": "a single
  * US only: the single Play Booster and the Bundle at MSRP (rrp.ts) and per pack (packs.ts), for the guide's products that print an
  * MSRP. Empty outside the US.
  */
-export function msrpPerPack(set: Pick<PokemonSet, "code">, guide: PreorderGuide, r: Pick<RegionInfo, "market">): MsrpPack[] {
+export function msrpPerPack(set: Pick<MtgSet, "code">, guide: PreorderGuide, r: Pick<RegionInfo, "market">): MsrpPack[] {
   if (r.market !== "US") return [];
   const out: MsrpPack[] = [];
   for (const type of VALUE_TYPES) {
@@ -112,7 +112,7 @@ export interface Faq {
 const cap = (s: string) => s.replace(/^./, (c) => c.toUpperCase());
 
 /** The FAQ, in the order the page shows it; the same list goes out as FAQPage JSON-LD. */
-export function preorderFaqs(set: Pick<PokemonSet, "code" | "name" | "releaseDate">, guide: PreorderGuide, r: R, cheapest: CheapestByType, pre: boolean): Faq[] {
+export function preorderFaqs(set: Pick<MtgSet, "code" | "name" | "releaseDate">, guide: PreorderGuide, r: R, cheapest: CheapestByType, pre: boolean): Faq[] {
   const us = r.market === "US";
   const packMsrp = us && guideShowsMsrp(guide, "play-booster") ? usMsrpCents("play-booster", set.code) : null;
   const bundleMsrp = us && guideShowsMsrp(guide, "bundle") ? usMsrpCents("bundle", set.code) : null;
@@ -235,7 +235,7 @@ export interface PreorderSummary {
   days: number;
 }
 
-export function preorderSummary(groups: readonly PreorderGroup[], storesChecked: number, set: Pick<PokemonSet, "releaseDate">, today: string, now: number = Date.now()): PreorderSummary {
+export function preorderSummary(groups: readonly PreorderGroup[], storesChecked: number, set: Pick<MtgSet, "releaseDate">, today: string, now: number = Date.now()): PreorderSummary {
   const taking = new Set<string>();
   let cheapestBox: PreorderSummary["cheapestBox"] = null;
   for (const g of groups) {
@@ -251,7 +251,7 @@ export function preorderSummary(groups: readonly PreorderGroup[], storesChecked:
 }
 
 /** The line under the strip: how far the set reaches across every market (setStoreReach), or null without data. */
-export function reachLine(set: Pick<PokemonSet, "name">, reach: { stores: number; markets: number } | null): string | null {
+export function reachLine(set: Pick<MtgSet, "name">, reach: { stores: number; markets: number } | null): string | null {
   if (!reach || !reach.stores) return null;
   const all = reach.markets === REGION_LIST.length;
   const seven = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"][REGION_LIST.length] ?? String(REGION_LIST.length);

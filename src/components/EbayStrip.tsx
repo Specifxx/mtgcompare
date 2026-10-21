@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Fragment, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { AFFILIATE_NOTE_SHORT, ebayCardSearchUrl, ebayLabel, ebayRetailer, ebayRetailerForHref, ebaySearchUrl, REL_SPONSORED, type Placement } from "@/lib/affiliate";
+import { AFFILIATE_NOTE_SHORT, ebayLabel, ebayRetailer, ebayRetailerForHref, ebaySearchUrl, REL_SPONSORED, type Placement } from "@/lib/affiliate";
 import {
   acceptResponse,
   conditionLabel,
@@ -29,7 +29,7 @@ import { Icon } from "./Icon";
 import { OutboundLink } from "./OutboundLink";
 
 // The eBay listing strips: real listings from eBay's Browse API as image banners (the look of Rift Compare's
-// "Chase cards on eBay" strip), read from OUR database: a daily GitHub Actions import stores them, the route
+// "High-end sealed on eBay" strip), read from OUR database: a daily GitHub Actions import stores them, the route
 // /api/ebay/<region> reads them. This component never talks to eBay.
 //
 //   • A page NEVER fetches while it renders (pages stay ISR). The server HTML holds the compact CTA (EbayCta:
@@ -46,7 +46,7 @@ import { OutboundLink } from "./OutboundLink";
 //     tab returns). Every strip shows how old its data is.
 //   • Every tile is one plain <a> through OutboundLink: rel="sponsored nofollow noopener noreferrer", one
 //     buy_click { retailer, placement } per click. The href is eBay's affiliate URL EXACTLY as stored (its customid is the per-feed
-//     reference the importer asked eBay for, dex-<market>-<feed kind>: nothing here edits it). Thumbnails are plain lazy
+//     reference the importer asked eBay for, mtg-<market>-<feed kind>: nothing here edits it). Thumbnails are plain lazy
 //     <img> (no-referrer); one that fails to load hides its tile.
 //   • Labelled "Ad", with the affiliate disclosure and "imported from eBay <cadence> (updated <age>)" (the cadence is read from the
 //     age bound the route reports: about once a day by default, several times a day in the compliant mode).
@@ -308,31 +308,32 @@ export type StripVariant = "full" | "slim";
 /** What the compact CTA searches eBay for. */
 export interface StripSearch {
   kind?: "sealed" | "card";
-  /** A product, set or type name; "" = Pokémon sealed (or chase cards) in general. */
+  /** A product, set or type name; "" = Magic sealed in general. */
   query?: string;
   /** The CTA's words, when "Search <query> on eBay" is not the right sentence. */
   label?: string;
 }
 
 const DEFAULT_HEADINGS: Record<FeedKind, string> = {
-  chase: "Chase cards on eBay",
-  sealed: "Sealed Pokémon on eBay",
-  set: "Chase cards on eBay",
-  type: "Sealed Pokémon on eBay",
-  item: "Sealed Pokémon on eBay",
+  chase: "High-end sealed on eBay",
+  sealed: "Sealed Magic on eBay",
+  set: "Sealed Magic on eBay",
+  type: "Sealed Magic on eBay",
+  item: "Sealed Magic on eBay",
 };
 
 const SITE_SUFFIX: Partial<Record<Region, string>> = { nz: " Australia", sg: " US" };
 
 function searchHref(region: Region, placement: Placement, s: StripSearch): string {
-  return s.kind === "card" ? ebayCardSearchUrl(s.query || "special illustration rare", region, placement) : ebaySearchUrl(s.query ?? "", region, placement);
+  // "card" is the old card kind, kept so an old call site compiles: the site lists no cards, so it searches high-end sealed.
+  return s.kind === "card" ? ebaySearchUrl(s.query || "collector booster box", region, placement) : ebaySearchUrl(s.query ?? "", region, placement);
 }
 
 function ctaLabel(s: StripSearch): string {
   if (s.label) return s.label;
   const q = (s.query ?? "").trim();
-  if (s.kind === "card") return q ? `Search ${q.slice(0, 36)} on eBay` : "Search Pokémon chase cards on eBay";
-  return q ? `Search ${q.length > 38 ? `${q.slice(0, 37)}…` : q} on eBay` : "Search Pokémon sealed on eBay";
+  if (s.kind === "card") return q ? `Search ${q.slice(0, 36)} on eBay` : "Search collector boxes on eBay";
+  return q ? `Search ${q.length > 38 ? `${q.slice(0, 37)}…` : q} on eBay` : "Search Magic sealed on eBay";
 }
 
 /**
@@ -398,7 +399,8 @@ const THUMB: Record<StripVariant, { portrait: string; square: string }> = {
   full: { portrait: "aspect-[3/4] w-full", square: "aspect-square w-full" },
   slim: { portrait: "h-36 w-full", square: "h-36 w-full" },
 };
-const isCardContext = (context: string) => context === "chase" || context.startsWith("set:");
+// Every feed is sealed product since the Magic port (the "chase" feed is high-end sealed): no context is a card.
+const isCardContext = (_context: string) => false;
 const TILE_BOX = "group flex h-full flex-col rounded-lg border border-line bg-surface p-2 transition-colors hover:border-ink/40";
 
 function Tile({ item, region, placement, variant, portrait, onBroken }: { item: AcceptedItem; region: Region; placement: Placement; variant: StripVariant; portrait: boolean; onBroken: (id: string) => void }) {
@@ -622,7 +624,7 @@ export function PreFooterStrip({ region }: { region: Region }) {
   const plan = preFooterPlan(path, region);
   if (!plan) return null; // a region's home page: it has two strips of its own and renders <NoPreFooter/>
   // Keyed by page: a soft navigation starts a fresh unit instead of showing the previous page's tiles until the new fetch answers.
-  return <EbayStrip key={`${region}|${path}|${plan.context}`} region={region} context={plan.context} placement="listings-footer" variant="slim" search={{ kind: plan.context === "chase" ? "card" : "sealed", query: "" }} />;
+  return <EbayStrip key={`${region}|${path}|${plan.context}`} region={region} context={plan.context} placement="listings-footer" variant="slim" search={{ kind: "sealed", query: "" }} />;
 }
 
 // ─── The in-feed tiles (product grids) ─────────────────────────────────────────

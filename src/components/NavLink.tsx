@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 
 /**
  * Is `href` the section the visitor is in? The link's own page, or any page under it ("/us/sets/pitch-black" is in
- * "/us/sets"), or under one of `also` ("/us/type/tins" is in "All sealed"). Whole segments only: "/us/sets" does not match
+ * "/us/sets"), or under one of `also` ("/us/type/secret-lair" is in "All sealed"). Whole segments only: "/us/sets" does not match
  * "/us/setsx". Trailing slashes and query strings are ignored. Pure, so the tests pin it.
  */
 export function isActivePath(pathname: string | null | undefined, href: string, also: readonly string[] = []): boolean {

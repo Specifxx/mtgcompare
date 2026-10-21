@@ -31,15 +31,15 @@ const SUFFIX = " | MTG Compare"; // the root layout's title template
 
 export function browseTitle(r: RegionInfo, page: number): string {
   const suffix = page > 1 ? ` — page ${page}` : "";
-  const long = `All Pokémon sealed products in ${r.inName}${suffix}`;
-  return `${long}${SUFFIX}`.length <= 65 ? long : `Pokémon sealed products in ${r.inName}${suffix}`;
+  const long = `All Magic sealed products in ${r.inName}${suffix}`;
+  return `${long}${SUFFIX}`.length <= 65 ? long : `Magic sealed products in ${r.inName}${suffix}`;
 }
 
 export function browseMeta(r: RegionInfo, page: number): Metadata {
   const base = `/${r.region}/sealed`;
   return pageMeta({
     title: browseTitle(r, page),
-    description: `Every Pokémon TCG sealed product ${r.adjective} stores${r.market === "US" ? " and TCGplayer" : ""} list — booster boxes, ETBs, bundles, collections, tins and packs — with current stock and the lowest price in ${r.currency}.`,
+    description: `Every Magic: The Gathering sealed product ${r.adjective} stores${r.market === "US" ? " and TCGplayer" : ""} list — booster boxes, Collector boxes, bundles, collections, tins and packs — with current stock and the lowest price in ${r.currency}.`,
     path: pageHref(base, page),
     // Page 1 is the canonical browse page in every region (with hreflang); a
     // later page is canonical to itself (pageMeta's default) and has no alternates.
@@ -56,7 +56,7 @@ export async function BrowsePage({ r, page }: { r: RegionInfo; page: number }) {
   return (
     <div className="page py-8">
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, page > 1 ? { href: base, label: "All sealed" } : { label: "All sealed" }, ...(page > 1 ? [{ label: `Page ${page}` }] : [])]} />
-      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">All Pokémon sealed in {r.inName}</h1>
+      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">All Magic sealed in {r.inName}</h1>
       <p className="mt-2 max-w-2xl text-muted">
         {total.toLocaleString("en")} products across {storesInMarket(r.market).length} {r.adjective} stores
         {r.market === "US" && " and TCGplayer"}. Prices are in {r.currency} and exclude shipping.

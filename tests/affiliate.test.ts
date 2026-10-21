@@ -314,7 +314,7 @@ test("pre-footer strip: the feed the page's own strip is not; a region's home pa
   assert.equal(preFooterPlan("/au/", "au"), null);
   assert.deepEqual(preFooterPlan("/au/sets/surging-sparks", "au"), { context: "sealed" });
   assert.deepEqual(preFooterPlan("/uk/stores/foo", "uk"), { context: "sealed" });
-  assert.deepEqual(preFooterPlan("/au/type/tins", "au"), { context: "chase" });
+  assert.deepEqual(preFooterPlan("/au/type/secret-lair", "au"), { context: "chase" });
   assert.deepEqual(preFooterPlan("/au/p/some-product", "au"), { context: "chase" });
   assert.deepEqual(preFooterPlan("/au/sealed/page/2", "au"), { context: "chase" });
   assert.deepEqual(preFooterPlan("/us/sets", "au"), { context: "chase" }, "another region's path is not this region's");

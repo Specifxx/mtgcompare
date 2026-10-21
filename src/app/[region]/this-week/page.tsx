@@ -15,7 +15,7 @@ import { packsForLabel, perPackCents } from "@/lib/packs";
 import { formatRelease } from "@/lib/release";
 import { regionOrNotFound, type RegionInfo } from "@/lib/regions";
 import { pageMeta, regionAlternates } from "@/lib/seo";
-import type { PokemonSet } from "@/lib/sets";
+import type { MtgSet } from "@/lib/sets";
 
 // /[region]/this-week: a digest that changes every day, built only from today's state: sets releasing in the next 45 days (with
 // their open pre-orders and cheapest box / ETB / bundle), sets out in the last 30, what is cheaper than most stores today, and what
@@ -52,7 +52,7 @@ export default async function ThisWeekPage({ params }: { params: { region: strin
     lastCheckedAt(r.market),
   ]);
 
-  const block = (s: PokemonSet) => <SetBlock key={s.code} r={r} s={s} today={today} count={counts.get(s.code)} picks={cheapest.get(s.code) ?? []} />;
+  const block = (s: MtgSet) => <SetBlock key={s.code} r={r} s={s} today={today} count={counts.get(s.code)} picks={cheapest.get(s.code) ?? []} />;
   // The slim strip above the footer needs a viewport's height of page under this page's own strip (lib/ebay-ads.ts GAP, 960 px).
   const rail = (n: number, cols: number, row: number) => 140 + Math.ceil(Math.max(1, n) / cols) * row;
   const phoneBelow = 130 + (recent.length ? recent.length * 330 : 200) + (deals.length ? rail(1, 1, 330) : 260) + (fresh.length ? rail(1, 1, 330) : 260);
@@ -114,7 +114,7 @@ export default async function ThisWeekPage({ params }: { params: { region: strin
           <Empty
             actions={[
               { href: `/${r.region}/sets`, label: "All sets" },
-              { href: `/${r.region}/type/booster-boxes`, label: "Booster boxes" },
+              { href: `/${r.region}/type/play-booster-boxes`, label: "Booster boxes" },
             ]}
           >
             No set came out in the last {JUST_RELEASED_DAYS} days.
@@ -157,7 +157,7 @@ export default async function ThisWeekPage({ params }: { params: { region: strin
 }
 
 /** One set: when, how many products the region lists and has open today, and its cheapest booster box, ETB and bundle. */
-function SetBlock({ r, s, today, count, picks }: { r: RegionInfo; s: PokemonSet; today: string; count?: { products: number; open: number }; picks: ProductCardData[] }) {
+function SetBlock({ r, s, today, count, picks }: { r: RegionInfo; s: MtgSet; today: string; count?: { products: number; open: number }; picks: ProductCardData[] }) {
   const future = s.releaseDate > today;
   const rel = relativeDay(s.releaseDate, today);
   const when = future ? rel.replace(/^./, (c) => c.toUpperCase()) : `Out ${rel}`;

@@ -3,7 +3,7 @@ import { ebayRetailer, ebaySearchUrl, REL_SPONSORED, type Placement } from "@/li
 import { HOT_SET_QUERY, HOT_SETS, isHotSet } from "@/lib/popular";
 import type { Region } from "@/lib/regions";
 import { isPreorderSet } from "@/lib/release";
-import { SET_BY_CODE, type PokemonSet } from "@/lib/sets";
+import { SET_BY_CODE, type MtgSet } from "@/lib/sets";
 import { OutboundLink } from "./OutboundLink";
 
 // The small pieces of the eBay units that are not the listing strips (EbayStrip.tsx):
@@ -19,7 +19,7 @@ import { OutboundLink } from "./OutboundLink";
 //   • no script, no iframe, no overlay, no countdown. Every unit's root carries data-ad="<placement>" for the sweep.
 
 // ─── Popular sets and products: the highlighted eBay button ────────────────────
-// The owner's hot sets (lib/popular.ts HOT_SETS, 30th Celebration first) get a prominent eBay search button inside their
+// The owner's hot sets (lib/popular.ts HOT_SETS, Star Trek first) get a prominent eBay search button inside their
 // strip's own top line (EbayStrip `highlight`, placements hot-home / hot-set / hot-product): on the region home's sealed strip (the first hot set
 // that is out), on a hot set's page, and on a hot product's page (whose marketplace panel also makes eBay its primary
 // button, and a "Popular set" chip outside the ad link: the owner's pick, not a claim about eBay's data or a trend).
@@ -38,16 +38,15 @@ export interface EbayHighlight {
   placement?: Placement;
 }
 
-type SetName = Pick<PokemonSet, "code" | "name">;
+type SetName = Pick<MtgSet, "code" | "name">;
 
 /**
- * What a hot set's button searches eBay for: "Pokemon " and the set's eBay keyword (HOT_SET_QUERY) or its name. ebaySearchUrl
- * then adds "sealed", the type-neutral word every sealed search on the site carries, so 30th Celebration searches
- * "Pokemon 30th sealed": eBay requires every word, and sellers list the set as "30th Celebration", "30th Anniversary" or
- * "30th Anniversary Celebration", which "30th Celebration" would cut to the first.
+ * What a hot set's button searches eBay for: "MTG " and the set's eBay keyword (HOT_SET_QUERY) or its name. ebaySearchUrl
+ * then adds "sealed", the type-neutral word every sealed search on the site carries, so The Hobbit searches "MTG Hobbit sealed":
+ * eBay requires every word, and sellers list the set as "The Hobbit", "LOTR Hobbit" or "Hobbit".
  */
 export function hotSetQuery(set: SetName): string {
-  return `Pokemon ${HOT_SET_QUERY[set.code] ?? set.name}`;
+  return `MTG ${HOT_SET_QUERY[set.code] ?? set.name}`;
 }
 
 /** Is this a hot set that is out (its products and its page get the highlight)? */
@@ -55,7 +54,7 @@ export function isHotReleased(setCode: string | null | undefined, now: Date = ne
   return isHotSet(setCode) && !isPreorderSet(setCode, now);
 }
 
-/** A hot, released set's button: "Shop 30th Celebration on eBay". Undefined for any other set. */
+/** A hot, released set's button: "Shop Star Trek on eBay". Undefined for any other set. */
 export function hotSetHighlight(set: SetName | null | undefined, now: Date = new Date()): EbayHighlight | undefined {
   if (!set || !isHotReleased(set.code, now)) return undefined;
   return { label: `Shop ${set.name} on eBay`, query: hotSetQuery(set) };
@@ -63,19 +62,19 @@ export function hotSetHighlight(set: SetName | null | undefined, now: Date = new
 
 /**
  * A set page's highlighted button (the growth release: every released set's page, not only the hot ones'). A hot set that is out keeps
- * its hot-set button ("Shop 30th Celebration on eBay"); any other released set gets "Shop <set> sealed on eBay", a search for the set's
+ * its hot-set button ("Shop Star Trek on eBay"); any other released set gets "Shop <set> sealed on eBay", a search for the set's
  * sealed product (what the page compares) under its own placement, set-sealed; a set that is not out yet gets none, as in the importer,
- * which refuses pre-sale listings. A set whose name already says Pokémon is not searched as "Pokemon Pokémon …".
+ * which refuses pre-sale listings. A set whose name already says Magic is not searched as "MTG Magic …".
  */
 export function setSealedHighlight(set: SetName | null | undefined, now: Date = new Date()): EbayHighlight | undefined {
   if (!set || isPreorderSet(set.code, now)) return undefined;
   if (isHotSet(set.code)) return hotSetHighlight(set, now);
-  const query = /pok[eé]mon/i.test(set.name) ? set.name : `Pokemon ${set.name}`;
+  const query = /\bmtg\b|\bmagic\b/i.test(set.name) ? set.name : `MTG ${set.name}`;
   return { label: `Shop ${set.name} sealed on eBay`, query, placement: "set-sealed" };
 }
 
 /** The most wanted hot set that is out (HOT_SETS order): the one the region home page highlights. */
-export function firstHotSet(now: Date = new Date()): PokemonSet | null {
+export function firstHotSet(now: Date = new Date()): MtgSet | null {
   for (const code of HOT_SETS) {
     const s = SET_BY_CODE.get(code);
     if (s && isHotReleased(code, now)) return s;
@@ -117,7 +116,7 @@ export function EbaySearchLink({
   "aria-label": ariaLabel,
 }: {
   region: Region;
-  /** A product, set or type name, or "" for Pokémon sealed in general. */
+  /** A product, set or type name, or "" for Magic sealed in general. */
   query: string;
   placement: Placement;
   className?: string;
@@ -154,7 +153,7 @@ export function EbayNavLink({ region }: { region: Region }) {
         region={region}
         query=""
         placement="header"
-        title="Ad: affiliate link to Pokémon sealed searches on eBay. We may earn a commission, at no cost to you."
+        title="Ad: affiliate link to Magic sealed searches on eBay. We may earn a commission, at no cost to you."
         className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-muted hover:bg-raised hover:text-ink"
       >
         eBay <AdPill /> <Arrow />

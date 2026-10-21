@@ -95,7 +95,7 @@ export function SuggestedEbayStrip() {
         placement="listings-landing"
         site={EBAY_SITE_LABEL[to]}
         regionKnown={false}
-        search={{ kind: "card", query: "" }}
+        search={{ kind: "sealed", query: "collector booster box" }}
       />
     </div>
   );

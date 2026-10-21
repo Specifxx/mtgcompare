@@ -133,11 +133,11 @@ export async function cheapestInStock(market: Market, typeLabels: string[], take
 }
 
 // The product types a buyer prices a set by, and the home page's "latest sets" cards show.
-export const HEADLINE_TYPES = ["Booster Box", "Elite Trainer Box", "Booster Bundle", "Pokémon Center Elite Trainer Box"];
+export const HEADLINE_TYPES = ["Play Booster Box", "Collector Booster Box", "Bundle"];
 
 /**
  * The region home page's rails, from small targeted reads: in-stock booster
- * boxes and ETBs (newest sets first), open pre-orders, and the headline
+ * boxes and Collector boxes (newest sets first), open pre-orders, and the headline
  * products of the newest sets the region stocks.
  */
 export async function homeRails(market: Market, today = new Date().toISOString().slice(0, 10)) {
@@ -157,8 +157,8 @@ export async function homeRails(market: Market, today = new Date().toISOString()
       .sort(newestFirst)
       .slice(0, 8);
   const [boxes, etbs, preorders, latest] = await Promise.all([
-    inStockOfType("Booster Box"),
-    inStockOfType("Elite Trainer Box"),
+    inStockOfType("Play Booster Box"),
+    inStockOfType("Collector Booster Box"),
     upcoming.length
       ? prisma.productStat.findMany({ where: { market, ...OPEN, product: { setCode: { in: upcoming } } }, take: 60, select: cardSelect })
       : Promise.resolve([]),
@@ -420,7 +420,7 @@ export async function setStoreReach(setCode: string): Promise<{ stores: number; 
 
 // The headline set products a buyer prices a new set by. The release calendar
 // and the set page's "cheapest way to buy packs" strip read these.
-export const CALENDAR_TYPES = ["Booster Box", "Elite Trainer Box", "Booster Bundle"];
+export const CALENDAR_TYPES = ["Play Booster Box", "Collector Booster Box", "Bundle"];
 
 /**
  * Release calendar: for the given sets, the cheapest OPEN booster box, ETB and

@@ -106,7 +106,7 @@ export function MarketplacePanel({
   if (!tcgplayer) {
     tcgText = (
       <>
-        <b>TCGplayer</b> <span className="text-muted">— {us ? "search its Pokémon sealed listings" : "US marketplace, prices in US$"}</span>
+        <b>TCGplayer</b> <span className="text-muted">— {us ? "search its Magic sealed listings" : "US marketplace, prices in US$"}</span>
       </>
     );
   } else if (us) {
@@ -191,7 +191,7 @@ export function SoldOutCallout({
   ebayQuery: string;
   /** The price table's eBay pick, or null (a pre-order product, NZ, SG): the box then stays the search. */
   pick?: SoldOutPick | null;
-  /** An internal link to in-stock products of the type ("See Elite Trainer Boxes in stock in the UK →"). */
+  /** An internal link to in-stock products of the type ("See Collector Booster Boxes in stock in the UK →"). */
   instead?: { href: string; label: string } | null;
 }) {
   const r = REGIONS[region];

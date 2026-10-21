@@ -11,7 +11,7 @@
 //   3. ranks its collections (Shopify sitemap / Woo categories) and reads the
 //      most promising ones,
 //   4. runs every title through identify() — the same gate the importer uses —
-//      and counts the Pokémon sealed products it would actually list,
+//      and counts the Magic sealed products it would actually list,
 //   5. picks the fewest collections (max 4) that cover what it found.
 //
 // With --write, stores that clear --min products are merged into
@@ -20,7 +20,7 @@
 import { writeFileSync, readFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import {
-  isPokemonCollection,
+  isMagicCollection,
   rankCollections,
   readShopifyCollection,
   readWooCategory,
@@ -178,7 +178,7 @@ async function probe(c: Candidate & { key: string; base: string; market: Market 
     const inStockIds = new Set<string>();
     const all = new Set<string>();
     for (const r of reads) {
-      const strict = !isPokemonCollection(r.handle) && !r.handle.startsWith("search:");
+      const strict = !isMagicCollection(r.handle) && !r.handle.startsWith("search:");
       const ids = new Set<string>();
       for (const p of r.products) {
         const id = identify(p.title, { strict });

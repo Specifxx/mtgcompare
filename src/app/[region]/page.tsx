@@ -23,7 +23,7 @@ import { isPreorderSet, formatRelease } from "@/lib/release";
 import { REGIONS, regionOrNotFound, type Market, type RegionInfo } from "@/lib/regions";
 import { ogCardImage, pageMeta, regionAlternates } from "@/lib/seo";
 import { PRODUCT_TYPES } from "@/lib/sealed-title";
-import { SETS, type PokemonSet } from "@/lib/sets";
+import { SETS, type MtgSet } from "@/lib/sets";
 import { storesInMarket } from "@/lib/stores";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js, CDN_PAGES), never ISR: an ISR write
@@ -47,12 +47,12 @@ export async function generateMetadata({ params }: { params: { region: string } 
     ...meta,
     title: fitTitle(homeCopy.title(r, n)),
     // The region's own share card (app/og/[region]): what a link to /au or /us shows on Reddit, Discord or X.
-    openGraph: { ...meta.openGraph, images: [ogCardImage(`/og/${r.region}`, `MTG Compare: Pokémon sealed prices across ${n} ${r.adjective} stores`)] },
+    openGraph: { ...meta.openGraph, images: [ogCardImage(`/og/${r.region}`, `MTG Compare: Magic sealed prices across ${n} ${r.adjective} stores`)] },
   };
 }
 
-const QUICK_TYPES = ["booster-boxes", "elite-trainer-boxes", "booster-bundles", "collections", "ultra-premium-collections", "tins", "booster-packs", "blisters"];
-const HEADLINE = ["Booster Box", "Elite Trainer Box", "Booster Bundle"];
+const QUICK_TYPES = ["play-booster-boxes", "collector-booster-boxes", "bundles", "commander-decks", "prerelease-packs", "secret-lair", "play-booster-packs", "starter-kits"];
+const HEADLINE = ["Play Booster Box", "Collector Booster Box", "Bundle"];
 
 export default async function RegionHome({ params }: { params: { region: string } }) {
   const r = regionOrNotFound(params.region);
@@ -77,7 +77,7 @@ export default async function RegionHome({ params }: { params: { region: string 
               <span aria-hidden="true">{r.flag}</span> {r.name} · prices in {r.currency}
             </div>
             <h1 className="mt-3 max-w-3xl font-display text-3xl font-bold leading-[1.1] tracking-tight sm:text-5xl">
-              Compare Pokémon booster box &amp; ETB prices in <span className="text-brand">{r.inName}</span>
+              Compare Magic booster box &amp; bundle prices in <span className="text-brand">{r.inName}</span>
             </h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-muted sm:text-lg">
               Today&rsquo;s prices and stock from {plural(storeCount, `${r.adjective} store`)}
@@ -168,11 +168,11 @@ export default async function RegionHome({ params }: { params: { region: string 
           </Section>
         )}
 
-        <Section title="Booster boxes in stock" kicker="Newest sets first" href={`/${r.region}/type/booster-boxes`}>
+        <Section title="Booster boxes in stock" kicker="Newest sets first" href={`/${r.region}/type/play-booster-boxes`}>
           {boxes.length ? (
             <ProductGrid products={boxes} region={r.region} />
           ) : (
-            <Empty actions={[preorderLink, { href: `/${r.region}/type/booster-boxes`, label: "All booster boxes" }, { href: `/${other.region}/type/booster-boxes`, label: `Booster boxes in ${other.inName}` }]}>
+            <Empty actions={[preorderLink, { href: `/${r.region}/type/play-booster-boxes`, label: "All booster boxes" }, { href: `/${other.region}/type/play-booster-boxes`, label: `Booster boxes in ${other.inName}` }]}>
               No booster boxes in stock right now.
             </Empty>
           )}
@@ -185,14 +185,14 @@ export default async function RegionHome({ params }: { params: { region: string 
         </Section>
 
         {/* The second unit: chase cards, after the booster-box rail (a viewport and more below the sealed strip). */}
-        <EbayStrip region={r.region} context="chase" placement="listings-home" className="mt-14" search={{ kind: "card", query: "" }} />
+        <EbayStrip region={r.region} context="chase" placement="listings-home" className="mt-14" search={{ kind: "sealed", query: "collector booster box" }} />
 
-        <Section title="Elite Trainer Boxes in stock" kicker="Newest sets first" href={`/${r.region}/type/elite-trainer-boxes`}>
+        <Section title="Collector Booster Boxes in stock" kicker="Newest sets first" href={`/${r.region}/type/collector-booster-boxes`}>
           {etbs.length ? (
             <ProductGrid products={etbs} region={r.region} />
           ) : (
-            <Empty actions={[preorderLink, { href: `/${r.region}/type/elite-trainer-boxes`, label: "All ETBs" }, { href: `/${other.region}/type/elite-trainer-boxes`, label: `ETBs in ${other.inName}` }]}>
-              No Elite Trainer Boxes in stock right now.
+            <Empty actions={[preorderLink, { href: `/${r.region}/type/collector-booster-boxes`, label: "All Collector boxes" }, { href: `/${other.region}/type/collector-booster-boxes`, label: `Collector boxes in ${other.inName}` }]}>
+              No Collector Booster Boxes in stock right now.
             </Empty>
           )}
         </Section>
@@ -253,17 +253,17 @@ function HotRow({ p, r }: { p: ProductCardData; r: RegionInfo }) {
 }
 
 /**
- * A latest-set card: its header links to the set (the logo, or, for a set with none yet, its booster box or ETB on a plate), and each
+ * A latest-set card: its header links to the set (the logo, or, for a set with none yet, its booster box on a plate), and each
  * headline product is its own row linking to its page.
  */
-function SetCard({ r, s, items: all }: { r: RegionInfo; s: PokemonSet; items: ProductCardData[] }) {
-  const order = ["Booster Box", "Elite Trainer Box", "Booster Bundle"];
+function SetCard({ r, s, items: all }: { r: RegionInfo; s: MtgSet; items: ProductCardData[] }) {
+  const order = ["Play Booster Box", "Collector Booster Box", "Bundle"];
   const items = all
-    .filter((p) => p.productType !== "Pokémon Center Elite Trainer Box")
+    .filter((p) => p.productType !== "Pokémon Center Collector Booster Box")
     .sort((a, b) => order.indexOf(a.productType) - order.indexOf(b.productType))
     .slice(0, 3);
   const pre = isPreorderSet(s.code);
-  const art = s.logo ? null : thumb(all.find((p) => p.imageUrl && (p.productType === "Booster Box" || p.productType === "Elite Trainer Box"))?.imageUrl, 200);
+  const art = s.logo ? null : thumb(all.find((p) => p.imageUrl && (p.productType === "Play Booster Box" || p.productType === "Collector Booster Box"))?.imageUrl, 200);
   return (
     <div className="card flex flex-col overflow-hidden">
       <Link href={`/${r.region}/sets/${s.slug}`} prefetch={false} className="group flex min-h-[4.5rem] items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-raised sm:px-5">

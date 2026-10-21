@@ -37,7 +37,7 @@ import { offerStock } from "@/lib/sealed-offers";
 import { storesInMarket } from "@/lib/stores";
 import { jsonLd, pageMeta, regionAlternates } from "@/lib/seo";
 import { TYPE_BY_KEY, TYPE_BY_LABEL } from "@/lib/sealed-title";
-import { type PokemonSet } from "@/lib/sets";
+import { type MtgSet } from "@/lib/sets";
 import { SITE_URL } from "@/lib/site";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -129,7 +129,7 @@ export default async function PreorderPage({ params }: Params) {
           {
             "@context": "https://schema.org",
             "@type": "ItemList",
-            name: `Pokémon ${set.name} pre-orders in ${r.name}`,
+            name: `MTG ${set.name} pre-orders in ${r.name}`,
             url: `${SITE_URL}${path}`,
             itemListElement: open.slice(0, 30).map((g, i) => ({
               "@type": "ListItem",
@@ -166,7 +166,7 @@ export default async function PreorderPage({ params }: Params) {
         {pre ? `Pre-order · releases ${formatRelease(set.releaseDate)}` : `Released ${formatRelease(set.releaseDate)}`}
       </span>
       <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
-        Pokémon {set.name} pre-order prices in {r.name}
+        MTG {set.name} pre-order prices in {r.name}
       </h1>
       {pre ? (
         <p className="mt-2 max-w-2xl text-muted">
@@ -221,10 +221,10 @@ export default async function PreorderPage({ params }: Params) {
           </Section>
         ))}
 
-      <Section title={`What each ${set.name} product is`} kicker={`${guide.cardCount} · headlined by ${guide.headliners[0]}`}>
+      <Section title={`What each ${set.name} product is`} kicker={guide.cardCount ? `${guide.cardCount}${guide.headliners[0] ? ` · headlined by ${guide.headliners[0]}` : ""}` : undefined}>
         <p className="max-w-3xl text-sm text-muted">
-          Stores list the same product under different names, so here is what is in each box. Contents are from The Pokémon Company&rsquo;s
-          announcement{r.market === "US" ? "; list prices are TPCi's US MSRP" : ""}.
+          Stores list the same product under different names, so here is what is in each box. Contents are from Wizards of the Coast&rsquo;s
+          announcement{r.market === "US" ? "; list prices are Wizards' US MSRP" : ""}.
         </p>
         <dl className="mt-4 grid gap-3 sm:grid-cols-2">
           {guide.products.map((p) => {
@@ -241,14 +241,6 @@ export default async function PreorderPage({ params }: Params) {
                   </dd>
                 )}
                 <dd className="mt-1.5 text-sm leading-6 text-muted">{p.contents}.</dd>
-                {p.type === "build-battle" && guide.prerelease && (
-                  <dd className="mt-1.5 text-sm leading-6 text-muted">
-                    The promos: {guide.prerelease.promos.slice(0, -1).join(", ")} or {guide.prerelease.promos.at(-1)} ({guide.prerelease.source}).{" "}
-                    <Link href={`/${r.region}/guides/pokemon-build-and-battle-box`} prefetch={false} className="font-semibold text-brand hover:underline">
-                      What’s in a Build & Battle Box →
-                    </Link>
-                  </dd>
-                )}
               </div>
             );
           })}
@@ -261,7 +253,7 @@ export default async function PreorderPage({ params }: Params) {
         <Section title={`What’s in ${set.name}`} kicker={`The set · ${guide.cardCount}`}>
           <div className="card max-w-3xl p-6 text-sm leading-6 text-muted">
             <p>
-              Pokémon TCG: {guide.fullName} has {guide.cardCount}, headlined by {guide.headliners[0]}. It includes:
+              Magic: The Gathering: {guide.fullName} has {guide.cardCount}, {guide.headliners[0] ? `, headlined by ${guide.headliners[0]}` : ""}. It includes:
             </p>
             <ul className="mt-3 grid list-disc gap-1 pl-5">
               {guide.makeup.map((m) => (
@@ -316,8 +308,8 @@ export default async function PreorderPage({ params }: Params) {
             <p className="mt-4">
               We don&rsquo;t forecast prices and won&rsquo;t tell you the number is going up. What this page can tell you is what every store we
               track is asking right now, in your currency.{" "}
-              <Link href={`/${r.region}/guides/how-to-preorder-pokemon-tcg`} prefetch={false} className="font-semibold text-brand hover:underline">
-                How to pre-order Pokémon TCG sets →
+              <Link href={`/${r.region}/guides/how-to-preorder-magic-sets`} prefetch={false} className="font-semibold text-brand hover:underline">
+                How to pre-order Magic: The Gathering sets →
               </Link>
             </p>
           </div>
@@ -329,16 +321,13 @@ export default async function PreorderPage({ params }: Params) {
           All {set.name} products
         </Link>
         <Link href={`/${r.region}/releases`} prefetch={false} className="chip py-2">
-          Pokémon release calendar
+          Magic release calendar
         </Link>
-        <Link href={`/${r.region}/type/booster-boxes`} prefetch={false} className="chip py-2">
+        <Link href={`/${r.region}/type/play-booster-boxes`} prefetch={false} className="chip py-2">
           Booster boxes in stock
         </Link>
-        <Link href={`/${r.region}/type/elite-trainer-boxes`} prefetch={false} className="chip py-2">
-          Elite Trainer Boxes in stock
-        </Link>
-        <Link href={`/${r.region}/guides/pokemon-build-and-battle-box`} prefetch={false} className="chip py-2">
-          Build &amp; Battle Box guide
+        <Link href={`/${r.region}/type/collector-booster-boxes`} prefetch={false} className="chip py-2">
+          Collector Booster Boxes in stock
         </Link>
         <Link href={COUNTRY_GUIDE.path} prefetch={false} className="chip py-2">
           Booster box prices by country
@@ -377,14 +366,14 @@ export default async function PreorderPage({ params }: Params) {
 }
 
 /**
- * The release date at a glance, under the H1: the answer to "when does <set> come out", with the prerelease, Pokémon TCG Live and the
+ * The release date at a glance, under the H1: the answer to "when does <set> come out", with the prerelease, Magic: The Gathering Live and the
  * set's size (lib/preorder-copy.ts glanceFacts). Two columns on a phone, four from sm.
  */
-function ReleaseGlance({ set, facts, today }: { set: PokemonSet; facts: GlanceFact[]; today: string }) {
+function ReleaseGlance({ set, facts, today }: { set: MtgSet; facts: GlanceFact[]; today: string }) {
   return (
     <section aria-labelledby="release-date" className="card mt-6 max-w-4xl p-4 sm:p-5">
       <h2 id="release-date" className="font-display text-lg font-bold tracking-tight">
-        Pokémon {set.name} release date
+        MTG {set.name} release date
       </h2>
       <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-4">
         {facts.map((f) => (

@@ -129,7 +129,7 @@ export function summary(id: string, title: string, price: number, marketplace = 
     image: { imageUrl: `https://i.ebayimg.com/images/g/img${id}/s-l225.jpg` },
     price: { value: price.toFixed(2), currency: CURRENCY[marketplace] },
     itemWebUrl: `https://www.ebay.com/itm/${page}`,
-    itemAffiliateWebUrl: `https://www.ebay.com/itm/${page}?mkevt=1&mkcid=1&mkrid=711-53200-19255-0&campid=5339155912&customid=dex-listings&toolid=10001`,
+    itemAffiliateWebUrl: `https://www.ebay.com/itm/${page}?mkevt=1&mkcid=1&mkrid=711-53200-19255-0&campid=5339155912&customid=mtg-listings&toolid=10001`,
     condition: "Brand New",
     buyingOptions: ["FIXED_PRICE"],
     shippingOptions: [{ shippingCostType: "FIXED", shippingCost: { value: "0.00", currency: CURRENCY[marketplace] } }],

@@ -22,7 +22,7 @@ export const SET_CODES_NEWEST_FIRST: string[] = SETS.map((s, i) => ({ s, i }))
   .sort((a, b) => b.s.releaseDate.localeCompare(a.s.releaseDate) || a.i - b.i)
   .map(({ s }) => s.code);
 
-/** Product type labels in display rank (PRODUCT_TYPES order: booster boxes and ETBs first). */
+/** Product type labels in display rank (PRODUCT_TYPES order: booster boxes and Collector boxes first). */
 export const TYPE_LABELS_BY_RANK: string[] = PRODUCT_TYPES.map((t) => t.label);
 
 const SET_POS = new Map(SET_CODES_NEWEST_FIRST.map((c, i) => [c, i]));
@@ -101,15 +101,15 @@ function words(s: string): string[] {
 
 /** What collectors type for a product type, beyond the words of its label. */
 const TYPE_ALIASES: Record<string, string[]> = {
-  "Booster Box": ["bb", "display"],
-  "Booster Box Case": ["bb"],
-  "Elite Trainer Box": ["etb"],
-  "Elite Trainer Box Case": ["etb"],
-  "Pokémon Center Elite Trainer Box": ["etb", "pc", "pcetb"],
+  "Play Booster Box": ["bb", "display"],
+  "Play Booster Box Case": ["bb"],
+  "Collector Booster Box": ["etb"],
+  "Collector Booster Box Case": ["etb"],
+  "Pokémon Center Collector Booster Box": ["etb", "pc", "pcetb"],
   "Ultra-Premium Collection": ["upc"],
   "Build & Battle Box": ["bnb"],
   "Build & Battle Stadium": ["bnb"],
-  "Booster Pack": ["packs"],
+  "Play Booster Pack": ["packs"],
 };
 
 // Two-letter abbreviations with an "&" in them, folded to one word before the query is split ("b&b" → bnb, "s&v" → sv).
@@ -136,7 +136,7 @@ export function queryWords(q: string): string[] {
   return kept.length ? kept : all;
 }
 
-/** "boxes" → "box", "etbs" → "etb", "tins" → "tin": a plural typed for a singular label. */
+/** "boxes" → "box", "etbs" → "etb", "secret-lair" → "tin": a plural typed for a singular label. */
 function singular(w: string): string | null {
   if (w.length < 4) return null;
   if (/(?:x|s|z|ch|sh)es$/.test(w)) return w.slice(0, -2);

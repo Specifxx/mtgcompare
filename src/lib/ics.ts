@@ -64,7 +64,7 @@ export function buildIcs(e: IcsRelease): string {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//MTG Compare//Pokemon TCG release dates//EN",
+    "PRODID:-//MTG Compare//Magic The Gathering release dates//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
@@ -72,7 +72,7 @@ export function buildIcs(e: IcsRelease): string {
     `DTSTAMP:${icsStamp(e.stamp ?? new Date())}`,
     `DTSTART;VALUE=DATE:${icsDate(e.date)}`,
     `DTEND;VALUE=DATE:${icsDate(nextDay(e.date))}`,
-    `SUMMARY:${escapeIcsText(`Pokémon TCG ${e.name} release (English)`)}`,
+    `SUMMARY:${escapeIcsText(`Magic: The Gathering ${e.name} release (English)`)}`,
     `DESCRIPTION:${escapeIcsText(`Compare ${e.name} prices: ${e.url}`)}`,
     `URL:${e.url}`,
     "TRANSP:TRANSPARENT",

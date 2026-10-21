@@ -1,10 +1,10 @@
 // Confirms MTG Compare's own eBay Browse API keyset works, with the same code the importer runs
 // (src/lib/ebay-api.ts, ebay-normalise.ts). Needs EBAY_CLIENT_ID and EBAY_CLIENT_SECRET in the environment
-// (DEXCOMPARE_EBAY_CLIENT_ID / _SECRET win when set); tsx does not read .env, so export them or:
+// (MTGCOMPARE_EBAY_CLIENT_ID / _SECRET win when set); tsx does not read .env, so export them or:
 //
 //   EBAY_CLIENT_ID=… EBAY_CLIENT_SECRET=… npx tsx scripts/ebay-check.ts [marketplace …]
 //
-// It prints the token status and, per marketplace, how many listings two searches (a chase-card one and a
+// It prints the token status and, per marketplace, how many listings two searches (a high-end sealed one and a
 // sealed one) would store: counts only, never titles, prices, the id, the secret, a token or an Authorization
 // header. No database. Exit code 1 when the token cannot be fetched or nothing came back anywhere.
 //
@@ -45,12 +45,12 @@ async function main() {
     console.log(`\n${mp}  (${MARKETPLACES[mp].currency})`);
     const now = Date.now();
     const runs: [string, string, (raw: unknown) => unknown][] = [
-      ["chase", "Pokemon Charizard ex special illustration rare", (raw) => normaliseChase(raw, mp, now)],
-      ["sealed", "Pokemon elite trainer box sealed", (raw) => normaliseSealed(raw, mp, now)],
+      ["chase", "MTG collector booster box sealed", (raw) => normaliseChase(raw, mp, now)],
+      ["sealed", "MTG play booster box sealed", (raw) => normaliseSealed(raw, mp, now)],
     ];
     for (const [name, q, norm] of runs) {
       try {
-        const raw = await searchOnce(deps, tokens, { q, marketplace: mp, limit: 30, minPrice: name === "chase" ? 15 : usdToMarketplace(30, mp) });
+        const raw = await searchOnce(deps, tokens, { q, marketplace: mp, limit: 30, minPrice: usdToMarketplace(name === "chase" ? 100 : 30, mp) });
         const kept = raw.map(norm).filter(Boolean).length;
         total += kept;
         console.log(`  ${name.padEnd(8)} ${String(raw.length).padStart(3)} returned, ${String(kept).padStart(3)} kept`);

@@ -8,7 +8,7 @@ import { setCountsGrouped, type SetCount } from "@/lib/hub-data";
 import { isPreorderSet } from "@/lib/release";
 import { regionOrNotFound, type RegionInfo } from "@/lib/regions";
 import { pageMeta, regionAlternates } from "@/lib/seo";
-import { SETS, type PokemonSet } from "@/lib/sets";
+import { SETS, type MtgSet } from "@/lib/sets";
 import { slugify } from "@/lib/sealed-title";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js, CDN_PAGES), never ISR: an ISR write
@@ -22,7 +22,7 @@ export function generateMetadata({ params }: { params: { region: string } }): Me
   return {
     ...pageMeta({
       title: titleText(title),
-      description: `All ${SETS.length} English Pokémon TCG sets in release order, from ${series[0].series} back to ${series[series.length - 1].series} (${firstSetYear()}), with release dates and what ${r.adjective} stores have of each in stock today.`,
+      description: `All ${SETS.length} English Magic: The Gathering sets in release order, from ${series[0].series} back to ${series[series.length - 1].series} (${firstSetYear()}), with release dates and what ${r.adjective} stores have of each in stock today.`,
       path: `/${r.region}/sets`,
       alternates: regionAlternates(r.region, "/sets"),
     }),
@@ -38,7 +38,7 @@ export default async function SetsPage({ params }: { params: { region: string } 
   return (
     <div className="page py-8">
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { label: "Sets" }]} />
-      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Pokémon TCG sets in order</h1>
+      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Magic: The Gathering sets in order</h1>
       <p className="mt-3 max-w-2xl leading-7 text-muted">
         Every English-language set from XY ({firstSetYear()}) on, newest first, with its English release date and how much of its sealed product{" "}
         {r.adjective} stores have in stock today. A set links to its price comparison once a store we track lists it.
@@ -104,7 +104,7 @@ export default async function SetsPage({ params }: { params: { region: string } 
 }
 
 /** One set: its logo, name, English release date and, here, what stores list and have open. Linked only where a store lists it (an empty set page is noindex). */
-function SetRow({ r, s, c }: { r: RegionInfo; s: PokemonSet; c: SetCount | undefined }) {
+function SetRow({ r, s, c }: { r: RegionInfo; s: MtgSet; c: SetCount | undefined }) {
   const pre = isPreorderSet(s.code);
   const body = (
     <>

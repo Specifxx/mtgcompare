@@ -12,7 +12,7 @@
 // lib/sets.ts (isPreorderSet). From release day the page says it is out, points
 // at the set page, drops out of the sitemap and is noindexed. A guide can then
 // be deleted at leisure; nothing else depends on it.
-import { SET_BY_CODE, SET_BY_SLUG, type MtgSet as PokemonSet } from "./sets";
+import { SET_BY_CODE, SET_BY_SLUG, type MtgSet } from "./sets";
 import type { TypeKey } from "./sealed-title";
 
 export interface PreorderProduct {
@@ -41,7 +41,7 @@ export interface PreorderGuide {
   fullName: string;
   /** Prerelease events at participating stores (YYYY-MM-DD), when announced. */
   prereleaseFrom: string | null;
-  /** Pokémon TCG Live, when announced (YYYY-MM-DD). */
+  /** Magic: The Gathering Live, when announced (YYYY-MM-DD). */
   liveDate: string | null;
   /** "over 135 cards", as TPCi words it. */
   cardCount: string;
@@ -129,7 +129,7 @@ export function preorderGuide(setCode: string | null | undefined): PreorderGuide
 }
 
 /** The guide and its set for a URL slug, or null (the page 404s). */
-export function preorderGuideBySlug(slug: string): { guide: PreorderGuide; set: PokemonSet } | null {
+export function preorderGuideBySlug(slug: string): { guide: PreorderGuide; set: MtgSet } | null {
   const set = SET_BY_SLUG.get(slug);
   const guide = set ? BY_CODE.get(set.code) : undefined;
   return set && guide ? { guide, set } : null;
@@ -142,8 +142,8 @@ export function preorderPath(region: string, setCode: string): string | null {
 }
 
 /** Guides whose set has not released yet (by lib/sets.ts), soonest release first. */
-export function openPreorderGuides(today = new Date().toISOString().slice(0, 10)): { guide: PreorderGuide; set: PokemonSet }[] {
+export function openPreorderGuides(today = new Date().toISOString().slice(0, 10)): { guide: PreorderGuide; set: MtgSet }[] {
   return PREORDER_GUIDES.map((guide) => ({ guide, set: SET_BY_CODE.get(guide.setCode) }))
-    .filter((x): x is { guide: PreorderGuide; set: PokemonSet } => !!x.set && x.set.releaseDate > today)
+    .filter((x): x is { guide: PreorderGuide; set: MtgSet } => !!x.set && x.set.releaseDate > today)
     .sort((a, b) => a.set.releaseDate.localeCompare(b.set.releaseDate));
 }

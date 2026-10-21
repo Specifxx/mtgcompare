@@ -33,7 +33,7 @@ export interface AltDb {
 
 /**
  * Set codes in the order alternatives prefer them: released sets newest first, then the sets still to come (soonest first), so a sold-out
- * ETB is offered this year's ETBs before a pre-order and before a 2017 one. Computed per call: a set's release day passes without a deploy.
+ * ETB is offered this year's Collector boxes before a pre-order and before a 2017 one. Computed per call: a set's release day passes without a deploy.
  */
 export function setCodesNewestFirst(today = new Date().toISOString().slice(0, 10)): string[] {
   const out = SETS.filter((s) => s.releaseDate <= today).sort((a, b) => b.releaseDate.localeCompare(a.releaseDate));
@@ -49,7 +49,7 @@ export function altToCard(r: AltRow): ProductCardData {
 /**
  * Up to `take` (4) products of the same type that are open in the market right now (a store has it in stock, or TCGplayer does), the
  * product itself excluded: the same set first, then the newest sets, then the cheapest. Nothing of the type open: the region's cheapest
- * open headline products (booster boxes, ETBs, bundles), newest sets first.
+ * open headline products (booster boxes, Collector boxes, bundles), newest sets first.
  */
 export async function inStockAlternatives(
   market: Market,

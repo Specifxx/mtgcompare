@@ -27,7 +27,7 @@ export function footerColumns(region: Region | null): { title: string; links: Fo
   return [
     {
       title: "Shop",
-      links: [s("boosterBoxes", "Booster boxes"), s("etbs", "Elite Trainer Boxes"), s("bundles", "Booster bundles"), s("upcs", "Ultra-Premium Collections"), s("tins", "Tins"), s("perPack", "Cheapest per pack")],
+      links: [s("boosterBoxes", "Play Booster Boxes"), s("collectorBoxes", "Collector Booster Boxes"), s("bundles", "Bundles"), s("commanderDecks", "Commander decks"), s("secretLair", "Secret Lair"), s("perPack", "Cheapest per pack")],
     },
     { title: "Latest sets", links: SETS.slice(0, 6).map((set) => ({ href: `/${region}/sets/${set.slug}`, label: set.name })) },
     {

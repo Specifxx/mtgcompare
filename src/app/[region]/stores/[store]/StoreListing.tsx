@@ -55,11 +55,11 @@ const getStoreStat = cache((key: string) => storeStat(key));
 export async function storeMeta(r: RegionInfo, s: StoreConfig, page: number): Promise<Metadata> {
   const st = await getStoreStat(s.key);
   // A long store name pushes the title past 65 characters with " | MTG Compare": then it goes out without the suffix.
-  const title = hubTitle(`${s.name} — Pokémon sealed stock & prices${page > 1 ? ` — page ${page}` : ""}`);
+  const title = hubTitle(`${s.name} — Magic sealed stock & prices${page > 1 ? ` — page ${page}` : ""}`);
   return {
     ...pageMeta({
       title: titleText(title),
-      description: `Pokémon booster boxes, ETBs and sealed product at ${s.name} (${storeHost(s)}), with stock and prices compared against other ${r.adjective} stores.`,
+      description: `Pokémon booster boxes, Collector boxes and sealed product at ${s.name} (${storeHost(s)}), with stock and prices compared against other ${r.adjective} stores.`,
       path: pageHref(`/${r.region}/stores/${s.key}`, page),
       noindex: !storeIndexable(st),
     }),
@@ -91,7 +91,7 @@ export async function StorePage({ r, s, page }: { r: RegionInfo; s: StoreConfig;
           </div>
           <h1 className="mt-1 font-display text-3xl font-extrabold tracking-tight">{s.name}</h1>
           <p className="mt-1 text-sm text-muted">
-            {st?.inStock ?? 0} Pokémon sealed products in stock · {listed} listed · last read{" "}
+            {st?.inStock ?? 0} Magic sealed products in stock · {listed} listed · last read{" "}
             {st?.lastOkAt ? <Ago iso={st.lastOkAt.toISOString()} initial={timeAgo(st.lastOkAt)} /> : "not yet"}
             {pages > 1 && ` · page ${page} of ${pages}`}
           </p>
@@ -140,7 +140,7 @@ export async function StorePage({ r, s, page }: { r: RegionInfo; s: StoreConfig;
         </div>
       ) : (
         <div className="card mt-6 px-6 py-10 text-center text-muted">
-          {st?.lastError ? "We couldn't read this store's listings on the last check." : "No Pokémon sealed listings found at this store yet."}
+          {st?.lastError ? "We couldn't read this store's listings on the last check." : "No Magic sealed listings found at this store yet."}
         </div>
       )}
       <Pagination base={base} page={page} pages={pages} />
@@ -148,7 +148,7 @@ export async function StorePage({ r, s, page }: { r: RegionInfo; s: StoreConfig;
       {/* After the store's list, not above it (the list is what the visitor came for). It is the page's one unit, so the strip above the footer is
           dropped. A short list gets no unit at all: a strip under a handful of rows would be over a quarter of the page (the §C4 density ceiling). */}
       <NoPreFooter />
-      {listHasRoomForFooter(offers.length) && <EbayStrip region={r.region} context="chase" placement="listings-store" className="mt-8" search={{ kind: "card", query: "" }} />}
+      {listHasRoomForFooter(offers.length) && <EbayStrip region={r.region} context="chase" placement="listings-store" className="mt-8" search={{ kind: "sealed", query: "collector booster box" }} />}
     </div>
   );
 }

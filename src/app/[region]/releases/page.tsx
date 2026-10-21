@@ -15,7 +15,7 @@ import { formatRelease, isPreorderSet } from "@/lib/release";
 import { jsonLd, pageMeta, regionAlternates, withMtg } from "@/lib/seo";
 import { COUNTRY_GUIDE } from "@/content/guides/country-prices";
 import { preorderPath } from "@/lib/preorder-guides";
-import { SETS, type PokemonSet } from "@/lib/sets";
+import { SETS, type MtgSet } from "@/lib/sets";
 import { SITE_URL } from "@/lib/site";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js, CDN_PAGES), never ISR: an ISR write
@@ -35,7 +35,7 @@ export function generateMetadata({ params }: { params: { region: string } }): Me
   return {
     ...pageMeta({
       title: titleText(title),
-      description: `Every Pokémon TCG set releasing in ${year}, with English release dates${
+      description: `Every Magic: The Gathering set releasing in ${year}, with English release dates${
         next ? `: ${withMtg(next.name)} is next, out ${shortDate(next.releaseDate)}` : ""
       }. What ${r.adjective} stores have in stock or open for pre-order today.`,
       path: `/${r.region}/releases`,
@@ -46,7 +46,7 @@ export function generateMetadata({ params }: { params: { region: string } }): Me
 }
 
 /** Sets released in the last RECENT_DAYS days or still to come, newest first (SETS is already newest first). */
-function calendarSets(today: string, sets: PokemonSet[] = SETS): PokemonSet[] {
+function calendarSets(today: string, sets: MtgSet[] = SETS): MtgSet[] {
   const since = new Date(Date.parse(`${today}T00:00:00Z`) - RECENT_DAYS * 86400_000).toISOString().slice(0, 10);
   return sets.filter((s) => s.releaseDate >= since);
 }
@@ -70,7 +70,7 @@ export default async function ReleasesPage({ params }: { params: { region: strin
   const ld = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: `Pokémon TCG release dates ${year} (${r.name})`,
+    name: `Magic: The Gathering release dates ${year} (${r.name})`,
     itemListElement: listed.map((s, i) => ({
       "@type": "ListItem",
       position: i + 1,
@@ -79,7 +79,7 @@ export default async function ReleasesPage({ params }: { params: { region: strin
     })),
   };
 
-  const Row = ({ s, future }: { s: PokemonSet; future: boolean }) => {
+  const Row = ({ s, future }: { s: MtgSet; future: boolean }) => {
     const c = counts.get(s.code);
     const picks = cheapest.get(s.code) ?? [];
     return (
@@ -145,7 +145,7 @@ export default async function ReleasesPage({ params }: { params: { region: strin
   return (
     <div className="page py-8">
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { label: "Releases" }]} />
-      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Pokémon TCG release dates {year}</h1>
+      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Magic: The Gathering release dates {year}</h1>
       <p className="mt-3 max-w-2xl leading-7 text-muted">
         {/* One text node, so nothing in it moves when the web font arrives. */}
         {`The release calendar for ${r.inName}: upcoming sets and the ones out in the last ${RECENT_DAYS} days, with what ${r.adjective} stores have in stock or open for pre-order today, then every set of ${year} and ${year - 1}. Dates are the English-language release dates; stores may ship pre-orders a few days either side.`}
@@ -212,14 +212,14 @@ export default async function ReleasesPage({ params }: { params: { region: strin
       </ul>
       {/* The page's closing strip stands in for the pre-footer one, so two never sit back to back. */}
       <NoPreFooter />
-      <EbayStrip region={r.region} context="chase" placement="listings-releases" className="mt-10" search={{ kind: "card", query: "" }} />
+      <EbayStrip region={r.region} context="chase" placement="listings-releases" className="mt-10" search={{ kind: "sealed", query: "collector booster box" }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />
     </div>
   );
 }
 
 /** The answer to "when is the next Pokémon set": its name, English date and how far off it is, with a calendar file. */
-function NextSetBox({ r, next, c, today }: { r: RegionInfo; next: PokemonSet | null; c: SetCount | undefined; today: string }) {
+function NextSetBox({ r, next, c, today }: { r: RegionInfo; next: MtgSet | null; c: SetCount | undefined; today: string }) {
   if (!next) return null;
   const path = `/${r.region}/sets/${next.slug}`;
   return (
@@ -252,7 +252,7 @@ function NextSetBox({ r, next, c, today }: { r: RegionInfo; next: PokemonSet | n
 }
 
 /** A year's sets in a compact table: name (linked where a store lists it), series, English release date, and this region's counts. */
-function YearTable({ id, title, r, sets, counts, now, empty }: { id: string; title: string; r: RegionInfo; sets: PokemonSet[]; counts: Map<string, SetCount>; now: Date; empty: string }) {
+function YearTable({ id, title, r, sets, counts, now, empty }: { id: string; title: string; r: RegionInfo; sets: MtgSet[]; counts: Map<string, SetCount>; now: Date; empty: string }) {
   return (
     <section className="mt-12" aria-labelledby={id}>
       <h2 id={id} className="mb-4 font-display text-2xl font-bold tracking-tight">

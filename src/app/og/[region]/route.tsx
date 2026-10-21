@@ -17,12 +17,12 @@ export function GET(_req: Request, { params }: { params: { region: string } }) {
   return ogCard({
     tag: r.name,
     lines: [
-      ["Pokémon sealed,", false],
+      ["Magic sealed,", false],
       ["cheapest first, across", false],
       [`${n} ${r.adjective} stores`, true],
     ],
     size: r.adjective.length > 10 ? 54 : 60,
-    sub: "Booster boxes, ETBs, bundles · live stock",
+    sub: "Booster boxes, Collector boxes, bundles · live stock",
     chips: [`Prices in ${r.currency}`, "Free", "No sign-up"],
   });
 }

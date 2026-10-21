@@ -24,28 +24,26 @@ export function listingCents(value: string): number | null {
   return Number.isFinite(n) && n > 0 ? Math.round(n * 100) : null;
 }
 
-// "36 Packs", "18-Pack", "9 Booster Packs", "2 x Booster Packs", "36pk", "6 Boosters", "18er Display", "pack of 18": a pack count the title
-// states. Not a bare "N Booster" ("151 Booster Bundle" names the set 151), and never 151 itself ("Pokemon 151 Booster Packs" is that set's).
-const STATED_PACKS = /\b(\d{1,3})\s*(?:-\s*)?(?:x\s*)?(?:booster\s*)?(?:packs?|pk|packungen|boosters)\b|\b(\d{1,3})er\b|\bpack\s+of\s+(\d{1,3})\b/gi;
-// A display's card count, at ten cards a pack: "Booster Box 180 Cards" is an 18-pack display, "360 Cards" a 36-pack box. Read only for a
-// box-sized product (18 packs or more) and only at a display's size (18, 24 or 36 packs): an ETB's "180 Cards" or a seller's "200 Cards"
-// says nothing reliable.
-const STATED_CARDS = /\b(\d{3})\s*(?:-\s*)?cards?\b/gi;
-const DISPLAY_SIZES = new Set([18, 24, 36]);
+// "36 Packs", "30-Pack", "9 Play Boosters", "2 x Booster Packs", "36pk", "12 Boosters", "30er Display", "pack of 30": a pack count the
+// title states. Not a bare "N Booster" (a Collector Booster's "1 Booster" is no count).
+const STATED_PACKS = /\b(\d{1,3})\s*(?:-\s*)?(?:x\s*)?(?:(?:play|draft|set|collector|jumpstart)\s+)?(?:booster\s*)?(?:packs?|pk|packungen|boosters)\b|\b(\d{1,3})er\b|\bpack\s+of\s+(\d{1,3})\b/gi;
+// A display's card count is NOT read for Magic: a pack holds 14 (Play), 15 (Draft, Collector) or 12 (Set) cards, so "420 Cards" names no
+// pack count reliably. Kept (always empty) for the callers that ask.
 
 /** The pack counts a listing's title states outright ("Booster Box 18 Packs" → [18]); empty when it states none. */
 export function statedPacks(title: string): number[] {
-  return [...title.matchAll(STATED_PACKS)].map((m) => Number(m[1] ?? m[2] ?? m[3])).filter((n) => n > 0 && n !== 151);
+  return [...title.matchAll(STATED_PACKS)].map((m) => Number(m[1] ?? m[2] ?? m[3])).filter((n) => n > 0);
 }
 
 /** A display size a box's card count gives ("180 Cards" → [18]). */
 export function displayPacksFromCards(title: string): number[] {
-  return [...title.matchAll(STATED_CARDS)].map((m) => Number(m[1]) / 10).filter((n) => DISPLAY_SIZES.has(n));
+  void title;
+  return [];
 }
 
 /**
- * A listing that states a pack count, none of them the product's (lib/packs.ts): another product. "Surging Sparks Booster Box 18 Packs"
- * is an 18-pack display, not the 36-pack box, and lowest price first would rank it above every store. No pack count known, or none
+ * A listing that states a pack count, none of them the product's (lib/packs.ts): another product. "Duskmourn Draft Booster Box 24 Packs"
+ * is a 24-pack display, not the 36-pack box, and lowest price first would rank it above every store. No pack count known, or none
  * stated: no opinion.
  */
 export function wrongPackCount(title: string, packs: number | null | undefined): boolean {
@@ -54,8 +52,8 @@ export function wrongPackCount(title: string, packs: number | null | undefined):
   return stated.length > 0 && !stated.includes(packs);
 }
 
-// Products of several units: their listings state ONE unit's packs ("Booster Box Case 6 Boxes 36 Packs Each", "Stadium: 2 Build & Battle
-// Boxes + 3 Booster Packs"), which is no reason to doubt them.
+// Products of several units: their listings state ONE unit's packs ("Booster Box Case 6 Boxes 36 Packs Each", "Commander Deck Set: 4 Decks + 4 Collector
+// Booster Samples"), which is no reason to doubt them.
 const SEVERAL_UNITS: ReadonlySet<TypeKey> = new Set(["play-booster-box-case", "collector-booster-box-case", "bundle-case", "commander-deck-set"]);
 
 /** The pack count the eBay row checks listings against: the product's (lib/packs.ts), or null for a product of several units. */

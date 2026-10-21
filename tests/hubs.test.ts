@@ -122,22 +122,22 @@ test("setTitle: no double 'Pokémon', and the 65-character rule, for every set i
 });
 
 test("typeTitle: typeName in the title (no 'Pokémon Pokémon Center…'), live from-price and count; the rule holds for every type", () => {
-  const pc = TYPE_BY_SLUG.get("pokemon-center-elite-trainer-boxes")!;
+  const pc = TYPE_BY_SLUG.get("pokemon-center-collector-booster-boxes")!;
   const t = typeTitle(pc, REGIONS.au, 7, 12995);
   assert.equal(renderedTitle(t), "Pokémon Center Elite Trainer Boxes in Australia — from A$129.95, 7 in stock");
   assert.doesNotMatch(renderedTitle(t), /Pokémon Pokémon/);
-  assert.equal(renderedTitle(typeTitle(TYPE_BY_SLUG.get("booster-boxes")!, REGIONS.us, 120, 8999)), "Pokémon Booster Boxes in the US — from $89.99, 120 in stock");
-  assert.equal(renderedTitle(typeTitle(TYPE_BY_SLUG.get("tins")!, REGIONS.nz, 0, null)), "Pokémon Tins in New Zealand — prices & stock | MTG Compare");
+  assert.equal(renderedTitle(typeTitle(TYPE_BY_SLUG.get("play-booster-boxes")!, REGIONS.us, 120, 8999)), "Pokémon Booster Boxes in the US — from $89.99, 120 in stock");
+  assert.equal(renderedTitle(typeTitle(TYPE_BY_SLUG.get("secret-lair")!, REGIONS.nz, 0, null)), "Pokémon Tins in New Zealand — prices & stock | MTG Compare");
   for (const ty of PRODUCT_TYPES) for (const r of REGION_LIST) for (const [open, from] of [[0, null], [3, 999], [1234, 123456]] as const) assertTitleRule(typeTitle(ty, r, open, from), `${ty.slug}/${r.region}`);
 });
 
 test("typeDescription: live counts, and the type's capitals kept ('Pokémon Center Elite Trainer Boxes', never lowercased)", () => {
-  const d = typeDescription(TYPE_BY_SLUG.get("pokemon-center-elite-trainer-boxes")!, REGIONS.au, { open: 7, total: 19 }, 12995);
+  const d = typeDescription(TYPE_BY_SLUG.get("pokemon-center-collector-booster-boxes")!, REGIONS.au, { open: 7, total: 19 }, 12995);
   assert.match(d, /Pokémon Center Elite Trainer Boxes/);
   assert.match(d, /7 in stock today from A\$129\.95/);
   assert.match(d, /19 products listed in Australia/);
   assert.doesNotMatch(d, /pokémon center elite trainer box/);
-  assert.match(typeDescription(TYPE_BY_SLUG.get("booster-boxes")!, REGIONS.us, { open: 0, total: 4 }, null), /stores and TCGplayer: none in stock today/);
+  assert.match(typeDescription(TYPE_BY_SLUG.get("play-booster-boxes")!, REGIONS.us, { open: 0, total: 4 }, null), /stores and TCGplayer: none in stock today/);
   assert.equal(findBannedCopy(d), null);
 });
 
@@ -244,9 +244,9 @@ test("type page helpers: packs inside (packs.ts), US MSRP (rrp.ts), the cheapest
   assert.deepEqual(rows.map((x) => [x.p.slug, x.packs, x.perPack]), [["b", 8, 900], ["c", 9, 900], ["a", 9, 1100]]);
   assert.deepEqual(typePerPackRows("Collection", [card("c", "Collection", 2000)]), []);
   assert.equal(typePerPackRows("Booster Box", Array.from({ length: 9 }, (_, i) => card(`b${i}`, "Booster Box", 20000 + i))).length, 5);
-  assert.equal(dealsAnchor("booster-boxes"), "booster-boxes");
+  assert.equal(dealsAnchor("play-booster-boxes"), "play-booster-boxes");
   assert.equal(dealsAnchor("collections"), "collections");
-  assert.equal(dealsAnchor("tins"), "more");
+  assert.equal(dealsAnchor("secret-lair"), "more");
 });
 
 // ─── Sets index and release dates ──────────────────────────────────────────────

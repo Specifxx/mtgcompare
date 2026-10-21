@@ -42,43 +42,33 @@ test("the listing shown: the lowest-priced of the product's own feed, never one 
 });
 
 test("a listing stating another pack count than the product's is not the product (the cheapest would otherwise rank above every store)", () => {
-  // eBay UK, 2026-10-11: the lowest-priced "Surging Sparks Booster Box" listing was an 18-pack display at about half a 36-pack box's price
-  assert.deepEqual(statedPacks("Pokémon TCG Scarlet & Violet Surging Sparks Booster Box 18 Packs English 2024"), [18]);
-  assert.equal(wrongPackCount("Pokémon TCG Scarlet & Violet Surging Sparks Booster Box 18 Packs English 2024", 36), true);
-  assert.equal(wrongPackCount("Pokemon Surging Sparks Booster Box 36 Packs Sealed", 36), false);
-  assert.equal(wrongPackCount("Pokemon Surging Sparks 18er Booster Display", 36), true);
-  assert.equal(wrongPackCount("Surging Sparks Booster Box 36-Pack (2 x 18)", 36), false, "any stated count that is the product's will do");
-  assert.equal(wrongPackCount("Pokemon Prismatic Evolutions Elite Trainer Box 9 Booster Packs", 9), false);
-  assert.equal(wrongPackCount("Pokemon Destined Rivals Booster Bundle (6 Packs)", 6), false);
-  assert.equal(wrongPackCount("Pokemon Destined Rivals Booster Bundle 2 x Booster Packs", 6), true);
-  assert.equal(wrongPackCount("Pokemon Surging Sparks Booster Box Sealed", 36), false, "no count stated: no opinion");
-  assert.equal(wrongPackCount("Some Collection 4 Booster Packs", null), false, "no count known (collections, tins): no opinion");
-  // eBay UK, 2026-10-11, Pitch Black: 18-pack displays that say so another way
-  assert.deepEqual(statedPacks("Pokémon TCG Mega Evolution Pitch Black Sealed Booster Box pack of 18 cards"), [18]);
-  assert.deepEqual(displayPacksFromCards("Pokémon TCG Mega Evolution Pitch Black Booster Box 180 Cards English 2026"), [18]);
-  assert.equal(wrongPackCount("Pokémon TCG Mega Evolution Pitch Black Booster Box 180 Cards English 2026", 36), true);
-  assert.equal(wrongPackCount("Pokemon Surging Sparks Booster Box 36 Packs 360 Cards", 36), false);
-  // a card count is read only for a box-sized product, and only at a display's size
-  assert.equal(wrongPackCount("Pokémon TCG Evolutions Elite Trainer Box 1 Box English 2016 180 Cards", 8), false, "an ETB's card count says nothing");
-  assert.equal(wrongPackCount("Pokémon TCG Evolving Skies Sealed Booster Box 200 Cards English 2021", 36), false, "200 cards is no display size");
-  assert.deepEqual(statedPacks("Elite Trainer Box 9 Booster Packs 45 Energy Cards 65 Card Sleeves"), [9], "card counts and sleeves are not packs");
-  assert.deepEqual(statedPacks("Booster Box 18 Boosters 108 Cards"), [18]);
-  assert.deepEqual(displayPacksFromCards("Booster Box 18 Boosters 108 Cards"), []);
-  assert.deepEqual(statedPacks("Pokemon 2024 Booster Box Sealed"), [], "a year is not a count");
+  // a 24-pack display listed beside the 36-pack box sells at about two-thirds of its price
+  assert.deepEqual(statedPacks("Magic The Gathering Duskmourn Draft Booster Box 24 Packs English"), [24]);
+  assert.equal(wrongPackCount("Magic The Gathering Duskmourn Draft Booster Box 24 Packs English", 36), true);
+  assert.equal(wrongPackCount("MTG Duskmourn Draft Booster Box 36 Packs Sealed", 36), false);
+  assert.equal(wrongPackCount("MTG Bloomburrow 18er Play Booster Display", 30), true);
+  assert.equal(wrongPackCount("Bloomburrow Play Booster Box 30-Pack (2 x 15)", 30), false, "any stated count that is the product's will do");
+  assert.equal(wrongPackCount("MTG Aetherdrift Bundle 9 Play Boosters", 9), false);
+  assert.equal(wrongPackCount("MTG Tarkir Dragonstorm Collector Booster Box (12 Packs)", 12), false);
+  assert.equal(wrongPackCount("MTG Tarkir Dragonstorm Collector Booster Box 2 x Booster Packs", 12), true);
+  assert.equal(wrongPackCount("MTG Bloomburrow Play Booster Box Sealed", 30), false, "no count stated: no opinion");
+  assert.equal(wrongPackCount("Some Commander Deck 2 Collector Booster Packs", null), false, "no count known (decks, collections): no opinion");
+  assert.deepEqual(statedPacks("MTG Final Fantasy Sealed Play Booster Box pack of 30 boosters"), [30]);
+  // a card count is never read for Magic (14, 15 or 12 cards a pack)
+  assert.deepEqual(displayPacksFromCards("MTG Final Fantasy Play Booster Box 420 Cards English"), []);
+  assert.equal(wrongPackCount("MTG Final Fantasy Play Booster Box 420 Cards English", 36), false);
+  assert.deepEqual(statedPacks("Bundle 9 Play Boosters 30 Basic Lands 1 Spindown Die"), [9], "lands and dice are not packs");
+  assert.deepEqual(statedPacks("MTG 2024 Play Booster Box Sealed"), [], "a year is not a count");
   // a product of several units: its listings state one unit's packs, so the row does not check them
-  assert.equal(rowPacks("booster-box-case", 216), null);
-  assert.equal(rowPacks("etb-case", 90), null);
-  assert.equal(rowPacks("booster-bundle-case", null), null);
-  assert.equal(rowPacks("build-battle-stadium", 11), null);
-  assert.equal(rowPacks("booster-box", 36), 36);
+  assert.equal(rowPacks("play-booster-box-case", 180), null);
+  assert.equal(rowPacks("collector-booster-box-case", 48), null);
+  assert.equal(rowPacks("bundle-case", null), null);
+  assert.equal(rowPacks("commander-deck-set", 4), null);
+  assert.equal(rowPacks("play-booster-box", 30), 30);
   assert.equal(rowPacks(undefined, 36), null);
-  // the set named 151 is not a pack count
-  assert.deepEqual(statedPacks("Pokemon 151 Booster Bundle Sealed"), []);
-  assert.deepEqual(statedPacks("Pokemon Scarlet Violet 151 Booster Packs x1"), []);
-  assert.equal(wrongPackCount("Pokemon 151 Booster Pack Sealed English", 1), false);
   const feed = [
-    { title: "Surging Sparks Booster Box 18 Packs", price: { value: "152.11", currency: "GBP" } },
-    { title: "Surging Sparks Booster Box Factory Sealed", price: { value: "270.00", currency: "GBP" } },
+    { title: "Duskmourn Draft Booster Box 24 Packs", price: { value: "152.11", currency: "GBP" } },
+    { title: "Duskmourn Draft Booster Box Factory Sealed", price: { value: "270.00", currency: "GBP" } },
   ];
   assert.equal(pickListing(feed, null, 36)?.price.value, "270.00");
   assert.equal(pickListing(feed, null)?.price.value, "152.11", "without a pack count the check does nothing");
@@ -118,7 +108,7 @@ const offer = (store: string, priceCents: number, inStock = true, extra: Partial
 
 test("the server table: store rows as before, the eBay row as a search after the in-stock stores (labelled Ad, sponsored, eBay's blue), the note under it", () => {
   const offers = [offer("alpha", 5000), offer("beta", 6000), offer("gamma", 4000, false)];
-  const html = render(React.createElement(OfferTable, { offers, region: "us", preorder: false, ebay: { slug: "x-etb", query: "Surging Sparks Elite Trainer Box", floor: null, packs: null } }));
+  const html = render(React.createElement(OfferTable, { offers, region: "us", preorder: false, ebay: { slug: "x-pbb", query: "Bloomburrow Play Booster Box", floor: null, packs: null } }));
   const rows = [...html.matchAll(/<li data-offer-row=""([^>]*)>/g)].map((m) => m[1]);
   assert.equal(rows.length, 4, "three stores and eBay");
   assert.match(rows[2], /data-ad="listings-offer-row"/, "after the two in-stock stores, before the sold-out one");
@@ -130,13 +120,13 @@ test("the server table: store rows as before, the eBay row as a search after the
   const u = new URL(href);
   assert.equal(u.hostname, "www.ebay.com");
   assert.equal(u.searchParams.get("campid"), EBAY_CAMPAIGN_ID);
-  assert.equal(u.searchParams.get("customid"), "dex-us-listings-offer-row");
-  assert.equal(u.searchParams.get("_nkw"), "Pokemon Surging Sparks Elite Trainer Box sealed");
+  assert.equal(u.searchParams.get("customid"), "mtg-us-listings-offer-row");
+  assert.equal(u.searchParams.get("_nkw"), "MTG Bloomburrow Play Booster Box sealed");
   assert.equal(/rel="([^"]*)"/.exec(a[1])![1], REL_SPONSORED);
   assert.match(a[1], /bg-\[#3665f3\]/, "eBay's blue button, unlike the stores'");
   assert.match(ebay, /class="ad-pill">Ad</);
   assert.match(ebay, /aria-label="eBay"/);
-  assert.match(html, /Search Surging Sparks Elite Trainer Box on ebay\.com/);
+  assert.match(html, /Search Bloomburrow Play Booster Box on ebay\.com/);
   // the best store keeps its badge; it reads "Best store price" only when the eBay row is cheaper (a data attribute on the list), and the
   // eBay row then carries "Best price" (client state, checked in a browser: the OfferRowsWithEbay `cheaper` rule is pinned below)
   assert.match(html, /Best <span class="hidden group-data-\[ebay=cheaper\]\/offers:inline">store <\/span>price/);

@@ -18,10 +18,10 @@ import {
 import { budgetDay } from "../src/lib/ebay-store";
 import { CLIENT_ID, harness, json, KEYS, NOW, okToken, SECRET, summary, type Handler } from "./helpers/ebay-fakes";
 
-test("credentials: DEXCOMPARE_EBAY_* wins when set, else the owner's EBAY_CLIENT_ID / EBAY_CLIENT_SECRET; empty counts as unset", () => {
+test("credentials: MTGCOMPARE_EBAY_* wins when set, else the owner's EBAY_CLIENT_ID / EBAY_CLIENT_SECRET; empty counts as unset", () => {
   assert.deepEqual(credentials({ EBAY_CLIENT_ID: " a ", EBAY_CLIENT_SECRET: "b" }), { id: "a", secret: "b" });
-  assert.deepEqual(credentials({ EBAY_CLIENT_ID: "a", EBAY_CLIENT_SECRET: "b", DEXCOMPARE_EBAY_CLIENT_ID: "x", DEXCOMPARE_EBAY_CLIENT_SECRET: "y" }), { id: "x", secret: "y" });
-  assert.deepEqual(credentials({ EBAY_CLIENT_ID: "a", EBAY_CLIENT_SECRET: "b", DEXCOMPARE_EBAY_CLIENT_ID: "", DEXCOMPARE_EBAY_CLIENT_SECRET: "  " }), { id: "a", secret: "b" });
+  assert.deepEqual(credentials({ EBAY_CLIENT_ID: "a", EBAY_CLIENT_SECRET: "b", MTGCOMPARE_EBAY_CLIENT_ID: "x", MTGCOMPARE_EBAY_CLIENT_SECRET: "y" }), { id: "x", secret: "y" });
+  assert.deepEqual(credentials({ EBAY_CLIENT_ID: "a", EBAY_CLIENT_SECRET: "b", MTGCOMPARE_EBAY_CLIENT_ID: "", MTGCOMPARE_EBAY_CLIENT_SECRET: "  " }), { id: "a", secret: "b" });
   assert.ok(keysPresent(KEYS));
   assert.ok(!keysPresent({}));
   assert.ok(!keysPresent({ EBAY_CLIENT_ID: "a" }));
@@ -52,8 +52,8 @@ test("token: one request however many callers, cached, refreshed early, Basic au
   assert.equal(tokenMargin(100), 10_000);
 });
 
-test("token: DEXCOMPARE_EBAY_* override is what is sent", async () => {
-  const h = harness((_u, _i, n) => okToken(n), { ...KEYS, DEXCOMPARE_EBAY_CLIENT_ID: "OVERRIDE-ID", DEXCOMPARE_EBAY_CLIENT_SECRET: "OVERRIDE-SECRET" });
+test("token: MTGCOMPARE_EBAY_* override is what is sent", async () => {
+  const h = harness((_u, _i, n) => okToken(n), { ...KEYS, MTGCOMPARE_EBAY_CLIENT_ID: "OVERRIDE-ID", MTGCOMPARE_EBAY_CLIENT_SECRET: "OVERRIDE-SECRET" });
   await createTokenManager(h.deps).get();
   assert.equal((h.tokens()[0].init!.headers as Record<string, string>).Authorization, "Basic " + Buffer.from("OVERRIDE-ID:OVERRIDE-SECRET").toString("base64"));
 });
@@ -118,13 +118,13 @@ test("search request: filter, marketplace and affiliate headers per marketplace;
   const hd = searchHeaders("tok", "EBAY_CA");
   assert.equal(hd["X-EBAY-C-MARKETPLACE-ID"], "EBAY_CA");
   assert.equal(hd["Accept-Language"], "en-CA");
-  assert.match(hd["X-EBAY-C-ENDUSERCTX"], /affiliateCampaignId=5339155912,affiliateReferenceId=dex-check$/, "a search with no feed says so");
+  assert.match(hd["X-EBAY-C-ENDUSERCTX"], /affiliateCampaignId=5339155912,affiliateReferenceId=mtg-check$/, "a search with no feed says so");
   // the importer asks eBay for a per-feed sub-id: eBay copies it into the URL's customid, EPN reports by it
-  assert.match(searchHeaders("tok", "EBAY_AU", "dex-au-item")["X-EBAY-C-ENDUSERCTX"], /affiliateReferenceId=dex-au-item$/);
-  assert.match(searchHeaders("tok", "EBAY_US", "dex-us-chase")["X-EBAY-C-ENDUSERCTX"], /affiliateReferenceId=dex-us-chase$/);
-  for (const bad of ["", "DEX-US", "dex us", "dex-us,campid=1", "x".repeat(61), "a=b", "dex-us-chase\r\nX-Evil: 1"])
-    assert.match(searchHeaders("tok", "EBAY_US", bad)["X-EBAY-C-ENDUSERCTX"], /affiliateReferenceId=dex-check$/, `unsafe reference ${JSON.stringify(bad)} is not sent`);
-  assert.ok(isReference("dex-us-chase") && isReference("dex-eu-sealed") && !isReference("Dex-US"));
+  assert.match(searchHeaders("tok", "EBAY_AU", "mtg-au-item")["X-EBAY-C-ENDUSERCTX"], /affiliateReferenceId=mtg-au-item$/);
+  assert.match(searchHeaders("tok", "EBAY_US", "mtg-us-chase")["X-EBAY-C-ENDUSERCTX"], /affiliateReferenceId=mtg-us-chase$/);
+  for (const bad of ["", "MTG-US", "dex us", "mtg-us,campid=1", "x".repeat(61), "a=b", "mtg-us-chase\r\nX-Evil: 1"])
+    assert.match(searchHeaders("tok", "EBAY_US", bad)["X-EBAY-C-ENDUSERCTX"], /affiliateReferenceId=mtg-check$/, `unsafe reference ${JSON.stringify(bad)} is not sent`);
+  assert.ok(isReference("mtg-us-chase") && isReference("mtg-eu-sealed") && !isReference("Mtg-US"));
   assert.equal(hd.Authorization, "Bearer tok");
   assert.equal(searchHeaders("t", "EBAY_US")["Accept-Language"], "en-US");
 });
@@ -136,7 +136,7 @@ test("searchOnce: the raw itemSummaries (at most 50); a 401 refreshes the token 
     return json({ itemSummaries: Array.from({ length: 80 }, (_, i) => summary(String(i), "x", 50)) });
   });
   const tm = createTokenManager(h.deps);
-  const out = await searchOnce(h.deps, tm, { q: "pokemon", marketplace: "EBAY_US", limit: 50, minPrice: null });
+  const out = await searchOnce(h.deps, tm, { q: "mtg", marketplace: "EBAY_US", limit: 50, minPrice: null });
   assert.equal(out.length, 50);
   assert.equal((h.searches()[0].init!.headers as Record<string, string>).Authorization.startsWith("Bearer tok-1-"), true);
 
@@ -197,7 +197,7 @@ test("the credentials live in ONE module and nothing the website serves can impo
     const code = NOCOMMENT(text);
     // one file reads the credentials, and never as NEXT_PUBLIC_*
     if (!f.endsWith("lib/ebay-api.ts")) assert.ok(!/EBAY_CLIENT_(ID|SECRET)/.test(code), `${f} reads the credentials`);
-    assert.ok(!/NEXT_PUBLIC_(DEXCOMPARE_)?EBAY_CLIENT/.test(text), f);
+    assert.ok(!/NEXT_PUBLIC_(MTGCOMPARE_)?EBAY_CLIENT/.test(text), f);
     // nothing under src/app or src/components, and no client module, imports the importer's modules
     const web = /\/src\/(app|components)\//.test(f) || /^\s*["']use client["']/m.test(text.split("\n").slice(0, 3).join("\n"));
     if (web) for (const m of ["ebay-api", "ebay-import", "ebay-normalise", "ebay-store", "ebay-report"]) assert.ok(!IMPORTS(m).test(code), `${f} imports ${m}`);
@@ -223,7 +223,7 @@ test("the importer's secrets reach only the import step of the workflow", () => 
   assert.ok(/secrets\.EBAY_CLIENT_ID/.test(wf) && /secrets\.EBAY_CLIENT_SECRET/.test(wf), "the owner's secret names");
   const steps = wf.split(/\n      - /);
   for (const s of steps) {
-    const mentions = /secrets\.(DEXCOMPARE_)?EBAY_CLIENT/.test(s);
+    const mentions = /secrets\.(MTGCOMPARE_)?EBAY_CLIENT/.test(s);
     const isImport = /name: Import\n/.test(s);
     const isCheck = /name: Check the secrets/.test(s);
     if (mentions) assert.ok(isImport || isCheck, `a step other than the import reads the eBay secrets:\n${s.slice(0, 80)}`);

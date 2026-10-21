@@ -129,7 +129,7 @@ export function tileSource(_surface: FeedSurface, nth: number): { context: "seal
 
 /**
  * Which feed the slim strip above the footer shows: the one the page's own strip is NOT, so a page never shows the same
- * listings twice. A region's home page has none (null): it already carries two strips (chase cards under the stats, sealed after
+ * listings twice. A region's home page has none (null): it already carries two strips (high-end sealed under the stats, sealed after
  * the first rail), and a feed holds only 8 listings (the six of its strip and two to spare), too few for a third unit of four
  * different tiles; the home page renders <NoPreFooter/> so the layout's wrapper goes with it.
  */

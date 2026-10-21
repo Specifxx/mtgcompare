@@ -14,7 +14,7 @@ import type { RegionInfo } from "./regions";
 import { usMsrpCents } from "./rrp";
 import { PRODUCT_TYPES, type ProductTypeInfo, type TypeKey } from "./sealed-title";
 import { withMtg } from "./seo";
-import { SERIES_ORDER, SETS, type PokemonSet } from "./sets";
+import { SERIES_ORDER, SETS, type MtgSet } from "./sets";
 import { OFFER_STALE_MS } from "./sealed-offers";
 import { SITE_NAME } from "./site";
 
@@ -61,7 +61,7 @@ export function isoDay(now: Date = new Date()): string {
 }
 
 /** "Pre-order · out in 23 days" / "Out tomorrow" / "Released 16 Sep 2026": the set's release chip. */
-export function releaseChip(set: Pick<PokemonSet, "code" | "releaseDate">, now: Date = new Date()): string {
+export function releaseChip(set: Pick<MtgSet, "code" | "releaseDate">, now: Date = new Date()): string {
   if (!isPreorderSet(set.code, now)) return `Released ${shortDate(set.releaseDate)}`;
   const rel = relativeDay(set.releaseDate, isoDay(now)); // "in 23 days" | "tomorrow"
   return `Pre-order · out ${rel}`;
@@ -71,16 +71,16 @@ export function releaseChip(set: Pick<PokemonSet, "code" | "releaseDate">, now: 
 
 /**
  * A set page's title, by release state. Upcoming: the pre-order wording and the date, the query people type before a set is
- * out. Sold without a 36-pack booster box (sets.ts noBoosterBox): never "booster box". Otherwise the box first.
+ * out. Sold without a booster box (sets.ts noBoosterBox): never "booster box". Otherwise the box first.
  */
-export function setTitle(set: PokemonSet, r: Pick<RegionInfo, "inName">, now: Date = new Date()): HubTitle {
+export function setTitle(set: MtgSet, r: Pick<RegionInfo, "inName">, now: Date = new Date()): HubTitle {
   const name = withMtg(set.name);
   if (isPreorderSet(set.code, now)) {
-    const what = set.noBoosterBox ? "ETB & sealed" : "booster box & ETB";
+    const what = set.noBoosterBox ? "sealed" : "booster box & bundle";
     return hubTitle(`${name} pre-orders: ${what} prices in ${r.inName} (out ${shortDate(set.releaseDate)})`);
   }
-  if (set.noBoosterBox) return hubTitle(`${name} ETB, bundle & sealed prices in ${r.inName}`);
-  return hubTitle(`${name} booster box, ETB & sealed prices in ${r.inName}`);
+  if (set.noBoosterBox) return hubTitle(`${name} sealed prices in ${r.inName}`);
+  return hubTitle(`${name} booster box, bundle & sealed prices in ${r.inName}`);
 }
 
 /** The cheapest pack across the types (the set page's "Cheapest way in"), or null when nothing open has a fixed pack count. */
@@ -98,7 +98,7 @@ export function lowestOpen(products: ProductCardData[]): number | null {
 }
 
 /** '{n} products, {m} in stock; cheapest per pack: {type} at {money}; released {date}' — from the products the page loaded. */
-export function setDescription(set: PokemonSet, r: Pick<RegionInfo, "inName" | "market">, products: ProductCardData[], now: Date = new Date()): string {
+export function setDescription(set: MtgSet, r: Pick<RegionInfo, "inName" | "market">, products: ProductCardData[], now: Date = new Date()): string {
   const pre = isPreorderSet(set.code, now);
   const name = withMtg(set.name);
   const when = `${pre ? "out" : "released"} ${shortDate(set.releaseDate)}`;
@@ -111,7 +111,7 @@ export function setDescription(set: PokemonSet, r: Pick<RegionInfo, "inName" | "
   return `${name} sealed prices in ${r.inName}: ${parts.join("; ")}.`;
 }
 
-/** "Elite Trainer Boxes, Booster Bundles and Collections & Boxes": the product types listed, in the site's type order. */
+/** "Collector Booster Boxes, Bundles and Collections & Boxes": the product types listed, in the site's type order. */
 function typeList(products: ProductCardData[], skip: string[] = []): string {
   const labels = new Set(products.map((p) => p.productType));
   const names = PRODUCT_TYPES.filter((t) => labels.has(t.label) && !skip.includes(t.label)).map((t) => t.plural);
@@ -123,15 +123,15 @@ function typeList(products: ProductCardData[], skip: string[] = []): string {
  * The set page's generated intro: two or three plain sentences from sets.ts and the products loaded for the region, never a
  * claim the data cannot back (no pull rates, no value talk, no history).
  */
-export function setIntro(set: PokemonSet, r: Pick<RegionInfo, "inName" | "adjective" | "market">, products: ProductCardData[], now: Date = new Date()): string[] {
+export function setIntro(set: MtgSet, r: Pick<RegionInfo, "inName" | "adjective" | "market">, products: ProductCardData[], now: Date = new Date()): string[] {
   const pre = isPreorderSet(set.code, now);
   const name = withMtg(set.name);
   const date = formatRelease(set.releaseDate);
   const out: string[] = [];
   out.push(
     pre
-      ? `${name} is an upcoming ${set.series} series set, out in English on ${date} (${relativeDay(set.releaseDate, isoDay(now))}).`
-      : `${name} is a ${set.series} series set, released in English on ${date}.`,
+      ? `${name} is an upcoming ${set.series} set, out in English on ${date} (${relativeDay(set.releaseDate, isoDay(now))}).`
+      : `${name} is a ${set.series} set, released in English on ${date}.`,
   );
   const open = products.filter(cardOpen).length;
   const low = lowestOpen(products);
@@ -147,8 +147,8 @@ export function setIntro(set: PokemonSet, r: Pick<RegionInfo, "inName" | "adject
     );
   }
   if (set.noBoosterBox) {
-    const types = typeList(products, ["Booster Box", "Booster Box Case"]);
-    out.push(`It was not sold as a 36-pack booster box${types ? `: here its packs come in ${types}` : ""}.`);
+    const types = typeList(products, ["Play Booster Box", "Play Booster Box Case"]);
+    out.push(`It was not sold as a booster box${types ? `: here its packs come in ${types}` : ""}.`);
   }
   const way = cheapestWayIn(products);
   if (way) {
@@ -162,12 +162,12 @@ export function setIntro(set: PokemonSet, r: Pick<RegionInfo, "inName" | "adject
 export interface SetFact {
   term: string;
   detail: string;
-  /** US only: TPCi's list price for this product (rrp.ts); the page prints RRP_NOTE wherever one appears. */
+  /** US only: Wizards' list price for this product (rrp.ts); the page prints RRP_NOTE wherever one appears. */
   msrp?: string;
 }
 
 /** A set product line's row: its pack count (packs.ts) and, in the US, its MSRP (rrp.ts). */
-function lineFact(set: PokemonSet, key: TypeKey, label: string, market?: string): SetFact | null {
+function lineFact(set: MtgSet, key: TypeKey, label: string, market?: string): SetFact | null {
   const packs = packsFor(key, set.code);
   if (!packs) return null;
   const msrp = market === "US" ? usMsrpCents(key, set.code) : null;
@@ -176,11 +176,11 @@ function lineFact(set: PokemonSet, key: TypeKey, label: string, market?: string)
 
 /**
  * The 'Set facts' list: series, English release date, the booster box (or that there is none: sets.ts noBoosterBox), and the
- * packs inside an ETB, a Pokémon Center ETB and a booster bundle (packs.ts). `listed` is the product types the region lists for
+ * packs inside each booster box and the bundle (packs.ts). `listed` is the product types the region lists for
  * the set: given, a product line is only described when it is actually listed, so the page never implies a product exists that
- * no store has (Detective Pikachu had no ETB). `market` "US" adds TPCi's MSRP to each line rrp.ts knows.
+ * no store has. `market` "US" adds Wizards' MSRP to each line rrp.ts knows.
  */
-export function setFacts(set: PokemonSet, listed?: Iterable<string>, market?: string, now: Date = new Date()): SetFact[] {
+export function setFacts(set: MtgSet, listed?: Iterable<string>, market?: string, now: Date = new Date()): SetFact[] {
   const types = listed ? new Set(listed) : null;
   const has = (label: string) => !types || types.has(label);
   const pre = isPreorderSet(set.code, now);
@@ -188,28 +188,24 @@ export function setFacts(set: PokemonSet, listed?: Iterable<string>, market?: st
     { term: "Series", detail: set.series },
     { term: "English release", detail: `${formatRelease(set.releaseDate)}${pre ? " (pre-order)" : ""}` },
   ];
-  if (set.noBoosterBox) facts.push({ term: "Booster box", detail: "Not sold as a 36-pack booster box" });
-  else {
-    const box = lineFact(set, "booster-box", "Booster box", market);
-    if (box) facts.push(box);
-  }
-  if (has("Elite Trainer Box")) {
-    const etb = lineFact(set, "etb", "Elite Trainer Box", market);
-    if (etb) facts.push(etb);
-  }
-  if (has("Pokémon Center Elite Trainer Box")) {
-    const pc = lineFact(set, "pc-etb", "Pokémon Center ETB", market);
-    if (pc) facts.push(pc);
-  }
-  if (types?.has("Booster Bundle")) {
-    const bundle = lineFact(set, "booster-bundle", "Booster bundle", market);
-    if (bundle) facts.push(bundle);
+  if (set.noBoosterBox) facts.push({ term: "Booster box", detail: "Not sold as a booster box" });
+  const lines: [TypeKey, string][] = [
+    ["play-booster-box", "Play Booster Box"],
+    ["draft-booster-box", "Draft Booster Box"],
+    ["set-booster-box", "Set Booster Box"],
+    ["collector-booster-box", "Collector Booster Box"],
+    ["bundle", "Bundle"],
+  ];
+  for (const [key, label] of lines) {
+    if (!has(label)) continue;
+    const f = lineFact(set, key, label, market);
+    if (f) facts.push(f);
   }
   return facts;
 }
 
 /** The sets either side in SETS order (newest first): `prev` released before this one, `next` after it. */
-export function prevNextSet(code: string): { prev: PokemonSet | null; next: PokemonSet | null } {
+export function prevNextSet(code: string): { prev: MtgSet | null; next: MtgSet | null } {
   const i = SETS.findIndex((s) => s.code === code);
   if (i < 0) return { prev: null, next: null };
   return { prev: SETS[i + 1] ?? null, next: SETS[i - 1] ?? null };
@@ -217,7 +213,7 @@ export function prevNextSet(code: string): { prev: PokemonSet | null; next: Poke
 
 // ─── Type pages ────────────────────────────────────────────────────────────────
 
-/** "Pokémon Booster Boxes", "Pokémon Center Elite Trainer Boxes" (never "Pokémon Pokémon Center…"). */
+/** "MTG Play Booster Boxes", "MTG Collector Booster Boxes". */
 export function typeName(t: Pick<ProductTypeInfo, "plural">): string {
   return withMtg(t.plural);
 }
@@ -229,7 +225,7 @@ export function typeTitle(t: Pick<ProductTypeInfo, "plural">, r: Pick<RegionInfo
   return hubTitle(`${name} in ${r.inName} — prices & stock`);
 }
 
-/** The type page's description: live counts, the type's own capitals kept ("Pokémon Center Elite Trainer Boxes"). */
+/** The type page's description: live counts, the type's own capitals kept ("Collector Booster Boxes"). */
 export function typeDescription(
   t: Pick<ProductTypeInfo, "plural">,
   r: Pick<RegionInfo, "inName" | "market" | "adjective" | "currency">,
@@ -243,7 +239,7 @@ export function typeDescription(
 
 /** The deals page section a type's "See deals" link lands on (the deals page has these anchors, and #more for the rest). */
 export function dealsAnchor(slug: string): string {
-  return ["booster-boxes", "elite-trainer-boxes", "booster-bundles", "collections"].includes(slug) ? slug : "more";
+  return ["play-booster-boxes", "collector-booster-boxes", "bundles", "commander-decks"].includes(slug) ? slug : "more";
 }
 
 export interface PerPackRow {
@@ -278,27 +274,28 @@ export function typePacksFact(key: TypeKey): string | null {
   return min === max ? plural(min, "booster pack") : `${min} to ${max} booster packs, depending on the set`;
 }
 
-/** US only: TPCi's MSRP for the type, by series ("$49.99 for Mega Evolution and Scarlet & Violet sets"), or null. Print RRP_NOTE with it. */
+/** US only: Wizards' MSRP for the type, or null. Print RRP_NOTE with it. */
 export function typeMsrpFact(key: TypeKey, market: string): string | null {
   if (market !== "US") return null;
-  const bySeries = new Map<number, string[]>();
-  for (const series of SERIES_ORDER) {
-    const code = SETS.find((s) => s.series === series)?.code;
-    const cents = code ? usMsrpCents(key, code) : null;
-    if (cents != null) (bySeries.get(cents) ?? bySeries.set(cents, []).get(cents)!).push(series);
+  // Per set, never per series: Wizards publishes an MSRP set by set (rrp.ts knows few), and "for Universes Beyond sets" would
+  // claim it for sets it does not know.
+  const bySet = new Map<number, string[]>();
+  for (const set of SETS) {
+    const cents = usMsrpCents(key, set.code);
+    if (cents != null) (bySet.get(cents) ?? bySet.set(cents, []).get(cents)!).push(set.name);
   }
-  if (!bySeries.size) return null;
-  return [...bySeries].map(([cents, series]) => `${money(cents, "US")} for ${series.join(" and ")} sets`).join("; ");
+  if (!bySet.size) return null;
+  return [...bySet].map(([cents, names]) => `${money(cents, "US")} for ${names.join(" and ")}`).join("; ");
 }
 
 // ─── Sets index and release calendar ──────────────────────────────────────────
 
 export function setsIndexTitle(r: Pick<RegionInfo, "inName">): HubTitle {
-  return hubTitle(`Every Pokémon TCG set in order — release dates & sealed prices (${r.inName})`);
+  return hubTitle(`Every Magic: The Gathering set in order — release dates & sealed prices (${r.inName})`);
 }
 
 /** Every set in SETS, grouped by series in SERIES_ORDER, newest first within each. */
-export function setsBySeries(): { series: string; sets: PokemonSet[] }[] {
+export function setsBySeries(): { series: string; sets: MtgSet[] }[] {
   return SERIES_ORDER.map((series) => ({ series, sets: SETS.filter((s) => s.series === series) })).filter((g) => g.sets.length > 0);
 }
 
@@ -308,18 +305,18 @@ export function firstSetYear(): number {
 }
 
 export function releasesTitle(r: Pick<RegionInfo, "inName">, year: number): HubTitle {
-  return hubTitle(`Pokémon TCG release dates ${year} — upcoming sets & pre-orders (${r.inName})`);
+  return hubTitle(`Magic: The Gathering release dates ${year} — upcoming sets & pre-orders (${r.inName})`);
 }
 
 /** The next set to release (the earliest one not out yet), or null when every announced set is out. */
-export function nextSet(now: Date = new Date()): PokemonSet | null {
-  let next: PokemonSet | null = null;
+export function nextSet(now: Date = new Date()): MtgSet | null {
+  let next: MtgSet | null = null;
   for (const s of SETS) if (isPreorderSet(s.code, now) && (!next || s.releaseDate < next.releaseDate)) next = s;
   return next;
 }
 
 /** The sets whose English release falls in `year`, newest first (SETS order). */
-export function setsOfYear(year: number): PokemonSet[] {
+export function setsOfYear(year: number): MtgSet[] {
   return SETS.filter((s) => s.releaseDate.startsWith(`${year}-`));
 }
 
@@ -331,11 +328,11 @@ export function storeIndexable(st: { listed: number; dormant: boolean } | null |
 }
 
 export function storesTitle(r: Pick<RegionInfo, "inName">, n: number): HubTitle {
-  return hubTitle(`Where to buy Pokémon cards online in ${r.inName} — ${n} stores compared`);
+  return hubTitle(`Where to buy Magic sealed online in ${r.inName} — ${n} stores compared`);
 }
 
 export function storesDescription(r: Pick<RegionInfo, "inName" | "adjective" | "currency">, n: number): string {
-  return `${n} ${r.adjective} stores that sell Pokémon TCG sealed online, compared: who has the most in stock today, when we last read each one, and their prices in ${r.currency}.`;
+  return `${n} ${r.adjective} stores that sell Magic: The Gathering sealed online, compared: who has the most in stock today, when we last read each one, and their prices in ${r.currency}.`;
 }
 
 export interface StoreRank {
@@ -347,7 +344,7 @@ export interface StoreRank {
 }
 
 /**
- * The stores with the most Pokémon sealed in stock, from StoreStat as the page loaded it: only stores read within the last
+ * The stores with the most Magic sealed in stock, from StoreStat as the page loaded it: only stores read within the last
  * 72 hours (sealed-offers.ts OFFER_STALE_H, after which the site says "Not checked recently") with something in stock.
  */
 export function topStores<T extends StoreRank>(rows: T[], take = 10, now: number = Date.now()): T[] {

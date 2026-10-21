@@ -102,11 +102,11 @@ test("every deal's badge is the product page's medianSaving(), and the bar is th
 test("the deals page's sections: every product type in exactly one, 48 deals at most, the anchors the type pages link to", () => {
   assert.deepEqual(
     DEAL_SECTIONS.map((s) => s.id),
-    ["booster-boxes", "elite-trainer-boxes", "booster-bundles", "collections", "more"],
+    ["play-booster-boxes", "collector-booster-boxes", "bundles", "collections", "more"],
   );
   for (const t of PRODUCT_TYPES) assert.equal(DEAL_SECTIONS.filter((s) => s.types.includes(t.label)).length, 1, t.label);
   assert.equal(DEAL_SECTIONS.reduce((n, s) => n + s.take, 0), 48);
-  assert.equal(dealSectionOf("Pokémon Center Elite Trainer Box").id, "elite-trainer-boxes");
+  assert.equal(dealSectionOf("Pokémon Center Elite Trainer Box").id, "collector-booster-boxes");
   assert.equal(dealSectionOf("Booster Pack").id, "more");
   assert.equal(dealSectionOf("Something new").id, "more");
 });

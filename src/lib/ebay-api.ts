@@ -1,7 +1,7 @@
 // eBay's Browse API client: OAuth token, search request, errors. IMPORTER ONLY.
 //
 // SERVER/CI ONLY, and in practice GitHub Actions only: this is the single module that reads
-// EBAY_CLIENT_ID / EBAY_CLIENT_SECRET (DEXCOMPARE_EBAY_CLIENT_ID / _SECRET take precedence when set).
+// EBAY_CLIENT_ID / EBAY_CLIENT_SECRET (MTGCOMPARE_EBAY_CLIENT_ID / _SECRET take precedence when set).
 // Only scripts/ebay-import.ts, scripts/ebay-check.ts, src/lib/ebay-import.ts and tests/ import it; nothing under
 // src/app or src/components may (tests/ebay-api.test.ts fails if one does). The web runtime reads the
 // EbayListing table and holds no eBay credential at all.
@@ -22,7 +22,7 @@
 //   • Search: GET https://api.ebay.com/buy/browse/v1/item_summary/search  q (<=100 chars), limit (1..200),
 //     filter, header X-EBAY-C-MARKETPLACE-ID, header X-EBAY-C-ENDUSERCTX
 //     "affiliateCampaignId=<EPN campaign>,affiliateReferenceId=<ref>" so each item carries
-//     itemAffiliateWebUrl. <ref> is set PER FEED (dex-us-chase, dex-au-item: ebay-context.ts feedReference): eBay copies it into
+//     itemAffiliateWebUrl. <ref> is set PER FEED (mtg-us-chase, mtg-au-item: ebay-context.ts feedReference): eBay copies it into
 //     the URL's customid, EPN reports by it, and the URL is then used exactly as returned (the spec says to).
 //   • Filter: buyingOptions:{FIXED_PRICE}, price:[<min>..] with priceCurrency:<ISO>, deliveryCountry:<ISO-2>.
 //     The open-ended range "[N..]" is the documented syntax for a lower bound; it could not be exercised
@@ -55,14 +55,14 @@ export const tokenMargin = (secs: number) => Math.min(TOKEN_EARLY_MS, (secs * 10
 export interface EbayEnv {
   EBAY_CLIENT_ID?: string;
   EBAY_CLIENT_SECRET?: string;
-  DEXCOMPARE_EBAY_CLIENT_ID?: string;
-  DEXCOMPARE_EBAY_CLIENT_SECRET?: string;
+  MTGCOMPARE_EBAY_CLIENT_ID?: string;
+  MTGCOMPARE_EBAY_CLIENT_SECRET?: string;
 }
 
-/** The keys to use: DEXCOMPARE_EBAY_* when set, else the owner's EBAY_CLIENT_ID / EBAY_CLIENT_SECRET. Trimmed; empty strings count as unset. */
+/** The keys to use: MTGCOMPARE_EBAY_* when set, else the owner's EBAY_CLIENT_ID / EBAY_CLIENT_SECRET. Trimmed; empty strings count as unset. */
 export function credentials(env: EbayEnv): { id: string; secret: string } {
   const pick = (a?: string, b?: string) => (a ?? "").trim() || (b ?? "").trim();
-  return { id: pick(env.DEXCOMPARE_EBAY_CLIENT_ID, env.EBAY_CLIENT_ID), secret: pick(env.DEXCOMPARE_EBAY_CLIENT_SECRET, env.EBAY_CLIENT_SECRET) };
+  return { id: pick(env.MTGCOMPARE_EBAY_CLIENT_ID, env.EBAY_CLIENT_ID), secret: pick(env.MTGCOMPARE_EBAY_CLIENT_SECRET, env.EBAY_CLIENT_SECRET) };
 }
 
 /** True when both keys are set. Presence only: the values are never used here. */
@@ -206,7 +206,7 @@ export function createTokenManager(deps: Deps): TokenManager {
 // ─── Search ────────────────────────────────────────────────────────────────────
 
 export interface SearchSpec {
-  /** The query, already prefixed ("Pokemon …"); at most 100 characters (longer is cut). */
+  /** The query, already prefixed ("MTG …"); at most 100 characters (longer is cut). */
   q: string;
   marketplace: MarketplaceId;
   /** 1..200 */

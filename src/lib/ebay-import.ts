@@ -4,10 +4,10 @@
 // it to Postgres and api.ebay.com. See DEPLOY.md, "eBay listings: the daily import" for the capacity model.
 //
 //   PRIORITY (spend in this order until the run cap is reached; a cap hit drops the LEAST valuable):
-//     1. chase    generic chase cards: 8 queries per marketplace, taken round-robin        (5 × 8   = 40 calls)
-//     2. sealed   generic sealed Pokémon: 6 queries per marketplace, classifier-checked     (5 × 6   = 30)
+//     1. chase    HIGH-END sealed (collector boxes, cases, Secret Lair, Commander sets): 8 queries per marketplace, round-robin (5 × 8 = 40 calls)
+//     2. sealed   generic sealed Magic: 6 queries per marketplace, classifier-checked       (5 × 6   = 30)
 //     3. types    one query per high-value product type per marketplace                     (5 × 9   = 45)
-//     4. sets     chase cards of the 30 most recently released sets, 1 query each           (5 × 30  = 150)
+//     4. sets     sealed product of the 30 most recently released sets, 1 query each        (5 × 30  = 150)
 //     5. sweep    the CATALOGUE SWEEP (ebay-sweep.ts): broad searches paged 200 listings a call, each listing
 //                 handed to the product the classifier says it is: an item feed for EVERY product it finds,
 //                 cheap ones included (EBAY_SWEEP_CALLS, default 2,100, shared by marketplace by product count × audience,
@@ -58,7 +58,7 @@ import { buildSweepIndex, hotSweepQueries, marketplaceShares, SweepCollector, sw
 import { HOT_SET_QUERY, HOT_SETS, hotRank, isHotSet, PRIORITY_MARKETPLACES } from "./popular";
 import type { Region } from "./regions";
 import { normalizeTitle, roughUsdCents, TYPE_BY_KEY, TYPE_BY_LABEL, TYPE_BY_SLUG, type TypeKey } from "./sealed-title";
-import { SET_BY_CODE, SETS, type PokemonSet } from "./sets";
+import { SET_BY_CODE, SETS, type MtgSet } from "./sets";
 
 // ─── Tunables ──────────────────────────────────────────────────────────────────
 
@@ -235,24 +235,26 @@ export const MARKETPLACE_ORDER: readonly MarketplaceId[] = [
   ...MARKETPLACE_IDS.filter((m) => !(PRIORITY_MARKETPLACES as readonly string[]).includes(m)).sort((a, b) => MARKET_WEIGHT[b] - MARKET_WEIGHT[a] || a.localeCompare(b)),
 ];
 
+/** The "chase" feed: HIGH-END SEALED (MTG Compare lists no single cards), 8 queries, taken round-robin (normaliseChase keeps HIGH_END_TYPES). */
 export const CHASE_QUERIES = [
-  "Charizard ex special illustration rare",
-  "Umbreon ex special illustration rare",
-  "Pikachu ex special illustration rare",
-  "Mega Charizard X ex",
-  "Mewtwo ex special illustration rare",
-  "PSA 10 Charizard",
-  "Gengar ex special illustration rare",
-  "Rayquaza ex special illustration rare",
+  "collector booster box sealed",
+  "collector booster box case",
+  "play booster box case",
+  "secret lair drop sealed",
+  "commander deck set of 4",
+  "collector booster display",
+  "bundle case sealed",
+  "secret lair foil sealed",
 ] as const;
 
+/** The generic sealed feed: whole Magic products a buyer compares (normaliseSealed keeps SEALED_FEED_TYPES). */
 export const SEALED_QUERIES = [
-  "booster box sealed",
-  "elite trainer box sealed",
-  "ultra premium collection sealed",
-  "booster bundle sealed",
-  "pokemon center elite trainer box sealed",
-  "premium collection box sealed",
+  "play booster box sealed",
+  "collector booster box sealed",
+  "bundle sealed",
+  "commander deck sealed",
+  "gift bundle sealed",
+  "draft booster box sealed",
 ] as const;
 
 /** The high-value types that get their own feed (a type page's strip), with what they search for. */
@@ -267,35 +269,36 @@ export const TYPE_FEEDS: readonly { type: TypeKey; query: string }[] = [
   { type: "collector-booster-box-case", query: "collector booster box case sealed" },
 ];
 
-// Sets named with a common word: a keyword search for "Evolutions", "Generations" or "Celebrations" returns cards of every set.
-const COMMON_WORD_SETS = new Set(["xy12", "g1", "cel25"]);
+// Sets named with a common word or a bare franchise: a keyword search for "MTG Foundations" or "MTG Avatar" returns every
+// set's listings. (Their own products are still searched one by one, and the classifier refuses another set's in a set feed.)
+const COMMON_WORD_SETS = new Set(["fdn", "j25"]);
 
-/** The most recently released sets whose name is a good chase-card search (not a series name, not a common word, already out). */
-export function setFeedSets(today: string, n = SET_FEED_COUNT, sets: readonly PokemonSet[] = SETS): PokemonSet[] {
+/** The most recently released sets whose name is a good set-feed search (not a common word, already out). */
+export function setFeedSets(today: string, n = SET_FEED_COUNT, sets: readonly MtgSet[] = SETS): MtgSet[] {
   return sets.filter((s) => s.releaseDate <= today && !s.generic && !COMMON_WORD_SETS.has(s.code)).slice(0, n);
 }
 
-const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, ""); // "Pokémon GO" → "Pokemon GO"
+const fold = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // "Æther" stays, accents go
 
-export function setQuery(s: PokemonSet): string {
-  const suffix = s.series === "Mega Evolution" || s.series === "Scarlet & Violet" ? "special illustration rare" : s.series === "Sword & Shield" ? "alt art" : "full art";
-  return `${fold(s.name)} ${suffix}`;
+/** A set feed's search: "<set name> sealed" (prefixed "MTG"), accents folded, "&" and ":" dropped (eBay ANDs every word). */
+export function setQuery(s: MtgSet): string {
+  return `${fold(s.name).replace(/[&:]/g, " ").replace(/\s+/g, " ").trim()} sealed`;
 }
 
 /**
- * "Pokemon <product name, cleaned>", at most 100 characters (cut at a word). No "sealed": eBay requires every keyword, and many sealed
+ * "MTG <product name, cleaned>", at most 100 characters (cut at a word). No "sealed": eBay requires every keyword, and many sealed
  * listings never say it (762 of 1,735 item searches came back with nothing on 2026-10-10); the classifier refuses singles and lots.
  */
 export function itemQuery(name: string): string {
   const terms = searchTerms(name);
-  const q = /\bpokemon\b/i.test(terms) ? terms : `Pokemon ${terms}`;
+  const q = /\bmtg\b|\bmagic\b/i.test(terms) ? terms : `MTG ${terms}`;
   const t = q.replace(/\s+/g, " ").trim();
   if (t.length <= 100) return t;
   const cut = t.slice(0, 100);
   return cut.slice(0, Math.max(cut.lastIndexOf(" "), 40)).trim();
 }
 
-const prefixed = (q: string) => `Pokemon ${q}`.slice(0, 100);
+const prefixed = (q: string) => `MTG ${q}`.slice(0, 100);
 
 // ─── The plan ──────────────────────────────────────────────────────────────────
 
@@ -371,8 +374,8 @@ export function fixedFeeds(today: string): PlanFeed[] {
 
 /**
  * The words a product of a set in HOT_SET_QUERY is searched by: its name with the set's own name swapped for the keyword sellers
- * use ("30th Celebration Elite Trainer Box" → "30th Elite Trainer Box", which "30th Anniversary" listings match; "Scarlet & Violet 151
- * Booster Bundle" → "151 Booster Bundle"). Any other product: its name.
+ * use ("The Hobbit Play Booster Box" → "Hobbit Play Booster Box", which "LOTR Hobbit" listings match; "Avatar: The Last Airbender
+ * Collector Booster Box" → "Avatar Collector Booster Box"). Any other product: its name.
  */
 export function hotQueryName(name: string, setCode: string | null): string {
   const term = setCode ? HOT_SET_QUERY[setCode] : undefined;
@@ -381,14 +384,14 @@ export function hotQueryName(name: string, setCode: string | null): string {
   const words = (t: string) => normalizeTitle(t).split(/[^A-Za-z0-9]+/).filter((w) => w && w.toLowerCase() !== "and"); // "&" / "and" are separators
   const nameRe = words(set.name).map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("[\\s&:,.'\\-–—]*(?:and[\\s]*)?");
   let rest = normalizeTitle(name).replace(new RegExp(`\\b${nameRe}\\b`, "gi"), " ");
-  if (setCode === "cel30") rest = rest.replace(/\b30th\s+anniversary(?:\s+celebration)?\b/gi, " ");
-  rest = rest.replace(/^\s*pokemon(?:\s+tcg\s*[:\-–—]?|\s*[:\-–—])/i, " "); // a leading "Pokemon TCG:" (itemQuery puts "Pokemon" first again; "Pokemon Center" stays)
+  if (setCode === "hob") rest = rest.replace(/\b(?:the\s+)?hobbit\b/gi, " ");
+  rest = rest.replace(/^\s*(?:mtg|magic(?:\s*:?\s*the\s+gathering)?)(?:\s+tcg)?\s*[:\-–—]?/i, " "); // a leading "Magic: The Gathering -" (itemQuery puts "MTG" first again)
   rest = rest.replace(/^[\s\-–—:,]+|[\s\-–—:,]+$/g, "").replace(/\s+/g, " ");
   const hasTerm = new RegExp(`\\b${term}\\b`, "i").test(rest);
   return hasTerm ? rest : `${term} ${rest}`.trim();
 }
 
-/** One product's own search: "Pokemon <cleaned name>" (a hot set's keyword in place of its name), the type's price floor, the item normaliser. */
+/** One product's own search: "MTG <cleaned name>" (a hot set's keyword in place of its name), the type's price floor, the item normaliser. */
 function productFeed(k: Pick<ItemKey, "marketplace" | "productId" | "name" | "type" | "groupKey" | "setCode">): PlanFeed {
   return {
     feed: feedKey(k.marketplace, "item", k.productId),
@@ -967,7 +970,7 @@ export async function runImport(deps: ImportDeps, opts: RunOptions = {}): Promis
         rows.filter((r) => MARKETPLACE_OF_REGION[r.market.toLowerCase() as Region] === ix.marketplace),
         today,
       );
-      const hotQs = new Set(hot.map((q) => `Pokemon ${q.q}`));
+      const hotQs = new Set(hot.map((q) => `MTG ${q.q}`));
       let hotFetched = 0; // counted as the pages are made, so a run that stops during the hot pass still reports them
       try {
         const done = await sweepWithHot(

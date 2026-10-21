@@ -30,7 +30,7 @@ import { REGION_LIST } from "../src/lib/regions";
 
 const NOW = Date.parse("2026-10-07T12:00:00Z");
 // A realistic itemAffiliateWebUrl, as the importer stores it: eBay's string, with its opaque parts, byte for byte.
-const URL_OK = `https://www.ebay.com/itm/1?_skw=pokemon+elite+trainer+box&hash=item1%3Ag%3AaBcAAOSw&amdata=enc%3AAQAKAAAA%2Bx%3D%3D&mkevt=1&mkcid=1&mkrid=711-53200-19255-0&campid=${EBAY_CAMPAIGN_ID}&customid=dex-us-chase&toolid=10001`;
+const URL_OK = `https://www.ebay.com/itm/1?_skw=mtg+play+booster+box&hash=item1%3Ag%3AaBcAAOSw&amdata=enc%3AAQAKAAAA%2Bx%3D%3D&mkevt=1&mkcid=1&mkrid=711-53200-19255-0&campid=${EBAY_CAMPAIGN_ID}&customid=mtg-us-chase&toolid=10001`;
 const item = (id: string, over: Record<string, unknown> = {}) => ({
   id,
   title: `Item ${id}`,
@@ -55,7 +55,7 @@ test("marketplaces: au+nz share EBAY_AU, us+sg EBAY_US, uk EBAY_GB, ca EBAY_CA, 
 
 test("feed keys round-trip", () => {
   assert.equal(feedKey("EBAY_US", "chase"), "EBAY_US|chase");
-  assert.equal(feedKey("EBAY_GB", "set", "surging-sparks"), "EBAY_GB|set:surging-sparks");
+  assert.equal(feedKey("EBAY_GB", "set", "bloomburrow"), "EBAY_GB|set:bloomburrow");
   assert.deepEqual(parseFeedKey("EBAY_US|item:cm1abc"), { marketplace: "EBAY_US", kind: "item", arg: "cm1abc" });
   assert.deepEqual(parseFeedKey("EBAY_AU|sealed"), { marketplace: "EBAY_AU", kind: "sealed", arg: null });
   for (const bad of ["", "EBAY_XX|chase", "EBAY_US|nope", "chase", "EBAY_US|"]) assert.equal(parseFeedKey(bad), null, bad);
@@ -121,7 +121,7 @@ test("acceptItem: whitelisted fields, an eBay item URL with a campaign id (kept 
   // eBay's affiliate URL is used AS RETURNED (its spec says so): not re-serialised, no parameter added, changed or removed
   assert.equal(ok.href, URL_OK);
   assert.equal(ok.url, URL_OK);
-  assert.equal(new URL(ok.href).searchParams.get("customid"), "dex-us-chase", "the per-feed reference the importer asked eBay for survives");
+  assert.equal(new URL(ok.href).searchParams.get("customid"), "mtg-us-chase", "the per-feed reference the importer asked eBay for survives");
   assert.equal(new URL(ok.href).searchParams.get("campid"), EBAY_CAMPAIGN_ID);
   // the browser does not depend on NEXT_PUBLIC_EBAY_CAMPAIGN_ID matching the importer's: any numeric campaign id is accepted
   assert.ok(acceptItem(item("o", { url: "https://www.ebay.com/itm/1?campid=1111111111&customid=x" })), "another numeric campaign id");
@@ -155,17 +155,17 @@ test("acceptItem: whitelisted fields, an eBay item URL with a campaign id (kept 
   assert.equal(acceptItem(item("m", { ship: { value: "-1", currency: "AUD" } }))!.ship, undefined);
 });
 
-test("feedReference: dex-<market>-<feed kind>, a safe sub-id of at most 60 characters, one per marketplace and kind (the EPN report's split)", () => {
-  assert.equal(feedReference("EBAY_US", "chase"), "dex-us-chase");
-  assert.equal(feedReference("EBAY_AU", "item"), "dex-au-item");
-  assert.equal(feedReference("EBAY_GB", "set"), "dex-uk-set");
-  assert.equal(feedReference("EBAY_CA", "type"), "dex-ca-type");
-  assert.equal(feedReference("EBAY_DE", "sealed"), "dex-eu-sealed");
+test("feedReference: mtg-<market>-<feed kind>, a safe sub-id of at most 60 characters, one per marketplace and kind (the EPN report's split)", () => {
+  assert.equal(feedReference("EBAY_US", "chase"), "mtg-us-chase");
+  assert.equal(feedReference("EBAY_AU", "item"), "mtg-au-item");
+  assert.equal(feedReference("EBAY_GB", "set"), "mtg-uk-set");
+  assert.equal(feedReference("EBAY_CA", "type"), "mtg-ca-type");
+  assert.equal(feedReference("EBAY_DE", "sealed"), "mtg-eu-sealed");
   const seen = new Set<string>();
   for (const mp of ["EBAY_US", "EBAY_AU", "EBAY_GB", "EBAY_CA", "EBAY_DE"] as const)
     for (const kind of ["chase", "sealed", "type", "set", "item"] as const) {
       const r = feedReference(mp, kind);
-      assert.match(r, /^dex-(us|au|uk|ca|eu)-(chase|sealed|type|set|item)$/);
+      assert.match(r, /^mtg-(us|au|uk|ca|eu)-(chase|sealed|type|set|item)$/);
       assert.ok(r.length <= 60);
       seen.add(r);
     }
@@ -215,13 +215,13 @@ test("isFresh: the timer re-check", () => {
 });
 
 test("contexts: shape and whitelist, and a fuzz that never throws", () => {
-  for (const ok of ["chase", "sealed", "set:surging-sparks", "type:booster-boxes", "item:surging-sparks-elite-trainer-box"]) assert.ok(isContextString(ok), ok);
+  for (const ok of ["chase", "sealed", "set:bloomburrow", "type:play-booster-boxes", "item:bloomburrow-play-booster-box"]) assert.ok(isContextString(ok), ok);
   for (const bad of ["", "home", "generic", "set:", "set:UPPER", "set:../etc", "item:a b", "type:", `item:${"a".repeat(101)}`, "set:a:b", 5, null, undefined, {}]) assert.ok(!isContextString(bad), String(bad));
   assert.deepEqual(parseContext("chase"), { id: "chase", kind: "chase", slug: null });
-  assert.deepEqual(parseContext("set:surging-sparks"), { id: "set:surging-sparks", kind: "set", slug: "surging-sparks" });
-  assert.deepEqual(parseContext("type:booster-boxes"), { id: "type:booster-boxes", kind: "type", slug: "booster-boxes" });
+  assert.deepEqual(parseContext("set:bloomburrow"), { id: "set:bloomburrow", kind: "set", slug: "bloomburrow" });
+  assert.deepEqual(parseContext("type:play-booster-boxes"), { id: "type:play-booster-boxes", kind: "type", slug: "play-booster-boxes" });
   assert.deepEqual(parseContext("item:whatever-slug"), { id: "item:whatever-slug", kind: "item", slug: "whatever-slug" });
-  for (const bad of ["set:not-a-set", "type:nope", "home", "product:none", "SET:surging-sparks", "set:Surging-Sparks", " chase", "chase ", "set:surging-sparks/../x", "item:"]) assert.equal(parseContext(bad), null, bad);
+  for (const bad of ["set:not-a-set", "type:nope", "home", "product:none", "SET:bloomburrow", "set:Bloomburrow", " chase", "chase ", "set:bloomburrow/../x", "item:"]) assert.equal(parseContext(bad), null, bad);
   // fuzz: random strings, only exact members parse
   let seed = 12345;
   const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
@@ -237,7 +237,7 @@ test("contexts: shape and whitelist, and a fuzz that never throws", () => {
   }
   assert.ok(parsed < 50);
   for (const weird of [undefined, null, 5, {}, [], Symbol.iterator, "x".repeat(10_000)]) assert.equal(parseContext(weird), null);
-  assert.equal(listingsUrl("au", "set:surging-sparks"), "/api/ebay/au?c=set%3Asurging-sparks");
+  assert.equal(listingsUrl("au", "set:bloomburrow"), "/api/ebay/au?c=set%3Abloomburrow");
 });
 
 test("the response type carries exactly what the spec lists", () => {

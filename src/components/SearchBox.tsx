@@ -312,7 +312,7 @@ export function SearchBox({ region, size = "sm", autoFocus = false }: { region: 
         {load === "error" && <p className="px-4 pt-3 text-xs text-muted">Suggestions aren&rsquo;t available right now. Press Enter to search.</p>}
         {load === "ready" && ranked.total === 0 && (
           <p className="px-4 pt-3 text-sm text-muted">
-            No product names match &ldquo;{term}&rdquo; in {REGIONS[region].inName}. Try a set name, or a type like &ldquo;ETB&rdquo;.
+            No product names match &ldquo;{term}&rdquo; in {REGIONS[region].inName}. Try a set name, or a type like &ldquo;bundle&rdquo;.
           </p>
         )}
         <div role="listbox" id={listId} aria-label="Search suggestions" className="py-1.5">
@@ -438,7 +438,7 @@ export function SearchBox({ region, size = "sm", autoFocus = false }: { region: 
         aria-expanded={visible}
         aria-controls={visible ? listId : undefined}
         aria-activedescendant={visible && act >= 0 ? optionId(act) : undefined}
-        placeholder={big ? "Search a set or product — “Prismatic Evolutions ETB”" : "Search sets & products"}
+        placeholder={big ? "Search a set or product — “Edge of Eternities bundle”" : "Search sets & products"}
         aria-label="Search sealed products"
         className={`min-w-0 flex-1 bg-transparent outline-none placeholder:text-faint focus-visible:outline-none ${big ? "py-2 text-base" : "text-base lg:text-sm"}`}
       />

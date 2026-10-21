@@ -55,8 +55,8 @@ export interface ReadDeps {
 }
 
 /**
- * May the generic "Sealed Pokémon" feed (boxes, ETBs, UPCs at US$30 and up) stand in for a type? Only for the types whose own prices are
- * that class. A booster pack, a tin, a blister or an unknown type would sit under a A$9 product with A$130–700 listings: no strip
+ * May the generic "Sealed Magic" feed (boxes, bundles, Commander decks at US$30 and up) stand in for a type? Only for the types whose own prices are
+ * that class. A booster pack, a prerelease pack, a starter kit or an unknown type would sit under a A$9 product with A$130–700 listings: no strip
  * (the compact eBay link) is better than a mismatched one.
  */
 function sealedMayStandIn(type: TypeKey | undefined): boolean {
@@ -93,12 +93,11 @@ export function rowIsSafe(r: ListingRow, type?: TypeKey): boolean {
 }
 
 /**
- * A sealed-product row (an item, type or generic sealed feed) the importer's rules refuse TODAY (ebay-normalise.ts refusedListing: a
+ * A stored row (every feed is sealed product since the Magic port, the chase and set feeds included) the importer's rules refuse TODAY (ebay-normalise.ts refusedListing: a
  * product's contents, lots, partials, random variants…): not shown, even when it was stored before the rule existed (rows live up to a
- * day). Chase and set feeds (single cards) have their own filter at import.
+ * day).
  */
 function refusedAtRead(r: ListingRow, type?: TypeKey): boolean {
-  if (/\|(?:chase|set:)/.test(r.feed)) return false;
   return refusedListing(r.title) || (type !== undefined && refusedForType(r.title, type));
 }
 

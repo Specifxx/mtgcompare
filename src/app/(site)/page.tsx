@@ -16,8 +16,8 @@ import { ADSENSE_CLIENT } from "@/lib/adsense";
 // Fully static: counts come from the store registry, not the database, so
 // this page costs nothing to serve and never depends on the database.
 
-const TITLE = `${SITE_NAME} — Pokémon sealed prices & stock from ${STORES.length} stores`;
-const DESCRIPTION = `Compare Pokémon sealed prices and stock across ${STORES.length} independent stores in ${REGION_LIST.length} regions. Booster boxes, ETBs and more, cheapest in stock first.`;
+const TITLE = `${SITE_NAME} — Magic sealed prices & stock from ${STORES.length} stores`;
+const DESCRIPTION = `Compare Magic sealed prices and stock across ${STORES.length} independent stores in ${REGION_LIST.length} regions. Booster boxes, Collector boxes and more, cheapest in stock first.`;
 
 /**
  * The landing page's metadata. hreflang: the seven region homes, and x-default this page, the region chooser that every region
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
 const POPULAR_REGIONS: Region[] = ["us", "au"];
 const POPULAR_LINKS: { key: SectionKey; label: string }[] = [
   { key: "boosterBoxes", label: "Booster boxes" },
-  { key: "etbs", label: "Elite Trainer Boxes" },
+  { key: "collectorBoxes", label: "Collector Booster Boxes" },
   { key: "deals", label: "Deals" },
   { key: "perPack", label: "Cheapest per pack" },
   { key: "releases", label: "Releases" },
@@ -56,7 +56,7 @@ const HOW: { icon: IconName; t: string; d: string }[] = [
 const FAQ: { q: string; a: string }[] = [
   {
     q: "What is MTG Compare?",
-    a: `A free price-comparison site for English-language Pokémon TCG sealed product: booster boxes, Elite Trainer Boxes, booster bundles, collections, tins and more. It reads ${STORES.length} independent stores in ${REGION_LIST.length} regions and ranks every product's listings in stock first, cheapest first.`,
+    a: `A free price-comparison site for English-language Magic: The Gathering sealed product: play and collector booster boxes, bundles, Commander decks and more. It reads ${STORES.length} independent stores in ${REGION_LIST.length} regions and ranks every product's listings in stock first, cheapest first.`,
   },
   {
     q: "How often are prices and stock checked?",
@@ -93,9 +93,9 @@ export default function Landing() {
     <div>
       <section>
         <div className="page relative pb-12 pt-8 text-center sm:pb-16 sm:pt-20">
-          <p className="eyebrow">Booster boxes · ETBs · bundles · collections · tins</p>
+          <p className="eyebrow">Play boxes · Collector boxes · Bundles · Commander decks</p>
           <h1 className="mx-auto max-w-3xl font-display text-4xl font-bold leading-[1.05] tracking-tight mt-3 sm:mt-4 sm:text-6xl">
-            Pokémon sealed, in stock, <span className="text-brand">cheapest first.</span>
+            Magic sealed, in stock, <span className="text-brand">cheapest first.</span>
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted sm:mt-6 sm:text-lg sm:leading-8">
             Prices and stock from {STORES.length} independent stores in {REGION_LIST.length} regions, read about twice a day. Free, no sign-up, and no store pays to be
@@ -139,13 +139,13 @@ export default function Landing() {
           </h2>
           <div className="mt-4 space-y-4 text-[15px] leading-7 text-muted">
             <p>
-              {SITE_NAME} is a free price comparison for English-language Pokémon TCG sealed product: booster boxes, Elite Trainer Boxes,
-              booster bundles, collections, tins, blisters and decks. It reads the shelves of {STORES.length} independent hobby stores in{" "}
+              {SITE_NAME} is a free price comparison for English-language Magic: The Gathering sealed product: booster boxes, Collector Booster Boxes,
+              bundles, Commander decks, starter kits and boosters. It reads the shelves of {STORES.length} independent hobby stores in{" "}
               {REGION_LIST.length} regions about twice a day and puts each product&rsquo;s listings side by side, the ones in stock first and
               the cheapest of those at the top, in your own currency.
             </p>
             <p>
-              The same Elite Trainer Box is often priced very differently from one shop to the next on the same day, and one shop&rsquo;s
+              The same booster box is often priced very differently from one shop to the next on the same day, and one shop&rsquo;s
               sold-out page says nothing about the next one&rsquo;s stock. Every listing here carries the time it was last read, so you can see how fresh a
               price is before you click through, and a store that has not answered for three days is marked rather than guessed.
             </p>
@@ -209,7 +209,7 @@ export default function Landing() {
           </Link>
         </div>
         <p className="mb-5 max-w-2xl text-sm leading-6 text-muted">
-          Plain-English answers to what people ask before they buy Pokémon sealed product, each with today’s prices. Shown for {gr.inName}; every region has its own copy
+          Plain-English answers to what people ask before they buy Magic sealed product, each with today’s prices. Shown for {gr.inName}; every region has its own copy
           with its own stores and currency.
         </p>
         <ul role="list" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -272,7 +272,7 @@ export default function Landing() {
         </h2>
         <SuggestedTypeLinks types={PRODUCT_TYPES.slice(0, 13).map((t) => ({ slug: t.slug, label: t.plural }))} />
         <p className="mx-auto mt-6 max-w-xl text-sm leading-6 text-muted">
-          English-language Pokémon TCG sealed product only. Singles, graded cards, Japanese product, accessories and store-made bundles are
+          English-language Magic: The Gathering sealed product only. Singles, graded cards, Japanese product, accessories and store-made bundles are
           left out on purpose — <Link href="/about#refuse" className="underline underline-offset-2 hover:text-ink">what we refuse, and why</Link>.
         </p>
       </section>

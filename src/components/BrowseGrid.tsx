@@ -85,7 +85,7 @@ function SlidersIcon() {
 }
 
 // Filters live in the URL (?q=&type=&set=&stock=&sort=) so a filtered view can be shared, and type and set pages can link to one
-// (/us/sealed?type=booster-boxes&stock=in). They're read AFTER hydration, not through useSearchParams: the cached HTML then always
+// (/us/sealed?type=play-booster-boxes&stock=in). They're read AFTER hydration, not through useSearchParams: the cached HTML then always
 // holds the unfiltered page for crawlers, instead of a loading fallback.
 //
 // Unfiltered, the grid is the page's 48 server rows (lib/browse-data.ts marketPage) with real <a> links to the other pages

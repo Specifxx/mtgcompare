@@ -11,7 +11,7 @@
 //   2. the CATALOGUE SWEEP (src/lib/ebay-sweep.ts): per marketplace (US, UK, EU first, then AU, CA), broad searches paged 200
 //      listings a call, each listing handed to the product the classifier says it is (one call can feed dozens of products); an
 //      item feed for every product found, cheap ones included, written 100 feeds to a transaction; up to EBAY_SWEEP_CALLS (2,100)
-//      of the run cap. Each marketplace starts with the HOT PASS: the hot sets' own searches ("Pokemon 30th elite trainer box"…),
+//      of the run cap. Each marketplace starts with the HOT PASS: the hot sets' own searches ("MTG star trek play booster box"…),
 //      at most half its share;
 //   3. one search per product the sweep did not cover, with whatever is left of the run cap: first every HOT-SET product of the
 //      US, UK and EU (any type, any price), then every ELIGIBLE product, most valuable first.
@@ -27,7 +27,7 @@
 //
 // --dry-run prints the plan and the expected calls: no network and no database writes (it does read the product tables); the
 // sweep's coverage shows only in a real run (the summary's Sweep table).
-// Env: DATABASE_URL; EBAY_CLIENT_ID / EBAY_CLIENT_SECRET (DEXCOMPARE_EBAY_CLIENT_ID / _SECRET win when set);
+// Env: DATABASE_URL; EBAY_CLIENT_ID / EBAY_CLIENT_SECRET (MTGCOMPARE_EBAY_CLIENT_ID / _SECRET win when set);
 // optional EBAY_DAILY_CAP (2500, max 2500: this site's share of a 5,000 keyset shared with the owner's other site; set it on
 // BOTH sites), EBAY_RUN_CAP (2500), EBAY_SWEEP_CALLS (2100), EBAY_LISTING_MAX_AGE_HOURS (26).
 // Exit 1: token failure (only eBay's OAuth error category is printed), a search refusal or the circuit breaker, or fewer than

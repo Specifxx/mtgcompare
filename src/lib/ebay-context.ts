@@ -9,10 +9,10 @@
 // no eBay call, no token, no secret exists in the web runtime.
 //
 // A FEED is one stored list of up to 8 listings, keyed "<marketplace>|<kind>[:<arg>]":
-//   EBAY_US|chase           generic chase cards            EBAY_AU|sealed         generic sealed Pokémon
-//   EBAY_GB|set:<slug>      a recent set's chase cards     EBAY_US|type:<slug>    a high-value product type
+//   EBAY_US|chase           high-end sealed (collector)  EBAY_AU|sealed         generic sealed Magic
+//   EBAY_GB|set:<slug>      a recent set's sealed         EBAY_US|type:<slug>    a high-value product type
 //   EBAY_US|item:<id>       one product (by Product.id)
-// A CONTEXT is what a strip asks for ("set:surging-sparks"); the server turns it into a
+// A CONTEXT is what a strip asks for ("set:bloomburrow"); the server turns it into a
 // cascade of feeds and answers with the first one that has rows (ebay-context-parse.ts).
 import { affiliateSubId, listingHref } from "./affiliate";
 import { isRegion, type Region } from "./regions";
@@ -79,7 +79,7 @@ export function parseFeedKey(key: string): { marketplace: MarketplaceId; kind: F
   return { marketplace: m[1] as MarketplaceId, kind: m[2] as FeedKind, arg: m[3] ?? null };
 }
 
-/** The marketplace's short code in an EPN sub-id: dex-us-chase, dex-au-item. */
+/** The marketplace's short code in an EPN sub-id: mtg-us-chase, mtg-au-item. */
 const MARKET_CODE: Record<MarketplaceId, string> = { EBAY_US: "us", EBAY_AU: "au", EBAY_GB: "uk", EBAY_CA: "ca", EBAY_DE: "eu" };
 
 /**
@@ -89,7 +89,7 @@ const MARKET_CODE: Record<MarketplaceId, string> = { EBAY_US: "us", EBAY_AU: "au
  * the URL as returned, so the browser cannot edit it. The surface is in Vercel's buy_click event ({retailer, placement}).
  */
 export function feedReference(marketplace: MarketplaceId, kind: FeedKind): string {
-  return affiliateSubId("dex", MARKET_CODE[marketplace], kind);
+  return affiliateSubId("mtg", MARKET_CODE[marketplace], kind);
 }
 
 /**
@@ -206,14 +206,14 @@ export function cleanText(v: unknown, max: number): string {
 }
 
 /**
- * A listing title as the strip prints it: sellers' emoji and decoration (🔥 ✅ ★ ***) removed, "Pokemon Pokemon" said once, at most
+ * A listing title as the strip prints it: sellers' emoji and decoration (🔥 ✅ ★ ***) removed, "MTG MTG" said once, at most
  * 80 characters. Nothing else is rewritten: the words are the seller's. Applied when the importer stores a title and again when the
  * browser accepts one, so rows stored before this existed read the same.
  */
 export function cleanTitle(v: unknown, max = 80): string {
   const s = cleanText(v, 400)
     .replace(/[\p{Extended_Pictographic}\u{FE0E}\u{FE0F}\u{200D}\u{20E3}\u2605\u2606\u25CF\u25B6\u2192]/gu, " ")
-    .replace(/\b(pok[eé]mon)(?:\s+\1\b)+/gi, "$1")
+    .replace(/\b(mtg|magic)(?:\s+\1\b)+/gi, "$1")
     .replace(ONE_SPACE, " ")
     .replace(/^[\s*~=|•·!_-]+|[\s*~=|•·_-]+$/g, "");
   return wellFormedCut(s, max).trim();

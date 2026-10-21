@@ -31,9 +31,6 @@ export interface MtgSet {
   pattern?: string;
 }
 
-/** @deprecated The Pokémon-era name of MtgSet, kept so older imports keep compiling. */
-export type PokemonSet = MtgSet;
-
 const PLAY: BoosterLine[] = ["play", "collector"];
 const DSC: BoosterLine[] = ["draft", "set", "collector"];
 

@@ -1,4 +1,4 @@
-// RiftCompare's Pokémon section (riftcompare.com/pokemon), the owner's other Pokémon sealed site: it prices TCGplayer and eBay in six
+// RiftCompare's Pokémon section (riftcompare.com/pokemon), the owner's other Magic sealed site: it prices TCGplayer and eBay in six
 // markets and keeps TCGplayer's market price HISTORY, which this site deliberately does not store (README, "What this site does not
 // store"). The two are joined exactly by TCGplayer's productId (owner, 2026-10-15: "connect it … make things seamless"): RiftCompare's
 // product id IS TCGplayer's, and this site's product image is TCGplayer's (".../product/<productId>_in_1000x1000.jpg"), so
@@ -29,7 +29,7 @@ export function tcgplayerIdFromImage(url: string | null | undefined): number | n
 
 /**
  * The product's price history on RiftCompare, or null when it has no TCGplayer image, its set is outside RiftCompare's scope, or it is
- * a case (`productType` is its label: "Booster Box Case", "Elite Trainer Box Case", "Booster Bundle Case").
+ * a case (`productType` is its label: "Booster Box Case", "Collector Booster Box Case", "Bundle Case").
  */
 export function riftHistoryHref(p: { imageUrl: string | null | undefined; setReleaseDate: string | null | undefined; productType: string; name: string }): string | null {
   if (!RIFT_SECTION) return null;

@@ -21,7 +21,7 @@ const row = (feed: string, rank: number, ageH: number, over: Partial<ListingRow>
   shipValue: null,
   shipFree: true,
   condition: null,
-  url: "https://www.ebay.com.au/itm/1?mkevt=1&campid=5339155912&customid=dex-au-chase",
+  url: "https://www.ebay.com.au/itm/1?mkevt=1&campid=5339155912&customid=mtg-au-chase",
   fetchedAt: new Date(NOW - ageH * 3600_000),
   ...over,
 });
@@ -55,12 +55,12 @@ test("cascade: item → type → sealed, set → chase, type → sealed, chase a
   assert.deepEqual(keys("item:x", "au", ETB), ["EBAY_AU|item:prod1", "EBAY_AU|type:elite-trainer-boxes", "EBAY_AU|sealed"]);
   assert.deepEqual(keys("item:x", "nz", ETB), ["EBAY_AU|item:prod1", "EBAY_AU|type:elite-trainer-boxes", "EBAY_AU|sealed"], "NZ reads the AU marketplace's feeds");
   // the generic sealed feed (boxes, ETBs, UPCs from US$30) stands in only for the types whose own prices are that class
-  assert.deepEqual(keys("item:x", "sg", { id: "p2", productType: "Tin" }), ["EBAY_US|item:p2", "EBAY_US|type:tins"], "a tin never falls back to boxes");
+  assert.deepEqual(keys("item:x", "sg", { id: "p2", productType: "Tin" }), ["EBAY_US|item:p2", "EBAY_US|type:bundles"], "a tin never falls back to boxes");
   assert.deepEqual(keys("item:x", "au", { id: "p4", productType: "Booster Pack" }), ["EBAY_AU|item:p4", "EBAY_AU|type:booster-packs"]);
-  assert.deepEqual(keys("type:tins", "us"), ["EBAY_US|type:tins"]);
+  assert.deepEqual(keys("type:bundles", "us"), ["EBAY_US|type:bundles"]);
   assert.deepEqual(keys("type:booster-bundles", "us"), ["EBAY_US|type:booster-bundles"]);
-  assert.deepEqual(keys("set:surging-sparks", "uk"), ["EBAY_GB|set:surging-sparks", "EBAY_GB|chase"]);
-  assert.deepEqual(keys("type:booster-boxes", "eu"), ["EBAY_DE|type:booster-boxes", "EBAY_DE|sealed"]);
+  assert.deepEqual(keys("set:bloomburrow", "uk"), ["EBAY_GB|set:bloomburrow", "EBAY_GB|chase"]);
+  assert.deepEqual(keys("type:play-booster-boxes", "eu"), ["EBAY_DE|type:play-booster-boxes", "EBAY_DE|sealed"]);
   assert.deepEqual(keys("chase", "ca"), ["EBAY_CA|chase"]);
   assert.deepEqual(keys("sealed", "us"), ["EBAY_US|sealed"]);
   assert.deepEqual(keys("item:x", "au", { id: "p3", productType: "Unknown Label" }), ["EBAY_AU|item:p3"], "an unknown type gets no mismatched stand-in");
@@ -78,18 +78,18 @@ test("the cascade answers with the FIRST feed that has rows: a product's own lis
   assert.equal(body.feed, "item");
   assert.equal(body.items.length, 2);
   // a TYPE feed with one row does not qualify: the next feed answers
-  const lone = fake([...feedRows("EBAY_GB|type:booster-boxes", 1, 3), ...feedRows("EBAY_GB|sealed", 5, 3)]);
-  body = await (await call(lone.deps, "uk", "type:booster-boxes")).json();
+  const lone = fake([...feedRows("EBAY_GB|type:play-booster-boxes", 1, 3), ...feedRows("EBAY_GB|sealed", 5, 3)]);
+  body = await (await call(lone.deps, "uk", "type:play-booster-boxes")).json();
   assert.equal(body.feed, "sealed");
   // set → chase
-  body = await (await call(fake(feedRows("EBAY_US|chase", 12, 1)).deps, "us", "set:surging-sparks")).json();
+  body = await (await call(fake(feedRows("EBAY_US|chase", 12, 1)).deps, "us", "set:bloomburrow")).json();
   assert.equal(body.feed, "chase");
   assert.equal(MAX_FEED_ROWS, 8);
   assert.equal(body.items.length, MAX_FEED_ROWS, "a strip shows six (the browse card the seventh): a response never carries more than 8 rows");
   // type → sealed, for the types whose own prices are that class; a tins page is not answered with boxes
-  body = await (await call(fake(feedRows("EBAY_GB|sealed", 5, 1)).deps, "uk", "type:booster-boxes")).json();
+  body = await (await call(fake(feedRows("EBAY_GB|sealed", 5, 1)).deps, "uk", "type:play-booster-boxes")).json();
   assert.equal(body.feed, "sealed");
-  body = await (await call(fake(feedRows("EBAY_GB|sealed", 5, 1)).deps, "uk", "type:tins")).json();
+  body = await (await call(fake(feedRows("EBAY_GB|sealed", 5, 1)).deps, "uk", "type:bundles")).json();
   assert.equal(body.feed, null);
   assert.equal(body.items.length, 0);
 });
@@ -131,7 +131,7 @@ test("the age bound: never a row older than it, server-side; default 26 h, 5.5 h
 
 test("missing tables, database errors, unknown products: empty, no error text", async () => {
   const boom: ReadDeps = { ...fake([]).deps, async rows() { throw new Error(`relation "EbayListing" does not exist ${SECRET}`); }, async product() { throw new Error(SECRET); } };
-  for (const c of ["chase", "sealed", "set:surging-sparks", "type:tins", "item:anything"]) {
+  for (const c of ["chase", "sealed", "set:bloomburrow", "type:bundles", "item:anything"]) {
     const res = await call(boom, "au", c);
     assert.equal(res.status, 200, c);
     const text = await res.text();
@@ -146,7 +146,7 @@ test("missing tables, database errors, unknown products: empty, no error text", 
 
 test("bad region or context: 400, no data, no error text, nothing read", async () => {
   const f = fake(feedRows("EBAY_AU|chase", 6, 1));
-  for (const [region, c] of [["xx", "chase"], ["AU", "chase"], ["au", "set:not-a-set"], ["au", "home"], ["au", "../../etc/passwd"], ["au", "set:surging-sparks%27;DROP TABLE"], ["au", "item:" + "a".repeat(200)], ["au", ""], ["../au", "chase"]] as const) {
+  for (const [region, c] of [["xx", "chase"], ["AU", "chase"], ["au", "set:not-a-set"], ["au", "home"], ["au", "../../etc/passwd"], ["au", "set:bloomburrow%27;DROP TABLE"], ["au", "item:" + "a".repeat(200)], ["au", ""], ["../au", "chase"]] as const) {
     const res = await call(f.deps, region, c);
     assert.equal(res.status, 400, `${region} ${c}`);
     assert.deepEqual(Object.keys(await res.json()).sort(), ["feed", "fetchedAt", "items", "maxAgeMs", "reason"]);
@@ -187,7 +187,7 @@ test("headers: public CDN an hour (then stale-while-revalidate) for an answer, 1
 test("every region reads its marketplace's feeds, one query per request", async () => {
   for (const r of REGION_LIST) {
     const f = fake([]);
-    await call(f.deps, r.region, "type:booster-boxes");
+    await call(f.deps, r.region, "type:play-booster-boxes");
     assert.equal(f.log.length, 1, "ONE read");
     assert.ok(f.log[0].feeds.every((k) => /^EBAY_(US|AU|GB|CA|DE)\|/.test(k)));
     assert.deepEqual(f.log[0].mins, [2, 2], "a type feed and generic sealed each need two rows");
@@ -227,7 +227,7 @@ test("the route is wired to the database and holds no eBay call or secret", asyn
 // ─── URL checks at read time and in the normaliser (review SEC-10) ──────────────
 
 test("a stored row whose link is not one eBay item page with a campaign id, or whose picture is not on eBay's host, is never returned", async () => {
-  const good = "https://www.ebay.com/itm/123456789012?mkevt=1&campid=5339155912&customid=dex-au-chase";
+  const good = "https://www.ebay.com/itm/123456789012?mkevt=1&campid=5339155912&customid=mtg-au-chase";
   const bad: Partial<ListingRow>[] = [
     { url: "https://signin.ebay.com/ws/eBayISAPI.dll?SignIn&campid=5339155912" },
     { url: "https://www.ebay.com:8443/itm/123456789012?campid=5339155912" },

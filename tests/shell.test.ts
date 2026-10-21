@@ -50,11 +50,11 @@ test("Footer on a region page: Shop, Latest sets, Explore and MTG Compare, then 
   for (const t of ["Shop", "Latest sets", "Explore", "MTG Compare"]) assert.match(html, new RegExp(`<h2 class="eyebrow mb-2">${t}</h2>`), t);
   const links = hrefs(html);
   for (const h of [
-    "/au/type/booster-boxes",
-    "/au/type/elite-trainer-boxes",
-    "/au/type/booster-bundles",
-    "/au/type/ultra-premium-collections",
-    "/au/type/tins",
+    "/au/type/play-booster-boxes",
+    "/au/type/collector-booster-boxes",
+    "/au/type/bundles",
+    "/au/type/commander-decks",
+    "/au/type/secret-lair",
     "/au/cheapest-packs",
     "/au/deals",
     "/au/this-week",
@@ -170,7 +170,7 @@ test("NavLink's current-section logic (aria-current='page'): whole segments, and
   assert.equal(isActivePath("/us/setsx", "/us/sets"), false);
   assert.equal(isActivePath("/us", "/us/sets"), false);
   assert.equal(isActivePath("/us/sealed/page/2", "/us/sealed"), true);
-  assert.equal(isActivePath("/us/type/tins", "/us/sealed", ["/us/type"]), true);
+  assert.equal(isActivePath("/us/type/secret-lair", "/us/sealed", ["/us/type"]), true);
   assert.equal(isActivePath("/us/sealed?q=etb", "/us/sealed"), true);
   assert.equal(isActivePath(null, "/us/sealed"), false);
   assert.equal(isActivePath("/au/sets", "/us/sets"), false);
@@ -185,7 +185,7 @@ test("the phone menu: the eleven sections in order, under the region; the region
   assert.match(render(React.createElement(Header, { region: "ca" })), /<dialog id="site-menu" data-menu="" aria-label="Menu" class="menu-sheet [^"]*"><\/dialog>/);
   const sheet = render(React.createElement(MenuSheet, { region: "ca", pathname: "/ca/stores", onClose() {} }));
   assert.match(sheet, /aria-current="page"[^>]*href="\/ca\/stores"|href="\/ca\/stores"[^>]*aria-current="page"/, "the current section is marked");
-  for (const p of ["/deals", "/this-week", "/sealed", "/type/booster-boxes", "/type/elite-trainer-boxes", "/type/booster-bundles", "/cheapest-packs", "/sets", "/releases", "/guides", "/stores"])
+  for (const p of ["/deals", "/this-week", "/sealed", "/type/play-booster-boxes", "/type/collector-booster-boxes", "/type/bundles", "/cheapest-packs", "/sets", "/releases", "/guides", "/stores"])
     assert.ok(hrefs(sheet).includes(`/ca${p}`), p);
   assert.equal(sheet.match(/class="text-2xl leading-none" aria-hidden="true">/g)?.length, 7, "seven flag tiles");
   assert.equal(pathAfterRegion("/au/sets/pitch-black"), "/sets/pitch-black");
@@ -326,9 +326,9 @@ test("ProductCard labels: short types, stock in words, and what the click opens"
 
 test("Empty with actions: a designed state, each action a chip with an icon beside its link; without actions, unchanged", () => {
   const html = render(
-    React.createElement(Empty, { actions: [{ href: "/au/type/booster-boxes", label: "All booster boxes" }, { href: "/au/releases", label: "Pre-orders" }], children: "Nothing in stock right now." }),
+    React.createElement(Empty, { actions: [{ href: "/au/type/play-booster-boxes", label: "All booster boxes" }, { href: "/au/releases", label: "Pre-orders" }], children: "Nothing in stock right now." }),
   );
-  assert.match(html, /<li class="empty-action"><svg [^>]*>[\s\S]*?<\/svg><a class="chip min-h-10" href="\/au\/type\/booster-boxes">All booster boxes<\/a><\/li>/);
+  assert.match(html, /<li class="empty-action"><svg [^>]*>[\s\S]*?<\/svg><a class="chip min-h-10" href="\/au\/type\/play-booster-boxes">All booster boxes<\/a><\/li>/);
   assert.equal(html.match(/<svg /g)?.length, 3, "the state's icon and one per chip");
   assert.equal(emptyActionIcon("/au/releases"), "calendar");
   assert.equal(emptyActionIcon("/au/deals"), "tag");

@@ -255,7 +255,7 @@ test("sealed feeds refuse pre-sales, 'read description' notes, dented boxes and 
     "#001 - [EBAY LIVE] Pokemon Surging Sparks Booster Box",
   ]) assert.equal(ok(t), null, t);
   assert.ok(ok("Pokemon Surging Sparks Booster Box Factory Sealed"));
-  const target: ItemTarget = { groupKey: "surging-sparks|booster-box", type: "booster-box", setCode: "sv8" };
+  const target: ItemTarget = { groupKey: "bloomburrow|booster-box", type: "booster-box", setCode: "sv8" };
   assert.equal(relevantToProduct("Pokemon Surging Sparks Booster Box Presale", target), false);
 });
 

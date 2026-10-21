@@ -71,8 +71,8 @@ export function dealPct(p: ProductCardData): number {
 // ─── The deals page's sections ──────────────────────────────────────────────────
 
 export interface DealSection {
-  /** The in-page anchor (/[region]/deals#booster-boxes): the hubs' type pages link to it. */
-  id: "booster-boxes" | "elite-trainer-boxes" | "booster-bundles" | "collections" | "more";
+  /** The in-page anchor (/[region]/deals#play-booster-boxes): the hubs' type pages link to it. */
+  id: "play-booster-boxes" | "collector-booster-boxes" | "bundles" | "collections" | "more";
   title: string;
   /** One of them, as a sentence says it: "No booster box is 10% under…". */
   one: string;
@@ -84,20 +84,20 @@ export interface DealSection {
   more: { path: string; label: string };
 }
 
-const NAMED = ["Booster Box", "Elite Trainer Box", "Pokémon Center Elite Trainer Box", "Booster Bundle", "Collection", "Ultra-Premium Collection", "Tin"];
+const NAMED = ["Play Booster Box", "Collector Booster Box", "Bundle", "Commander Deck", "Secret Lair Drop"];
 
 export const DEAL_SECTIONS: readonly DealSection[] = [
-  { id: "booster-boxes", title: "Booster boxes", one: "booster box", types: ["Booster Box"], take: 12, more: { path: "/type/booster-boxes", label: "All booster boxes" } },
+  { id: "play-booster-boxes", title: "Play Booster Boxes", one: "Play Booster Box", types: ["Play Booster Box"], take: 12, more: { path: "/type/play-booster-boxes", label: "All booster boxes" } },
   {
-    id: "elite-trainer-boxes",
-    title: "Elite Trainer Boxes",
-    one: "Elite Trainer Box",
-    types: ["Elite Trainer Box", "Pokémon Center Elite Trainer Box"],
+    id: "collector-booster-boxes",
+    title: "Collector Booster Boxes",
+    one: "Collector Booster Box",
+    types: ["Collector Booster Box"],
     take: 12,
-    more: { path: "/type/elite-trainer-boxes", label: "All ETBs" },
+    more: { path: "/type/collector-booster-boxes", label: "All Collector boxes" },
   },
-  { id: "booster-bundles", title: "Booster bundles", one: "booster bundle", types: ["Booster Bundle"], take: 8, more: { path: "/type/booster-bundles", label: "All bundles" } },
-  { id: "collections", title: "Collections & tins", one: "collection or tin", types: ["Collection", "Ultra-Premium Collection", "Tin"], take: 8, more: { path: "/type/collections", label: "All collections" } },
+  { id: "bundles", title: "Bundles", one: "bundle", types: ["Bundle"], take: 8, more: { path: "/type/bundles", label: "All bundles" } },
+  { id: "commander-decks", title: "Commander decks", one: "Commander deck", types: ["Commander Deck"], take: 8, more: { path: "/type/commander-decks", label: "All Commander decks" } },
   {
     id: "more",
     title: "Packs, blisters, decks & more",
@@ -448,8 +448,8 @@ type R = Pick<RegionInfo, "inName" | "adjective" | "market" | "currency">;
 const tcg = (r: R) => r.market === "US";
 
 export const dealsCopy = {
-  title: (r: R) => `Pokémon booster box & ETB deals in ${r.inName}`,
-  h1: (r: R) => `Pokémon sealed cheaper than most ${r.adjective} stores today`,
+  title: (r: R) => `MTG booster box & bundle deals in ${r.inName}`,
+  h1: (r: R) => `Magic sealed cheaper than most ${r.adjective} stores today`,
   /** The lede, around the live "checked <Ago>": `${lead} <Ago/>${tail}`. */
   lede: (r: R) => ({
     lead: `Products where the cheapest in-stock price is at least 10% under the median of 3 or more ${r.adjective} stores that have it, checked`,
@@ -458,7 +458,7 @@ export const dealsCopy = {
   }),
   description: (r: R, deals: number, bestPct: number | null) =>
     deals > 0
-      ? `${plural(deals, "Pokémon sealed product")} priced at least 10% under the median of 3+ ${r.adjective} stores today${bestPct ? `, up to ${bestPct}% under` : ""}. Booster boxes, ETBs, bundles and more, in ${r.currency}.`
+      ? `${plural(deals, "Magic sealed product")} priced at least 10% under the median of 3+ ${r.adjective} stores today${bestPct ? `, up to ${bestPct}% under` : ""}. Booster boxes, Collector boxes, bundles and more, in ${r.currency}.`
       : `The cheapest Pokémon booster packs per pack in ${r.inName} today, and any sealed product priced 10% under the median of 3+ ${r.adjective} stores.`,
   summary: (deals: number, bestPct: number | null) => `${plural(deals, "product")}${bestPct ? ` · up to ${bestPct}% below the median` : ""}`,
   empty: (r: R) => `No product is 10% under the median of 3 or more ${r.adjective} stores today, so here is the cheapest way to buy packs instead.`,
@@ -475,26 +475,26 @@ export const packsCopy = {
   }),
   description: (r: R, best: PerPackRow | null) =>
     best
-      ? `Pokémon booster boxes, ETBs, bundles and packs in ${r.inName}, ranked by price per pack today. Cheapest right now: ${best.p.name} at ${money(best.perPack, r.market)} a pack.`
-      : `Pokémon booster boxes, ETBs, bundles and packs in ${r.inName}, ranked by price per pack today.`,
+      ? `Pokémon booster boxes, Collector boxes, bundles and packs in ${r.inName}, ranked by price per pack today. Cheapest right now: ${best.p.name} at ${money(best.perPack, r.market)} a pack.`
+      : `Pokémon booster boxes, Collector boxes, bundles and packs in ${r.inName}, ranked by price per pack today.`,
   answer: (r: R, best: PerPackRow) => `${best.p.name}: ${money(best.perPack, r.market)} a pack today (${money(best.p.lowestPriceCents, r.market)} for ${best.packs} packs).`,
   method: "Per pack = the listed price ÷ the booster packs inside; promos, sleeves and dice are not priced; shipping excluded.",
 };
 
 export const digestCopy = {
-  title: (r: R) => `This week in Pokémon sealed — ${r.inName}`,
-  h1: (r: R) => `This week in Pokémon sealed — ${r.inName}`,
+  title: (r: R) => `This week in Magic sealed — ${r.inName}`,
+  h1: (r: R) => `This week in Magic sealed — ${r.inName}`,
   intro: (r: R) =>
     `What’s releasing in the next ${SOON_DAYS} days and open for pre-order, what came out in the last ${JUST_RELEASED_DAYS}, and what’s cheaper than most ${r.adjective} stores today. Every number is today’s, checked against each store’s own listings.`,
   description: (r: R) =>
-    `Pokémon TCG sets releasing in the next ${SOON_DAYS} days with pre-orders, sets just released, and sealed product cheaper than most ${r.adjective} stores today.`,
+    `Magic: The Gathering sets releasing in the next ${SOON_DAYS} days with pre-orders, sets just released, and sealed product cheaper than most ${r.adjective} stores today.`,
   newLabel: `First seen by MTG Compare in the last ${NEW_DAYS} days — not necessarily new releases`,
 };
 
 export const homeCopy = {
-  title: (r: R, stores: number) => `Pokémon booster boxes & ETBs in ${r.inName} — compare ${stores} stores`,
+  title: (r: R, stores: number) => `Pokémon booster boxes & Collector boxes in ${r.inName} — compare ${stores} stores`,
   description: (r: R, stores: number, inStock: number) =>
-    `Compare Pokémon booster boxes, ETBs, bundles and collections across ${plural(stores, `${r.adjective} store`)}${tcg(r) ? " and TCGplayer" : ""}: ${inStock.toLocaleString("en")} in stock today, prices in ${r.currency}.`,
+    `Compare Pokémon booster boxes, Collector boxes, bundles and collections across ${plural(stores, `${r.adjective} store`)}${tcg(r) ? " and TCGplayer" : ""}: ${inStock.toLocaleString("en")} in stock today, prices in ${r.currency}.`,
 };
 
 /** Where a product can be bought today, in a few words: "5 stores", "5 stores + TCGplayer", "TCGplayer", "Pre-order · 3 stores". */

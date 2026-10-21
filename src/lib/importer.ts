@@ -1,4 +1,4 @@
-// The import: read every store's Pokémon sealed listings and replace the
+// The import: read every store's Magic sealed listings and replace the
 // current state in the database. Runs from scripts/import.ts (GitHub Actions),
 // never on a request path — it reads whole tables on purpose (src/lib/db.ts).
 //
@@ -25,7 +25,7 @@
 import { createHash } from "node:crypto";
 import { prisma } from "./db";
 import {
-  isPokemonCollection,
+  isMagicCollection,
   rankCollections,
   readShopifyCollection,
   readWooCategory,
@@ -174,7 +174,7 @@ export function rowsFromReads(store: StoreConfig, reads: CollectionRead[]): Impo
   const best = new Map<string, ImportRow>();
   const seen = new Set<string>();
   for (const r of reads) {
-    const strict = !isPokemonCollection(r.handle) && !r.handle.startsWith("search:");
+    const strict = !isMagicCollection(r.handle) && !r.handle.startsWith("search:");
     for (const p of r.products) {
       if (seen.has(p.id)) continue;
       seen.add(p.id);
@@ -223,7 +223,7 @@ async function readWooStore(store: StoreConfig): Promise<{ reads: CollectionRead
   }
   let rediscovered = false;
   if (!reads.some((r) => r.ok && r.products.length)) {
-    reads.push(await readWooCategory(store.base, "search:pokemon", ids, MAX_PAGES));
+    reads.push(await readWooCategory(store.base, "search:magic the gathering", ids, MAX_PAGES));
     rediscovered = true;
   }
   const wrong = reads.flatMap((r) => r.products).find((p) => p.currency && p.currency !== expected);
@@ -235,7 +235,7 @@ async function readTcgplayer(): Promise<{ reads: CollectionRead[]; rediscovered:
   // The catalogue is TCGplayer's Pokémon product line, so its titles are read
   // like a store's Pokémon collection: they needn't say "Pokémon".
   const products = tcgFeedProducts(await readTcgplayerCatalogue());
-  return { reads: [{ handle: "pokemon", ok: true, products }], rediscovered: false, error: null };
+  return { reads: [{ handle: "magic", ok: true, products }], rediscovered: false, error: null };
 }
 
 export async function readStore(store: StoreConfig): Promise<StoreRead> {

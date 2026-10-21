@@ -147,7 +147,7 @@ export default async function StoresPage({ params }: { params: { region: string 
 
       {/* After the list, not above it (the list is what the visitor came for). It is the page's one unit, so the strip above the footer is dropped. */}
       <NoPreFooter />
-      <EbayStrip region={r.region} context="chase" placement="listings-store" className="mt-8" search={{ kind: "card", query: "" }} />
+      <EbayStrip region={r.region} context="chase" placement="listings-store" className="mt-8" search={{ kind: "sealed", query: "collector booster box" }} />
     </div>
   );
 }

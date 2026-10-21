@@ -218,7 +218,7 @@ test("rankSearch: collectors' words (etb, pc etb, upc, b&b, bb, plurals) and a w
   assert.deepEqual(slugs(rankSearch(MARKET, "B & B black bolt").products), [BNB.slug]);
   assert.deepEqual(slugs(rankSearch(MARKET, "bb pitch").products), [PB_BOX.slug]);
   assert.deepEqual(slugs(rankSearch(MARKET, "booster boxes").products), [PB_BOX.slug], "a plural finds the singular label");
-  assert.deepEqual(slugs(rankSearch(MARKET, "tins").products), [PIKA.slug, TCG_ONLY.slug]);
+  assert.deepEqual(slugs(rankSearch(MARKET, "secret-lair").products), [PIKA.slug, TCG_ONLY.slug]);
   assert.deepEqual(slugs(rankSearch(MARKET, "zard").products), [UPC.slug], "three letters or more match inside a word");
   assert.equal(rankSearch(MARKET, "ar").total, 0, "two letters match word starts only");
   assert.deepEqual(slugs(rankSearch(MARKET, "sv8pt5 etb").products), [PE_ETB.slug, PE_PC.slug], "a set code is a word");

@@ -115,33 +115,33 @@ export async function shopifyMeta(base: string, country?: string | null): Promis
 // Collection handles that are never sealed Pokémon, whatever else they say.
 const HANDLE_EXCLUDE =
   /\.(?:jpe?g|png|gif|webp|svg)$|singles?(?!-?(?:packs?|boosters?))|graded|psa|cgc|bgs|slab|japan|jpn|\bjp\b|-jp-|jp-|chinese|korean|\bkr\b|thai|indonesian|code|online|accessor|suppl|sleeve|binder|playmat|deck-?box|toploader|plush|figure|toy|funko|lego|apparel|cloth|merch|yugioh|yu-gi-oh|one-piece|onepiece|magic|mtg|lorcana|digimon|dragon-?ball|flesh|star-?wars|weiss|union-arena|gundam|riftbound|sport|basketball|nba|nfl|afl|nrl|football|soccer|baseball|ufc|wwe|f1|board-?game|dice|miniatur|warhammer|paint|break|sale-|clearance|vintage-(?:basketball|sports)|proxy|custom|mystery|repack/i;
-const HANDLE_POKEMON = /pok[eé]?mon|pkmn|ptcg/i;
-const HANDLE_SEALED = /sealed|booster|etb|elite-?trainer|bundle|collection-?box|collections|premium|\btins?\b|-tins?\b|tins?-|blister|\bpacks?\b|-packs?\b|packs?-|case|display/i;
+const HANDLE_MAGIC = /\bmtg|mtg-|magic/i;
+const HANDLE_SEALED = /sealed|booster|commander|precon|secret-?lair|prerelease|starter|jumpstart|draft|etb|elite-?trainer|bundle|collection-?box|collections|premium|\btins?\b|-tins?\b|tins?-|blister|\bpacks?\b|-packs?\b|packs?-|case|display/i;
 const HANDLE_PREORDER = /^(?:all-|tcg-|tcgs-|card-games?-|trading-card-games?-|new-)?pre-?orders?(?:-[a-z]+)?$|^new-releases?$|^new-arrivals$/i;
-const HANDLE_GENERIC_SEALED = /^(?:all-|tcg-)?(?:sealed(?:-products?)?|booster-box(?:es)?|elite-trainer-box(?:es)?|etbs?|booster-bundles?|booster-packs?|collection-box(?:es)?|tins)$/i;
+const HANDLE_GENERIC_SEALED = /^(?:all-|tcg-)?(?:sealed(?:-products?)?|booster-box(?:es)?|elite-trainer-box(?:es)?|etbs?|booster-bundles?|bundles?|booster-packs?|collection-box(?:es)?|tins)$/i;
 
 /**
- * How promising a collection handle is for Pokémon sealed, or null to skip it.
- * Higher is better. Pokémon + sealed words beat a bare "pokemon" collection
+ * How promising a collection handle is for Magic sealed, or null to skip it.
+ * Higher is better. Magic + sealed words beat a bare "magic" collection
  * (which usually also holds thousands of singles), which beats a store-wide
  * sealed or pre-order collection (read strictly — see importer).
  */
 export function scoreCollection(handle: string): number | null {
   const h = handle.toLowerCase();
   if (HANDLE_EXCLUDE.test(h)) return null;
-  const pokemon = HANDLE_POKEMON.test(h);
+  const magic = HANDLE_MAGIC.test(h);
   const sealed = HANDLE_SEALED.test(h);
-  if (pokemon && sealed) return 10 + (/english|-en$|^en-/.test(h) ? 1 : 0) - (h.length > 60 ? 1 : 0);
-  if (pokemon && /^(?:all-)?(?:english-)?pok[eé]?mon(?:-tcg|-trading-card-game|-cards)?(?:-english)?$/.test(h)) return 7;
-  if (pokemon) return 3; // per-set / themed Pokémon collections
+  if (magic && sealed) return 10 + (/english|-en$|^en-/.test(h) ? 1 : 0) - (h.length > 60 ? 1 : 0);
+  if (magic && /^(?:all-)?(?:english-)?(?:mtg|magic(?:-the-gathering)?)(?:-tcg|-trading-card-game|-cards)?(?:-english)?$/.test(h)) return 7;
+  if (magic) return 3; // per-set / themed Magic collections
   if (HANDLE_GENERIC_SEALED.test(h)) return 5;
   if (HANDLE_PREORDER.test(h)) return 4;
   return null;
 }
 
 /** Is a collection Pokémon-specific? Titles from any other collection must say "Pokémon" outright. */
-export function isPokemonCollection(handle: string): boolean {
-  return HANDLE_POKEMON.test(handle);
+export function isMagicCollection(handle: string): boolean {
+  return HANDLE_MAGIC.test(handle);
 }
 
 /** Every collection handle the store's sitemap names. */

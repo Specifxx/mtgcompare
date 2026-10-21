@@ -197,7 +197,7 @@ export default async function DealsPage({ params }: { params: { region: string }
       {!thin && perPack}
 
       {msrp.length > 0 && (
-        <Section id="below-msrp" title="At or below US MSRP" kicker="Today’s cheapest price under TPCi’s list price">
+        <Section id="below-msrp" title="At or below US MSRP" kicker="Today’s cheapest price under Wizards’ list price">
           <ProductGrid products={msrp} region={r.region} />
           <p className="mt-3 text-xs text-muted">{RRP_NOTE}</p>
         </Section>

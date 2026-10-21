@@ -177,7 +177,7 @@ test("fixed feeds: chase 5x8 + sealed 5x6 + types 5x9 + sets 5x30 = 40 + 30 + 45
   assert.ok(feeds.filter((f) => f.bucket === "types").every((f) => f.searches.length === 1));
   // the high-value type feeds
   const slugs = new Set(feeds.filter((f) => f.bucket === "types").map((f) => f.feed.split("type:")[1]));
-  assert.deepEqual([...slugs].sort(), ["booster-box-cases", "booster-boxes", "booster-bundle-cases", "build-and-battle-stadiums", "collections", "elite-trainer-box-cases", "elite-trainer-boxes", "pokemon-center-elite-trainer-boxes", "ultra-premium-collections"]);
+  assert.deepEqual([...slugs].sort(), ["booster-box-cases", "play-booster-boxes", "booster-bundle-cases", "build-and-battle-stadiums", "collections", "elite-trainer-box-cases", "elite-trainer-boxes", "pokemon-center-elite-trainer-boxes", "ultra-premium-collections"]);
 });
 
 test("set feeds: the 30 most recently RELEASED sets, never a series-named set, a common-word set or an unreleased one", () => {

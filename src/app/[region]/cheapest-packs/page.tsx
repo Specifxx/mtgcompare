@@ -114,7 +114,7 @@ export default async function CheapestPacksPage({ params }: { params: { region: 
               { href: `/${other.region}/cheapest-packs`, label: `Per pack in ${other.inName}` },
             ]}
           >
-            No booster box, ETB, bundle or pack is in stock at a {r.adjective} store we track right now.
+            No booster box, bundle or pack is in stock at a {r.adjective} store we track right now.
           </Empty>
         </div>
       )}
@@ -145,9 +145,9 @@ export default async function CheapestPacksPage({ params }: { params: { region: 
         </h2>
         <p className="mt-2">{packsCopy.method}</p>
         <p className="mt-2">
-          Pack counts are the ones the product line fixes: 36 in a booster box, 6 in a booster bundle, 8 to 10 in an Elite Trainer Box depending on the
-          series (9 from Scarlet &amp; Violet on), two more in a Pokémon Center ETB. Collections, tins and blisters whose count varies are left out
-          rather than guessed. Each price is the cheapest {r.adjective} {us ? "store or TCGplayer seller" : "store"} listing today, in {r.currency}.
+          Pack counts are the ones the product line fixes: 12 in a Collector Booster Box, 36 in a Draft Booster Box, 30 in a Set Booster Box, and
+          36 or 30 in a Play Booster Box depending on the set (30 from Aetherdrift on); 9 Play Boosters in a bundle. Where a set&rsquo;s count is not
+          certain, and for decks and kits, it is left out rather than guessed. Each price is the cheapest {r.adjective} {us ? "store or TCGplayer seller" : "store"} listing today, in {r.currency}.
         </p>
         {us && <p className="mt-2">{RRP_NOTE}</p>}
       </aside>

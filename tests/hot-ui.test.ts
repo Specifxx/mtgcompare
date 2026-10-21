@@ -29,12 +29,12 @@ function render(el: React.ReactElement): string {
   }
 }
 
-/** Every <a> of the markup whose href is a highlight's (customid dex-<region>-hot-<surface>), with its rel. */
+/** Every <a> of the markup whose href is a highlight's (customid mtg-<region>-hot-<surface>), with its rel. */
 function hotLinks(html: string): { href: string; rel: string; text: string }[] {
   const out: { href: string; rel: string; text: string }[] = [];
   for (const m of html.matchAll(/<a ([^>]*)>([\s\S]*?)<\/a>/g)) {
     const href = /href="([^"]*)"/.exec(m[1])?.[1]?.replace(/&amp;/g, "&") ?? "";
-    if (!/customid=dex-[a-z]+-hot-/.test(href)) continue;
+    if (!/customid=mtg-[a-z]+-hot-/.test(href)) continue;
     out.push({ href, rel: /rel="([^"]*)"/.exec(m[1])?.[1] ?? "", text: m[2].replace(/<[^>]+>/g, "").trim() });
   }
   return out;
@@ -46,7 +46,7 @@ test("one hot placement per surface (home, set, product), each a tagged search w
     for (const r of REGION_LIST) {
       const u = new URL(ebaySearchUrl(hotSetQuery(cel30), r.region, p));
       assert.equal(u.searchParams.get("campid"), EBAY_CAMPAIGN_ID, r.region);
-      assert.equal(u.searchParams.get("customid"), `dex-${r.region}-${p}`);
+      assert.equal(u.searchParams.get("customid"), `mtg-${r.region}-${p}`);
       assert.equal(u.searchParams.get("mkevt"), "1");
     }
   }
@@ -95,7 +95,7 @@ test("the strip's server markup (loading): the highlight is the CTA's one visibl
     assert.equal(u.hostname, "www.ebay.com");
     assert.equal(u.searchParams.get("campid"), EBAY_CAMPAIGN_ID);
     assert.equal(u.searchParams.get("_nkw"), "Pokemon 30th sealed");
-    assert.equal(u.searchParams.get("customid"), "dex-us-hot-home", "the home page's own placement");
+    assert.equal(u.searchParams.get("customid"), "mtg-us-hot-home", "the home page's own placement");
   }
   assert.ok(html.indexOf('aria-hidden="true" class="ad-box invisible') < html.indexOf("Shop 30th Celebration"), "the first copy is inside the invisible box");
   assert.match(html, /min-h-11/, "a 44 px tap target");
@@ -112,7 +112,7 @@ test("the compact CTA with a highlight: its words, its search, placement hot-pro
   const [l, ...rest] = hotLinks(html);
   assert.equal(rest.length, 0);
   assert.equal(l.text, "Shop 30th Celebration Sylveon ex Box on eBay ↗");
-  assert.equal(new URL(l.href).searchParams.get("customid"), "dex-uk-hot-product");
+  assert.equal(new URL(l.href).searchParams.get("customid"), "mtg-uk-hot-product");
   assert.doesNotMatch(html, /<span class="truncate">Shop /);
   assert.equal(new URL(l.href).hostname, "www.ebay.co.uk");
   assert.equal(new URL(l.href).searchParams.get("_nkw"), "Pokemon 30th Celebration Sylveon ex Box sealed");
@@ -143,7 +143,7 @@ test("a set page's button: a hot set keeps hot-set, any other released set gets 
   );
   const links = [...html.matchAll(/<a ([^>]*)>([\s\S]*?)<\/a>/g)]
     .map((m) => ({ href: (/href="([^"]*)"/.exec(m[1])?.[1] ?? "").replace(/&amp;/g, "&"), rel: /rel="([^"]*)"/.exec(m[1])?.[1] ?? "", text: m[2].replace(/<[^>]+>/g, "").trim() }))
-    .filter((l) => /customid=dex-us-set-sealed\b/.test(l.href));
+    .filter((l) => /customid=mtg-us-set-sealed\b/.test(l.href));
   assert.equal(links.length, 2, "one in the visible CTA, one in the reserved box");
   for (const l of links) {
     assert.equal(l.rel, REL_SPONSORED);
@@ -168,7 +168,7 @@ test("the marketplace panel: eBay's row is always eBay's blue button (every prod
   assert.doesNotMatch(plain, /Popular/);
   for (const html of [hot, plain, render(React.createElement(MarketplacePanel, { ...props, region: "nz" as const }))]) {
     assert.match(html, /class="btn-ad[^"]*"[^>]*>Search eBay/, "eBay's blue button on every panel");
-    assert.match(html, /customid=dex-[a-z]+-product-marketplace/);
+    assert.match(html, /customid=mtg-[a-z]+-product-marketplace/);
   }
 });
 

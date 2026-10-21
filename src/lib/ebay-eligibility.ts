@@ -9,7 +9,7 @@ export const ITEM_CORE_USD = 50; // gated types need this much to be eligible
 export const ITEM_FLOOR_USD = 25; // never below this, extension included
 /**
  * A reference price above this, for a type whose real prices are modest, is a placeholder ask ("CA$9,999" on a blister, a
- * sold-out "$10,000" tin: the 2026-10 data has hundreds) and not the product's price. Such a key is not eligible: an eBay search
+ * sold-out "$10,000" Secret Lair: the 2026-10 data has hundreds) and not the product's price. Such a key is not eligible: an eBay search
  * for it would find nothing relevant, and ranked by price it would eat the day's calls ahead of real products.
  */
 export const GATED_MAX_USD = 600;

@@ -135,7 +135,7 @@ test("sold out: the callout's eBay box is the server's search (soldout-ebay, Ad,
       tcgplayer,
       ebayQuery: "Vivid Voltage Elite Trainer Box",
       pick: { slug: "vivid-voltage-elite-trainer-box", floor: { value: 20, currency: "GBP" }, packs: 8 },
-      instead: { href: "/uk/type/elite-trainer-boxes", label: "See Elite Trainer Boxes in stock in the UK" },
+      instead: { href: "/uk/type/collector-booster-boxes", label: "See Elite Trainer Boxes in stock in the UK" },
     }),
   );
   assert.match(html, /Sold out at every UK store we track/, "the heading is unchanged");
@@ -161,7 +161,7 @@ test("sold out: the callout's eBay box is the server's search (soldout-ebay, Ad,
   // no eBay price, no listing in the server HTML (the invisible listing cell is a placeholder with no link)
   assert.doesNotMatch(html, /£\d/);
   assert.doesNotMatch(html, /ebayimg\.com|\/itm\//);
-  assert.match(html, /href="\/uk\/type\/elite-trainer-boxes"[^>]*>See Elite Trainer Boxes in stock in the UK/);
+  assert.match(html, /href="\/uk\/type\/collector-booster-boxes"[^>]*>See Elite Trainer Boxes in stock in the UK/);
   for (const p of ["soldout-ebay", "listings-soldout-best", "listings-marketplace", "product-sticky"]) assert.ok((PLACEMENTS as readonly string[]).includes(p), p);
   // pre-order, NZ, SG: no pick, the search alone
   const plain = render(React.createElement(SoldOutCallout, { region: "nz", productName: "X", storesListing: 2, notChecked: 1, tcgplayer: null, ebayQuery: "X" }));

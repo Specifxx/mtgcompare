@@ -88,7 +88,7 @@ export function GET(_req: Request, { params }: { params: { set: string } }) {
               <span style={{ fontSize: 54, fontWeight: 800, color: BRAND, letterSpacing: -2, lineHeight: 1.15 }}>pre-order prices</span>
             </div>
             <div style={{ display: "flex", marginTop: 18, fontSize: 28, fontWeight: 600, color: MUTED, lineHeight: 1.3 }}>
-              Booster boxes, ETBs and bundles at every store we track, side by side.
+              Booster boxes, Collector boxes and bundles at every store we track, side by side.
             </div>
           </div>
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>

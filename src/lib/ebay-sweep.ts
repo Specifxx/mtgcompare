@@ -2,7 +2,7 @@
 //
 // One search per product costs one Browse call per (marketplace, product): ~12,000 keys against ~2,500 calls a day, so
 // most products never had listings of their own. The sweep turns that round: it pages through a handful of BROAD searches
-// per marketplace ("Pokemon tin", "Pokemon elite trainer box", …) 200 listings a call, runs every listing through the
+// per marketplace ("MTG play booster box", "MTG commander deck", …) 200 listings a call, runs every listing through the
 // repo's own classifier (sealed-title.ts identify(), the one the store import files products with), and hands it to the
 // product it IS. One call can feed dozens of products; a marketplace's whole sealed catalogue on eBay is a few hundred calls.
 //
@@ -10,7 +10,7 @@
 // circuit-broken like every other search) and writes the feeds; tests/ run it with fakes.
 //
 // Hot sets first (sweepWithHot): each marketplace's sweep starts with a HOT PASS, one search per (hot set, product type the
-// catalogue has for it), "Pokemon 30th elite trainer box", "Pokemon pitch black booster bundle"…, in the owner's order
+// catalogue has for it), "MTG star trek play booster box", "MTG hobbit collector booster box"…, in the owner's order
 // (popular.ts HOT_SETS), paged like any other query; it may spend at most HOT_SHARE (half) of the marketplace's share, and the
 // general queries (SWEEP_QUERIES) get the rest. Both passes feed the same collector, so a general page gains nothing for a product
 // the hot pass already filled and stops sooner.
@@ -19,7 +19,7 @@
 //   • a SET product (booster box, ETB, bundle…, and a UPC with a canonical key): the listing's group key IS the product's;
 //   • a collection, tin, blister or deck: same type; the sets do not disagree (either may be unnamed); every identifying word
 //     of the product is in the listing; and any OTHER word of the listing names no product of that type anywhere in the
-//     catalogue (seller filler like "fast" or "nib" is fine, "super" or "mini" or another Pokémon is not: that listing is a
+//     catalogue (seller filler like "fast" or "nib" is fine, "super" or "mini" or another deck's name is not: that listing is a
 //     different product). The most specific product wins; a tie between two products is refused.
 //   • the listing is ONE unit (no lots, no "x2"), not pre-sale / dented / opened (SEALED_NOISE), not used, and at or over the
 //     type's price floor.
@@ -46,7 +46,7 @@ export const SWEEP_MIN_PAGES = 2;
 
 export interface SweepQuery {
   key: string;
-  /** Without "Pokemon": the sweep prefixes it. */
+  /** Without "MTG": the sweep prefixes it. */
   q: string;
   /** The product types this query is FOR (its price floor is the lowest of theirs). Any type it finds is still matched. */
   types: readonly TypeKey[];
@@ -78,7 +78,7 @@ export const SWEEP_QUERIES: readonly SweepQuery[] = [
 /** The most of a marketplace's sweep share its hot pass may spend (in pages); the general queries get the rest. */
 export const HOT_SHARE = 0.5;
 
-/** What the hot pass searches a product type by ("Pokemon <set words> <phrase>"), and its query key's suffix. A case is its box's phrase + "case". */
+/** What the hot pass searches a product type by ("MTG <set words> <phrase>"), and its query key's suffix. A case is its box's phrase + "case". */
 export const HOT_TYPE_QUERY: Readonly<Record<TypeKey, { key: string; phrase: string }>> = {
   "play-booster-box": { key: "play-box", phrase: "play booster box" },
   "collector-booster-box": { key: "collector-box", phrase: "collector booster box" },
@@ -125,8 +125,8 @@ export function hotSetWords(code: string): string | null {
 /**
  * The hot pass's searches: for each hot set in the owner's order (popular.ts HOT_SETS) that is OUT (released on or before `today`; the
  * importer refuses pre-sale listings, so an unreleased set would only burn pages), one query per product type the WHOLE catalogue (every
- * plan row, any market) has for that set, in PRODUCT_TYPES order; types searched by the same words share one query (an ETB and a Pokémon
- * Center ETB), and its price floor is the lowest of their floors (sweepSpec).
+ * plan row, any market) has for that set, in PRODUCT_TYPES order; types searched by the same words share one query (a Bundle and a Gift
+ * Bundle share none, but a Commander Deck and a Deck Set do), and its price floor is the lowest of their floors (sweepSpec).
  */
 export function hotSweepQueries(rows: readonly PlanRow[], today: string, hot: readonly string[] = HOT_SETS): SweepQuery[] {
   const out = new Map<string, { key: string; q: string; types: TypeKey[] }>();
@@ -231,7 +231,7 @@ const sigKey = (type: TypeKey, sig: readonly string[]) => `${type}|${[...sig].so
 /**
  * Every set code (or "-") each product signature is sold under, across the WHOLE catalogue: a listing that does not name a set may
  * take a product that does only when no other set (or no unnamed product) shares the signature ("Ultra Ball Tin" exists for
- * Pokémon GO and for several years: an unnamed listing is none of them in particular).
+ * several sets: an unnamed listing is none of them in particular).
  */
 export function sweepSignatureSets(rows: readonly PlanRow[]): Map<string, Set<string>> {
   const out = new Map<string, Set<string>>();
@@ -287,7 +287,7 @@ export function buildSweepIndex(rows: readonly PlanRow[], marketplace: Marketpla
 
 // Words a listing may carry beyond its product's own without becoming another product: seller filler, promo-card finishes,
 // shipping talk, abbreviations of the product line, and the words of set names (the set is already compared by its code).
-// Never the words that tell products apart (KEEP_SHORT in sealed-title.ts) or a Pokémon a set happens to be named after.
+// Never the words that tell products apart (KEEP_SHORT in sealed-title.ts) or a product word ("collector", "commander", "gift").
 const FILLER = new Set(
   (
     "coin coins holo holos cosmos foil foils promo promos card cards express post posted postage delivery hand ships ship shipping " +
@@ -295,7 +295,7 @@ const FILLER = new Set(
     "brand authentic genuine official uk usa us au aus canada eu eur gb english eng tcg ccg sealed new"
   ).split(" "),
 );
-const NEVER_FILLER = new Set(["ex", "v", "gx", "mega", "mini", "super", "vmax", "vstar", "pikachu", "arceus", "mew", "mewtwo", "charizard", "eevee", "go"]);
+const NEVER_FILLER = new Set(["collector", "play", "draft", "set", "gift", "commander", "jumpstart", "prerelease", "case", "display", "pack", "packs", "box", "deck", "decks", "bundle"]);
 const fold = (t: string) => normalizeTitle(t).toLowerCase();
 const escapeRe = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 // Every specific set's name, longest first ("Prismatic Evolutions" before "Evolutions").
@@ -433,10 +433,10 @@ export class SweepCollector {
 
 // ─── Paging ────────────────────────────────────────────────────────────────────
 
-/** A query's search spec at an offset, for one marketplace: "Pokemon <q>", 200 a page, the lowest price floor of its types. */
+/** A query's search spec at an offset, for one marketplace: "MTG <q>", 200 a page, the lowest price floor of its types. */
 export function sweepSpec(q: SweepQuery, marketplace: MarketplaceId, offset: number): SearchSpec {
   const floor = Math.min(...q.types.map((t) => typeFloor(t, marketplace)));
-  return { q: `Pokemon ${q.q}`, marketplace, limit: SWEEP_PAGE, minPrice: floor, ref: feedReference(marketplace, "item"), offset };
+  return { q: `MTG ${q.q}`, marketplace, limit: SWEEP_PAGE, minPrice: floor, ref: feedReference(marketplace, "item"), offset };
 }
 
 export interface QueryProgress {

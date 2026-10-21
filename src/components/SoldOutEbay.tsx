@@ -10,7 +10,7 @@ import { OutboundLink } from "./OutboundLink";
 
 // The eBay action of a SOLD-OUT product page (inside SoldOutCallout's eBay box, components/Marketplaces.tsx): the first thing a visitor
 // who found nothing in stock can do. The server HTML is a full-width eBay-blue SEARCH button, "Find it on ebay.co.uk" (placement
-// soldout-ebay, customid dex-<region>-soldout-ebay): no eBay data in the cached page. In the browser it reads the price table's pick
+// soldout-ebay, customid mtg-<region>-soldout-ebay): no eBay data in the cached page. In the browser it reads the price table's pick
 // (useEbayPick with the table's exact arguments: the same request, no second fetch) and, when that is the product's own NEW listing,
 // becomes "On eBay from £99.50 + £3.38 shipping · updated 16 h ago" with "View on eBay", linking to the listing exactly as eBay returned
 // it (placement listings-soldout-best). The search and the listing are stacked in one grid cell, the one not shown invisible, so nothing

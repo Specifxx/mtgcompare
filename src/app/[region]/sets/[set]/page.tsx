@@ -26,7 +26,7 @@ import { RRP_NOTE } from "@/lib/rrp";
 import { itemListJsonLd, jsonLd, pageMeta, regionAlternates, withMtg } from "@/lib/seo";
 import { ShareButton } from "@/components/ShareButton";
 import { PRODUCT_TYPES } from "@/lib/sealed-title";
-import { SET_BY_SLUG, type PokemonSet } from "@/lib/sets";
+import { SET_BY_SLUG, type MtgSet } from "@/lib/sets";
 import { SITE_URL } from "@/lib/site";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js, CDN_PAGES), never ISR: an ISR write
@@ -96,8 +96,8 @@ export default async function SetPage({ params }: { params: { region: string; se
       region={r.region}
       context={`set:${s.slug}`}
       placement="listings-set"
-      headings={{ set: `${s.name} chase cards on eBay`, chase: "Chase cards on eBay" }}
-      search={{ kind: "card", query: `${s.name} special illustration rare`, label: `Search ${s.name} on eBay` }}
+      headings={{ set: `${s.name} sealed on eBay`, chase: "High-end sealed on eBay" }}
+      search={{ kind: "sealed", query: s.name, label: `Search ${s.name} on eBay` }}
       highlight={setSealedHighlight(s)}
     />
   );
@@ -266,7 +266,7 @@ export default async function SetPage({ params }: { params: { region: string; se
 }
 
 /** The release chip and the stock chip. */
-function SetChips({ s, pre, open, total }: { s: PokemonSet; pre: boolean; open: number; total: number }) {
+function SetChips({ s, pre, open, total }: { s: MtgSet; pre: boolean; open: number; total: number }) {
   return (
     <>
       <li>
@@ -291,7 +291,7 @@ function SetChips({ s, pre, open, total }: { s: PokemonSet; pre: boolean; open: 
  * The hero's picture: the set's logo; a set without one in sets.ts (the newest, until pokemontcg.io has them) shows its first
  * booster box or ETB on a white plate, then any product photo, then the set's name set in type. Sized before it loads.
  */
-function SetVisual({ s, products }: { s: PokemonSet; products: ProductCardData[] }) {
+function SetVisual({ s, products }: { s: MtgSet; products: ProductCardData[] }) {
   if (s.logo) {
     return (
       <img
@@ -306,8 +306,8 @@ function SetVisual({ s, products }: { s: PokemonSet; products: ProductCardData[]
     );
   }
   const pick =
-    products.find((p) => p.productType === "Booster Box" && p.imageUrl) ??
-    products.find((p) => p.productType === "Elite Trainer Box" && p.imageUrl) ??
+    products.find((p) => p.productType === "Play Booster Box" && p.imageUrl) ??
+    products.find((p) => p.productType === "Collector Booster Box" && p.imageUrl) ??
     products.find((p) => p.imageUrl);
   const src = thumb(pick?.imageUrl, 240);
   return (
@@ -322,17 +322,15 @@ function SetVisual({ s, products }: { s: PokemonSet; products: ProductCardData[]
 }
 
 const SHORT: Record<string, string> = {
-  "Booster Box": "Booster box",
-  "Elite Trainer Box": "ETB",
-  "Pokémon Center Elite Trainer Box": "Pokémon Center ETB",
-  "Booster Bundle": "bundle",
-  Blister: "blister",
-  "Sleeved Booster": "sleeved booster",
-  "Booster Pack": "loose pack",
-  "Build & Battle Box": "Build & Battle",
+  "Play Booster Box": "Play box",
+  "Collector Booster Box": "Collector box",
+  "Draft Booster Box": "Draft box",
+  "Set Booster Box": "Set box",
+  "Bundle": "bundle",
+  "Play Booster Pack": "loose pack",
 };
 
-const HEADLINE = ["Booster Box", "Elite Trainer Box", "Booster Bundle"];
+const HEADLINE = ["Play Booster Box", "Collector Booster Box", "Bundle"];
 
 /**
  * "Booster box vs ETB vs bundle: cheapest per pack" (what people search: "<set> booster box vs etb"), from the types actually
@@ -373,7 +371,7 @@ function PerPackStrip({ r, items }: { r: RegionInfo; items: PerPackPick[] }) {
   );
 }
 
-function SetLink({ r, s, dir }: { r: RegionInfo; s: PokemonSet; dir: "prev" | "next" }) {
+function SetLink({ r, s, dir }: { r: RegionInfo; s: MtgSet; dir: "prev" | "next" }) {
   const pre = isPreorderSet(s.code);
   return (
     <Link

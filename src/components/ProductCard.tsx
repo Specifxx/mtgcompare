@@ -16,18 +16,16 @@ export { ProductGrid } from "./ProductGrid";
 
 // The type pill sits over the photo, so it says the type the way collectors do. A label not here is short already.
 const SHORT_TYPE: Record<string, string> = {
-  "Pokémon Center Elite Trainer Box": "PC ETB",
-  "Elite Trainer Box": "ETB",
-  "Elite Trainer Box Case": "ETB Case",
-  "Ultra-Premium Collection": "UPC",
-  "Build & Battle Box": "B&B Box",
-  "Build & Battle Stadium": "B&B Stadium",
-  "Booster Bundle": "Bundle",
-  "Booster Bundle Case": "Bundle Case",
-  "Booster Box Case": "Box Case",
+  "Play Booster Box": "Play box",
+  "Collector Booster Box": "Collector box",
+  "Collector Booster Box Case": "Collector case",
+  "Play Booster Box Case": "Box Case",
+  "Play Booster Pack": "Play Booster",
+  "Collector Booster Pack": "Collector Booster",
+  "Secret Lair Drop": "Secret Lair",
 };
 
-/** "Pokémon Center Elite Trainer Box" → "PC ETB"; a label with no short form is itself. */
+/** "Collector Booster Box" → "Collector box"; a label with no short form is itself. */
 export function shortTypeLabel(label: string): string {
   return SHORT_TYPE[label] ?? label;
 }

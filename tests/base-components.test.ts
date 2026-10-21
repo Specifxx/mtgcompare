@@ -97,10 +97,10 @@ test("Section takes an id (an in-page anchor); Empty takes actions (internal lin
   assert.match(renderToStaticMarkup(React.createElement(Section, { id: "prices", title: "Prices", children: "x" })), /^<section id="prices" class="mt-14">/);
   assert.match(renderToStaticMarkup(React.createElement(Section, { title: "Prices", children: "x" })), /^<section class="mt-14">/);
   const empty = renderToStaticMarkup(
-    React.createElement(Empty, { actions: [{ href: "/au/type/booster-boxes", label: "All booster boxes" }, { href: "/nz", label: "New Zealand" }], children: "Nothing in stock right now." }),
+    React.createElement(Empty, { actions: [{ href: "/au/type/play-booster-boxes", label: "All booster boxes" }, { href: "/nz", label: "New Zealand" }], children: "Nothing in stock right now." }),
   );
   assert.match(empty, /Nothing in stock right now\./);
-  assert.match(empty, /<a class="chip min-h-10" href="\/au\/type\/booster-boxes">All booster boxes<\/a>/);
+  assert.match(empty, /<a class="chip min-h-10" href="\/au\/type\/play-booster-boxes">All booster boxes<\/a>/);
   assert.match(empty, /href="\/nz">New Zealand<\/a>/);
   assert.equal(renderToStaticMarkup(React.createElement(Empty, { children: "Nothing." })), '<div class="card px-6 py-10 text-center text-muted">Nothing.</div>');
 });

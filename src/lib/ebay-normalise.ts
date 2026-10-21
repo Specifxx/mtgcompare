@@ -12,7 +12,7 @@
 //   • no derived statistics: nothing here computes an average, median or "% below" of eBay prices.
 import { epnTagUrl, EBAY_CAMPAIGN_ID, isItemListingUrl } from "./affiliate";
 import { cleanImageUrl, cleanPrice, cleanText, cleanTitle, feedReference, MARKETPLACES, type FeedItem, type FeedKind, type MarketplaceId } from "./ebay-context";
-import { detectSet, floorCents, fromRoughUsdCents, identify, isIdentity, TYPE_BY_KEY, type TypeKey } from "./sealed-title";
+import { floorCents, fromRoughUsdCents, identify, isIdentity, TYPE_BY_KEY, type TypeKey } from "./sealed-title";
 import { refusedForType, refusedListing } from "./ebay-rules";
 export { refusedForType, refusedListing } from "./ebay-rules";
 import type { Region } from "./regions";
@@ -25,8 +25,6 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 /** FLOOR_FX's market code for a marketplace (the AU marketplace's prices are AUD like the AU market's). */
 export const MARKET_OF_MARKETPLACE: Record<MarketplaceId, string> = { EBAY_US: "US", EBAY_AU: "AU", EBAY_GB: "UK", EBAY_CA: "CA", EBAY_DE: "EU" };
 
-/** Per-currency price floor for a single chase CARD, in that currency: anything cheaper is a pack, a bulk card or junk. */
-export const CHASE_FLOOR: Record<string, number> = { USD: 15, AUD: 20, GBP: 12, CAD: 20, EUR: 15 };
 
 /** The price floor of the generic sealed feed, in US dollars: below it a "booster box" is a pack, a bulk lot or a mis-listing. */
 export const SEALED_FLOOR_USD = 30;
@@ -95,7 +93,7 @@ export function shippingFrom(raw: Record<string, unknown>): FeedItem["ship"] | u
 /**
  * The link for an item: eBay's own affiliate URL, EXACTLY as returned (the stored string is eBay's string: not re-serialised, nothing
  * added or rewritten) if it is one eBay item page carrying OUR campaign id; else, when eBay sent no usable one, itemWebUrl tagged with
- * the EPN parameter set and this feed's sub-id (dex-<market>-<kind>) as customid.
+ * the EPN parameter set and this feed's sub-id (mtg-<market>-<kind>) as customid.
  */
 export function itemUrl(it: Record<string, unknown>, marketplace: MarketplaceId, kind: FeedKind): string | null {
   const aff = it.itemAffiliateWebUrl;
@@ -156,59 +154,51 @@ export function baseItem(raw: unknown, marketplace: MarketplaceId, now: number, 
   return { id, title, imageUrl, price, url, ...(ship ? { ship } : {}), ...(condition ? { condition } : {}) };
 }
 
-// ─── Chase cards ───────────────────────────────────────────────────────────────
+// ─── High-end sealed (the "chase" feed) ────────────────────────────────────────
+// MTG Compare lists no single cards. The feed key "chase" is kept (feed keys, contexts and EPN sub-ids are stored and reported by
+// it) but it now holds HIGH-END SEALED product: collector booster boxes, cases, Secret Lair drops and Commander deck sets.
 
-// Counterfeits, customs, other languages, lots, sealed product, merchandise: anything that is not one English card.
-const JUNK_TITLE = new RegExp(
-  "\\b(?:" +
-    [
-      // counterfeit / not a real card
-      "proxy|proxies|custom|replica|reprint|repro|reproduction|orica|fan\\s*art|metal\\s*cards?|digital|code\\s*cards?|fake|counterfeit|unofficial|novelty|altered|handmade|hand\\s*made|diy|ai\\s*generated|pocket|gold\\s*(?:plated|foil|metal|cards?)|acrylic|sticker|poster|keychain|figure|plush|coin|pin|replacement|placeholder|jumbo|oversize|oversized",
-      // merchandise
-      "(?:art\\s*)?prints?|printed|magnets?|canvas|wall\\s*art|gifts?|toploaders?|holders?|stands?|mat|mats",
-      // lots, sealed product and kits: not one card
-      "lots?|bulk|damaged|empty|bundle|booster|boxes|box|etb|tin|sealed|case|display|binder|sleeves?|playmat|mystery|random|you\\s*pick|choose|pick\\s*your|complete\\s*set|master\\s*set|\\d+\\s*(?:cards|packs?)|packs?|decks?|kits?|playsets?|(?:ultra\\s*)?premium\\s*collection|special\\s*collection|collection\\s*box|league\\s*battle|build\\s*(?:&|and)\\s*battle|stadium",
-      // other languages (and the Japanese product-code styles that do not say "Japanese")
-      "japanese|japan|jpn|jp|korean|chinese|german|deutsch|karte|karten|kartenspiel|sammelkarte|french|francais|carte|italian|italiano|carta|spanish|espanol|tarjeta|thai|indonesian|portuguese|dutch|russian|vietnamese|polish|turkish|arabic|pokemon\\s*card\\s*game|sv\\d+[a-z]|s\\d+[a-z]|sm\\d+[a-z]|" +
-        // the same languages as the eBay site itself writes them (EBAY_DE listings), print-language codes and local card names
-        "japanisch|japonais|japonaise|japones|japonesa|giapponese|koreanisch|chinesisch|jahre|de|ger|fr|fra|esp|ita|glurak|dracaufeu|lizardon|bisaflor|turtok",
-    ].join("|") +
-    ")\\b",
-  "i",
-);
+/** The product types of the high-end sealed ("chase") feed. */
+export const HIGH_END_TYPES: ReadonlySet<TypeKey> = new Set<TypeKey>(["collector-booster-box", "collector-booster-box-case", "play-booster-box-case", "bundle-case", "secret-lair", "commander-deck-set"]);
 
-// A single card names itself: a card number (199/165), a special rarity or a grade. (A bare "ex" or "rare"
-// does not: "Charizard ex Special Collection" and "Rare Candy" are not cards worth showing.)
-const CARD_SIGNAL = /\b\d{1,3}\s*\/\s*\d{2,3}\b|\b(?:illustration|alt\s*art|full\s*art|sir|psa|bgs|cgc|sgc|promo|trainer\s*gallery)\b/i;
+/** The price floor of the high-end feed, in US dollars (on top of each type's own floor). */
+export const HIGH_END_FLOOR_USD = 100;
 
-export function isJunkTitle(title: string): boolean {
-  return JUNK_TITLE.test(title) || !CARD_SIGNAL.test(title);
-}
+/**
+ * Per-currency search floor of the chase (high-end) and set feeds, in that currency: the Browse call's price filter. Each listing
+ * must still clear its type's own floor (typeFloor) and, in the chase feed, HIGH_END_FLOOR_USD.
+ */
+export const CHASE_FLOOR: Record<string, number> = { USD: 15, AUD: 20, GBP: 12, CAD: 20, EUR: 15 };
 
-/** One chase-card listing (a single English card), or null. */
+/** One high-end sealed listing (a single English Magic product of a HIGH_END_TYPES type, at or over its floors), or null. */
 export function normaliseChase(raw: unknown, marketplace: MarketplaceId, now: number, kind: FeedKind = "chase"): FeedItem | null {
   const it = baseItem(raw, marketplace, now, kind);
-  if (!it || isJunkTitle(it.title)) return null;
-  if (Number(it.price.value) < (CHASE_FLOOR[it.price.currency] ?? 0)) return null;
+  if (!it || refusedListing(it.title)) return null;
+  const id = sealedIdentity(it.title, true);
+  if (!id || !HIGH_END_TYPES.has(id.type) || refusedForType(it.title, id.type)) return null;
+  const price = Number(it.price.value);
+  if (price < typeFloor(id.type, marketplace) || price < usdToMarketplace(HIGH_END_FLOOR_USD, marketplace)) return null;
   return it;
 }
 
-/** A set's chase card: a chase card that does not name a different set. */
+/** A set's feed: one unit of sealed Magic product (any type) of THIS set, at or over its type's floor. */
 export function normaliseSetChase(raw: unknown, marketplace: MarketplaceId, now: number, setCode: string): FeedItem | null {
-  const it = normaliseChase(raw, marketplace, now, "set");
-  if (!it) return null;
-  const named = detectSet(it.title);
-  return named && named.code !== setCode ? null : it;
+  const it = baseItem(raw, marketplace, now, "set");
+  if (!it || refusedListing(it.title)) return null;
+  const id = sealedIdentity(it.title, true);
+  if (!id || id.set?.code !== setCode || refusedForType(it.title, id.type)) return null;
+  if (Number(it.price.value) < typeFloor(id.type, marketplace)) return null;
+  return it;
 }
 
 // ─── Sealed product ────────────────────────────────────────────────────────────
 
-/** The product types the generic "Sealed Pokémon" feed shows: whole products a buyer compares, not packs, blisters, decks or tins. */
+/** The product types the generic "Sealed Magic" feed shows: whole products a buyer compares, not packs, blisters, decks or tins. */
 export const SEALED_FEED_TYPES: ReadonlySet<TypeKey> = new Set<TypeKey>(["play-booster-box", "collector-booster-box", "draft-booster-box", "set-booster-box", "bundle", "gift-bundle", "special-bundle", "commander-deck", "commander-deck-set", "secret-lair", "play-booster-box-case", "collector-booster-box-case"]);
 
 // ─── Several units in one listing ──────────────────────────────────────────────
-// "Surging Sparks ETB x2", "Two … Elite Trainer Boxes", "2 ETBs", "Set of Two", "Double Pack", "Qty 2", "(2)", "- 4 Boxes",
-// "Costco 8-Pack Mini Tin Box": the classifier sees one product's name, but the price is for several. A set (or one-product)
+// "Bloomburrow Play Booster Box x2", "Two … Collector Booster Boxes", "2 Bundles", "Set of Two", "Double Pack", "Qty 2", "(2)",
+// "- 4 Boxes", "Costco 3-Pack": the classifier sees one product's name, but the price is for several. A set (or one-product)
 // page must never show a multi-unit price under a single product's name, so any quantity wording refuses the listing.
 const NUMBER_WORD = "(?:two|three|four|five|six|seven|eight|nine|ten)";
 const UNIT_NOUN = "(?:etbs?|elite\\s+trainer\\s+box(?:es)?|boxes|box|tins?|bundles?|collections?|decks?|blisters?|displays?)";
@@ -216,15 +206,15 @@ const MULTI_UNIT: readonly RegExp[] = [
   /\bx\s?\d{1,2}\b/i, // x2, X 2
   /\(\s*\d{1,2}\s*\)/, // (2)
   /\b(?:qty|quantity)\b/i,
-  new RegExp(`\\b${NUMBER_WORD}\\s+(?:[\\w&'.+-]+\\s+){0,5}?${UNIT_NOUN}\\b`, "i"), // Two Surging Sparks Elite Trainer Boxes
-  // 2 Surging Sparks Elite Trainer Boxes, Surging Sparks 2 ETBs, - 4 Boxes (not "9 Packs", not "3.5", not "151")
+  new RegExp(`\\b${NUMBER_WORD}\\s+(?:[\\w&'.+-]+\\s+){0,5}?${UNIT_NOUN}\\b`, "i"), // Two Aetherdrift Play Booster Boxes
+  // 2 Aetherdrift Play Booster Boxes, Aetherdrift 2 Bundles, - 4 Boxes (not "9 Packs", not "3.5")
   new RegExp(`(?<![\\d./])\\b[2-9]\\b(?![\\d.])(?!\\s*-?\\s*(?:booster\\s+)?packs?\\b)\\s*(?:x\\s*)?(?:[\\w&'.+-]+\\s+){0,5}?${UNIT_NOUN}\\b`, "i"),
   /\b(?:set|pair)\s+of\s+(?:\d+|two|three|four)\b/i,
   /\b(?:double|twin)\s*-?\s*pack\b/i,
   /\bmulti\s*-?\s*(?:buy|pack|set|save|unit)\b/i,
   /\bcostco\b/i,
 ];
-// "N-pack" is the product itself for a blister, a booster bundle, a tin or a deck ("3 Pack Blister", "6-Pack Booster Bundle").
+// "N-pack" is the product itself for a bundle, a prerelease kit or a starter ("9-Pack Bundle", "6 Pack Prerelease Kit").
 const CASE_TYPES = new Set<TypeKey>(["play-booster-box-case", "collector-booster-box-case", "bundle-case"]);
 const PACK_COUNT_OK = new Set<TypeKey>(["bundle", "gift-bundle", "special-bundle", "prerelease-pack", "draft-night", "scene-box", "starter"]);
 
@@ -239,7 +229,7 @@ export function multiUnit(title: string, type: TypeKey): boolean {
 // the product is not in the shops yet), "read the description" condition notes, dented/damaged boxes, and eBay Live stream lots.
 const SEALED_NOISE = /\bpre[\s-]?(?:sales?|orders?)\b|\bpresales?\b|\b(?:read|see|check)\s+(?:the\s+)?desc(?:ription)?\b|\bdents?\b|\bdented\b|\bdamaged\b|\bdmg\b|\[\s*ebay\s+live\s*\]|\bebay\s+live\b|\bas[\s-]is\b|\bopen(?:ed)?\s+box\b/i;
 
-/** The listing's identity if the repo's classifier accepts it as sealed Pokémon product (Pokémon named: strict) and it is ONE unit, else null. */
+/** The listing's identity if the repo's classifier accepts it as sealed Magic product (Magic named: strict) and it is ONE unit, else null. */
 export function sealedIdentity(title: string, strict: boolean) {
   if (SEALED_NOISE.test(title)) return null;
   const id = identify(title, { strict });
@@ -249,7 +239,7 @@ export function sealedIdentity(title: string, strict: boolean) {
 /** A listing for the generic sealed feed: the classifier accepts it, the type is one of SEALED_FEED_TYPES, and its price clears that type's floor. */
 export function normaliseSealed(raw: unknown, marketplace: MarketplaceId, now: number): FeedItem | null {
   const it = baseItem(raw, marketplace, now, "sealed");
-  if (!it) return null;
+  if (!it || refusedListing(it.title)) return null;
   const id = sealedIdentity(it.title, true);
   if (!id || !SEALED_FEED_TYPES.has(id.type)) return null;
   if (Number(it.price.value) < typeFloor(id.type, marketplace)) return null;
@@ -259,7 +249,7 @@ export function normaliseSealed(raw: unknown, marketplace: MarketplaceId, now: n
 /** A listing for a type's feed: the classifier says exactly that type, at or over its floor. */
 export function normaliseType(raw: unknown, marketplace: MarketplaceId, now: number, type: TypeKey): FeedItem | null {
   const it = baseItem(raw, marketplace, now, "type");
-  if (!it) return null;
+  if (!it || refusedListing(it.title) || refusedForType(it.title, type)) return null;
   const id = sealedIdentity(it.title, true);
   if (!id || id.type !== type) return null;
   if (Number(it.price.value) < typeFloor(type, marketplace)) return null;
@@ -286,10 +276,10 @@ export function groupParts(key: string): { type: string; set: string; tokens: st
 
 /**
  * Is this listing title the product? The repo's classifier must accept it, and:
- *   • a SET product (booster box, ETB…): the same set and the same type (the group key is exactly that);
+ *   • a SET product (booster box, bundle…): the same set and the same type (the group key is exactly that);
  *   • any other: the same group key, or the same type and set whose identifying words the listing contains,
  *     with nothing extra but eBay seller filler ("fast", "usa", "nib"…). A cheaper or different product
- *     ("Mini Tin" for "Tin"), a single, a case, a lot, an empty or opened box, another language: refused by identify().
+ *     (another Commander deck of the set), a single, a case, a lot, an empty or opened box, another language: refused by identify().
  */
 export function relevantToProduct(title: string, p: ItemTarget): boolean {
   const id = sealedIdentity(title, false);

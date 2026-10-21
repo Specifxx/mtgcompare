@@ -81,20 +81,20 @@ async function main() {
     await same(`${m} marketPage 3`, () => browse.marketPage(m, 3));
     await same(`${m} marketIndexCards`, () => browse.marketIndexCards(m));
     await same(`${m} dealsBySection`, () => deals.dealsBySection(m));
+    await same(`${m} typeSummary`, () => guides.typeSummary(m), true);
     await same(`${m} perPackLeaders`, () => deals.perPackLeaders(m));
     await same(`${m} newlyTracked`, () => deals.newlyTracked(m, 24, now));
-    await same(`${m} typeSummary`, () => guides.typeSummary(m, ["me6", "cel30"]), true);
-    for (const t of ["Booster Box", "Elite Trainer Box", "Collection", "Tin"]) {
+    for (const t of ["Play Booster Box", "Collector Booster Box", "Bundle", "Commander Deck"]) {
       await same(`${m} productsByType ${t}`, () => data.productsByType(m, t), true);
       await same(`${m} typePageData ${t}`, () => hub.typePageData(m, t));
       await same(`${m} cheapestInStock ${t}`, () => data.cheapestInStock(m, [t], 12));
     }
-    for (const set of ["sv8", "me2", "sv8pt5", "cel30"]) {
+    for (const set of ["eoe", "tdm", "fin", "dft"]) {
       await same(`${m} productsBySet ${set}`, () => data.productsBySet(m, set), true);
       await same(`${m} setOfferGroups ${set}`, () => data.setOfferGroups(m, set));
-      await same(`${m} productCountsBySets ${set}`, () => deals.productCountsBySets(m, [set, "sv7"]));
+      await same(`${m} productCountsBySets ${set}`, () => deals.productCountsBySets(m, [set, "blb"]));
     }
-    await same(`${m} calendarProducts`, () => data.calendarProducts(m, ["me6", "cel30", "me5"]));
+    await same(`${m} calendarProducts`, () => data.calendarProducts(m, ["eoe", "spm", "tla"]));
     // Sample products of the market: their page, related products and alternatives.
     process.env.PUBLIC_DATA_MODE = "db";
     const sample = (await data.marketProducts(m)).slice(0, 12);
@@ -106,7 +106,7 @@ async function main() {
     for (const g of GUIDES.slice(0, 11)) await same(`${m} guide ${g.slug}`, () => guides.loadGuideData(g.slug, r, now));
   }
   await same("belowMsrpUS", () => deals.belowMsrpUS());
-  for (const s of ["pokebox", "tcgplayer", "cherry"]) {
+  for (const s of ["goodgames", "tcgplayer"]) {
     await same(`storeOffers ${s} 1`, () => data.storeOffers(s, 1));
     await same(`storeStat ${s}`, () => data.storeStat(s));
   }

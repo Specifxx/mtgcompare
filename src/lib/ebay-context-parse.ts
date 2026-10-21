@@ -6,8 +6,8 @@
 // seven) and a CONTEXT from the list below, and the answer is a read of rows the daily import stored.
 // Nothing a visitor sends goes anywhere but into a parameterised SELECT on a whitelisted key.
 //
-//   chase | sealed        the generic feeds                      (home, landing, browse, releases, store, 404, pre-footer)
-//   set:<slug>            a slug in sets.ts                      → that set's chase feed, else chase
+//   chase | sealed        chase = high-end sealed                  (home, landing, browse, releases, store, 404, pre-footer)
+//   set:<slug>            a slug in sets.ts                      → that set's sealed feed, else the high-end (chase) one
 //   type:<slug>           a slug in PRODUCT_TYPES                → that type's feed, else sealed
 //   item:<slug>           a product slug (looked up by the route: unknown → nothing)
 //                                                                → the product's feed, else its type's, else sealed

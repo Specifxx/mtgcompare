@@ -74,8 +74,8 @@ test("region sitemap: known types and sets only, every comparable product, all o
   onSite(entries);
   const urls = entries.map((e) => e.url);
   assert.deepEqual(urls, [
-    `${SITE_URL}/uk/type/booster-boxes`,
-    `${SITE_URL}/uk/type/elite-trainer-boxes`,
+    `${SITE_URL}/uk/type/play-booster-boxes`,
+    `${SITE_URL}/uk/type/collector-booster-boxes`,
     `${SITE_URL}/uk/sets/chaos-rising`,
     `${SITE_URL}/uk/p/a-box`,
     `${SITE_URL}/uk/p/b-etb`,

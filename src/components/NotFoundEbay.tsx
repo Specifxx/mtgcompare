@@ -100,8 +100,8 @@ export function NotFoundSearch() {
 }
 
 /**
- * The 404's one eBay unit: a slim listing strip (sealed Pokémon), or the compact CTA when there are none. A 404 under
- * /au/..., /uk/... and so on uses that region's eBay site (and reports dex-<region>-listings-notfound); anywhere else it
+ * The 404's one eBay unit: a slim listing strip (sealed Magic), or the compact CTA when there are none. A 404 under
+ * /au/..., /uk/... and so on uses that region's eBay site (and reports mtg-<region>-listings-notfound); anywhere else it
  * is the US one, the region the page's own search uses. The page is prerendered and has no URL of its own, so the
  * region is read after mount. Until then the unit is laid out (it reserves its height) but INVISIBLE, and it appears in the
  * same render that learns the region: nothing visible moves (CLS 0), and its height does not depend on the region
