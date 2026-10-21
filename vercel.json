@@ -1,16 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "ignoreCommand": "bash scripts/vercel-ignore-build.sh",
-  "crons": [
-    {
-      "path": "/api/cron/stripe-reconcile",
-      "schedule": "20 7 * * *"
-    }
-  ],
-  "git": {
-    "deploymentEnabled": {
-      "data": false,
-      "state": false
-    }
-  }
+  "framework": "nextjs",
+  "ignoreCommand": "bash scripts/vercel-ignore-build.sh"
 }

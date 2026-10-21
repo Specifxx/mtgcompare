@@ -1,114 +1,72 @@
-"use client";
+import Link from "next/link";
 
-import { useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { trackEvent } from "@/lib/analytics";
+/**
+ * Server-rendered page links, so every row of a long list is reachable from
+ * HTML (crawlers don't press "Show more"). Page 1 is the bare URL; page N is
+ * `${base}/page/N`, each its own cached render. Nothing is prefetched: a
+ * listing page's RSC payload is big and most links are never followed.
+ */
+export function pageHref(base: string, page: number): string {
+  return page <= 1 ? base : `${base}/page/${page}`;
+}
 
-// RiftCompare's Pagination: a one-page window around the current page plus the
-// first and last ("1 … 4 5 6 … 20"), "‹ Prev" / "Next ›", and an optimistic
-// current page — the clicked number fills at once and the list dims to 60%
-// while the next page loads in a transition. Real <a href>s throughout, so a
-// crawler or a modifier click gets a plain link.
-//
-// Differences from RiftCompare's: the active page is white on the brand fill, page 1
-// carries no ?page=1 (its canonical URL), multi-valued params (browse's set
-// and color filters) are kept, and the click event goes to GA only.
-function windowed(page: number, total: number): (number | "…")[] {
-  const pages = new Set<number>([1, total]);
-  for (let p = page - 1; p <= page + 1; p++) if (p >= 1 && p <= total) pages.add(p);
-  const sorted = Array.from(pages).sort((a, b) => a - b);
-  const out: (number | "…")[] = [];
+/** The page numbers to show: the first, the last, and two either side of the current one, with "…" for a gap. */
+export function pageItems(page: number, pages: number): (number | "…")[] {
+  const want = new Set([1, pages, page - 2, page - 1, page, page + 1, page + 2].filter((n) => n >= 1 && n <= pages));
+  const items: (number | "…")[] = [];
   let prev = 0;
-  for (const p of sorted) {
-    if (p - prev > 1) out.push("…");
-    out.push(p);
-    prev = p;
+  for (const n of [...want].sort((a, b) => a - b)) {
+    if (n - prev > 1) items.push("…");
+    items.push(n);
+    prev = n;
   }
-  return out;
+  return items;
 }
 
-const cell =
-  "grid h-11 min-w-[2.75rem] place-items-center rounded-lg px-2.5 text-sm font-medium transition-colors select-none sm:h-9 sm:min-w-[2.25rem]";
-
-export type PageParams = Record<string, string | string[] | undefined>;
-
-/** The URL of page `p`: every param but `page` kept, `page` only from 2 up. */
-export function pageHref(basePath: string, params: PageParams, p: number): string {
-  const sp = new URLSearchParams();
-  for (const [k, v] of Object.entries(params)) {
-    if (k === "page") continue;
-    for (const x of Array.isArray(v) ? v : v ? [v] : []) sp.append(k, String(x));
-  }
-  if (p > 1) sp.set("page", String(p));
-  const qs = sp.toString();
-  return qs ? `${basePath}?${qs}` : basePath;
-}
-
-export function Pagination({
-  page,
-  totalPages,
-  params,
-  basePath = "/browse",
-}: {
-  page: number;
-  totalPages: number;
-  params: PageParams;
-  basePath?: string;
-}) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const [optimistic, setOptimistic] = useState<number | null>(null);
-  useEffect(() => setOptimistic(null), [page]);
-
-  if (totalPages <= 1) return null;
-  const current = optimistic ?? page;
-  const href = (p: number) => pageHref(basePath, params, p);
-
-  function go(p: number, e: React.MouseEvent) {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-    e.preventDefault();
-    if (p === current) return;
-    trackEvent("pagination_click", { basePath, page: p });
-    setOptimistic(p); // instant visual feedback
-    if (typeof window !== "undefined") window.scrollTo(0, 0); // jump to the top of the results
-    startTransition(() => router.push(href(p), { scroll: false })); // data loads in the background
-  }
-
-  const items = windowed(current, totalPages);
-  const PrevNext = (label: string, target: number, enabled: boolean, rel: "prev" | "next") =>
-    enabled ? (
-      <a href={href(target)} rel={rel} onClick={(e) => go(target, e)} className={`${cell} border border-ink-700 text-slate-300 hover:border-brand-500 hover:text-white`}>{label}</a>
-    ) : (
-      <span className={`${cell} border border-ink-800 text-slate-600`}>{label}</span>
-    );
-
+// Every link is a 44px target. A phone shows "← Previous · 3 of 47 · Next →" (the numbers would wrap at 320px); from sm the
+// numbered pages show too. The numbers are in the HTML at every width, so every page stays linked for crawlers.
+export function Pagination({ base, page, pages }: { base: string; page: number; pages: number }) {
+  if (pages <= 1) return null;
+  const cell = "inline-flex h-11 min-w-11 items-center justify-center rounded-full px-3 text-sm font-medium";
+  const step = `${cell} gap-1.5 px-4`;
   return (
-    <nav
-      className={`mt-8 flex flex-wrap items-center justify-center gap-1.5 transition-opacity ${isPending ? "opacity-60" : ""}`}
-      aria-label="Pagination"
-      aria-busy={isPending}
-    >
-      {PrevNext("‹ Prev", current - 1, current > 1, "prev")}
-      {items.map((it, i) =>
-        it === "…" ? (
-          <span key={`e${i}`} className="px-1 text-slate-600">…</span>
-        ) : (
-          <a
-            key={it}
-            href={href(it)}
-            onClick={(e) => go(it, e)}
-            aria-current={it === current ? "page" : undefined}
-            className={`${cell} ${
-              it === current
-                ? "bg-brand-500 text-white shadow-glow"
-                : "border border-ink-700 text-slate-300 hover:border-brand-500 hover:text-white"
-            }`}
-          >
-            {it}
-          </a>
-        )
+    <nav aria-label="Pages" className="mt-10 flex items-center justify-center gap-1">
+      {page > 1 ? (
+        <Link href={pageHref(base, page - 1)} prefetch={false} rel="prev" className={`${step} btn-ghost`}>
+          <span aria-hidden="true">←</span> Previous
+        </Link>
+      ) : (
+        <span className={`${step} text-faint`} aria-disabled="true">
+          <span aria-hidden="true">←</span> Previous
+        </span>
       )}
-      {PrevNext("Next ›", current + 1, current < totalPages, "next")}
+      <span className="tabular px-2 text-sm text-muted sm:hidden">
+        {page} of {pages}
+      </span>
+      {pageItems(page, pages).map((it, i) =>
+        it === "…" ? (
+          <span key={`gap-${i}`} className="hidden w-6 justify-center text-sm text-faint sm:inline-flex" aria-hidden="true">
+            …
+          </span>
+        ) : it === page ? (
+          <span key={it} className={`${cell} tabular hidden bg-ink text-surface sm:inline-flex`} aria-current="page">
+            {it}
+          </span>
+        ) : (
+          <Link key={it} href={pageHref(base, it)} prefetch={false} aria-label={`Page ${it}`} className={`${cell} tabular hidden border border-line bg-surface hover:bg-raised sm:inline-flex`}>
+            {it}
+          </Link>
+        ),
+      )}
+      {page < pages ? (
+        <Link href={pageHref(base, page + 1)} prefetch={false} rel="next" className={`${step} btn-ghost`}>
+          Next <span aria-hidden="true">→</span>
+        </Link>
+      ) : (
+        <span className={`${step} text-faint`} aria-disabled="true">
+          Next <span aria-hidden="true">→</span>
+        </span>
+      )}
     </nav>
   );
 }

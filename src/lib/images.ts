@@ -1,35 +1,36 @@
-// src/lib/images.ts (owner WP01a, FROZEN). Image URLs are DERIVED, never stored. FRONT: the TCGplayer image of the PRICED productId first (the image and the price share one id, so a wrong join cannot put the wrong art
-// beside a price, and a showcase/extended/serialized/stamped product shows its own scan); Scryfall is the fallback (367 of 111,839 included singles have no TCGplayer image) and the only source of back faces.
-// NEXT_PUBLIC_IMAGE_PRIMARY=scryfall flips the order (owner decision 10.4). Scryfall's image rules bind only Scryfall URLs: hotlink unmodified, never through the Next image optimiser, object-contain in an exact 488:680 box, no filter or overlay on the image.
-import { CARD_FLAGS } from "./constants";
+// Product photos are the stores' own, hotlinked (never proxied through Vercel's
+// metered image optimiser). Shopify's CDN resizes on request, so grids ask for
+// a small rendition instead of the multi-megabyte original. TCGplayer's CDN
+// serves fixed square renditions (200, 400, 1000 px): the smallest that covers
+// the width is used.
+export function thumb(url: string | null | undefined, width = 400): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url.startsWith("//") ? `https:${url}` : url);
+    if (/(^|\.)cdn\.shopify\.com$/.test(u.hostname) || u.pathname.includes("/cdn/shop/")) {
+      u.searchParams.set("width", String(width));
+    }
+    const tcg = u.hostname === "tcgplayer-cdn.tcgplayer.com" && u.pathname.match(/^(\/product\/\d+)_in_\d+x\d+\.jpg$/);
+    if (tcg) {
+      const side = width <= 200 ? 200 : width <= 400 ? 400 : 1000;
+      u.pathname = `${tcg[1]}_in_${side}x${side}.jpg`;
+    }
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
 
-export interface ImageRef { id: number; scryId: string | null; flags: number }
-export type ImageSize = "thumb" | "tile" | "large" | "og";   // "og": a JPEG for share images (satori decodes JPEG and PNG, never WebP: src/lib/og/art.ts)
-const TCG_CDN = "https://tcgplayer-cdn.tcgplayer.com/product";
-export const tcgplayerImage = (productId: number, size: "200w" | "400w" | "in_1000x1000"): string => `${TCG_CDN}/${productId}_${size}.jpg`;
-/** https://cards.scryfall.io/<variant>/<face>/<id[0]>/<id[1]>/<id>.<ext> (pattern verified on all 118,439 rows that have an image; no ?ts needed). thumb 146x204, grid 488x680, display 672x936 are webp; normal/large are jpg. */
-export function scryfallImage(sid: string, variant: "thumb" | "grid" | "display" | "normal" | "large", face: "front" | "back" = "front"): string {
-  const ext = variant === "thumb" || variant === "grid" || variant === "display" ? "webp" : "jpg";
-  return `https://cards.scryfall.io/${variant}/${face}/${sid[0]}/${sid[1]}/${sid}.${ext}`;
+/**
+ * A srcset of CDN renditions for a responsive <img> (with `sizes`), or null
+ * when the host can't resize — then a srcset would just repeat one URL.
+ */
+export function thumbSet(url: string | null | undefined, widths: number[]): string | null {
+  if (!url) return null;
+  const first = thumb(url, widths[0]);
+  if (!first || first === thumb(url, widths[widths.length - 1])) return null;
+  return widths.map((w) => `${thumb(url, w)} ${w}w`).join(", ");
 }
-/** OP's id-only signatures, kept (27 files): the TCGplayer product image. A caller that has a CardLite uses imageFor() instead, which can fall back. */
-export const cardImage = {
-  thumb: (id: number) => tcgplayerImage(id, "200w"),
-  tile: (id: number) => tcgplayerImage(id, "400w"),
-  large: (id: number) => tcgplayerImage(id, "in_1000x1000"),
-};
-const SCRY_VARIANT: Record<ImageSize, "thumb" | "grid" | "display" | "normal"> = { thumb: "thumb", tile: "grid", large: "display", og: "normal" };   // og -> normal (488x680 JPEG)
-const TCG_SIZE: Record<ImageSize, "200w" | "400w" | "in_1000x1000"> = { thumb: "200w", tile: "400w", large: "in_1000x1000", og: "400w" };
-export const IMAGE_PRIMARY: "tcgplayer" | "scryfall" = process.env.NEXT_PUBLIC_IMAGE_PRIMARY === "scryfall" ? "scryfall" : "tcgplayer";
-/** Front image: primary host first, the other as fallback; null when neither exists (render the neutral card back, never a broken image). */
-export function imageFor(c: ImageRef, size: ImageSize, primary: "tcgplayer" | "scryfall" = IMAGE_PRIMARY): string | null {
-  const tcg = (c.flags & CARD_FLAGS.TCGIMG) !== 0 ? tcgplayerImage(c.id, TCG_SIZE[size]) : null;
-  const scry = (c.flags & CARD_FLAGS.SCRYIMG) !== 0 && c.scryId ? scryfallImage(c.scryId, SCRY_VARIANT[size]) : null;
-  return primary === "scryfall" ? scry ?? tcg : tcg ?? scry;
-}
-/** Back face of a transform / modal_dfc / reversible_card (flags & DFC): Scryfall only. */
-export function backImageFor(c: ImageRef, size: ImageSize): string | null {
-  return (c.flags & CARD_FLAGS.DFC) !== 0 && (c.flags & CARD_FLAGS.SCRYIMG) !== 0 && c.scryId ? scryfallImage(c.scryId, SCRY_VARIANT[size], "back") : null;
-}
-/** Does this card have ANY front image (either host)? `CardLite.hasImage` is derived from this and nothing else (critique 15: it used to look at TCGIMG only, so a product with only a Scryfall scan showed a placeholder in every component that gates on hasImage). */
-export const hasImageFor = (c: ImageRef): boolean => imageFor(c, "thumb") != null;
+
+/** Grid cards: a phone shows two across, a desktop four of ~280px. */
+export const CARD_SIZES = "(min-width: 1024px) 280px, (min-width: 768px) 33vw, 50vw";

@@ -1,62 +1,81 @@
-import { IMAGE_PRIMARY } from "./images";
-
-// Site identity. Everything brand-shaped reads from here, so a rename or a new
-// domain is a one-file change.
-//
-// The production domain is NOT DECIDED. mtgcompare.app is a PLACEHOLDER (a .app
-// domain is HTTPS-only and on the HSTS preload list, which is why it was picked):
-// on 2026-10-08 it resolved to Vercel and answered DEPLOYMENT_PAUSED, so it may
-// already belong to someone, and the .com of the same name is a live, unrelated
-// "MTG Compare UK" site. Confirm the domain before launch. It is the default so a missing env
-// var can never publish canonical URLs, the sitemap, Open Graph or JSON-LD on
-// another host; NEXT_PUBLIC_SITE_URL overrides it (the real domain, local
-// development, a preview domain). tests/domain.test.ts pins this default.
-export const SITE_NAME = "MTG Compare";
-export const SITE_SHORT = "MTGCompare";
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://mtgcompare.app").replace(/\/+$/, "");
-export const SITE_TAGLINE = "Magic: The Gathering card prices, compared";
-export const SITE_DESCRIPTION =
-  "Compare Magic: The Gathering card prices across stores in the US, Australia, the UK, Singapore, Canada and the EU. Every printing and sealed product, priced daily.";
-// The public contact address (owner's choice, shared with Rift Compare). Set
-// NEXT_PUBLIC_CONTACT_EMAIL (Vercel and GitHub Actions) to give MTG Compare its own.
+// Site-wide constants. SITE_URL is the canonical origin (no trailing slash):
+// every canonical, hreflang, JSON-LD, robots and sitemap URL is built on it, so
+// a wrong value here is a wrong value in every one of them. NEXT_PUBLIC_SITE_URL
+// in Vercel overrides the default; DEPLOY.md, "Domains" says what to set.
+export const SITE_NAME = "DexCompare";
+export const SITE_URL = normaliseOrigin(process.env.NEXT_PUBLIC_SITE_URL) ?? "https://www.dexcompare.app";
+// The mailbox the contact, terms and privacy pages (and the scrapers' From header) give. The fallback is a legacy
+// address from another brand that still reaches the owner: it stays only so those pages keep a working address until
+// NEXT_PUBLIC_CONTACT_EMAIL is set. Site chrome never prints it: the footer links to /contact, and shows an address only
+// when one has been set on purpose (CONTACT_EMAIL_SET).
 export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "riftcompare@gmail.com";
-// The owner's sister sites, linked from About and the footer. The one place the other brands are named.
-// `covers` is what each one compares, as the footer and About print it: RiftCompare and OP Compare compare card prices,
-// DexCompare compares Pokémon TCG SEALED product (booster boxes, Elite Trainer Boxes, bundles), not singles.
-export const SISTER_SITES = [
-  { name: "RiftCompare", url: "https://riftcompare.com", game: "Riftbound", covers: "Riftbound" },
-  { name: "OP Compare", url: "https://opcompare.app", game: "the One Piece Card Game", covers: "the One Piece Card Game" },
-  { name: "DexCompare", url: "https://www.dexcompare.app", game: "Pokémon", covers: "Pokémon sealed product" },
-] as const;
-// The first sister site, kept under the name the footer and About already read.
-export const SISTER_SITE = SISTER_SITES[0];
-// MTG Compare's Discord invite. Unset by default: the header icon, the footer
-// link and the nav entry render only when NEXT_PUBLIC_DISCORD_URL is set, so
-// there is never a dead invite on the page.
-export const DISCORD_URL = process.env.NEXT_PUBLIC_DISCORD_URL || "";
+export const CONTACT_EMAIL_SET: string | null = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || null;
+export const SITE_TAGLINE = "Pokémon sealed prices and stock, compared across independent stores.";
 
-// ── Wizards of the Coast, Scryfall and the data sources: the legal strings ─────
-// Every surface that carries them (the footer on every page, About, Terms) imports
-// these, so the wording exists once: change a sentence here and nowhere else.
-export const FAN_CONTENT_POLICY_URL = "https://company.wizards.com/en/legal/fancontentpolicy";
-// The Fan Content Policy's own sentence, verbatim, with the site's name in the
-// slot the policy leaves for it. "Permitted under the Fan Content Policy" is the
-// policy's wording; whether a site with a paid tier may say it is the owner's open
-// question with Wizards (DECISIONS), not something this constant decides.
-export const FAN_CONTENT_DISCLAIMER = `${SITE_NAME} is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.`;
-export const UNOFFICIAL_FAN_SITE_NOTICE = `${SITE_NAME} is an independent, unofficial fan site. It is not endorsed, sponsored or approved by Wizards of the Coast, Hasbro or Scryfall. TCGplayer and eBay are retailers we link to as an affiliate and do not endorse this site. Magic: The Gathering and its card names, artwork, symbols and set names are trademarks or property of Wizards of the Coast LLC.`;
-export const SCRYFALL_URL = "https://scryfall.com";
-/**
- * Where the card images come from, as src/lib/images.ts serves them: the TCGplayer scan of the priced product first, Scryfall's where TCGplayer has none, and Scryfall's
- * alone for the back face of a double-faced card; NEXT_PUBLIC_IMAGE_PRIMARY=scryfall swaps the first two. The order is images.ts's own IMAGE_PRIMARY (the one place
- * that variable is read, tests/env-names.test.ts), so the credit cannot disagree with the image on the page (tests/trust-pages.test.ts renders both from real cards).
- */
-export function imageCredit(primary: "tcgplayer" | "scryfall"): string {
-  return primary === "scryfall"
-    ? "Card images: Scryfall, and TCGplayer where Scryfall has none."
-    : "Card images: TCGplayer, and Scryfall where TCGplayer has none and for the back faces of double-faced cards.";
+// Who runs the site, for the Terms and the footer. Set NEXT_PUBLIC_OPERATOR in
+// Vercel to the trading name (a person or a company); until then the site name
+// stands in. Nothing here invents a legal entity or an address.
+export const OPERATOR = process.env.NEXT_PUBLIC_OPERATOR?.trim() || SITE_NAME;
+
+// The owner's other price-comparison sites, linked from the footer (owner's
+// call, 2026-10-14: the four sites cross-link in every footer). Plain followed
+// links — our own sites, not affiliates — so no nofollow or sponsored.
+export const SISTER_SITES = [
+  { name: "RiftCompare", url: "https://riftcompare.com", what: "Riftbound TCG card prices" },
+  { name: "OP Compare", url: "https://opcompare.app", what: "One Piece Card Game prices" },
+  { name: "MTG Compare", url: "https://mtgcompare.app", what: "Magic: The Gathering prices" },
+] as const;
+
+// Public profiles for Organization.sameAs (an X account, a Bluesky handle…).
+// Empty until there are any: an empty list is left out of the JSON-LD.
+export const SOCIAL_LINKS: string[] = [];
+
+// The site's sections under /<region>, as the header's nav, the phone menu and the footer link to them: one list of paths,
+// so the three never disagree. Labels differ by place ("Stores" in the nav, "Where to buy" in the menu) and live there.
+export const SECTION_PATHS = {
+  deals: "/deals",
+  thisWeek: "/this-week",
+  sealed: "/sealed",
+  boosterBoxes: "/type/booster-boxes",
+  etbs: "/type/elite-trainer-boxes",
+  bundles: "/type/booster-bundles",
+  upcs: "/type/ultra-premium-collections",
+  tins: "/type/tins",
+  perPack: "/cheapest-packs",
+  sets: "/sets",
+  releases: "/releases",
+  guides: "/guides",
+  stores: "/stores",
+} as const;
+export type SectionKey = keyof typeof SECTION_PATHS;
+
+/** "/au" + a section's path: `sectionHref("au", "deals")` → "/au/deals". */
+export function sectionHref(region: string, key: SectionKey): string {
+  return `/${region}${SECTION_PATHS[key]}`;
 }
-// Scryfall's terms ask for attribution and for no implied endorsement. Card names, rules text, legalities, set codes and collector numbers are Scryfall's
-// (docs/magic-data-contract.md: "Scryfall owns what the card is"); the catalogue and the prices are TCGplayer's, read through TCGCSV, and the stores'.
-// Until 2026-10-09 this read "Card data and images: Scryfall", on every page's footer, while most images on the site are TCGplayer's.
-export const DATA_ATTRIBUTION = `Card data (names, rules text, legalities, set codes and collector numbers): Scryfall. ${imageCredit(IMAGE_PRIMARY)} Prices: TCGplayer market data and public store listings. For information only; Scryfall does not endorse ${SITE_NAME}.`;
+
+/** "https://www.dexcompare.app/" → "https://www.dexcompare.app"; garbage → null. */
+function normaliseOrigin(v: string | undefined): string | null {
+  if (!v) return null;
+  try {
+    const u = new URL(v.trim());
+    if (u.protocol !== "https:" && u.protocol !== "http:") return null;
+    return u.origin;
+  } catch {
+    return null;
+  }
+}
+
+// A production build whose canonical host is not the host it deploys to
+// tells every crawler to index some other site. Say so in the build log, loudly,
+// but never throw: a mis-set variable must not take the site down.
+if (process.env.VERCEL_ENV === "production" && process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+  const deployed = process.env.VERCEL_PROJECT_PRODUCTION_URL.replace(/^https?:\/\//, "").toLowerCase();
+  const canonical = new URL(SITE_URL).host.toLowerCase();
+  if (deployed !== canonical) {
+    console.error(
+      `\n[site] NEXT_PUBLIC_SITE_URL is ${SITE_URL} but this production deployment serves ${deployed}.\n` +
+        `[site] Every canonical/hreflang/sitemap URL will point at ${canonical}. Fix NEXT_PUBLIC_SITE_URL in Vercel (DEPLOY.md, "Domains").\n`,
+    );
+  }
+}

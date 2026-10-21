@@ -1,47 +1,91 @@
-// The Prisma client, one per process.
-//
-// ── NEON HOLDS PRIVATE STATE ONLY (contract 12: public data is published files, not rows) ────────────────────────────────────
-// Accounts, billing, watchlists, price alerts, collection, notifications, newsletter, inbox, counters, the eBay ledger and listings, ops rows. The catalogue, every price,
-// the price history, the browse index and every precomputed public view are JSON files read through the loaders of src/lib/data/** (plane/runtime.ts: a pinned fetch with no
-// tag, so a publish needs no purge). A public page renders with this database down, deleted or rotated.
-//
-// ── EGRESS AND COMPUTE RULES (Neon Free: 5 GB/month of transfer, 100 CU-hours of compute; RiftCompare learned them the expensive way, DECISIONS.md there, 2026-09-11) ──
-//   1. A request path never reads the database directly. Nothing under src/app imports this module (tests/app-no-db-import.test.ts); the per-user libraries named in CLAUDE.md
-//      query per user or per request, uncached, `select`-limited, from account pages and /api routes only: never from the root layout and never from a public page's server
-//      render (tests/public-no-neon.test.ts). Panels that need a Neon row on a public page (the eBay listings, "decks using this card", reviews, the launch promo) load from
-//      /api routes in the browser, and not at all for crawlers (plane/crawler.ts).
-//   2. unstable_cache lives only in src/lib/data/ (tests/nested-cache.test.ts). A Neon-backed cache wraps a callback that only queries Neon; it never wraps a plane read, a loader
-//      or a fetch, and never wraps a loader that already caches itself.
-//   3. The only per-request WRITE of public traffic is the card-view counter, and it is sampled, batched in the instance and flushed in the first minute of each half hour
-//      (plane/view-beacon.ts), so the database wakes at most 48 times a day however many instances run (contract 12.12).
-//   4. Select only the columns a page renders. No generateStaticParams prewarming of data-backed routes, and production builds are gated to the weekly release
-//      (scripts/vercel-ignore-build.sh): a build reads no database and no data host.
 import { PrismaClient } from "@prisma/client";
+import { routeQuery } from "./public-data/route";
 
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+// ─── WHERE THE DATA LIVES (2026-10-16, owner: "everything can be on GitHub") ──────
+// Every public table is exported to data/public/ after each import and committed to main (scripts/export-public-data.ts), and
+// the site reads THOSE FILES (src/lib/public-data/, PUBLIC_DATA_MODE "files", the default): no page, route or build touches
+// Neon. Neon is the importers' working store only (scripts set DEXCOMPARE_SCRIPT=1 and always use it), so its compute wakes for
+// the imports and nothing else. A read the file engine cannot answer exactly falls through to Neon and logs
+// [public-data:unsupported] once, which tests/public-data.test.ts keeps at zero for the site's loaders.
+//
+// The database is DC2 (Vercel and GitHub, from 2026-10-16; dexcompare-migrate-dc2.yml copied the old project into it, every table's
+// row count checked), with DATABASE_URL (the old project) only while DC2 is unset. The importers' workflows pass DC2's direct host as
+// DATABASE_URL, so scripts reach DC2 either way.
+export function databaseUrl(env: Record<string, string | undefined> = process.env): string | undefined {
+  return env.DC2?.trim() || env.DATABASE_URL?.trim() || undefined;
+}
 
-/** `next build` and its page-data workers run with NEXT_PHASE=phase-production-build. A build reads no database (Annex C check 24): in that phase the client is pointed at a closed local port, so a stray query fails at once instead of reading the real one. */
-const building = process.env.NEXT_PHASE === "phase-production-build";
-const BUILD_URL = "postgresql://build:none@127.0.0.1:1/none";
+// ─── DATA-EGRESS RULES (read before adding a query) ────────────────────────────
+// Neon's free tier allows 5 GB/month of network transfer. The old DexCompare
+// killed two databases by breaking it, and Rift Compare has lost a dozen more,
+// so these are the rules this codebase starts from (src/lib/db.ts in Rift):
+//
+//   1. A query on the request path is scoped to one entity or one page of rows —
+//      never a whole table. The listing pages read ProductStat (precomputed by
+//      the importer), not an aggregate over Offer.
+//   2. `select` only the columns you render, and `take` a cap wherever the row
+//      count isn't bounded by the entity.
+//   3. Whole-table reads belong in scripts/import.ts, never in a page.
+//   4. Pages are ISR-cached (`export const revalidate`, generateStaticParams
+//      returning []) and re-rendered after each import via /api/revalidate. The
+//      TTL is 86400 and never under 21600 (6 h: the owner, 2026-10-14; pinned by
+//      tests/cache-ttl.test.ts): the import is what refreshes prices. No
+//      unstable_cache anywhere: its TTL leaks to the whole route segment, and a
+//      short one silently re-runs every query on the page.
+//   5. The eBay strips read the EbayListing table through /api/ebay/<region> (src/lib/ebay-read.ts): ONE indexed
+//      query, at most 8 rows of the first feed of a cascade that has enough fresh rows (never a scan of the table),
+//      CDN-cached for 5 minutes. The importer (scripts/ebay-import.ts) is the only thing that writes it.
+//
+// The guard below makes a violation visible: any single query returning a big
+// payload logs to the Vercel function log instead of quietly burning allowance.
+// ────────────────────────────────────────────────────────────────────────────────
+const BIG_ROWS = 300;
+const BIG_BYTES = 500_000;
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    log: process.env.PRISMA_LOG === "1" ? ["query", "warn", "error"] : ["error"],
-    ...(building ? { datasourceUrl: BUILD_URL } : {}),
+// Neon suspends idle computes; a generous connect_timeout rides out the resume
+// instead of failing the first request after a quiet spell with P1001.
+function withConnectTimeout(url: string | undefined): string | undefined {
+  if (!url) return url;
+  try {
+    const u = new URL(url);
+    if (!u.searchParams.has("connect_timeout")) u.searchParams.set("connect_timeout", "15");
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
+function makeClient() {
+  const base = new PrismaClient({
+    datasourceUrl: withConnectTimeout(databaseUrl()),
+    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
   });
-
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
-
-export function hasDatabase(): boolean {
-  return Boolean(process.env.DATABASE_URL);
+  return base.$extends({
+    query: {
+      $allModels: {
+        async $allOperations({ model, operation, args, query }) {
+          const res = await routeQuery(model, operation, args, query as (a: unknown) => Promise<unknown>);
+          if (process.env.DEXCOMPARE_SCRIPT !== "1" && Array.isArray(res) && res.length >= BIG_ROWS) {
+            try {
+              const bytes = JSON.stringify(res).length;
+              if (bytes >= BIG_BYTES) {
+                console.warn(
+                  `[egress-guard] ${model}.${operation} returned ~${(bytes / 1e6).toFixed(1)} MB (${res.length} rows) ` +
+                    `on a request path. Scope it or move it into the importer — see src/lib/db.ts.`,
+                );
+              }
+            } catch {
+              /* sizing is best-effort */
+            }
+          }
+          return res;
+        },
+      },
+    },
+  });
 }
 
-/** The DIRECT (unpooled) form of a Neon connection string: Neon's pooler is pgbouncer in transaction mode, which is wrong for a long bulk write (the plane publisher, plane-pull) and for `prisma db push`. Same rewrite as maintenance.yml. A local or non-pooled URL comes back unchanged. */
-export function directDatabaseUrl(url: string | undefined = process.env.DATABASE_URL): string | undefined {
-  return url ? url.replace("-pooler", "") : url;
-}
-/** A second client over the direct URL, for the Neon-backed plane's bulk publish (src/lib/data/plane/neon-store.ts). The CALLER owns it and must $disconnect() it; the shared `prisma` above stays the client of everything else. */
-export function createDirectPrisma(): PrismaClient {
-  return new PrismaClient({ log: ["error"], datasourceUrl: directDatabaseUrl() });
-}
+type Client = ReturnType<typeof makeClient>;
+const g = globalThis as unknown as { prisma?: Client };
+export const prisma = g.prisma ?? makeClient();
+if (process.env.NODE_ENV !== "production") g.prisma = prisma;

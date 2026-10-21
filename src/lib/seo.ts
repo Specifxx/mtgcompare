@@ -1,127 +1,266 @@
-// Region-home SEO helpers — RiftCompare's lib/seo.ts, the parts MTG Compare
-// uses: the six region-home paths, their reciprocal hreflang map and the home
-// titles/descriptions. Pure (no next/headers), so client code may import
-// REGION_HOME_PATH.
-import { SITE_URL } from "./site";
-import { COUNTRIES, type Country } from "./country";
+import type { Metadata } from "next";
+import { REGION_LIST, REGIONS, X_DEFAULT_REGION, xDefaultRegion, isRegion, type Region, type RegionInfo } from "./regions";
+import { CONTACT_EMAIL, SITE_NAME, SITE_TAGLINE, SITE_URL, SOCIAL_LINKS } from "./site";
 
-// The blog posts that answer "where do I buy Magic cards in <market>" best,
-// linked from each region home's "Buying Magic cards in <place>" block. There
-// is one where-to-buy guide and one cheaper-abroad guide covering every market,
-// so each market points at the same pair (REQ-WP15-5 asks the editorial package
-// to publish the guides under these slugs).
-export const COUNTRY_GUIDE_SLUGS: Record<Country, string> = {
-  US: "where-to-buy-magic-cards",
-  UK: "where-to-buy-magic-cards",
-  AU: "where-to-buy-magic-cards",
-  CA: "where-to-buy-magic-cards",
-  SG: "where-to-buy-magic-cards",
-  EU: "where-to-buy-magic-cards",
-};
-export const CHEAPER_ABROAD_SLUG = "are-magic-cards-cheaper-abroad";
-
-// BCP 47 tags per market. EU is not a country, so it fans out to the eurozone's
-// largest English-reading audiences (RiftCompare's EU_HREFLANG_COUNTRIES).
-const HREFLANG: Record<Country, string> = {
-  US: "en-US",
-  UK: "en-GB",
-  AU: "en-AU",
-  CA: "en-CA",
-  SG: "en-SG",
-  EU: "en",
-};
-export const EU_HREFLANG_COUNTRIES = ["IE", "DE", "FR", "NL", "BE", "ES", "IT", "AT", "PL", "SE", "DK", "FI", "PT"] as const;
-
-function hreflangTags(country: Country): string[] {
-  if (country === "EU") return EU_HREFLANG_COUNTRIES.map((c) => `en-${c}`);
-  if (country === "US") return ["en-US", "en"];
-  return [HREFLANG[country]];
-}
-
-// The six region homes: "/" is the US (and x-default); the others lock their
-// hero to one market. CountryHeroToggle routes here; CountryProvider sends a
-// visitor with a stored market to their own region home.
-export const REGION_HOME_PATH: Record<Country, string> = {
-  US: "/",
-  UK: "/uk",
-  AU: "/au",
-  CA: "/ca",
-  SG: "/sg",
-  EU: "/eu",
-};
-
-/** Reciprocal hreflang for every region home, "/" as x-default. */
-export function regionHomeHreflang(): Record<string, string> {
-  const map: Record<string, string> = {};
-  for (const [country, path] of Object.entries(REGION_HOME_PATH) as [Country, string][]) {
-    for (const tag of hreflangTags(country)) map[tag] = `${SITE_URL}${path === "/" ? "" : path}`;
-  }
-  map["x-default"] = SITE_URL;
-  return map;
-}
-
-const TITLE_PLACE: Record<Exclude<Country, "US">, string> = {
-  AU: "Australia",
-  UK: "UK",
-  SG: "Singapore",
-  CA: "Canada",
-  EU: "Europe",
-};
-
-// Google truncates near 60 characters: the first candidate that fits wins.
-const TITLE_MAX = 60;
-const firstFit = (candidates: string[]) => candidates.find((t) => t.length <= TITLE_MAX) ?? candidates[candidates.length - 1];
-
-// eBay is named in the home copy only while its Browse API is switched on
-// (`ebayLive`, from getSiteStats): until then eBay is a search link, not a
-// price we compare, and the title must not claim otherwise.
-export function homeTitle(liveStores: number | null | undefined, ebayLive = false): string {
-  const n = liveStores && liveStores > 0 ? liveStores : null;
-  const e = ebayLive ? " + eBay" : "";
-  return firstFit([
-    ...(n ? [`MTG Card Prices: Live Price Guide, ${n} Stores${e}`, `MTG Card Prices: ${n} Stores${e}, Updated Daily`] : []),
-    `MTG Card Prices: Live Price Guide, Stores${e}`,
-  ]);
-}
-
-export function regionHomeTitle(region: Exclude<Country, "US">, liveStores: number | null | undefined): string {
-  const n = liveStores && liveStores > 0 ? liveStores : null;
-  const place = TITLE_PLACE[region];
-  return firstFit([
-    ...(n ? [`MTG Card Prices ${place}: Compare ${n} ${region} Stores`] : []),
-    `MTG Card Prices ${place}: Compare ${region} Stores`,
-    `MTG Card Prices ${place}`,
-  ]);
-}
-
-export function homeDescription(cards: number | null | undefined, liveStores: number | null | undefined, ebayLive = false): string {
-  const c = cards && cards > 0 ? `${cards.toLocaleString("en-US")} cards` : "every card";
-  const s = liveStores && liveStores > 0 ? `${liveStores} stores` : "tracked stores";
-  return `Compare Magic: The Gathering prices for ${c} across ${s}${ebayLive ? " + eBay" : ""} — price check any card across six markets, cheapest first. Updated daily.`;
-}
-
-export function regionHomeDescription(region: Exclude<Country, "US">, cards: number | null | undefined, liveStores: number | null | undefined): string {
-  const info = COUNTRIES[region];
-  const c = cards && cards > 0 ? `${cards.toLocaleString("en-US")} cards` : "every card";
-  const s = liveStores && liveStores > 0 ? `${liveStores} ${info.adjective} stores` : `tracked ${info.adjective} stores`;
-  return `Compare Magic: The Gathering prices in ${info.place}: ${c} across ${s} in ${info.currency}, cheapest first. Updated daily.`;
-}
-
-export function homeSocialTitle(liveStores: number | null | undefined, ebayLive = false): string {
-  const n = liveStores && liveStores > 0 ? liveStores : null;
-  return n ? `MTG Compare: Magic prices across ${n} stores${ebayLive ? " + eBay" : ""}` : "MTG Compare: Magic: The Gathering prices, compared";
-}
-
-export function homeSocialDescription(liveStores: number | null | undefined, ebayLive = false): string {
-  const s = liveStores && liveStores > 0 ? `${liveStores} stores` : "the stores we track";
-  return `Compare Magic: The Gathering card and sealed prices across ${s}${ebayLive ? " and eBay" : ""} in six markets, cheapest first.`;
+/**
+ * JSON-LD for a <script> tag. Store titles flow into this, so "<" is escaped:
+ * a title containing "</script>" must not be able to close the tag.
+ */
+export function jsonLd(data: unknown): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
 }
 
 /**
- * The title of a blog post for a feed or a teaser. `Post.title` takes the catalogue today (`cat.pricesAt` puts the month in a title)
- * and a smaller context once the editorial package has rewritten the posts (REQ-WP15-5): this adapter hands over the one field titles
- * read, and feeds, the news sitemap and the editorial band no longer need a catalogue to print a headline.
+ * A name as a title or H1 says it: "Pokémon " in front, unless the name already says Pokémon (or Pokemon, any case, accented or
+ * not): "Pitch Black" → "Pokémon Pitch Black", "Pokémon Center Elite Trainer Box" stays as it is. Searchers type the word; a set
+ * or product name alone ("Perfect Order") is ambiguous outside the hobby, and "Pokémon Pokémon Center…" reads as a bug.
  */
-export function postTitle(post: { title: (ctx: never) => string }, pricesAt: string | null | undefined): string {
-  return post.title({ cat: { pricesAt: pricesAt || new Date().toISOString() } } as never);
+export function withPokemon(name: string): string {
+  const plain = name.normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+  return /pokemon/i.test(plain) ? name : `Pokémon ${name}`;
+}
+
+// The eurozone is one market with one page per URL (/eu/…), but nobody in Germany searches with en-IE. These are the euro
+// countries whose English-language searches DexCompare's EU stores serve: the same /eu URL is listed under each, beside en-IE.
+export const EU_HREFLANGS: readonly string[] = ["en-DE", "en-NL", "en-FR", "en-BE", "en-AT", "en-ES", "en-IT", "en-FI", "en-PT", "en-LU"];
+
+/**
+ * Canonical + hreflang alternates for a page that exists at /<region><rest>.
+ * Two call shapes, same result:
+ *   regionAlternates("/au/p/slug", regions?)      — the page's own path
+ *   regionAlternates("au", "/p/slug", regions?)   — region + rest
+ *
+ * `regions` is the set of regions to ADVERTISE — pass only the ones where this
+ * page is indexable (a product's regions with a comparable listing, say), as
+ * codes or RegionInfos. The default is all seven, right for pages that always
+ * have content (region home, /sealed, /sets, /stores). The page's own region
+ * is always included. x-default is the landing page (the region chooser) for
+ * a region home, and otherwise the US copy when it is advertised
+ * (xDefaultRegion) — never a copy the page is not indexable in.
+ */
+export function regionAlternates(path: string, regions?: ReadonlyArray<Region | RegionInfo>): Metadata["alternates"];
+export function regionAlternates(region: Region, rest: string, regions?: ReadonlyArray<Region | RegionInfo>): Metadata["alternates"];
+export function regionAlternates(a: string, b?: string | ReadonlyArray<Region | RegionInfo>, c?: ReadonlyArray<Region | RegionInfo>): Metadata["alternates"] {
+  let region: string;
+  let rest: string;
+  let regions: ReadonlyArray<Region | RegionInfo>;
+  if (typeof b === "string") {
+    region = a;
+    rest = b;
+    regions = c ?? REGION_LIST;
+  } else {
+    const [first, ...more] = a.split("/").filter(Boolean);
+    region = first ?? "";
+    rest = more.length ? `/${more.join("/")}` : "";
+    regions = b ?? REGION_LIST;
+  }
+  if (!isRegion(region)) return { canonical: `${SITE_URL}${a.startsWith("/") ? a : `/${a}`}` };
+  const codes = regions.map((r) => (typeof r === "string" ? r : r.region)).filter(isRegion);
+  if (!codes.includes(region)) codes.unshift(region);
+  const languages: Record<string, string> = {};
+  for (const r of REGION_LIST) {
+    if (!codes.includes(r.region)) continue;
+    languages[r.hreflang] = `${SITE_URL}/${r.region}${rest}`;
+    if (r.region === "eu") for (const h of EU_HREFLANGS) languages[h] = `${SITE_URL}/eu${rest}`;
+  }
+  languages["x-default"] = rest ? `${SITE_URL}/${xDefaultRegion(codes)}${rest}` : `${SITE_URL}/`;
+  return { canonical: `${SITE_URL}/${region}${rest}`, languages };
+}
+
+/**
+ * The site's own share card (src/app/opengraph-image.tsx, 1200×630), for every page that has no image of its own. Named
+ * explicitly: a page's openGraph object replaces its parents' whole, so the root's file-based image would be lost on any page
+ * that sets openGraph, which is every page that goes through pageMeta.
+ */
+export const DEFAULT_OG_IMAGE = { url: `${SITE_URL}/opengraph-image`, width: 1200, height: 630, alt: SITE_NAME };
+
+/** A share card drawn by lib/og-card.tsx at one of the /og routes: a region home's (/og/au) or a guide's (/og/guides/<slug>). */
+export function ogCardImage(path: string, alt: string) {
+  return { url: `${SITE_URL}${path}`, width: 1200, height: 630, alt };
+}
+
+export function pageMeta(opts: {
+  title: string;
+  description: string;
+  path: string;
+  alternates?: Metadata["alternates"];
+  image?: string | null;
+  noindex?: boolean;
+  /**
+   * og:type. "product" is not in Next's openGraph union, so it goes out through
+   * `other` and openGraph carries no `type` key at all — a `type: undefined`
+   * key makes Next's generator throw "Invalid OpenGraph type: undefined" and
+   * the page 500.
+   */
+  ogType?: "website" | "product";
+}): Metadata {
+  const product = opts.ogType === "product";
+  return {
+    title: opts.title,
+    description: opts.description,
+    alternates: opts.alternates ?? { canonical: `${SITE_URL}${opts.path}` },
+    openGraph: {
+      title: opts.title,
+      description: opts.description,
+      url: `${SITE_URL}${opts.path}`,
+      siteName: SITE_NAME,
+      ...(product ? {} : { type: "website" }),
+      images: opts.image ? [{ url: opts.image }] : [DEFAULT_OG_IMAGE],
+    },
+    ...(product ? { other: { "og:type": "product" } } : {}),
+    // Every page has a large image now (its own, or the site's card), so every share gets the large card.
+    twitter: { card: "summary_large_image", title: opts.title, description: opts.description },
+    ...(opts.noindex ? { robots: { index: false, follow: true } } : {}),
+  };
+}
+
+// ─── JSON-LD builders ────────────────────────────────────────────────────────
+// One place for the shapes, so every page says the same thing about the site.
+// Each returns a plain object; render with jsonLd() inside a <script>.
+
+export const ORG_ID = `${SITE_URL}/#org`;
+export const WEBSITE_ID = `${SITE_URL}/#site`;
+
+export function organizationJsonLd() {
+  return {
+    "@type": "Organization",
+    "@id": ORG_ID,
+    name: SITE_NAME,
+    url: SITE_URL,
+    logo: `${SITE_URL}/logo.svg`,
+    description: SITE_TAGLINE,
+    contactPoint: { "@type": "ContactPoint", email: CONTACT_EMAIL, contactType: "customer support", url: `${SITE_URL}/contact` },
+    ...(SOCIAL_LINKS.length ? { sameAs: SOCIAL_LINKS } : {}),
+  };
+}
+
+// The site search is per region (/<region>/sealed?q=); the x-default region's
+// is the one to advertise.
+export function websiteJsonLd() {
+  return {
+    "@type": "WebSite",
+    "@id": WEBSITE_ID,
+    name: SITE_NAME,
+    url: SITE_URL,
+    publisher: { "@id": ORG_ID },
+    potentialAction: {
+      "@type": "SearchAction",
+      target: { "@type": "EntryPoint", urlTemplate: `${SITE_URL}/${X_DEFAULT_REGION}/sealed?q={search_term_string}` },
+      "query-input": "required name=search_term_string",
+    },
+  };
+}
+
+/** The root layout's graph: Organization + WebSite, once per page. */
+export function siteJsonLd() {
+  return { "@context": "https://schema.org", "@graph": [organizationJsonLd(), websiteJsonLd()] };
+}
+
+export function breadcrumbJsonLd(items: { href?: string; label: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((it, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: it.label,
+      ...(it.href ? { item: `${SITE_URL}${it.href}` } : {}),
+    })),
+  };
+}
+
+/**
+ * A product page's Product + AggregateOffer, from the region's OPEN listings
+ * only (in stock or pre-order, in the region's currency). Never TCGplayer's
+ * US$ offer outside the US, and never a sold-out price: the page shows none
+ * when nothing is open, and so does this.
+ */
+export function productJsonLd(p: {
+  name: string;
+  path: string; // "/au/p/<slug>"
+  image?: string | null;
+  productType: string;
+  setName?: string | null;
+  currency: string;
+  lowCents: number;
+  highCents: number;
+  offerCount: number;
+  preorder?: boolean;
+  /** One sentence of the page's own facts (the product page's value check), never eBay's data or a claim about the past. */
+  description?: string | null;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: p.name,
+    ...(p.description ? { description: p.description } : {}),
+    ...(p.image ? { image: p.image } : {}),
+    brand: { "@type": "Brand", name: "Pokémon" },
+    category: `Pokémon TCG ${p.productType}`,
+    ...(p.setName ? { isRelatedTo: { "@type": "Thing", name: p.setName } } : {}),
+    url: `${SITE_URL}${p.path}`,
+    offers: {
+      "@type": "AggregateOffer",
+      url: `${SITE_URL}${p.path}`,
+      priceCurrency: p.currency,
+      lowPrice: (p.lowCents / 100).toFixed(2),
+      highPrice: (p.highCents / 100).toFixed(2),
+      offerCount: p.offerCount,
+      availability: p.preorder ? "https://schema.org/PreOrder" : "https://schema.org/InStock",
+      // Sealed product from stores (and TCGplayer's sealed listings): every offer compared is new. eBay is never in here.
+      itemCondition: "https://schema.org/NewCondition",
+    },
+  };
+}
+
+/**
+ * An ItemList for a set, type or browse page: the products it lists, in the
+ * order shown. Cap it (the first 50 is plenty for a crawler) — the page's grid
+ * is the full list.
+ */
+export function itemListJsonLd(opts: { name: string; path: string; items: { path: string; name: string; image?: string | null }[]; take?: number }) {
+  const items = opts.items.slice(0, opts.take ?? 50);
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: opts.name,
+    url: `${SITE_URL}${opts.path}`,
+    numberOfItems: opts.items.length,
+    itemListElement: items.map((it, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      url: `${SITE_URL}${it.path}`,
+      name: it.name,
+      ...(it.image ? { image: it.image } : {}),
+    })),
+  };
+}
+
+/**
+ * A guide's Article. Author and publisher are DexCompare (the Organization), never an invented person. `published` and
+ * `updated` are ISO editorial dates ("2026-10-14"), never the data refresh time. The image is the site's share card unless the
+ * guide has its own.
+ */
+export function articleJsonLd(a: { title: string; description: string; path: string; published: string; updated: string; image?: string | null }) {
+  const org = { "@type": "Organization", "@id": ORG_ID, name: SITE_NAME, url: SITE_URL };
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: a.title,
+    description: a.description,
+    url: `${SITE_URL}${a.path}`,
+    mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}${a.path}` },
+    datePublished: a.published,
+    dateModified: a.updated,
+    image: a.image || DEFAULT_OG_IMAGE.url,
+    inLanguage: "en",
+    author: org,
+    publisher: { ...org, logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.svg` } },
+  };
+}
+
+/** The region a path's first segment names, if any: "/au/sets" → REGIONS.au. */
+export function regionOfPath(pathname: string): RegionInfo | null {
+  const first = pathname.split("/").filter(Boolean)[0];
+  return isRegion(first) ? REGIONS[first] : null;
 }

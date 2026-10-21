@@ -1,37 +1,82 @@
-// Inline stroke icons (24px grid, currentColor) — no icon font, no network.
-const PATHS: Record<string, string> = {
-  tag: "M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9-9-9Z M7.5 7.5h.01",
-  search: "M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z M21 21l-4.35-4.35",
-  wrench: "M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4 2.6-2.6Z",
-  compass: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z M15.5 8.5l-2 5-5 2 2-5 5-2Z",
-  info: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z M12 11v5 M12 8h.01",
-  book: "M4 4h10a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4V4Z M4 16a4 4 0 0 1 4-4h10",
-  heart: "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z",
-  sun: "M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z M12 1v2 M12 21v2 M4.2 4.2l1.4 1.4 M18.4 18.4l1.4 1.4 M1 12h2 M21 12h2 M4.2 19.8l1.4-1.4 M18.4 5.6l1.4-1.4",
-  moon: "M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z",
-  menu: "M3 6h18 M3 12h18 M3 18h18",
-  x: "M18 6 6 18 M6 6l12 12",
-  chevron: "M6 9l6 6 6-6",
-  right: "M9 6l6 6-6 6",
-  external: "M14 3h7v7 M10 14 21 3 M21 14v7H3V3h7",
-  up: "M12 19V5 M5 12l7-7 7 7",
-  down: "M12 5v14 M5 12l7 7 7-7",
-  box: "M21 8 12 3 3 8v8l9 5 9-5V8Z M3 8l9 5 9-5 M12 13v8",
-  chart: "M3 3v18h18 M7 15l4-4 3 3 5-6",
-  store: "M3 9l1.5-5h15L21 9 M3 9v11h18V9 M3 9h18 M9 20v-6h6v6",
-  sparkle: "M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z",
-  user: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z M4 21a8 8 0 0 1 16 0",
-  crown: "M3 8l4 4 5-7 5 7 4-4-2 11H5L3 8Z",
-  lock: "M6 11h12v10H6V11Z M8 11V7a4 4 0 0 1 8 0v4",
-  check: "M5 12l5 5L20 7",
-};
+import type { ReactNode } from "react";
 
-export function Icon({ name, className = "h-4 w-4", strokeWidth = 1.8 }: { name: keyof typeof PATHS | string; className?: string; strokeWidth?: number }) {
+// The site's few icons, as inline SVG: no icon font, no request, no layout shift (the box is sized before anything loads), and they
+// take the text colour (stroke="currentColor"), so light and dark mode need nothing. 24×24 grid, 2px round strokes. Decorative by
+// default (aria-hidden): the link or button around one carries the words. Pass `title` only for an icon that stands alone.
+// Each shape is a function, so no JSX runs when the module loads (the tests set globalThis.React after their imports).
+
+const PATHS = {
+  search: () => (
+    <>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m20 20-4.3-4.3" />
+    </>
+  ),
+  menu: () => <path d="M4 6h16M4 12h16M4 18h16" />,
+  close: () => <path d="M6 6l12 12M18 6 6 18" />,
+  tag: () => (
+    <>
+      <path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z" />
+      <circle cx="7.5" cy="7.5" r="1.5" />
+    </>
+  ),
+  calendar: () => (
+    <>
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M16 3v4M8 3v4M3 10h18" />
+    </>
+  ),
+  store: () => <path d="M3 10 5 4h14l2 6zM4.5 10v10h15V10M9.5 20v-5h5v5" />,
+  truck: () => (
+    <>
+      <path d="M3 6h11v10H3zM14 9h4l3 3.5V16h-7" />
+      <circle cx="7" cy="18" r="2" />
+      <circle cx="17" cy="18" r="2" />
+    </>
+  ),
+  clock: () => (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </>
+  ),
+  share: () => (
+    <>
+      <circle cx="18" cy="5" r="2.5" />
+      <circle cx="6" cy="12" r="2.5" />
+      <circle cx="18" cy="19" r="2.5" />
+      <path d="m8.2 13.3 7.6 4.4M15.8 6.3l-7.6 4.4" />
+    </>
+  ),
+  "arrow-right": () => <path d="M5 12h14M13 6l6 6-6 6" />,
+  check: () => <path d="m5 12.5 4.5 4.5L19 7.5" />,
+  info: () => (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 11v5M12 8h.01" />
+    </>
+  ),
+} satisfies Record<string, () => ReactNode>;
+
+export type IconName = keyof typeof PATHS;
+export const ICON_NAMES = Object.keys(PATHS) as IconName[];
+
+export function Icon({ name, size = 20, className = "", title, strokeWidth = 2 }: { name: IconName; size?: number; className?: string; title?: string; strokeWidth?: number }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      {(PATHS[name] ?? "").split(" M").map((d, i) => (
-        <path key={i} d={i === 0 ? d : `M${d}`} />
-      ))}
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={`shrink-0 ${className}`}
+      {...(title ? { role: "img", "aria-label": title } : { "aria-hidden": true, focusable: "false" })}
+    >
+      {title && <title>{title}</title>}
+      {PATHS[name]()}
     </svg>
   );
 }

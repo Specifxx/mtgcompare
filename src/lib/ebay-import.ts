@@ -1,669 +1,1128 @@
-// The eBay pass: search eBay for the (unit, market) pairs that are due and write each pair's result as soon as its search completes. Script-side only: run by scripts/ebay.ts from
-// .github/workflows/ebay-prices.yml (04:37, 10:37, 16:37 and 23:37 UTC), never from a page, a route or the import. It READS a checkout of the pointed data commit (scripts/plane-checkout.sh)
-// and WRITES NEON ONLY: EbayTrack, EbayBest, EbayPanel, EbayBanner, EbayLedger (and the ImportRun row scripts/ebay.ts keeps). eBay data is never written to GitHub (licence).
+// The daily eBay listing import: the PLAN (which feeds, how many Browse calls, in what order) and the RUN
+// (reserve a call, search, normalise, replace the feed's rows). Pure logic plus injected dependencies (the
+// database, the clock, fetch, the log), so tests/ run all of it with fakes and scripts/ebay-import.ts wires
+// it to Postgres and api.ebay.com. See DEPLOY.md, "eBay listings: the daily import" for the capacity model.
 //
-// The order of a run (ebay-brief 8.3b), every step failing CLOSED (zero Browse calls, a green run with a visible annotation):
-//   kill switch / credentials -> token -> live quota (+ the window's ledger row) -> observe-only? -> tiers and tracks from the catalogue -> allowance = min(ledger, remaining - reserve, run
-//   share, dispatch cap) -> quiet check (is Rift mid-run?) -> pairs in priority order, claimed from the ledger in chunks of 25, the quota re-read every chunk -> write COMPLETED searches only ->
-//   banner payload -> sweep at 72 h -> settle the ledger -> purge the Neon tags.
-// A COMPLETED search upserts the unit rows it found and deletes the ones it did not; a failed, 429'd or budget-refused search touches nothing, so the pair stays due and a run cut short never
-// removes a live listing. A 429 blocks the window in the ledger and ends the run (never retried).
-import type { PrismaClient } from "@prisma/client";
-import { MARKET_INDEX, marketFromIndex, type Country } from "./country";
-import { CARD_FLAGS, FINISH_INDEX, ORACLE_FLAGS, PRICE_MASK, SEALED_KINDS, fold, isChasePrinting, nkey, type Finish, type TreatmentKey } from "./constants";
-import type { CatRow, PxRow, SealedListFile, SetsFile } from "./data/plane/formats";
-import { bucketPath } from "./data/plane/shards";
-import type { TreeView } from "./data/plane/tree";
-import { convertUsdCents } from "./fx";
-import { BANNER_KEY, mergeBanner, parsePayload, tileOf, type BannerUpdate } from "./ebay-banner";
-import { selectChasePool, type ChaseCandidate } from "./ebay-chase-pool";
-import { EBAY_MARKETPLACE, ebaySpentThisRun, isEbayRateLimited, openEbayClient, searchBrowse, setCallGate, setEbayBudget, trustedQuota, fetchRemaining, MTG_SINGLES_CATEGORY, type BrowseItem } from "./ebay";
-import { CLAIM_CHUNK, Claimer, windowKeyOf, type LedgerStore, type RunRecord } from "./ebay-ledger";
+//   PRIORITY (spend in this order until the run cap is reached; a cap hit drops the LEAST valuable):
+//     1. chase    generic chase cards: 8 queries per marketplace, taken round-robin        (5 × 8   = 40 calls)
+//     2. sealed   generic sealed Pokémon: 6 queries per marketplace, classifier-checked     (5 × 6   = 30)
+//     3. types    one query per high-value product type per marketplace                     (5 × 9   = 45)
+//     4. sets     chase cards of the 30 most recently released sets, 1 query each           (5 × 30  = 150)
+//     5. sweep    the CATALOGUE SWEEP (ebay-sweep.ts): broad searches paged 200 listings a call, each listing
+//                 handed to the product the classifier says it is: an item feed for EVERY product it finds,
+//                 cheap ones included (EBAY_SWEEP_CALLS, default 2,100, shared by marketplace by product count × audience,
+//                 in MARKETPLACE_ORDER); each marketplace starts with the HOT PASS (the hot sets' own searches, at most
+//                 half its share)
+//     6. items    one query per (marketplace, product) the sweep did NOT cover, whatever the sweep left of the run cap:
+//                 first the HOT-SET products of the priority marketplaces (US, UK, EU), any type and price (packs and
+//                 cheap ones too), by hot rank, then marketplace, then value; then every ELIGIBLE key (core), then,
+//                 budget permitting, downward by price to US$25 (extension), each tier ranked by reference price ×
+//                 market weight (sold-out ×1.5)
+//   A "feed" is what the strips read (ebay-context.ts). Marketplaces: au+nz share EBAY_AU, us+sg share EBAY_US,
+//   uk EBAY_GB, ca EBAY_CA, eu EBAY_DE. The owner's priorities (which sets are hot, which markets come first) live in popular.ts.
+import { searchTerms } from "./affiliate";
+import { referenceUsd, tierOf, type Tier } from "./ebay-eligibility";
+import { createTokenManager, EbayError, searchPage, type Deps, type SearchSpec, type TokenManager } from "./ebay-api";
 import {
-  CARD_LIMIT, SEALED_LIMIT, cardFilter, cardQuery, nameTarget, pickListing, panelListings, screenGraded, screenName, screenSealed, sealedFilter, sealedQuery, selfMatches, unitKeyOf,
-  type EbayListing, type GradedListing, type NameUnit, type SealedTarget,
-} from "./ebay-match";
+  feedKey,
+  feedReference,
+  hoursToMs,
+  MARKET_WEIGHT,
+  MARKETPLACE_IDS,
+  MARKETPLACE_OF_REGION,
+  MARKETPLACES,
+  MAX_FEED_ROWS,
+  minRowsFor,
+  parseMaxAgeHours,
+  purgeCutoff as purgeCutoffFor,
+  type FeedItem,
+  type FeedKind,
+  type MarketplaceId,
+} from "./ebay-context";
 import {
-  FailureBreaker, SEALED_MARKETS, SINGLES_MARKETS, TIER, allocate, allowanceFor, classAllowance, combineQueries, duePairs, ebayConfigFromEnv, effectiveCap, foreignObserved,
-  pairKey, pairWrite, parseOnlyMarket, planRun, popularityOf, purposeOfSchedule, recordedConfig, reserveFor, scoreOf, sealedPop,
-  type EbayConfig, type EbayMarket, type Pair, type QueryStatus, type QuotaReading, type RunPurpose, type StopReason, type TierCode, type Unit,
-} from "./ebay-plan";
-import type { BannerPayloadV1, BannerTile } from "./data/ebay";
-import type { MatchRow, SealedRef } from "./match";
+  CHASE_FLOOR,
+  lowestPriceFirst,
+  normaliseChase,
+  normaliseItemFeed,
+  normaliseSealed,
+  normaliseSetChase,
+  normaliseType,
+  roundRobin,
+  SEALED_FLOOR_USD,
+  typeFloor,
+  usdToMarketplace,
+  type ItemTarget,
+} from "./ebay-normalise";
+import { budgetDay, type ImportDb, type PlanRow } from "./ebay-store";
+import { buildSweepIndex, hotSweepQueries, marketplaceShares, SweepCollector, sweepSignatureSets, sweepVocabulary, sweepWithHot, type QueryProgress, type SweepIndex } from "./ebay-sweep";
+import { HOT_SET_QUERY, HOT_SETS, hotRank, isHotSet, PRIORITY_MARKETPLACES } from "./popular";
+import type { Region } from "./regions";
+import { normalizeTitle, roughUsdCents, TYPE_BY_KEY, TYPE_BY_LABEL, TYPE_BY_SLUG, type TypeKey } from "./sealed-title";
+import { SET_BY_CODE, SETS, type PokemonSet } from "./sets";
 
-type Log = (...a: unknown[]) => void;
-const annotate = (level: "warning" | "error", title: string, msg: string) => console.log(`::${level} title=${title}::${msg}`);
-const DAY = 86_400_000;
+// ─── Tunables ──────────────────────────────────────────────────────────────────
 
-// ── 1. reading the published tree ────────────────────────────────────────────
+export const DEFAULT_RUN_CAP = 2500;
+export const DEFAULT_DAILY_CAP = 2500;
+/** Calls the catalogue sweep may spend (of what the fixed feeds leave); the per-product searches get the rest. EBAY_SWEEP_CALLS overrides. */
+/**
+ * Measured on the first full run (2026-10-11): the sweep wrote 4,673 item feeds with 1,800 calls (2.6 a call); the 408 per-product
+ * searches after it found listings for 150 products (0.37 a call). So the sweep gets most of the day.
+ */
+export const DEFAULT_SWEEP_CALLS = 2100;
+/** Feeds the sweep writes per database transaction. */
+export const SWEEP_WRITE_BATCH = 100;
+/** The hard ceiling for the daily cap setting: eBay's default limit is 5,000 a day for the whole application, shared with the owner's other site. */
+export const MAX_DAILY_CAP = 2500;
+export const CONCURRENCY = 3;
+/**
+ * Circuit breaker: this many searches in a row that FAILED (a 400/5xx after its retry, malformed JSON, or HTTP 200 with no listings and
+ * a warning from eBay) stop the run. A persistent failure is a configuration problem, not noise, and must not burn the day's calls. Any
+ * search that returns listings resets the count. (A 403, or a 401 that survives the token refresh, stops the run at once.)
+ */
+export const BREAKER_FAILURES = 6;
+/** ...and this many in a row that came back with no listings at all (HTTP 200, nothing in itemSummaries, no warning). Real searches are rarely empty back to back. */
+export const BREAKER_EMPTY = 30;
+/**
+ * A feed whose rows are younger than this is not bought again (a re-run, an overlapping run, a retry after a crash, an accidental
+ * re-dispatch) unless forced. Never more than a quarter of the age bound, so the compliant mode's 4-hourly runs always buy again.
+ */
+export const FRESH_SKIP_HOURS = 2;
+export const FRESH_SKIP_SHARE = 0.25;
+export const freshWindowMs = (env: { EBAY_LISTING_MAX_AGE_HOURS?: string }) => Math.min(hoursToMs(FRESH_SKIP_HOURS), hoursToMs(parseMaxAgeHours(env.EBAY_LISTING_MAX_AGE_HOURS)) * FRESH_SKIP_SHARE);
+/** Retries, beyond a search's first try, a run may make: 5% of the plan plus a few. They count against the run cap like any search. */
+export const retryAllowance = (planned: number) => Math.ceil(planned * 0.05) + 5;
+/** A progress line (calls today against the caps) every this many searches. */
+export const PROGRESS_EVERY = 250;
 
-export interface Printing {
-  id: number; setId: number; setCode: string | null; setName: string | null; kind: string; releasedOn: string | null; label: string | null; treat: TreatmentKey[]; flags: number; cls: number;
-  rarity: string; oracleNo: number; marketN: number | null; marketF: number | null; lowN: number | null; lowF: number | null; mask: number; c7: number | null; rowNames: string[]; setNames: string[]; nkey: string | null; abbr: string | null;
-  trackedN: boolean; trackedF: boolean; listed: boolean;
+export const ITEM_LIMIT = 50; // results fetched per item search
+export const ITEM_KEEP = 8; // stored per item feed
+export const SET_FEED_COUNT = 30;
+export const SOLD_OUT_BOOST = 1.5;
+
+// ─── Eligibility ───────────────────────────────────────────────────────────────
+// (ebay-eligibility.ts: shared with the product page, which places its strip by it.)
+
+export interface ItemKey {
+  marketplace: MarketplaceId;
+  productId: string;
+  name: string;
+  type: TypeKey;
+  groupKey: string;
+  setCode: string | null;
+  /** The highest reference price among the marketplace's regions that list the product, US$. */
+  usd: number;
+  soldOut: boolean;
+  tier: Exclude<Tier, "no">;
+  /** usd × the marketplace's weight × 1.5 when sold out: the order the budget is spent in within a tier. */
+  value: number;
 }
-export interface OracleInfo { no: number; name: string; edhrecRank: number | null; reserved: boolean; layout: string }
-export interface SealedInfo { id: number; name: string; kind: string; setCode: string | null; setName: string | null; releasedOn: string | null; presale: boolean; marketCents: number | null }
-export interface CatalogueView { day: string; printings: Printing[]; oracles: Map<number, OracleInfo>; sealed: SealedInfo[] }
 
-const rd = <T,>(t: TreeView, rel: string): T | null => { if (!t.has(rel)) return null; try { return JSON.parse(t.read(rel)) as T; } catch { return null; } };
-
-/** The catalogue of a published tree (cat, px, or, meta/sets, sl/list): everything the pass needs, read once. */
-export function readCatalogue(t: TreeView, day: string): CatalogueView {
-  const sets = new Map<number, { code: string | null; name: string; tcgName: string; kind: string; releasedOn: string | null; abbr: string | null }>();
-  for (const r of rd<SetsFile>(t, "meta/sets.json")?.sets ?? []) sets.set(r[0], { code: (r[9] as string | 0) || null, name: r[4], tcgName: (r[5] as string | 0) || r[4], kind: r[6], releasedOn: (r[7] as string | 0) || null, abbr: r[3] ? r[3].toLowerCase() : null });
-  const scry = new Map<string, string>();
-  for (const s of rd<{ sets: [string, string][] }>(t, "meta/scrysets.json")?.sets ?? []) scry.set(s[0], s[1]);
-  const oracles = new Map<number, OracleInfo>();
-  for (const f of t.files()) {
-    if (!f.startsWith("or/")) continue;
-    for (const r of rd<{ o: (string | number)[][] }>(t, f)?.o ?? []) oracles.set(Number(r[0]), { no: Number(r[0]), name: String(r[3]), edhrecRank: r[10] ? Number(r[10]) : null, reserved: (Number(r[11]) & ORACLE_FLAGS.RESERVED) !== 0, layout: r[12] ? String(r[12]) : "normal" });
-  }
-  const buckets = rd<{ cat: number[] }>(t, "meta/buckets.json")?.cat ?? [];
-  const printings: Printing[] = [];
-  for (const b of buckets) {
-    const px = new Map<number, PxRow>((rd<{ p: PxRow[] }>(t, bucketPath("px", b))?.p ?? []).map((r) => [r[0], r]));
-    for (const c of (rd<{ c: CatRow[] }>(t, bucketPath("cat", b))?.c ?? [])) {
-      const p = px.get(c[0]);
-      if (!p) continue;
-      const s = sets.get(c[4]);
-      const sc = (c[5] as string | 0) || s?.code || null;
-      const o = c[14] ? oracles.get(c[14]) : undefined;
-      const names = new Set<string>();
-      const add = (v: string | number | null | undefined): void => { const q = fold(v == null || v === 0 ? "" : String(v)); if (q) names.add(q); };
-      add(c[2]); add(c[3]); add(c[17]); add(o?.name); for (const part of (o?.name ?? String(c[2])).split(" // ")) add(part);
-      const setNames = new Set<string>();
-      const sn = (v: string | null | undefined): void => { const q = fold(v); if (q) setNames.add(q); };
-      if (c[5]) sn(scry.get(String(c[5])));
-      if (s) { sn(s.tcgName); for (const pre of ["Commander: ", "Universes Beyond: ", "Art Series: ", "Promo Pack: "]) if (s.tcgName.startsWith(pre)) sn(s.tcgName.slice(pre.length)); }
-      const mask = p[5];
-      const c7a = p[6] ?? null, c7b = p[9] ?? null;
-      printings.push({
-        id: c[0], setId: c[4], setCode: sc, setName: s?.name ?? null, kind: s?.kind ?? "expansion", releasedOn: s?.releasedOn ?? null, label: (c[11] as string | 0) || null, treat: c[10] ? (c[10].split(" ") as TreatmentKey[]) : [], flags: c[12],
-        cls: c[9], rarity: c[8], oracleNo: Number(c[14]) || 0, marketN: p[1], marketF: p[2], lowN: p[3], lowF: p[4], mask, c7: c7a != null || c7b != null ? (Math.abs(c7a ?? 0) >= Math.abs(c7b ?? 0) ? c7a : c7b) : null,
-        rowNames: [...names], setNames: [...setNames], nkey: nkey((c[6] as string | 0) || null), abbr: s?.abbr ?? null,
-        trackedN: (mask & PRICE_MASK.TRACKN) !== 0, trackedF: (mask & PRICE_MASK.TRACKF) !== 0, listed: (mask & PRICE_MASK.LISTED) !== 0,
-      });
-    }
-  }
-  const sealed: SealedInfo[] = [];
-  for (const f of t.files()) {
-    if (!/^sl\/list-\d+\.json$/.test(f)) continue;
-    for (const r of rd<SealedListFile>(t, f)?.s ?? []) {
-      if (r[7] & 2) continue;                                                       // GONE
-      const set = r[3] ? sets.get(r[3] as number) : undefined;
-      sealed.push({ id: r[0], name: r[2], kind: r[4], setCode: set?.code ?? null, setName: set?.name ?? null, releasedOn: (r[6] as string | 0) || set?.releasedOn || null, presale: (r[7] & 1) !== 0, marketCents: r[8] });
-    }
-  }
-  return { day, printings, oracles, sealed };
-}
-
-/** Name = Oracle when the printing has one, else the folded TCG name. */
-export const refOfPrinting = (p: Printing, oracleName?: string): string => (p.oracleNo ? `o:${p.oracleNo}` : `n:${fold(oracleName ?? p.rowNames[0] ?? String(p.id))}`);
-
-export interface NameInfo { ref: string; name: string; printings: Printing[]; tracked: Printing[] }
-export interface OwnSignals { percentile: Map<string, number>; totalViews: number; watchers: Map<string, number> }
-export interface Built { units: Unit[]; names: Map<string, NameInfo>; sealed: Map<string, SealedInfo>; candidates: ChaseCandidate[]; unmatchable: number }
-
-const isHiddenKind = (kind: string): boolean => kind === "art-series" || kind === "oversized";
-/** The units of the allocator and the candidates of the chase pool from a catalogue. Pure. Low-only units never count (marketOnlyCents). */
-export function buildUnits(view: CatalogueView, today: string, own: OwnSignals | null, cfg: EbayConfig): Built {
-  const names = new Map<string, NameInfo>();
-  for (const p of view.printings) {
-    if (p.cls !== 0 || !p.listed || isHiddenKind(p.kind)) continue;
-    const o = p.oracleNo ? view.oracles.get(p.oracleNo) : undefined;
-    const ref = refOfPrinting(p, o?.name);
-    let n = names.get(ref);
-    if (!n) names.set(ref, (n = { ref, name: o?.name ?? p.rowNames[0] ?? String(p.id), printings: [], tracked: [] }));
-    n.printings.push(p);
-    if (p.trackedN || p.trackedF) n.tracked.push(p);
-  }
-  const units: Unit[] = [];
-  const candidates: ChaseCandidate[] = [];
-  const nowMs = Date.parse(today);
-  for (const n of names.values()) {
-    let v = 0, chase = false, recent = false, chg: number | null = null;
-    for (const p of n.tracked) {
-      const best = Math.max(p.trackedN ? p.marketN ?? 0 : 0, p.trackedF ? p.marketF ?? 0 : 0);
-      v = Math.max(v, best);
-      if (best >= 2000 && isChasePrinting({ treat: p.treat, flags: p.flags })) chase = true;
-      if (p.releasedOn && nowMs - Date.parse(p.releasedOn) <= 45 * DAY) recent = true;
-      if (p.c7 != null && (chg == null || Math.abs(p.c7) > Math.abs(chg))) chg = p.c7;
-    }
-    const o = n.printings[0]!.oracleNo ? view.oracles.get(n.printings[0]!.oracleNo) : undefined;
-    // the chase pool's candidates: one per (printing, finish) with its own market, whatever its tracking bit
-    for (const p of n.printings) {
-      const lang = p.treat.some((k) => k.startsWith("lang-")) ? "other" : "en";
-      const hasArt = (p.flags & (CARD_FLAGS.SCRYIMG | CARD_FLAGS.TCGIMG)) !== 0;
-      for (const f of ["N", "F"] as const) {
-        const market = f === "N" ? p.marketN : p.marketF;
-        if (market == null) continue;
-        const etched = f === "F" && (p.flags & CARD_FLAGS.ETCHED) !== 0;
-        candidates.push({
-          id: p.id, nameKey: n.ref, setCode: p.setCode ?? "", setKind: p.kind, releasedOn: p.releasedOn, rarity: p.rarity, finish: f === "N" ? "nonfoil" : etched ? "etched" : "foil", treatments: p.treat,
-          chase: isChasePrinting({ treat: p.treat, flags: p.flags }), reserved: o?.reserved ?? false, edhrecRank: o?.edhrecRank ?? null, marketCents: market, lowCents: f === "N" ? p.lowN : p.lowF, hasArt, cls: p.cls,
-          layout: o?.layout ?? "normal", lang, popularity: own?.percentile.get(n.ref) ?? null, ownWeight: own ? Math.min(1, own.totalViews / 50_000) : 0,
-        });
+/**
+ * Every (marketplace, product) item key the product data makes eligible, ranked: core by value (then product id,
+ * so the order is stable), then the extension by value. Only regions where the product has a ProductStat row
+ * count: a product no AU or NZ store lists has no EBAY_AU key.
+ */
+export function itemKeys(rows: readonly PlanRow[]): ItemKey[] {
+  const by = new Map<string, { marketplace: MarketplaceId; row: PlanRow; usd: number; anyOpen: boolean }>();
+  for (const r of rows) {
+    const type = TYPE_BY_LABEL.get(r.typeLabel)?.key;
+    const usd = referenceUsd(r);
+    const region = r.market.toLowerCase() as Region;
+    const marketplace = MARKETPLACE_OF_REGION[region];
+    if (!type || usd == null || !marketplace) continue;
+    const k = `${marketplace}|${r.productId}`;
+    const cur = by.get(k);
+    const open = r.openCents != null;
+    if (!cur) by.set(k, { marketplace, row: r, usd, anyOpen: open });
+    else {
+      cur.anyOpen = cur.anyOpen || open;
+      if (usd > cur.usd) {
+        cur.usd = usd;
+        cur.row = r;
       }
     }
-    if (v < cfg.minValueCents) continue;
-    const pop = popularityOf({ edhrecRank: o?.edhrecRank ?? null, reserved: o?.reserved ?? false, ownPercentile: own?.percentile.get(n.ref) ?? null, totalViews: own?.totalViews ?? 0, watchers: own?.watchers.get(n.ref) ?? 0, change7dPct: chg, valueCents: v });
-    units.push({ ref: n.ref, kind: "single", name: n.name, valueCents: v, pop, chase, recent, banner: false });
   }
-  const sealed = new Map<string, SealedInfo>();
-  const year = 365 * DAY;
-  for (const s of view.sealed) {
-    if (s.marketCents == null || !SEALED_KINDS.includes(s.kind as (typeof SEALED_KINDS)[number])) continue;
-    const ref = `p:${s.id}`;
-    sealed.set(ref, s);
-    const rel = s.releasedOn ? nowMs - Date.parse(s.releasedOn) <= year : false;
-    units.push({ ref, kind: "sealed", name: s.name, valueCents: s.marketCents, pop: sealedPop({ ownPercentile: own?.percentile.get(ref) ?? null, releasedWithin12Months: rel || s.presale, valueCents: s.marketCents }), chase: false, recent: false, banner: false, sealedKind: s.kind });
+  const out: ItemKey[] = [];
+  for (const { marketplace, row, usd, anyOpen } of by.values()) {
+    const type = TYPE_BY_LABEL.get(row.typeLabel)!.key;
+    const tier = tierOf(type, usd);
+    if (tier === "no") continue;
+    out.push({
+      marketplace,
+      productId: row.productId,
+      name: row.name,
+      type,
+      groupKey: row.groupKey,
+      setCode: row.setCode,
+      usd,
+      soldOut: !anyOpen,
+      tier,
+      value: usd * MARKET_WEIGHT[marketplace] * (anyOpen ? 1 : SOLD_OUT_BOOST),
+    });
   }
-  return { units, names, sealed, candidates, unmatchable: 0 };
+  const tierRank = (t: ItemKey) => (t.tier === "core" ? 0 : 1);
+  return out.sort((a, b) => tierRank(a) - tierRank(b) || b.value - a.value || a.productId.localeCompare(b.productId) || a.marketplace.localeCompare(b.marketplace));
 }
 
-/** The matcher rows of ONE name: every class-0 printing of the oracle (tracked or not), so a title that fits an untracked sibling is a miss for the tracked one. */
-export function matchRowsOf(n: NameInfo): MatchRow[] {
-  return n.printings.map((p): MatchRow => ({
-    id: p.id, groupId: p.setId, names: p.rowNames, sc: p.setCode, setNames: p.setNames, nkey: p.nkey, treat: p.treat, hasN: p.marketN != null || (p.mask & PRICE_MASK.HASN) !== 0, hasF: p.marketF != null || (p.mask & PRICE_MASK.HASF) !== 0,
-    etched: (p.flags & CARD_FLAGS.ETCHED) !== 0, rootId: null, cls: p.cls, label: p.label, abbr: p.abbr,
-  }));
-}
-export function unitsOf(n: NameInfo): NameUnit[] {
-  return n.printings.map((p) => ({
-    id: p.id, setCode: p.setCode, setName: p.setName, label: p.label, hasN: p.marketN != null || (p.mask & PRICE_MASK.HASN) !== 0, hasF: p.marketF != null || (p.mask & PRICE_MASK.HASF) !== 0, etched: (p.flags & CARD_FLAGS.ETCHED) !== 0,
-    marketN: p.marketN, marketF: p.marketF,
-  }));
+/** A product the per-product searches buy first because its set is hot (popular.ts), whatever its type or price. */
+export interface HotKey {
+  marketplace: MarketplaceId;
+  productId: string;
+  name: string;
+  type: TypeKey;
+  groupKey: string;
+  setCode: string;
+  /** The set's place in HOT_SETS (0 = the most wanted). */
+  rank: number;
+  /** The highest reference price among the marketplace's regions that list it, US$ (null: no price known). */
+  usd: number | null;
+  /** usd × the marketplace's weight × 1.5 when sold out (as itemKeys); 0 with no price. */
+  value: number;
 }
 
-// ── 2. tracks ────────────────────────────────────────────────────────────────
+/**
+ * Every (PRIORITY marketplace, hot-set product) key: the products of popular.ts HOT_SETS listed in the US, UK or EU, ANY type and ANY
+ * price (booster packs and cheap ones included: no eligibility rule), ordered by the set's hot rank, then MARKETPLACE_ORDER, then
+ * value (then product id, so the order is stable). Only regions where the product has a ProductStat row count, as for itemKeys.
+ */
+export function hotItemKeys(rows: readonly PlanRow[], today = "9999-12-31"): HotKey[] {
+  const priority = new Set<string>(PRIORITY_MARKETPLACES);
+  // A hot set that is not out yet gets nothing (popular.ts): its listings are pre-sales, which the normaliser refuses anyway.
+  const released = (code: string | null) => !!code && (SET_BY_CODE.get(code)?.releaseDate ?? "9999-12-31") <= today;
+  const by = new Map<string, { marketplace: MarketplaceId; row: PlanRow; usd: number | null; anyOpen: boolean }>();
+  for (const r of rows) {
+    if (!isHotSet(r.setCode) || !released(r.setCode)) continue;
+    const marketplace = MARKETPLACE_OF_REGION[r.market.toLowerCase() as Region];
+    if (!marketplace || !priority.has(marketplace) || !TYPE_BY_LABEL.has(r.typeLabel)) continue;
+    const usd = referenceUsd(r);
+    const k = `${marketplace}|${r.productId}`;
+    const cur = by.get(k);
+    const open = r.openCents != null;
+    if (!cur) by.set(k, { marketplace, row: r, usd, anyOpen: open });
+    else {
+      cur.anyOpen = cur.anyOpen || open;
+      if (usd != null && (cur.usd == null || usd > cur.usd)) {
+        cur.usd = usd;
+        cur.row = r;
+      }
+    }
+  }
+  const order = (m: MarketplaceId) => MARKETPLACE_ORDER.indexOf(m);
+  return [...by.values()]
+    .map(({ marketplace, row, usd, anyOpen }): HotKey => ({
+      marketplace,
+      productId: row.productId,
+      name: row.name,
+      type: TYPE_BY_LABEL.get(row.typeLabel)!.key,
+      groupKey: row.groupKey,
+      setCode: row.setCode!,
+      rank: hotRank(row.setCode),
+      usd,
+      value: usd == null ? 0 : usd * MARKET_WEIGHT[marketplace] * (anyOpen ? 1 : SOLD_OUT_BOOST),
+    }))
+    .sort((a, b) => a.rank - b.rank || order(a.marketplace) - order(b.marketplace) || b.value - a.value || a.productId.localeCompare(b.productId));
+}
 
-export interface TrackRow { ref: string; market: EbayMarket; tier: TierCode; score: number; banner: boolean; checkedAt: Date | null; dueAt: Date | null; matched: boolean }
-/** The rows EbayTrack should hold: only names that are searched somewhere (tier C has no row), one per market they are searched in. Pure. */
-export function wantedTracks(units: readonly Unit[], tiers: ReadonlyMap<string, TierCode>, scores: ReadonlyMap<string, number>, poolOrder: readonly string[], cfg: EbayConfig): Omit<TrackRow, "checkedAt" | "dueAt" | "matched">[] {
-  const out: Omit<TrackRow, "checkedAt" | "dueAt" | "matched">[] = [];
-  const pool = new Map(poolOrder.map((r, i) => [r, i] as const));
-  for (const u of units) {
-    const t = tiers.get(u.ref) ?? TIER.C;
-    const banner = pool.has(u.ref);
-    if (t === TIER.C && !banner) continue;
-    const markets = new Set<EbayMarket>();
-    if (t === TIER.A || t === TIER.B) markets.add("US");
-    if (t === TIER.SEALED) for (const m of SEALED_MARKETS) markets.add(m);
-    if (banner) { markets.add("US"); if ((pool.get(u.ref) ?? 99) < cfg.bannerOtherNames) for (const m of ["UK", "AU", "EU"] as const) markets.add(m); }
-    for (const m of markets) out.push({ ref: u.ref, market: m, tier: banner && t === TIER.C ? TIER.BANNER : t, score: scores.get(u.ref) ?? scoreOf({ valueCents: u.valueCents, pop: u.pop, chase: u.chase, recent: u.recent }), banner });
+// ─── Queries ───────────────────────────────────────────────────────────────────
+
+/**
+ * Marketplaces in the order the budget is spent: the owner's priority ones first (popular.ts PRIORITY_MARKETPLACES: US, UK, EU), then
+ * the rest by audience weight (AU, CA), so a cap hit drops EBAY_CA before EBAY_US.
+ */
+export const MARKETPLACE_ORDER: readonly MarketplaceId[] = [
+  ...PRIORITY_MARKETPLACES,
+  ...MARKETPLACE_IDS.filter((m) => !(PRIORITY_MARKETPLACES as readonly string[]).includes(m)).sort((a, b) => MARKET_WEIGHT[b] - MARKET_WEIGHT[a] || a.localeCompare(b)),
+];
+
+export const CHASE_QUERIES = [
+  "Charizard ex special illustration rare",
+  "Umbreon ex special illustration rare",
+  "Pikachu ex special illustration rare",
+  "Mega Charizard X ex",
+  "Mewtwo ex special illustration rare",
+  "PSA 10 Charizard",
+  "Gengar ex special illustration rare",
+  "Rayquaza ex special illustration rare",
+] as const;
+
+export const SEALED_QUERIES = [
+  "booster box sealed",
+  "elite trainer box sealed",
+  "ultra premium collection sealed",
+  "booster bundle sealed",
+  "pokemon center elite trainer box sealed",
+  "premium collection box sealed",
+] as const;
+
+/** The high-value types that get their own feed (a type page's strip), with what they search for. */
+export const TYPE_FEEDS: readonly { type: TypeKey; query: string }[] = [
+  { type: "booster-box", query: "booster box sealed" },
+  { type: "etb", query: "elite trainer box sealed" },
+  { type: "pc-etb", query: "pokemon center elite trainer box sealed" },
+  { type: "upc", query: "ultra premium collection sealed" },
+  { type: "booster-box-case", query: "booster box case sealed" },
+  { type: "etb-case", query: "elite trainer box case sealed" },
+  { type: "booster-bundle-case", query: "booster bundle case sealed" },
+  { type: "build-battle-stadium", query: "build and battle stadium sealed" },
+  { type: "collection", query: "premium collection box sealed" },
+];
+
+// Sets named with a common word: a keyword search for "Evolutions", "Generations" or "Celebrations" returns cards of every set.
+const COMMON_WORD_SETS = new Set(["xy12", "g1", "cel25"]);
+
+/** The most recently released sets whose name is a good chase-card search (not a series name, not a common word, already out). */
+export function setFeedSets(today: string, n = SET_FEED_COUNT, sets: readonly PokemonSet[] = SETS): PokemonSet[] {
+  return sets.filter((s) => s.releaseDate <= today && !s.generic && !COMMON_WORD_SETS.has(s.code)).slice(0, n);
+}
+
+const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, ""); // "Pokémon GO" → "Pokemon GO"
+
+export function setQuery(s: PokemonSet): string {
+  const suffix = s.series === "Mega Evolution" || s.series === "Scarlet & Violet" ? "special illustration rare" : s.series === "Sword & Shield" ? "alt art" : "full art";
+  return `${fold(s.name)} ${suffix}`;
+}
+
+/**
+ * "Pokemon <product name, cleaned>", at most 100 characters (cut at a word). No "sealed": eBay requires every keyword, and many sealed
+ * listings never say it (762 of 1,735 item searches came back with nothing on 2026-10-10); the classifier refuses singles and lots.
+ */
+export function itemQuery(name: string): string {
+  const terms = searchTerms(name);
+  const q = /\bpokemon\b/i.test(terms) ? terms : `Pokemon ${terms}`;
+  const t = q.replace(/\s+/g, " ").trim();
+  if (t.length <= 100) return t;
+  const cut = t.slice(0, 100);
+  return cut.slice(0, Math.max(cut.lastIndexOf(" "), 40)).trim();
+}
+
+const prefixed = (q: string) => `Pokemon ${q}`.slice(0, 100);
+
+// ─── The plan ──────────────────────────────────────────────────────────────────
+
+export type Bucket = "chase" | "sealed" | "types" | "sets" | "sweep" | "items";
+export const BUCKETS: readonly Bucket[] = ["chase", "sealed", "types", "sets", "sweep", "items"];
+
+export type Rule =
+  | { kind: "chase" }
+  | { kind: "sealed" }
+  | { kind: "type"; type: TypeKey }
+  | { kind: "set"; setCode: string }
+  | { kind: "item"; target: ItemTarget };
+
+export interface PlanFeed {
+  feed: string;
+  bucket: Bucket;
+  kind: FeedKind;
+  marketplace: MarketplaceId;
+  /** One Browse call per entry. */
+  searches: SearchSpec[];
+  rule: Rule;
+  /** items only: the eligible key it buys (absent for a hot-set product that is not an eligible key) */
+  item?: ItemKey;
+  /** items only: a hot-set product of a priority marketplace (hotItemKeys), bought before every eligible key */
+  hot?: boolean;
+}
+
+export interface Plan {
+  feeds: PlanFeed[];
+  /** Browse calls the plan makes (the sum of its searches). */
+  calls: number;
+  cap: number;
+  byBucket: Record<Bucket, { feeds: number; calls: number; wanted: number; wantedCalls: number; fresh: number }>;
+  /** Eligible item keys (core and extension) and how many the cap reached. */
+  items: { core: number; extension: number; coreCovered: number; extensionCovered: number };
+  /** The catalogue sweep's share of the cap (0 when it is not wanted or nothing is left for it). */
+  sweepBudget: number;
+  /** Every eligible key, in budget order (for the capacity report). */
+  keys: ItemKey[];
+}
+
+const feedFor = (b: Bucket, kind: FeedKind, marketplace: MarketplaceId, arg: string | undefined, searches: SearchSpec[], rule: Rule): PlanFeed => ({
+  feed: feedKey(marketplace, kind, arg),
+  bucket: b,
+  kind,
+  marketplace,
+  searches,
+  rule,
+});
+
+/** The fixed (non-item) feeds, in priority order. */
+export function fixedFeeds(today: string): PlanFeed[] {
+  const out: PlanFeed[] = [];
+  for (const mp of MARKETPLACE_ORDER) {
+    out.push(feedFor("chase", "chase", mp, undefined, CHASE_QUERIES.map((q) => ({ q: prefixed(q), marketplace: mp, limit: 20, minPrice: CHASE_FLOOR[MARKETPLACES[mp].currency], ref: feedReference(mp, "chase") })), { kind: "chase" }));
+  }
+  for (const mp of MARKETPLACE_ORDER) {
+    const min = usdToMarketplace(SEALED_FLOOR_USD, mp);
+    out.push(feedFor("sealed", "sealed", mp, undefined, SEALED_QUERIES.map((q) => ({ q: prefixed(q), marketplace: mp, limit: 30, minPrice: min, ref: feedReference(mp, "sealed") })), { kind: "sealed" }));
+  }
+  for (const mp of MARKETPLACE_ORDER) {
+    for (const t of TYPE_FEEDS) {
+      out.push(feedFor("types", "type", mp, TYPE_BY_KEY.get(t.type)!.slug, [{ q: prefixed(t.query), marketplace: mp, limit: 50, minPrice: typeFloor(t.type, mp), ref: feedReference(mp, "type") }], { kind: "type", type: t.type }));
+    }
+  }
+  for (const s of setFeedSets(today)) {
+    for (const mp of MARKETPLACE_ORDER) {
+      out.push(feedFor("sets", "set", mp, s.slug, [{ q: prefixed(setQuery(s)), marketplace: mp, limit: 30, minPrice: CHASE_FLOOR[MARKETPLACES[mp].currency], ref: feedReference(mp, "set") }], { kind: "set", setCode: s.code }));
+    }
   }
   return out;
 }
 
-// ── 3. the Neon facade (a narrow interface: the pass is tested against memory) ──
-
-export interface PanelEntry { finish: 0 | 1; priceCents: number; shipCents: number | null; currency: string; itemId: string; title: string; image: string | null; rank: number }
-export interface GradedEntry { grader: string; grade: string; priceCents: number; shipCents: number | null; currency: string; itemId: string; title: string; image: string | null }
-export interface PairWrite {
-  ref: string; market: EbayMarket; at: Date; matched: boolean;
-  best: { productId: number; finish: Finish; market: EbayMarket; row: { priceCents: number; shipCents: number | null; itemId: string } | null }[];
-  panels: { productId: number; market: EbayMarket; listings: PanelEntry[]; graded: GradedEntry[] }[];
-}
-export interface EbayStore {
-  readTracks(): Promise<TrackRow[]>;
-  syncTracks(want: Omit<TrackRow, "checkedAt" | "dueAt" | "matched">[]): Promise<{ written: number; removed: number }>;
-  writePair(w: PairWrite): Promise<void>;
-  readBanner(): Promise<unknown>;
-  writeBanner(payload: BannerPayloadV1): Promise<void>;
-  sweep(before: Date): Promise<void>;
-  paused(): Promise<boolean>;
-  ourSpend24h(now: Date): Promise<number>;
-  ownSignals(): Promise<{ stats: Map<number, { s: number; v: number }> }>;
+/**
+ * The words a product of a set in HOT_SET_QUERY is searched by: its name with the set's own name swapped for the keyword sellers
+ * use ("30th Celebration Elite Trainer Box" → "30th Elite Trainer Box", which "30th Anniversary" listings match; "Scarlet & Violet 151
+ * Booster Bundle" → "151 Booster Bundle"). Any other product: its name.
+ */
+export function hotQueryName(name: string, setCode: string | null): string {
+  const term = setCode ? HOT_SET_QUERY[setCode] : undefined;
+  const set = setCode ? SET_BY_CODE.get(setCode) : undefined;
+  if (!term || !set) return name;
+  const words = (t: string) => normalizeTitle(t).split(/[^A-Za-z0-9]+/).filter((w) => w && w.toLowerCase() !== "and"); // "&" / "and" are separators
+  const nameRe = words(set.name).map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("[\\s&:,.'\\-–—]*(?:and[\\s]*)?");
+  let rest = normalizeTitle(name).replace(new RegExp(`\\b${nameRe}\\b`, "gi"), " ");
+  if (setCode === "cel30") rest = rest.replace(/\b30th\s+anniversary(?:\s+celebration)?\b/gi, " ");
+  rest = rest.replace(/^\s*pokemon(?:\s+tcg\s*[:\-–—]?|\s*[:\-–—])/i, " "); // a leading "Pokemon TCG:" (itemQuery puts "Pokemon" first again; "Pokemon Center" stays)
+  rest = rest.replace(/^[\s\-–—:,]+|[\s\-–—:,]+$/g, "").replace(/\s+/g, " ");
+  const hasTerm = new RegExp(`\\b${term}\\b`, "i").test(rest);
+  return hasTerm ? rest : `${term} ${rest}`.trim();
 }
 
-const dbMarket = (m: EbayMarket): number => MARKET_INDEX[m as Country];
-
-export function prismaEbayStore(db: PrismaClient): EbayStore {
+/** One product's own search: "Pokemon <cleaned name>" (a hot set's keyword in place of its name), the type's price floor, the item normaliser. */
+function productFeed(k: Pick<ItemKey, "marketplace" | "productId" | "name" | "type" | "groupKey" | "setCode">): PlanFeed {
   return {
-    async readTracks() {
-      const rows = await db.ebayTrack.findMany({ select: { ref: true, market: true, tier: true, score: true, banner: true, checkedAt: true, dueAt: true, matched: true } });
-      return rows.map((r) => ({ ref: r.ref, market: marketFromIndex(r.market) as EbayMarket, tier: r.tier as TierCode, score: r.score, banner: r.banner, checkedAt: r.checkedAt, dueAt: r.dueAt, matched: r.matched }));
-    },
-    async syncTracks(want) {
-      const have = await db.ebayTrack.findMany({ select: { ref: true, market: true, tier: true, score: true, banner: true } });
-      const key = (r: { ref: string; market: number }) => `${r.ref}|${r.market}`;
-      const haveBy = new Map<string, (typeof have)[number]>(have.map((r) => [key(r), r] as const));
-      const wantBy = new Map<string, (typeof want)[number]>(want.map((w) => [`${w.ref}|${dbMarket(w.market)}`, w] as const));
-      const ops = [];
-      let written = 0;
-      for (const [k, w] of wantBy) {
-        const h = haveBy.get(k);
-        if (h && h.tier === w.tier && h.banner === w.banner && Math.abs(h.score - w.score) < 1e-3 * Math.max(1, h.score)) continue;     // diff-guarded: an unchanged row is not rewritten
-        written++;
-        ops.push(db.ebayTrack.upsert({ where: { ref_market: { ref: w.ref, market: dbMarket(w.market) } }, create: { ref: w.ref, market: dbMarket(w.market), tier: w.tier, score: w.score, banner: w.banner }, update: { tier: w.tier, score: w.score, banner: w.banner } }));
-      }
-      const gone = have.filter((h) => !wantBy.has(key(h)));
-      for (const g of gone) ops.push(db.ebayTrack.delete({ where: { ref_market: { ref: g.ref, market: g.market } } }));
-      for (let i = 0; i < ops.length; i += 200) await db.$transaction(ops.slice(i, i + 200));
-      return { written, removed: gone.length };
-    },
-    async writePair(w) {
-      const m = dbMarket(w.market);
-      const ops = [];
-      for (const b of w.best) {
-        const where = { productId_finish_market: { productId: b.productId, finish: FINISH_INDEX[b.finish], market: dbMarket(b.market) } };
-        if (b.row) ops.push(db.ebayBest.upsert({ where, create: { productId: b.productId, finish: FINISH_INDEX[b.finish], market: dbMarket(b.market), ...b.row, checkedAt: w.at }, update: { ...b.row, checkedAt: w.at } }));
-        else ops.push(db.ebayBest.deleteMany({ where: { productId: b.productId, finish: FINISH_INDEX[b.finish], market: dbMarket(b.market) } }));
-      }
-      for (const p of w.panels) {
-        if (p.listings.length || p.graded.length) {
-          ops.push(db.ebayPanel.upsert({
-            where: { productId_market: { productId: p.productId, market: dbMarket(p.market) } },
-            create: { productId: p.productId, market: dbMarket(p.market), checkedAt: w.at, listings: p.listings as object[], graded: p.graded as object[] },
-            update: { checkedAt: w.at, listings: p.listings as object[], graded: p.graded as object[] },
-          }));
-        } else ops.push(db.ebayPanel.deleteMany({ where: { productId: p.productId, market: dbMarket(p.market) } }));
-      }
-      ops.push(db.ebayTrack.updateMany({ where: { ref: w.ref, market: m }, data: { checkedAt: w.at, matched: w.matched, dueAt: null } }));
-      await db.$transaction(ops);
-    },
-    async readBanner() { return (await db.ebayBanner.findUnique({ where: { key: BANNER_KEY }, select: { payload: true } }))?.payload ?? null; },
-    async writeBanner(payload) { await db.ebayBanner.upsert({ where: { key: BANNER_KEY }, create: { key: BANNER_KEY, payload: payload as object }, update: { payload: payload as object } }); },
-    async sweep(before) { await db.ebayPanel.deleteMany({ where: { checkedAt: { lt: before } } }); await db.ebayBest.deleteMany({ where: { checkedAt: { lt: before } } }); },
-    async paused() { return (await db.meta.findUnique({ where: { key: "ebay.paused" }, select: { value: true } }))?.value === "1"; },
-    async ourSpend24h(now) {
-      const rows = await db.importRun.findMany({ where: { kind: "ebay", startedAt: { gte: new Date(now.getTime() - DAY) } }, select: { summary: true } });
-      return rows.reduce((s, r) => s + (Number((r.summary as { spent?: unknown } | null)?.spent) || 0), 0);
-    },
-    async ownSignals() {
-      const rows = await db.cardStat.findMany({ select: { cardId: true, searchCount: true, viewCount: true }, orderBy: { viewCount: "desc" }, take: 20_000 });
-      return { stats: new Map(rows.map((r) => [r.cardId, { s: r.searchCount, v: r.viewCount }] as const)) };
-    },
+    feed: feedKey(k.marketplace, "item", k.productId),
+    bucket: "items",
+    kind: "item",
+    marketplace: k.marketplace,
+    searches: [{ q: itemQuery(hotQueryName(k.name, k.setCode)), marketplace: k.marketplace, limit: ITEM_LIMIT, minPrice: typeFloor(k.type, k.marketplace), ref: feedReference(k.marketplace, "item") }],
+    rule: { kind: "item", target: { groupKey: k.groupKey, type: k.type, setCode: k.setCode } },
   };
 }
 
-/** An in-memory store for tests and dry runs: the same rules, the data in plain maps. */
-export function memoryEbayStore(): EbayStore & { tracks: Map<string, TrackRow>; best: Map<string, PairWrite["best"][number]["row"] & { checkedAt: Date }>; panels: Map<string, { listings: PanelEntry[]; graded: GradedEntry[]; checkedAt: Date }>; banner: { payload: unknown }; writes: number; pausedFlag: boolean; spend24: number } {
-  const s = {
-    tracks: new Map<string, TrackRow>(), best: new Map<string, PairWrite["best"][number]["row"] & { checkedAt: Date }>(), panels: new Map<string, { listings: PanelEntry[]; graded: GradedEntry[]; checkedAt: Date }>(),
-    banner: { payload: null as unknown }, writes: 0, pausedFlag: false, spend24: 0,
+const itemFeed = (k: ItemKey): PlanFeed => ({ ...productFeed(k), item: k });
+
+/**
+ * The per-product searches, in the order they are bought (before the cap and the sweep's coverage are applied): first the hot-set
+ * products of the priority marketplaces (hotItemKeys: any type, any price), then every eligible key not already among them (itemKeys'
+ * order: core by value, then the extension). A hot product that is also an eligible key keeps its ItemKey (`item`), so it still counts
+ * as a covered core or extension key.
+ */
+export function perProductFeeds(rows: readonly PlanRow[], keys: readonly ItemKey[] = itemKeys(rows), today?: string): PlanFeed[] {
+  const eligible = new Map(keys.map((k) => [feedKey(k.marketplace, "item", k.productId), k]));
+  const hot = hotItemKeys(rows, today).map((h): PlanFeed => {
+    const f = productFeed(h);
+    const item = eligible.get(f.feed);
+    return { ...f, hot: true, ...(item ? { item } : {}) };
+  });
+  const seen = new Set(hot.map((f) => f.feed));
+  return [...hot, ...keys.map(itemFeed).filter((f) => !seen.has(f.feed))];
+}
+
+export interface PlanOptions {
+  /** The most Browse calls the plan may make. */
+  cap: number;
+  /** The most the catalogue sweep may spend (DEFAULT_SWEEP_CALLS). */
+  sweepCalls?: number;
+  today: string;
+  only?: readonly Bucket[];
+  /** Feeds whose rows are fresh enough to keep (not bought again). They count as covered, cost nothing and do not end the plan. */
+  fresh?: ReadonlySet<string>;
+}
+
+/**
+ * Spend `cap` calls in priority order: chase, sealed, types, sets, the catalogue sweep's share, then the per-product searches
+ * (perProductFeeds: the hot-set products of the US, UK and EU first, then item keys, core by value, then the extension). The item
+ * feeds planned here are the PRE-plan: the run buys them only for products the sweep did not cover, and with whatever the sweep
+ * actually left (ebay-import.ts runImport).
+ */
+export function buildPlan(rows: readonly PlanRow[], opts: PlanOptions): Plan {
+  const want = (b: Bucket) => !opts.only || opts.only.includes(b);
+  const keys = itemKeys(rows);
+  const fixed = fixedFeeds(opts.today).filter((f) => want(f.bucket));
+  const items = perProductFeeds(rows, keys, opts.today).filter((f) => want(f.bucket));
+  const byBucket = Object.fromEntries(BUCKETS.map((b) => [b, { feeds: 0, calls: 0, wanted: 0, wantedCalls: 0, fresh: 0 }])) as Plan["byBucket"];
+  let left = Math.max(0, Math.floor(opts.cap));
+  const feeds: PlanFeed[] = [];
+  let calls = 0;
+  let stopped = false; // once a feed does not fit, nothing of lower priority is bought: a cap hit drops the LEAST valuable, never a hole in the middle
+  const itemsCount = { core: 0, extension: 0, coreCovered: 0, extensionCovered: 0 };
+  let sweepBudget = 0;
+  const visit = (f: PlanFeed) => {
+    const b = byBucket[f.bucket];
+    b.wanted++;
+    b.wantedCalls += f.searches.length;
+    if (f.item) itemsCount[f.item.tier]++;
+    if (opts.fresh?.has(f.feed)) {
+      b.fresh++; // refreshed recently (another run, earlier today): covered, not bought again
+      if (f.item) itemsCount[f.item.tier === "core" ? "coreCovered" : "extensionCovered"]++;
+      return;
+    }
+    if (stopped || f.searches.length > left) {
+      stopped = true;
+      return;
+    }
+    left -= f.searches.length;
+    calls += f.searches.length;
+    b.feeds++;
+    b.calls += f.searches.length;
+    if (f.item) itemsCount[f.item.tier === "core" ? "coreCovered" : "extensionCovered"]++;
+    feeds.push(f);
   };
-  const out: EbayStore & typeof s = {
-    ...s,
-    async readTracks() { return [...s.tracks.values()]; },
-    async syncTracks(want) {
-      const keys = new Set(want.map((w) => pairKey(w.ref, w.market)));
-      let written = 0, removed = 0;
-      for (const w of want) { const k = pairKey(w.ref, w.market); const h = s.tracks.get(k); if (!h || h.tier !== w.tier || h.banner !== w.banner) { written++; s.tracks.set(k, { ...w, checkedAt: h?.checkedAt ?? null, dueAt: null, matched: h?.matched ?? false }); } }
-      for (const k of [...s.tracks.keys()]) if (!keys.has(k)) { s.tracks.delete(k); removed++; }
-      return { written, removed };
-    },
-    async writePair(w) {
-      s.writes++;
-      for (const b of w.best) { const k = `${b.productId}|${b.finish}|${b.market}`; if (b.row) s.best.set(k, { ...b.row, checkedAt: w.at }); else s.best.delete(k); }
-      for (const p of w.panels) { const k = `${p.productId}|${p.market}`; if (p.listings.length || p.graded.length) s.panels.set(k, { listings: p.listings, graded: p.graded, checkedAt: w.at }); else s.panels.delete(k); }
-      const t = s.tracks.get(pairKey(w.ref, w.market)); if (t) { t.checkedAt = w.at; t.matched = w.matched; }
-    },
-    async readBanner() { return s.banner.payload; },
-    async writeBanner(p) { s.banner.payload = p; },
-    async sweep(before) { for (const [k, v] of s.panels) if (v.checkedAt < before) s.panels.delete(k); for (const [k, v] of s.best) if (v.checkedAt < before) s.best.delete(k); },
-    async paused() { return out.pausedFlag; },
-    async ourSpend24h() { return out.spend24; },
-    async ownSignals() { return { stats: new Map() }; },
-  };
+  for (const f of fixed) visit(f);
+  if (want("sweep")) {
+    const wanted = Math.max(0, Math.floor(opts.sweepCalls ?? DEFAULT_SWEEP_CALLS));
+    const b = byBucket.sweep;
+    b.wanted = MARKETPLACE_IDS.length;
+    b.wantedCalls = wanted;
+    sweepBudget = stopped ? 0 : Math.min(wanted, left);
+    if (sweepBudget > 0) {
+      b.feeds = MARKETPLACE_IDS.length;
+      b.calls = sweepBudget;
+      left -= sweepBudget;
+      calls += sweepBudget;
+    }
+  }
+  for (const f of items) visit(f);
+  return { feeds, calls, cap: opts.cap, byBucket, items: itemsCount, keys, sweepBudget };
+}
+
+// ─── Caps ──────────────────────────────────────────────────────────────────────
+
+const clampInt = (raw: string | undefined, def: number, lo: number, hi: number) => {
+  const s = (raw ?? "").trim();
+  if (!s) return def;
+  const n = Number(s);
+  return Number.isFinite(n) ? Math.min(Math.max(Math.floor(n), lo), hi) : def;
+};
+
+export interface CapEnv {
+  EBAY_DAILY_CAP?: string;
+  EBAY_RUN_CAP?: string;
+  EBAY_SWEEP_CALLS?: string;
+  EBAY_LISTING_MAX_AGE_HOURS?: string;
+}
+
+/** The daily cap (default 2500, clamped to 0..2500) and the per-run cap (default 2500). */
+export function capsFromEnv(env: CapEnv): { daily: number; run: number } {
+  return { daily: clampInt(env.EBAY_DAILY_CAP, DEFAULT_DAILY_CAP, 0, MAX_DAILY_CAP), run: clampInt(env.EBAY_RUN_CAP, DEFAULT_RUN_CAP, 0, MAX_DAILY_CAP) };
+}
+
+/** The catalogue sweep's call allowance (default 2,100, clamped to 0..2500). */
+export const sweepCallsFromEnv = (env: CapEnv) => clampInt(env.EBAY_SWEEP_CALLS, DEFAULT_SWEEP_CALLS, 0, MAX_DAILY_CAP);
+
+/** What this run may spend: min(run cap, what is left of today's daily cap, --max-calls). */
+export function runCap(caps: { daily: number; run: number }, usedToday: number, maxCalls?: number): number {
+  const left = Math.max(0, caps.daily - usedToday);
+  return Math.min(caps.run, left, maxCalls != null && Number.isFinite(maxCalls) ? Math.max(0, Math.floor(maxCalls)) : Infinity);
+}
+
+// ─── Normalising a search ──────────────────────────────────────────────────────
+
+/** The rows a feed would store from its searches' raw results (one list per search), or [] when nothing qualifies. */
+export function selectFeedItems(feed: PlanFeed, raw: readonly (readonly unknown[])[], now: number): FeedItem[] {
+  const r = feed.rule;
+  const mp = feed.marketplace;
+  const norm = (fn: (x: unknown) => FeedItem | null) => raw.map((list) => list.map(fn).filter((x): x is FeedItem => !!x));
+  switch (r.kind) {
+    case "chase":
+      return roundRobin(norm((x) => normaliseChase(x, mp, now)), MAX_FEED_ROWS);
+    case "sealed":
+      return roundRobin(norm((x) => normaliseSealed(x, mp, now)), MAX_FEED_ROWS);
+    case "type":
+      return roundRobin(norm((x) => normaliseType(x, mp, now, r.type)), MAX_FEED_ROWS);
+    case "set":
+      return roundRobin(norm((x) => normaliseSetChase(x, mp, now, r.setCode)), MAX_FEED_ROWS);
+    case "item":
+      return lowestPriceFirst(norm((x) => normaliseItemFeed(x, mp, now, r.target)).flat(), ITEM_KEEP);
+  }
+}
+
+// ─── The run ───────────────────────────────────────────────────────────────────
+
+export interface RunOptions {
+  dryRun?: boolean;
+  /** Buy feeds again even when their rows are fresh (a manual refresh). */
+  force?: boolean;
+  only?: readonly Bucket[];
+  maxCalls?: number;
+  concurrency?: number;
+}
+
+export interface ImportDeps {
+  db: ImportDb;
+  api: Deps;
+  env: CapEnv;
+  log: (line: string) => void;
+}
+
+export interface BucketResult {
+  planned: number;
+  refreshed: number;
+  failed: number;
+  skipped: number;
+  /** Feeds not bought because their rows were fresh (refreshed by an earlier or overlapping run). */
+  fresh: number;
+  /** Searches made for this bucket's feeds (retries included). */
+  calls: number;
+  emptied: number;
+  stored: number;
+  /** items only: eligible keys the catalogue sweep covered this run, so not searched one by one. */
+  covered: number;
+}
+
+/** What the catalogue sweep did in one marketplace: counts only. */
+export interface SweepReport {
+  marketplace: MarketplaceId;
+  products: number;
+  pages: number;
+  listings: number;
+  valid: number;
+  matched: number;
+  /** products with at least one listing */
+  found: number;
+  /** item feeds written (products with at least minRowsFor("item") listings) */
+  written: number;
+  /** the general queries (SWEEP_QUERIES) */
+  queries: QueryProgress[];
+  /** the hot pass's queries (hotSweepQueries), run first, and the pages they fetched (included in `pages`) */
+  hotQueries: QueryProgress[];
+  hotPages: number;
+}
+
+/** One hot set in one priority marketplace after the run: counts only. */
+export interface HotCoverage {
+  set: string;
+  marketplace: MarketplaceId;
+  /** products of the set the marketplace's regions list */
+  products: number;
+  /** ...of which have an item feed in the database after the run */
+  withFeed: number;
+}
+
+/** The per-product searches for hot-set products of the priority marketplaces (hotItemKeys): counts only. */
+export interface HotItems {
+  /** hot keys in all */
+  keys: number;
+  /** refreshed recently (not bought again) */
+  fresh: number;
+  /** covered by this run's sweep */
+  covered: number;
+  /** searched one by one this run */
+  searched: number;
+  /** ...of which wrote an item feed */
+  refreshed: number;
+}
+
+export interface RunSummary {
+  dryRun: boolean;
+  day: string;
+  caps: { daily: number; run: number };
+  usedBefore: number;
+  usedAfter: number;
+  plan: Plan;
+  buckets: Record<Bucket, BucketResult>;
+  searches: number;
+  retries: number;
+  purged: number;
+  purgedAtEnd: number;
+  /**
+   * why the run stopped early, if it did: "rate-limited" (429) | "cap" (the run cap or the daily cap: retries count against it,
+   * so the least valuable feeds of the plan were left for the next run) | "retries" (the retry allowance) |
+   * "token" | "forbidden" (401/403 on a search: the keyset has no Buy API access) | "failing" (BREAKER_FAILURES failed
+   * searches in a row) | "empty" (BREAKER_EMPTY searches in a row with no listings at all)
+   */
+  stopped: string | null;
+  /** the token failure's code and OAuth category, or the search failure's code (e.g. search-http-403), when that is why */
+  tokenError: string | null;
+  feedsRefreshed: number;
+  /**
+   * the fixed feeds and the per-product searches planned (the sweep is reported in `sweep`); a hot-set product that is not an eligible key
+   * (a pack, a cheap product) is best effort like the sweep: it is in `hotItems`, not here or in `feedsRefreshed` (the job's exit check)
+   */
+  feedsPlanned: number;
+  sweep: SweepReport[];
+  /** per hot set (HOT_SETS order) × priority marketplace: products with an item feed after the run / products listed */
+  hot: HotCoverage[];
+  hotItems: HotItems;
+  itemFeedsInDb: number;
+  rowsInDb: number;
+  oldestRowAgeMs: number | null;
+}
+
+/** Does a feed count in feedsPlanned / feedsRefreshed? All but a hot-set product's search that is not an eligible key (see RunSummary). */
+const counted = (f: PlanFeed) => !f.hot || !!f.item;
+
+const emptyBucket = (): BucketResult => ({ planned: 0, refreshed: 0, failed: 0, skipped: 0, fresh: 0, calls: 0, emptied: 0, stored: 0, covered: 0 });
+
+/** Delete listings older than the bound plus the grace (3.1(b): copies no longer required are deleted). The store import calls the same helper. */
+export function purgeCutoff(nowMs: number, env: CapEnv): Date {
+  return purgeCutoffFor(nowMs, env.EBAY_LISTING_MAX_AGE_HOURS);
+}
+
+/**
+ * Per hot set (HOT_SETS order) and priority marketplace: how many of the set's products the marketplace lists, and how many of those
+ * `hasFeed` says have an item feed. Counts only.
+ */
+export function hotCoverage(rows: readonly PlanRow[], hasFeed: (feed: string) => boolean, sets: readonly string[] = HOT_SETS): HotCoverage[] {
+  const ids = new Map<string, Set<string>>();
+  const wanted = new Set(sets);
+  for (const r of rows) {
+    if (!r.setCode || !wanted.has(r.setCode)) continue;
+    const mp = MARKETPLACE_OF_REGION[r.market.toLowerCase() as Region];
+    if (!mp) continue;
+    const k = `${r.setCode}|${mp}`;
+    const s = ids.get(k) ?? new Set<string>();
+    s.add(r.productId);
+    ids.set(k, s);
+  }
+  const out: HotCoverage[] = [];
+  for (const set of sets) {
+    for (const marketplace of PRIORITY_MARKETPLACES) {
+      const list = [...(ids.get(`${set}|${marketplace}`) ?? [])];
+      out.push({ set, marketplace, products: list.length, withFeed: list.filter((id) => hasFeed(feedKey(marketplace, "item", id))).length });
+    }
+  }
   return out;
 }
 
-// ── 4. the pass ──────────────────────────────────────────────────────────────
-
-export interface MarketStats { due: number; planned: number; searched: number; matched: number; failed: number; calls: number }
-export interface EbayPassSummary {
-  purpose: RunPurpose; mode: string; observeOnly: boolean; stop: StopReason | null; allowance: number; budgetDetail: Record<string, number | string | null>;
-  remainingStart: number | null; remainingEnd: number | null; limit: number | null; reset: string | null; windowKey: string | null;
-  spent: number; claimed: number; modelled: number; completed: number; matched: number; panels: number; banner: number;
-  byMarket: Record<string, MarketStats>; byClass: Record<string, number>; tiers: { A: number; B: number; C: number; sealed: number; banner: number; aMin: number | null; bMin: number | null };
-  latched: "429" | "budget" | "failures" | "reserve" | null; breaker?: string; tokenRefused?: true; unmatchable: number; rejects: Record<string, number>; foreignDelta: number | null; problems: string[];
-}
-export interface PassDeps {
-  tree: TreeView | null;
-  store: EbayStore;
-  ledger: LedgerStore;
-  env?: Record<string, string | undefined>;
-  /** the quiet check and the foreign-spend pause; tests pass 0 */
-  sleep?: (ms: number) => Promise<void>;
-  quietMs?: number;
-  /** purge the Neon tags after a run that wrote (POST /api/revalidate); absent: not called */
-  revalidate?: () => Promise<void>;
-  onProgress?: (spent: number) => Promise<void>;
-  schedule?: string | null;
+type StopWhy = "rate-limited" | "cap" | "retries" | "token" | "forbidden" | "failing" | "empty";
+class StopRun extends Error {
+  constructor(readonly why: StopWhy) {
+    super(why);
+  }
 }
 
-const realSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
-const emptyStats = (): MarketStats => ({ due: 0, planned: 0, searched: 0, matched: 0, failed: 0, calls: 0 });
-const bumpRej = (into: Record<string, number>, from: Record<string, number>): void => { for (const [k, v] of Object.entries(from)) into[k] = (into[k] ?? 0) + v; };
+export async function runImport(deps: ImportDeps, opts: RunOptions = {}): Promise<RunSummary> {
+  const { db, api, env, log } = deps;
+  const now = () => api.now();
+  const day = budgetDay(now());
+  const caps = capsFromEnv(env);
+  const dry = !!opts.dryRun;
 
-/** Percentile of 3 x searches + views across names, and the totals. Pure. */
-export function ownSignalsOf(stats: ReadonlyMap<number, { s: number; v: number }>, refOf: ReadonlyMap<number, string>): OwnSignals | null {
-  const perName = new Map<string, number>();
-  let totalViews = 0;
-  for (const [id, x] of stats) { totalViews += x.v; const r = refOf.get(id); if (r) perName.set(r, (perName.get(r) ?? 0) + 3 * x.s + x.v); }
-  if (!perName.size || totalViews <= 0) return null;
-  const sorted = [...perName.values()].sort((a, b) => a - b);
-  const percentile = new Map<string, number>();
-  for (const [r, v] of perName) percentile.set(r, sorted.filter((x) => x <= v).length / sorted.length);
-  return { percentile, totalViews, watchers: new Map() };
-}
+  if (!dry) await db.ensureTables();
+  let purged = 0;
+  if (!dry) purged = await db.purge(purgeCutoff(now(), env), day);
 
-export async function runEbayPass(log: Log, deps: PassDeps, opts: { now?: Date } = {}): Promise<EbayPassSummary> {
-  const now = opts.now ?? new Date();
-  const env = deps.env ?? process.env;
-  const sleep = deps.sleep ?? realSleep;
-  const { cfg, problems } = ebayConfigFromEnv(env);
-  for (const p of problems) { log(`config: ${p}`); annotate("warning", "eBay config", p); }
-  const only = parseOnlyMarket(env.EBAY_ONLY_MARKET);
-  const force = env.EBAY_FORCE === "1";
-  const dispatchCap = env.EBAY_DISPATCH_CAP;
-  // deps.schedule (scripts/ebay.ts passes EBAY_SCHEDULE from the workflow): the cron line decides, a dispatch is a main run. Without it (a local run) the clock decides: a cap or a force is a main run, so is 22:00-02:59 UTC
-  const hour = now.getUTCHours();
-  const purpose: RunPurpose = deps.schedule !== undefined ? purposeOfSchedule(deps.schedule) : force || (dispatchCap != null && dispatchCap !== "") || hour >= 22 || hour < 3 ? "main" : "banner";
-  const summary: EbayPassSummary = {
-    purpose, mode: cfg.keysetMode, observeOnly: cfg.observeOnly, stop: null, allowance: 0, budgetDetail: {}, remainingStart: null, remainingEnd: null, limit: null, reset: null, windowKey: null,
-    spent: 0, claimed: 0, modelled: 0, completed: 0, matched: 0, panels: 0, banner: 0, byMarket: {}, byClass: {}, tiers: { A: 0, B: 0, C: 0, sealed: 0, banner: 0, aMin: null, bMin: null },
-    latched: null, unmatchable: 0, rejects: {}, foreignDelta: null, problems,
-  };
-  const stopWith = (s: StopReason): EbayPassSummary => { summary.stop = s; return summary; };
-  if (!cfg.apiEnabled) { log("EBAY_API_ENABLED=0: the kill switch is on, 0 calls."); return stopWith("api-disabled"); }
-
-  // ── token and the live quota (free) ────────────────────────────────────────
-  const open = await openEbayClient((m) => log(m));
-  if (open.tokenRefused) { summary.tokenRefused = true; return summary; }
-  const q0 = trustedQuota(await fetchRemaining());
-  let quota: QuotaReading | null = q0;
-  if (quota) { summary.remainingStart = quota.remaining; summary.limit = quota.limit; summary.reset = quota.reset.toISOString(); }
-  else log("eBay quota: unreadable (shared mode spends nothing)");
-
-  // ── the ledger window ─────────────────────────────────────────────────────
-  let windowKey = quota ? windowKeyOf(quota.reset, quota.timeWindowSec) : now.toISOString().slice(0, 10);
-  const cap = quota ? effectiveCap(quota.limit, cfg) : cfg.dailyBudget;
-  let ledgerRow: Awaited<ReturnType<LedgerStore["open"]>> | null = null;
+  let usedBefore = 0;
   try {
-    ledgerRow = await deps.ledger.open(windowKey, cap, { limit: quota?.limit ?? null, resetAt: quota?.reset ?? null });
-    summary.windowKey = windowKey;
-    if (quota) await deps.ledger.sample(windowKey, { t: now.toISOString(), remaining: quota.remaining, limit: quota.limit });
-  } catch (e) { log(`eBay ledger unreachable: ${(e as Error).message}`); }
+    usedBefore = await db.used(day);
+  } catch (e) {
+    if (!dry) throw e; // a dry run may meet a database that has no tables yet
+  }
+  const cap = runCap(caps, usedBefore, opts.maxCalls);
+  const rows = await db.planRows();
+  // Every feed's age (also what the hot-set report counts from, with the feeds this run writes): read once, at the start.
+  let ages = new Map<string, Date>();
+  try {
+    ages = await db.feedAges();
+  } catch {
+    /* no table yet (a dry run before the first import): nothing is fresh */
+  }
+  // Feeds refreshed recently (an earlier run today, an overlapping one, a retry after a crash) are not bought again unless forced.
+  let fresh: Set<string> | undefined;
+  if (!opts.force) {
+    const freshMs = freshWindowMs(env);
+    fresh = new Set([...ages].filter(([, at]) => now() - at.getTime() < freshMs).map(([feed]) => feed));
+  }
+  const today = new Date(now()).toISOString().slice(0, 10);
+  const plan = buildPlan(rows, { cap, sweepCalls: sweepCallsFromEnv(env), today, only: opts.only, fresh });
 
-  // ── the catalogue: tiers, tracks, the chase pool (also when observing: the admin panel shows the plan) ──
-  let built: Built | null = null;
-  let units: Unit[] = [];
-  let poolOrder: string[] = [];
-  let poolCandidates: ChaseCandidate[] = [];
-  let alloc: ReturnType<typeof allocate> | null = null;
-  let tracks: TrackRow[] = [];
-  if (deps.tree) {
-    const day = (JSON.parse(deps.tree.has("status.json") ? deps.tree.read("status.json") : "{}") as { pointer?: { priceDay?: string } }).pointer?.priceDay ?? now.toISOString().slice(0, 10);
-    const view = readCatalogue(deps.tree, day);
-    const idsByRef = new Map<number, string>();
-    for (const p of view.printings) if (p.cls === 0) idsByRef.set(p.id, refOfPrinting(p, p.oracleNo ? view.oracles.get(p.oracleNo)?.name : undefined));
-    let own: OwnSignals | null = null;
-    try { own = ownSignalsOf((await deps.store.ownSignals()).stats, idsByRef); } catch { own = null; }
-    built = buildUnits(view, now.toISOString().slice(0, 10), own, cfg);
-    poolCandidates = selectChasePool(built.candidates, now.toISOString().slice(0, 10));
-    const seen = new Set<string>();
-    for (const c of poolCandidates) if (!seen.has(c.nameKey)) { seen.add(c.nameKey); poolOrder.push(c.nameKey); }
-    const poolRank = new Map(poolOrder.map((r, i) => [r, i] as const));
-    // Names that can never match a listing are never searched: no call is spent on a name whose own printings' canonical titles do not match them.
-    for (const u of built.units) {
-      if (u.kind !== "single") continue;
-      const n = built.names.get(u.ref)!;
-      if (!(u.valueCents >= cfg.minValueCents || poolRank.has(u.ref))) continue;
-      const t = nameTarget(n.name, matchRowsOf(n), unitsOf(n).filter((x) => n.tracked.some((p) => p.id === x.id)));
-      if (!selfMatches(t)) { u.matchable = false; summary.unmatchable++; }
-    }
-    units = built.units.map((u) => ({ ...u, banner: poolRank.has(u.ref) })).sort((a, b) => (poolRank.get(a.ref) ?? 1e9) - (poolRank.get(b.ref) ?? 1e9));
-    tracks = await deps.store.readTracks().catch(() => []);
-    const prev = new Map<string, TierCode>();
-    for (const t of tracks) if (!prev.has(t.ref) || t.tier === TIER.A || t.tier === TIER.B) prev.set(t.ref, t.tier);
-    alloc = allocate(units, cfg, prev);
-    summary.tiers = { ...alloc.counts, aMin: alloc.cut.aMin, bMin: alloc.cut.bMin };
-    const sync = await deps.store.syncTracks(wantedTracks(units, alloc.tiers, alloc.scores, poolOrder, cfg)).catch((e) => { log(`tracks: ${(e as Error).message}`); return null; });
-    if (sync) { log(`eBay tracks: ${sync.written} written, ${sync.removed} removed`); tracks = await deps.store.readTracks().catch(() => tracks); }
-    log(`eBay tiers: A ${alloc.counts.A} (V >= ${alloc.cut.aMin ?? "-"}c), B ${alloc.counts.B} (V >= ${alloc.cut.bMin ?? "-"}c), C ${alloc.counts.C}, sealed ${alloc.counts.sealed}, chase pool ${poolOrder.length} names; modelled ${Math.round(alloc.daily.total)} calls a day`);
-  } else log("eBay: no data checkout (nothing pulled: scripts/plane-pull.ts needs DATABASE_URL and a published tree; PLANE_BACKEND=github needs PLANE_REPO): tiers and tracks unchanged");
+  const buckets = Object.fromEntries(BUCKETS.map((b) => [b, emptyBucket()])) as Record<Bucket, BucketResult>;
+  for (const b of BUCKETS) {
+    buckets[b].planned = plan.byBucket[b].feeds;
+    buckets[b].fresh = plan.byBucket[b].fresh;
+    buckets[b].skipped = plan.byBucket[b].wanted - plan.byBucket[b].feeds - plan.byBucket[b].fresh;
+  }
+  // The sweep's marketplaces and the per-product searches are decided as the run goes (what the sweep covered, what it left).
+  buckets.sweep.planned = 0;
+  buckets.items.planned = 0;
+  const summary: RunSummary = {
+    dryRun: dry,
+    day,
+    caps,
+    usedBefore,
+    usedAfter: usedBefore,
+    plan,
+    buckets,
+    searches: 0,
+    retries: 0,
+    purged,
+    purgedAtEnd: 0,
+    stopped: null,
+    tokenError: null,
+    feedsRefreshed: 0,
+    feedsPlanned: plan.feeds.filter((f) => f.bucket !== "items").length,
+    sweep: [],
+    hot: [],
+    hotItems: { keys: 0, fresh: 0, covered: 0, searched: 0, refreshed: 0 },
+    itemFeedsInDb: 0,
+    rowsInDb: 0,
+    oldestRowAgeMs: null,
+  };
+  for (const line of startReport(summary, { maxCalls: opts.maxCalls, force: !!opts.force, freshMs: freshWindowMs(env) })) log(line);
 
-  // ── the allowance ─────────────────────────────────────────────────────────
-  const paused = await deps.store.paused().catch(() => false);
-  const ourSpend24h = await deps.store.ourSpend24h(now).catch(() => 0);
-  const runBase = {
-    cfg, now, quota, ledger: ledgerRow ? { cap: ledgerRow.cap, claimed: ledgerRow.claimed, blockedUntil: ledgerRow.blockedUntil } : null, paused, purpose, dispatchCap, ourSpend24h, log: (m: string) => log(m),
-  };
-  let a = allowanceFor(runBase);
-  summary.allowance = a.allowance; summary.budgetDetail = a.detail;
-  const finish = async (s: EbayPassSummary): Promise<EbayPassSummary> => {
-    if (ledgerRow) {
-      const rec: RunRecord = {
-        at: now.toISOString(), mode: cfg.keysetMode, purpose, claimed: s.claimed, spent: s.spent, remainingStart: s.remainingStart, remainingEnd: s.remainingEnd, foreignDelta: s.foreignDelta, stop: s.stop ?? s.latched,
-        byClass: s.byClass, byMarket: Object.fromEntries(Object.entries(s.byMarket).map(([k, v]) => [k, v.calls])), matched: s.matched, panels: s.panels,
-      };
-      await deps.ledger.record(windowKey, rec, { ...recordedConfig(cfg), reserve: typeof s.budgetDetail.reserve === "number" ? s.budgetDetail.reserve : null, remaining: s.remainingEnd ?? s.remainingStart, tiers: s.tiers, bannerNames: poolOrder.length, unmatchable: s.unmatchable, modelledDaily: alloc ? Math.round(alloc.daily.total) : null }).catch((e) => log(`ledger record: ${(e as Error).message}`));
-    }
-    return s;
-  };
-  if (a.allowance <= 0 || !built || !alloc || !ledgerRow) {
-    summary.stop = a.stop ?? (!built ? "no-budget" : "ledger-unreachable");
-    log(`eBay: 0 calls (${summary.stop}) ${JSON.stringify(a.detail)}`);
-    if (summary.stop === "quota-unreadable" || summary.stop === "ledger-unreachable") annotate("warning", "eBay budget", `no calls this run: ${summary.stop}`);
-    return finish(summary);
+  // Item feeds this run writes: the sweep's (`swept`, which also decides what the per-product searches skip) and the per-product searches'.
+  const swept = new Set<string>();
+  const itemWritten = new Set<string>();
+  /** The end of every run: the purge and the database summary (not in a dry run), then the hot-set coverage, counted from the feeds read at the start and those written since, less what the end purge removed. */
+  async function close(): Promise<RunSummary> {
+    if (!dry) await finish(deps, summary);
+    const cutoff = now() - hoursToMs(parseMaxAgeHours(env.EBAY_LISTING_MAX_AGE_HOURS)); // what the site still shows, not what the purge keeps
+    summary.hot = hotCoverage(rows, (feed) => swept.has(feed) || itemWritten.has(feed) || (ages.get(feed)?.getTime() ?? -Infinity) >= cutoff);
+    return summary;
   }
 
-  // ── quiet check: is anything else (Rift mid-run) draining the quota right now? ──
-  if (cfg.keysetMode === "shared" && quota) {
-    let ok = false;
-    let q = quota;
-    for (let i = 0; i < 3 && !ok; i++) {
-      await sleep(deps.quietMs ?? 45_000);
-      const q2 = trustedQuota(await fetchRemaining());
-      if (!q2) { quota = null; break; }
-      if (q2.remaining >= q.remaining) ok = true;
-      else { q = q2; await sleep((deps.quietMs ?? 45_000) * 5); }
-    }
-    if (!ok) {
-      summary.stop = "foreign-active";
-      log("eBay: another app is spending this keyset right now: 0 calls this run");
-      annotate("warning", "eBay keyset", "another app is spending the shared quota; this run made no calls");
-      return finish(summary);
-    }
-    quota = q;
-    summary.remainingStart = q.remaining;
-    a = allowanceFor({ ...runBase, quota: q });
-    summary.allowance = a.allowance; summary.budgetDetail = a.detail;
-    if (a.allowance <= 0) { summary.stop = a.stop ?? "no-budget"; return finish(summary); }
+  if (dry || (!plan.feeds.length && plan.sweepBudget <= 0)) return close();
+
+  // One token for the run. A token failure is fatal: nothing else can work.
+  const tokens: TokenManager = createTokenManager(api);
+  try {
+    await tokens.get();
+  } catch (e) {
+    summary.stopped = "token";
+    summary.tokenError = e instanceof EbayError ? e.describe() : "error";
+    return close();
   }
 
-  // ── plan ──────────────────────────────────────────────────────────────────
-  const checks = new Map<string, Date>(tracks.filter((t) => t.checkedAt).map((t) => [pairKey(t.ref, t.market), t.checkedAt!]));
-  const markets = only ? [only] : [...SINGLES_MARKETS, "CA" as EbayMarket];
-  const due = duePairs({ units, tiers: alloc.tiers, checks, now, cfg, purpose, force, onlyMarket: only }).filter((p) => markets.includes(p.market));
-  const spentToday = ledgerRow.breakdown;
-  const plan = planRun(due, a.allowance, classAllowance(cfg, spentToday));
-  summary.modelled = Math.round(plan.modelled);
-  for (const m of [...SINGLES_MARKETS, ...SEALED_MARKETS]) summary.byMarket[m] ??= emptyStats();
-  for (const p of due) summary.byMarket[p.market]!.due++;
-  for (const p of plan.order) summary.byMarket[p.market]!.planned++;
-  log(`eBay plan (${purpose}): ${plan.order.length} pairs, ${Math.round(plan.modelled)} modelled calls of ${a.allowance} allowed; ${plan.overflow.length} more due`);
+  // STRICT run cap: every search (a first try, a retry, the repeat after a 401) is claimed here BEFORE its await, so three workers can
+  // never overshoot it, and retries come out of the same cap as everything else.
+  let spent = 0;
+  let retriesLeft = retryAllowance(plan.calls);
 
-  // ── search and write, pair by pair ────────────────────────────────────────
-  const claimer = new Claimer(deps.ledger, windowKey, () => now);
-  setEbayBudget(a.allowance);
-  setCallGate(() => claimer.next(a.allowance));
-  const poolIds = new Set(poolCandidates.map((c) => c.id));
-  const poolFinish = new Map(poolCandidates.map((c) => [c.id, c.finish === "nonfoil" ? ("N" as Finish) : ("F" as Finish)] as const));
-  const freshTiles: BannerTile[] = [];
-  const clearedTiles: { id: number; market: Country }[] = [];
-  const breaker = new FailureBreaker();
-  const byClassCalls: Record<string, number> = {};
-  let prevRemaining = quota?.remaining ?? null;
-  let spentAtCheck = 0;
-  let sinceProgress = 0;
-  let saw429 = false;
+  /** Reserve one call in the database (atomically) before it is made. Throws StopRun at the run cap, the retry allowance or the daily cap. */
+  async function reserve(retry: boolean): Promise<void> {
+    if (spent >= plan.cap) throw new StopRun("cap");
+    if (retry) {
+      if (retriesLeft <= 0) throw new StopRun("retries");
+      retriesLeft--;
+    }
+    spent++;
+    let total: number | null;
+    try {
+      total = await db.reserve(day, 1, caps.daily);
+    } catch (e) {
+      spent--;
+      if (retry) retriesLeft++;
+      throw e;
+    }
+    if (total == null) {
+      spent--;
+      if (retry) retriesLeft++;
+      throw new StopRun("cap");
+    }
+    if (retry) summary.retries++;
+    summary.searches++;
+    summary.usedAfter = total;
+    if (summary.searches % PROGRESS_EVERY === 0) log(progressLine(summary));
+  }
 
-  const searchSingle = async (pair: Pair, n: NameInfo): Promise<{ status: QueryStatus; items: BrowseItem[] }> => {
-    const marketplace = EBAY_MARKETPLACE[pair.market as keyof typeof EBAY_MARKETPLACE];
-    const floor = Math.min(...n.tracked.flatMap((p) => [p.trackedN ? p.marketN : null, p.trackedF ? p.marketF : null]).filter((x): x is number => x != null));
-    const filter = cardFilter(pair.market as Country, Number.isFinite(floor) ? floor : null);
-    const q = cardQuery(n.name);
-    const r1 = await searchBrowse({ marketplace, q: q.strict, filter, limit: CARD_LIMIT, category: MTG_SINGLES_CATEGORY });
-    if (r1.status !== "ok") return { status: r1.status, items: [] };
-    if (r1.items.length) return { status: "ok", items: r1.items };
-    const r2 = await searchBrowse({ marketplace, q: q.retry, filter, limit: CARD_LIMIT });
-    return { status: combineQueries(r1.status, r2.status), items: r2.status === "ok" ? r2.items : [] };
-  };
+  // The circuit breaker: consecutive searches that failed, and consecutive ones that returned nothing at all. Any search that
+  // returns listings resets both. A 403 (or a 401 that survives the token refresh) means the keyset cannot search: stop at once.
+  let badRun = 0;
+  let emptyRun = 0;
 
-  for (const pair of [...plan.order, ...plan.overflow]) {
-    if (isEbayRateLimited()) break;
-    const st = summary.byMarket[pair.market] ?? (summary.byMarket[pair.market] = emptyStats());
-    const before = ebaySpentThisRun();
-    let status: QueryStatus = "failed";
-    let write: PairWrite | null = null;
-    if (pair.kind === "single") {
-      const n = built.names.get(pair.ref);
-      if (!n) continue;
-      const r = await searchSingle(pair, n);
-      status = r.status;
-      if (status === "ok") {
-        const target = nameTarget(n.name, matchRowsOf(n), unitsOf(n));
-        const sc = screenName(r.items, target, pair.market as Country);
-        bumpRej(summary.rejects, sc.rejects);
-        const slabs = screenGraded(r.items, target, pair.market as Country);
-        const best: PairWrite["best"] = [];
-        const panels: PairWrite["panels"] = [];
-        const picks = new Map<string, EbayListing | null>();
-        let any = false;
-        const asEntry = (f: Finish, l: EbayListing, rank: number): PanelEntry => ({ finish: FINISH_INDEX[f] as 0 | 1, priceCents: l.priceCents, shipCents: l.shippingCents, currency: l.currency, itemId: l.itemId, title: l.title, image: l.imageUrl, rank });
-        for (const p of n.tracked) {
-          const byFinish: Partial<Record<Finish, EbayListing[]>> = {};
-          const pk: Partial<Record<Finish, EbayListing | null>> = {};
-          for (const f of ["N", "F"] as const) {
-            if (f === "N" ? !p.trackedN : !p.trackedF) continue;
-            const list = sc.byUnit.get(unitKeyOf(p.id, f)) ?? [];
-            byFinish[f] = list; pk[f] = pickListing(list);
-            picks.set(`${p.id}.${f}`, pk[f] ?? null);
-            if (pk[f]) any = true;
-            best.push({ productId: p.id, finish: f, market: pair.market as EbayMarket, row: pk[f] ? { priceCents: pk[f]!.priceCents, shipCents: pk[f]!.shippingCents, itemId: pk[f]!.itemId } : null });
+  async function search(spec: SearchSpec, bucket: Bucket): Promise<unknown[]> {
+    return (await searchRaw(spec, bucket)).items;
+  }
+
+  /** One reserved, retried, circuit-broken search: the listings and eBay's total (the sweep pages by it). */
+  async function searchRaw(spec: SearchSpec, bucket: Bucket): Promise<{ items: unknown[]; total: number | null }> {
+    let attempt = 0;
+    let s = spec;
+    for (;;) {
+      await reserve(attempt > 0);
+      buckets[bucket].calls++;
+      try {
+        const page = await searchPage(api, tokens, s, async () => {
+          try {
+            await reserve(true); // the repeat after a 401 is a second call
+            buckets[bucket].calls++;
+            return true;
+          } catch {
+            return false;
           }
-          const rows = panelListings(byFinish, pk);
-          const graded: GradedEntry[] = (slabs.get(p.id) ?? []).map((g: GradedListing) => ({ grader: g.grader, grade: g.grade, priceCents: g.priceCents, shipCents: g.shippingCents, currency: g.currency, itemId: g.itemId, title: g.title, image: g.imageUrl }));
-          panels.push({ productId: p.id, market: pair.market as EbayMarket, listings: rows.map((r2, i) => asEntry(r2.finish, r2.l, i)), graded });
+        });
+        badRun = 0;
+        if (page.items.length) emptyRun = 0;
+        else if (++emptyRun >= BREAKER_EMPTY) throw new StopRun("empty");
+        return page;
+      } catch (e) {
+        if (e instanceof StopRun) throw e;
+        if (!(e instanceof EbayError)) throw e;
+        if (e.status === 429) throw new StopRun("rate-limited");
+        if (e.code.startsWith("token")) {
+          summary.tokenError = e.describe();
+          throw new StopRun("token");
         }
-        // CA singles are derived from the US search at no cost, only when the seller is in the US or Canada ("ships from the US" is true)
-        if (pair.market === "US") {
-          for (const p of n.tracked) for (const f of ["N", "F"] as const) {
-            if (f === "N" ? !p.trackedN : !p.trackedF) continue;
-            const l = (sc.byUnit.get(unitKeyOf(p.id, f)) ?? []).find((x) => x.location === "US" || x.location === "CA");
-            best.push({ productId: p.id, finish: f, market: "CA", row: l ? { priceCents: convertUsdCents(l.priceCents, "CAD"), shipCents: null, itemId: l.itemId } : null });
-          }
+        if (e.status === 401 || e.status === 403) {
+          summary.tokenError = e.describe(); // only the fixed code: "search-http-403"
+          throw new StopRun("forbidden");
         }
-        write = { ref: pair.ref, market: pair.market, at: now, matched: any, best, panels };
-        // the chase pool: the listing of each pool printing of this name in this market (zero extra calls)
-        if (poolOrder.includes(pair.ref) && ["US", "UK", "AU", "EU", "CA"].includes(pair.market)) {
-          for (const c of poolCandidates.filter((x) => x.nameKey === pair.ref)) {
-            const f = poolFinish.get(c.id)!;
-            const l = picks.get(`${c.id}.${f}`);
-            const p = n.tracked.find((x) => x.id === c.id) ?? n.printings.find((x) => x.id === c.id);
-            const listing = l ?? (p && !n.tracked.includes(p) ? pickListing(sc.byUnit.get(unitKeyOf(c.id, f)) ?? []) : null);
-            const tile = listing && p ? tileOf({ id: c.id, name: n.name, finish: f, market: pair.market as Country, priceCents: listing.priceCents, shipCents: listing.shippingCents, itemId: listing.itemId, imageUrl: listing.imageUrl, checkedAt: now, setCode: c.setCode, label: p.label, marketCents: c.marketCents }) : null;
-            if (tile) freshTiles.push(tile); else clearedTiles.push({ id: c.id, market: pair.market as Country });
+        // The price-filter syntax could not be exercised without keys: one 400 retries without it.
+        if (e.status === 400 && s.minPrice != null && attempt === 0) {
+          s = { ...s, minPrice: null };
+          attempt++;
+          continue;
+        }
+        // One retry on a server error or a timeout.
+        if ((e.status != null && e.status >= 500) || e.code === "search-network") {
+          if (attempt === 0) {
+            attempt++;
+            continue;
           }
         }
-      }
-    } else {
-      const s = built.sealed.get(pair.ref);
-      if (!s) continue;
-      const target: SealedTarget = { kind: "sealed", id: s.id, name: s.name, marketCents: s.marketCents, refs: [...built.sealed.values()].map((x): SealedRef => ({ id: x.id, name: x.name, setCode: x.setCode, kind: x.kind })) };
-      const marketplace = EBAY_MARKETPLACE[pair.market as keyof typeof EBAY_MARKETPLACE];
-      const r = await searchBrowse({ marketplace, q: sealedQuery(s.name), filter: sealedFilter(pair.market as Country, s.marketCents), limit: SEALED_LIMIT });
-      status = r.status;
-      if (r.status === "ok") {
-        const sc = screenSealed(r.items, target, pair.market as Country);
-        bumpRej(summary.rejects, sc.rejects);
-        const pick = pickListing(sc.survivors);
-        const list = pruneForPanel(sc.survivors);
-        write = {
-          ref: pair.ref, market: pair.market, at: now, matched: pick != null,
-          best: [{ productId: s.id, finish: "N", market: pair.market as EbayMarket, row: pick ? { priceCents: pick.priceCents, shipCents: pick.shippingCents, itemId: pick.itemId } : null }],
-          panels: [{ productId: s.id, market: pair.market as EbayMarket, listings: list.map((l, i) => ({ finish: 0 as const, priceCents: l.priceCents, shipCents: l.shippingCents, currency: l.currency, itemId: l.itemId, title: l.title, image: l.imageUrl, rank: i })), graded: [] }],
-        };
+        if (++badRun >= BREAKER_FAILURES) {
+          summary.tokenError = e.describe();
+          throw new StopRun("failing");
+        }
+        throw e;
       }
     }
-    const calls = ebaySpentThisRun() - before;
-    st.calls += calls; byClassCalls[pair.cls] = (byClassCalls[pair.cls] ?? 0) + calls;
-    if (status === "rate-limited") saw429 = true;
-    if (status === "budget") break;
-    sinceProgress += calls;
-    if (deps.onProgress && sinceProgress >= 100) { sinceProgress = 0; await deps.onProgress(ebaySpentThisRun()).catch(() => {}); }
-    const outcome = status === "ok" ? ({ status: "ok", matched: write?.matched ?? false } as const) : ({ status } as const);
-    if (pairWrite(outcome).track === "keep") {
-      st.failed++;
-      if (status === "failed" && breaker.record(true)) {
-        summary.breaker = breaker.tripped!;
-        log(`eBay: stopping, ${breaker.tripped}`);
-        annotate("error", "eBay searches failing", `${breaker.tripped}; stopped after ${ebaySpentThisRun()} calls`);
-        break;
+  }
+
+  let stop: StopRun | null = null; // set by the first worker to hit a StopRun; the others stop before their next search
+
+  async function doFeed(f: PlanFeed): Promise<void> {
+    const raw: unknown[][] = [];
+    let failures = 0;
+    for (const spec of f.searches) {
+      if (stop) throw stop; // another worker ended the run (429, breaker, cap): no further search for this feed
+      try {
+        raw.push(await search(spec, f.bucket));
+      } catch (e) {
+        if (e instanceof StopRun) throw e; // the run ends: this feed keeps its old rows
+        failures++;
+        raw.push([]);
       }
-      if (status === "rate-limited") break;
+    }
+    const b = buckets[f.bucket];
+    if (failures === f.searches.length) {
+      b.failed++; // every search failed: the old rows stay until the bound
+      return;
+    }
+    const at = now();
+    const items = selectFeedItems(f, raw, at);
+    if (!items.length) {
+      b.emptied++; // an empty result keeps the old rows until the bound
+      return;
+    }
+    await db.replaceFeed(f.feed, items, new Date(at)); // one transaction: the feed's rows are REPLACED, never appended
+    if (f.kind === "item") itemWritten.add(f.feed);
+    b.refreshed++;
+    b.stored += items.length;
+    if (counted(f)) summary.feedsRefreshed++;
+  }
+
+  // Concurrency 3, in plan order. A StopRun ends the whole run: workers finish the feed they are in and take no more.
+  async function runFeeds(list: readonly PlanFeed[]): Promise<void> {
+    let next = 0;
+    const workers = Array.from({ length: Math.max(1, opts.concurrency ?? CONCURRENCY) }, async () => {
+      while (!stop) {
+        const i = next++;
+        if (i >= list.length) return;
+        const f = list[i];
+        try {
+          await doFeed(f);
+        } catch (e) {
+          if (e instanceof StopRun) {
+            stop ??= e;
+            return;
+          }
+          buckets[f.bucket].failed++;
+          log(`feed ${f.bucket}: unexpected error (${e instanceof Error ? e.name : "error"})`);
+        }
+      }
+    });
+    await Promise.all(workers);
+  }
+
+  // 1. The fixed feeds (chase, sealed, types, sets): the strips every page shows.
+  await runFeeds(plan.feeds.filter((f) => f.bucket !== "items"));
+
+  // 2. The catalogue sweep: an item feed for every product its pages find, marketplace by marketplace (US, UK, EU first), each
+  //    starting with the hot sets' own searches (at most half its share).
+  if (!stop && plan.sweepBudget > 0) {
+    const vocab = sweepVocabulary(rows);
+    const sigSets = sweepSignatureSets(rows);
+    const all = MARKETPLACE_ORDER.map((mp) => buildSweepIndex(rows, mp, vocab, sigSets)).filter((ix) => ix.products.length > 0);
+    // A marketplace swept in the last fresh window (a re-run, an overlapping run) is not swept again unless forced.
+    const freshItems = (mp: MarketplaceId) => (fresh ? [...fresh].filter((k) => k.startsWith(`${mp}|item:`)).length : 0);
+    const todo: SweepIndex[] = [];
+    for (const ix of all) {
+      if (freshItems(ix.marketplace) >= Math.max(50, Math.floor(ix.products.length * 0.25))) buckets.sweep.fresh++;
+      else todo.push(ix);
+    }
+    let left = Math.min(plan.sweepBudget, plan.cap - spent);
+    for (let i = 0; i < todo.length && !stop && left > 0; i++) {
+      const ix = todo[i];
+      buckets.sweep.planned++;
+      const budget = marketplaceShares(todo.slice(i), left).get(ix.marketplace) ?? 0;
+      const collector = new SweepCollector(ix, now());
+      const before = buckets.sweep.calls;
+      let queries: QueryProgress[] = [];
+      let hotQueries: QueryProgress[] = [];
+      // The hot searches for what THIS marketplace lists (a type only another market stocks would cost pages that can match nothing).
+      const hot = hotSweepQueries(
+        rows.filter((r) => MARKETPLACE_OF_REGION[r.market.toLowerCase() as Region] === ix.marketplace),
+        today,
+      );
+      const hotQs = new Set(hot.map((q) => `Pokemon ${q.q}`));
+      let hotFetched = 0; // counted as the pages are made, so a run that stops during the hot pass still reports them
+      try {
+        const done = await sweepWithHot(
+          collector,
+          budget,
+          async (spec) => {
+            if (stop) throw stop; // another worker ended the run: no further page
+            if (hotQs.has(spec.q)) hotFetched++;
+            try {
+              return await searchRaw(spec, "sweep");
+            } catch (e) {
+              if (e instanceof StopRun) stop ??= e; // at once, so the sibling workers stop before their next page
+              throw e;
+            }
+          },
+          {
+            concurrency: Math.max(1, opts.concurrency ?? CONCURRENCY),
+            hot,
+            spent: () => buckets.sweep.calls, // the hot pass's real cost, retries included, comes off the general pass's share
+            shouldStop: () => !!stop,
+            isFatal: (e) => e instanceof StopRun,
+          },
+        );
+        queries = done.general;
+        hotQueries = done.hot;
+      } catch (e) {
+        if (e instanceof StopRun) stop ??= e;
+        else log(`sweep ${ix.marketplace}: unexpected error (${e instanceof Error ? e.name : "error"})`);
+      }
+      left -= buckets.sweep.calls - before;
+      // What the pages found is written even when the run stopped part-way: every row is a real, current listing.
+      const at = now();
+      const ready = [...collector.feeds()].filter(([, items]) => items.length >= minRowsFor("item")).map(([productId, items]) => ({ feed: feedKey(ix.marketplace, "item", productId), items }));
+      let written = 0;
+      for (let j = 0; j < ready.length; j += SWEEP_WRITE_BATCH) {
+        const batch = ready.slice(j, j + SWEEP_WRITE_BATCH);
+        try {
+          await db.replaceFeeds(batch, new Date(at));
+          written += batch.length;
+          buckets.sweep.stored += batch.reduce((a, f) => a + f.items.length, 0);
+          for (const f of batch) swept.add(f.feed);
+        } catch {
+          // One bad row must not cost the other 99 products their refresh: write that batch one feed at a time.
+          for (const f of batch) {
+            try {
+              await db.replaceFeed(f.feed, f.items, new Date(at));
+              written++;
+              buckets.sweep.stored += f.items.length;
+              swept.add(f.feed);
+            } catch (e) {
+              buckets.sweep.failed++;
+              log(`sweep ${ix.marketplace}: a feed write failed (${e instanceof Error ? e.name : "error"}); that product keeps its old rows`);
+            }
+          }
+        }
+      }
+      buckets.sweep.refreshed += written;
+      const found = collector.feeds().size;
+      buckets.sweep.emptied += found - ready.length; // (none while one listing is enough for a product's strip)
+      const st = collector.stats;
+      const hotPages = Math.max(hotFetched, hotQueries.reduce((a, q) => a + q.pages, 0));
+      summary.sweep.push({ marketplace: ix.marketplace, products: ix.products.length, pages: st.pages, listings: st.listings, valid: st.valid, matched: st.matched, found, written, queries, hotQueries, hotPages });
+      log(`sweep ${ix.marketplace}: ${num(st.pages)} pages (${num(hotPages)} on the hot sets), ${num(st.matched)} listings matched to ${num(found)} of ${num(ix.products.length)} products; ${num(written)} item feeds written.`);
+    }
+  }
+
+  // 3. Per-product searches for what the sweep did not cover, with what is left of the cap: the hot-set products of the US, UK and EU
+  //    first (any type, any price), then the eligible keys, most valuable first (perProductFeeds: the plan's own order).
+  const wantItems = !opts.only || opts.only.includes("items");
+  const perProduct = wantItems ? perProductFeeds(rows, plan.keys, today) : [];
+  const notFresh = perProduct.filter((f) => !fresh?.has(f.feed));
+  const open = notFresh.filter((f) => !swept.has(f.feed));
+  buckets.items.covered = notFresh.length - open.length;
+  const hotFeeds = perProduct.filter((f) => f.hot);
+  summary.hotItems.keys = hotFeeds.length;
+  summary.hotItems.fresh = hotFeeds.filter((f) => fresh?.has(f.feed)).length;
+  summary.hotItems.covered = hotFeeds.filter((f) => !fresh?.has(f.feed) && swept.has(f.feed)).length;
+  if (stop && wantItems) summary.feedsPlanned += plan.feeds.filter((f) => f.bucket === "items" && counted(f)).length; // the run stopped first: that work is unfinished, not absent
+  if (!stop && wantItems) {
+    const room = Math.max(0, plan.cap - spent);
+    const take = Math.max(0, room - retryAllowance(Math.min(room, open.length)));
+    const list = open.slice(0, take);
+    buckets.items.planned = list.length;
+    summary.feedsPlanned += list.filter(counted).length;
+    summary.hotItems.searched = list.filter((f) => f.hot).length;
+    await runFeeds(list);
+    summary.hotItems.refreshed = list.filter((f) => f.hot && itemWritten.has(f.feed)).length;
+  }
+
+  if (stop) summary.stopped = (stop as StopRun).why;
+  // Feeds the plan held but the run never finished (it stopped first) count as skipped, with the ones the cap left out.
+  for (const b of BUCKETS) {
+    const r = buckets[b];
+    if (b === "sweep") {
+      r.skipped = Math.max(0, plan.byBucket.sweep.wanted - r.planned - r.fresh); // marketplaces not reached (or with no products)
       continue;
     }
-    breaker.record(false);
-    summary.completed++;
-    await deps.store.writePair(write!);
-    checks.set(pairKey(pair.ref, pair.market), now);
-    st.searched++;
-    if (write!.matched) { st.matched++; summary.matched++; }
-    summary.panels += write!.panels.filter((p) => p.listings.length || p.graded.length).length;
-    // every chunk: re-read the free quota; stop at the reserve, pause when someone else is spending
-    if (quota && cfg.keysetMode === "shared" && ebaySpentThisRun() - spentAtCheck >= CLAIM_CHUNK) {
-      spentAtCheck = ebaySpentThisRun();
-      const cur = trustedQuota(await fetchRemaining());
-      if (!cur) { summary.latched = "reserve"; log("eBay: the quota became unreadable mid-run: stopping"); break; }
-      const foreign = prevRemaining != null ? prevRemaining - CLAIM_CHUNK - cur.remaining : 0;
-      prevRemaining = cur.remaining;
-      summary.remainingEnd = cur.remaining;
-      if (foreign > 10) { log(`eBay: ${foreign} calls spent by another app during the last chunk: pausing`); await sleep((deps.quietMs ?? 45_000) * 6); }
-      const reserve = reserveFor(now, cur.reset, cfg);
-      if (cur.remaining - reserve < CLAIM_CHUNK) { summary.latched = "reserve"; log(`eBay: remaining ${cur.remaining} is within a chunk of the reserve ${reserve}: stopping`); break; }
+    if (b === "items") {
+      r.skipped = plan.byBucket.items.wanted - plan.byBucket.items.fresh - r.covered - r.refreshed - r.failed - r.emptied;
+      continue;
     }
+    r.skipped = plan.byBucket[b].wanted - plan.byBucket[b].feeds - plan.byBucket[b].fresh + (r.planned - r.refreshed - r.failed - r.emptied);
   }
-  setCallGate(null);
-  summary.spent = ebaySpentThisRun();
-  summary.claimed = claimer.used;
-  summary.byClass = byClassCalls;
-  if (isEbayRateLimited() && !summary.latched && !summary.breaker) summary.latched = saw429 ? "429" : "budget";
-  if (summary.breaker) summary.latched = "failures";
-  if (saw429) { summary.latched = "429"; await deps.ledger.block(windowKey, quota?.reset ?? new Date(now.getTime() + DAY)).catch(() => {}); annotate("warning", "eBay 429", "eBay returned 429: the quota window is blocked, no more calls today"); }
-  await claimer.settle(byClassCalls).catch((e) => log(`ledger settle: ${(e as Error).message}`));
-
-  // ── the banner, the sweep, the purge ──────────────────────────────────────
-  if (summary.completed > 0) {
-    const prev = parsePayload(await deps.store.readBanner().catch(() => null));
-    const update: BannerUpdate = { fresh: freshTiles, cleared: clearedTiles, poolIds };
-    const payload = mergeBanner(prev, update, now.getTime());
-    await deps.store.writeBanner(payload).catch((e) => log(`banner: ${(e as Error).message}`));
-    summary.banner = payload.tiles.length;
-    await deps.store.sweep(new Date(now.getTime() - 72 * 3_600_000)).catch(() => {});
-    if (deps.revalidate) await deps.revalidate().catch((e) => log(`revalidate: ${(e as Error).message}`));
-  }
-  const fin = quota && cfg.keysetMode === "shared" ? trustedQuota(await fetchRemaining().catch(() => null)) : null;
-  if (fin) { summary.remainingEnd = fin.remaining; summary.foreignDelta = quota ? Math.max(0, quota.remaining - summary.spent - fin.remaining) : null; }
-  if (summary.foreignDelta != null && summary.foreignDelta > 50) log(`eBay: ${summary.foreignDelta} calls were spent by another app during this run (Rift's jobs)`);
-  // The foreign-spend profile of the whole window, for the admin panel and the rise alarm.
-  const row = await deps.ledger.read(windowKey).catch(() => null);
-  if (row && fin) summary.budgetDetail = { ...summary.budgetDetail, foreignObserved: foreignObserved(fin.limit, fin.remaining, row.spent) };
-  for (const m of Object.keys(summary.byMarket)) if (!summary.byMarket[m]!.due && !summary.byMarket[m]!.calls) delete summary.byMarket[m];
-  log(`eBay: spent ${summary.spent} calls (modelled ${summary.modelled}), ${summary.completed} searches completed, ${summary.matched} matched${summary.latched ? `; stopped: ${summary.latched}` : ""}`);
-  return finish(summary);
+  return close();
 }
 
-/** A sealed panel's listings: the survivors after the cheap-outlier prune, at most 8. */
-function pruneForPanel(survivors: EbayListing[]): EbayListing[] {
-  const out: EbayListing[] = [];
-  const seen = new Set<string>();
-  const first = pickListing(survivors);
-  if (first) { out.push(first); seen.add(first.itemId); }
-  for (const l of survivors) if (!seen.has(l.itemId) && out.length < 8) { out.push(l); seen.add(l.itemId); }
-  return out;
+const num = (x: number) => x.toLocaleString("en");
+
+/**
+ * What a run is about to do, printed before the first search (so a manual "Run workflow" says it at once): today's budget (the Pacific
+ * day eBay's limit resets on), how much of it is used and left, what THIS run may spend and why, what the plan buys, and when it stops.
+ * Numbers only. The counter is this site's own: another application on the same eBay keyset is invisible to it (DEPLOY.md).
+ */
+export function startReport(s: RunSummary, o: { maxCalls?: number; force: boolean; freshMs: number }): string[] {
+  const left = Math.max(0, s.caps.daily - s.usedBefore);
+  const reasons = [`run cap ${num(s.caps.run)}`, `${num(left)} left of today's ${num(s.caps.daily)}`, ...(o.maxCalls != null ? [`--max-calls ${num(Math.max(0, Math.floor(o.maxCalls)))}`] : [])];
+  const wanted = BUCKETS.reduce((a, b) => a + s.plan.byBucket[b].wantedCalls, 0);
+  const fresh = BUCKETS.reduce((a, b) => a + s.plan.byBucket[b].fresh, 0);
+  const per = BUCKETS.filter((b) => s.plan.byBucket[b].wanted > 0)
+    .map((b) => (b === "sweep" ? `sweep up to ${num(s.plan.sweepBudget)} calls over ${num(s.plan.byBucket.sweep.feeds)} marketplaces` : b === "items" ? `items: whatever the sweep leaves, for the hot-set products and then the eligible products it did not cover (pre-plan ${num(s.plan.byBucket.items.feeds)})` : `${b} ${num(s.plan.byBucket[b].feeds)} feeds/${num(s.plan.byBucket[b].calls)} calls`))
+    .join(", ");
+  return [
+    `${s.dryRun ? "DRY RUN (no eBay call, no database write). " : ""}Budget day ${s.day} (the Pacific day: eBay's call limit resets at 00:00 Pacific = 07:00 UTC in summer, 08:00 in winter).`,
+    `Browse calls reserved so far today: ${num(s.usedBefore)} of the ${num(s.caps.daily)} daily cap (${num(left)} left). The counter sees only this site's runs: another application on the same eBay keyset is invisible to it.`,
+    `This run may make at most ${num(s.plan.cap)} searches, retries included (the smallest of: ${reasons.join(", ")}).${s.plan.cap === 0 ? " Nothing to do: the budget for today is spent." : ""}`,
+    `Plan: ${num(s.plan.feeds.length)} feeds in ${num(s.plan.calls)} searches (${per || "nothing"}); ${num(fresh)} feeds skipped as refreshed in the last ${Math.round((o.freshMs / 3600_000) * 10) / 10} h${o.force ? " (--force: bought again anyway)" : ""}; the plan would like ${num(wanted)} searches in all, and what does not fit waits for the next run.`,
+    `It stops early on a 429, a 401/403 on a search, ${BREAKER_FAILURES} failed searches in a row, or ${BREAKER_EMPTY} with no listings in a row.`,
+    `Priorities (src/lib/popular.ts): marketplaces in the order ${MARKETPLACE_ORDER.join(", ")}; hot sets ${HOT_SETS.join(", ")}. Each marketplace's sweep starts with the hot sets' own searches (at most half its share), and their products in ${PRIORITY_MARKETPLACES.join(", ")} that the sweep misses are searched one by one before any other product.`,
+  ];
+}
+
+/** A progress line: this run's searches and today's total against the caps. Numbers only. */
+export function progressLine(s: RunSummary): string {
+  return `progress: ${num(s.searches)} searches this run (${num(s.retries)} retries, run cap ${num(s.plan.cap)}); ${num(s.usedAfter)} of the ${num(s.caps.daily)} daily cap used today; ${num(s.feedsRefreshed)} feeds refreshed.`;
+}
+
+async function finish(deps: ImportDeps, s: RunSummary): Promise<void> {
+  const { db, api, env } = deps;
+  try {
+    s.purgedAtEnd = await db.purge(purgeCutoff(api.now(), env), s.day);
+  } catch {
+    /* the purge never fails the import */
+  }
+  try {
+    const sum = await db.summary();
+    s.itemFeedsInDb = sum.itemFeeds;
+    s.rowsInDb = sum.rows;
+    s.oldestRowAgeMs = sum.oldest ? api.now() - sum.oldest.getTime() : null;
+  } catch {
+    /* a summary is not worth failing for */
+  }
+  try {
+    s.usedAfter = await db.used(s.day);
+  } catch {
+    /* keep the reserved total */
+  }
 }

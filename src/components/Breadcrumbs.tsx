@@ -1,30 +1,55 @@
 import Link from "next/link";
-import { breadcrumb, ldJson, type Crumb } from "@/lib/jsonld";
+import { breadcrumbJsonLd, jsonLd } from "@/lib/seo";
 
-// RiftCompare's Breadcrumbs: "Home / Section / Page" in small slate type, the
-// current page unlinked, and the page's BreadcrumbList JSON-LD emitted right
-// here — so a page never needs (and must not add) a second BreadcrumbList.
-export function Breadcrumbs({ trail, className }: { trail: Crumb[]; className?: string }) {
+export interface Crumb {
+  href?: string;
+  label: string;
+}
+
+/** The crumb a phone's back link goes to: the last one with a link before the current page (the page itself has none). */
+export function parentCrumb(items: Crumb[]): (Crumb & { href: string }) | null {
+  for (let i = items.length - 2; i >= 0; i--) {
+    const it = items[i];
+    if (it.href) return { ...it, href: it.href };
+  }
+  return null;
+}
+
+/**
+ * Where the page sits. Below sm, one "← {parent}" link (40px tall: a thumb's target, and one line instead of a wrapping trail
+ * above the H1); from sm, the whole trail. The BreadcrumbList JSON-LD (seo.ts breadcrumbJsonLd) is emitted once, whichever shows.
+ */
+export function Breadcrumbs({ items }: { items: Crumb[] }) {
+  const parent = parentCrumb(items);
   return (
-    <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ldJson(breadcrumb(trail)) }} />
-      <nav className={`flex flex-wrap items-center gap-1.5 text-xs text-slate-500 ${className ?? "mb-3"}`} aria-label="Breadcrumb">
-        <Link href="/" className="hover:text-slate-300">
-          Home
+    <nav aria-label="Breadcrumb" className="mb-2 text-sm text-muted sm:mb-5">
+      {parent && (
+        <Link href={parent.href} prefetch={false} className="-ml-1 inline-flex min-h-10 max-w-full items-center gap-1.5 rounded-lg px-1 font-medium hover:text-ink sm:hidden">
+          <span aria-hidden="true">←</span>
+          <span className="truncate">{parent.label}</span>
         </Link>
-        {trail.map((c, i) => (
-          <span key={`${c.href ?? ""}-${c.name}`} className="flex items-center gap-1.5">
-            <span aria-hidden>/</span>
-            {i === trail.length - 1 || !c.href ? (
-              <span className="text-slate-300">{c.name}</span>
-            ) : (
-              <Link href={c.href} className="hover:text-slate-300">
-                {c.name}
-              </Link>
+      )}
+      <ol className={`${parent ? "hidden sm:flex" : "flex"} flex-wrap items-center gap-1.5`}>
+        {items.map((it, i) => (
+          <li key={i} className="flex min-w-0 items-center gap-1.5">
+            {i > 0 && (
+              <span aria-hidden="true" className="text-faint">
+                /
+              </span>
             )}
-          </span>
+            {it.href ? (
+              <Link href={it.href} prefetch={false} className="hover:text-ink hover:underline hover:underline-offset-2">
+                {it.label}
+              </Link>
+            ) : (
+              <span aria-current="page" className="text-ink">
+                {it.label}
+              </span>
+            )}
+          </li>
         ))}
-      </nav>
-    </>
+      </ol>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbJsonLd(items)) }} />
+    </nav>
   );
 }

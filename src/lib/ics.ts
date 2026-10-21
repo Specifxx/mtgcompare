@@ -1,78 +1,88 @@
-// RFC 5545 pieces for /release-dates/calendar (RiftCompare's release calendar
-// route, extracted so the escaping and folding are tested). Pure.
-import { SITE_URL } from "./site";
+// A set's English release date as an iCalendar file (RFC 5545), for "Add to calendar" (components/AddToCalendar.tsx). Built in
+// the browser from sets.ts's date and the page's own URL: no request, no database, no account. Pure, so tests/hubs.test.ts pins
+// the exact output and parses it back.
+//
+// One all-day VEVENT: DTSTART;VALUE=DATE is the release date, DTEND the next day (an all-day event's end is exclusive). The UID
+// is the set's, so adding the same set twice (from two regions, or twice from one) updates one event instead of making two.
+// Lines end in CRLF and are folded at 75 octets; TEXT values escape backslashes, semicolons, commas and newlines.
 
-/** RFC 5545 §3.3.11: backslash, semicolon, comma and newline are the only characters TEXT values must escape. */
-export function icsEscape(s: string): string {
-  return s.replace(/\\/g, "\\\\").replace(/;/g, "\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
+export interface IcsRelease {
+  /** sets.ts code: the UID is `${code}-release@dexcompare.app`. */
+  code: string;
+  /** The set's name ("Delta Reign"). */
+  name: string;
+  /** English release date, YYYY-MM-DD. */
+  date: string;
+  /** The set page to come back to (absolute). */
+  url: string;
+  /** DTSTAMP, when the file was made. Fixed in tests; now in the browser. */
+  stamp?: Date;
 }
 
-/**
- * RFC 5545 §3.1: lines over 75 OCTETS fold with CRLF + a leading space (the
- * space counts toward the next line's 75). Folds on character boundaries, never
- * inside a multi-byte character.
- */
-export function foldLine(line: string): string {
+/** RFC 5545 §3.3.11 TEXT: backslash, semicolon and comma are escaped; a newline becomes "\n". */
+export function escapeIcsText(s: string): string {
+  return s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r\n|\r|\n/g, "\\n");
+}
+
+/** RFC 5545 §3.1: a line longer than 75 octets continues on the next line after CRLF and one space. Never splits a character. */
+export function foldIcsLine(line: string): string {
   const enc = new TextEncoder();
   if (enc.encode(line).length <= 75) return line;
-  const out: string[] = [];
+  const parts: string[] = [];
   let cur = "";
   let bytes = 0;
   let limit = 75;
   for (const ch of line) {
     const n = enc.encode(ch).length;
     if (bytes + n > limit) {
-      out.push(cur);
+      parts.push(cur);
       cur = "";
       bytes = 0;
-      limit = 74; // the continuation's leading space takes one octet
+      limit = 74; // the leading space of a continuation line is one of its 75 octets
     }
     cur += ch;
     bytes += n;
   }
-  out.push(cur);
-  return out.join("\r\n ");
+  parts.push(cur);
+  return parts.join("\r\n ");
 }
 
-/** yyyy-mm-dd plus `days` as yyyymmdd (UTC; DTEND of an all-day event is exclusive). */
-export function addDaysCompact(isoDate: string, days: number): string {
-  const [y, m, d] = isoDate.split("-").map(Number);
-  const dt = new Date(Date.UTC(y, m - 1, d));
-  dt.setUTCDate(dt.getUTCDate() + days);
-  return `${dt.getUTCFullYear()}${String(dt.getUTCMonth() + 1).padStart(2, "0")}${String(dt.getUTCDate()).padStart(2, "0")}`;
+/** "2026-11-06" → "2026-11-07". */
+export function nextDay(iso: string): string {
+  return new Date(Date.parse(`${iso}T00:00:00Z`) + 86400_000).toISOString().slice(0, 10);
 }
 
-export interface ReleaseEvent {
-  /** yyyy-mm-dd */
-  date: string;
-  name: string;
-  code: string;
-  slug: string;
+function icsDate(iso: string): string {
+  return iso.replace(/-/g, "");
 }
 
-/**
- * An all-day VEVENT calendar for a set's release. All-day, not timed: the date is
- * the listing date, not an announced hour, so a precise instant would invent a
- * time nobody published (and an all-day event needs no timezone at all).
- */
-export function releaseIcs(e: ReleaseEvent, now: Date = new Date()): string {
-  const stamp = `${now.toISOString().replace(/[-:]/g, "").split(".")[0]}Z`;
-  const description = `Compare prices across every store from the moment it drops: ${SITE_URL}/sets/${e.slug}`;
+function icsStamp(d: Date): string {
+  return d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+}
+
+export function buildIcs(e: IcsRelease): string {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//MTG Compare//Release Calendar//EN",
+    "PRODID:-//DexCompare//Pokemon TCG release dates//EN",
     "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
     "BEGIN:VEVENT",
-    `UID:magic-release-${e.code.toLowerCase()}-${e.date}@mtgcompare.app`,
-    `DTSTAMP:${stamp}`,
-    `DTSTART;VALUE=DATE:${e.date.replace(/-/g, "")}`,
-    `DTEND;VALUE=DATE:${addDaysCompact(e.date, 1)}`,
-    foldLine(`SUMMARY:${icsEscape(`Magic: The Gathering ${e.name} (${e.code}) releases`)}`),
-    foldLine(`DESCRIPTION:${icsEscape(description)}`),
-    foldLine(`URL:${SITE_URL}/sets/${e.slug}`),
+    `UID:${e.code}-release@dexcompare.app`,
+    `DTSTAMP:${icsStamp(e.stamp ?? new Date())}`,
+    `DTSTART;VALUE=DATE:${icsDate(e.date)}`,
+    `DTEND;VALUE=DATE:${icsDate(nextDay(e.date))}`,
+    `SUMMARY:${escapeIcsText(`Pokémon TCG ${e.name} release (English)`)}`,
+    `DESCRIPTION:${escapeIcsText(`Compare ${e.name} prices: ${e.url}`)}`,
+    `URL:${e.url}`,
+    "TRANSP:TRANSPARENT",
     "END:VEVENT",
     "END:VCALENDAR",
   ];
-  return `${lines.join("\r\n")}\r\n`;
+  return `${lines.map(foldIcsLine).join("\r\n")}\r\n`;
+}
+
+/** The download's file name: "pokemon-tcg-delta-reign-release.ics". */
+export function icsFileName(slug: string): string {
+  return `pokemon-tcg-${slug}-release.ics`;
 }

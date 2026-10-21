@@ -1,19 +1,17 @@
-import { getDataRef, getSitemapPlan } from "@/lib/data";
-import { publicDataHeaders } from "@/lib/data/plane/headers";
-import { indexXml, sectionRefs } from "@/lib/sitemap-sections";
+import { SITEMAP_IDS } from "@/lib/sitemap";
+import { SITE_URL } from "@/lib/site";
 
-// /sitemap.xml: the INDEX of the sectioned sitemaps (contract 4.5, parity P01). A route handler, not app/sitemap.ts: a metadata route
-// gets Next's own Cache-Control, which next.config.js headers() would double (measured), and one file of the real catalogue's roughly
-// 58,000 URLs would be far past what a crawler wants. The plan comes from the published sm/plan.json at the commit the pointer names;
-// each child carries the pointer's price day as lastmod. Rendered per request, cached by the CDN header of headers.json (rule 5, 12.7).
-export const dynamic = "force-dynamic";
+// The sitemap index. Next 14's generateSitemaps writes /sitemap/<id>.xml for
+// each id but no index for them (checked against 14.2.35: /sitemap.xml is a
+// 404 without this), so robots.txt points here and this lists the files. Pure
+// constants: no database, prerendered once per build.
+export const dynamic = "force-static";
 
-export async function GET() {
-  try {
-    const [plan, ptr] = await Promise.all([getSitemapPlan(), getDataRef()]);
-    return new Response(indexXml(sectionRefs(plan), ptr?.priceDay), { headers: publicDataHeaders({ "content-type": "application/xml; charset=utf-8" }) });
-  } catch {
-    // the data host is unreachable and this instance holds nothing: say so, briefly, and let the CDN keep its last copy
-    return new Response("Sitemap temporarily unavailable", { status: 503, headers: { "retry-after": "120", "cache-control": "no-store", "content-type": "text/plain; charset=utf-8" } });
-  }
+export function GET() {
+  const body =
+    `<?xml version="1.0" encoding="UTF-8"?>\n` +
+    `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+    SITEMAP_IDS.map(({ id }) => `<sitemap><loc>${SITE_URL}/sitemap/${id}.xml</loc></sitemap>\n`).join("") +
+    `</sitemapindex>\n`;
+  return new Response(body, { headers: { "content-type": "application/xml; charset=utf-8", "cache-control": "public, max-age=0, s-maxage=86400" } });
 }

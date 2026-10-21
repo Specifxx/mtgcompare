@@ -1,112 +1,305 @@
-// Check whether a store can be admitted to src/lib/stores.ts, or how a registered one reads today:
+// Probe candidate stores LIVE and decide which ones DexCompare should read.
 //
-//   npx tsx scripts/probe-stores.ts https://store.example AU [https://other.example UK ...]
-//   npx tsx scripts/probe-stores.ts --platform=shadowpos https://shop.example US
-//   npx tsx scripts/probe-stores.ts --platform=bigcommerce --collections=/tcgs/magic/singles/ https://shop.example AU
-//   npx tsx scripts/probe-stores.ts --platform=ecwid --ecwid-store=14194057 --collections=147798763 https://shop.example AU
-//   npx tsx scripts/probe-stores.ts --key=goodgames,lotusgamesct       # registered stores, any platform
-//   npx tsx scripts/probe-stores.ts --pages=5 --data=.data/v1 --key=goodgames
+//   npx tsx scripts/probe-stores.ts --in candidates.json [--in more.json] \
+//     [--out probe-output/probe.json] [--write] [--min 3] [--concurrency 8]
 //
-// Platforms: shopify (the default), shadowpos, ecwid, woocommerce, bigcommerce, nopcommerce: the same readers the import uses (lib/store-import.ts fetchStoreListings). For Shopify it discovers the
-// Magic collections (sitemap + the handles the importer would read, in its order) and reads `--pages` pages in all (default 2; a budget the collections share, plus up to 8 sealed pages) with the market's
-// Shopify Markets country, through the importer's own pacing, retries and page window (`--pages=700` is a full import read). Every title then goes through the
-// real matcher against the catalogue of a PUBLISHED TREE (--data, default .data/v1: a checkout of the data branch; the probe reads no database and no data host), so the numbers it prints are what the
-// import would match. The admission rule of 10.26 is applied to the result: at least 20 matched in-stock listings of tracked units and a currency that matches the market. Read-only: it writes nothing;
-// a store that passes is marked `status: "verified", verifiedAt: <date>` in src/lib/store-registry-seed.ts by hand.
-import { normalizeCountry, currencyOf } from "../src/lib/country";
-import { matchRowsFromTree, snapshotFromTree } from "../src/lib/import";
-import { ADMIT_MIN_MATCHED_IN_STOCK, buildStageIndex, fetchStoreListings, matchListing, newTally, shopifyCurrency } from "../src/lib/store-import";
-import { fsTree } from "../src/lib/data/plane/tree";
-import { STORE_BY_KEY, platformOf, type StoreInfo, type StorePlatform } from "../src/lib/stores";
+// Input: JSON array of { name, base, country|market, key?, platform? }.
+// For each store it:
+//   1. finds the platform (Shopify products.json, else the WooCommerce Store API),
+//   2. reads the checkout currency and refuses a store whose currency isn't
+//      its market's (a CAD store listed as US would show C$ prices as US$),
+//   3. ranks its collections (Shopify sitemap / Woo categories) and reads the
+//      most promising ones,
+//   4. runs every title through identify() — the same gate the importer uses —
+//      and counts the Pokémon sealed products it would actually list,
+//   5. picks the fewest collections (max 4) that cover what it found.
+//
+// With --write, stores that clear --min products are merged into
+// src/data/stores.json (existing entries keep their key; collections are
+// refreshed). Nothing here touches the database.
+import { writeFileSync, readFileSync, mkdirSync } from "node:fs";
+import { dirname, join } from "node:path";
+import {
+  isPokemonCollection,
+  rankCollections,
+  readShopifyCollection,
+  readWooCategory,
+  shopifyMeta,
+  sitemapCollections,
+  wooCategories,
+  WOO_API,
+  type CollectionRead,
+} from "../src/lib/feeds";
+import { get, RateLimitedError, sleep, REQUEST_DELAY_MS } from "../src/lib/scrape-http";
+import { identify, isIdentity, type Rejection } from "../src/lib/sealed-title";
+import { REGIONS, isRegion, type Market } from "../src/lib/regions";
+import type { StoreConfig } from "../src/lib/stores";
 
-const PLATFORMS: StorePlatform[] = ["shopify", "shadowpos", "ecwid", "woocommerce", "bigcommerce", "nopcommerce"];
-const FOIL_WORDS = /foil|etched/i;
-const PLAIN_WORDS = /\b(normal|non-?foil|regular)\b/i;
+interface Candidate {
+  key?: string;
+  name: string;
+  base: string;
+  country?: string;
+  market?: string;
+  platform?: string;
+}
 
-interface Args { stores: StoreInfo[]; pages: number; data: string }
-function parseArgs(argv: string[]): Args {
-  const flags = new Map<string, string>();
-  const rest: string[] = [];
-  for (const a of argv) {
-    const m = /^--([a-z-]+)=(.*)$/.exec(a);
-    if (m) flags.set(m[1], m[2]);
-    else rest.push(a);
+interface ProbeResult {
+  key: string;
+  name: string;
+  base: string;
+  market: Market;
+  platform: "shopify" | "woocommerce" | null;
+  currency: string | null;
+  currencyOk: boolean;
+  country: string;
+  collections: string[]; // chosen
+  sealedProducts: number; // distinct accepted products across chosen collections
+  inStock: number;
+  allFound: number; // distinct accepted across every collection read
+  read: { handle: string; ok: boolean; products: number; accepted: number }[];
+  rejections: Partial<Record<Rejection, number>>;
+  samples: { reason: string; title: string }[];
+  error: string | null;
+  ms: number;
+}
+
+const args = process.argv.slice(2);
+const flag = (name: string) => args.includes(`--${name}`);
+const opt = (name: string, dflt: string) => {
+  const i = args.indexOf(`--${name}`);
+  return i >= 0 && args[i + 1] ? args[i + 1] : dflt;
+};
+const inputs = args.flatMap((a, i) => (a === "--in" && args[i + 1] ? [args[i + 1]] : []));
+const OUT = opt("out", "probe-output/probe.json");
+const MIN = Number(opt("min", "3"));
+const CONCURRENCY = Number(opt("concurrency", "3"));
+const MAX_CANDIDATES = 8; // collections read per Shopify store
+const PROBE_PAGES = 3; // pages per collection (1,000 products)
+
+const CONVENTIONAL = ["pokemon-sealed", "pokemon-sealed-products", "pokemon", "pokemon-tcg", "sealed", "pre-orders", "preorders", "booster-boxes"];
+
+function normBase(u: string): string {
+  const url = new URL(u.trim().startsWith("http") ? u.trim() : `https://${u.trim()}`);
+  return `https://${url.host.toLowerCase()}`;
+}
+
+function keyFromBase(base: string): string {
+  const host = new URL(base).host.replace(/^www\./, "");
+  const label = host.split(".")[0].replace(/[^a-z0-9]/g, "");
+  return label || host.replace(/[^a-z0-9]/g, "");
+}
+
+function marketOf(c: Candidate): Market | null {
+  const m = (c.market ?? c.country ?? "").toLowerCase().replace(/^gb$/, "uk");
+  return isRegion(m) ? REGIONS[m].market : null;
+}
+
+async function detectPlatform(base: string): Promise<"shopify" | "woocommerce" | null> {
+  const shop = (await get(`${base}/products.json?limit=1`)) as { products?: unknown[] } | null;
+  if (shop && Array.isArray(shop.products)) return "shopify";
+  await sleep(REQUEST_DELAY_MS);
+  const woo = await get(`${base}${WOO_API}/products?per_page=1`);
+  if (Array.isArray(woo)) return "woocommerce";
+  return null;
+}
+
+async function probe(c: Candidate & { key: string; base: string; market: Market }): Promise<ProbeResult> {
+  const t0 = Date.now();
+  const res: ProbeResult = {
+    key: c.key,
+    name: c.name,
+    base: c.base,
+    market: c.market,
+    platform: null,
+    currency: null,
+    currencyOk: false,
+    country: REGIONS[c.market.toLowerCase() as keyof typeof REGIONS].shopifyCountry ?? "DE",
+    collections: [],
+    sealedProducts: 0,
+    inStock: 0,
+    allFound: 0,
+    read: [],
+    rejections: {},
+    samples: [],
+    error: null,
+    ms: 0,
+  };
+  const expected = REGIONS[c.market.toLowerCase() as keyof typeof REGIONS].currency;
+  try {
+    res.platform = await detectPlatform(c.base);
+    if (!res.platform) {
+      res.error = "no public Shopify or WooCommerce feed";
+      return res;
+    }
+
+    let reads: CollectionRead[] = [];
+    if (res.platform === "shopify") {
+      const meta = await shopifyMeta(c.base, res.country);
+      res.currency = meta.currency;
+      res.currencyOk = res.currency === expected;
+      if (meta.country && (c.market === "EU" || meta.country === res.country)) res.country = meta.country;
+      if (!res.currencyOk) {
+        res.error = `charges ${res.currency ?? "?"}, market ${c.market} is ${expected}`;
+        return res;
+      }
+      const handles = await sitemapCollections(c.base);
+      let ranked = rankCollections(handles);
+      if (!ranked.length) ranked = CONVENTIONAL;
+      const country = res.country;
+      for (const h of ranked.slice(0, MAX_CANDIDATES)) {
+        await sleep(REQUEST_DELAY_MS);
+        reads.push(await readShopifyCollection(c.base, h, { country, maxPages: PROBE_PAGES }));
+      }
+    } else {
+      const cats = await wooCategories(c.base);
+      const ids = new Map(cats.map((x) => [x.slug, x.id]));
+      const pokemonCats = cats
+        .filter((x) => /pok[eé]?mon|pkmn/i.test(`${x.name} ${x.slug}`))
+        .filter((x) => rankCollections([x.slug]).length > 0 || /pok[eé]?mon/i.test(x.slug))
+        .sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
+      const slugs = rankCollections(pokemonCats.map((x) => x.slug)).slice(0, 6);
+      if (!slugs.length) slugs.push("search:pokemon");
+      for (const s of slugs) {
+        await sleep(REQUEST_DELAY_MS);
+        reads.push(await readWooCategory(c.base, s, ids, PROBE_PAGES));
+      }
+      const cur = reads.flatMap((r) => r.products).find((p) => p.currency)?.currency ?? null;
+      res.currency = cur;
+      res.currencyOk = cur === expected;
+      if (!res.currencyOk) {
+        res.error = `charges ${cur ?? "?"}, market ${c.market} is ${expected}`;
+        return res;
+      }
+    }
+
+    // Which products each collection yields, by product id.
+    const accepted = new Map<string, Set<string>>();
+    const inStockIds = new Set<string>();
+    const all = new Set<string>();
+    for (const r of reads) {
+      const strict = !isPokemonCollection(r.handle) && !r.handle.startsWith("search:");
+      const ids = new Set<string>();
+      for (const p of r.products) {
+        const id = identify(p.title, { strict });
+        if (!isIdentity(id)) {
+          res.rejections[id] = (res.rejections[id] ?? 0) + 1;
+          if ((id === "no-set" || id === "unclassified" || id === "vague") && res.samples.length < 12 && !strict) {
+            res.samples.push({ reason: id, title: p.title });
+          }
+          continue;
+        }
+        ids.add(p.id);
+        all.add(p.id);
+        if (p.variants.some((v) => v.available)) inStockIds.add(p.id);
+      }
+      accepted.set(r.handle, ids);
+      res.read.push({ handle: r.handle, ok: r.ok, products: r.products.length, accepted: ids.size });
+    }
+    res.allFound = all.size;
+
+    // Greedy cover: the collection adding the most new products per page read.
+    const chosen: string[] = [];
+    const covered = new Set<string>();
+    while (chosen.length < 4) {
+      let best: { h: string; gain: number; cost: number } | null = null;
+      for (const r of reads) {
+        if (chosen.includes(r.handle) || !r.ok) continue;
+        const ids = accepted.get(r.handle)!;
+        let gain = 0;
+        for (const id of ids) if (!covered.has(id)) gain++;
+        const cost = Math.max(1, Math.ceil(r.products.length / 250));
+        if (gain > 0 && (!best || gain / cost > best.gain / best.cost)) best = { h: r.handle, gain, cost };
+      }
+      if (!best) break;
+      // Stop once the remaining collections add little for their cost.
+      if (chosen.length && best.gain < 2 && covered.size >= all.size * 0.9) break;
+      chosen.push(best.h);
+      for (const id of accepted.get(best.h)!) covered.add(id);
+    }
+    res.collections = chosen;
+    res.sealedProducts = covered.size;
+    res.inStock = [...covered].filter((id) => inStockIds.has(id)).length;
+  } catch (e) {
+    res.error = e instanceof RateLimitedError ? `rate limited (${e.message})` : (e as Error).message;
+  } finally {
+    res.ms = Date.now() - t0;
   }
-  const pages = Math.max(1, Number(flags.get("pages") ?? 2) || 2);
-  const data = flags.get("data") ?? ".data/v1";
-  if (flags.has("key")) {
-    return {
-      pages, data,
-      stores: flags.get("key")!.split(",").map((k) => {
-        const s = STORE_BY_KEY[k.trim()];
-        if (!s) throw new Error(`no registered store "${k}"`);
-        return s;
-      }),
-    };
-  }
-  const platform = (flags.get("platform") ?? "shopify") as StorePlatform;
-  if (!PLATFORMS.includes(platform)) throw new Error(`unknown platform "${platform}" (${PLATFORMS.join(", ")})`);
-  if (rest.length < 2 || rest.length % 2) throw new Error("usage: probe-stores.ts [--pages=N] [--data=DIR] [--platform=...] [--collections=a,b] [--ecwid-store=N] <base-url> <market> [<base-url> <market> ...] | --key=a,b");
-  const collections = (flags.get("collections") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-  const stores: StoreInfo[] = [];
-  for (let i = 0; i < rest.length; i += 2) {
-    const base = rest[i].replace(/\/+$/, "");
-    stores.push({
-      id: 32000 + i / 2, key: "probe", name: base, base, country: normalizeCountry(rest[i + 1]), collections, platform, status: "unverified",
-      ...(flags.has("ecwid-store") ? { ecwidStoreId: Number(flags.get("ecwid-store")) } : {}),
-    });
-  }
-  return { stores, pages, data };
+  return res;
 }
 
 async function main() {
-  let args: Args;
-  try {
-    args = parseArgs(process.argv.slice(2));
-  } catch (e) {
-    console.error((e as Error).message);
-    process.exit(2);
+  if (!inputs.length) {
+    console.error("usage: tsx scripts/probe-stores.ts --in candidates.json [--write]");
+    process.exit(1);
   }
-  const tree = fsTree(args.data);
-  if (!tree.has("status.json")) {
-    console.error(`${args.data} is not a published data tree (no status.json): check out the data branch there`);
-    process.exit(2);
+  const seen = new Set<string>();
+  const usedKeys = new Set<string>();
+  const registryPath = join(__dirname, "..", "src", "data", "stores.json");
+  const registry: StoreConfig[] = JSON.parse(readFileSync(registryPath, "utf8"));
+  for (const s of registry) usedKeys.add(s.key);
+  const byBase = new Map(registry.map((s) => [s.base, s]));
+
+  const queue: (Candidate & { key: string; base: string; market: Market })[] = [];
+  for (const file of inputs) {
+    for (const c of JSON.parse(readFileSync(file, "utf8")) as Candidate[]) {
+      let base: string;
+      try {
+        base = normBase(c.base);
+      } catch {
+        console.warn(`skip: bad base ${c.base}`);
+        continue;
+      }
+      const market = marketOf(c);
+      if (!market) {
+        console.warn(`skip: ${c.name} has no known market (${c.country ?? c.market})`);
+        continue;
+      }
+      if (seen.has(base)) continue;
+      seen.add(base);
+      let key = byBase.get(base)?.key ?? c.key ?? keyFromBase(base);
+      if (!byBase.has(base)) {
+        let k = key;
+        let n = 2;
+        while (usedKeys.has(k)) k = `${key}${market.toLowerCase()}${n > 2 ? n : ""}`, n++;
+        key = k;
+        usedKeys.add(key);
+      }
+      queue.push({ ...c, key, base, market });
+    }
   }
-  const snapshot = snapshotFromTree(tree, new Date().toISOString().slice(0, 10));
-  const tracked = new Set<number>(snapshot.units.map((u) => u.id * 2 + (u.finish === "F" ? 1 : 0)));
-  const si = buildStageIndex({ match: matchRowsFromTree(tree), work: tree, tracked });
-  for (const store of args.stores) {
-    const probe: StoreInfo = { ...store, maxPages: Math.min(store.maxPages ?? args.pages, args.pages) };
-    const tally = newTally();
-    const foilVariants = { foilStores: 0, plainMarked: 0, plainUnmarked: 0 };
-    const read = await fetchStoreListings(probe, {
-      sink: (page) => {
-        for (const p of page) {
-          matchListing(store, p, si, tally);
-          if (p.variants.some((v) => FOIL_WORDS.test(v.title))) {
-            foilVariants.foilStores++;
-            const plain = p.variants.filter((v) => !FOIL_WORDS.test(v.title));
-            if (plain.length) (plain.some((v) => PLAIN_WORDS.test(`${v.title} ${(v.options ?? []).join(" ")}`)) ? foilVariants.plainMarked++ : foilVariants.plainUnmarked++);
-          }
-        }
-      },
-      stopBelowCents: 100,
-    });
-    for (const p of read.products) matchListing(store, p, si, tally);
-    const inStock = tally.drafts.filter((d) => d.inStock).length;
-    const stated = platformOf(store) === "shopify" ? await shopifyCurrency(store) : null;
-    const currencyOk = !store.currency && (!stated || stated === currencyOf(store.country));
-    const admitted = !read.failed && currencyOk && inStock >= ADMIT_MIN_MATCHED_IN_STOCK;
-    console.log(
-      `${store.base} (${store.country}, ${platformOf(store)}): ${read.handles.length} collections, ${tally.products} products, ${tally.matched} matched, ${inStock} matched in stock of tracked units${read.failed ? " - THE READ FAILED" : ""}`,
-    );
-    if (read.note) console.log(`  read: ${read.note}`);
-    console.log(`  currency: store states ${stated ?? "nothing"}, market ${currencyOf(store.country)}${store.currency ? `, registry says ${store.currency}` : ""}`);
-    console.log(`  admission (>= ${ADMIT_MIN_MATCHED_IN_STOCK} matched in stock, currency matches): ${admitted ? "ADMIT" : "NOT ADMITTED"}`);
-    console.log(`  handles: ${read.handles.join(", ") || "none"}`);
-    console.log(`  misses: ${JSON.stringify(tally.misses)}`);
-    const seen = foilVariants.plainMarked + foilVariants.plainUnmarked;
-    if (seen >= 10) console.log(`  explicitFoil candidate: ${foilVariants.plainUnmarked / seen > 0.9 ? "true (the store marks only its foil variants)" : "leave unset (it marks its non-foil variants too)"} - ${seen} products with foil and non-foil variants`);
+  console.log(`probing ${queue.length} stores, ${CONCURRENCY} at a time…`);
+
+  const results: ProbeResult[] = [];
+  let next = 0;
+  await Promise.all(
+    Array.from({ length: CONCURRENCY }, async () => {
+      while (next < queue.length) {
+        const c = queue[next++];
+        const r = await probe(c);
+        results.push(r);
+        const verdict = r.error ? `✗ ${r.error}` : r.sealedProducts >= MIN ? `✓ ${r.sealedProducts} sealed (${r.inStock} in stock)` : `– only ${r.sealedProducts}`;
+        console.log(`[${results.length}/${queue.length}] ${c.market} ${c.name} (${c.base}): ${verdict} · ${r.collections.join(", ")} · ${(r.ms / 1000).toFixed(0)}s`);
+      }
+    }),
+  );
+
+  mkdirSync(dirname(OUT), { recursive: true });
+  writeFileSync(OUT, JSON.stringify(results, null, 1));
+  const ok = results.filter((r) => !r.error && r.sealedProducts >= MIN);
+  const byMarket: Record<string, number> = {};
+  for (const r of ok) byMarket[r.market] = (byMarket[r.market] ?? 0) + 1;
+  console.log(`\n${ok.length}/${results.length} stores clear the bar (≥${MIN} sealed products):`, byMarket);
+  console.log(`full results: ${OUT}`);
+
+  if (flag("write")) {
+    for (const r of ok) {
+      const entry: StoreConfig = { key: r.key, name: r.name, base: r.base, market: r.market, platform: r.platform!, country: r.country, collections: r.collections };
+      byBase.set(r.base, { ...byBase.get(r.base), ...entry, key: byBase.get(r.base)?.key ?? r.key });
+    }
+    const out = [...byBase.values()].sort((a, b) => a.market.localeCompare(b.market) || a.key.localeCompare(b.key));
+    writeFileSync(registryPath, JSON.stringify(out, null, 2) + "\n");
+    console.log(`wrote ${out.length} stores to src/data/stores.json`);
   }
 }
 

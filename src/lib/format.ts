@@ -1,68 +1,71 @@
-import { COUNTRIES, type Country } from "./country";
+import { regionOfMarket } from "./regions";
 
-/** "US$12.34" — integer cents in the market's own currency. */
-export function money(cents: number | null | undefined, country: Country): string {
+/** "A$54.95", "£39.99", "€44.90" — always the market's own currency. */
+export function money(cents: number | null | undefined, market: string): string {
   if (cents == null) return "—";
-  const c = COUNTRIES[country];
-  const v = cents / 100;
-  const digits = v >= 1000 ? 0 : 2;
-  return `${c.symbol}${v.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
+  const r = regionOfMarket(market);
+  const currency = r?.currency ?? "USD";
+  const locale = r?.locale ?? "en-US";
+  const whole = cents % 100 === 0 && cents >= 10000;
+  const s = new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    currencyDisplay: "narrowSymbol",
+    minimumFractionDigits: whole ? 0 : 2,
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
+  // Disambiguate dollars: "$" alone reads as USD everywhere.
+  const prefix: Record<string, string> = { AUD: "A", NZD: "NZ", CAD: "C", SGD: "S" };
+  return prefix[currency] && s.startsWith("$") ? `${prefix[currency]}${s}` : s;
 }
 
-/** USD cents formatted as US dollars. */
-export function usd(cents: number | null | undefined): string {
-  return money(cents, "US");
+export function timeAgo(date: Date | string | null | undefined, now: number = Date.now()): string {
+  if (!date) return "never";
+  const ms = now - (date instanceof Date ? date.getTime() : Date.parse(date));
+  const m = Math.round(ms / 60000);
+  if (m < 2) return "just now";
+  if (m < 60) return `${m} min ago`;
+  const h = Math.round(m / 60);
+  if (h < 36) return `${h} hour${h === 1 ? "" : "s"} ago`;
+  const d = Math.round(h / 24);
+  return `${d} day${d === 1 ? "" : "s"} ago`;
 }
 
-export function pct(v: number | null | undefined, digits = 1): string {
-  if (v == null || !Number.isFinite(v)) return "—";
-  const s = v.toFixed(digits);
-  return `${v > 0 ? "+" : ""}${s}%`;
+export function plural(n: number, one: string, many = `${one}s`): string {
+  return `${n.toLocaleString("en")} ${n === 1 ? one : many}`;
 }
 
-export function int(n: number): string {
-  return n.toLocaleString("en-US");
+/**
+ * How far a price sits from a reference, in whole percent: negative below it.
+ * pctOf(4100, 5000) = -18. Null when there is no reference.
+ */
+export function pctOf(cents: number, reference: number | null | undefined): number | null {
+  if (!reference || reference <= 0) return null;
+  return Math.round(((cents - reference) / reference) * 100);
 }
 
-/** "7h ago", "3d ago" — for "prices updated" lines. */
-export function ago(d: Date | string | null | undefined, now: number = Date.now()): string {
-  if (!d) return "never";
-  const t = typeof d === "string" ? Date.parse(d) : d.getTime();
-  const mins = Math.max(0, Math.round((now - t) / 60000));
-  if (mins < 60) return `${mins}m ago`;
-  const h = Math.round(mins / 60);
-  if (h < 48) return `${h}h ago`;
-  return `${Math.round(h / 24)}d ago`;
+/** "in 12 days", "tomorrow", "today", "3 days ago" — for a YYYY-MM-DD date. */
+export function relativeDay(iso: string, today = new Date().toISOString().slice(0, 10)): string {
+  const d = Math.round((Date.parse(`${iso}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86400_000);
+  if (d === 0) return "today";
+  if (d === 1) return "tomorrow";
+  if (d === -1) return "yesterday";
+  return d > 0 ? `in ${plural(d, "day")}` : `${plural(-d, "day")} ago`;
 }
 
-export function longDate(d: Date | string | null | undefined): string {
-  if (!d) return "";
-  const dt = typeof d === "string" ? new Date(d) : d;
-  return dt.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+/**
+ * "18% below the median of 6 stores" — only when it is a real signal: at least
+ * three independent stores in stock and the best price at least 10% under
+ * their median. Never "above": a high best price is not a badge. Null otherwise.
+ * ProductStat.lowestPriceCents may be TCGplayer's (US) while the median is the
+ * stores' — a fact about now either way, never history.
+ */
+export function medianSaving(lowestCents: number | null | undefined, medianCents: number | null | undefined, inStockStores: number): string | null {
+  if (!lowestCents || !medianCents || inStockStores < 3) return null;
+  // The 10% bar is on the exact ratio; only the printed figure is rounded, so
+  // 9.6% under never reads as "10% below".
+  if (lowestCents > medianCents * 0.9) return null;
+  const pct = pctOf(lowestCents, medianCents);
+  if (pct == null) return null;
+  return `${-pct}% below the median of ${plural(inStockStores, "store")}`;
 }
-
-export function shortDate(d: Date | string | null | undefined): string {
-  if (!d) return "";
-  const dt = typeof d === "string" ? new Date(d) : d;
-  return dt.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
-}
-
-/** "$12.34", "A$12.34" — minor units in any ISO currency (Stripe amounts, report snapshots). */
-export function moneyCode(cents: number | null | undefined, currency: string | null | undefined): string {
-  if (cents == null) return "—";
-  if (!currency) return (cents / 100).toFixed(2);
-  try {
-    return new Intl.NumberFormat("en-US", { style: "currency", currency: currency.toUpperCase() }).format(cents / 100);
-  } catch {
-    return `${(cents / 100).toFixed(2)} ${currency.toUpperCase()}`;
-  }
-}
-
-/** "A", "A and B", "A, B and C": a list in a sentence, the site's style (no comma before the "and"). */
-export function andList(items: readonly string[]): string {
-  if (items.length <= 1) return items[0] ?? "";
-  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
-}
-
-/** The separator before item `i` of `n` in a sentence list rendered piece by piece (JSX): "", ", " or " and ", as andList joins. */
-export const listSeparator = (i: number, n: number): string => (i === 0 ? "" : i === n - 1 ? " and " : ", ");

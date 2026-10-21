@@ -1,8 +1,11 @@
-// MTG Compare: the PRIVATE-STATE schema (contract section 2.2, FROZEN; owner WP01a). ONE Neon database, DATABASE_URL, 28 models (plus PlaneFile at the bottom: the published plane, declared only so `prisma db push` does not drop it).
-// The public catalogue (sets, cards, oracles, prices, units, store offers, sealed, price history and every precomputed public view) is NOT here: it lives in the PRIVATE data repository as sharded versioned JSON
-// (sections 2.9 and 12, src/lib/data/plane). This schema keeps ONLY accounts, billing, member data, inbox, counters, ops rows, the private demand analytics and the eBay data that must never leave the database.
-// Products are referenced by plain integers (productId = Card.id / Sealed.id) with NO foreign key; existence is checked against the plane (cardExists / sealedExists), and the importer never deletes a catalogue row,
-// so a stored id always resolves. Public pages never read this database (tests/public-no-neon.test.ts): it is touched by member pages, /api routes, the card-view beacon (sampled, batched), and the Actions jobs.
+// DexCompare (sealed) — Pokémon TCG sealed products compared across stores.
+//
+// DELIBERATELY NO HISTORY. Every table holds the CURRENT state only: the latest
+// read of each store's listings and the per-market summary derived from them.
+// There is no price history, no stock history and no first-seen table, and no
+// user data at all (no accounts, no emails). That keeps the database small and
+// flat (a few thousand rows, not millions), which is what keeps it inside
+// Neon's free tier. See README.md, "What this site does not store".
 
 generator client {
   provider = "prisma-client-js"
@@ -13,468 +16,128 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ── Accounts and Premium (ported from RiftCompare) ──────────────────────────
-// Sign-in is Google / Discord OAuth only, with a signed JWT cookie (no session
-// table). Entitlement is a date: premiumUntil, extended (never shortened) by
-// the Stripe webhook and the daily reconcile, and premiumTier from the Price.
-model User {
-  id               String    @id @default(cuid())
-  email            String    @unique
-  displayName      String
-  avatarUrl        String?
-  emailVerified    DateTime?
-  googleId         String?
-  discordId        String?
-  isAdmin          Boolean   @default(false)
-  premiumUntil     DateTime?
-  premiumTier      String    @default("premium")
-  stripeCustomerId String?
-  createdAt        DateTime  @default(now())
-  lastLoginAt      DateTime?
+// One sealed product, e.g. "Surging Sparks Elite Trainer Box". Market-agnostic:
+// the same product exists in every region, and each region's offers hang off it.
+// Rows are kept while any store still lists the product (in stock or sold out),
+// so its URL keeps working between restocks.
+model Product {
+  id          String   @id @default(cuid())
+  // Identity from the title classifier (src/lib/sealed-title.ts): "<set>|<type>"
+  // for set products, "<type>|<set or ->|<signature>" for collections, tins, etc.
+  groupKey    String   @unique
+  slug        String   @unique
+  name        String
+  productType String
+  setCode     String?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
 
-  // Wave 2 (RiftCompare parity).
-  lastActiveAt       DateTime?
-  activeDays         Int       @default(0)
-  preferredCountry   String?
-  signupSource       String?
-  collectionShareId  String?   @unique
-  basketPrefs        Json? // { minCondition: "nm"|"lp"|"any", region?: string, trackedOnly?: boolean }
-  welcomeEmailSentAt DateTime?
+  offers Offer[]
+  stats  ProductStat[]
 
-  priceAlerts   PriceAlert[]
-  sealedWatches SealedWatch[]
-  deckWatches   DeckWatch[]
-  notifications Notification[]
-  collection    CollectionCard[]
-
-  @@index([googleId])
-  @@index([discordId])
-  @@index([stripeCustomerId])
+  @@index([setCode])
+  @@index([productType])
 }
 
-// Small key/value settings written by jobs and read by the admin: alert-run counters (alerts.*), db.footprint.<week>, ebay.paused, ebay.observeOnly, email. It holds NO import state any more:
-// the gate, the hold memory, the guard counters and the pointer live in the data repository (latest.json, status.json).
-model Meta {
-  key       String   @id
-  value     String
-  updatedAt DateTime @updatedAt
+// A store's current listing for a product. One row per (product, store): the
+// importer keeps the best listing a store has (in stock first, then cheapest).
+// A store's rows are replaced only after a SUCCESSFUL read of that store, so a
+// failed read keeps yesterday's rows, which then age into "unknown" (see
+// src/lib/sealed-offers.ts) rather than vanishing.
+model Offer {
+  id         String   @id @default(cuid())
+  productId  String
+  store      String // store key, see src/lib/stores/
+  market     String // AU | NZ | US | UK | CA | EU | SG — also the currency
+  title      String // the store's own product title
+  url        String
+  priceCents Int
+  inStock    Boolean
+  imageUrl   String?
+  lastSeen   DateTime // the importer's last successful read of this store
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, store])
+  @@index([store])
+  @@index([market, productId])
 }
 
-model PriceReport {                           // + finish; listingTitle stays nullable and is no longer filled (Offer has no title)
-  id              String   @id @default(cuid())
-  productId       Int
-  finish          Int      @default(0) @db.SmallInt
-  kind            String
-  source          String
-  market          String
-  storeName       String
-  shownPriceCents Int?
-  currency        String?
-  listingTitle    String?
-  listingUrl      String?
-  issue           String
-  claimedCents    Int?
-  note            String?
-  userId          String?
-  page            String?
-  status          String   @default("NEW")
-  createdAt       DateTime @default(now())
+// Per-market summary of a product, recomputed wholesale by every import. This
+// is what listing pages read, so a region's browse page is one indexed read
+// instead of an aggregate over every offer on every request.
+model ProductStat {
+  productId        String
+  market           String
+  lowestPriceCents Int? // cheapest OPEN offer (in stock and freshly read), a marketplace's included; null = none
+  // Independent STORES only: every "N stores" on the site reads these, and a
+  // marketplace (TCGplayer) is never a store. Its presence is marketplaceOpen.
+  inStockStores    Int
+  listedStores     Int
+  // A marketplace (TCGplayer, US only) has an OPEN offer for the product. A
+  // product is buyable when inStockStores > 0 OR this is true.
+  marketplaceOpen  Boolean @default(false)
+  // Median of the OPEN independent-store prices in this market (null under
+  // two stores): "18% below the median of 6 stores" is a cross-store fact
+  // about now, not history.
+  medianOpenCents  Int?
 
-  @@index([status, createdAt])
-  @@index([source, createdAt])
-  @@index([productId])
-}
-
-model StoreSuggestion {
-  id        String   @id @default(cuid())
-  storeName String
-  storeUrl  String // https://<bare host>
-  country   String // a MARKETS code or "OTHER"
-  note      String?
-  userId    String?
-  status    String   @default("pending") // pending | added | rejected
-  createdAt DateTime @default(now())
-
-  @@index([status, createdAt])
-  @@index([storeUrl])
-}
-
-model Feedback {
-  id            String    @id @default(cuid())
-  userId        String?
-  rating        Int? // 1–5
-  message       String // may be "" when only a rating was given
-  displayName   String? // stored only with consentPublic
-  consentPublic Boolean   @default(false)
-  page          String?
-  email         String? // optional reply address; never public
-  source        String    @default("page") // page | widget
-  status        String    @default("NEW") // NEW | APPROVED | HIDDEN | SPAM
-  publishedAt   DateTime?
-  createdAt     DateTime  @default(now())
-
-  @@index([createdAt])
-  @@index([status, publishedAt])
-}
-
-model ContactMessage {
-  id        String   @id @default(cuid())
-  name      String
-  email     String // the visitor typed it so the owner can reply by hand
-  subject   String?
-  category  String   @default("OTHER") // PAYMENT | ACCOUNT | PRICE_OR_STORE | OTHER
-  message   String
-  userId    String?
-  status    String   @default("NEW") // NEW | DONE
-  createdAt DateTime @default(now())
-
-  @@index([status, createdAt])
-}
-
-// ── Beacons (ported from RiftCompare) ───────────────────────────────────────
-// RESTORED (owner addendum 2026-10-08: "click events" stay in Neon; OP deleted the feature on 2026-10-05 because each click was a write). POST /api/click records a SAMPLED row (CLICK_LOG, CLICK_SAMPLE_RATE),
-// batched per instance and flushed like the view counter; rows older than 90 days are swept by the daily alerts script; /admin/clicks reads it.
-model ClickEvent {
-  id        String   @id @default(cuid())
-  retailer  String // data-retailer: "store:<key>", "tcgplayer", "ebay", "ebay_search", "buy_list" …
-  page      String // data-page, or the first path segment: "card", "sealed", "price-guide", "footer" …
-  slug      String? // card / sealed slug when the click came from its page
-  country   String // US AU UK CA SG EU
-  userId    String?
-  entry     String? // first-touch bucket ("search", "social", "direct" …)
-  createdAt DateTime @default(now())
-
-  @@index([createdAt])
-  @@index([retailer, createdAt])
-}
-
-// One row per click on a Plus/Premium call to action (PlanButton, the Pricing
-// links, the slide-in → /api/premium/click), read only by /admin/premium.
-// `surface` is validated against lib/nudge-surface.ts before it is written.
-model PremiumClick {
-  id        String   @id @default(cuid())
-  surface   String // "nav:header", "gate:buy-list", "nudge:slidein", "checkout" …
-  tier      String? // the tier the surface was selling: plus | premium
-  source    String   @default("click") // "click" | "checkout"
-  userId    String?
-  createdAt DateTime @default(now())
-
-  @@index([createdAt])
-  @@index([userId])
-}
-
-model PriceAlert {                            // + finish; the unique key is widened; cardId is a plain productId (no FK)
-  id                 String    @id @default(cuid())
-  email              String
-  userId             String?
-  cardId             Int
-  finish             Int       @default(0) @db.SmallInt // EXPLICIT unit: set from the selected finish tab, or headFinish at creation, never "follow the headline"
-  market             String    @default("US")
-  lastPriceCents     Int?
-  lowestEmailedCents Int?
-  targetCents        Int?
-  targetEmailedCents Int?
-  startPriceCents    Int?
-  unsubToken         String
-  createdAt          DateTime  @default(now())
-  lastNotifiedAt     DateTime?
-  lastFlaggedAt      DateTime?
-  confirmSentAt      DateTime?
-  soldOutAt          DateTime?
-  soldOutRuns        Int?
-  dropAnchorCents    Int?
-  pendingLowCents    Int?
-  snoozedUntil       DateTime?
-  user               User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([email, cardId, finish, market])
-  @@index([cardId])
-  @@index([email])
-  @@index([unsubToken])
-  @@index([userId])
-}
-
-// An address that asked for no more alert email (one-click unsubscribe-all).
-model AlertMute {
-  email   String   @id
-  mutedAt DateTime @default(now())
-  source  String?
-}
-
-// A watched sealed product (Plus). RiftCompare keys these by groupKey; OP has
-// one Sealed row per product, so it is Sealed.id.
-model SealedWatch {
-  id               String    @id @default(cuid())
-  userId           String
-  email            String
-  market           String    @default("US")
-  sealedId         Int
-  targetCents      Int?
-  lastPriceCents   Int?
-  lastInStock      Boolean?
-  soldOutAt        DateTime?
-  lastEmailedCents Int?
-  lastNotifiedAt   DateTime?
-  lastFlaggedAt    DateTime?
-  lastAtRrp        Boolean?
-  snoozedUntil     DateTime?
-  createdAt        DateTime  @default(now())
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, sealedId, market])
-  @@index([userId])
-  @@index([email])
-}
-
-// A saved deck list whose delivered basket total is re-checked (Premium).
-model DeckWatch {
-  id               String    @id @default(cuid())
-  userId           String
-  market           String    @default("US")
-  name             String
-  listText         String
-  region           String?
-  trackedOnly      Boolean?
-  targetCents      Int?
-  minCondition     String?
-  lastTotalCents   Int?
-  lastCheckedAt    DateTime?
-  lastEmailedCents Int?
-  lastNotifiedAt   DateTime?
-  lastFlaggedAt    DateTime?
-  snoozedUntil     DateTime?
-  createdAt        DateTime  @default(now())
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-// In-app notifications (the bell). Written only through notify() in
-// src/lib/notifications.ts.
-model Notification {
-  id        String    @id @default(cuid())
-  userId    String
-  type      String
-  title     String
-  body      String
-  href      String?
-  readAt    DateTime?
-  createdAt DateTime  @default(now())
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, createdAt])
-  @@index([userId, readAt])
-}
-
-// The portfolio / binder: one row per (card printing, condition, foil).
-model CollectionCard {
-  id               String   @id @default(cuid())
-  userId           String
-  cardId           Int                                     // productId, no FK
-  setId            Int?                                    // denormalised from the plane at write time (the portfolio's per-set views filter on it)
-  condition        String   @default("NM")
-  isFoil           Boolean  @default(false)
-  quantity         Int      @default(1)
-  costBasisCents   Int?
-  costBasisIsTotal Boolean  @default(false)
-  note             String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, cardId, condition, isFoil])
-  @@index([userId])
-  @@index([cardId])
-  @@index([userId, setId])
-}
-
-// Small named counters (support ticket numbers and the like).
-model Counter {
-  key   String @id
-  value Int
-}
-
-model NewsletterSubscriber {
-  id             String    @id @default(cuid())
-  email          String    @unique
-  market         String    @default("US")
-  source         String?
-  createdAt      DateTime  @default(now())
-  unsubToken     String?   @unique
-  lastEditionKey String?
-  welcomeSentAt  DateTime?
-}
-
-// "Tell me when this set (or this card) is out." setSlug is Set.slug ("op-15");
-// scope is "set" or a Card.id as a string.
-model SetReleaseAlert {
-  id                String    @id @default(cuid())
-  email             String
-  setSlug           String
-  scope             String    @default("set")
-  market            String    @default("US")
-  source            String?
-  unsubToken        String
-  createdAt         DateTime  @default(now())
-  confirmSentAt     DateTime?
-  singlesNotifiedAt DateTime?
-  restockNotifiedAt DateTime?
-
-  @@unique([email, setSlug, scope])
-  @@index([setSlug])
-  @@index([unsubToken])
-}
-
-model PublishedDeck {                         // the commander (and partner) of a Commander deck; identity is a WUBRG mask; lines carry finish
-  id              String   @id @default(cuid())
-  slug            String   @unique
-  userId          String?
-  authorName      String?
-  title           String
-  description     String?
-  format          String   @default("commander")      // FORMATS key or "casual"
-  commanderCardId Int
-  commanderName   String
-  commanderSlug   String                              // the commander's Oracle.slug
-  partnerCardId   Int?
-  partnerName     String?
-  identity        Int      @default(0) @db.SmallInt   // WUBRG mask of the commander(s)
-  list            String
-  lines           Json                                // [{ cardId, qty, finish?: 0 | 1 }]
-  cardIds         Int[]
-  cardCount       Int
-  publishedTotals Json
-  source          String   @default("user")
-  status          String   @default("live")
-  createdAt       DateTime @default(now())
-
-  @@index([status, createdAt])
-  @@index([commanderSlug])
-  @@index([userId, createdAt])
-}
-
-// A frozen, shareable Rising Cards view (/rising/s/[token]).
-model RisingSnapshot {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  scope     String
-  title     String
-  data      Json
-  createdAt DateTime @default(now())
-
-  @@index([createdAt])
-}
-
-model SupportTicket {
-  id        String   @id @default(cuid())
-  number    Int      @unique
-  userId    String?
-  email     String
-  name      String
-  category  String   @default("OTHER")
-  subject   String
-  message   String
-  status    String   @default("OPEN")
-  adminNote String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([status, createdAt])
-  @@index([userId])
-}
-
-// One row per run of a job, written LAST inside try/catch with a 10 second timeout (a Neon outage never fails an import). status.json.runs in the data repository is the source of truth for the admin's
-// "last import result"; this table keeps the long history and the per-store summary array (summary.stores[]) that /admin/store-health reads.
-model ImportRun {
-  id         Int       @id @default(autoincrement())
-  kind       String                           // "full" | "catalog" | "overlay" | "stores" | "ebay" | "bootstrap" | "squash"
-  startedAt  DateTime  @default(now())
-  finishedAt DateTime?
-  ok         Boolean   @default(false)
-  summary    Json?                            // ImportSummaryV1 (6.1)
-
-  @@index([kind, finishedAt])
-}
-
-model EbayTrack {                             // replaces EbayCheck. Unit of work = an ORACLE NAME (singles) or a sealed product
-  ref       String                            // "o:<oracleNo>" for a single's name (the plane's public oracle ordinal), "p:<productId>" for sealed, "n:<fold(name)>" for a product with no oracle
-  market    Int       @db.SmallInt
-  tier      Int       @db.SmallInt            // 0 C (no calls) 1 A 2 B 3 sealed 4 banner-only
-  score     Float     @db.Real
-  banner    Boolean   @default(false)         // in the chase pool
-  checkedAt DateTime?                         // set only after a COMPLETED search
-  dueAt     DateTime?
-  matched   Boolean   @default(false)
-
-  @@id([ref, market])
-  @@index([dueAt])
-}
-
-model EbayBest {                              // cheapest raw listing per tracked UNIT and market that the job matched. Display-only: never ranked, never in alerts or baskets
-  productId  Int
-  finish     Int      @db.SmallInt            // the unit the title was matched to (finish words); never inferred from the headline
-  market     Int      @db.SmallInt
-  priceCents Int                              // ITEM price; postage separate
-  shipCents  Int?
-  itemId     String                           // eBay item id digits; the URL is rebuilt with the current campaign at render
-  checkedAt  DateTime                         // age label source (licence: 6 h rule)
-
-  @@id([productId, finish, market])
-  @@index([checkedAt])
-}
-
-model EbayPanel {                             // the card page's listing panel: one row per (product, market); listings carry `finish`; slabs inside `graded`
-  productId Int
-  market    Int      @db.SmallInt
-  checkedAt DateTime
-  listings  Json                              // <= 8 entries { finish, priceCents, shipCents, currency, itemId, title, image, rank }
-  graded    Json?                             // <= 6 entries { grader, grade, ... }; never an Offer; never seller identity
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@id([productId, market])
-  @@index([checkedAt])
+  @@index([market, inStockStores])
 }
 
-model EbayBanner {                            // ONE row: BannerPayloadV1, <= 100 KB, written only by the eBay job
-  key       String   @id                      // "v1"
-  payload   Json
-  updatedAt DateTime @updatedAt
+// Per-store health from the latest import: how many sealed listings the store
+// had and whether the last read worked. Current state only.
+model StoreStat {
+  store      String    @id
+  market     String
+  listed     Int       @default(0)
+  inStock    Int       @default(0)
+  lastOkAt   DateTime?
+  lastError  String?
+  // Listed 20+ products and had none in stock at the last import: a store that
+  // has stopped restocking. Its sold-out rows stay (the page says so) but no
+  // longer count as "listed by N stores" (ProductStat.listedStores).
+  dormant    Boolean   @default(false)
+  updatedAt  DateTime  @updatedAt
+
+  @@index([market])
 }
 
-model EbayLedger {                            // one row per quota window (ebay-brief section 7)
-  windowKey    String    @id                  // UTC date of the quota window START
-  cap          Int
-  claimed      Int       @default(0)
-  spent        Int       @default(0)
-  limit        Int?
-  resetAt      DateTime?
-  blockedUntil DateTime?
-  samples      Json?
-  runs         Json?
-  breakdown    Json?
-  config       Json?
-  updatedAt    DateTime  @updatedAt
+// ─── eBay listings (the daily import, scripts/ebay-import.ts) ───────────────────
+// The strips' data. Operational and TRANSIENT, not history: a feed's rows are REPLACED
+// in one transaction by each import run (never appended), at most 12 per feed, and every
+// row older than the display bound + 4 h is deleted (eBay API License Agreement 3.1(b):
+// delete copies no longer required). The web route only reads this table; it never calls
+// eBay and holds no eBay credentials. `src/lib/ebay-store.ts` carries the identical DDL
+// the importer self-heals with (CREATE TABLE IF NOT EXISTS) if a table is missing.
+model EbayListing {
+  // "<marketplace>|<kind>[:<arg>]": EBAY_US|chase, EBAY_AU|sealed, EBAY_GB|set:surging-sparks,
+  // EBAY_US|type:booster-boxes, EBAY_US|item:<productId>
+  feed       String
+  rank       Int // 0-based display order within the feed
+  itemId     String
+  title      String
+  imageUrl   String // https, *.ebayimg.com
+  priceValue String // exactly as eBay returned it ("717.90"); never converted
+  currency   String
+  shipValue  String? // the first shipping option's cost, when eBay gave one
+  shipFree   Boolean? // true: free shipping; null: unknown
+  condition  String?
+  url        String // the affiliate URL (itemAffiliateWebUrl, or tagged itemWebUrl)
+  fetchedAt  DateTime // when eBay answered for this feed
+
+  @@id([feed, rank])
+  @@index([fetchedAt])
 }
 
-// Popularity counters: the ONLY per-request write of public traffic. SAMPLED (1 in VIEW_BEACON_SAMPLE, default 10), batched in the instance, flushed at most every VIEW_FLUSH_MINUTES (default 30) in ONE statement,
-// never from a crawler, never awaited by a render (view-beacon.ts). Free-plan compute is 400 awake hours a month: every isolated burst of queries costs its 5-minute idle timeout. cardId is a productId (no table to point at).
-model CardStat {
-  cardId       Int       @id
-  searchCount  Int       @default(0)
-  viewCount    Int       @default(0)
-  lastViewedAt DateTime?
-}
-
-// One row per UTC day: the running totals of every card with activity at the end of that day ({ "<cardId>": [searches, views] }). Demand Finder and Rising Cards (Premium) read these; they are NEVER published (the OP design wrote them to the public data branch).
-model DemandDay {
-  day  String @id            // "2026-10-07"
-  data Json                  // top 3,000 cards by activity, about 40 KB a day
-}
-
-// The published data plane when it lives in Neon (the default; PLANE_BACKEND=github turns it off). Created and written ONLY by src/lib/data/plane/neon-store.ts with raw SQL (CREATE TABLE IF NOT EXISTS, same columns). It is declared here
-// for one reason: `prisma db push` drops any table the schema does not know. No code reads it through the generated client. Everything in it is world-readable through the site: never anything private, paid or eBay-derived.
-model PlaneFile {
-  path      String   @id
-  sha       String
-  body      Bytes
-  updatedAt DateTime @default(now()) @db.Timestamptz(6)
+// Browse-search calls made per day, in the time zone eBay resets its daily limit in
+// (America/Los_Angeles). Reserved with ONE atomic statement before each search, so
+// overlapping and manual runs can never exceed the cap. One small row per day.
+model EbayCallDay {
+  day       String   @id // YYYY-MM-DD, Pacific time
+  total     Int
+  updatedAt DateTime
 }

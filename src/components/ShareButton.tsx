@@ -1,50 +1,71 @@
 "use client";
 
-import { useState } from "react";
+import { track } from "@vercel/analytics";
+import { useEffect, useRef, useState } from "react";
+import { SITE_URL } from "@/lib/site";
+import { Icon } from "./Icon";
 
-// Copy-the-link button — TCG communities share cards in Discord constantly
-// (user feedback), so the permanent URL gets a one-tap copy.
-// A drawn icon and text-sm (2026-09-23) to match the heart button beside it
-// (was a 🔗 emoji at text-xs); `responsive` gives an icon square below sm.
-export function ShareButton({ className, responsive = false }: { className?: string; responsive?: boolean }) {
-  const [copied, setCopied] = useState(false);
+// Share this page: the phone's own share sheet (navigator.share) where there is one, else the link copied to the clipboard with a short
+// "Link copied" note. It shares the page's CANONICAL URL (SITE_URL + path: never the address bar, which may carry a query string), and
+// records one Vercel event, share { kind }: ONE property (Vercel keeps two per event; nothing about the visitor or the page's data).
+// A 44 px round button; the note appears beside it, absolutely placed (nothing moves), and is read out by an aria-live region.
+// Exported for the set page too (the integrator's wiring commit): <ShareButton title=… path={`/${region}/sets/${slug}`} kind="set" />.
+
+export type ShareKind = "product" | "set";
+
+export function ShareButton({ title, path, kind, className = "" }: { title: string; path: string; kind: ShareKind; className?: string }) {
+  const [note, setNote] = useState("");
+  const timer = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  function say(text: string) {
+    setNote(text);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => setNote(""), 2500);
+  }
+
+  async function share() {
+    const url = `${SITE_URL}${path}`;
+    try {
+      track("share", { kind });
+    } catch {
+      /* analytics never gets in the way */
+    }
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share({ title, url });
+        return;
+      } catch (e) {
+        if ((e as Error)?.name === "AbortError") return; // the visitor closed the sheet
+        // any other failure (no permission, an embedded view): fall back to copying
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      say("Link copied");
+    } catch {
+      say("Couldn’t copy the link");
+    }
+  }
+
   return (
-    <button
-      onClick={async () => {
-        try {
-          await navigator.clipboard.writeText(window.location.href);
-          setCopied(true);
-          setTimeout(() => setCopied(false), 2000);
-        } catch {
-          /* clipboard unavailable — ignore */
-        }
-      }}
-      aria-label="Copy link to this page"
-      title="Copy link"
-      className={`btn-ghost whitespace-nowrap${responsive ? " w-12 px-0 sm:w-auto sm:px-4" : ""} ${className ?? ""}`}
-    >
-      {/* The glyph swaps to a check while copied, so a phone — where the label
-          is hidden — still gets a confirmation. */}
-      <svg
-        viewBox="0 0 24 24"
-        className="h-4 w-4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
+    <span className={`relative inline-flex shrink-0 ${className}`}>
+      <button
+        type="button"
+        onClick={share}
+        className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface text-muted transition-colors hover:border-ink/30 hover:text-ink"
+        aria-label={`Share ${kind === "set" ? "this set" : "this product"}`}
+        title="Share"
       >
-        {copied ? (
-          <path d="M20 6 9 17l-5-5" />
-        ) : (
-          <>
-            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-          </>
-        )}
-      </svg>
-      <span className={responsive ? "hidden sm:inline" : undefined}>{copied ? "Copied!" : "Share"}</span>
-    </button>
+        <Icon name="share" size={18} />
+      </button>
+      <span
+        role="status"
+        aria-live="polite"
+        className={`pointer-events-none absolute right-0 top-full z-10 mt-2 whitespace-nowrap rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-surface shadow-lift transition-opacity motion-reduce:transition-none ${note ? "opacity-100" : "opacity-0"}`}
+      >
+        {note}
+      </span>
+    </span>
   );
 }

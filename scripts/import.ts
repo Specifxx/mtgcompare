@@ -1,259 +1,170 @@
-// The daily publish (contract section 6). Run by .github/workflows/import-prices.yml (21:25 UTC and two retries) or by hand:
+// The scheduled job: read every store and TCGplayer, update the database, then
+// ask the live site to re-render its cached pages.
 //
-//   npx tsx scripts/import.ts --phase catalog                  # S0..S7, S10, S11, S12, S13: catalogue, prices, history, free views (about 10 minutes after the start)
-//   npx tsx scripts/import.ts --phase full --only-stores a,b   # S8, S9, S11, S12, S13: store offers and aggregates, on top of today's phase 1
-//   IMPORT_FORCE=1 npx tsx scripts/import.ts --phase catalog   # import even if the sources have not changed
-//   IMPORT_STORES=0 ...                                        # phase `full` is skipped (the store stage is off)
-//   TCGCSV_CACHE_DIR=... SCRYFALL_CACHE_DIR=... PLANE_REMOTE=<a git remote or a path>   # developer runs, tests: no network for the sources, a local bare repository for the data
+//   DATABASE_URL=… npx tsx scripts/import.ts [--only au,cherry] [--concurrency 8]
 //
-// THE IMPORTER'S SOURCES ARE NOT NEON; ITS OUTPUT IS (DECISIONS.md, 2026-10-09). Its memory of last time is the previous published tree (PrevState), pulled from the plane; its output is a tree of JSON files that the publisher validates, uploads, verifies and points at
-// (plane/publisher.ts for git, plane/publisher-neon.ts for the default Neon-backed plane: the "PlaneFile" table of DATABASE_URL, no token). PLANE_BACKEND=github publishes to the private data repository instead. A refusal, a crash or a failed publish ends the run red and
-// changes nothing for readers. The private ImportRun row is a courtesy at the very end, inside try, with a 10-second timeout.
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
-import zlib from "node:zlib";
-import { createHash, randomInt } from "node:crypto";
-import { aggregate, aggregateInfoOf, importCatalog, matchRowsFromTree, recordHistory, revalidateSite, scryfallStamp, snapshotFromTree, tcgcsvStamp, writeCatalogueFiles, type ImportContext, type ImportSummaryV1, type SlugSeed } from "../src/lib/import";
-import { MARKETS, normalizeCountry, type Country } from "../src/lib/country";
-import { trackConfigFromEnv, trackConfigHash } from "../src/lib/track";
-import type { MatchRow } from "../src/lib/match";
-import type { StoreResult } from "../src/lib/stores";
-import { loadPrevState, type PrevState } from "../src/lib/data/plane/prevstate";
-import { publish, restoreState, type PublishInput, type PublishOutcome } from "../src/lib/data/plane/publisher";
-import { restoreStateNeon } from "../src/lib/data/plane/publisher-neon";
-import { planeBackend } from "../src/lib/data/plane/backend";
-import { NEON_REPO, openWriterStore, type NeonStore } from "../src/lib/data/plane/neon-store";
-import { fsTree, type MutableTree } from "../src/lib/data/plane/tree";
-import { validateTree, type Phase } from "../src/lib/data/plane/validate";
-import { familyOf } from "../src/lib/data/plane/shards";
-import type { PointerFile } from "../src/lib/data/plane/formats";
-import type { StatusFile } from "../src/lib/data/plane/status";
+// --only takes store keys and markets; "tcgplayer" (or "US") includes TCGplayer.
+//
+// Env: DATABASE_URL (required); NEXT_PUBLIC_SITE_URL + REVALIDATE_SECRET
+// (refresh the live pages).
+process.env.DEXCOMPARE_SCRIPT = "1";
 
-export const log = (...a: unknown[]): void => console.log(new Date().toISOString().slice(11, 19), ...a);
-/** Thrown by the gate: nothing to do, exit 0. */
-export class AlreadyPublished extends Error { constructor(m: string) { super(m); this.name = "AlreadyPublished"; } }
-const sha256 = (s: string): string => createHash("sha256").update(s).digest("hex");
+import { appendFileSync } from "node:fs";
+import { runImport } from "../src/lib/importer";
+import { prisma } from "../src/lib/db";
+import { purgeCutoff } from "../src/lib/ebay-context";
+import { SITE_URL } from "../src/lib/site";
+import { utcTimestamp } from "../src/lib/pg-time";
 
-// ── git access: the token travels in an http extraheader (never in the URL or a log), like scripts/plane-checkout.sh ─────────────────────────────────────────────────────────
-export function remoteOf(env: NodeJS.ProcessEnv = process.env): { remote: string; repo: string; github: boolean } {
-  const repo = env.PLANE_REPO || "Specifxx/mtgcompare-data";
-  if (env.PLANE_REMOTE) return { remote: env.PLANE_REMOTE, repo, github: /^https:\/\/github\.com\//.test(env.PLANE_REMOTE) };
-  return { remote: `https://github.com/${repo}.git`, repo, github: true };
-}
-/** Makes every git child process of this run authenticate to github.com with the write token. No-op without a token or for a local remote. */
-export function authenticateGit(env: NodeJS.ProcessEnv = process.env): void {
-  const token = env.DATA_REPO_TOKEN; if (!token || !remoteOf(env).github) return;
-  const header = `AUTHORIZATION: basic ${Buffer.from(`x-access-token:${token}`).toString("base64")}`;
-  process.env.GIT_CONFIG_COUNT = "1"; process.env.GIT_CONFIG_KEY_0 = "http.https://github.com/.extraheader"; process.env.GIT_CONFIG_VALUE_0 = header;
-  console.log(`::add-mask::${header}`); console.log(`::add-mask::${Buffer.from(`x-access-token:${token}`).toString("base64")}`);
-}
-/** The pointer without a clone (S0 in under 10 seconds): raw.githubusercontent.com with the token. null when it cannot be read; the gate inside the build then decides from the checkout. */
-export async function readRemotePointer(env: NodeJS.ProcessEnv = process.env, f: typeof fetch = fetch): Promise<PointerFile | null> {
-  const r = remoteOf(env); if (!r.github || !env.DATA_REPO_TOKEN) return null;
-  try { const res = await f(`https://raw.githubusercontent.com/${r.repo}/${env.PLANE_BRANCH || "data"}/latest.json`, { headers: { Authorization: `token ${env.DATA_REPO_TOKEN}` }, cache: "no-store" } as RequestInit); return res.ok ? ((await res.json()) as PointerFile) : null; } catch { return null; }
-}
-/** The pointer of a Neon-backed plane (S0): one row read. null when nothing was ever published or the database cannot be read (the gate inside the build then decides from the pulled tree). */
-export async function readStorePointer(store: NeonStore): Promise<PointerFile | null> {
-  try { const t = await store.pointerText(); return t ? (JSON.parse(t) as PointerFile) : null; } catch { return null; }
-}
-/** S12 step 5: fetch manifest.json, the root files and 50 random files at `ref` through raw with the token and compare their sha-256 prefix with the manifest; retry for up to 2 minutes (propagation). */
-export async function verifyThroughRaw(ref: string, env: NodeJS.ProcessEnv = process.env, f: typeof fetch = fetch, o: { sleepMs?: number; maxMs?: number; sample?: number } = {}): Promise<void> {
-  const r = remoteOf(env); const token = env.DATA_REPO_TOKEN; const deadline = Date.now() + (o.maxMs ?? 120_000); let last = "";
-  const get = async (rel: string): Promise<string> => { const res = await f(`https://raw.githubusercontent.com/${r.repo}/${ref}/v1/${rel}`, { headers: token ? { Authorization: `token ${token}` } : {}, cache: "no-store" } as RequestInit); if (!res.ok) throw new Error(`${rel}: HTTP ${res.status}`); return res.text(); };
-  for (;;) {
-    try {
-      const man = JSON.parse(await get("manifest.json")) as { files: [string, number, string][] };
-      const pick = new Set<number>(); const want = Math.min(o.sample ?? 50, man.files.length); while (pick.size < want) pick.add(randomInt(man.files.length));
-      for (const i of pick) { const [rel, , prefix] = man.files[i]!; const text = await get(rel); if (sha256(text).slice(0, prefix.length) !== prefix) throw new Error(`${rel}: sha-256 differs from the manifest`); }
-      return;
-    } catch (e) { last = String(e); if (Date.now() >= deadline) throw new Error(`verification through raw failed: ${last}`); await new Promise((res) => setTimeout(res, o.sleepMs ?? 10_000)); }
-  }
-}
-
-// ── the match index cache (S7): the Actions cache hands it from phase 1 to phase 2 ───────────────────────────────────────────────────────────────────────────────────────────
-const cacheDir = (env: NodeJS.ProcessEnv): string => env.IMPORT_CACHE_DIR || ".cache";
-/** Where the clones of the data repository live: outside the Actions cache directory (the cache holds the Scryfall slim file and the match index, not 150 MB checkouts). */
-export const workRoot = (env: NodeJS.ProcessEnv = process.env): string => env.PLANE_WORK_DIR || path.join(os.tmpdir(), "mtgcompare-plane");
-export function writeMatchIndex(rows: readonly MatchRow[], stamp: string, env: NodeJS.ProcessEnv = process.env): void {
-  const dir = cacheDir(env); fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, "match-index.json.gz"), zlib.gzipSync(JSON.stringify({ v: 1, stamp, rows })));
-}
-export function readMatchIndex(stamp: string, env: NodeJS.ProcessEnv = process.env): MatchRow[] | null {
-  const f = path.join(cacheDir(env), "match-index.json.gz"); if (!fs.existsSync(f)) return null;
-  try { const j = JSON.parse(zlib.gunzipSync(fs.readFileSync(f)).toString("utf8")) as { v: number; stamp: string; rows: MatchRow[] }; return j.v === 1 && j.stamp === stamp ? j.rows : null; } catch { return null; }
-}
-export function readSlugSeed(file = path.join(__dirname, "..", "data", "slug-seed.json")): SlugSeed | null {
-  try { const s = JSON.parse(fs.readFileSync(file, "utf8")) as SlugSeed; return s.v === 1 ? s : null; } catch { return null; }
-}
-
-// ── one phase ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-export interface PhaseArgs {
-  phase: Phase; priceDay: string; tcgcsv: string; scryfall: string; env?: NodeJS.ProcessEnv; onlyStores?: string[]; market?: Country; remote?: string; now?: () => Date; store?: NeonStore;
-  /** Test seams: the store stage and the registry lookup (production loads src/lib/store-import.ts and src/lib/stores.ts by name when they exist). */
-  deps?: { importStores?: (ctx: ImportContext, o: { only?: string[]; market?: Country }) => Promise<StoreResult[]>; storeId?: (key: string, country: Country) => number | undefined };
-}
-type Built = Awaited<ReturnType<PublishInput["build"]>>;
-export interface PhaseResult { built: Built; summary: Partial<ImportSummaryV1>; ok: boolean }
-
-/** The counts COUNT_COLLAPSE compares against. A changed policy (trackConfigHash differs from the previous publish's: an operator moved a dial on purpose, as F10's `config-changed`) exempts the TRACKED count once,
- *  because moving a dial is meant to move it (RELEVANT_SHARE on 2026-10-17 took 71,729 tracked units to 39,307); cards, listed and oracles stay guarded. Same day's phase 2 carries phase 1's hash, so it compares normally. */
-export function collapseBaseline(prevStatus: StatusFile | null, hash: string): { cards: number; listed: number; tracked: number; oracles: number } | null {
-  const c = prevStatus?.counts; if (!c) return null;
-  const changed = !!prevStatus?.config?.trackConfigHash && prevStatus.config.trackConfigHash !== hash;
-  return { cards: c.cards, listed: c.listed, tracked: changed ? 0 : c.tracked, oracles: c.oracles };
-}
-
-/** gz size of a tree by family, for status.json (the admin panel's bytes by kind and the repository budget). */
-export function familiesOf(tree: MutableTree): StatusFile["families"] {
-  const by = new Map<string, [number, number, number]>();
-  for (const f of tree.files()) { const text = tree.read(f); const e = by.get(familyOf(f)) ?? [0, 0, 0]; e[0]++; e[1] += Buffer.byteLength(text); e[2] += zlib.gzipSync(text, { level: 6 }).length; by.set(familyOf(f), e); }
-  return [...by].sort((a, b) => (a[0] < b[0] ? -1 : 1)).map(([name, [files, raw, gz]]) => [name, files, raw, gz]);
-}
-/** Is `e` the error of the module `name` not being there (as opposed to a module that is there and broken, or one of its own imports missing)? The first line of Node's message names the module that could not be found. */
-export function isMissingModule(e: unknown, name: string): boolean {
-  const code = (e as { code?: string } | null)?.code;
-  return (code === "MODULE_NOT_FOUND" || code === "ERR_MODULE_NOT_FOUND") && (String((e as Error).message).split("\n")[0] ?? "").includes(name);
-}
-/** The store stage (src/lib/store-import.ts importStores) and the registry lookup. A module that does not exist yet means "no store stage": the day stays at phase catalog. A module that exists and fails to load (a syntax error, a missing import of its own, a throw at load time) is an error:
- *  swallowing it would leave phase 2 skipped every day behind a green run. */
-export const loadStoreStage = async (specs: { stage: string; registry: string } = { stage: ["..", "src", "lib", "store-import"].join("/"), registry: ["..", "src", "lib", "stores"].join("/") }): Promise<PhaseArgs["deps"]> => {
-  let mod: { importStores?: NonNullable<PhaseArgs["deps"]>["importStores"] };
-  try { mod = (await import(specs.stage)) as typeof mod; } catch (e) { if (isMissingModule(e, path.basename(specs.stage))) return {}; throw e; }
-  if (typeof mod.importStores !== "function") return {};
-  let storeId: NonNullable<PhaseArgs["deps"]>["storeId"];
-  try { const reg = (await import(specs.registry)) as { storeByKey?: (k: string) => { id: number } | undefined }; if (typeof reg.storeByKey === "function") storeId = (key) => reg.storeByKey!(key)?.id; } catch (e) { if (!isMissingModule(e, path.basename(specs.registry))) throw e; }
-  return { importStores: mod.importStores, storeId };
+const args = process.argv.slice(2);
+const opt = (name: string) => {
+  const i = args.indexOf(`--${name}`);
+  return i >= 0 ? args[i + 1] : undefined;
 };
 
-/** Builds one phase into `tree` (the checkout of the previous publish) and returns what the publisher needs: counts, the history cut and this run's slice of status.json. `catalog` = S1..S7, S10, S11; `full` = S8, S9, S11. */
-export async function buildPhase(tree: MutableTree, c: { prev: PointerFile | null; prevStatus: StatusFile | null; cutDay: boolean }, a: PhaseArgs): Promise<PhaseResult> {
-  const env = a.env ?? process.env; const started = Date.now(); const startedAt = new Date().toISOString(); const cfg = trackConfigFromEnv(env);
-  if (a.phase === "catalog" && !truthy(env.IMPORT_FORCE) && c.prev && c.prev.tcgcsv === a.tcgcsv && c.prev.scryfall === a.scryfall) throw new AlreadyPublished(`phase catalog is already published for ${a.tcgcsv} / ${a.scryfall}`);
-  if (a.phase === "full" && !truthy(env.IMPORT_FORCE) && c.prev && c.prev.phase === "full" && c.prev.tcgcsv === a.tcgcsv && c.prev.scryfall === a.scryfall && runsOfDay(c.prevStatus, a.priceDay) >= 2) throw new AlreadyPublished(`phase full is already published for ${a.tcgcsv} (two store attempts today)`);
-  if (a.phase === "catalog" && c.prev && a.priceDay < c.prev.priceDay) throw new Error(`F0: the source's price day ${a.priceDay} is older than the published ${c.prev.priceDay}: a stale TCGCSV copy is never published (the site would read yesterday's prices as today's)`);
-  if (a.phase === "full" && (!c.prev || c.prev.tcgcsv !== a.tcgcsv)) throw new Error("phase full needs today's phase 1 on the branch: run --phase catalog first");
-  let prevState: PrevState = loadPrevState(tree); let restoredFrom: string | null = null;
-  if (prevState.empty && (a.remote || a.store)) { try { const restored = a.store ? await restoreStateNeon(a.store) : restoreState(a.remote!, path.join(workRoot(env), "state")); if (restored && !restored.empty) { prevState = restored; restoredFrom = "state"; log(`PrevState restored from branch state (${restored.slugById.size} slugs, ${restored.slugByOracleNo.size} oracles)`); } } catch (e) { log(`state branch not usable: ${String(e).slice(0, 120)}`); } }
-  let summary: Partial<ImportSummaryV1>; let guards: StatusFile["guards"]; let groups: StatusFile["groups"]; let histCut = c.prev?.histCut ?? a.priceDay; let stores: StoreResult[] = []; let ctx: ImportContext; const degraded: string[] = [];
-  if (a.phase === "catalog") {
-    const bg = env.BOOTSTRAP_GROUPS ? Number(env.BOOTSTRAP_GROUPS) : undefined;
-    const imp = await importCatalog({ log, cfg, prev: prevState }, { cacheDir: env.TCGCSV_CACHE_DIR || undefined, scryfallCacheDir: env.SCRYFALL_CACHE_DIR || undefined, slimDir: cacheDir(env), scryfall: env.SCRYFALL_MODE === "off" ? "off" : "auto", tree, slugSeed: readSlugSeed(), bootstrapGroups: bg && bg > 0 ? bg : undefined, lastUpdated: a.tcgcsv });
-    ctx = imp.ctx; ctx.work = tree; summary = imp.result.summary; groups = imp.result.groups;
-    guards = { flagChange: imp.result.guards.flagChange, groupHold: imp.result.guards.groupHold, storeHold: [], configChanged: imp.result.guards.configChanged, countsOk: true };
-    const h = await recordHistory(ctx); summary.history = h; if (h.skipped) { log(h.skipped); summary.guards = { ...summary.guards, priceSanity: h.skipped }; degraded.push(h.skipped); } else histCut = h.cut ? a.priceDay : histCut;
-    const w = writeCatalogueFiles(ctx); summary.writes = { filesWritten: w.written, filesUnchanged: w.unchanged, filesRemoved: w.removed, bytes: w.bytes };
-    writeMatchIndex(ctx.match, a.tcgcsv, env);
-  } else {
-    const snapshot = snapshotFromTree(tree, a.priceDay); const tracked = new Set<number>(snapshot.units.map((u) => u.id * 2 + (u.finish === "F" ? 1 : 0)));
-    ctx = { log, day: a.priceDay, cfg, prev: prevState, phase: "full", work: tree, snapshot, match: readMatchIndex(a.tcgcsv, env) ?? matchRowsFromTree(tree), joined: new Map(), tracked, offers: { cards: [], sealed: [], reads: [], asOf: (a.now ?? (() => new Date()))().toISOString() } };
-    const deps = a.deps?.importStores ? a.deps : await loadStoreStage();
-    if (!deps?.importStores) throw new AlreadyPublished("the store stage (src/lib/store-import.ts) is not available: the day stays at phase catalog");
-    stores = await deps.importStores(ctx, { only: a.onlyStores?.length ? a.onlyStores : undefined, market: a.market });
-    // F2c: a read whose matched count fell under 50% of the last run's is a FAILED read: its rows stay, its freshness does not advance
-    // the last matched count of each (store, market) pair, from the newest run that read it: the newest RUN is today's phase 1 (it has no stores), and a manual run of a few stores must not make the others forget
-    const memory = new Map<string, number>(); for (const r of c.prevStatus?.runs ?? []) for (const s of r.stores ?? []) if (!memory.has(`${s.key}|${s.market}`)) memory.set(`${s.key}|${s.market}`, s.matched);
-    const hold: string[] = [];
-    for (const s of stores) { const was = memory.get(`${s.key}|${s.country}`); if (!s.failed && was && (s.matched ?? 0) < was * 0.5) { hold.push(`${s.key}|${s.country}`); const id = deps.storeId?.(s.key, s.country); const m = MARKETS.indexOf(s.country); if (id !== undefined && ctx.offers) for (const r of ctx.offers.reads) if (r.store === id && r.market === m) r.ok = false; } }
-    if (hold.length) { log(`F2c: ${hold.length} store read(s) held (matched fell under 50%): ${hold.join(", ")}`); degraded.push(`store hold: ${hold.join(", ")}`); }
-    aggregate(ctx, stores);
-    const info = aggregateInfoOf(ctx);
-    summary = { v: 1, priceDay: a.priceDay, mode: "full", stores, catalogue: { offersPruned: info.offersPruned } as never };
-    guards = { ...(c.prevStatus?.guards ?? { flagChange: null, groupHold: [], configChanged: false, countsOk: true }), storeHold: hold };
-    groups = c.prevStatus?.groups ?? [];
-  }
-  // counts, families, this run's record
-  const v = validateTree(tree, { phase: a.phase });
-  const bookkeeping = ((tree.has("manifest.json") ? 1 : 0) + (tree.has("status.json") ? 1 : 0));               // the manifest and the status copy of the PREVIOUS commit are in the checkout: the file count is the data files, the same on every run of the same day
-  const fam = familiesOf(tree);
-  const prevCounts = c.prevStatus?.counts;
-  const counts: StatusFile["counts"] = { cards: v.counts.cards, listed: v.counts.listed, thin: v.counts.thin, tracked: v.counts.tracked, oracles: v.counts.oracles, sets: ctx.snapshot.sets.length, sealed: a.phase === "catalog" ? ctx.snapshot.sealed.length : prevCounts?.sealed ?? 0, offers: v.counts.offers, files: v.counts.files - bookkeeping, bytesRaw: v.counts.bytes, bytesGz: fam.reduce((x, f) => x + f[3], 0) };
-  const run: StatusFile["runs"][number] = { at: new Date().toISOString(), startedAt, kind: a.phase, ok: true, seconds: Math.round((Date.now() - started) / 1000), note: runNote(a.phase, summary, counts, restoredFrom), errors: degraded.length ? degraded : undefined, stores: stores.length ? stores.map((s) => ({ key: s.key, market: s.country, ok: !s.failed, matched: s.matched ?? 0, offers: s.cards + s.sealed, failure: s.failed ? s.skipped ?? s.note : undefined })) : undefined };
-  const status: Partial<StatusFile> = {
-    counts, families: fam, groups, guards,
-    // F10 trips are counted by phase 1 only (phase 2 carries phase 1's guards and its count): counted again there, a trip would be two and the "third consecutive trip" would arrive on the second day
-    config: { trackConfigHash: trackConfigHash(cfg), guardTrips: { flagChange: a.phase === "full" ? c.prevStatus?.config?.guardTrips?.flagChange ?? 0 : guards.flagChange ? (c.prevStatus?.config?.guardTrips?.flagChange ?? 0) + 1 : 0 }, catalogFloorCents: cfg.catalogFloorCents, indexFloorCents: cfg.indexFloorCents },
-    previous: prevCounts ? { files: prevCounts.files, cards: prevCounts.cards, listed: prevCounts.listed, tracked: prevCounts.tracked, oracles: prevCounts.oracles } : null,
-    runs: [run, ...(c.prevStatus?.runs ?? [])].slice(0, 30),
-    refusals: c.prevStatus?.refusals ?? [],
-  };
-  return { built: { counts: { cards: v.counts.cards, units: v.counts.tracked, files: v.counts.files - bookkeeping }, histCut, status, prevCounts: collapseBaseline(c.prevStatus, trackConfigHash(cfg)) }, summary: { ...summary, timings: { ...(summary.timings ?? {}), total: Date.now() - started } }, ok: true };
-}
-const truthy = (v: string | undefined): boolean => v === "1" || v?.toLowerCase() === "true";
-const runsOfDay = (s: StatusFile | null, day: string): number => (s?.runs ?? []).filter((r) => r.kind === "full" && r.at.slice(0, 10) >= day).length;
-function runNote(phase: Phase, s: Partial<ImportSummaryV1>, c: StatusFile["counts"], restored: string | null): string {
-  if (phase === "full") { const st = s.stores ?? []; return `stores ${st.filter((x) => !x.failed).length} of ${st.length} ok, ${c.offers} offers`; }
-  return `${c.cards} cards, ${c.tracked} tracked units, ${c.oracles} oracles${restored ? ` (state restored from ${restored})` : ""}`;
-}
+// A marketplace that hasn't been read for this long fails the job (see main).
+const MARKETPLACE_STALE_MS = 48 * 3600_000;
 
-// ── the run: gate, publish, hook, courtesy row ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-export interface RunResult { outcome: PublishOutcome | "already-published" | "skipped"; summary?: Partial<ImportSummaryV1>; neon: "recorded" | "skipped" | "failed"; message?: string }
-export async function runImport(a: { phase: Phase; onlyStores?: string[]; market?: Country; env?: NodeJS.ProcessEnv; deps?: PhaseArgs["deps"]; fetch?: typeof fetch; skipHook?: boolean; store?: NeonStore }): Promise<RunResult> {
-  const env = a.env ?? process.env; const store = a.store ?? (planeBackend(env) === "neon" ? await openWriterStore(env) : null);
-  try { return await runImportOn(a, env, store); } finally { if (store && !a.store) await store.close().catch(() => undefined); }
-}
-async function runImportOn(a: Parameters<typeof runImport>[0], env: NodeJS.ProcessEnv, store: NeonStore | null): Promise<RunResult> {
-  const { remote, repo, github } = remoteOf(env);
-  if (!store && !remote) throw new Error("PLANE_REPO is not set");
-  if (!store) authenticateGit(env);
-  // S0: the sources' stamps against the pointer
-  const mode = env.SCRYFALL_MODE === "off" ? "off" : "auto";
-  const tcgcsv = await tcgcsvStamp({ cacheDir: env.TCGCSV_CACHE_DIR || undefined, fetch: a.fetch });
-  const scryfall = await scryfallStamp({ pinnedDir: env.SCRYFALL_CACHE_DIR || undefined, mode, fetch: a.fetch });
-  const priceDay = tcgcsv.slice(0, 10);
-  if (!truthy(env.IMPORT_FORCE)) {
-    const ptr = store ? await readStorePointer(store) : await readRemotePointer(env, a.fetch);
-    if (ptr && ptr.tcgcsv === tcgcsv && ptr.scryfall === scryfall && (a.phase === "catalog" || ptr.phase === "full")) { log(`Already published: seq ${ptr.seq}, phase ${ptr.phase}, ${tcgcsv}`); return { outcome: "already-published", neon: "skipped" }; }
-  }
-  let result: PhaseResult | null = null; const started = new Date();
-  const workdir = path.join(workRoot(env), "data");
-  let outcome: PublishOutcome;
+const FILES_RELEASE = "not needed: the data commit's deploy refreshes every page";
+
+async function revalidate(): Promise<string> {
+  const secret = process.env.REVALIDATE_SECRET;
+  if (!secret) return "skipped (REVALIDATE_SECRET not set)";
   try {
-    outcome = await publish({
-      remote, workdir, phase: a.phase, priceDay, tcgcsv, scryfall, repo: store ? NEON_REPO : repo, store: store ?? undefined,
-      build: async (tree, ctx) => { result = await buildPhase(tree, ctx, { phase: a.phase, priceDay, tcgcsv, scryfall, env, onlyStores: a.onlyStores, market: a.market, remote: store ? undefined : remote, store: store ?? undefined, deps: a.deps }); return result.built; },
-      verify: !store && github ? (ref) => verifyThroughRaw(ref, env, a.fetch) : undefined,
-      onStateBackupError: (e) => log(store ? `::warning::the second copy of the write-once state (state/ rows) was not stored (the publish is unaffected; slugs and ordinals are recoverable from the published tree until the next good run): ${String(e).slice(0, 200)}` : `::warning::the second copy on branch state was not pushed (the publish is unaffected; slugs and ordinals are recoverable from the data branch until the next good run): ${String(e).slice(0, 200)}`),
-    });
+    const res = await fetch(`${SITE_URL}/api/revalidate`, { method: "POST", headers: { Authorization: `Bearer ${secret}` } });
+    // 202: the site serves its bundled files, so this import reaches the pages with the publish step's deploy, not a purge.
+    if (res.status === 202) return FILES_RELEASE;
+    return res.ok ? "ok" : `failed: HTTP ${res.status}`;
   } catch (e) {
-    if (e instanceof AlreadyPublished) { log(e.message); return { outcome: "already-published", neon: "skipped", message: e.message }; }
-    throw e;
+    return `failed: ${(e as Error).message}`;
   }
-  const summary = (result as PhaseResult | null)?.summary; let neon: RunResult["neon"] = "skipped";
-  if (outcome.kind === "refused") { log(`REFUSED: ${outcome.problems.slice(0, 5).map((p) => `${p.code} ${p.message}`).join(" | ")}`); neon = await courtesyRow(env, a.phase, started, false, { ...summary, error: outcome.problems[0]?.message }); return { outcome, summary, neon }; }
-  log(`Published seq ${outcome.seq} ${outcome.ref.slice(0, 7)} (${a.phase}, ${priceDay})`);
-  if (!a.skipHook && !truthy(env.SKIP_REVALIDATE)) await revalidateSite(log, { pointer: outcome.pointer });
-  neon = await courtesyRow(env, a.phase, started, true, summary);
-  return { outcome, summary, neon };
-}
-/** The one courtesy ImportRun row: inside try, 10-second timeout; an unreachable, rotated or deleted database changes nothing (the run records `neon: skipped` or `failed`). */
-async function courtesyRow(env: NodeJS.ProcessEnv, kind: Phase, started: Date, ok: boolean, summary: Partial<ImportSummaryV1> | undefined): Promise<RunResult["neon"]> {
-  if (!env.DATABASE_URL) return "skipped";
-  try {
-    const dbSpec = ["..", "src", "lib", "db"].join("/");
-    const { prisma } = (await import(dbSpec)) as { prisma: { importRun: { create(a: { data: Record<string, unknown> }): Promise<unknown> }; $disconnect(): Promise<void> } };
-    await Promise.race([prisma.importRun.create({ data: { kind, startedAt: started, finishedAt: new Date(), ok, summary: { ...summary, neon: "recorded" } as object } }), new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 10_000))]);
-    await prisma.$disconnect().catch(() => undefined); return "recorded";
-  } catch (e) { log(`ImportRun row not recorded (${String(e).slice(0, 100)}); the data stages do not depend on it`); return "failed"; }
 }
 
-// ── CLI ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-export function parseArgs(argv: readonly string[]): { phase: Phase | "all"; onlyStores: string[]; market?: Country; force: boolean } {
-  const get = (name: string): string | undefined => { const i = argv.findIndex((x) => x === `--${name}` || x.startsWith(`--${name}=`)); if (i < 0) return undefined; return argv[i]!.includes("=") ? argv[i]!.split("=").slice(1).join("=") : argv[i + 1]; };
-  const phase = get("phase") ?? "catalog"; if (phase !== "catalog" && phase !== "full" && phase !== "all") throw new Error(`--phase must be catalog, full or all (got ${phase})`);
-  const only = (get("only-stores") ?? process.env.IMPORT_ONLY_STORES ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-  const mk = get("market") ?? process.env.IMPORT_ONLY_COUNTRY;
-  return { phase, onlyStores: only, market: mk ? normalizeCountry(mk) : undefined, force: argv.includes("--force") };
-}
-async function main(): Promise<void> {
-  const args = parseArgs(process.argv.slice(2)); if (args.force) process.env.IMPORT_FORCE = "1";
-  if (process.env.IMPORT_STORES === "0" && args.phase === "full") { log("IMPORT_STORES=0: the store stage is off; nothing to do"); return; }
-  const phases: Phase[] = args.phase === "all" ? (process.env.IMPORT_STORES === "0" ? ["catalog"] : ["catalog", "full"]) : [args.phase];
-  for (const phase of phases) {
-    const r = await runImport({ phase, onlyStores: args.onlyStores, market: args.market });
-    if (typeof r.outcome === "object" && r.outcome.kind === "refused") { process.exitCode = 1; return; }
+// Fewer product URLs than this across every region's sitemap means the live
+// sitemap is broken (a failed query, a stale copy, the wrong database), not
+// quiet: the local import lists ~8,000. A full import is the only run that can
+// judge it, so --only runs skip the check.
+const MIN_SITEMAP_PRODUCTS = 1000;
+
+/**
+ * After the pages are refreshed, read the live sitemap index and count product
+ * URLs across the regional sitemaps (src/lib/sitemap.ts). Returns a problem
+ * sentence, or null. Network trouble is a warning, not a failure: the import
+ * itself succeeded, and the next run checks again.
+ */
+async function checkLiveSitemap(): Promise<string | null> {
+  const get = async (url: string) => {
+    const res = await fetch(url, { headers: { "user-agent": "dexcompare-import sitemap check" }, signal: AbortSignal.timeout(60_000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+    return res.text();
+  };
+  try {
+    const index = await get(`${SITE_URL}/sitemap.xml`);
+    const files = [...index.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]).filter((u) => /\/sitemap\/\d+\.xml$/.test(u));
+    if (!files.length) return `${SITE_URL}/sitemap.xml is not a sitemap index (no /sitemap/<n>.xml entries).`;
+    let products = 0;
+    const counts: string[] = [];
+    for (const f of files) {
+      const xml = await get(f);
+      const urls = xml.match(/<loc>/g)?.length ?? 0;
+      const n = xml.match(/\/p\/[^<]+<\/loc>/g)?.length ?? 0;
+      products += n;
+      counts.push(`${f.replace(SITE_URL, "")}: ${urls} URLs, ${n} products`);
+    }
+    console.log(`Live sitemap: ${products} product URLs\n  ${counts.join("\n  ")}`);
+    return products < MIN_SITEMAP_PRODUCTS ? `Live sitemap lists ${products} product URLs (expected at least ${MIN_SITEMAP_PRODUCTS}).` : null;
+  } catch (e) {
+    console.log(`::warning::Live sitemap not checked: ${(e as Error).message}`);
+    return null;
   }
 }
-if (process.argv[1] && /scripts[\\/]import\.ts$/.test(process.argv[1])) {
-  main().catch((e) => { console.error(e); process.exitCode = 1; });
+
+/**
+ * A second line of defence for eBay API License Agreement 3.1(b) (delete copies no longer required): the eBay import
+ * (scripts/ebay-import.ts) purges listings older than the age bound + 4 h at the end of each of its runs; this does the
+ * same, with one DELETE, at the end of every store import, so a stopped eBay job cannot leave old listings behind. It never
+ * fails the import (the table may not exist yet).
+ */
+async function purgeEbayListings(): Promise<string> {
+  try {
+    const cutoff = purgeCutoff(Date.now(), process.env.EBAY_LISTING_MAX_AGE_HOURS); // the same helper (and bound) as the eBay import's purge
+    const n = await prisma.$executeRaw`DELETE FROM "EbayListing" WHERE "fetchedAt" < ${utcTimestamp(cutoff)}`;
+    return `${n} expired eBay listings deleted`;
+  } catch {
+    return "eBay listing purge skipped (no table yet)";
+  }
 }
+
+async function main() {
+  const only = opt("only")?.split(",").map((s) => (s.length === 2 ? s.toUpperCase() : s));
+  const summary = await runImport({ only, concurrency: Number(opt("concurrency") ?? 3) });
+  const purged = await purgeEbayListings();
+  console.log(purged);
+  const reval = await revalidate();
+  const sitemapProblem = (reval === "ok" || reval === FILES_RELEASE) && !only ? await checkLiveSitemap() : null;
+
+  // "N stores" counts independent stores only; a marketplace is reported by name.
+  const marketplaces = summary.marketplaces.map((m) => `${m.name} ${m.ok ? `read (${m.offers} offers)` : "NOT read"}`);
+  const lines = [
+    `## DexCompare import`,
+    ``,
+    [
+      ...(summary.stores ? [`${summary.ok}/${summary.stores} stores read`] : []),
+      ...marketplaces,
+      `${summary.offers} offers written`,
+      `${summary.stats} product×market summaries`,
+      `${summary.minutes.toFixed(1)} min`,
+    ].join(" · "),
+    ``,
+    `| Market | Stores | Read OK | Offers | In stock |`,
+    `| --- | ---: | ---: | ---: | ---: |`,
+    ...Object.entries(summary.byMarket)
+      .sort()
+      .map(([m, s]) => `| ${m} | ${s.stores} | ${s.ok} | ${s.offers} | ${s.inStock} |`),
+    ``,
+    `Low-price outliers dropped: ${summary.outliers}`,
+    `High-price outliers dropped: ${summary.highOutliers}`,
+    `Marketplace placeholder asks dropped: ${summary.placeholders}`,
+    `Stores written as sold out (in-stock prices under half the market on 5+ products): ${summary.suspectStores.map((s) => `${s.store} (${s.low})`).join(", ") || "none"}`,
+    `Dormant stores (20+ listings, none in stock): ${summary.dormant.length ? summary.dormant.join(", ") : "none"}`,
+    ...(summary.renamed ? [`Products renamed: ${summary.renamed}`] : []),
+    `eBay listings: ${purged}`,
+    `Page refresh: ${reval}`,
+    ``,
+    summary.failed.length ? `### Not read this run (${summary.failed.length}) — their previous rows were kept` : ``,
+    ...summary.failed.map((f) => `- ${f.market} \`${f.key}\`: ${f.error}`),
+  ];
+  console.log("\n" + lines.join("\n"));
+  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
+  await prisma.$disconnect();
+
+  // A failed marketplace read is an annotation on the run (GitHub shows
+  // "::warning::" lines on the run page, not only in the log)...
+  for (const m of summary.marketplaces) if (!m.ok) console.log(`::warning::${m.name} not read: ${m.error ?? "?"}`);
+  const problems: string[] = [];
+  // ...and a red run once it has lasted: TCGplayer's rows go "unknown" after
+  // 72 hours and are pruned after 14 days, and it is the site's income.
+  for (const m of summary.marketplaces) {
+    const age = m.lastOkAt ? Date.now() - m.lastOkAt.getTime() : Infinity;
+    if (!m.ok && age > MARKETPLACE_STALE_MS) {
+      problems.push(`${m.name} has not been read for ${m.lastOkAt ? `${Math.round(age / 3600_000)} hours` : "any run yet"} (last error: ${m.error ?? "?"}).`);
+    }
+  }
+  // A run that read almost nothing is broken (network, a platform change), not quiet.
+  if (summary.stores > 10 && summary.ok < summary.stores * 0.5) problems.push(`Only ${summary.ok}/${summary.stores} stores read.`);
+  // Nothing requested was read at all (e.g. --only tcgplayer, and it failed).
+  const requested = summary.stores + summary.marketplaces.length;
+  if (requested > 0 && summary.ok === 0 && summary.marketplaces.every((m) => !m.ok)) problems.push(`None of the ${requested} sources requested was read.`);
+  if (sitemapProblem) problems.push(sitemapProblem);
+  if (problems.length) {
+    for (const p of problems) console.log(`::error::${p}`);
+    console.error(`${problems.join(" ")} Failing the job so it gets looked at.`);
+    process.exit(1);
+  }
+}
+
+main().catch(async (e) => {
+  console.error(e);
+  await prisma.$disconnect().catch(() => {});
+  process.exit(1);
+});

@@ -1,12 +1,10 @@
-import { ADSENSE_CLIENT_ID, adsTxtBody } from "@/lib/adsense";
+import { ADSENSE_CLIENT, adsTxt } from "@/lib/adsense";
 
-// /ads.txt, served ONLY when an AdSense publisher id is configured: without an
-// account there is no seller line to publish, and a made-up one would be worse
-// than a 404.
+// /ads.txt: Google AdSense's authorised-seller line, built from NEXT_PUBLIC_ADSENSE_CLIENT at build time. A 404 until it is set.
 export const dynamic = "force-static";
 
 export function GET() {
-  const body = adsTxtBody(ADSENSE_CLIENT_ID);
-  if (!body) return new Response("Not found", { status: 404 });
-  return new Response(body, { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "public, max-age=3600" } });
+  const body = adsTxt(ADSENSE_CLIENT);
+  if (!body) return new Response("Not found\n", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+  return new Response(body, { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "public, max-age=86400" } });
 }
