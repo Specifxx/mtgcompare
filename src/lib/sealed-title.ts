@@ -314,7 +314,7 @@ function classifyIn(title: string, set: MtgSet | null): TypeKey | "vague" | null
 
   if (/\bsecret\s*lair\b/.test(t) && !/\bbundle\b/.test(t)) return caseWord ? null : "secret-lair";
   if (/\bdraft\s*night\b/.test(t)) return caseWord ? null : "draft-night";
-  if (/\bscene\s*box(?:es)?\b/.test(t)) return caseWord ? null : "scene-box";
+  if (/\bscene\s*box(?:es)?\b/.test(t)) return caseWord || /\bdisplay\b/.test(t) ? null : "scene-box";
   if (/\bpre\s*-?\s*release\b/.test(t)) return caseWord || /\bdisplay\b/.test(t) ? null : "prerelease-pack";
 
   // Commander: a deck, the set's decks together ("Set of 5", "[Set of 4]", "All 4 Decks"), never a display or case of decks.
@@ -511,7 +511,7 @@ const NAME_BRACKET_NOISE = /\s*[([]\s*(?:english|eng|en|sealed|new|live|presale|
 const NAME_TAIL = /\s*[-–—|:]\s*(?:magic(?:\s*:?\s*the\s*gathering)?|mtg|tcg|english|new|sealed|pre-?order|tbd)\s*$/i;
 
 const ACRONYMS = new Set(["MTG", "TCG", "UB", "II", "III", "IV", "VI", "VII", "VIII", "IX", "XI", "XII", "XIII", "XIV", "XV", "XVI", "MH3", "MH2", "SLD", "VIP", "TMNT"]);
-const SMALL_WORDS = new Set(["of", "and", "the", "a", "an", "in", "on", "with", "&", "vs"]);
+const SMALL_WORDS = new Set(["of", "and", "the", "a", "an", "in", "on", "with", "&", "vs", "x"]);
 
 /** An ALL-CAPS name in title case ("BLOOMBURROW BUNDLE" → "Bloomburrow Bundle"), keeping the game's acronyms. */
 export function titleCase(t: string): string {

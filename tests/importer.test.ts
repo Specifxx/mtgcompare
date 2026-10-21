@@ -37,26 +37,30 @@ test("price: a multi-unit option is never the product's price", () => {
 test("a store keeps its best listing per product: in stock beats cheaper-but-sold-out", () => {
   const rows = rowsFromReads(store, [
     {
-      handle: "pokemon",
+      handle: "magic-the-gathering",
       ok: true,
       products: [
-        prod("etb-1", "Pokémon Surging Sparks Elite Trainer Box", [[7995, false]]),
-        prod("etb-2", "Surging Sparks ETB (Pikachu)", [[8995, true]]),
-        prod("single", "Pikachu ex 238/191 Surging Sparks", [[5000, true]]),
+        prod("bundle-1", "Magic: The Gathering - Bloomburrow Bundle", [[7995, false]]),
+        prod("bundle-2", "Magic Bloomburrow - Bundle", [[8995, true]]),
+        prod("single", "Maha, Its Feathers Night (Borderless) 278/281 Bloomburrow", [[5000, true]]),
       ],
     },
   ]);
   assert.equal(rows.length, 1);
-  assert.equal(rows[0].identity.groupKey, "sv8|etb");
+  assert.equal(rows[0].identity.groupKey, "blb|bundle");
   assert.equal(rows[0].priceCents, 8995);
   assert.equal(rows[0].inStock, true);
 });
 
-test("titles in a non-Pokémon collection must say Pokémon", () => {
+test("titles in a non-Magic collection must say Magic, or use a product word only Magic has", () => {
   const rows = rowsFromReads(store, [
-    { handle: "pre-orders", ok: true, products: [prod("x", "Surging Sparks Booster Box", [[26995, true]]), prod("y", "Pokemon Surging Sparks Booster Box", [[26995, true]])] },
+    {
+      handle: "pre-orders",
+      ok: true,
+      products: [prod("x", "FINAL FANTASY - Bundle", [[8995, true]]), prod("y", "Magic: The Gathering Final Fantasy Bundle", [[8995, true]]), prod("z", "FINAL FANTASY - Play Booster Box", [[29995, true]])],
+    },
   ]);
-  assert.deepEqual(rows.map((r) => r.title), ["Pokemon Surging Sparks Booster Box"]);
+  assert.deepEqual(rows.map((r) => r.title).sort(), ["FINAL FANTASY - Play Booster Box", "Magic: The Gathering Final Fantasy Bundle"]);
 });
 
 test("in-stock listings far below the market median are dropped", () => {
@@ -67,11 +71,11 @@ test("in-stock listings far below the market median are dropped", () => {
     products: 1,
     rediscovered: false,
     ms: 0,
-    rows: rowsFromReads({ ...store, key }, [{ handle: "pokemon", ok: true, products: [prod("p", "Pokemon Charizard Ultra-Premium Collection", [[price, true]])] }]),
+    rows: rowsFromReads({ ...store, key }, [{ handle: "magic-the-gathering", ok: true, products: [prod("p", "Magic: The Gathering - Bloomburrow Collector Booster Box", [[price, true]])] }]),
   });
-  // A$89.95 against A$600+ for the same UPC: a mislisting. A$299.95 is a big
-  // discount, but stores do sell old stock at old prices, so it stays.
-  const reads = [mk("a", 59995), mk("b", 61995), mk("c", 64995), mk("d", 8995), mk("e", 29995)];
+  // A$199.95 against A$1,000+ for the same box: a mislisting. A$299.95 is a big
+  // discount, but stores do sell old stock at old prices, so it stays. (A$499.95.)
+  const reads = [mk("a", 99995), mk("b", 101995), mk("c", 104995), mk("d", 19995), mk("e", 49995)];
   assert.equal(dropLowOutliers(reads), 1);
   assert.equal(reads[3].rows.length, 0);
   assert.equal(reads[4].rows.length, 1);
@@ -81,35 +85,35 @@ test("in-stock listings far below the market median are dropped", () => {
 function readOf(key: string, items: { title: string; cents: number; inStock?: boolean; market?: string }[]): StoreRead {
   const s = { ...store, key, market: (items[0]?.market ?? "AU") as StoreConfig["market"] };
   const products = items.map((it, i) => prod(`${key}-${i}`, it.title, [[it.cents, it.inStock ?? true]]));
-  return { store: s, ok: true, error: null, products: products.length, rediscovered: false, ms: 0, rows: rowsFromReads(s, [{ handle: "pokemon", ok: true, products }]) };
+  return { store: s, ok: true, error: null, products: products.length, rediscovered: false, ms: 0, rows: rowsFromReads(s, [{ handle: "magic-the-gathering", ok: true, products }]) };
 }
 
-test("in-stock listings far above the market median are dropped: packs, blisters and bundles at 4x, boxes and ETBs of recent sets at 3x", () => {
-  const today = new Date("2026-09-28T00:00:00Z");
+test("in-stock listings far above the market median are dropped: packs and bundles at 4x, boxes of recent sets at 3x", () => {
+  const today = new Date("2026-10-21T00:00:00Z");
   const reads = [
-    // "Perfect Order Booster Pack x 50 (LIVE)" is refused by identify(); a plain pack at 50x the median is the same lot in disguise.
-    readOf("a", [{ title: "Perfect Order Booster Pack", cents: 599 }, { title: "Pitch Black Booster Box", cents: 27000 }, { title: "Evolving Skies Booster Box", cents: 90000 }]),
-    readOf("b", [{ title: "Perfect Order Booster Pack", cents: 649 }, { title: "Pitch Black Booster Box", cents: 28000 }, { title: "Evolving Skies Booster Box", cents: 95000 }]),
-    readOf("c", [{ title: "Perfect Order Booster Pack", cents: 699 }, { title: "Pitch Black Booster Box", cents: 29000 }, { title: "Evolving Skies Booster Box", cents: 100000 }]),
+    // "Play Booster x 50" is refused by identify(); a plain pack at 50x the median is the same lot in disguise.
+    readOf("a", [{ title: "Magic: The Gathering - Reality Fracture Play Booster", cents: 1099 }, { title: "Magic: The Gathering - Reality Fracture Play Booster Box", cents: 27000 }, { title: "Magic: The Gathering - Kaldheim Collector Booster Box", cents: 90000 }]),
+    readOf("b", [{ title: "Magic: The Gathering - Reality Fracture Play Booster", cents: 1149 }, { title: "Magic: The Gathering - Reality Fracture Play Booster Box", cents: 28000 }, { title: "Magic: The Gathering - Kaldheim Collector Booster Box", cents: 95000 }]),
+    readOf("c", [{ title: "Magic: The Gathering - Reality Fracture Play Booster", cents: 1199 }, { title: "Magic: The Gathering - Reality Fracture Play Booster Box", cents: 29000 }, { title: "Magic: The Gathering - Kaldheim Collector Booster Box", cents: 100000 }]),
     readOf("d", [
-      { title: "Perfect Order Booster Pack", cents: 29999 }, // 46x: dropped
-      { title: "Pitch Black Booster Box", cents: 99000 }, // 3.5x, set released 2026-07: dropped
-      { title: "Evolving Skies Booster Box", cents: 350000 }, // 3.7x, but Evolving Skies is from 2021: kept
+      { title: "Magic: The Gathering - Reality Fracture Play Booster", cents: 54999 }, // 48x: dropped
+      { title: "Magic: The Gathering - Reality Fracture Play Booster Box", cents: 99000 }, // 3.5x, set released 2026-10: dropped
+      { title: "Magic: The Gathering - Kaldheim Collector Booster Box", cents: 350000 }, // 3.7x, but Kaldheim is from 2021: kept
     ]),
-    readOf("e", [{ title: "Perfect Order Booster Pack", cents: 2300 }]), // 3.5x a pack: under the 4x bar, kept
+    readOf("e", [{ title: "Magic: The Gathering - Reality Fracture Play Booster", cents: 4000 }]), // 3.5x a pack: under the 4x bar, kept
   ];
   assert.equal(dropHighOutliers(reads, today), 2);
-  assert.deepEqual(reads[3].rows.map((r) => r.identity.groupKey), ["swsh7|booster-box"]);
+  assert.deepEqual(reads[3].rows.map((r) => r.identity.groupKey), ["khm|collector-booster-box"]);
   assert.equal(reads[4].rows.length, 1);
   // Sold-out asks are not judged (and don't make the median).
-  const sold = [readOf("x", [{ title: "Perfect Order Booster Pack", cents: 29999, inStock: false }]), ...reads.slice(0, 3)];
+  const sold = [readOf("x", [{ title: "Magic: The Gathering - Reality Fracture Play Booster", cents: 54999, inStock: false }]), ...reads.slice(0, 3)];
   assert.equal(dropHighOutliers(sold, today), 0);
 });
 
 test("a store with five or more in-stock prices under half the market median is written as sold out", () => {
-  const items = ["Surging Sparks Elite Trainer Box", "Paradox Rift Elite Trainer Box", "Obsidian Flames Elite Trainer Box", "Paldea Evolved Elite Trainer Box", "Temporal Forces Elite Trainer Box", "Twilight Masquerade Elite Trainer Box"];
+  const items = ["Bloomburrow", "Duskmourn: House of Horror", "Foundations", "Aetherdrift", "Tarkir: Dragonstorm", "Edge of Eternities"].map((s) => `Magic: The Gathering - ${s} Bundle`);
   const market = (key: string, cents: number) => readOf(key, items.map((title) => ({ title, cents })));
-  const reads = [market("a", 12000), market("b", 13000), market("c", 14000), market("depot", 5000), readOf("once", [{ title: "Surging Sparks Elite Trainer Box", cents: 5000 }])];
+  const reads = [market("a", 12000), market("b", 13000), market("c", 14000), market("depot", 5000), readOf("once", [{ title: items[0], cents: 5000 }])];
   assert.deepEqual(demoteSuspectStores(reads), [{ store: "depot", low: 6 }]);
   assert.ok(reads[3].rows.every((r) => !r.inStock), "its rows stay, as sold out");
   assert.ok(reads[4].rows.every((r) => r.inStock), "one cheap listing is a deal, not a pattern");
@@ -117,14 +121,14 @@ test("a store with five or more in-stock prices under half the market median is 
 });
 
 test("a cheap store is not a suspect store: 5 low prices among many ordinary ones", () => {
-  const sets = ["Surging Sparks", "Paradox Rift", "Obsidian Flames", "Paldea Evolved", "Temporal Forces", "Twilight Masquerade", "Stellar Crown", "Silver Tempest", "Journey Together", "Destined Rivals"];
-  const items = sets.flatMap((s) => [`${s} Elite Trainer Box`, `${s} Booster Box`, `${s} Booster Bundle`]);
+  const sets = ["Bloomburrow", "Duskmourn: House of Horror", "Foundations", "Aetherdrift", "Tarkir: Dragonstorm", "Edge of Eternities", "Lorwyn Eclipsed", "Secrets of Strixhaven", "The Hobbit", "Reality Fracture"];
+  const items = sets.flatMap((s) => [`Magic: The Gathering - ${s} Bundle`, `Magic: The Gathering - ${s} Play Booster Box`, `Magic: The Gathering - ${s} Collector Booster Box`]);
   const market = (key: string, cents: number) => readOf(key, items.map((title) => ({ title, cents })));
   const cheap = readOf(
     "discounter",
-    items.map((title, k) => ({ title, cents: k < 5 ? 14000 : 30000 })),
+    items.map((title, k) => ({ title, cents: k < 5 ? 19000 : 40000 })),
   );
-  const reads = [market("a", 30000), market("b", 31000), market("c", 32000), cheap];
+  const reads = [market("a", 40000), market("b", 41000), market("c", 42000), cheap];
   assert.equal(cheap.rows.length, 30);
   assert.deepEqual(demoteSuspectStores(reads), []);
   assert.ok(cheap.rows.every((r) => r.inStock));

@@ -6,85 +6,63 @@ import { medianSaving, pctOf, relativeDay } from "../src/lib/format";
 import { usMsrpCents, usMsrpForCard } from "../src/lib/rrp";
 import type { ProductCardData } from "../src/lib/data";
 
-test("ETB pack counts follow the series: 8 to Sword & Shield, 9 from Scarlet & Violet", () => {
-  assert.equal(packsFor("etb", "xy12"), 8);
-  assert.equal(packsFor("etb", "sm12"), 8);
-  assert.equal(packsFor("etb", "swsh12"), 8);
-  assert.equal(packsFor("etb", "sv8"), 9);
-  assert.equal(packsFor("etb", "me2"), 9);
-  // Pokémon Center ETBs hold two more.
-  assert.equal(packsFor("pc-etb", "sv8"), 11);
-  assert.equal(packsFor("pc-etb", "swsh12"), 10);
-  assert.equal(packsFor("pc-etb", "sm12"), null); // none published for Sun & Moon
-  assert.equal(packsFor("pc-etb", "cel25"), null); // Celebrations: no honest count, as for its ETB
+test("Play Booster Boxes: 36 packs until Innistrad Remastered, 30 from Aetherdrift (February 2025) on", () => {
+  assert.equal(packsFor("play-booster-box", "mkm"), 36);
+  assert.equal(packsFor("play-booster-box", "dsk"), 36);
+  assert.equal(packsFor("play-booster-box", "fdn"), 36);
+  assert.equal(packsFor("play-booster-box", "inr"), 36);
+  assert.equal(packsFor("play-booster-box", "dft"), 30);
+  assert.equal(packsFor("play-booster-box", "fin"), 30);
+  assert.equal(packsFor("play-booster-box", "trk"), 30);
+  assert.equal(packsFor("play-booster-box", null), null, "no set, no count");
+  assert.equal(packsForLabel("Play Booster Box", "blb"), 36);
 });
 
-test("ETB pack counts by set: the 10-pack special sets, and Celebrations refuses a per-pack price", () => {
-  for (const code of ["g1", "sm35", "sm75", "sm115", "swsh35", "swsh45", "pgo", "swsh12pt5"]) assert.equal(packsFor("etb", code), 10, code);
-  assert.equal(packsFor("etb", "cel25"), null);
-  assert.equal(packsFor("etb", null), null); // no set: no series to look up
-  assert.equal(packsFor("etb", "not-a-set"), null);
+test("Collector, Draft, Set and Jumpstart displays: the usual size, and none for the sets whose displays were smaller", () => {
+  assert.equal(packsFor("collector-booster-box", "fin"), 12);
+  assert.equal(packsFor("collector-booster-box", "afr"), 12);
+  assert.equal(packsFor("collector-booster-box", "2x2"), null, "Double Masters' collector display was not 12");
+  assert.equal(packsFor("draft-booster-box", "dmu"), 36);
+  assert.equal(packsFor("draft-booster-box", "cmr"), null, "Commander Legends' draft display held 24");
+  assert.equal(packsFor("set-booster-box", "mom"), 30);
+  assert.equal(packsFor("jumpstart-booster-box", "j22"), 24);
+  assert.equal(packsFor("jumpstart-booster-box", "msh"), null, "unconfirmed for a main set's Jumpstart display");
 });
 
-test("blisters: the name says whether it is a 1-, 2- or 3-pack", () => {
-  assert.equal(packsFor("blister", "sv8", "Surging Sparks Single Pack Blister"), 1);
-  assert.equal(packsFor("blister", "sv8", "Surging Sparks 1 Pack Blister"), 1);
-  // A bare checklane blister holds one pack or two depending on the set: no per-pack price.
-  assert.equal(packsFor("blister", "sv8", "Surging Sparks Checklane Blister"), null);
-  assert.equal(packsFor("blister", "sv8", "Surging Sparks Premium Checklane Blister"), null);
-  assert.equal(packsFor("blister", "sv8", "Checklane 2-Pack Blister [Pawmot]"), 2);
-  assert.equal(packsFor("blister", "sv8", "Obsidian Flames Checklane Blister - Pawmi & Wooper - 2 Pack"), 2);
-  assert.equal(packsFor("blister", "sv8", "Journey Together 1 Pack Checklane Blister"), 1);
-  assert.equal(packsFor("blister", "sv8", "Checklane 2-Pack Pin Blister [Arceus]"), 2);
-  assert.equal(packsFor("blister", "sv8", "Surging Sparks 2-Pack Blister"), 2);
-  assert.equal(packsFor("blister", "sv8", "Surging Sparks Two Pack Blister"), 2);
-  assert.equal(packsFor("blister", "sv8", "Surging Sparks 3 Pack Blister"), 3);
-  assert.equal(packsFor("blister", "sv8", "Surging Sparks 3pk Blister"), 3);
-  assert.equal(packsFor("blister", "sv8", "Surging Sparks Triple Blister"), 3);
-  assert.equal(packsFor("blister", "sv8", "Surging Sparks Blister"), null);
+test("Bundles: 9 Play Boosters in the Play Booster era, none before; single boosters are one pack", () => {
+  assert.equal(packsFor("bundle", "trk"), 9);
+  assert.equal(packsFor("bundle", "mkm"), 9);
+  assert.equal(packsFor("bundle", "lci"), null, "a Set Booster-era bundle: count not fixed by us");
+  assert.equal(packsFor("bundle", "acr"), null, "Assassin's Creed sold no Play Boosters");
+  for (const t of ["play-booster", "collector-booster", "draft-booster", "set-booster", "jumpstart-booster"] as const) assert.equal(packsFor(t, "blb"), 1, t);
 });
 
-test("cases and the fixed lines", () => {
-  assert.equal(packsFor("booster-box", "sv8"), 36);
-  assert.equal(packsFor("booster-box", null), 36);
-  assert.equal(packsFor("booster-box-case", "sv8"), 216);
-  assert.equal(packsFor("etb-case", "sv8"), 90);
-  assert.equal(packsFor("etb-case", "swsh12"), 80);
-  assert.equal(packsFor("etb-case", "cel25"), null);
-  assert.equal(packsFor("booster-bundle", "sv8"), 6);
-  assert.equal(packsFor("booster-pack", "sv8"), 1);
-  assert.equal(packsFor("sleeved-booster", "sv8"), 1);
-  assert.equal(packsFor("build-battle", "sv8"), 4);
-  assert.equal(packsFor("build-battle-stadium", "swsh12"), 12);
-  assert.equal(packsFor("build-battle-stadium", "sv8"), 11);
-  assert.equal(packsFor("build-battle-stadium", "me2"), null);
-});
-
-test("types whose pack count varies per product get null, never a guess", () => {
-  for (const t of ["upc", "collection", "tin", "deck", "booster-bundle-case"] as const) assert.equal(packsFor(t, "sv8", "anything"), null, t);
-  assert.equal(packsForLabel("Tin", "sv8"), null);
-  assert.equal(packsForLabel("Booster Box", "sv8"), 36);
-  assert.equal(packsForLabel("Not A Type", "sv8"), null);
+test("mixed-pack and multi-product types get null, never a guess", () => {
+  for (const t of ["gift-bundle", "special-bundle", "draft-night", "prerelease-pack", "commander-deck", "commander-deck-set", "scene-box", "starter", "secret-lair", "deck", "collection", "play-booster-box-case", "collector-booster-box-case", "bundle-case"] as const) {
+    assert.equal(packsFor(t, "trk"), null, t);
+  }
+  assert.equal(packsForLabel("No Such Type", "trk"), null);
 });
 
 test("perPackCents rounds and refuses nonsense", () => {
-  assert.equal(perPackCents(29900, 36), 831);
-  assert.equal(perPackCents(4999, 9), 555);
-  assert.equal(perPackCents(29900, null), null);
-  assert.equal(perPackCents(null, 36), null);
-  assert.equal(perPackCents(0, 36), null);
+  assert.equal(perPackCents(21900, 30), 730);
+  assert.equal(perPackCents(1000, 3), 333);
+  assert.equal(perPackCents(null, 30), null);
+  assert.equal(perPackCents(21900, null), null);
+  assert.equal(perPackCents(0, 30), null);
 });
 
-test("US MSRP: two tiers, US only, nothing for older series", () => {
-  assert.equal(usMsrpCents("etb", "sv8"), 4999);
-  assert.equal(usMsrpCents("booster-pack", "sv1"), 449); // Pokémon Center's S&V list price; $3.99 was Sword & Shield's
-  assert.equal(usMsrpCents("booster-box", "sv8"), 16164);
-  assert.equal(usMsrpCents("booster-box", "me2"), 16164);
-  assert.equal(usMsrpCents("etb", "swsh12"), null);
-  assert.equal(usMsrpCents("tin", "sv8"), null);
-  assert.equal(usMsrpCents("etb", null), null);
-  assert.equal(usMsrpForCard("US", "Elite Trainer Box", "sv8"), 4999);
-  assert.equal(usMsrpForCard("AU", "Elite Trainer Box", "sv8"), null);
+test("US MSRP: only Wizards' announced Star Trek prices, US only; never a display, never another set", () => {
+  assert.equal(usMsrpCents("play-booster", "trk"), 699);
+  assert.equal(usMsrpCents("collector-booster", "trk"), 3799);
+  assert.equal(usMsrpCents("bundle", "trk"), 6999);
+  assert.equal(usMsrpCents("draft-night", "trk"), 11999);
+  assert.equal(usMsrpCents("play-booster-box", "trk"), null, "a box's price is never derived from a pack's");
+  assert.equal(usMsrpCents("commander-deck", "trk"), null, "the deck and its Collector's Edition share a type");
+  assert.equal(usMsrpCents("play-booster", "blb"), null);
+  assert.equal(usMsrpCents("play-booster", null), null);
+  assert.equal(usMsrpForCard("US", "Bundle", "trk"), 6999);
+  assert.equal(usMsrpForCard("AU", "Bundle", "trk"), null);
 });
 
 test("median saving: three stores and 10% under, or nothing; never 'above'", () => {
@@ -110,17 +88,17 @@ test("relativeDay", () => {
 
 test("compact tuple round-trips a card, median included, and abbreviates Shopify's CDN", () => {
   const card: ProductCardData = {
-    slug: "pitch-black-booster-box",
-    name: "Pitch Black Booster Box",
-    productType: "Booster Box",
-    setCode: "me5",
+    slug: "bloomburrow-play-booster-box",
+    name: "Bloomburrow Play Booster Box",
+    productType: "Play Booster Box",
+    setCode: "blb",
     imageUrl: "https://cdn.shopify.com/s/files/1/0001/products/pb.jpg?v=1",
     lowestPriceCents: 29900,
     inStockStores: 18,
     listedStores: 30,
     marketplaceOpen: false,
     medianOpenCents: 32995,
-    releaseDate: "2026-07-17",
+    releaseDate: "2024-08-02",
   };
   const c = compactCard(card);
   assert.equal(c.length, 10);

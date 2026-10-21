@@ -1,6 +1,5 @@
-// TCGplayer search results → import rows. The fixture is trimmed from real API
-// results (2026-09-27): product fields as the API names them, listings as its
-// three-listing preview returns them.
+// TCGplayer search results → import rows. The products are real Magic sealed products from the API (2026-10-21: ids, names, set
+// names as the API gives them); the listings are constructed in the shape its three-listing preview returns, to exercise each rule.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { thumb } from "../src/lib/images";
@@ -16,6 +15,7 @@ import {
   type TcgListing,
   type TcgProduct,
 } from "../src/lib/tcgplayer";
+import { identify } from "../src/lib/sealed-title";
 
 function listing(price: number, shippingPrice: number, over: Partial<TcgListing> = {}): TcgListing {
   return { price, shippingPrice, quantity: 3, languageId: 1, language: "English", listingType: "standard", condition: "Unopened", ...over };
@@ -28,106 +28,101 @@ function product(productId: number, productName: string, setName: string, listin
     productUrlName: productName.replace(/[^A-Za-z0-9 ]/g, ""),
     setName,
     setUrlName: setName.replace(/[:]/g, ""),
-    productLineUrlName: "Pokemon",
+    productLineUrlName: "Magic",
     listings,
   };
 }
 
 const FIXTURE: TcgProduct[] = [
-  // Shipping is excluded: $61.97 + $10.00 shipping lists at $61.97. A custom
-  // listing (a partial item) and a Japanese one are cheaper and don't count.
-  product(684450, "Chaos Rising Elite Trainer Box", "ME04: Chaos Rising", [
+  // Shipping is excluded: $129.99 + $10.00 shipping lists at $129.99. A custom listing (a partial item) and a Japanese one are
+  // cheaper and don't count.
+  product(692980, "Reality Fracture - Play Booster Display", "Reality Fracture", [
     listing(5.99, 0, { listingType: "custom" }),
-    listing(40, 0, { languageId: 7, language: "Japanese" }),
-    listing(61.97, 10),
-    listing(65.99, 5.99),
-    listing(71.98, 0),
+    listing(90, 0, { languageId: 7, language: "Japanese" }),
+    listing(129.99, 10),
+    listing(131.5, 5.99),
+    listing(139, 0),
   ]),
-  // Two box arts of one ETB: one product, the cheaper art's price.
-  product(512813, "Paradox Rift Elite Trainer Box [Iron Valiant]", "SV04: Paradox Rift", [listing(143, 3.99), listing(145, 4.99)]),
-  product(512815, "Paradox Rift Elite Trainer Box [Roaring Moon]", "SV04: Paradox Rift", [listing(126.99, 14.99), listing(140, 5.99)]),
-  // $50 + $199.99 shipping is a price loaded into shipping; $65 is sub-floor
-  // for a booster box ($70 in the US); out of stock doesn't count.
-  product(692939, "Pitch Black Booster Box", "ME05: Pitch Black", [
-    listing(50, 199.99),
-    listing(65, 0),
-    listing(150, 0, { quantity: 0 }),
-    listing(189.99, 6.99),
-  ]),
+  // $50 + $199.99 shipping is a price loaded into shipping; $65 is sub-floor for a collector box ($120 in the US); out of stock
+  // doesn't count.
+  product(692963, "The Hobbit - Collector Booster Display", "The Hobbit", [listing(50, 199.99), listing(65, 0), listing(600, 0, { quantity: 0 }), listing(669.99, 6.99)]),
+  // Two Commander products of one release: the deck and the set of five are two products.
+  product(693140, "Foundations Commander Deck - Calling All Angels", "Commander: Foundations", [listing(49.99, 4.99)]),
+  product(707496, "Foundations Commander Decks [Set of 5]", "Commander: Foundations", [listing(195, 0)]),
   // No live listing: TCGplayer has no "sold out", so no row at all.
-  product(100491, 'Ancient Origins Theme Deck - "Iron Tide" [Metagross]', "XY - Ancient Origins", []),
-  // Its only listing is below the booster-box floor: no believable price, no row.
-  product(624676, "Destined Rivals Booster Box", "SV10: Destined Rivals", [listing(40, 0)]),
-  // Refused by identify(): a half box is not the set's booster box, and a
-  // retailer bundle is not the plain ETB.
-  product(624681, "Destined Rivals Half Booster Box", "SV10: Destined Rivals", [listing(390, 0)]),
-  product(644852, "Prismatic Evolutions Elite Trainer Box and Pokeball (Sam's Club)", "Miscellaneous Cards & Products", [listing(183, 0.99)]),
-  // Named without its set: TCGplayer's set supplies it.
-  product(107106, "Elite Trainer Box [Mewtwo X]", "XY - BREAKthrough", [listing(1999.99, 0)]),
+  product(706138, "Star Trek - Play Booster Display", "Star Trek", []),
+  // Its only listing is below the Bundle floor: no believable price, no row.
+  product(692985, "Reality Fracture - Bundle", "Reality Fracture", [listing(12, 0)]),
+  // Refused by identify(): a sample pack is not the Collector Booster; Mystery Booster 2 is not a set we list.
+  product(637653, "FINAL FANTASY - Collector Booster Sample Pack", "FINAL FANTASY", [listing(12.19, 0)]),
+  product(563752, "Mystery Booster 2 - Booster Display", "Mystery Booster 2", [listing(299, 0)]),
   // Its only seller asks 20x the market price: a placeholder, not a price.
-  { ...product(99181, "Team Plasma Tin [Deoxys EX]", "Miscellaneous Cards & Products", [listing(19999.99, 0)]), marketPrice: 1000 },
+  { ...product(692969, "The Hobbit Scene Box - Treasures of Smaug", "The Hobbit", [listing(1199.99, 0)]), marketPrice: 58.73 },
   // A repeat of a product already read (the API can page one twice).
-  product(684450, "Chaos Rising Elite Trainer Box", "ME04: Chaos Rising", [listing(1, 0)]),
+  product(692980, "Reality Fracture - Play Booster Display", "Reality Fracture", [listing(1, 0)]),
 ];
 
 function rows() {
-  return rowsFromReads(TCGPLAYER, [{ handle: "pokemon", ok: true, products: tcgFeedProducts(FIXTURE) }]);
+  return rowsFromReads(TCGPLAYER, [{ handle: "magic-the-gathering", ok: true, products: tcgFeedProducts(FIXTURE) }]);
 }
 
 test("tcgplayer: the cheapest live standard English listing's item price, shipping excluded", () => {
-  const etb = rows().find((r) => r.identity.groupKey === "me4|etb");
-  assert.ok(etb);
-  assert.equal(etb.priceCents, 6197);
-  assert.equal(etb.inStock, true);
-  assert.equal(etb.title, "Chaos Rising Elite Trainer Box");
+  const box = rows().find((r) => r.identity.groupKey === "fra|play-booster-box");
+  assert.ok(box);
+  assert.equal(box.priceCents, 12999);
+  assert.equal(box.inStock, true);
+  assert.equal(box.title, "Reality Fracture - Play Booster Display");
 });
 
 test("tcgplayer: shipping-loaded, sub-floor and out-of-stock listings are skipped", () => {
   assert.equal(shippingLoaded({ price: 50, shippingPrice: 199.99 }), true);
   assert.equal(shippingLoaded({ price: 83.97, shippingPrice: 100 }), true);
-  assert.equal(shippingLoaded({ price: 61.97, shippingPrice: 10 }), false); // $10 on a $62 ETB is ordinary
-  assert.equal(shippingLoaded({ price: 8, shippingPrice: 7.99 }), false); // a cheap blister's real postage
+  assert.equal(shippingLoaded({ price: 61.97, shippingPrice: 10 }), false); // $10 on a $62 bundle is ordinary
+  assert.equal(shippingLoaded({ price: 8, shippingPrice: 7.99 }), false); // a pack's real postage
   assert.equal(shippingLoaded({ price: 2575, shippingPrice: 24.99 }), false); // a case's freight
-  const box = rows().find((r) => r.identity.groupKey === "me5|booster-box");
-  assert.equal(box?.priceCents, 18999);
+  const box = rows().find((r) => r.identity.groupKey === "hob|collector-booster-box");
+  assert.equal(box?.priceCents, 66999);
 });
 
-test("tcgplayer: one row per product, the cheaper of two box arts", () => {
-  const etbs = rows().filter((r) => r.identity.groupKey === "sv4|etb");
-  assert.equal(etbs.length, 1);
-  assert.equal(etbs[0].priceCents, 12699);
-  assert.match(etbs[0].url, /\/product\/512815\//);
+test("tcgplayer: one row per product; a release's deck and its set of decks are two", () => {
+  const keys = rows().map((r) => r.identity.groupKey);
+  assert.equal(keys.filter((k) => k === "fra|play-booster-box").length, 1);
+  assert.ok(keys.includes("commander-deck|fdn|all-angels-calling"));
+  assert.ok(keys.includes("fdn|commander-deck-set"));
 });
 
 test("tcgplayer: no listing, only sub-floor or placeholder listings, or a refused title → no row", () => {
   const keys = rows().map((r) => r.identity.groupKey).sort();
-  assert.deepEqual(keys, ["me4|etb", "me5|booster-box", "sv4|etb", "xy8|etb"]);
+  assert.deepEqual(keys, ["commander-deck|fdn|all-angels-calling", "fdn|commander-deck-set", "fra|play-booster-box", "hob|collector-booster-box"]);
   // tcgFeedProducts itself drops products with no buyable listing and repeats.
   const ids = tcgFeedProducts(FIXTURE).map((p) => p.id);
-  assert.ok(!ids.includes("100491"));
-  assert.ok(!ids.includes("99181"));
-  assert.equal(ids.filter((id) => id === "684450").length, 1);
+  assert.ok(!ids.includes("706138"));
+  assert.ok(!ids.includes("692969"));
+  assert.equal(ids.filter((id) => id === "692980").length, 1);
 });
 
 test("tcgplayer: a name without a set borrows TCGplayer's set, only for set products", () => {
-  assert.equal(tcgTitle({ productName: "Elite Trainer Box [Mewtwo X]", setName: "XY - BREAKthrough" }), "BREAKthrough Elite Trainer Box [Mewtwo X]");
-  assert.equal(rows().find((r) => r.identity.groupKey === "xy8|etb")?.priceCents, 199999);
-  // Names that carry their set, and collections (identified by their own words), are left alone.
-  assert.equal(tcgTitle({ productName: "Chaos Rising Elite Trainer Box", setName: "ME04: Chaos Rising" }), "Chaos Rising Elite Trainer Box");
-  assert.equal(tcgTitle({ productName: "Knock Out Collection [Kyogre]", setName: "SV: Journey Together" }), "Knock Out Collection [Kyogre]");
-  // A catch-all "set" is no set.
-  assert.equal(tcgTitle({ productName: "Pokemon Center Elite Trainer Box", setName: "Miscellaneous Cards & Products" }), "Pokemon Center Elite Trainer Box");
+  // TCGplayer's Magic names carry their set; a bare one (constructed here) borrows it, "Commander:" and "Universes Beyond:" dropped.
+  assert.equal(tcgTitle({ productName: "Bundle", setName: "Reality Fracture" }), "Reality Fracture Bundle");
+  assert.equal(tcgTitle({ productName: "Play Booster Display", setName: "Universes Beyond: Fallout" }), "Fallout Play Booster Display");
+  assert.equal(identify("Fallout Play Booster Display"), "vague", "Fallout sold no Play Boosters: refused, never filed as a box it never had");
+  // Names that carry their set, and Secret Lair drops (no set), are left alone.
+  assert.equal(tcgTitle({ productName: "Foundations Commander Deck - Calling All Angels", setName: "Commander: Foundations" }), "Foundations Commander Deck - Calling All Angels");
+  assert.equal(
+    tcgTitle({ productName: "Secret Lair Drop: Secret Lair x Stardew Valley: Welcome to Stardew Valley - Non-Foil Edition", setName: "Secret Lair Drop Series" }),
+    "Secret Lair Drop: Secret Lair x Stardew Valley: Welcome to Stardew Valley - Non-Foil Edition",
+  );
 });
 
 test("tcgplayer: canonical product URL and CDN image, never an affiliate link", () => {
-  const [etb] = tcgFeedProducts(FIXTURE);
-  assert.equal(etb.url, "https://www.tcgplayer.com/product/684450/pokemon-me04-chaos-rising-chaos-rising-elite-trainer-box");
-  assert.equal(etb.imageUrl, "https://tcgplayer-cdn.tcgplayer.com/product/684450_in_1000x1000.jpg");
-  assert.equal(tcgImageUrl(684450), etb.imageUrl);
-  assert.equal(etb.currency, "USD");
+  const [box] = tcgFeedProducts(FIXTURE);
+  assert.equal(box.url, "https://www.tcgplayer.com/product/692980/magic-reality-fracture-reality-fracture-play-booster-display");
+  assert.equal(box.imageUrl, "https://tcgplayer-cdn.tcgplayer.com/product/692980_in_1000x1000.jpg");
+  assert.equal(tcgImageUrl(692980), box.imageUrl);
+  assert.equal(box.currency, "USD");
   assert.equal(
-    tcgProductUrl({ productId: 664898, productLineUrlName: "Pokemon", setUrlName: "Miscellaneous Cards and Products", productUrlName: "Team Rocket’s Moltres ex Ultra-Premium Collection" }),
-    "https://www.tcgplayer.com/product/664898/pokemon-miscellaneous-cards-and-products-team-rocket-s-moltres-ex-ultra-premium-collection",
+    tcgProductUrl({ productId: 707496, productLineUrlName: "Magic", setUrlName: "Commander Foundations", productUrlName: "Foundations Commander Decks Set of 5" }),
+    "https://www.tcgplayer.com/product/707496/magic-commander-foundations-foundations-commander-decks-set-of-5",
   );
   for (const r of rows()) assert.doesNotMatch(r.url, /irclickid|partner|utm_|sharedid|\?/);
 });
@@ -259,26 +254,27 @@ function read(store: StoreConfig, products: TcgProduct[] | { title: string; cent
 }
 
 test("placeholder asks: far above the stores' asks (sold-out ones count) or the set's own unit are dropped", () => {
+  // Real products (TCGplayer, 2026-10-21); the asks are constructed.
   const tcg = read(TCGPLAYER, [
-    // No market price, one seller asking $188,888.88; two CA stores list it sold out at C$9,999 and C$11,000.
-    product(475436, "Burning Shadows Booster Box Case", "SM - Burning Shadows", [listing(188888.88, 0)]),
-    // No store lists it; TCGplayer's own bundle is $198.49.
-    product(479361, "Lost Origin Booster Bundle Case", "SWSH11: Lost Origin", [listing(19998.95, 0)]),
-    product(479360, "Lost Origin Booster Bundle", "SWSH11: Lost Origin", [listing(198.49, 0)]),
+    // One seller asking $188,888.88; two CA stores list it sold out at C$9,999 and C$11,000.
+    product(692981, "Reality Fracture - Play Booster Display Case", "Reality Fracture", [listing(188888.88, 0)]),
+    // No store lists it; TCGplayer's own bundle is $46.39: a "case" at 430x is no case.
+    product(692986, "Reality Fracture - Bundle Case", "Reality Fracture", [listing(19998.95, 0)]),
+    product(692985, "Reality Fracture - Bundle", "Reality Fracture", [listing(46.39, 0)]),
     // Out of print at many times the stores' old retail asks: a real price, kept.
-    product(107000, "Fates Collide Booster Box", "XY - Fates Collide", [listing(6989.95, 0)]),
+    product(180000, "Ultimate Masters Booster Box", "Ultimate Masters", [listing(6989.95, 0)]),
   ]);
   const ca = read(CA_STORE, [
-    { title: "Pokemon Burning Shadows Booster Box Case", cents: 999900, inStock: false },
-    { title: "Pokemon Burning Shadows Booster Box Case", cents: 1100000, inStock: false },
-    { title: "Pokemon Fates Collide Booster Box", cents: 199900, inStock: false },
-    { title: "Pokemon Fates Collide Booster Box", cents: 213100, inStock: false },
+    { title: "Magic: The Gathering - Reality Fracture Play Booster Display Case", cents: 999900, inStock: false },
+    { title: "Magic: The Gathering - Reality Fracture Play Booster Display Case", cents: 1100000, inStock: false },
+    { title: "Magic: The Gathering - Ultimate Masters Booster Box", cents: 199900, inStock: false },
+    { title: "Magic: The Gathering - Ultimate Masters Booster Box", cents: 213100, inStock: false },
   ]);
   // (rowsFromReads keeps one row per product per store, so give the CA asks two stores.)
   const ca2 = { ...ca, store: { ...CA_STORE, key: "ca2" }, rows: ca.rows.map((r) => ({ ...r, priceCents: r.priceCents + 100000 })) };
   const reads = [tcg, ca, ca2];
   assert.equal(dropPlaceholderAsks(reads), 2);
-  assert.deepEqual(tcg.rows.map((r) => r.identity.groupKey).sort(), ["swsh11|booster-bundle", "xy10|booster-box"]);
+  assert.deepEqual(tcg.rows.map((r) => r.identity.groupKey).sort(), ["fra|bundle", "uma|draft-booster-box"]);
   assert.equal(ca.rows.length + ca2.rows.length, 4, "stores' own rows are never touched");
 });
 
@@ -343,22 +339,23 @@ test("product summary: the median is of open independent-store prices only, null
 });
 
 test("placeholder asks: a pre-release TCGplayer ask over 3x US MSRP is dropped; the same ask on a released set is kept", () => {
-  const today = new Date("2026-09-28T00:00:00Z");
+  const today = new Date("2026-10-21T00:00:00Z");
   const tcg = read(TCGPLAYER, [
-    // Delta Reign (2026-11-06) hasn't released: a $59.99 PC ETB at $449.99 is a placeholder, a $134.95 ETB (2.7x $49.99) is a pre-order price.
-    product(700001, "Delta Reign Pokemon Center Elite Trainer Box (Exclusive)", "ME06: Delta Reign", [listing(449.99, 0)]),
-    product(700002, "Delta Reign Elite Trainer Box", "ME06: Delta Reign", [listing(134.95, 0)]),
-    // Released long ago: whatever it asks is the market.
-    product(700003, "Prismatic Evolutions Pokemon Center Elite Trainer Box (Exclusive)", "SV08.5: Prismatic Evolutions", [listing(449.99, 0)]),
+    // Star Trek (2026-11-13) hasn't released: a $6.99 Play Booster at $29.99 is a placeholder, a $149.99 Bundle (2.1x $69.99) is a pre-order price.
+    product(706140, "Star Trek - Play Booster Pack", "Star Trek", [listing(29.99, 0)]),
+    product(706141, "Star Trek - Bundle", "Star Trek", [listing(149.99, 0)]),
     // No MSRP published for the type: kept.
-    product(700004, "Delta Reign Elite Trainer Box Case", "ME06: Delta Reign", [listing(1204.36, 0)]),
+    product(706138, "Star Trek - Play Booster Display", "Star Trek", [listing(449.99, 0)]),
   ]);
   assert.equal(dropPlaceholderAsks([tcg], today), 1);
-  assert.deepEqual(tcg.rows.map((r) => r.identity.groupKey).sort(), ["me6|etb", "me6|etb-case", "sv8pt5|pc-etb"]);
+  assert.deepEqual(tcg.rows.map((r) => r.identity.groupKey).sort(), ["trk|bundle", "trk|play-booster-box"]);
+  // Released: whatever it asks is the market.
+  const after = read(TCGPLAYER, [product(706140, "Star Trek - Play Booster Pack", "Star Trek", [listing(29.99, 0)])]);
+  assert.equal(dropPlaceholderAsks([after], new Date("2026-12-01T00:00:00Z")), 0);
 });
 
 test("tcgplayer: a name with no set of its own borrows the catalogue's set only when that is all it lacks", () => {
-  assert.equal(tcgTitle({ productName: "Booster Box [Set of 6]", setName: "SV04: Paradox Rift" }), "Booster Box [Set of 6]"); // refused as a lot either way
-  assert.equal(tcgTitle({ productName: "Booster Bundle", setName: "SV4.5: Paldean Fates" }), "Paldean Fates Booster Bundle");
-  assert.equal(tcgTitle({ productName: "Charizard ex Premium Collection", setName: "SV03: Obsidian Flames" }), "Charizard ex Premium Collection");
+  assert.equal(tcgTitle({ productName: "Play Booster Display [Set of 6]", setName: "Bloomburrow" }), "Play Booster Display [Set of 6]"); // refused as a lot either way
+  assert.equal(tcgTitle({ productName: "Gift Bundle", setName: "The Hobbit" }), "The Hobbit Gift Bundle");
+  assert.equal(tcgTitle({ productName: "Secret Lair Commander Deck: Odds and Ends", setName: "Secret Lair Drop Series" }), "Secret Lair Commander Deck: Odds and Ends");
 });

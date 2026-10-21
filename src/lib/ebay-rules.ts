@@ -37,18 +37,27 @@ const LISTING_REJECT = new RegExp(
 const foldTitle = (t: string) => normalizeTitle(t).toLowerCase();
 
 // A listing that names two DIFFERENT sets is a mixed lot or another set's product ("Bloomburrow & Duskmourn Play Booster Box").
-const SET_NAME = new RegExp(
-  `\\b(?:${SETS.filter((x) => foldTitle(x.name).split(/\s+/).length >= 2)
-    .map((x) => foldTitle(x.name))
-    .sort((a, b) => b.length - a.length)
-    .map((n) => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-    .join("|")})\\b`,
-  "g",
-);
-const SET_OF_NAME = new Map<string, string>(SETS.map((x): [string, string] => [foldTitle(x.name), x.code]));
+// Longest names first, so "Dominaria United" is one set, not Dominaria and another; "Jumpstart" is left out, being also a product
+// word ("Marvel Super Heroes Jumpstart Booster Box").
+const SET_RES: { code: string; re: RegExp }[] = SETS.filter((x) => x.code !== "jmp")
+  .slice()
+  .sort((a, b) => b.name.length - a.name.length)
+  .map((x) => {
+    const name = foldTitle(x.name)
+      .split(/[\s:,.'\-]+/)
+      .filter(Boolean)
+      .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+      .join("[\\s:,.'\\-]*");
+    return { code: x.code, re: new RegExp([`\\b${name}\\b`, ...(x.aliases ?? [])].map((r) => `(?:${r})`).join("|"), "gi") };
+  });
 function namesTwoSets(t: string): boolean {
   const codes = new Set<string>();
-  for (const m of t.matchAll(SET_NAME)) codes.add(SET_OF_NAME.get(m[0]) ?? m[0]);
+  let rest = t;
+  for (const { code, re } of SET_RES) {
+    if (!new RegExp(re.source, "i").test(rest)) continue;
+    codes.add(code);
+    rest = rest.replace(re, " ");
+  }
   return codes.size >= 2;
 }
 
@@ -76,6 +85,8 @@ export function refusedForType(title: string, type: TypeKey): boolean {
   if (CASE_TYPES.has(type) && (CASE_FRESH.test(t) || WITH_A_CASE.test(t))) return true;
   // A box is a box or a display: "36 Play Boosters" are loose packs.
   if (BOX_TYPES.has(type) && !/\b(?:box|boxes|display|displays)\b/.test(t)) return true;
+  // "36 Play Boosters (loose, from a box)": the packs, not the box.
+  if (BOX_TYPES.has(type) && /\bloose\b/.test(t)) return true;
   // A Collector Booster Box page takes no Play Booster Box and the reverse; a Play/Draft/Set box no Collector one.
   if (type === "collector-booster-box" && !/\bcollector/.test(t)) return true;
   if ((type === "play-booster-box" || type === "draft-booster-box" || type === "set-booster-box") && /\bcollector/.test(t)) return true;

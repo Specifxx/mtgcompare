@@ -53,34 +53,33 @@ test("every pre-order guide is for a known set, with known product types, source
   }
 });
 
-test("Delta Reign: the dates The Pokémon Company announced", () => {
-  const g = preorderGuide("me6");
+test("Star Trek: the dates Wizards of the Coast announced", () => {
+  const g = preorderGuide("trk");
   assert.ok(g);
-  assert.equal(SET_BY_CODE.get("me6")?.releaseDate, "2026-11-06");
-  assert.equal(g.prereleaseFrom, "2026-10-24");
-  assert.equal(g.liveDate, "2026-11-05");
-  assert.deepEqual(preorderGuideBySlug("delta-reign")?.set.code, "me6");
-  assert.equal(preorderGuideBySlug("chaos-rising"), null, "no guide, no page");
+  assert.equal(SET_BY_CODE.get("trk")?.releaseDate, "2026-11-13");
+  assert.equal(g.prereleaseFrom, "2026-11-06");
+  assert.equal(g.liveDate, "2026-11-10");
+  assert.deepEqual(preorderGuideBySlug("star-trek")?.set.code, "trk");
+  assert.equal(preorderGuideBySlug("reality-fracture"), null, "no guide, no page");
   assert.equal(preorderGuideBySlug("no-such-set"), null);
-  assert.equal(preorderPath("au", "me6"), "/au/preorders/delta-reign");
-  assert.equal(preorderPath("au", "me4"), null);
-  // The Build & Battle Box's list price is disputed (announcement vs lib/rrp.ts): not printed.
-  assert.equal(guideShowsMsrp(g, "build-battle"), false);
-  assert.equal(guideShowsMsrp(g, "booster-box"), true);
+  assert.equal(preorderPath("au", "trk"), "/au/preorders/star-trek");
+  assert.equal(preorderPath("au", "fra"), null);
+  // Wizards publishes no MSRP for the Prerelease Pack: never printed.
+  assert.equal(guideShowsMsrp(g, "prerelease-pack"), false);
+  assert.equal(guideShowsMsrp(g, "play-booster"), true);
 });
 
 test("pre-order pages retire themselves on release day", () => {
   assert.deepEqual(
-    openPreorderGuides("2026-10-14").map((x) => x.set.code),
-    ["me6"],
+    openPreorderGuides("2026-10-21").map((x) => x.set.code),
+    ["trk"],
   );
-  assert.deepEqual(openPreorderGuides("2026-11-06"), [], "release day: no longer a pre-order");
-  assert.equal(isPreorderSet("me6", new Date("2026-11-05T23:59:00Z")), true);
-  assert.equal(isPreorderSet("me6", new Date("2026-11-06T00:00:00Z")), false);
-
-  const before = new Set(staticSitemap({}, undefined, "2026-10-14").map((e) => e.url));
-  for (const r of REGION_LIST) assert.ok(before.has(`${SITE_URL}/${r.region}/preorders/delta-reign`), r.region);
-  const after = staticSitemap({}, undefined, "2026-11-06").map((e) => e.url);
+  assert.deepEqual(openPreorderGuides("2026-11-13"), [], "release day: no longer a pre-order");
+  assert.equal(isPreorderSet("trk", new Date("2026-11-12T23:59:00Z")), true);
+  assert.equal(isPreorderSet("trk", new Date("2026-11-13T00:00:00Z")), false);
+  const before = new Set(staticSitemap({}, undefined, "2026-10-21").map((e) => e.url));
+  for (const r of REGION_LIST) assert.ok(before.has(`${SITE_URL}/${r.region}/preorders/star-trek`), r.region);
+  const after = staticSitemap({}, undefined, "2026-11-13").map((e) => e.url);
   assert.ok(!after.some((u) => u.includes("/preorders/")), "out of the sitemap once released");
 });
 
@@ -100,115 +99,106 @@ test("set page, release calendar and region home link the pre-order page", () =>
   assert.match(src("src/app/[region]/page.tsx"), /openPreorderGuides\(\)/);
 });
 
-// ─── The release-date content merged into the page (the growth pack's "Delta Reign release date" piece, 2026-10-16) ─────
+// ─── The release-date content merged into the page ─────────────────────────────────────────────────────────────────────────
 
-const DR = preorderGuide("me6")!;
-const DR_SET = SET_BY_CODE.get("me6")!;
+const ST = preorderGuide("trk")!;
+const ST_SET = SET_BY_CODE.get("trk")!;
 
-test("Delta Reign: the set's make-up, the new card type, the prerelease and the notes are each attributed; nothing unconfirmed is printed", () => {
-  assert.ok(DR.makeup.length >= 5);
-  assert.match(DR.makeupSource, /PokéGuardian.*20 August 2026/);
-  assert.ok(DR.makeup.some((m) => m.startsWith("4 Mega Evolution Pokémon ex")), "the four Mega ex");
-  for (const h of DR.headliners) assert.ok(DR.makeup.join(" ").includes(h), h);
-  assert.equal(DR.newFeature?.name, "Legendary Stadiums");
-  assert.match(DR.newFeature!.source, /\d{4}/);
-  assert.deepEqual(DR.prerelease?.promos, ["Masquerain", "Magmortar", "Enamorus", "Kommo-o"]);
-  assert.match(DR.prerelease!.source, /ICv2, 1 October 2026/);
-  for (const n of DR.notes) assert.match(n.source, /\d{4}$/, `${n.text}: dated`);
-  const bb = DR.products.find((p) => p.type === "build-battle")!;
-  assert.match(bb.contents, new RegExp(`^${packsFor("build-battle", "me6")} Delta Reign booster packs, a 40-card ready-to-play deck`), "pack count is packs.ts's");
-  assert.ok(DR.sources.some((x) => x.url.startsWith("https://icv2.com/")), "ICv2 cited");
-  assert.ok(DR.sources.some((x) => x.url.startsWith("https://press.pokemon.com/")), "TPCi's press site cited");
-  assert.equal(DR.checked, "2026-10-16");
-  const all = JSON.stringify(DR);
-  assert.doesNotMatch(all, /\[VERIFY|\[live price|secret rare|18-pack|\$\d/i, "no unconfirmed claims and no typed prices");
+test("Star Trek: the new mechanic, the notes and the products are each sourced; nothing unconfirmed is printed", () => {
+  assert.equal(ST.newFeature?.name, "Assimilate");
+  assert.match(ST.newFeature!.source, /Wizards of the Coast, 14 July 2026/);
+  for (const n of ST.notes) assert.match(n.source, /\d{4}$/, `${n.text}: dated`);
+  const box = ST.products.find((p) => p.type === "play-booster-box")!;
+  assert.match(box.contents, new RegExp(`^${packsFor("play-booster-box", "trk")} Play Boosters`), "pack count is packs.ts's");
+  const bundle = ST.products.find((p) => p.type === "bundle")!;
+  assert.match(bundle.contents, new RegExp(`^${packsFor("bundle", "trk")} Play Boosters`));
+  assert.ok(ST.sources.every((x) => x.url.startsWith("https://magic.wizards.com/") || x.url.startsWith("https://wpn.wizards.com/")), "Wizards' own pages");
+  assert.equal(ST.cardCount, "", "Wizards has published no card count: none is printed");
+  const all = JSON.stringify(ST);
+  assert.doesNotMatch(all, /\[VERIFY|\[live price|\$\d/i, "no unconfirmed claims and no typed prices");
 });
 
-test("Delta Reign page title and description: the pre-order prices AND the release date, in every region", () => {
+test("Star Trek page title and description: the pre-order prices AND the release date, in every region", () => {
   for (const r of REGION_LIST) {
-    const t = titleText(preorderTitle(DR_SET, r, true));
-    assert.match(t, /^Delta Reign pre-orders in /);
+    const t = titleText(preorderTitle(ST_SET, r, true));
+    assert.match(t, /^Star Trek pre-orders in /);
     assert.ok(t.includes(r.inName), `${r.region}: ${t}`);
     assert.match(t, /prices & release date$/);
     assert.ok(t.length <= 65, `${r.region}: ${t.length}`);
-    const d = preorderDescription(DR_SET, DR, r, true);
+    const d = preorderDescription(ST_SET, ST, r, true);
     assert.ok(d.length <= 160, `${r.region}: description is ${d.length} characters`);
-    assert.ok(d.includes(formatRelease(DR_SET.releaseDate)), d);
-    assert.match(d, /prerelease from 24 October/);
+    assert.ok(d.includes(formatRelease(ST_SET.releaseDate)), d);
+    assert.match(d, /prerelease from 6 November/);
     assert.ok(d.includes(r.currency) && d.includes(r.adjective), d);
     assert.equal(findBannedCopy(`${t} ${d}`), null);
   }
-  assert.doesNotMatch(titleText(preorderTitle(DR_SET, REGIONS.au, false)), /pre-order/, "released: no pre-order title");
-  assert.match(preorderDescription(DR_SET, DR, REGIONS.au, false), /released on 6 November 2026/);
+  assert.doesNotMatch(titleText(preorderTitle(ST_SET, REGIONS.au, false)), /pre-order/, "released: no pre-order title");
+  assert.match(preorderDescription(ST_SET, ST, REGIONS.au, false), /released on 13 November 2026/);
 });
 
-test("the release date at a glance: release, prerelease, TCG Live and the set's size, from the guide and sets.ts", () => {
-  const f = glanceFacts(DR_SET, DR);
+test("the release date at a glance: release, prerelease and MTG Arena; no set size Wizards has not given", () => {
+  const f = glanceFacts(ST_SET, ST);
   assert.deepEqual(
     f.map((x) => [x.key, x.iso ?? x.value]),
     [
-      ["release", "2026-11-06"],
-      ["prerelease", "2026-10-24"],
-      ["live", "2026-11-05"],
-      ["cards", "Over 135 cards"],
+      ["release", "2026-11-13"],
+      ["prerelease", "2026-11-06"],
+      ["live", "2026-11-10"],
     ],
   );
-  assert.match(f[1].note!, /Build & Battle Boxes, at participating Play! Pokémon stores/);
+  assert.match(f[1].note!, /Prerelease Packs, at participating stores/);
+  assert.equal(f[2].label, "MTG Arena");
 });
 
-test("US per-pack list prices are rrp.ts ÷ packs.ts, US only, and never the Build & Battle Box's (disputed) or the Pokémon Center ETB's", () => {
-  assert.deepEqual(msrpPerPack(DR_SET, DR, REGIONS.au), []);
-  const rows = msrpPerPack(DR_SET, DR, REGIONS.us);
+test("US per-pack list prices are rrp.ts ÷ packs.ts, US only: a single Play Booster and the Bundle, never a box Wizards gave no price for", () => {
+  assert.deepEqual(msrpPerPack(ST_SET, ST, REGIONS.au), []);
+  const rows = msrpPerPack(ST_SET, ST, REGIONS.us);
   assert.deepEqual(
     rows.map((x) => x.type),
-    ["booster-box", "booster-bundle", "etb"],
+    ["play-booster", "bundle"],
   );
   for (const row of rows) {
-    assert.equal(row.cents, usMsrpCents(row.type, "me6"));
-    assert.equal(row.perPack, perPackCents(usMsrpCents(row.type, "me6"), packsFor(row.type, "me6")));
+    assert.equal(row.cents, usMsrpCents(row.type, "trk"));
+    assert.equal(row.perPack, perPackCents(usMsrpCents(row.type, "trk"), packsFor(row.type, "trk")));
   }
   const sentence = msrpValueSentence(rows)!;
-  const box = rows.find((x) => x.type === "booster-box")!;
-  const etb = rows.find((x) => x.type === "etb")!;
-  assert.ok(sentence.startsWith(`At US MSRP a pack costs ${money(box.perPack, "US")} in the booster box`), sentence);
-  assert.ok(sentence.includes(`${money(etb.perPack, "US")} in the Elite Trainer Box`), sentence);
+  assert.ok(sentence.startsWith(`At US MSRP a pack costs ${money(699, "US")} in a single Play Booster`), sentence);
+  assert.ok(sentence.includes(`${money(perPackCents(6999, 9)!, "US")} in the Bundle`), sentence);
   assert.equal(msrpValueSentence([]), null);
 });
 
-test("the FAQ: the release date first, the prerelease kit, live cheapest pre-orders in the region's currency, US MSRP in the US only", () => {
-  const cheapest = { "booster-box": 33500, etb: 16999 };
+test("the FAQ: the release date first, the Prerelease Pack, live cheapest pre-orders in the region's currency, US MSRP in the US only", () => {
+  const cheapest = { "play-booster-box": 21500, bundle: 6499 };
   for (const r of REGION_LIST) {
-    const faqs = preorderFaqs(DR_SET, DR, r, cheapest, true);
+    const faqs = preorderFaqs(ST_SET, ST, r, cheapest, true);
     assert.match(faqs[0].q, /release date\?$/);
-    assert.ok(faqs[0].a.startsWith(`Delta Reign releases on ${formatRelease("2026-11-06")} in English`), faqs[0].a);
-    assert.match(faqs[0].a, /24 October 2026/);
-    assert.match(faqs[0].a, /5 November 2026/);
+    assert.ok(faqs[0].a.startsWith(`Star Trek releases on ${formatRelease("2026-11-13")}, per Wizards of the Coast`), faqs[0].a);
+    assert.match(faqs[0].a, /6 November 2026/);
+    assert.match(faqs[0].a, /MTG Arena gets the set on 10 November 2026/);
     const pre = faqs.find((f) => /prerelease/.test(f.q))!;
-    assert.match(pre.a, /a 40-card ready-to-play deck/);
-    assert.match(pre.a, /Masquerain, Magmortar, Enamorus and Kommo-o \(ICv2, 1 October 2026\)/);
-    const box = faqs.find((f) => /booster box cost/.test(f.q))!;
-    assert.ok(box.a.includes(money(33500, r.market)), `${r.region}: live box price in ${r.currency}`);
-    const etbQ = faqs.find((f) => /How much is the Delta Reign Elite Trainer Box/.test(f.q))!;
-    assert.ok(etbQ.a.includes(money(16999, r.market)));
+    assert.match(pre.a, /6 Play Boosters, 1 traditional foil rare or mythic rare/);
+    const box = faqs.find((f) => /Play Booster Box cost/.test(f.q))!;
+    assert.ok(box.a.includes(money(21500, r.market)), `${r.region}: live box price in ${r.currency}`);
+    const bundleQ = faqs.find((f) => /How much is the Star Trek Bundle/.test(f.q))!;
+    assert.ok(bundleQ.a.includes(money(6499, r.market)));
+    assert.ok(faqs.some((f) => /Commander decks/.test(f.q) && /Federation Fleet, Landing Party, Klingon Fury and We Are the Borg/.test(f.a)));
     const text = faqs.map((f) => `${f.q} ${f.a}`).join(" ");
     assert.equal(findBannedCopy(text), null, r.region);
-    assert.ok(!text.includes(money(usMsrpCents("build-battle", "me6"), "US")), "the Build & Battle Box's MSRP is never printed");
-    assert.doesNotMatch(text, /\$21\.99/);
     if (r.market === "US") {
-      assert.ok(etbQ.a.includes(`US MSRP is ${money(usMsrpCents("etb", "me6"), "US")}`));
-      assert.ok(box.a.includes(money(usMsrpCents("booster-box", "me6"), "US")));
+      assert.ok(bundleQ.a.includes(`US MSRP is ${money(6999, "US")}`));
+      assert.ok(box.a.includes(money(699, "US")) && /publishes none for the display/.test(box.a));
     } else {
       assert.doesNotMatch(text, /MSRP|US list price/, `${r.region}: no US list price outside the US`);
-      assert.match(etbQ.a, /publishes no list price outside the US/);
+      assert.match(bundleQ.a, /publishes no list price outside the US/);
     }
     assert.equal(new Set(faqs.map((f) => f.q)).size, faqs.length, "unique questions");
   }
   // Nothing open: said plainly, never a made-up price.
-  const none = preorderFaqs(DR_SET, DR, REGIONS.nz, {}, true).find((f) => /booster box cost/.test(f.q))!;
-  assert.match(none.a, /No New Zealand store we track has the booster box open for pre-order right now/);
+  const none = preorderFaqs(ST_SET, ST, REGIONS.nz, {}, true).find((f) => /Play Booster Box cost/.test(f.q))!;
+  assert.match(none.a, /No New Zealand store we track has the Play Booster Box open for pre-order right now/);
   // Released: past tense, and no live pre-order line.
-  const after = preorderFaqs(DR_SET, DR, REGIONS.au, cheapest, false);
-  assert.ok(after[0].a.startsWith("Delta Reign released on 6 November 2026"));
+  const after = preorderFaqs(ST_SET, ST, REGIONS.au, cheapest, false);
+  assert.ok(after[0].a.startsWith("Star Trek released on 13 November 2026"));
   assert.ok(!after.some((f) => f.a.includes("right now.")), "no pre-order prices once released");
 });
 
@@ -253,9 +243,9 @@ const tcgOffer = (priceCents: number, inStock = true) =>
 // A booster box: TCGplayer cheapest of all, three open stores (out of price order), one sold out, one not checked for 100 hours.
 const BOX_OFFERS = [off("cherry", 34900), tcgOffer(19990), off("pokebox", 33500), off("gone", 30000, false), off("stale", 29000, true, { lastSeen: stale }), off("zeta", 36999)];
 const GROUPS = [
-  { product: { name: "Delta Reign Booster Box", productType: "Booster Box", setCode: "me6" }, offers: BOX_OFFERS },
-  { product: { name: "Delta Reign Elite Trainer Box", productType: "Elite Trainer Box", setCode: "me6" }, offers: [off("cherry", 16999), off("north", 15999), tcgOffer(8999)] },
-  { product: { name: "Delta Reign Booster Bundle", productType: "Booster Bundle", setCode: "me6" }, offers: [tcgOffer(4999)] },
+  { product: { name: "Star Trek Play Booster Box", productType: "Play Booster Box", setCode: "trk" }, offers: BOX_OFFERS },
+  { product: { name: "Star Trek Bundle", productType: "Bundle", setCode: "trk" }, offers: [off("cherry", 16999), off("north", 15999), tcgOffer(8999)] },
+  { product: { name: "Star Trek Gift Bundle", productType: "Gift Bundle", setCode: "trk" }, offers: [tcgOffer(4999)] },
 ];
 
 test("the stores alone, ranked: open pre-orders cheapest first, then sold out and not checked; TCGplayer is never one of them", () => {
@@ -267,20 +257,20 @@ test("the stores alone, ranked: open pre-orders cheapest first, then sold out an
   assert.ok(!ranked.some((o) => o.marketplace));
   assert.equal(cheapestStoreOffer(BOX_OFFERS, NOW)?.store, "pokebox", "the cheapest STORE, though TCGplayer is cheaper");
   assert.equal(cheapestStoreOffer([tcgOffer(100)], NOW), null);
-  assert.deepEqual(cheapestStoreByType(GROUPS, NOW), { "booster-box": 33500, etb: 15999 }, "a type only TCGplayer has open gets no store price");
+  assert.deepEqual(cheapestStoreByType(GROUPS, NOW), { "play-booster-box": 33500, bundle: 15999 }, "a type only TCGplayer has open gets no store price");
 });
 
 test("the summary strip: stores checked (the registry), distinct stores taking pre-orders, the cheapest box at a store with per pack, days to release", () => {
-  const s = preorderSummary(GROUPS, storesInMarket("AU").length, SET_BY_CODE.get("me6")!, "2026-10-16", NOW);
+  const s = preorderSummary(GROUPS, storesInMarket("AU").length, SET_BY_CODE.get("trk")!, "2026-10-21", NOW);
   assert.equal(s.storesChecked, STORES.filter((x) => x.market === "AU").length);
   assert.equal(s.taking, 4, "pokebox, cherry, zeta, north: distinct, open, never TCGplayer, never the sold-out or unchecked store");
-  assert.deepEqual(s.cheapestBox, { cents: 33500, store: "Pokebox", perPack: perPackCents(33500, packsFor("booster-box", "me6")) });
-  assert.equal(s.days, 21);
-  assert.equal(preorderSummary([], 60, SET_BY_CODE.get("me6")!, "2026-10-16", NOW).cheapestBox, null);
-  assert.equal(reachLine(DR_SET, { stores: 75, markets: 7 }), "Across all seven markets we compare, 75 stores list Delta Reign.");
-  assert.equal(reachLine(DR_SET, { stores: 1, markets: 1 }), "Across the seven markets we compare, 1 store lists Delta Reign, in 1 of them.");
-  assert.equal(reachLine(DR_SET, null), null);
-  assert.equal(reachLine(DR_SET, { stores: 0, markets: 0 }), null);
+  assert.deepEqual(s.cheapestBox, { cents: 33500, store: "Pokebox", perPack: perPackCents(33500, packsFor("play-booster-box", "trk")) });
+  assert.equal(s.days, 23);
+  assert.equal(preorderSummary([], 60, SET_BY_CODE.get("trk")!, "2026-10-21", NOW).cheapestBox, null);
+  assert.equal(reachLine(ST_SET, { stores: 75, markets: 7 }), "Across all seven markets we compare, 75 stores list Star Trek.");
+  assert.equal(reachLine(ST_SET, { stores: 1, markets: 1 }), "Across the seven markets we compare, 1 store lists Star Trek, in 1 of them.");
+  assert.equal(reachLine(ST_SET, null), null);
+  assert.equal(reachLine(ST_SET, { stores: 0, markets: 0 }), null);
 });
 
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/&#x27;/g, "'").replace(/\s+/g, " ");
@@ -301,7 +291,7 @@ test("marketplace rows: eBay first (the region's search, eBay blue, Ad, not a pr
     assert.match(html, /^<div data-ad="preorders-ebay"/);
     const [ebay, tcg] = anchors(html);
     assert.equal(new URL(ebay.href).hostname, c.host, `${c.region}: the region's eBay`);
-    assert.equal(new URL(ebay.href).searchParams.get("customid"), `dex-${c.region}-preorders-ebay`);
+    assert.equal(new URL(ebay.href).searchParams.get("customid"), `mtg-${c.region}-preorders-ebay`);
     assert.equal(new URL(ebay.href).searchParams.get("LH_BIN"), "1");
     assert.match(new URL(ebay.href).searchParams.get("_nkw")!, /Delta Reign Booster Box sealed/);
     assert.match(ebay.text, /Search eBay/);
@@ -309,7 +299,7 @@ test("marketplace rows: eBay first (the region's search, eBay blue, Ad, not a pr
     assert.match(html, /btn-ad/);
     assert.match(t, /\bAd\b/);
     assert.match(tcg.href, /^https:\/\/partner\.tcgplayer\.com\//);
-    assert.match(decodeURIComponent(tcg.href), new RegExp(`sharedid=dex-${c.region}-preorders-tcgplayer`));
+    assert.match(decodeURIComponent(tcg.href), new RegExp(`sharedid=mtg-${c.region}-preorders-tcgplayer`));
     for (const a of [ebay, tcg]) assert.match(a.rel, /^sponsored /, "a paid link");
     assert.ok(html.indexOf("ebay.") < html.indexOf("tcgplayer.com"), "eBay first");
     if (c.price) assert.ok(t.includes(c.price), `${c.region}: TCGplayer's price`);

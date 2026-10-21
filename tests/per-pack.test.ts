@@ -9,9 +9,9 @@ import { cheapestPerPackByType, PACK_TYPES } from "../src/lib/per-pack";
 import { PRODUCT_TYPES } from "../src/lib/sealed-title";
 import { TYPE_ABOUT } from "../src/lib/type-about";
 
-const card = (slug: string, productType: string, lowestPriceCents: number | null, open = true, setCode: string | null = "me4"): ProductCardData => ({
+const card = (slug: string, productType: string, lowestPriceCents: number | null, open = true, setCode: string | null = "blb"): ProductCardData => ({
   slug,
-  name: `Chaos Rising ${productType}`,
+  name: `Bloomburrow ${productType}`,
   productType,
   setCode,
   imageUrl: null,
@@ -20,34 +20,35 @@ const card = (slug: string, productType: string, lowestPriceCents: number | null
   listedStores: 3,
   marketplaceOpen: false,
   medianOpenCents: null,
-  releaseDate: "2026-05-22",
+  releaseDate: "2024-08-02",
 });
 
 test("cheapestPerPackByType: per pack type, the OPEN product with the lowest price per pack, in PACK_TYPES order", () => {
   const products = [
-    card("bundle", "Booster Bundle", 5496), // 6 packs: 916 a pack
-    card("etb-a", "Elite Trainer Box", 8820), // 9 packs (Mega Evolution): 980 a pack
-    card("etb-b", "Elite Trainer Box", 9900),
-    card("box-sold", "Booster Box", 20000, false), // sold out: not a price you can pay
-    card("box", "Booster Box", 27000), // 36 packs: 750 a pack
-    card("tin", "Tin", 1500), // packs vary: no honest per-pack price
-    card("collection", "Collection", 3000),
-    card("no-price", "Booster Bundle", null),
+    card("bundle", "Bundle", 5994), // 9 Play Boosters: 666 a pack
+    card("box-sold", "Play Booster Box", 18000, false), // sold out: not a price you can pay
+    card("box", "Play Booster Box", 21600), // 36 packs (Bloomburrow): 600 a pack
+    card("box-b", "Play Booster Box", 23000),
+    card("pack", "Play Booster Pack", 699),
+    card("collector", "Collector Booster Box", 30000), // a different pack: never compared
+    card("gift", "Gift Bundle", 8000), // mixed packs: no honest per-pack price
+    card("deck", "Commander Deck", 5000),
+    card("no-price", "Bundle", null),
   ];
   const got = cheapestPerPackByType(products);
   assert.deepEqual(
     got.map((x) => [x.p.slug, x.perPack, x.packs]),
     [
-      ["box", 750, 36],
-      ["etb-a", 980, 9],
-      ["bundle", 916, 6],
+      ["box", 600, 36],
+      ["bundle", 666, 9],
+      ["pack", 699, 1],
     ],
   );
   assert.deepEqual(got.map((x) => x.p.productType), PACK_TYPES.filter((t) => got.some((x) => x.p.productType === t)), "PACK_TYPES order");
   for (const x of got) assert.equal(x.packs, packsForLabel(x.p.productType, x.p.setCode, x.p.name));
   assert.deepEqual(cheapestPerPackByType([]), []);
-  assert.deepEqual(cheapestPerPackByType([card("x", "Booster Box", 27000, false)]), [], "nothing open, nothing to rank");
-  assert.ok(!PACK_TYPES.includes("Tin") && !PACK_TYPES.includes("Collection") && !PACK_TYPES.includes("Ultra-Premium Collection"));
+  assert.deepEqual(cheapestPerPackByType([card("x", "Play Booster Box", 21600, false)]), [], "nothing open, nothing to rank");
+  for (const t of ["Collector Booster Box", "Collector Booster Pack", "Gift Bundle", "Draft Night", "Commander Deck", "Prerelease Pack"]) assert.ok(!PACK_TYPES.includes(t), t);
 });
 
 test("the moves are moves: the set page imports per-pack.ts and the type page type-about.ts, and neither keeps its own copy", () => {
@@ -65,5 +66,6 @@ test("TYPE_ABOUT: a sentence for every product type, keyed by slug, and nothing 
   for (const t of PRODUCT_TYPES) assert.ok(TYPE_ABOUT[t.slug]?.length > 20, t.slug);
   const slugs = new Set(PRODUCT_TYPES.map((t) => t.slug));
   for (const k of Object.keys(TYPE_ABOUT)) assert.ok(slugs.has(k), `${k} is a type slug`);
-  assert.match(TYPE_ABOUT["booster-boxes"], /36 booster packs/);
+  assert.match(TYPE_ABOUT["play-booster-boxes"], /36 packs .* 30 from Aetherdrift/);
+  assert.match(TYPE_ABOUT["collector-booster-boxes"], /12 Collector Boosters/);
 });
