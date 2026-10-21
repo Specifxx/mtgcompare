@@ -144,7 +144,7 @@ test("sold out: the callout's eBay box is the server's search (soldout-ebay, Ad,
   assert.ok(box.length < html.length, "a labelled unit: data-ad=soldout-ebay");
   assert.match(box, /class="ad-pill[^"]*">Ad</);
   assert.match(box, /aria-label="eBay"/);
-  const ebay = links(html).filter((l) => new URL(l.href, "https://www.dexcompare.app").hostname.endsWith("ebay.co.uk"));
+  const ebay = links(html).filter((l) => new URL(l.href, "https://mtgcompare.app").hostname.endsWith("ebay.co.uk"));
   assert.equal(ebay.length, 1, "ONE eBay link in the server HTML: the search (the listing is browser-only)");
   const u = new URL(ebay[0].href);
   assert.equal(u.searchParams.get("customid"), "dex-uk-soldout-ebay");
@@ -264,10 +264,10 @@ test("the title: Pokémon + name + the cheapest open price and where; TCGplayer 
   assert.deepEqual(t, { absolute: "Pokémon Pitch Black Elite Trainer Box — from $54.99 at 19 US stores and on TCGplayer" });
   const sold = productTitle({ name: "Vivid Voltage ETB", market: "UK", inName: "the UK", cheapestCents: null, where: null });
   assert.equal(sold, "Pokémon Vivid Voltage ETB — price & stock in the UK");
-  assert.equal(renderedTitle(sold), "Pokémon Vivid Voltage ETB — price & stock in the UK | DexCompare");
+  assert.equal(renderedTitle(sold), "Pokémon Vivid Voltage ETB — price & stock in the UK | MTG Compare");
   assert.ok(renderedTitle(sold).length <= 65);
   assert.equal(productTitle({ name: "Pokémon Center Elite Trainer Box", market: "AU", inName: "Australia", cheapestCents: null, where: null }).toString().startsWith("Pokémon Center"), false, "an object: too long for the suffix");
-  assert.deepEqual(fitTitle("x".repeat(52)), "x".repeat(52), "52 + ' | DexCompare' = 65");
+  assert.deepEqual(fitTitle("x".repeat(52)), "x".repeat(52), "52 + ' | MTG Compare' = 65");
   assert.deepEqual(fitTitle("x".repeat(53)), { absolute: "x".repeat(53) });
   assert.equal(shortDate("2026-07-17"), "17 Jul 2026");
   assert.equal(releaseChip("2026-07-17", false), "Released 17 Jul 2026");

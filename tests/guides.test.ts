@@ -167,7 +167,7 @@ test("registry: unique slugs, ISO editorial dates (updated ≥ published), descr
     assert.ok(g.description.length <= 160, `${g.slug}: description is ${g.description.length} characters`);
     assert.ok(g.title.length <= 65, `${g.slug}: title`);
     const t = guideMetaTitle(g.title);
-    assert.ok((typeof t === "string" ? `${t} | DexCompare` : t.absolute).length <= 65, `${g.slug}: <title> over 65 characters`);
+    assert.ok((typeof t === "string" ? `${t} | MTG Compare` : t.absolute).length <= 65, `${g.slug}: <title> over 65 characters`);
     assert.match(g.title, /Pokémon/, `${g.slug}: the title says Pokémon`);
     assert.equal(findBannedCopy(`${g.title} ${g.description} ${g.kicker}`), null, g.slug);
     assert.ok(GUIDE_MODULES[g.slug], `${g.slug}: a body module`);

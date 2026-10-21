@@ -1,0 +1,35 @@
+name: IndexNow submit (Bing/Yandex) — MTG Compare
+
+# Daily, after the evening import (sealed-import.yml, 20:47 UTC):
+# submit every URL in MTG Compare's live sitemap to IndexNow so Bing, Yandex,
+# Seznam and Naver recrawl now. Google does not take IndexNow; it reads the
+# sitemap through Search Console. Safe to run by hand at any time.
+#
+# scripts/indexnow-submit.ts reads the key the live
+# /indexnow.txt serves (no secret needed), names the host of the sitemap's own
+# URLs (mtgcompare.app: this workflow used to name the apex, which IndexNow
+# refuses with a 422 for www URLs) and FAILS the run, with IndexNow's answer in
+# the log, when anything is refused. It runs with no npm install: the script
+# uses only Node built-ins and src/lib/indexnow.ts.
+on:
+  schedule:
+    - cron: "37 22 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: mtgcompare-indexnow
+  cancel-in-progress: false
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      SITE_URL: https://mtgcompare.app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npx --yes tsx scripts/indexnow-submit.ts

@@ -1,164 +1,90 @@
-# Reviving DexCompare on Vercel + Neon
+# Deploying MTG Compare (sealed) on Vercel
 
-DexCompare now deploys from **`apps/dexcompare-sealed`** (sealed products only).
-Everything below uses free tiers. It takes about 30 minutes, most of which is
-waiting for the first import.
+MTG Compare was rebuilt on 2026-10-21 as a **sealed-only** site: Magic: The Gathering booster boxes, bundles, Commander decks and
+other sealed product, compared across independent stores in AU, US, UK, CA, NZ, EU and SG, with eBay and TCGplayer affiliate links.
+It is a port of DexCompare's sealed app (`Specifxx/CompareEmpire`, `apps/dexcompare-sealed`). The old singles site (card database,
+accounts, Premium, price history, the Neon data plane) is gone from `main`; it is all in git history before that date.
 
-## Where the data lives (2026-10-16): DC2, and the public data files
+## Where the data lives: GitHub
 
-**The site reads no database.** After every import (`dexcompare-sealed-import.yml`, twice a day; `dexcompare-ebay-import.yml`,
-daily) the job exports every public table to `data/public/` (`scripts/export-public-data.ts`, ~25 MB of JSON, one row per line)
-and commits it to `main` (`scripts/publish-public-data.sh`). Since 2026-10-17 ONE release a day puts new prices live: the 20:47
-UTC sealed import's commit, whose subject carries `[deploy]`, the only thing production builds (`scripts/vercel-ignore-build.sh`).
-The 08:47 import's commit, the eBay import's and every code commit ride it; a manual import run, the schema sync and "DexCompare
-release" (`dexcompare-release.yml`) release out of turn. The import no longer purges anything first: the deploy does.
+**The site reads no database.** After every import (`sealed-import.yml`, twice a day; `ebay-import.yml`, daily) the job exports
+every public table to `data/public/` (`scripts/export-public-data.ts`, JSON, one row per line) and commits it to `main`
+(`scripts/publish-public-data.sh`). The Vercel build bundles those files and every page reads them through `src/lib/public-data/`.
+So the data is on GitHub, in this repository, and a data refresh is a commit.
 
-**Caching (2026-10-17).** Every data page is `force-dynamic` and Vercel's CDN keeps each response for a day (`next.config.js`
-`CDN_PAGES`, `Vercel-CDN-Cache-Control: public, s-maxage=86400, stale-while-revalidate=86400`), never ISR. An ISR write is
-billed per 8 KB of the page and every release empties the ISR cache, so ISR wrote each visited page again after every release:
-about twenty times the cost of rendering it. The CDN copy is free to keep and a release empties it too. It is safe only because
-no page reads a cookie, a header or the session (`tests/cache-ttl.test.ts`). Vercel builds the release, the build bundles the files,
-and every page, the browse index and the eBay strips read them through
-`src/lib/public-data/` (RiftCompare's query engine, ported). `PUBLIC_DATA_MODE` (Vercel, optional): `files` (default), `fallback`
-(database first, files if it cannot answer) or `db` (the database only, as before). A read the files cannot answer exactly falls
-through to the database and logs `[public-data:unsupported]`; `scripts/check-public-data.ts` compares every loader both ways and
-must report no difference but the order of ties.
+ONE release a day puts new prices live: the 20:47 UTC sealed import's data commit, whose subject carries `[deploy]`, the only
+thing production builds (`scripts/vercel-ignore-build.sh`). The 08:47 import's commit, the eBay import's and every code commit ride
+it; a manual import run and "MTG Compare release" (`release.yml`) release out of turn. Code commits never need `[deploy]`.
 
-**The database is DC2**, a separate Neon project, used by the importers only (so its compute wakes for imports and nothing else):
+**Neon is the importers' working store only** (the previous listings of a store that failed to read, slugs that must never change,
+the eBay call counter). It is MTG Compare's existing database (the `DATABASE_URL` secret), in its own Postgres schema, `sealed`:
+the workflows add `schema=sealed` to the URL, and so does `src/lib/db.ts` for any other caller, so the old site's tables in the
+default schema are never read or written. They can be dropped whenever the owner likes. `PUBLIC_DATA_MODE` (Vercel, optional):
+`files` (default), `fallback` (files, database for a read the files cannot answer) or `db`.
 
-| Where | Name | Value |
-|---|---|---|
-| GitHub (secret or variable) | `DC2` | the DC2 connection string (pooled or direct: the jobs use its direct host) |
-| Vercel | `DC2` | the DC2 connection string (only a fallback for a read the files cannot answer) |
+**Caching.** Every data page is `force-dynamic` and Vercel's CDN keeps each response for a day (`next.config.js` `CDN_PAGES`,
+`Vercel-CDN-Cache-Control: public, s-maxage=86400, stale-while-revalidate=86400`), never ISR. A release empties the CDN.
 
-`DEXCOMPARE_SEALED_DATABASE_URL` / `DATABASE_URL` (the old project) are used only while `DC2` is unset.
-`dexcompare-migrate-dc2.yml` copied the old project into DC2 once (pg_dump, every table's row count checked) and published the
-first snapshot. Once the site has run on DC2 for a few days: delete the old Neon project, and the `DEXCOMPARE_SEALED_DATABASE_URL`
-secret and Vercel's old `DATABASE_URL` with it.
+## 1. GitHub — secrets and variables (already set for the old site)
 
-## 1. Neon — a new, separate database
+Repo **Specifxx/mtgcompare** → Settings → Secrets and variables → Actions. The workflows read names the old site already had:
 
-Don't reuse an old DexCompare database, and don't share Rift Compare's projects:
-each Neon free project has its own 5 GB/month transfer allowance, and this
-site should never be able to eat into Rift Compare's.
+| Kind | Name | Used for |
+| --- | --- | --- |
+| Secret | `DATABASE_URL` | the Neon database (pooled or direct; the jobs use its direct host and the `sealed` schema). `SEALED_DATABASE_URL`, if set, is used instead. |
+| Secret | `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET` | the daily eBay import (`ebay-import.yml`) only. Without them that job writes a skip note and exits green. |
+| Secret | `REVALIDATE_SECRET` | optional; the same value as `REVALIDATE_SECRET` in Vercel. |
+| Secret | `PSI_API_KEY` | optional; the weekly PageSpeed check. |
+| Variable | `SITE_URL` | optional; default `https://mtgcompare.app`. |
+| Variable | `EBAY_DAILY_CAP`, `EBAY_RUN_CAP`, `EBAY_SWEEP_CALLS` | optional. **Unset, the job caps itself at 1,500 / 1,500 / 1,200 a day**, because the keyset in these secrets has been shared with RiftCompare. With a keyset of MTG Compare's own, raise them (at most 2,500). |
 
-1. [console.neon.tech](https://console.neon.tech) → **New project**.
-   - Name: `dexcompare`. Postgres 16 or 17.
-   - Region: **AWS US East (N. Virginia)** — the same place Vercel runs
-     functions by default (`iad1`), so page renders are one short hop.
-2. On the project dashboard → **Connect**. Copy two strings:
-   - **Pooled** (the "Connection pooling" toggle ON; the host contains
-     `-pooler`) → this goes to **Vercel**.
-   - **Direct** (toggle OFF) → this goes to **GitHub Actions**.
+The workflows need **Settings → Actions → General → Workflow permissions: Read and write** (the import commits `data/public/`).
 
-There's nothing to create by hand: the first import creates the tables.
+## 2. First run
 
-## 2. GitHub — secrets for the import job
+1. Merge to `main` (scheduled workflows run only from the default branch).
+2. Actions → **MTG Compare sealed import** → **Run workflow**. The first run creates the tables in the `sealed` schema, reads every
+   store in `src/data/stores.json` and TCGplayer's Magic sealed catalogue (about 20–40 minutes), exports `data/public/` and
+   commits it with `[deploy]` in the subject: that commit is the first release with prices.
+3. Optional: Actions → **MTG Compare eBay import** → Run workflow, for the eBay strips (they show an eBay search link until then).
+4. From then on both run by themselves (sealed import 20:47 and 08:47 UTC, eBay 08:37 UTC).
 
-Repo **Specifxx/CompareEmpire** → Settings → Secrets and variables → Actions.
+## 3. Vercel (already set up)
 
-**Secrets** tab:
+The existing **mtgcompare** project deploys this repository from its root: Framework Next.js, Node 20, Production Branch `main`.
+`vercel.json` sets the Ignored Build Step (`scripts/vercel-ignore-build.sh`): production builds only a commit whose SUBJECT carries
+`[deploy]`; preview builds are off unless a subject carries `[preview]`.
 
-| Name | Value |
+Environment variables the site reads (all optional):
+
+| Name | What |
 | --- | --- |
-| `DEXCOMPARE_SEALED_DATABASE_URL` | the Neon **direct** string |
-| `DEXCOMPARE_REVALIDATE_SECRET` | a long random string — generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Keep it for step 4. |
-| `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET` | the Production keyset (App ID / Cert ID) of DexCompare's own eBay application. Used **only** by the daily eBay import (below), never by Vercel. |
-| `PSI_API_KEY` | optional: a Google Cloud API key with the PageSpeed Insights API enabled, for the weekly PageSpeed check (see "PageSpeed check"). Without it that job skips cleanly. |
+| `NEXT_PUBLIC_SITE_URL` | the canonical origin, default `https://mtgcompare.app` (no trailing slash) |
+| `NEXT_PUBLIC_EBAY_CAMPAIGN_ID` | the eBay Partner Network campaign id |
+| `NEXT_PUBLIC_TCGPLAYER_IMPACT_LINK` | the TCGplayer Impact deep link |
+| `NEXT_PUBLIC_ADSENSE_CLIENT` | AdSense publisher id, or `off` |
+| `NEXT_PUBLIC_CONTACT_EMAIL`, `NEXT_PUBLIC_OPERATOR` | the contact address and who runs the site |
+| `REVALIDATE_SECRET` | the import's page-refresh call |
+| `GOOGLE_SITE_VERIFICATION` | replaces the built-in Search Console token |
 
-**Variables** tab: `DEXCOMPARE_SITE_URL` = `https://www.dexcompare.app` — the
-canonical origin with `www`, exactly as in Vercel below. The import job POSTs
-`/api/revalidate` there and then reads `/sitemap.xml`; through the apex→www
-redirect the POST would lose its `Authorization` header and the job would
-report "Page refresh: failed: HTTP 401".
+The old site's variables (Stripe, auth, mail, `PLANE_*`, `ADMIN_*`, `CRON_SECRET`, eBay keys …) are no longer read; they can be
+deleted. Keep `DATABASE_URL` only if `PUBLIC_DATA_MODE` is `fallback` or `db`. The old `stripe-reconcile` Vercel cron is gone with
+the old `vercel.json`.
 
-> Use the new secret name. The old singles app's paused workflows read
-> `DEXCOMPARE_DATABASE_URL`, and some of them reset the database they point at.
-
-## 3. Merge, then run the first import
-
-1. Merge the `claude/peaceful-euler-bplz47` branch into `main`. GitHub only
-   runs **scheduled** workflows from the default branch.
-2. Actions → **DexCompare sealed import** → **Run workflow** (branch `main`,
-   leave "only" blank). The first run creates the tables and reads every store
-   (about 20 minutes).
-   The job summary shows stores read, offers per region, and any store that
-   failed (its rows are simply kept until the next run).
-3. After that it runs by itself at 20:47 and 08:47 UTC.
-
-## 4. Vercel — point the DexCompare project at the new app
-
-In the existing **dexcompare** project (or a new one importing
-`Specifxx/CompareEmpire`):
-
-1. Settings → **General**
-   - **Root Directory**: `apps/dexcompare-sealed`
-   - Framework Preset: Next.js · Node.js Version: 20.x
-2. Settings → **Git** → Production Branch: `main`.
-3. Settings → **Environment Variables** (Production and Preview):
-
-   | Name | Value |
-   | --- | --- |
-   | `DATABASE_URL` | the Neon **pooled** string |
-   | `NEXT_PUBLIC_SITE_URL` | `https://www.dexcompare.app` — with `www`, no trailing slash |
-   | `REVALIDATE_SECRET` | the same value as `DEXCOMPARE_REVALIDATE_SECRET` |
-   | `NEXT_PUBLIC_OPERATOR` | who runs the site, as it should read in the Terms and the footer ("Operated by …", shown only when it differs from the site name): a trading name or a person. Optional; until it is set the site name stands in. The code never invents an entity or an address. **Owner action**: set it. |
-   | `NEXT_PUBLIC_CONTACT_EMAIL` | optional; default `riftcompare@gmail.com`. Keep it a mailbox someone reads: the contact page promises a reply. **Owner action**: set a branded forwarding address (e.g. hello@ on the site's domain) so stores and visitors see DexCompare's name; the footer links to `/contact`, never a mailto. |
-
-   `NEXT_PUBLIC_SITE_URL` is the origin every canonical, hreflang, JSON-LD,
-   robots and sitemap URL is built on. The code defaults to
-   `https://www.dexcompare.app` and normalises what it is given (trailing slash
-   stripped, anything unparseable ignored), and a production build whose value
-   does not match the domain Vercel is deploying to prints a loud `[site]`
-   warning in the build log — but never fails the build. (2026-09-28: the live
-   site said `dexcompare.com` everywhere because this variable was wrong.)
-
-   **Delete** the old app's variables: the old `DATABASE_URL` (a dead Neon
-   project), `ANTHROPIC_API_KEY`,
-   `GEMINI_API_KEY`, `RESEND_API_KEY`, `EMAIL_FROM`, `AUTH_SECRET`, `CRON_SECRET`, `NEXT_PUBLIC_HILLTOPADS_SRC`, …
-   None are used any more. **Also remove `EBAY_CLIENT_ID` and `EBAY_CLIENT_SECRET` from Vercel**
-   if they are there (they were, for the earlier on-demand listings): the website no longer calls
-   eBay, so it needs no eBay credential, and keeping them there only widens who could read them
-   (least privilege). They live in GitHub Actions now (see "eBay listings: the daily import").
-
-   Scoped to Preview as well, `DATABASE_URL` gives a preview deployment the
-   **production** database. That is why previews are off (below) and why a
-   preview build reads no database at all.
-4. Deployments → **Redeploy** the latest `main` commit (untick "use existing
-   build cache"). The build does not need the database to be filled.
-
-The old app's Vercel crons (price alerts, newsletter) disappear with this
-deploy: the new `vercel.json` defines none. Its `ignoreCommand`
-(`scripts/vercel-ignore-build.sh`) decides whether a push builds at all:
-
-- **Production** (`main`) builds when the pushed commit changes something under
-  `apps/dexcompare-sealed`, and skips otherwise (every production build empties
-  the page cache, so pushes to the other apps shouldn't trigger one).
-- **Preview deployments are off** (the owner, 2026-10-14). A push to any other
-  branch builds nothing unless its commit SUBJECT carries `[preview]` (any
-  case) and the commit changes the app; put the marker in only when a preview
-  is wanted. Before, every push of a branch touching the app built a preview
-  that prerendered the eight sitemap files against the production database.
-  A preview that is asked for still reads no database at build: its sitemap
-  files are written without products (`src/lib/build-env.ts`), and its pages
-  read the production database only when someone opens them, like any ISR page.
-
-`tests/vercel-ignore-build.test.ts` pins both. If a deploy shows **"Canceled by
-Ignored Build Step"** when you wanted it, push any change under
-`apps/dexcompare-sealed` (on a branch: with `[preview]` in the subject), or
-clear Settings → Git → Ignored Build Step for that one deploy.
+**To deploy right now** without waiting for the evening import: Actions → **MTG Compare release** → Run workflow (an empty
+`[deploy]` commit), or push a commit whose subject carries `[deploy]`.
 
 ## 5. Domains
 
 Vercel project → Settings → **Domains**:
 
-1. Add `www.dexcompare.app` and make it the primary: it is what
+1. Add `mtgcompare.app` and make it the primary: it is what
    `NEXT_PUBLIC_SITE_URL` says, so it is what every canonical URL says. The old
-   DexCompare project may already hold the domains; if so, confirm they are
+   MTG Compare project may already hold the domains; if so, confirm they are
    attached to this project.
-2. Add `dexcompare.app` set to **Redirect to `www.dexcompare.app` (308
+2. Add `mtgcompare.app` set to **Redirect to `mtgcompare.app` (308
    permanent)**. One host serves pages; the other only redirects. Whichever way
-   round you choose, `NEXT_PUBLIC_SITE_URL` (Vercel), `DEXCOMPARE_SITE_URL`
+   round you choose, `NEXT_PUBLIC_SITE_URL` (Vercel), `SITE_URL`
    (GitHub) and the primary domain must agree.
 3. Follow Vercel's DNS instructions at your registrar if it shows any.
    `.app` domains are HTTPS-only (HSTS-preloaded), which Vercel handles.
@@ -170,10 +96,10 @@ any other unknown path (`/foo`, `/Au`) is a plain 404.
 
 ## 6. Search Console
 
-Add the `www.dexcompare.app` URL-prefix property (or a domain property for
-`dexcompare.app`; DNS verification, or set `GOOGLE_SITE_VERIFICATION` in Vercel
+Add the `mtgcompare.app` URL-prefix property (or a domain property for
+`mtgcompare.app`; DNS verification, or set `GOOGLE_SITE_VERIFICATION` in Vercel
 to the HTML-tag token and redeploy), then submit
-`https://www.dexcompare.app/sitemap.xml`.
+`https://mtgcompare.app/sitemap.xml`.
 
 That URL is a **sitemap index** (`src/app/sitemap.xml/route.ts`) listing
 `/sitemap/0.xml` (the static pages, every active store page and, per region, `/deals`, `/cheapest-packs`, `/this-week`,
@@ -199,9 +125,9 @@ On by default with the owner's publisher ID, `ca-pub-6842128782879909` (`DEFAULT
 **build** time, so redeploy after changing it.
 
 1. Site-wide this gives: the `google-adsense-account` meta and the AdSense script in every page's `<head>` (what AdSense's site
-   review checks), `https://www.dexcompare.app/ads.txt` with Google's authorised-seller line, and the AdSense paragraphs on
+   review checks), `https://mtgcompare.app/ads.txt` with Google's authorised-seller line, and the AdSense paragraphs on
    `/privacy` (cookies, opt-outs) and `/about` ("how we make money").
-2. In AdSense → Sites, add `dexcompare.app` and press **Verify** / **Request review**. The landing page (`/`) is what the reviewer
+2. In AdSense → Sites, add `mtgcompare.app` and press **Verify** / **Request review**. The landing page (`/`) is what the reviewer
    reads first: its original text (what the site is, how it compares, the buying guides, the questions answered in full) sits in
    the first screens of the server HTML, and its one eBay unit is last.
 3. Nothing to set in Vercel for this: the ID is in the code.
@@ -219,7 +145,7 @@ On by default with the owner's publisher ID, `ca-pub-6842128782879909` (`DEFAULT
 
 Each region home (`/au`, `/us` …) and each guide (the by-country one included) has its own 1200×630 share card, drawn at build
 from the registry (`src/lib/og-card.tsx`; routes `/og/<region>` and `/og/guides/<slug>`; no database). It is the thumbnail Reddit, Discord and X
-show for a link. To preview one, open `https://www.dexcompare.app/og/au`. Reddit caches a link's thumbnail when it is first
+show for a link. To preview one, open `https://mtgcompare.app/og/au`. Reddit caches a link's thumbnail when it is first
 posted, so check the card before posting.
 
 ## Security headers
@@ -238,7 +164,7 @@ connect and frame sources for when it is switched on.
 ## Ad rules (the growth release, 2026-10)
 
 The owner approved these changes to the site's own advertising rules; `src/lib/ebay-ads.ts` (its header), README.md
-("eBay listing strips") and the About page ("How DexCompare makes money") say the same.
+("eBay listing strips") and the About page ("How MTG Compare makes money") say the same.
 
 **Changed**
 
@@ -318,7 +244,7 @@ surface earned. **EPN's `customid` report is coarser for listing tiles**, on pur
 URL serves every surface that shows the feed. The importer therefore asks eBay (header `X-EBAY-C-ENDUSERCTX`,
 `affiliateReferenceId`) for a sub-id **per feed**, which eBay copies into the URL's `customid`:
 `dex-<market>-<feed kind>`, with market `us`, `au`, `uk`, `ca` or `eu` (NZ buyers are served `au`, SG buyers `us`) and
-feed kind `chase`, `sealed`, `type`, `set` or `item`: for example `dex-us-chase`, `dex-au-item`, `dex-uk-set`. So EPN
+feed kind `chase`, `sealed`, `type`, `set` or `item`: for example `mtg-us-chase`, `mtg-au-item`, `mtg-uk-set`. So EPN
 splits earnings by marketplace and feed kind (25 values); the surface within it (home, set page, footer...) is in
 the Vercel event. Our own SEARCH links (the header item, the compact "search eBay" CTA, the product page's marketplace
 rows) are built by us and still carry `dex-<region>-<placement>` (at most 60 characters). Every strip tile, its
@@ -343,7 +269,7 @@ compact "search" CTA and the in-feed tile report under the strip's own placement
 | `listings-digest` | `/<region>/this-week`: the sealed strip after "Releasing soon" |
 | `listings-guide` | a guide (`/<region>/guides/<slug>`): its one strip, after the first data block (the guide's own context: generic sealed or its type's feed) |
 | `browse-search` | `/<region>/sealed` with a search query and results: ONE query-matched box after the first four results (the slot the unfiltered list's strip uses, so a search page never has more units than the unfiltered one): "See "<query>" on eBay — Buy It Now ↗" and, in the US, "Search TCGplayer ↗" (Impact `sharedid`), with "Ad" and the affiliate note. Client-only: the query never reaches cached HTML or the database. Zero results keep `browse-empty` |
-| `listings-offer-row` | product page: the eBay ROW OF THE PRICE TABLE (the owner's call, 2026-10-11: DexCompare compares websites, and eBay is one). The product's lowest-priced OWN eBay listing (never its type's or generic listings; never one under 40% of the cheapest store price, where the stores price in the eBay site's currency), ranked by its price among the in-stock stores (a tie stays with the store; NZ/SG, whose listings are in A$/US$, after the in-stock stores), tinted (the sponsored tint, an eBay-blue edge), labelled "Ad", eBay's blue "View on eBay" button, "updated N h ago" on the row; with no listing it is an eBay search for the product after the in-stock stores (that is also the server HTML: the listing is fetched as the page runs and then moves to its rank). The table shows 8 rows (the eBay row ranked among them) and puts the rest in two server-rendered drawers, split after ranking so the visible height never changes. When it is a NEW listing cheaper than every in-stock store (not on a pre-order product) it IS the best price (the owner's call, 2026-10-11): "Best price" on it, "Best store price" on the cheapest store, and the best-price card shows it (`listings-best-price`). Never counted in the store count or the median, never in JSON-LD, meta, OG, the sitemap or the "from" prices elsewhere |
+| `listings-offer-row` | product page: the eBay ROW OF THE PRICE TABLE (the owner's call, 2026-10-11: MTG Compare compares websites, and eBay is one). The product's lowest-priced OWN eBay listing (never its type's or generic listings; never one under 40% of the cheapest store price, where the stores price in the eBay site's currency), ranked by its price among the in-stock stores (a tie stays with the store; NZ/SG, whose listings are in A$/US$, after the in-stock stores), tinted (the sponsored tint, an eBay-blue edge), labelled "Ad", eBay's blue "View on eBay" button, "updated N h ago" on the row; with no listing it is an eBay search for the product after the in-stock stores (that is also the server HTML: the listing is fetched as the page runs and then moves to its rank). The table shows 8 rows (the eBay row ranked among them) and puts the rest in two server-rendered drawers, split after ranking so the visible height never changes. When it is a NEW listing cheaper than every in-stock store (not on a pre-order product) it IS the best price (the owner's call, 2026-10-11): "Best price" on it, "Best store price" on the cheapest store, and the best-price card shows it (`listings-best-price`). Never counted in the store count or the median, never in JSON-LD, meta, OG, the sitemap or the "from" prices elsewhere |
 | `listings-best-price` | product page: the best-price card's eBay button, when the product's eBay listing (the price-table row's) is NEW and cheaper than every in-stock store, and the product is not a pre-order: the TOP of the card turns to it (its price, per-pack price, "Best price in stock · <shipping>", "eBay · Ad · updated N h ago · vs <cheapest store price> <store>", and the median/MSRP badges for it, on one line, only where the store's card has them). Below the rule the card stays the stores' facts ("up to … — you save …", median, "best store price … MSRP"). Not in NZ or SG (A$/US$ listings are not compared). The server HTML is the store's card; the swap happens in the browser, the two tops stacked in one space of fixed lines (no layout shift); the Marketplaces panel keeps its TCGplayer row on such pages |
 | `product-marketplace` | product page: the Marketplaces panel's rows, a TCGplayer row and an eBay row that is the eBay-blue `.btn-ad` button on EVERY product page (it was a red text link unless the product was popular): a search for the product. The "Popular set" chip of a hot product stays outside the link |
 | `listings-marketplace` | product page: the Marketplaces panel's eBay row once the browser has the product's own NEW listing AND the best-price card is not already showing eBay: "eBay · from <price> · updated <age>", to the listing exactly as returned, labelled "Ad". Same height in both states; otherwise the row stays the `product-marketplace` search |
@@ -414,7 +340,7 @@ underperforms:
 The image strips on the site ("Chase cards on eBay", "Sealed Pokémon on eBay", "<Set> chase cards on
 eBay", "<Product> on eBay") show **real eBay listings**: photo, title, price as eBay returns it, shipping,
 and how old the data is, each tile an affiliate link. They are **imported once a day** by a GitHub Actions
-job (`.github/workflows/dexcompare-ebay-import.yml`, `scripts/ebay-import.ts`) with DexCompare's own eBay keys
+job (`.github/workflows/ebay-import.yml`, `scripts/ebay-import.ts`) with MTG Compare's own eBay keys
 and stored in two small tables; the website only **reads** them. Scraping eBay is a Terms violation and eBay
 blocks it; the Browse API is the only compliant source. **Every product page asks for its own listings**, which come
 first from the **catalogue sweep** (below): broad searches paged 200 listings a call, each listing handed to the
@@ -423,10 +349,10 @@ product the repo's classifier says it is, so one call can feed dozens of product
 > **READ THIS FIRST: the 5,000 calls/day limit belongs to the eBay APPLICATION (the keyset), not to this site.**
 > The database counter (`EbayCallDay`) counts only the searches THIS importer makes; it cannot see the owner's other site if that site uses the
 > same App ID / Cert ID, and eBay's own counter (which a 429 comes from) adds the two. If both sites run on one keyset, either
-> **(a) create a separate eBay application (a separate keyset) for DexCompare** and put its id and secret in `DEXCOMPARE_EBAY_CLIENT_ID` /
+> **(a) create a separate eBay application (a separate keyset) for MTG Compare** and put its id and secret in `DEXCOMPARE_EBAY_CLIENT_ID` /
 > `DEXCOMPARE_EBAY_CLIENT_SECRET` (the recommendation: each site then has its own 5,000), or
 > **(b) agree each site's share of the 5,000 and set `EBAY_DAILY_CAP` to that share on BOTH sites**. This site's default, **2,500**, is also the
-> importer's hard maximum: it is DexCompare's half of a keyset shared with the owner's other site, so that site must be capped at 2,500 too. Since
+> importer's hard maximum: it is MTG Compare's half of a keyset shared with the owner's other site, so that site must be capped at 2,500 too. Since
 > the catalogue sweep, the daily run spends close to its whole 2,500 every day, so the split is no longer theoretical. Until one of these is done, a busy day on the other site can exhaust the shared limit
 > and this import will meet 429s (it stops the run and keeps the previous rows). The importer prints its running total against the caps in
 > the log (before the first search and every 250 searches), and `scripts/ebay-check.ts` prints eBay's own count and reset time for the
@@ -488,12 +414,12 @@ Three settings; nothing else changes. The strips already say how old they are, a
 reports the bound it applied (`maxAgeMs`) and the strips say "imported from eBay several times a day" instead of "about once a day" when
 it is 12 hours or less, so the copy stays true in either mode (the About, Terms and Privacy pages say "once a day, in the default setting").
 
-1. **The cron** in `.github/workflows/dexcompare-ebay-import.yml`: `"37 8 * * *"` becomes `"13 */4 * * *"` (every four hours, six runs a day; all six fall
+1. **The cron** in `.github/workflows/ebay-import.yml`: `"37 8 * * *"` becomes `"13 */4 * * *"` (every four hours, six runs a day; all six fall
    inside one Pacific budget day in summer and in winter).
 2. **`EBAY_LISTING_MAX_AGE_HOURS=5.5`**, set in **two** places that read it:
    * **Vercel** (the route reads it and tells the browser; a changed environment variable needs a redeploy),
    * the **GitHub repository variable** `EBAY_LISTING_MAX_AGE_HOURS` (Settings → Secrets and variables → Actions → Variables): the eBay import and,
-     through the same variable, the store import (`dexcompare-sealed-import.yml`) read it for their purges.
+     through the same variable, the store import (`sealed-import.yml`) read it for their purges.
 3. **Lower `EBAY_RUN_CAP` to `380`** (GitHub variable). Six runs of 380 searches are 2,280 a day, under the 2,500 daily cap with 220 to spare for a
    manual run; the default 2,500 would use the whole day in the first run and the later ones would stop at once. 380 searches a run cover the
    generic, type and set feeds (265) and 115 pages of the catalogue sweep (it takes what the fixed feeds leave, up to `EBAY_SWEEP_CALLS`), which
@@ -507,11 +433,11 @@ also cover every product.
 
 ### What to set up
 
-1. **A Production keyset for DexCompare's own eBay application** (developer.ebay.com → Application Keys → Production:
+1. **A Production keyset for MTG Compare's own eBay application** (developer.ebay.com → Application Keys → Production:
    "App ID" is the client id, "Cert ID" the secret; a Sandbox keyset does not work: the code only calls `api.ebay.com`).
    The Buy APIs are access-controlled: if the token works but searches answer 403, the keyset has not been granted Buy API
    access yet (apply from the application's page; eBay's Partner Network questionnaire, up to 10 business days). The 5,000
-   calls/day default limit is **per application**: if DexCompare's keyset is also the other site's, the two share it (see the box above).
+   calls/day default limit is **per application**: if MTG Compare's keyset is also the other site's, the two share it (see the box above).
 2. **GitHub secrets** (Settings → Secrets and variables → Actions → Secrets): `EBAY_CLIENT_ID` and `EBAY_CLIENT_SECRET`
    (the names the owner set), plus the existing `DEXCOMPARE_SEALED_DATABASE_URL`. `DEXCOMPARE_EBAY_CLIENT_ID` /
    `DEXCOMPARE_EBAY_CLIENT_SECRET` are accepted too and win when set (to give this site a different keyset from a shared
@@ -530,7 +456,7 @@ also cover every product.
    budget day and gets the full run cap, whatever manual runs were made the day before. (An earlier slot, before the reset, was the LAST
    run of its day: a manual "run it now" earlier that day left it only the 400-call slack, and most product strips went dark for ~18 h.)
    It is also a good time for the audience: 09:37 / 10:37 in the UK / central Europe, 19:37 in Sydney, 04:37 in New York, 01:37 in Los Angeles.
-5. **Run it now**: Actions → **DexCompare eBay import** → **Run workflow**. Inputs: `only` (a comma-separated
+5. **Run it now**: Actions → **MTG Compare eBay import** → **Run workflow**. Inputs: `only` (a comma-separated
    subset of `chase, sealed, types, sets, sweep, items`; the input's own description predates `sweep`, which it accepts too), `force` (buy every feed again; a normal run does not re-buy a feed whose rows are less than 2 hours old, so an accidental second dispatch, or a re-run after a failure, spends nothing on what is already fresh), `dry_run` (prints the plan and the expected calls: no eBay call, no
    database write), `probe` (measures the catalogue sweep instead of importing: about 60 Browse calls, each reserved against the daily cap,
    match counts and sample titles in the log, **no listing written**; see "The catalogue sweep"). The job runs `prisma db push` first (two new tables, no data loss), and the importer creates the
@@ -879,7 +805,7 @@ compact search row.
   circuit breaker), so it costs a handful of calls, not the day's budget. the same breaker stops the run after "6 searches in a row failed" or "30 in a row returned nothing" (a rejected filter, a changed response).
 * **What EPN reports for listing tiles**: the importer asks eBay for `affiliateReferenceId=dex-<market>-<feed kind>` on every search, eBay puts it
   in the URL's `customid`, and the site uses that URL exactly as eBay returned it (eBay's spec says to; nothing in the browser edits it). So EPN's
-  report by custom id shows `dex-us-chase`, `dex-au-item`, `dex-uk-set` and so on: earnings by marketplace and feed kind, **not by page**. If
+  report by custom id shows `mtg-us-chase`, `mtg-au-item`, `mtg-uk-set` and so on: earnings by marketplace and feed kind, **not by page**. If
   you see only `dex-listings` or no custom id, eBay did not echo the reference: check one stored URL (`SELECT "url" FROM "EbayListing" LIMIT 3`)
   and the importer's request header; the campaign id, and so the earnings, are unaffected either way. Which surface earned is in Vercel's
   `buy_click` placement.
@@ -905,7 +831,7 @@ compact search row.
 | --- | --- |
 | "Displayed item listing information may not be more than six (6) hours older" (prong 1) and "other eBay Content ... no more than twenty-four (24) hours older" (prong 2) (API License Agreement 8.1(c), "Age of Displayed eBay Content") | **Not met in the default daily mode** (26 h bound): disclosed ("Updated 9 h ago", "imported about once a day"), bounded (26 h), and switchable to a compliant mode (above). The growth release shows listing prices on more surfaces (sold-out box, Marketplaces panel, buy bar, grid tiles), each with the listing's age; the hour of edge caching never shows a row past the bound (the browser re-checks it) |
 | Delete copies when no longer required (3.1(b)); delete eBay Content that is no longer publicly available (8.1(b)(1)) | Rows are deleted when older than the bound + 4 h, by the importer (start and end of each run) and the store import; a refresh replaces, never appends; no history |
-| eBay content not "co-mingled or combined with non-eBay Content" (8.1(b)(2)) | **Not met on the product page, by the owner's choice (2026-10-11, widened by the growth release, 2026-10)**: the product's cheapest eBay listing is a row of the store price table (`listings-offer-row`), ranked by price among the stores, because DexCompare compares websites and eBay is one; when that listing is cheaper than every in-stock store it counts as the product's best price (`listings-best-price`). The growth release extends the same listing (the same request, `useEbayPick`; never a second fetch) to three more places beside store content: the **sold-out box** shows its price (`listings-soldout-best`), the **Marketplaces panel** shows its price when the card is not already eBay (`listings-marketplace`), and the phone **buy bar** repeats whichever of those the top of the page shows (`product-sticky`). The in-feed **grid tiles** sit among product cards (framed, labelled, never in a table). Mitigations: every one is visibly eBay's (tint or frame, eBay-blue button, the eBay wordmark, "Ad", the listing's age) and the listing is never counted (store count, median). Strips still hold eBay listings only, in a dashed unit of their own. **To go back, per surface**: the table row and the card: drop `ebay=` from the product page's `<OfferTable>` (the row and its note go with it) and pass `ebay={null}` to its `<BestPriceCard>`; the sold-out box: remove `<SoldOutEbay>` from the callout (`src/components/Marketplaces.tsx`), leaving the server's `soldout-ebay` search button; the panel: remove `<PanelEbayPrice>`, leaving the `product-marketplace` search row; the buy bar: give it no eBay listing (it then repeats the store, TCGplayer or the eBay search), or remove `<StickyBuyBar>` from the product page; the grid tiles: drop the `tiles` prop from the `<ProductGrid>`s |
+| eBay content not "co-mingled or combined with non-eBay Content" (8.1(b)(2)) | **Not met on the product page, by the owner's choice (2026-10-11, widened by the growth release, 2026-10)**: the product's cheapest eBay listing is a row of the store price table (`listings-offer-row`), ranked by price among the stores, because MTG Compare compares websites and eBay is one; when that listing is cheaper than every in-stock store it counts as the product's best price (`listings-best-price`). The growth release extends the same listing (the same request, `useEbayPick`; never a second fetch) to three more places beside store content: the **sold-out box** shows its price (`listings-soldout-best`), the **Marketplaces panel** shows its price when the card is not already eBay (`listings-marketplace`), and the phone **buy bar** repeats whichever of those the top of the page shows (`product-sticky`). The in-feed **grid tiles** sit among product cards (framed, labelled, never in a table). Mitigations: every one is visibly eBay's (tint or frame, eBay-blue button, the eBay wordmark, "Ad", the listing's age) and the listing is never counted (store count, median). Strips still hold eBay listings only, in a dashed unit of their own. **To go back, per surface**: the table row and the card: drop `ebay=` from the product page's `<OfferTable>` (the row and its note go with it) and pass `ebay={null}` to its `<BestPriceCard>`; the sold-out box: remove `<SoldOutEbay>` from the callout (`src/components/Marketplaces.tsx`), leaving the server's `soldout-ebay` search button; the panel: remove `<PanelEbayPrice>`, leaving the `product-marketplace` search row; the buy bar: give it no eBay listing (it then repeats the store, TCGplayer or the eBay search), or remove `<StickyBuyBar>` from the product page; the grid tiles: drop the `tiles` prop from the `<ProductGrid>`s |
 | No derived statistics (8.1(d)) | None: no average, median, "% below"; prices shown as returned, never converted, counted, averaged, or in JSON-LD, meta, OG or the sitemap; the exceptions, the owner's calls: the price table's eBay row (above) is placed by its price among the stores', and when it is the cheapest it is the best price, with that card's per-pack price and median/MSRP comparisons computed from it in the browser (`listings-best-price`); never a count or a median, never server-rendered; the order within a product's feed is "lowest price first, before shipping" (shown on the strip) and says nothing else; the catalogue sweep's counts (listings matched, products found) stay in the job's log and summary, never on the site |
 | "Only surface FIXED PRICE items"; eBay's own image; shipping separate; "indicate when the item is not new" (Buy APIs Requirements) | `buyingOptions:{FIXED_PRICE}`; `*.ebayimg.com` thumbnails as plain `<img>`; the first shipping option is shown on the tile; the condition is shown when it is not new |
 | Use the URL returned in `itemAffiliateWebUrl` | Every link is that URL **exactly as returned** (the importer checks it is one eBay item page with our campaign id and stores eBay's own string; the browser checks an eBay item URL with a numeric `campid` and changes nothing in it). `customid` is the per-feed `affiliateReferenceId` the importer sent (`dex-<market>-<feed kind>`). Only when eBay sends no usable one is `itemWebUrl` tagged with the same EPN parameters |
@@ -927,22 +853,22 @@ Run `scripts/ebay-check.ts` once the keys are in, then one manual import, and re
 
 ## Checking it works
 
-- `https://www.dexcompare.app/au` shows products, "Last checked" a few minutes/hours ago.
-- `https://www.dexcompare.app/sitemap.xml` lists eight files, and
+- `https://mtgcompare.app/au` shows products, "Last checked" a few minutes/hours ago.
+- `https://mtgcompare.app/sitemap.xml` lists eight files, and
   `/sitemap/2.xml` (US) has a couple of thousand `/us/p/…` URLs. A regional
   file with no products means the database is empty or unreachable (the build
   writes empty regional files when it cannot reach the database, and a preview
   build always does; the first
   import's page refresh fills them).
 - `view-source:` of any page: `<link rel="canonical">` and every `hrefLang`
-  say `https://www.dexcompare.app/…`. If they say another host, fix
+  say `https://mtgcompare.app/…`. If they say another host, fix
   `NEXT_PUBLIC_SITE_URL` and redeploy.
 - `/AU` answers 308 to `/au`; `/foo` answers 404 with the branded page.
 - A product page lists stores with *In stock* / *Sold out* and "checked … ago".
 - `/us`, `/us/deals`, `/us/cheapest-packs`, `/us/this-week`, `/us/guides` and one guide, an in-stock and a sold-out product,
   and `/api/browse/us` answer 200; `view-source:` of any of them holds no `ebayimg.com`, no `/itm/` and no eBay price (eBay
   data only ever arrives in the browser).
-- `curl -sI "https://www.dexcompare.app/api/ebay/us?c=sealed"` shows `cache-control: public, max-age=60, s-maxage=3600,
+- `curl -sI "https://mtgcompare.app/api/ebay/us?c=sealed"` shows `cache-control: public, max-age=60, s-maxage=3600,
   stale-while-revalidate=82800` (or `public, max-age=30, s-maxage=600` while the feed is empty), and a second request within the
   hour answers `x-vercel-cache: HIT` (the edge may rewrite the header it passes on, so if it looks different, read it in the
   Vercel function logs).
@@ -975,9 +901,9 @@ the week before, should be flat or lower; the Vercel logs should have no `[egres
 
 ## PageSpeed check
 
-`.github/workflows/psi-dexcompare.yml` runs Google PageSpeed Insights on `https://www.dexcompare.app` (`/us`, one in-stock product,
+`.github/workflows/psi-dexcompare.yml` runs Google PageSpeed Insights on `https://mtgcompare.app` (`/us`, one in-stock product,
 `/us/sealed`, `/us/type/booster-boxes`; phone and desktop) **every Monday at 06:23 UTC** and on demand (Actions → **PageSpeed
-check DexCompare** → Run workflow; the `paths` input takes other paths). It needs the repository secret **`PSI_API_KEY`**
+check MTG Compare** → Run workflow; the `paths` input takes other paths). It needs the repository secret **`PSI_API_KEY`**
 (Google Cloud console → APIs & Services → enable "PageSpeed Insights API" → Credentials → API key; restrict it to that API).
 Without the secret the job writes "skipped" to its summary and succeeds. A run makes 8 API calls and takes about two minutes;
 it fails only when every call fails (a wrong key). Read the job summary: the lab score, LCP, CLS and TBT, and the real-user (field)
@@ -1007,8 +933,8 @@ morning: Neon's network transfer, as above.
   `Specifxx/CompareEmpire` is a public repository, so standard runner minutes
   are free. If the repo is ever made private, twice a day is ~2,000+ minutes a
   month — change the two `cron:` lines in
-  `.github/workflows/dexcompare-sealed-import.yml` to one.
-- **eBay API: DexCompare's own keyset, in GitHub Actions only.** One import a day makes at most 2,500 Browse
+  `.github/workflows/sealed-import.yml` to one.
+- **eBay API: MTG Compare's own keyset, in GitHub Actions only.** One import a day makes at most 2,500 Browse
   calls (the run cap; the daily cap, 2,500 across every run, is kept in the database), most of them catalogue
   sweep pages; the website makes none. The job's timeout is 90 minutes. Nothing here can
   spend Rift Compare's eBay quota unless both sites share one keyset (the owner's other site shares the
@@ -1018,7 +944,7 @@ morning: Neon's network transfer, as above.
   the same approved account as Rift Compare. Every page carries Impact's
   `impact-site-verification` tags (the account's shared token, as on the other
   CompareEmpire sites, and the token Impact issued for this site's own
-  property, `f20df7de-…`); in Impact, check that `www.dexcompare.app` is listed as a promotional
+  property, `f20df7de-…`); in Impact, check that `mtgcompare.app` is listed as a promotional
   property of that account.
 - **When the import goes red**: fewer than half the stores read, nothing
   requested read at all, or TCGplayer not read for 48 hours (its offers show
@@ -1031,7 +957,7 @@ morning: Neon's network transfer, as above.
   Vercel build. A push to `main` that changes `prisma/schema.prisma` starts
   that job on its own (a two-minute TCGplayer-only run, which also recomputes
   every product's stats), so a new column — e.g. `ProductStat.marketplaceOpen`
-  — lands at about the same time as the deploy. Check Actions → **DexCompare
+  — lands at about the same time as the deploy. Check Actions → **MTG Compare
   sealed import** went green after such a merge; until the column exists, new
   pages that aren't cached yet fail to render. An added column with a default
   is safe for the old code.

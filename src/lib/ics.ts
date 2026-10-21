@@ -7,7 +7,7 @@
 // Lines end in CRLF and are folded at 75 octets; TEXT values escape backslashes, semicolons, commas and newlines.
 
 export interface IcsRelease {
-  /** sets.ts code: the UID is `${code}-release@dexcompare.app`. */
+  /** sets.ts code: the UID is `${code}-release@mtgcompare.app`. */
   code: string;
   /** The set's name ("Delta Reign"). */
   name: string;
@@ -64,11 +64,11 @@ export function buildIcs(e: IcsRelease): string {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//DexCompare//Pokemon TCG release dates//EN",
+    "PRODID:-//MTG Compare//Pokemon TCG release dates//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
-    `UID:${e.code}-release@dexcompare.app`,
+    `UID:${e.code}-release@mtgcompare.app`,
     `DTSTAMP:${icsStamp(e.stamp ?? new Date())}`,
     `DTSTART;VALUE=DATE:${icsDate(e.date)}`,
     `DTEND;VALUE=DATE:${icsDate(nextDay(e.date))}`,

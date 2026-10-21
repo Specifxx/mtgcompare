@@ -15,10 +15,11 @@ const display = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-disp
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: `${SITE_NAME} — Pokémon sealed prices & stock`, template: `%s | ${SITE_NAME}` },
+  title: { default: `${SITE_NAME} — Magic: The Gathering sealed prices & stock`, template: `%s | ${SITE_NAME}` },
   description: SITE_TAGLINE,
   applicationName: SITE_NAME,
-  ...(process.env.GOOGLE_SITE_VERIFICATION ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } } : {}),
+  // Search Console ownership of mtgcompare.app (owner, 2026-10-16); GOOGLE_SITE_VERIFICATION replaces it.
+  verification: { google: process.env.GOOGLE_SITE_VERIFICATION || "N0wgTl_HUriBqcifrYzMsLDL2KYnnzOY7q8AG0XUS_U" },
 };
 
 export const viewport: Viewport = {

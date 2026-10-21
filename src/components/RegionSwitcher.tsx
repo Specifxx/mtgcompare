@@ -33,7 +33,7 @@ export function RegionSwitcher({ region, compact = false }: { region: Region | n
   useEffect(() => {
     if (region) {
       try {
-        localStorage.setItem("dex-region", region);
+        localStorage.setItem("mtg-region", region);
       } catch {
         /* storage blocked — fine */
       }

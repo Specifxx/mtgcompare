@@ -1121,7 +1121,7 @@ test("run: hot sets first: each marketplace's sweep starts with the hot pass; th
 test("DEPLOY.md says what the owner must know: both prongs of 8.1(c), the whole switch, the shared keyset, the reporting granularity", async () => {
   const { readFileSync } = await import("node:fs");
   const doc = readFileSync(new URL("../DEPLOY.md", import.meta.url), "utf8");
-  const wf = readFileSync(new URL("../../../.github/workflows/dexcompare-ebay-import.yml", import.meta.url), "utf8");
+  const wf = readFileSync(new URL("../.github/workflows/ebay-import.yml", import.meta.url), "utf8");
   // both prongs of the Age clause, quoted, with the section as the live agreement numbers it
   for (const needle of ["8.1(c)", "Age of Displayed eBay Content", "six (6) hours older than information displayed on the eBay Site", "twenty-four (24) hours older than content displayed on the eBay Site", "how much older your displayed item listing is", "8.1(b)(1)", "3.1(b)"]) assert.ok(doc.includes(needle), `DEPLOY.md quotes ${needle}`);
   // the switch: cron + the age variable (GitHub and Vercel) + the run cap; the copy follows by itself
@@ -1134,7 +1134,7 @@ test("DEPLOY.md says what the owner must know: both prongs of 8.1(c), the whole 
   assert.match(head, /EBAY_DAILY_CAP/);
   assert.match(head, /BOTH sites/);
   // what EPN reports for listing tiles
-  for (const needle of ["dex-us-chase", "dex-au-item", "affiliateReferenceId", "exactly as returned"]) assert.ok(doc.includes(needle), `DEPLOY.md explains ${needle}`);
+  for (const needle of ["mtg-us-chase", "mtg-au-item", "affiliateReferenceId", "exactly as returned"]) assert.ok(doc.includes(needle), `DEPLOY.md explains ${needle}`);
   // the numbers the code enforces appear in the doc as they are
   assert.ok(doc.includes(`**${BREAKER_FAILURES} searches in a row that fail**`) && doc.includes(`${BREAKER_EMPTY} in a row that come back with no listings`));
   assert.ok(doc.includes("less than 2 hours old") && doc.includes("strict upper bound"));

@@ -77,10 +77,10 @@ test("production builds a release only: [deploy] in the SUBJECT and the app chan
     const label = env ?? "VERCEL_ENV unset";
     // Code commits and the eBay import's data commit ride the next release.
     assert.equal(gate(repo(true, "Fix the product page"), env, "Fix the product page").status, SKIP, label);
-    const ebay = "DexCompare data: 2026-10-16T08:40Z (dexcompare-ebay-import.yml run 1)";
+    const ebay = "MTG Compare data: 2026-10-16T08:40Z (ebay-import.yml run 1)";
     assert.equal(gate(repo(true, ebay), env, ebay).status, SKIP, label);
     // The sealed import's data commit is the release (scripts/publish-public-data.sh ... release).
-    const data = "DexCompare data: 2026-10-16T08:52Z (dexcompare-sealed-import.yml run 2) [deploy]";
+    const data = "MTG Compare data: 2026-10-16T08:52Z (sealed-import.yml run 2) [deploy]";
     assert.equal(gate(repo(true, data), env, data).status, BUILD, label);
     assert.equal(gate(repo(true, "Urgent fix [DEPLOY]"), env, "Urgent fix [DEPLOY]").status, BUILD, `${label}: any case`);
     assert.equal(gate(repo(true, "Fix"), env, "Fix\n\nThe body says [deploy] in prose.").status, SKIP, `${label}: subject only`);
@@ -90,32 +90,32 @@ test("production builds a release only: [deploy] in the SUBJECT and the app chan
   }
 });
 
-test("an empty [deploy] commit is a release (dexcompare-release.yml)", () => {
+test("an empty [deploy] commit is a release (release.yml)", () => {
   const dir = join(TMP, `repo${n++}`);
   mkdirSync(join(dir, "apps/dex"), { recursive: true });
   writeFileSync(join(dir, "apps/dex/a.txt"), "1");
   git(dir, "init", "-q", "-b", "main");
   git(dir, "add", ".");
   git(dir, "commit", "-q", "-m", "base");
-  git(dir, "commit", "-q", "--allow-empty", "-m", "DexCompare release [deploy]");
+  git(dir, "commit", "-q", "--allow-empty", "-m", "MTG Compare release [deploy]");
   const app = join(dir, "apps/dex");
-  assert.equal(gate(app, "production", "DexCompare release [deploy]").status, BUILD);
-  assert.equal(gate(app, "production", "DexCompare release").status, SKIP, "an empty commit without the marker is nothing");
-  const wf = readFileSync(join(ROOT, "../../.github/workflows/dexcompare-release.yml"), "utf8");
-  assert.match(wf, /git commit --allow-empty -m "DexCompare release \[deploy\]"/);
+  assert.equal(gate(app, "production", "MTG Compare release [deploy]").status, BUILD);
+  assert.equal(gate(app, "production", "MTG Compare release").status, SKIP, "an empty commit without the marker is nothing");
+  const wf = readFileSync(join(ROOT, ".github/workflows/release.yml"), "utf8");
+  assert.match(wf, /git commit --allow-empty -m "MTG Compare release \[deploy\]"/);
   assert.doesNotMatch(wf, /^\s+schedule:/m, "the imports are the schedule");
 });
 
 test("the sealed import's data commit carries the marker; the eBay import's does not", () => {
   const pub = src("scripts/publish-public-data.sh");
   assert.match(pub, /\[ "\$\{2:-\}" = "release" \] && MARK=" \[deploy\]"/);
-  assert.match(pub, /git commit -q -m "DexCompare data: [^"]*\$MARK"/);
-  const wf = (f: string) => readFileSync(join(ROOT, "../../.github/workflows", f), "utf8");
+  assert.match(pub, /git commit -q -m "MTG Compare data: [^"]*\$MARK"/);
+  const wf = (f: string) => readFileSync(join(ROOT, ".github/workflows", f), "utf8");
   // One release a day (2026-10-17): the 20:47 UTC run, a manual run and the schema sync; the 08:47 run rides it.
-  const sealed = wf("dexcompare-sealed-import.yml");
+  const sealed = wf("sealed-import.yml");
   assert.match(sealed, /RELEASE: \$\{\{ \(github\.event_name != 'schedule' \|\| github\.event\.schedule == '47 20 \* \* \*'\) && 'release' \|\| '' \}\}/);
   assert.match(sealed, /publish-public-data\.sh "[^"]*" \$RELEASE/);
-  assert.doesNotMatch(wf("dexcompare-ebay-import.yml"), /publish-public-data\.sh "[^"]*" release/);
+  assert.doesNotMatch(wf("ebay-import.yml"), /publish-public-data\.sh "[^"]*" release/);
 });
 
 test("production fails open when the subject cannot be read, or git cannot compare a [deploy] commit", () => {

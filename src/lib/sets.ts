@@ -1,141 +1,200 @@
-// English Pokémon TCG sets whose sealed product DexCompare groups by set.
-// Newest first. Derived from the pokemontcg.io set catalogue the old DexCompare
-// shipped (XY onward), minus the sub-sets that never have sealed product of
-// their own (trainer/galarian galleries, shiny vaults, promos, McDonald's).
+// English Magic: The Gathering releases whose SEALED product MTG Compare groups by set. Newest first.
 //
-// ADDING A SET: add an entry at the top. `slug` is the URL (/au/sets/<slug>)
-// and must never change once live. If a store titles the set some other way,
-// add an `aliases` regex source. Nothing else needs editing — products group
-// under the new set on the next import.
+// Codes are Scryfall's (lowercase); names and release dates are TCGplayer's group list as TCGCSV publishes it (the
+// `publishedOn` of each group, read 2026-10-19 into the old MTG Compare's tests/fixtures/tcgcsv-groups.json), which matches
+// Wizards' street dates. A release's Commander decks are filed under the main set (Commander: Bloomburrow → blb); a
+// release's sub-sets (Commander: X, X: Eternal-Legal, Mystical Archive, Stellar Sights, …) never have sealed product of their
+// own and are left out.
 //
-// `generic` marks a set whose name is also its SERIES name ("Scarlet &
-// Violet", "Mega Evolution"). Stores prefix every set in a series with it
-// ("Scarlet & Violet—Surging Sparks Elite Trainer Box"), so a generic set only
-// matches when no other set does. See detectSet() in sealed-title.ts.
+// ADDING A SET: add an entry at the top. `slug` is the URL (/au/sets/<slug>) and must never change once live. If stores title
+// the set some other way, add an `aliases` regex source. `boosters` says which booster lines the set was sold in, which is how a
+// bare "Booster Box" is read (see boosterKind() in sealed-title.ts): leave a line out and a title naming it is refused.
 
-export interface PokemonSet {
+/** The booster lines a set was sold in. "play" replaced "draft" + "set" from Murders at Karlov Manor (February 2024). */
+export type BoosterLine = "play" | "draft" | "set" | "collector" | "jumpstart";
+
+export interface MtgSet {
   code: string;
   name: string;
   slug: string;
   series: string;
   releaseDate: string; // YYYY-MM-DD
   logo: string | null;
+  /** Kept for the shape the pages read; no Magic set name is also a series name. */
   generic?: boolean;
-  aliases?: string[]; // extra regex sources (case-insensitive)
-  // The set was never sold as a 36-pack booster box (the ".5" and special sets:
-  // ETBs, bundles and collections only). A "Booster Box" or "36 Pack Bundle" of
-  // it is a store-made lot, refused by identify(). Checked against TCGplayer's
-  // catalogue on 2026-09-28: it lists no booster box (or case) for any of them.
-  noBoosterBox?: boolean;
+  aliases?: string[]; // extra regex sources (case-insensitive, matched on the accent-folded title)
+  /** Booster lines sold for the set (draft/set/play/collector/jumpstart). Undefined: none (Commander-only releases). */
+  boosters?: BoosterLine[];
+  /** Overrides the set's name pattern (for names that are a prefix of another set's, like "Jumpstart"). */
+  pattern?: string;
 }
 
-export const SETS: PokemonSet[] = [
-  // Added by hand (newer than the pokemontcg.io export the list came from).
-  // Dates from Bulbapedia's set pages, read 2026-09-25.
-  {"code":"me6","name":"Delta Reign","slug":"delta-reign","series":"Mega Evolution","releaseDate":"2026-11-06","logo":null},
-  {"code":"cel30","name":"30th Celebration","slug":"30th-celebration","series":"Mega Evolution","releaseDate":"2026-09-16","logo":null},
-  {"code":"me5","name":"Pitch Black","slug":"pitch-black","series":"Mega Evolution","releaseDate":"2026-07-17","logo":null},
-  {"code":"me4","name":"Chaos Rising","slug":"chaos-rising","series":"Mega Evolution","releaseDate":"2026-05-22","logo":"https://images.scrydex.com/pokemon/me4-logo/logo"},
-  {"code":"me3","name":"Perfect Order","slug":"perfect-order","series":"Mega Evolution","releaseDate":"2026-03-27","logo":"https://images.scrydex.com/pokemon/me3-logo/logo"},
-  {"code":"me2pt5","name":"Ascended Heroes","slug":"ascended-heroes","series":"Mega Evolution","releaseDate":"2026-01-30","logo":"https://images.scrydex.com/pokemon/me2pt5-logo/logo"},
-  {"code":"me2","name":"Phantasmal Flames","slug":"phantasmal-flames","series":"Mega Evolution","releaseDate":"2025-11-14","logo":"https://images.pokemontcg.io/me2/logo.png"},
-  {"code":"me1","name":"Mega Evolution","slug":"mega-evolution","series":"Mega Evolution","releaseDate":"2025-09-26","logo":"https://images.pokemontcg.io/me1/logo.png","generic":true},
-  {"code":"zsv10pt5","name":"Black Bolt","slug":"black-bolt","series":"Scarlet & Violet","releaseDate":"2025-07-18","logo":"https://images.pokemontcg.io/zsv10pt5/logo.png"},
-  {"code":"rsv10pt5","name":"White Flare","slug":"white-flare","series":"Scarlet & Violet","releaseDate":"2025-07-18","logo":"https://images.pokemontcg.io/rsv10pt5/logo.png"},
-  {"code":"sv10","name":"Destined Rivals","slug":"destined-rivals","series":"Scarlet & Violet","releaseDate":"2025-05-30","logo":"https://images.pokemontcg.io/sv10/logo.png"},
-  {"code":"sv9","name":"Journey Together","slug":"journey-together","series":"Scarlet & Violet","releaseDate":"2025-03-28","logo":"https://images.pokemontcg.io/sv9/logo.png"},
-  {"code":"sv8pt5","name":"Prismatic Evolutions","slug":"prismatic-evolutions","series":"Scarlet & Violet","releaseDate":"2025-01-17","logo":"https://images.pokemontcg.io/sv8pt5/logo.png"},
-  {"code":"sv8","name":"Surging Sparks","slug":"surging-sparks","series":"Scarlet & Violet","releaseDate":"2024-11-08","logo":"https://images.pokemontcg.io/sv8/logo.png"},
-  {"code":"sv7","name":"Stellar Crown","slug":"stellar-crown","series":"Scarlet & Violet","releaseDate":"2024-09-13","logo":"https://images.pokemontcg.io/sv7/logo.png"},
-  {"code":"sv6pt5","name":"Shrouded Fable","slug":"shrouded-fable","series":"Scarlet & Violet","releaseDate":"2024-08-02","logo":"https://images.pokemontcg.io/sv6pt5/logo.png"},
-  {"code":"sv6","name":"Twilight Masquerade","slug":"twilight-masquerade","series":"Scarlet & Violet","releaseDate":"2024-05-24","logo":"https://images.pokemontcg.io/sv6/logo.png"},
-  {"code":"sv5","name":"Temporal Forces","slug":"temporal-forces","series":"Scarlet & Violet","releaseDate":"2024-03-22","logo":"https://images.pokemontcg.io/sv5/logo.png"},
-  {"code":"sv4pt5","name":"Paldean Fates","slug":"paldean-fates","series":"Scarlet & Violet","releaseDate":"2024-01-26","logo":"https://images.pokemontcg.io/sv4pt5/logo.png"},
-  {"code":"sv4","name":"Paradox Rift","slug":"paradox-rift","series":"Scarlet & Violet","releaseDate":"2023-11-03","logo":"https://images.pokemontcg.io/sv4/logo.png"},
-  {"code":"sv3pt5","name":"Scarlet & Violet 151","slug":"scarlet-violet-151","series":"Scarlet & Violet","releaseDate":"2023-09-22","logo":"https://images.pokemontcg.io/sv3pt5/logo.png"},
-  {"code":"sv3","name":"Obsidian Flames","slug":"obsidian-flames","series":"Scarlet & Violet","releaseDate":"2023-08-11","logo":"https://images.pokemontcg.io/sv3/logo.png"},
-  {"code":"sv2","name":"Paldea Evolved","slug":"paldea-evolved","series":"Scarlet & Violet","releaseDate":"2023-06-09","logo":"https://images.pokemontcg.io/sv2/logo.png"},
-  {"code":"sv1","name":"Scarlet & Violet","slug":"scarlet-violet","series":"Scarlet & Violet","releaseDate":"2023-03-31","logo":"https://images.pokemontcg.io/sv1/logo.png","generic":true},
-  {"code":"swsh12pt5","name":"Crown Zenith","slug":"crown-zenith","series":"Sword & Shield","releaseDate":"2023-01-20","logo":"https://images.pokemontcg.io/swsh12pt5/logo.png"},
-  {"code":"swsh12","name":"Silver Tempest","slug":"silver-tempest","series":"Sword & Shield","releaseDate":"2022-11-11","logo":"https://images.pokemontcg.io/swsh12/logo.png"},
-  {"code":"swsh11","name":"Lost Origin","slug":"lost-origin","series":"Sword & Shield","releaseDate":"2022-09-09","logo":"https://images.pokemontcg.io/swsh11/logo.png"},
-  {"code":"pgo","name":"Pokémon GO","slug":"pokemon-go","series":"Sword & Shield","releaseDate":"2022-07-01","logo":"https://images.pokemontcg.io/pgo/logo.png"},
-  {"code":"swsh10","name":"Astral Radiance","slug":"astral-radiance","series":"Sword & Shield","releaseDate":"2022-05-27","logo":"https://images.pokemontcg.io/swsh10/logo.png"},
-  {"code":"swsh9","name":"Brilliant Stars","slug":"brilliant-stars","series":"Sword & Shield","releaseDate":"2022-02-25","logo":"https://images.pokemontcg.io/swsh9/logo.png"},
-  {"code":"swsh8","name":"Fusion Strike","slug":"fusion-strike","series":"Sword & Shield","releaseDate":"2021-11-12","logo":"https://images.pokemontcg.io/swsh8/logo.png"},
-  {"code":"cel25","name":"Celebrations","slug":"celebrations","series":"Sword & Shield","releaseDate":"2021-10-08","logo":"https://images.pokemontcg.io/cel25/logo.png"},
-  {"code":"swsh7","name":"Evolving Skies","slug":"evolving-skies","series":"Sword & Shield","releaseDate":"2021-08-27","logo":"https://images.pokemontcg.io/swsh7/logo.png"},
-  {"code":"swsh6","name":"Chilling Reign","slug":"chilling-reign","series":"Sword & Shield","releaseDate":"2021-06-18","logo":"https://images.pokemontcg.io/swsh6/logo.png"},
-  {"code":"swsh5","name":"Battle Styles","slug":"battle-styles","series":"Sword & Shield","releaseDate":"2021-03-19","logo":"https://images.pokemontcg.io/swsh5/logo.png"},
-  {"code":"swsh45","name":"Shining Fates","slug":"shining-fates","series":"Sword & Shield","releaseDate":"2021-02-19","logo":"https://images.pokemontcg.io/swsh45/logo.png"},
-  {"code":"swsh4","name":"Vivid Voltage","slug":"vivid-voltage","series":"Sword & Shield","releaseDate":"2020-11-13","logo":"https://images.pokemontcg.io/swsh4/logo.png"},
-  {"code":"swsh35","name":"Champion's Path","slug":"champion-s-path","series":"Sword & Shield","releaseDate":"2020-09-25","logo":"https://images.pokemontcg.io/swsh35/logo.png"},
-  {"code":"swsh3","name":"Darkness Ablaze","slug":"darkness-ablaze","series":"Sword & Shield","releaseDate":"2020-08-14","logo":"https://images.pokemontcg.io/swsh3/logo.png"},
-  {"code":"swsh2","name":"Rebel Clash","slug":"rebel-clash","series":"Sword & Shield","releaseDate":"2020-05-01","logo":"https://images.pokemontcg.io/swsh2/logo.png"},
-  {"code":"swsh1","name":"Sword & Shield","slug":"sword-shield","series":"Sword & Shield","releaseDate":"2020-02-07","logo":"https://images.pokemontcg.io/swsh1/logo.png","generic":true},
-  {"code":"sm12","name":"Cosmic Eclipse","slug":"cosmic-eclipse","series":"Sun & Moon","releaseDate":"2019-11-01","logo":"https://images.pokemontcg.io/sm12/logo.png"},
-  {"code":"sm115","name":"Hidden Fates","slug":"hidden-fates","series":"Sun & Moon","releaseDate":"2019-08-23","logo":"https://images.pokemontcg.io/sm115/logo.png"},
-  {"code":"sm11","name":"Unified Minds","slug":"unified-minds","series":"Sun & Moon","releaseDate":"2019-08-02","logo":"https://images.pokemontcg.io/sm11/logo.png"},
-  {"code":"sm10","name":"Unbroken Bonds","slug":"unbroken-bonds","series":"Sun & Moon","releaseDate":"2019-05-03","logo":"https://images.pokemontcg.io/sm10/logo.png"},
-  {"code":"det1","name":"Detective Pikachu","slug":"detective-pikachu","series":"Sun & Moon","releaseDate":"2019-04-05","logo":"https://images.pokemontcg.io/det1/logo.png"},
-  {"code":"sm9","name":"Team Up","slug":"team-up","series":"Sun & Moon","releaseDate":"2019-02-01","logo":"https://images.pokemontcg.io/sm9/logo.png"},
-  {"code":"sm8","name":"Lost Thunder","slug":"lost-thunder","series":"Sun & Moon","releaseDate":"2018-11-02","logo":"https://images.pokemontcg.io/sm8/logo.png"},
-  {"code":"sm75","name":"Dragon Majesty","slug":"dragon-majesty","series":"Sun & Moon","releaseDate":"2018-09-07","logo":"https://images.pokemontcg.io/sm75/logo.png"},
-  {"code":"sm7","name":"Celestial Storm","slug":"celestial-storm","series":"Sun & Moon","releaseDate":"2018-08-03","logo":"https://images.pokemontcg.io/sm7/logo.png"},
-  {"code":"sm6","name":"Forbidden Light","slug":"forbidden-light","series":"Sun & Moon","releaseDate":"2018-05-04","logo":"https://images.pokemontcg.io/sm6/logo.png"},
-  {"code":"sm5","name":"Ultra Prism","slug":"ultra-prism","series":"Sun & Moon","releaseDate":"2018-02-02","logo":"https://images.pokemontcg.io/sm5/logo.png"},
-  {"code":"sm4","name":"Crimson Invasion","slug":"crimson-invasion","series":"Sun & Moon","releaseDate":"2017-11-03","logo":"https://images.pokemontcg.io/sm4/logo.png"},
-  {"code":"sm35","name":"Shining Legends","slug":"shining-legends","series":"Sun & Moon","releaseDate":"2017-10-06","logo":"https://images.pokemontcg.io/sm35/logo.png"},
-  {"code":"sm3","name":"Burning Shadows","slug":"burning-shadows","series":"Sun & Moon","releaseDate":"2017-08-05","logo":"https://images.pokemontcg.io/sm3/logo.png"},
-  {"code":"sm2","name":"Guardians Rising","slug":"guardians-rising","series":"Sun & Moon","releaseDate":"2017-05-05","logo":"https://images.pokemontcg.io/sm2/logo.png"},
-  {"code":"sm1","name":"Sun & Moon","slug":"sun-moon","series":"Sun & Moon","releaseDate":"2017-02-03","logo":"https://images.pokemontcg.io/sm1/logo.png","generic":true},
-  {"code":"xy12","name":"Evolutions","slug":"evolutions","series":"XY","releaseDate":"2016-11-02","logo":"https://images.pokemontcg.io/xy12/logo.png"},
-  {"code":"xy11","name":"Steam Siege","slug":"steam-siege","series":"XY","releaseDate":"2016-08-03","logo":"https://images.pokemontcg.io/xy11/logo.png"},
-  {"code":"xy10","name":"Fates Collide","slug":"fates-collide","series":"XY","releaseDate":"2016-05-02","logo":"https://images.pokemontcg.io/xy10/logo.png"},
-  {"code":"g1","name":"Generations","slug":"generations","series":"XY","releaseDate":"2016-02-22","logo":"https://images.pokemontcg.io/g1/logo.png"},
-  {"code":"xy9","name":"BREAKpoint","slug":"breakpoint","series":"XY","releaseDate":"2016-02-03","logo":"https://images.pokemontcg.io/xy9/logo.png"},
-  {"code":"xy8","name":"BREAKthrough","slug":"breakthrough","series":"XY","releaseDate":"2015-11-04","logo":"https://images.pokemontcg.io/xy8/logo.png"},
-  {"code":"xy7","name":"Ancient Origins","slug":"ancient-origins","series":"XY","releaseDate":"2015-08-12","logo":"https://images.pokemontcg.io/xy7/logo.png"},
-  {"code":"xy6","name":"Roaring Skies","slug":"roaring-skies","series":"XY","releaseDate":"2015-05-06","logo":"https://images.pokemontcg.io/xy6/logo.png"},
-  {"code":"xy5","name":"Primal Clash","slug":"primal-clash","series":"XY","releaseDate":"2015-02-04","logo":"https://images.pokemontcg.io/xy5/logo.png"},
-  {"code":"xy4","name":"Phantom Forces","slug":"phantom-forces","series":"XY","releaseDate":"2014-11-05","logo":"https://images.pokemontcg.io/xy4/logo.png"},
-  {"code":"xy3","name":"Furious Fists","slug":"furious-fists","series":"XY","releaseDate":"2014-08-13","logo":"https://images.pokemontcg.io/xy3/logo.png"},
-  {"code":"xy2","name":"Flashfire","slug":"flashfire","series":"XY","releaseDate":"2014-05-07","logo":"https://images.pokemontcg.io/xy2/logo.png"},
-  {"code":"xy1","name":"XY","slug":"xy","series":"XY","releaseDate":"2014-02-05","logo":"https://images.pokemontcg.io/xy1/logo.png","generic":true},
+/** @deprecated The Pokémon-era name of MtgSet, kept so older imports keep compiling. */
+export type PokemonSet = MtgSet;
+
+const PLAY: BoosterLine[] = ["play", "collector"];
+const DSC: BoosterLine[] = ["draft", "set", "collector"];
+
+type Row = [code: string, name: string, date: string, series: string, boosters?: BoosterLine[]];
+
+// Series: "Standard" (premier sets), "Universes Beyond", "Masters & Horizons", "Commander", "Supplemental".
+const ROWS: Row[] = [
+  // Announced: Wizards' Star Trek product page (read 2026-10-14) gives 13 November 2026.
+  ["trk", "Star Trek", "2026-11-13", "Universes Beyond", PLAY],
+  ["fra", "Reality Fracture", "2026-10-02", "Standard", PLAY],
+  ["hob", "The Hobbit", "2026-08-14", "Universes Beyond", PLAY],
+  ["msh", "Marvel Super Heroes", "2026-06-26", "Universes Beyond", [...PLAY, "jumpstart"]],
+  ["sos", "Secrets of Strixhaven", "2026-04-24", "Standard", PLAY],
+  ["tmt", "Teenage Mutant Ninja Turtles", "2026-03-06", "Universes Beyond", PLAY],
+  ["ecl", "Lorwyn Eclipsed", "2026-01-23", "Standard", PLAY],
+  ["tla", "Avatar: The Last Airbender", "2025-11-21", "Universes Beyond", PLAY],
+  ["spm", "Marvel's Spider-Man", "2025-09-26", "Universes Beyond", PLAY],
+  ["eoe", "Edge of Eternities", "2025-08-01", "Standard", PLAY],
+  ["fin", "Final Fantasy", "2025-06-13", "Universes Beyond", PLAY],
+  ["tdm", "Tarkir: Dragonstorm", "2025-04-11", "Standard", PLAY],
+  ["dft", "Aetherdrift", "2025-02-14", "Standard", PLAY],
+  ["inr", "Innistrad Remastered", "2025-01-24", "Masters & Horizons", PLAY],
+  ["j25", "Foundations Jumpstart", "2024-11-15", "Supplemental", ["jumpstart"]],
+  ["fdn", "Foundations", "2024-11-15", "Standard", PLAY],
+  ["dsk", "Duskmourn: House of Horror", "2024-09-27", "Standard", PLAY],
+  ["blb", "Bloomburrow", "2024-08-02", "Standard", PLAY],
+  // Assassin's Creed sold "Beyond Boosters" (no play or draft line) and Collector Boosters.
+  ["acr", "Assassin's Creed", "2024-07-05", "Universes Beyond", ["collector"]],
+  ["mh3", "Modern Horizons 3", "2024-06-14", "Masters & Horizons", PLAY],
+  ["otj", "Outlaws of Thunder Junction", "2024-04-19", "Standard", PLAY],
+  ["pip", "Fallout", "2024-03-08", "Universes Beyond", ["collector"]],
+  ["mkm", "Murders at Karlov Manor", "2024-02-09", "Standard", PLAY],
+  ["rvr", "Ravnica Remastered", "2024-01-12", "Masters & Horizons", ["draft", "collector"]],
+  ["lci", "The Lost Caverns of Ixalan", "2023-11-17", "Standard", DSC],
+  ["who", "Doctor Who", "2023-10-13", "Universes Beyond", ["collector"]],
+  ["woe", "Wilds of Eldraine", "2023-09-08", "Standard", DSC],
+  ["cmm", "Commander Masters", "2023-08-04", "Commander", DSC],
+  ["ltr", "The Lord of the Rings: Tales of Middle-earth", "2023-06-23", "Universes Beyond", [...DSC, "jumpstart"]],
+  ["mat", "March of the Machine: The Aftermath", "2023-05-12", "Standard", ["set", "collector"]],
+  ["mom", "March of the Machine", "2023-04-21", "Standard", DSC],
+  ["one", "Phyrexia: All Will Be One", "2023-02-03", "Standard", DSC],
+  ["dmr", "Dominaria Remastered", "2023-01-13", "Masters & Horizons", DSC],
+  ["j22", "Jumpstart 2022", "2022-12-02", "Supplemental", ["jumpstart"]],
+  ["bro", "The Brothers' War", "2022-11-18", "Standard", DSC],
+  ["40k", "Warhammer 40,000", "2022-10-07", "Universes Beyond", ["collector"]],
+  ["unf", "Unfinity", "2022-10-07", "Supplemental", DSC],
+  ["dmu", "Dominaria United", "2022-09-09", "Standard", DSC],
+  ["2x2", "Double Masters 2022", "2022-07-08", "Masters & Horizons", ["draft", "collector"]],
+  ["clb", "Commander Legends: Battle for Baldur's Gate", "2022-06-10", "Commander", DSC],
+  ["snc", "Streets of New Capenna", "2022-04-29", "Standard", DSC],
+  ["neo", "Kamigawa: Neon Dynasty", "2022-02-18", "Standard", DSC],
+  ["dbl", "Innistrad: Double Feature", "2022-01-28", "Supplemental", ["draft"]],
+  ["vow", "Innistrad: Crimson Vow", "2021-11-19", "Standard", DSC],
+  ["mid", "Innistrad: Midnight Hunt", "2021-09-24", "Standard", DSC],
+  ["afr", "Adventures in the Forgotten Realms", "2021-07-23", "Standard", DSC],
+  ["mh2", "Modern Horizons 2", "2021-06-18", "Masters & Horizons", DSC],
+  ["stx", "Strixhaven: School of Mages", "2021-04-23", "Standard", DSC],
+  ["tsr", "Time Spiral Remastered", "2021-03-19", "Masters & Horizons", ["draft", "collector"]],
+  ["khm", "Kaldheim", "2021-02-05", "Standard", DSC],
+  ["cmr", "Commander Legends", "2020-11-20", "Commander", ["draft", "collector"]],
+  ["znr", "Zendikar Rising", "2020-09-25", "Standard", DSC],
+  ["2xm", "Double Masters", "2020-08-07", "Masters & Horizons", ["draft", "collector"]],
+  ["jmp", "Jumpstart", "2020-07-17", "Supplemental", ["jumpstart"]],
+  ["m21", "Core Set 2021", "2020-07-03", "Standard", DSC],
+  ["iko", "Ikoria: Lair of Behemoths", "2020-04-24", "Standard", DSC],
+  ["thb", "Theros Beyond Death", "2020-01-24", "Standard", DSC],
+  ["eld", "Throne of Eldraine", "2019-10-04", "Standard", DSC],
+  ["c19", "Commander 2019", "2019-08-23", "Commander"],
+  ["m20", "Core Set 2020", "2019-07-12", "Standard", ["draft"]],
+  ["mh1", "Modern Horizons", "2019-06-14", "Masters & Horizons", ["draft"]],
+  ["war", "War of the Spark", "2019-05-03", "Standard", ["draft"]],
+  ["rna", "Ravnica Allegiance", "2019-01-25", "Standard", ["draft"]],
+  ["uma", "Ultimate Masters", "2018-12-07", "Masters & Horizons", ["draft"]],
+  ["grn", "Guilds of Ravnica", "2018-10-05", "Standard", ["draft"]],
+  ["c18", "Commander 2018", "2018-08-10", "Commander"],
+  ["m19", "Core Set 2019", "2018-07-13", "Standard", ["draft"]],
+  ["bbd", "Battlebond", "2018-06-08", "Supplemental", ["draft"]],
+  ["dom", "Dominaria", "2018-04-27", "Standard", ["draft"]],
+  ["a25", "Masters 25", "2018-03-16", "Masters & Horizons", ["draft"]],
+  ["rix", "Rivals of Ixalan", "2018-01-19", "Standard", ["draft"]],
 ];
 
-// Sets sold without a booster box (see PokemonSet.noBoosterBox).
-const NO_BOOSTER_BOX = ["cel30", "me2pt5", "sv8pt5", "sv6pt5", "sv4pt5", "sv3pt5", "swsh12pt5", "pgo", "cel25", "swsh45", "swsh35", "sm115", "sm75", "sm35", "det1", "g1"];
-for (const s of SETS) if (NO_BOOSTER_BOX.includes(s.code)) s.noBoosterBox = true;
+function slugOf(name: string): string {
+  return name
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/['’]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
-// Title spellings the plain set name doesn't cover.
+export const SETS: MtgSet[] = ROWS.map(([code, name, releaseDate, series, boosters]) => ({ code, name, slug: slugOf(name), series, releaseDate, logo: null, ...(boosters ? { boosters } : {}) }));
+
+// Title spellings the plain set name doesn't cover (stores drop the subtitle, the "The", the "Universes Beyond:" or use the code).
 const ALIASES: Record<string, string[]> = {
-  // "151" alone is a number; only accept it where it can't be a collector
-  // number ("/151", "151/165") or a count ("151 cards").
-  sv3pt5: ["(?<![\\d/.])151(?![\\d/]|\\s*cards?)"],
-  sv1: ["scarlet\\s*(?:&|and)\\s*violet\\s*base(?:\\s*set)?"],
-  swsh35: ["champions?[’']?s?\\s*path"],
-  // Store misspellings seen in the 2026-09 import: "Shinning Fates", "Guardian Rising".
-  swsh45: ["shin+ing\\s*fates"],
-  sm2: ["guardian'?s?\\s*rising"],
-  // "Stella Crown Booster pack" (Beaches TCG, 2026-10-19; its photo is the English pack). Japan's set is
-  // Stellar Miracle, and a Japanese listing is refused as foreign before the set is read.
-  sv7: ["\\bstella\\s*crown\\b"],
-  pgo: ["pok[eé]mon\\s*go\\b"],
-  cel25: ["25th\\s*anniversary"],
-  // Stores also write it "30th Celebrations", which must not read as
-  // Celebrations (cel25, 2021). Longer names are tried first, so this wins.
-  cel30: ["30th\\s*anniversary\\s*celebration", "\\bpokemon\\s*30th\\s*anniversary\\b", "\\b30th[\\s:\\-]*celebrations\\b"],
-  g1: ["\\bgenerations\\b"],
-  xy9: ["break\\s*point"],
-  xy8: ["break\\s*through"],
-  // "XY" alone is also the series (every XY-era set is "XY - Flashfire"), so the
-  // base set only reads from "XY Base Set", "XY Booster Box", "XY Elite Trainer Box".
-  xy1: ["\\bxy\\s*[:\\-]?\\s*\\(?\\s*(?:base\\s*set|booster|elite)"],
+  trk: ["\\bstar\\s*trek\\b"],
+  hob: ["\\bhobbit\\b"],
+  msh: ["\\bmarvel\\s*super\\s*heroes\\b"],
+  tmt: ["\\btmnt\\b", "\\bninja\\s*turtles\\b"],
+  tla: ["\\blast\\s*airbender\\b"],
+  spm: ["\\bspider\\s*-?\\s*man\\b"],
+  tdm: ["\\bdragonstorm\\b"],
+  fin: ["\\bfinal\\s*fantasy\\b"],
+  dsk: ["\\bduskmourn\\b"],
+  acr: ["\\bassassin'?s?\\s*creed\\b"],
+  otj: ["\\bthunder\\s*junction\\b"],
+  pip: ["\\bfallout\\b"],
+  mkm: ["\\bkarlov\\s*manor\\b"],
+  lci: ["\\blost\\s*caverns\\b"],
+  who: ["\\bdoctor\\s*who\\b"],
+  // "Lord of the Rings Tales of MiddleEarth", "LOTR". The Hobbit is its own set (hob), named first by length.
+  ltr: ["\\blord\\s*of\\s*the\\s*rings\\b", "\\btales\\s*of\\s*middle\\s*-?\\s*earth\\b", "\\blotr\\b"],
+  mat: ["\\bmachine\\s*:?\\s*(?:-\\s*)?the\\s*aftermath\\b"],
+  one: ["\\ball\\s*will\\s*be\\s*one\\b"],
+  bro: ["\\bbrothers'?\\s*war\\b"],
+  "40k": ["\\bwarhammer\\b"],
+  "2x2": ["\\b2x2\\b"],
+  clb: ["\\bbaldur'?s\\s*gate\\b"],
+  snc: ["\\bnew\\s*capenna\\b"],
+  neo: ["\\bneon\\s*dynasty\\b"],
+  dbl: ["\\bdouble\\s*feature\\b"],
+  vow: ["\\bcrimson\\s*vow\\b"],
+  mid: ["\\bmidnight\\s*hunt\\b"],
+  afr: ["\\bforgotten\\s*realms\\b"],
+  // "Commander 2021 (Strixhaven)" decks are Strixhaven's; "Secrets of Strixhaven" is longer and is tried first.
+  stx: ["\\bstrixhaven\\b", "\\bcommander\\s*2021\\b"],
+  tsr: ["\\btime\\s*spiral\\s*:?\\s*remastered\\b"],
+  "2xm": ["\\b2xm\\b"],
+  m21: ["\\bm21\\b", "\\bcore\\s*(?:set\\s*)?2021\\b"],
+  // "Commander 2020" decks were Ikoria's.
+  iko: ["\\bikoria\\b", "\\bcommander\\s*2020\\b"],
+  m20: ["\\bm20\\b", "\\bcore\\s*(?:set\\s*)?2020\\b"],
+  mh1: ["\\bmh1\\b"],
+  m19: ["\\bm19\\b", "\\bcore\\s*(?:set\\s*)?2019\\b"],
+  a25: ["\\ba25\\b"],
+  uma: ["\\buma\\b"],
 };
-for (const s of SETS) if (ALIASES[s.code]) s.aliases = ALIASES[s.code];
+// Names that are a prefix of another set's name match only on their own.
+const PATTERNS: Record<string, string> = {
+  // Not "Jumpstart 2022", not "Foundations Jumpstart", not another set's Jumpstart boosters (those name their set first, and the
+  // longer set name wins anyway).
+  jmp: "\\bjump\\s*start\\b(?!\\s*(?:2022|2025|22|25)\\b)",
+  // "Modern Horizons" alone: not 2 or 3.
+  mh1: "\\bmodern\\s*horizons\\b(?!\\s*(?:2|3|ii|iii)\\b)",
+  // "Dominaria" alone: not United or Remastered.
+  dom: "\\bdominaria\\b(?!\\s*:?\\s*(?:united|remastered)\\b)",
+  // "Double Masters" alone: not 2022.
+  "2xm": "\\bdouble\\s*masters\\b(?!\\s*2022\\b)",
+  // "Foundations" alone: not Foundations Jumpstart.
+  fdn: "\\bfoundations\\b(?!\\s*:?\\s*-?\\s*jump\\s*start\\b)",
+  // "Commander Legends" alone: not Battle for Baldur's Gate.
+  cmr: "\\bcommander\\s*legends\\b(?!\\s*:?\\s*-?\\s*battle\\b)",
+  // "March of the Machine" alone: not The Aftermath.
+  mom: "\\bmarch\\s*of\\s*the\\s*machine\\b(?!\\s*:?\\s*-?\\s*(?:the\\s*)?aftermath\\b)",
+};
+for (const s of SETS) {
+  if (ALIASES[s.code]) s.aliases = ALIASES[s.code];
+  if (PATTERNS[s.code]) s.pattern = PATTERNS[s.code];
+}
 
 export const SET_BY_CODE = new Map(SETS.map((s) => [s.code, s]));
 export const SET_BY_SLUG = new Map(SETS.map((s) => [s.slug, s]));
 
-export const SERIES_ORDER = ["Mega Evolution", "Scarlet & Violet", "Sword & Shield", "Sun & Moon", "XY", "Special"];
+export const SERIES_ORDER = ["Standard", "Universes Beyond", "Masters & Horizons", "Commander", "Supplemental"];

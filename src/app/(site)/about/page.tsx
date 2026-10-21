@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { ADSENSE_CLIENT } from "@/lib/adsense";
 import Link from "next/link";
 import { REGION_LIST } from "@/lib/regions";
-import { CONTACT_EMAIL, SITE_URL } from "@/lib/site";
+import { CONTACT_EMAIL, FAN_CONTENT_DISCLAIMER, SITE_URL } from "@/lib/site";
 import { STORES, storesInMarket } from "@/lib/stores";
 
 export const metadata: Metadata = {
-  title: "How DexCompare works",
-  description: "How DexCompare finds Pokémon sealed prices and stock, what it does and doesn't store, how it makes money, and how stores get listed.",
+  title: "How MTG Compare works",
+  description: "How MTG Compare finds Pokémon sealed prices and stock, what it does and doesn't store, how it makes money, and how stores get listed.",
   alternates: { canonical: `${SITE_URL}/about` },
 };
 
@@ -15,11 +15,11 @@ export const metadata: Metadata = {
 export default function About() {
   return (
     <div className="page max-w-3xl py-12">
-      <h1 className="font-display text-4xl font-extrabold tracking-tight">How DexCompare works</h1>
+      <h1 className="font-display text-4xl font-extrabold tracking-tight">How MTG Compare works</h1>
       <div className="prose-dex mt-6">
         <p>
-          DexCompare compares Pokémon TCG <b>sealed product</b> — booster boxes, Elite Trainer Boxes, booster bundles, collections,
-          tins, blisters and packs — across {STORES.length} independent stores in {REGION_LIST.length} regions. It does one job: show you
+          MTG Compare compares Magic: The Gathering <b>sealed product</b> — play and collector booster boxes, bundles, Commander decks,
+          starter kits, prerelease packs and boosters — across {STORES.length} independent stores in {REGION_LIST.length} regions. It does one job: show you
           who has something in stock and who is cheapest.
         </p>
 
@@ -71,22 +71,21 @@ export default function About() {
 
         <h2 id="refuse">What we refuse, with examples</h2>
         <p>
-          A listing has to be English-language Pokémon TCG sealed product, as the manufacturer sealed it. Everything else is left out, even
-          when the store files it under Pokémon:
+          A listing has to be English-language Magic: The Gathering sealed product, as Wizards of the Coast sealed it. Everything else is left
+          out, even when the store files it under Magic:
         </p>
         <ul>
           <li>
-            <b>Singles and graded cards</b> — &ldquo;Charizard ex 199/165 PSA 10&rdquo;, &ldquo;Pikachu promo SVP 085&rdquo;.
+            <b>Singles and graded cards</b> — &ldquo;The One Ring (Borderless) PSA 10&rdquo;, &ldquo;Sheoldred, the Apocalypse [DMU] Foil&rdquo;. MTG Compare has no singles at all.
           </li>
           <li>
-            <b>Japanese and other-language product</b> — &ldquo;Pokémon Center Japan Terastal Festival box&rdquo;, &ldquo;Display Écarlate et
-            Violet&rdquo;. A region compares English print runs only, because that is what its stores compete on.
+            <b>Japanese and other-language product</b> — &ldquo;Japanese Play Booster Box&rdquo;, &ldquo;Display de boosters (FR)&rdquo;. A region compares English print runs only, because that is what its stores compete on.
           </li>
           <li>
-            <b>Other games and merchandise</b> — One Piece and Lorcana boxes, Moncolle and Re-Ment figures, plush, binders, sleeves, playmats.
+            <b>Other games and merchandise</b> — Pokémon, One Piece and Lorcana boxes, binders, sleeves, deck boxes, playmats, dice.
           </li>
           <li>
-            <b>Store-made bundles and partial product</b> — &ldquo;2× ETB + 1 bundle deal&rdquo;, &ldquo;10 loose packs&rdquo;, energy lots,
+            <b>Store-made bundles and partial product</b> — &ldquo;3 Collector Boosters + playmat deal&rdquo;, &ldquo;10 loose packs&rdquo;, repacks and mystery boxes,
             opened or &ldquo;unshrinked&rdquo; boxes, damaged-box discounts. There is no like-for-like price for those.
           </li>
           <li>
@@ -119,12 +118,12 @@ export default function About() {
 
         <h2>What we don&rsquo;t keep</h2>
         <p>
-          DexCompare keeps no price history and no stock history — only what each store lists right now — and no data about you: no
+          MTG Compare keeps no price history and no stock history — only what each store lists right now — and no data about you: no
           accounts, no emails, no cookies. We count page views and clicks on buy links, without knowing who made them. See{" "}
           <Link href="/privacy">privacy</Link>.
         </p>
 
-        <h2 id="money">How DexCompare makes money</h2>
+        <h2 id="money">How MTG Compare makes money</h2>
         <p>
           {ADSENSE_CLIENT ? "Through one Google ad in some guides, and through affiliate links of only two kinds" : "Through affiliate links, and only two kinds"}: <b>eBay</b> (the eBay Partner Network) and <b>TCGplayer</b> (through Impact). If you
           buy through one we may earn a small commission, at no cost to you &mdash; the price is the same as going direct. Every one is
@@ -208,7 +207,7 @@ export default function About() {
         <h3 id="stores-pay-nothing" className="mb-2 mt-6 font-display text-base font-bold text-ink">Stores</h3>
         <p>
           Links to stores are plain links: stores pay us nothing. No one pays to be listed or to rank higher, and commissions never change the
-          order &mdash; it is price and stock, nothing else. DexCompare is not endorsed by eBay or TCGplayer.
+          order &mdash; it is price and stock, nothing else. MTG Compare is not endorsed by eBay or TCGplayer.
         </p>
 
         <h2 id="stores">For stores</h2>
@@ -234,8 +233,8 @@ export default function About() {
 
         <h2>Not affiliated</h2>
         <p>
-          DexCompare is an independent site and is not affiliated with, endorsed or sponsored by Nintendo, Creatures, GAME FREAK or The
-          Pokémon Company. Pokémon and its trademarks are theirs.
+          MTG Compare is an independent site and is not affiliated with, endorsed or sponsored by Wizards of the Coast or Hasbro. Magic: The
+          Gathering and its trademarks are theirs. {FAN_CONTENT_DISCLAIMER}
         </p>
       </div>
     </div>

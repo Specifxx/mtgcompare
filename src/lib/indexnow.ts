@@ -4,7 +4,7 @@
 // The key is public by design: every engine fetches it from /indexnow.txt
 // (src/app/indexnow.txt/route.ts) to check that a submission for this host is
 // ours, and a key is verified per host, so sharing one across sites is allowed.
-// DexCompare's is the one the old manual workflow used; INDEXNOW_KEY in Vercel
+// MTG Compare's is the one the old manual workflow used; INDEXNOW_KEY in Vercel
 // overrides it. The daily job (scripts/indexnow-submit.ts) reads whatever the
 // live key file serves, so the two can never disagree.
 //
@@ -45,9 +45,9 @@ export interface SubmissionPlan {
 
 /**
  * Where a submission goes: the origin of the sitemap's OWN URLs (the canonical
- * www.dexcompare.app), only the URLs on it, and the key file there. IndexNow
+ * mtgcompare.app), only the URLs on it, and the key file there. IndexNow
  * answers 422 to any URL off the request's host: the old manual workflow named
- * the apex dexcompare.app while every sitemap URL is on www, and MTG Compare's
+ * the apex mtgcompare.app while every sitemap URL is on www, and MTG Compare's
  * daily run failed the same way for a week (a stale SITE_URL). Null without URLs.
  */
 export function submissionPlan(urls: readonly string[]): SubmissionPlan | null {

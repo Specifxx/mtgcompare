@@ -223,7 +223,7 @@ export function cheapestStoreByType(groups: readonly PreorderGroup[], now: numbe
 
 /** The strip under the H1: the comparison in four numbers, every one from the page's own data or the store registry. */
 export interface PreorderSummary {
-  /** Stores DexCompare checks in the market (the registry: storesInMarket). */
+  /** Stores MTG Compare checks in the market (the registry: storesInMarket). */
   storesChecked: number;
   /** Distinct stores with an open pre-order of the set in the market (never a marketplace). */
   taking: number;

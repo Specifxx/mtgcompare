@@ -242,7 +242,7 @@ export function buildSearchUrl(spec: SearchSpec): string {
 }
 
 /** The sub-id for a search that belongs to no feed (scripts/ebay-check.ts); the importer sets one per feed (ebay-context.ts feedReference). */
-export const AFFILIATE_REFERENCE = "dex-check";
+export const AFFILIATE_REFERENCE = "mtg-check";
 
 /** Only a sub-id of the shape feedReference makes is sent: lower case letters, digits and "-", at most 60 characters. */
 export const isReference = (v: string) => /^[a-z0-9][a-z0-9-]{0,59}$/.test(v);

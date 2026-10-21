@@ -1,7 +1,7 @@
 // The eBay row of a product's price table (components/OfferTable.tsx, EbayStrip.tsx OfferRowsWithEbay): which listing it shows, where it
 // sits among the store rows, and the note under the table. Pure, shared by the server table and the browser.
 //
-// The owner's calls (2026-10-11): DexCompare compares WEBSITES, and eBay is one of them, so the product's cheapest eBay listing is a row of
+// The owner's calls (2026-10-11): MTG Compare compares WEBSITES, and eBay is one of them, so the product's cheapest eBay listing is a row of
 // the store table, ranked by its price among the stores you can buy from now, tinted and with eBay's blue button, labelled "Ad"; and when
 // it is a new listing cheaper than every one of those stores (and the product is not a pre-order) it COUNTS AS THE CHEAPEST PRICE: the "Best price" badge in the table, and the product
 // page's best-price card (components/BestPriceCard.tsx). It is never counted in "Prices at N stores" or the median, and never in JSON-LD,

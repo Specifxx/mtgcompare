@@ -6,7 +6,7 @@
 //   DATABASE_URL=… npx tsx scripts/prune-registry.ts [--min 3] [--write]
 //
 // Dry run by default: prints what it would remove.
-process.env.DEXCOMPARE_SCRIPT = "1";
+process.env.MTGCOMPARE_SCRIPT = "1";
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";

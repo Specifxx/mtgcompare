@@ -1,0 +1,58 @@
+name: MTG Compare release
+
+# A MTG Compare production release out of turn. Production builds only a commit
+# whose SUBJECT carries [deploy] (scripts/vercel-ignore-build.sh):
+# normally the twice-daily sealed import's data commit, which every code commit
+# rides. "Run workflow" here lands an empty [deploy] commit on main, which the
+# gate builds as a release. No schedule: the imports are the schedule.
+# DEPLOY.md, "Where the data lives", 2026-10-16.
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Optional note, recorded in the release commit message"
+        type: string
+        required: false
+
+# Never two release commits racing each other.
+concurrency:
+  group: mtgcompare-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Land the release commit (Vercel builds this one)
+        env:
+          REASON: ${{ inputs.reason }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          body="Builds the current main for MTG Compare on Vercel. Commits without [deploy] in their subject ride the next release (scripts/vercel-ignore-build.sh)."
+          if [ -n "${REASON:-}" ]; then
+            git commit --allow-empty -m "MTG Compare release [deploy]" -m "$body" -m "Reason: $REASON"
+          else
+            git commit --allow-empty -m "MTG Compare release [deploy]" -m "$body"
+          fi
+          for attempt in 1 2 3 4; do
+            if git push -q origin HEAD:main; then
+              echo "Release commit pushed: $(git rev-parse --short HEAD) — Vercel will build it."
+              exit 0
+            fi
+            sleep $((attempt * 5))
+            git fetch -q origin main
+            git rebase -q origin/main
+          done
+          echo "Could not push the release commit." >&2
+          exit 1

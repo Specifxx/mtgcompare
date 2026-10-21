@@ -1,4 +1,4 @@
-// The daily eBay listing import: GitHub Actions runs this once a day (.github/workflows/dexcompare-ebay-import.yml).
+// The daily eBay listing import: GitHub Actions runs this once a day (.github/workflows/ebay-import.yml).
 //
 //   DATABASE_URL=… EBAY_CLIENT_ID=… EBAY_CLIENT_SECRET=… npx tsx scripts/ebay-import.ts \
 //        [--dry-run] [--only chase,sealed,types,sets,sweep,items] [--max-calls N] [--force]
@@ -32,7 +32,7 @@
 // BOTH sites), EBAY_RUN_CAP (2500), EBAY_SWEEP_CALLS (2100), EBAY_LISTING_MAX_AGE_HOURS (26).
 // Exit 1: token failure (only eBay's OAuth error category is printed), a search refusal or the circuit breaker, or fewer than
 // half of the planned feeds refreshed (the fixed feeds and the per-product searches; the sweep is reported on its own).
-process.env.DEXCOMPARE_SCRIPT = "1";
+process.env.MTGCOMPARE_SCRIPT = "1";
 
 import { appendFileSync } from "node:fs";
 import { prisma } from "../src/lib/db";
@@ -67,7 +67,7 @@ async function main() {
     process.exit(2);
   }
   if (!dry && !keysPresent(process.env as EbayEnv)) {
-    summaryFile(["## DexCompare eBay import", "", "EBAY_CLIENT_ID / EBAY_CLIENT_SECRET are not set for this job: nothing imported (the site keeps showing the previous listings until they age out)."]);
+    summaryFile(["## MTG Compare eBay import", "", "EBAY_CLIENT_ID / EBAY_CLIENT_SECRET are not set for this job: nothing imported (the site keeps showing the previous listings until they age out)."]);
     return;
   }
 
@@ -76,7 +76,7 @@ async function main() {
     { dryRun: dry, only, maxCalls, force: flag("force") },
   );
 
-  const lines = ["## DexCompare eBay import", "", ...runReport(summary), ...(dry ? ["", "### Capacity model", "", ...capacityReport(summary.plan)] : [])];
+  const lines = ["## MTG Compare eBay import", "", ...runReport(summary), ...(dry ? ["", "### Capacity model", "", ...capacityReport(summary.plan)] : [])];
   summaryFile(lines);
   await prisma.$disconnect();
 

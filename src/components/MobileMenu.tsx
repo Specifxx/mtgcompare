@@ -150,10 +150,10 @@ export function MenuSheet({ region, pathname, onClose: close }: { region: Region
         <span className="min-w-0 flex-1 truncate font-display text-lg font-bold tracking-tight">
           {current ? (
             <>
-              <span aria-hidden="true">{current.flag}</span> DexCompare {current.name}
+              <span aria-hidden="true">{current.flag}</span> MTG Compare {current.name}
             </>
           ) : (
-            "DexCompare"
+            "MTG Compare"
           )}
         </span>
         <button

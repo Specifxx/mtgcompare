@@ -374,7 +374,7 @@ function shipFor(region: Region, ship: AcceptedItem["ship"]): { text: string; fr
   return SHARED_FEED_NOTE[region] ? { text: "Shipping on eBay", free: false } : shipLabel(ship);
 }
 
-const DISCLOSURE = "Affiliate link: as an eBay Partner Network affiliate, DexCompare earns from qualifying purchases — at no extra cost to you.";
+const DISCLOSURE = "Affiliate link: as an eBay Partner Network affiliate, MTG Compare earns from qualifying purchases — at no extra cost to you.";
 
 /** The disclosure under every strip: the affiliate note, and how old the data is (eBay's API licence asks for exactly that). */
 function Disclosure({ age, maxAgeMs, region, regionNote }: { age: string; maxAgeMs: number; region: Region; regionNote: boolean }) {

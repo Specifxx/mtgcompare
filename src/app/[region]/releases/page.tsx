@@ -12,7 +12,7 @@ import { money, plural, relativeDay } from "@/lib/format";
 import { isoDay, nextSet, releasesTitle, setsOfYear, shortDate, titleText } from "@/lib/hub-copy";
 import { setCountsGrouped, type SetCount } from "@/lib/hub-data";
 import { formatRelease, isPreorderSet } from "@/lib/release";
-import { jsonLd, pageMeta, regionAlternates, withPokemon } from "@/lib/seo";
+import { jsonLd, pageMeta, regionAlternates, withMtg } from "@/lib/seo";
 import { COUNTRY_GUIDE } from "@/content/guides/country-prices";
 import { preorderPath } from "@/lib/preorder-guides";
 import { SETS, type PokemonSet } from "@/lib/sets";
@@ -36,7 +36,7 @@ export function generateMetadata({ params }: { params: { region: string } }): Me
     ...pageMeta({
       title: titleText(title),
       description: `Every Pokémon TCG set releasing in ${year}, with English release dates${
-        next ? `: ${withPokemon(next.name)} is next, out ${shortDate(next.releaseDate)}` : ""
+        next ? `: ${withMtg(next.name)} is next, out ${shortDate(next.releaseDate)}` : ""
       }. What ${r.adjective} stores have in stock or open for pre-order today.`,
       path: `/${r.region}/releases`,
       alternates: regionAlternates(r.region, "/releases"),
@@ -227,7 +227,7 @@ function NextSetBox({ r, next, c, today }: { r: RegionInfo; next: PokemonSet | n
       <div className="text-xs font-semibold uppercase tracking-[0.12em] text-pre">Next set</div>
       <p id="next-set" className="mt-1 font-display text-2xl font-bold leading-tight text-ink sm:text-3xl">
         <Link href={path} prefetch={false} className="hover:underline">
-          {withPokemon(next.name)}
+          {withMtg(next.name)}
         </Link>
         : <time dateTime={next.releaseDate}>{formatRelease(next.releaseDate)}</time> <span className="text-pre">({relativeDay(next.releaseDate, today)})</span>
       </p>

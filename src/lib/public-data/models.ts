@@ -3,8 +3,8 @@
 // loudly instead of quietly matching nothing. (Ported from RiftCompare's src/lib/public-data/models.ts.)
 //
 // PUBLIC means: shown on public pages, holding no personal data, and written only by the importers, never by a request. That is
-// every table DexCompare has but one: EbayCallDay, the eBay importer's own call counter, stays in Neon (an operational counter the
-// site never reads). DexCompare keeps no accounts, emails or visitor data at all (README, "What this site does not store").
+// every table MTG Compare has but one: EbayCallDay, the eBay importer's own call counter, stays in Neon (an operational counter the
+// site never reads). MTG Compare keeps no accounts, emails or visitor data at all (README, "What this site does not store").
 import { Prisma } from "@prisma/client";
 
 export const PUBLIC_MODELS = ["Product", "Offer", "ProductStat", "StoreStat", "EbayListing"] as const;

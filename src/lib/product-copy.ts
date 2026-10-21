@@ -6,14 +6,14 @@
 // never TCGplayer's price passed off as a store's: TCGplayer is a marketplace, named as one wherever its price is quoted.
 import { money, plural } from "./format";
 import type { PerPackPick } from "./per-pack";
-import { withPokemon } from "./seo";
+import { withMtg } from "./seo";
 import { SITE_NAME } from "./site";
 
-/** The longest title that still gets the " | DexCompare" suffix (R8): over it, the title goes out as title.absolute. */
+/** The longest title that still gets the " | MTG Compare" suffix (R8): over it, the title goes out as title.absolute. */
 export const TITLE_MAX = 65;
 const SUFFIX = ` | ${SITE_NAME}`;
 
-/** A title for Next's metadata: a plain string (templated, " | DexCompare" added) or { absolute } when that would run past 65 characters. */
+/** A title for Next's metadata: a plain string (templated, " | MTG Compare" added) or { absolute } when that would run past 65 characters. */
 export type PageTitle = string | { absolute: string };
 
 /** The rendered <title> a PageTitle gives (for tests and the length check). */
@@ -40,10 +40,10 @@ export function openWhere(open: readonly { marketplace: boolean }[], noun: strin
 /**
  * The product page's <title>. Open somewhere: "Pokémon Pitch Black Elite Trainer Box — from $54.99 at 19 US stores and on TCGplayer"
  * ("from" is the cheapest open offer, which may be TCGplayer's: the "and on TCGplayer" keeps it from reading as a store's price). Nothing
- * open: "Pokémon Pitch Black Elite Trainer Box — price & stock in the UK". Templated with " | DexCompare" when that fits in 65 characters.
+ * open: "Pokémon Pitch Black Elite Trainer Box — price & stock in the UK". Templated with " | MTG Compare" when that fits in 65 characters.
  */
 export function productTitle(o: { name: string; market: string; inName: string; cheapestCents: number | null; where: string | null }): PageTitle {
-  const name = withPokemon(o.name);
+  const name = withMtg(o.name);
   const t = o.cheapestCents != null && o.where ? `${name} — from ${money(o.cheapestCents, o.market)} ${o.where}` : `${name} — price & stock in ${o.inName}`;
   return fitTitle(t);
 }
@@ -180,7 +180,7 @@ export function valueCheck(o: { slug: string; productType: string; perPack: numb
 
 /** The meta description: where it is open and from what price, or that it is compared here. Facts only. */
 export function productDescription(o: { name: string; market: string; adjective: string; cheapestCents: number | null; where: string | null; preorder: boolean; value: ValueCheck | null }): string {
-  const name = withPokemon(o.name);
+  const name = withMtg(o.name);
   const head =
     o.cheapestCents != null && o.where
       ? `${name}: ${o.preorder ? "open for pre-order" : "in stock"} ${o.where}, from ${money(o.cheapestCents, o.market)} today.`

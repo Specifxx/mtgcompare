@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: { params: { region: string } 
     ...meta,
     title: fitTitle(homeCopy.title(r, n)),
     // The region's own share card (app/og/[region]): what a link to /au or /us shows on Reddit, Discord or X.
-    openGraph: { ...meta.openGraph, images: [ogCardImage(`/og/${r.region}`, `DexCompare: Pokémon sealed prices across ${n} ${r.adjective} stores`)] },
+    openGraph: { ...meta.openGraph, images: [ogCardImage(`/og/${r.region}`, `MTG Compare: Pokémon sealed prices across ${n} ${r.adjective} stores`)] },
   };
 }
 
@@ -203,7 +203,7 @@ export default async function RegionHome({ params }: { params: { region: string 
 
         {overview.products === 0 && (
           <div className="mt-10">
-            <Empty actions={[{ href: `/${other.region}`, label: `DexCompare ${other.name}` }]}>We&rsquo;re still reading {r.adjective} stores for the first time. Check back shortly.</Empty>
+            <Empty actions={[{ href: `/${other.region}`, label: `MTG Compare ${other.name}` }]}>We&rsquo;re still reading {r.adjective} stores for the first time. Check back shortly.</Empty>
           </div>
         )}
       </div>
@@ -345,7 +345,7 @@ function HowItWorks({ r, stores }: { r: RegionInfo; stores: number }) {
   return (
     <section className="mt-16" aria-labelledby="how">
       <h2 id="how" className="font-display text-xl font-bold tracking-tight">
-        How DexCompare works
+        How MTG Compare works
       </h2>
       <ol className="mt-4 grid gap-3 md:grid-cols-3">
         {steps.map((s) => (

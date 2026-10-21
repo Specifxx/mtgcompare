@@ -4,19 +4,28 @@ import { routeQuery } from "./public-data/route";
 // ─── WHERE THE DATA LIVES (2026-10-16, owner: "everything can be on GitHub") ──────
 // Every public table is exported to data/public/ after each import and committed to main (scripts/export-public-data.ts), and
 // the site reads THOSE FILES (src/lib/public-data/, PUBLIC_DATA_MODE "files", the default): no page, route or build touches
-// Neon. Neon is the importers' working store only (scripts set DEXCOMPARE_SCRIPT=1 and always use it), so its compute wakes for
+// Neon. Neon is the importers' working store only (scripts set MTGCOMPARE_SCRIPT=1 and always use it), so its compute wakes for
 // the imports and nothing else. A read the file engine cannot answer exactly falls through to Neon and logs
 // [public-data:unsupported] once, which tests/public-data.test.ts keeps at zero for the site's loaders.
 //
-// The database is DC2 (Vercel and GitHub, from 2026-10-16; dexcompare-migrate-dc2.yml copied the old project into it, every table's
-// row count checked), with DATABASE_URL (the old project) only while DC2 is unset. The importers' workflows pass DC2's direct host as
-// DATABASE_URL, so scripts reach DC2 either way.
+// The database is MTG Compare's existing Neon database (DATABASE_URL, or SEALED_DATABASE_URL when set), in its OWN Postgres schema,
+// "sealed" (2026-10-21): the old singles site's tables stay in the default schema, untouched, and nothing here reads them. The
+// importers' workflows add the schema themselves; databaseUrl() adds it for any other caller, so no code path can reach the old
+// tables by forgetting it.
+export const DB_SCHEMA = "sealed";
 export function databaseUrl(env: Record<string, string | undefined> = process.env): string | undefined {
-  return env.DC2?.trim() || env.DATABASE_URL?.trim() || undefined;
+  const url = env.SEALED_DATABASE_URL?.trim() || env.DATABASE_URL?.trim() || undefined;
+  return url ? withSchema(url) : undefined;
+}
+
+/** The URL with `schema=sealed` added, unless it already names a schema. */
+export function withSchema(url: string): string {
+  if (/[?&]schema=/.test(url)) return url;
+  return `${url}${url.includes("?") ? "&" : "?"}schema=${DB_SCHEMA}`;
 }
 
 // ─── DATA-EGRESS RULES (read before adding a query) ────────────────────────────
-// Neon's free tier allows 5 GB/month of network transfer. The old DexCompare
+// Neon's free tier allows 5 GB/month of network transfer. The old MTG Compare
 // killed two databases by breaking it, and Rift Compare has lost a dozen more,
 // so these are the rules this codebase starts from (src/lib/db.ts in Rift):
 //
@@ -65,7 +74,7 @@ function makeClient() {
       $allModels: {
         async $allOperations({ model, operation, args, query }) {
           const res = await routeQuery(model, operation, args, query as (a: unknown) => Promise<unknown>);
-          if (process.env.DEXCOMPARE_SCRIPT !== "1" && Array.isArray(res) && res.length >= BIG_ROWS) {
+          if (process.env.MTGCOMPARE_SCRIPT !== "1" && Array.isArray(res) && res.length >= BIG_ROWS) {
             try {
               const bytes = JSON.stringify(res).length;
               if (bytes >= BIG_BYTES) {

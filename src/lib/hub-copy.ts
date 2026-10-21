@@ -13,13 +13,13 @@ import { formatRelease, isPreorderSet } from "./release";
 import type { RegionInfo } from "./regions";
 import { usMsrpCents } from "./rrp";
 import { PRODUCT_TYPES, type ProductTypeInfo, type TypeKey } from "./sealed-title";
-import { withPokemon } from "./seo";
+import { withMtg } from "./seo";
 import { SERIES_ORDER, SETS, type PokemonSet } from "./sets";
 import { OFFER_STALE_MS } from "./sealed-offers";
 import { SITE_NAME } from "./site";
 
 // ─── Titles ────────────────────────────────────────────────────────────────────
-// The root layout's template adds " | DexCompare". A title that would run past 65 characters with it goes out as
+// The root layout's template adds " | MTG Compare". A title that would run past 65 characters with it goes out as
 // title.absolute (no suffix), so the words that rank (the set, the region, the date) are the ones a results page keeps.
 
 export const TITLE_SUFFIX = ` | ${SITE_NAME}`;
@@ -74,7 +74,7 @@ export function releaseChip(set: Pick<PokemonSet, "code" | "releaseDate">, now: 
  * out. Sold without a 36-pack booster box (sets.ts noBoosterBox): never "booster box". Otherwise the box first.
  */
 export function setTitle(set: PokemonSet, r: Pick<RegionInfo, "inName">, now: Date = new Date()): HubTitle {
-  const name = withPokemon(set.name);
+  const name = withMtg(set.name);
   if (isPreorderSet(set.code, now)) {
     const what = set.noBoosterBox ? "ETB & sealed" : "booster box & ETB";
     return hubTitle(`${name} pre-orders: ${what} prices in ${r.inName} (out ${shortDate(set.releaseDate)})`);
@@ -100,7 +100,7 @@ export function lowestOpen(products: ProductCardData[]): number | null {
 /** '{n} products, {m} in stock; cheapest per pack: {type} at {money}; released {date}' — from the products the page loaded. */
 export function setDescription(set: PokemonSet, r: Pick<RegionInfo, "inName" | "market">, products: ProductCardData[], now: Date = new Date()): string {
   const pre = isPreorderSet(set.code, now);
-  const name = withPokemon(set.name);
+  const name = withMtg(set.name);
   const when = `${pre ? "out" : "released"} ${shortDate(set.releaseDate)}`;
   if (!products.length) return `${name} sealed prices in ${r.inName}: no store we track lists it yet; ${when}.`;
   const open = products.filter(cardOpen).length;
@@ -125,7 +125,7 @@ function typeList(products: ProductCardData[], skip: string[] = []): string {
  */
 export function setIntro(set: PokemonSet, r: Pick<RegionInfo, "inName" | "adjective" | "market">, products: ProductCardData[], now: Date = new Date()): string[] {
   const pre = isPreorderSet(set.code, now);
-  const name = withPokemon(set.name);
+  const name = withMtg(set.name);
   const date = formatRelease(set.releaseDate);
   const out: string[] = [];
   out.push(
@@ -219,7 +219,7 @@ export function prevNextSet(code: string): { prev: PokemonSet | null; next: Poke
 
 /** "Pokémon Booster Boxes", "Pokémon Center Elite Trainer Boxes" (never "Pokémon Pokémon Center…"). */
 export function typeName(t: Pick<ProductTypeInfo, "plural">): string {
-  return withPokemon(t.plural);
+  return withMtg(t.plural);
 }
 
 /** `${typeName} in ${inName} — from ${money}, ${n} in stock`; with nothing open, the plain "prices & stock". */

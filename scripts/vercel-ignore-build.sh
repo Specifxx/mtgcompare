@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Vercel "Ignored Build Step" for DexCompare, wired from vercel.json's `ignoreCommand`. Vercel runs it
-# in the project's Root Directory (apps/dexcompare-sealed) before each deployment. Vercel's contract:
+# Vercel "Ignored Build Step" for MTG Compare, wired from vercel.json's `ignoreCommand`. Vercel runs it
+# in the project's Root Directory (the repository root) before each deployment. Vercel's contract:
 #
 #   exit 0  → skip: no deployment is built for this push
 #   exit 1  → build as normal
 #
 # PRODUCTION (VERCEL_ENV=production) BUILDS ONLY A RELEASE (2026-10-16): a pushed commit whose SUBJECT
-# carries the literal marker [deploy] (any case) AND that changed something under apps/dexcompare-sealed.
+# carries the literal marker [deploy] (any case) AND that changed something in the repository.
 # Every production build empties the ISR page cache, and since the data moved into files (2026-10-15)
 # every import's data commit was a build: six in fourteen hours on 10-16, two of them a minute apart,
 # plus one per code push. Now the twice-daily sealed import's data commit is the release
 # (scripts/publish-public-data.sh adds the marker for it); the eBay import's data commit and ordinary
 # code commits ride the next one, as on the sister sites. A release out of turn: put [deploy] in the
-# subject of a commit that changes the app, or run "DexCompare release" (dexcompare-release.yml), which
+# subject of a commit that changes the app, or run "MTG Compare release" (release.yml), which
 # lands an empty [deploy] commit.
 # DEPLOY.md, "Where the data lives".
 #
@@ -54,7 +54,7 @@ if [ "$env" = "preview" ] || [ "$env" = "development" ]; then
     exit 0
   fi
   if [ "$diff" -eq 0 ]; then
-    echo "[vercel-ignore-build] VERCEL_ENV=$env: '$PREVIEW_MARKER' in the subject, but nothing under apps/dexcompare-sealed changed — skipping."
+    echo "[vercel-ignore-build] VERCEL_ENV=$env: '$PREVIEW_MARKER' in the subject, but nothing changed — skipping."
     exit 0
   fi
   echo "[vercel-ignore-build] VERCEL_ENV=$env: '$PREVIEW_MARKER' in the commit subject — building the preview that was asked for."
@@ -78,17 +78,17 @@ fi
 
 case "$diff" in
   0)
-    # An EMPTY [deploy] commit is a release on purpose (dexcompare-release.yml lands one); a [deploy] commit that changed only
-    # another app of the monorepo is not this app's.
+    # An EMPTY [deploy] commit is a release on purpose (release.yml lands one); a [deploy] commit that changed only
+    # another app of another project is not this app's.
     if git diff --quiet HEAD^ HEAD 2>/dev/null; then
       echo "[vercel-ignore-build] $label: an empty '$DEPLOY_MARKER' commit — building the release."
       exit 1
     fi
-    echo "[vercel-ignore-build] $label: '$DEPLOY_MARKER', but nothing under apps/dexcompare-sealed changed — skipping."
+    echo "[vercel-ignore-build] $label: '$DEPLOY_MARKER', but nothing changed — skipping."
     exit 0
     ;;
   1)
-    echo "[vercel-ignore-build] $label: '$DEPLOY_MARKER' and apps/dexcompare-sealed changed — building."
+    echo "[vercel-ignore-build] $label: '$DEPLOY_MARKER' and the commit changed files — building."
     exit 1
     ;;
   *)

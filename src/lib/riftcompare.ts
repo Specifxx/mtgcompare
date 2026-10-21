@@ -10,6 +10,11 @@
 // carry lands on its search for that name, never a 404. nofollow: a data link on every product page, between two of the owner's sites.
 
 const RIFT = "https://riftcompare.com";
+/**
+ * MTG Compare (2026-10-21): RiftCompare has no Magic section yet, so no product page links one (riftHistoryHref is always null).
+ * When it has one, set this to its path ("/mtg") and the links come back on every product page in scope.
+ */
+export const RIFT_SECTION: string | null = null;
 /** RiftCompare's first day in scope (its src/lib/pokemon/catalog.ts SCOPE_START). */
 export const RIFT_SCOPE_START = "2020-02-07";
 export const RIFT_REL = "nofollow noopener";
@@ -27,8 +32,9 @@ export function tcgplayerIdFromImage(url: string | null | undefined): number | n
  * a case (`productType` is its label: "Booster Box Case", "Elite Trainer Box Case", "Booster Bundle Case").
  */
 export function riftHistoryHref(p: { imageUrl: string | null | undefined; setReleaseDate: string | null | undefined; productType: string; name: string }): string | null {
+  if (!RIFT_SECTION) return null;
   const id = tcgplayerIdFromImage(p.imageUrl);
   if (id == null || !p.setReleaseDate || p.setReleaseDate < RIFT_SCOPE_START || /\bCase$/.test(p.productType)) return null;
-  const q = new URLSearchParams({ q: p.name, utm_source: "dexcompare", utm_medium: "referral", utm_campaign: "dex-product" });
-  return `${RIFT}/pokemon/tcgplayer/${id}?${q}`;
+  const q = new URLSearchParams({ q: p.name, utm_source: "mtgcompare", utm_medium: "referral", utm_campaign: "mtg-product" });
+  return `${RIFT}${RIFT_SECTION}/tcgplayer/${id}?${q}`;
 }

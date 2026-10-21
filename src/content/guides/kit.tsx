@@ -2,7 +2,7 @@
 // contents is built from them), live blocks that say when the prices were checked, tables that stack on a phone, the one eBay
 // strip, and the closing "Where to buy" with the US TCGplayer link. Server components (Ago and EbayStrip are client islands).
 //
-// Running text sits in .prose-dex blocks (<Prose>); the tables, cards and the strip sit between them, never inside: .prose-dex
+// Running text sits in prose blocks (<Prose>); the tables, cards and the strip sit between them, never inside: the prose class
 // styles every descendant <a>, <p> and <ul>, which would underline a card's link and put bullets on a row of chips.
 //
 // No JSX runs when this module loads (the tests set globalThis.React after their imports): everything here is a function.
@@ -17,14 +17,14 @@ import { ADSENSE_CLIENT, ADSENSE_GUIDE_SLOT } from "@/lib/adsense";
 import { AFFILIATE_NOTE_SHORT, REL_SPONSORED, TCGPLAYER_RETAILER, tcgplayerSearchUrl } from "@/lib/affiliate";
 import type { ProductCardData } from "@/lib/data";
 import { money, plural, timeAgo } from "@/lib/format";
-import { packsForLabel, perPackCents } from "@/lib/packs";
 import type { RegionInfo } from "@/lib/regions";
 import { formatRelease } from "@/lib/release";
-import { RRP_NOTE } from "@/lib/rrp";
-import { TYPE_BY_KEY, TYPE_BY_LABEL, TYPE_BY_SLUG, type TypeKey } from "@/lib/sealed-title";
-import { SET_BY_CODE, type PokemonSet } from "@/lib/sets";
+import { TYPE_BY_KEY } from "@/lib/sealed-title";
+import { familyOf, perPackOf, whereText } from "../live";
+export { whereText };
 import type { GuideData } from "./data";
 import type { Guide } from "./index";
+
 
 // ─── The shape of a guide module ───────────────────────────────────────────────
 
@@ -114,33 +114,17 @@ export function Note({ children }: { children: ReactNode }) {
 }
 
 /** The MSRP disclosure, wherever an MSRP is printed (rrp.ts RRP_NOTE). */
-export function MsrpNote() {
-  return <p className="mt-3 text-xs leading-5 text-muted">{RRP_NOTE}</p>;
-}
-
-/** The attribution every pack count carries. */
-export const PACK_SOURCE = "Pack counts from the publisher’s product listings, as recorded in our data.";
 
 // ─── Links ─────────────────────────────────────────────────────────────────────
 
-export const typeHref = (r: RegionInfo, type: TypeKey) => `/${r.region}/type/${TYPE_BY_KEY.get(type)!.slug}`;
-export const setHref = (r: RegionInfo, s: Pick<PokemonSet, "slug">) => `/${r.region}/sets/${s.slug}`;
+/** A product type's page, or null when the type table has no such key (the table is the importer's: lib/sealed-title.ts). */
+export const typeHref = (r: RegionInfo, type: string): string | null => {
+  const t = (TYPE_BY_KEY as ReadonlyMap<string, { slug: string }>).get(type);
+  return t ? `/${r.region}/type/${t.slug}` : null;
+};
 export const productHref = (r: RegionInfo, p: Pick<ProductCardData, "slug">) => `/${r.region}/p/${p.slug}`;
 export const guideHref = (r: RegionInfo, slug: string) => `/${r.region}/guides/${slug}`;
 
-/** A set as a chip: its name and release year, linking to its page. */
-export function SetChips({ r, sets }: { r: RegionInfo; sets: readonly PokemonSet[] }) {
-  return (
-    <ul role="list" className="my-5 flex flex-wrap gap-2">
-      {sets.map((s) => (
-        <li key={s.code}>
-          <Link href={setHref(r, s)} prefetch={false} className="chip min-h-10">
-            {s.name} <span className="text-xs font-normal text-faint">{s.releaseDate.slice(0, 4)}</span>
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
 }
 
 /** A row of internal links as quiet buttons: the next step after a section. */
@@ -195,23 +179,6 @@ export function LiveBlock({ r, checked, title, children, footer }: { r: RegionIn
   );
 }
 
-/** A set's heading inside a live block: its name (linked) and when it came out, or comes out. */
-export function SetTitle({ r, set, today, extra }: { r: RegionInfo; set: PokemonSet; today: string; extra?: ReactNode }) {
-  const out = set.releaseDate <= today;
-  return (
-    <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-      <h3 className="font-display text-lg font-bold leading-snug">
-        <Link href={setHref(r, set)} prefetch={false} className="hover:text-brand hover:underline">
-          {set.name}
-        </Link>
-      </h3>
-      <span className="text-xs text-muted">
-        {out ? "Released" : "Releases"} <time dateTime={set.releaseDate}>{formatRelease(set.releaseDate)}</time>
-        {extra}
-      </span>
-    </div>
-  );
-}
 
 /** One set's part of a live block that covers several: a rule between sets, its heading, then its table. */
 export function SetGroup({ title, children }: { title: ReactNode; children: ReactNode }) {
@@ -228,17 +195,6 @@ export function CheapestBadge({ children = "Cheapest per pack" }: { children?: R
   return <span className="whitespace-nowrap rounded-full border border-open/40 bg-surface px-2 py-0.5 text-[11px] font-bold text-open">{children}</span>;
 }
 
-/** Where a product can be bought right now: "12 stores", "4 stores + TCGplayer" (US), or "TCGplayer" alone. */
-export function whereText(p: ProductCardData): string {
-  if (p.inStockStores > 0) return `${plural(p.inStockStores, "store")}${p.marketplaceOpen ? " + TCGplayer" : ""}`;
-  return p.marketplaceOpen ? "TCGplayer" : "—";
-}
-
-/** A product's packs (packs.ts, read from its type, set and name) and its price per pack, or nulls when the product line fixes no count. */
-export function perPackOf(p: ProductCardData): { packs: number | null; perPack: number | null } {
-  const packs = packsForLabel(p.productType, p.setCode, p.name);
-  return { packs, perPack: perPackCents(p.lowestPriceCents, packs) };
-}
 
 const COLS: Record<number, string> = { 1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-3", 4: "grid-cols-4" };
 const SPAN: Record<number, string> = { 1: "col-span-1", 2: "col-span-2", 3: "col-span-3", 4: "col-span-4" };
@@ -306,22 +262,7 @@ export function StackTable({ caption, head, rows, align = "right", compact = fal
   );
 }
 
-/** One row of a live price table: the cheapest open product of a type, or why there is none. */
-export interface PriceLine {
-  /** The type's label ("Elite Trainer Box"). */
-  label: string;
-  p: ProductCardData | null;
-  /** Said instead of a price: "Sold without a booster box", "None in stock right now". */
-  missing?: string;
-}
-
-/** The cheapest per-pack price among the lines that have one, or null. */
-export function cheapestPerPack(lines: readonly PriceLine[]): number | null {
-  const all = lines.map((l) => (l.p ? perPackOf(l.p).perPack : null)).filter((x): x is number => x != null);
-  return all.length ? Math.min(...all) : null;
-}
-
-/** A row's header cell: the type, then the product's own name as the link to its page. */
+/** A row's header cell: what the row is, then the product's own name as the link to its page. */
 export function ProductTh({ r, label, p, badge }: { r: RegionInfo; label: string; p: ProductCardData | null; badge?: ReactNode }) {
   return (
     <span className="flex min-w-0 flex-col gap-0.5">
@@ -337,33 +278,42 @@ export function ProductTh({ r, label, p, badge }: { r: RegionInfo; label: string
   );
 }
 
-/** The live price table of one set: per type, the cheapest open product, its price, price per pack and where it is open. */
+/** One row of a live price table: a product, or why there is none. */
+export interface PriceLine {
+  label: string;
+  p: ProductCardData | null;
+  missing?: string;
+}
+
+/**
+ * The live price table: per line, the product, its price, its price per pack (only where the pack count is known: lib/../live.ts
+ * packsOf) and where it is open. The cheapest per pack is marked when two or more lines have one.
+ */
 export function PriceTable({ r, caption, lines, whereHead = "In stock at" }: { r: RegionInfo; caption: string; lines: PriceLine[]; whereHead?: string }) {
-  const floor = cheapestPerPack(lines);
-  const many = lines.filter((l) => l.p && perPackOf(l.p).perPack != null).length > 1;
+  const packs = lines.map((l) => (l.p ? perPackOf(l.p) : null));
+  const known = packs.filter((x): x is number => x != null);
+  const floor = known.length > 1 ? Math.min(...known) : null;
   return (
     <StackTable
       caption={caption}
       head={["Product", "Price", "Per pack", whereHead]}
-      rows={lines.map((l) => {
+      rows={lines.map((l, i) => {
         if (!l.p) {
           return {
-            key: l.label,
-            type: TYPE_BY_LABEL.get(l.label)?.key,
+            key: `${l.label}-${i}`,
             th: <ProductTh r={r} label={l.label} p={null} />,
-            cells: [<span key="m" className="text-faint">{l.missing ?? "None right now"}</span>, <span key="a" className="text-faint">—</span>, <span key="b" className="text-faint">—</span>],
+            cells: [<span key="m" className="text-faint">{l.missing ?? "None in stock right now"}</span>, <span key="a" className="text-faint">—</span>, <span key="b" className="text-faint">—</span>],
           };
         }
-        const { perPack } = perPackOf(l.p);
-        const best = many && perPack != null && perPack === floor;
+        const best = floor != null && packs[i] === floor;
         return {
-          key: l.label,
-          type: TYPE_BY_LABEL.get(l.label)?.key,
+          key: `${l.label}-${l.p.slug}`,
+          type: familyOf(l.p.name)?.key,
           highlight: best,
           th: <ProductTh r={r} label={l.label} p={l.p} badge={best ? <CheapestBadge /> : undefined} />,
           cells: [
             <span key="p" className="font-semibold">{money(l.p.lowestPriceCents, r.market)}</span>,
-            <span key="pp">{perPack != null ? money(perPack, r.market) : "—"}</span>,
+            <span key="pp">{packs[i] != null ? money(packs[i], r.market) : "—"}</span>,
             <span key="w" className="text-muted">{whereText(l.p)}</span>,
           ],
         };
@@ -372,13 +322,18 @@ export function PriceTable({ r, caption, lines, whereHead = "In stock at" }: { r
   );
 }
 
-/** The cheapest open product of each label among a set's products (already cheapest first), with a reason where there is none. */
-export function linesFor(products: readonly ProductCardData[] | undefined, labels: readonly string[], set: PokemonSet | null | undefined, preorder = false): PriceLine[] {
-  return labels.map((label) => {
-    const p = (products ?? []).find((x) => x.productType === label) ?? null;
-    const missing = label === "Booster Box" && set?.noBoosterBox ? "Sold without a booster box" : preorder ? "No pre-orders right now" : "None in stock right now";
-    return { label, p, missing: p ? undefined : missing };
-  });
+/** Lines for a list of products under one label each (their family's name, else the given label). */
+export function linesOf(products: readonly ProductCardData[] | undefined, label: string, missing?: string): PriceLine[] {
+  if (!products?.length) return [{ label, p: null, missing }];
+  return products.map((p) => ({ label: familyOf(p.name)?.label ?? label, p }));
+}
+
+/** "the US stores and TCGplayer" / "Australian stores": who the live prices come from. */
+export const storesPhrase = (r: RegionInfo) => (r.market === "US" ? "US stores and TCGplayer" : `${r.adjective} stores`);
+
+/** A block's empty state: said, never hidden. */
+export function NoneYet({ children = "Nothing in stock at the stores we compare right now." }: { children?: ReactNode }) {
+  return <p className="text-sm text-muted">{children}</p>;
 }
 
 // ─── Lists ─────────────────────────────────────────────────────────────────────
@@ -435,29 +390,27 @@ export function FactRows({ rows }: { rows: { key: string; figure: ReactNode; uni
 
 // ─── The strip, and where to buy ───────────────────────────────────────────────
 
-/** The guide's one eBay unit (placement listings-guide): its registry feed, in the article's narrow column (a scrolling row, never six across). */
+// ─── The strip, and where to buy ───────────────────────────────────────────────
+
+/** The guide's one eBay unit (placement listings-guide): the sealed feed, in the article's narrow column. */
 export function GuideStrip({ guide, r }: { guide: Guide; r: RegionInfo }) {
-  const ctx = guide.ebay.context;
-  const t = ctx.startsWith("type:") ? TYPE_BY_SLUG.get(ctx.slice(5)) ?? null : null;
-  const name = t ? (t.plural.startsWith("Pokémon") ? t.plural : `Pokémon ${t.plural}`) : "Pokémon sealed";
   return (
     <div className="my-10">
       <EbayStrip
         region={r.region}
-        context={ctx}
+        context="sealed"
         placement="listings-guide"
         narrow
-        headings={t ? { type: guide.ebay.heading, sealed: "Sealed Pokémon on eBay" } : { sealed: guide.ebay.heading }}
-        search={{ kind: "sealed", query: t?.label ?? "", label: `Search ${name} on eBay` }}
+        headings={{ sealed: guide.ebay.heading }}
+        search={{ kind: "sealed", query: guide.ebay.query, label: `Search ${guide.ebay.query} on eBay` }}
       />
     </div>
   );
 }
 
 /**
- * The closing section: how the comparison works (facts from the About page), what to check with a new store, internal links, and in
- * the US one labelled TCGplayer search (guide-tcgplayer). TCGplayer is a link, not a unit: it carries no data-ad, and its label says
- * "affiliate link" beside it.
+ * The closing section: how the comparison works, what to check with a new store, internal links, and in the US one labelled
+ * TCGplayer search (guide-tcgplayer). TCGplayer is a link, not a unit, and its label says "affiliate link" beside it.
  */
 export function whereToBuy(r: RegionInfo, opts: { tcg?: { query: string; label: string }; links?: { href: string; label: string }[] } = {}): GuideSection {
   const us = r.market === "US";
@@ -468,7 +421,7 @@ export function whereToBuy(r: RegionInfo, opts: { tcg?: { query: string; label: 
       <>
         <Prose>
           <p>
-            DexCompare puts {r.adjective} stores{us ? " and TCGplayer" : ""} side by side: each one’s own listed price in {r.currency}, excluding shipping, ranked by
+            MTG Compare puts {r.adjective} stores{us ? " and TCGplayer" : ""} side by side: each one’s own listed price in {r.currency}, excluding shipping, ranked by
             price and stock. Stores pay nothing to be listed, and commissions never change the order.
           </p>
           <p>
@@ -569,5 +522,3 @@ export function GuideCard({ r, guide, headingLevel = 2 }: { r: RegionInfo; guide
   );
 }
 
-/** The set a code names (sets.ts), for a body that only has codes. */
-export const setOf = (code: string): PokemonSet | null => SET_BY_CODE.get(code) ?? null;

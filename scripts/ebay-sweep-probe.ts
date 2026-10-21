@@ -4,7 +4,7 @@
 // like the importer's. Run from the eBay import workflow (input `probe`), never on a schedule.
 //
 //   DATABASE_URL=… EBAY_CLIENT_ID=… EBAY_CLIENT_SECRET=… npx tsx scripts/ebay-sweep-probe.ts [--pages 2] [--max-calls 60]
-process.env.DEXCOMPARE_SCRIPT = "1";
+process.env.MTGCOMPARE_SCRIPT = "1";
 
 import { prisma } from "../src/lib/db";
 import { createTokenManager, EbayError, keysPresent, realDeps, searchPage, type EbayEnv } from "../src/lib/ebay-api";

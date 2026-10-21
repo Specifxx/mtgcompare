@@ -9,7 +9,7 @@ import type { Region } from "@/lib/regions";
 type Rail = (typeof import("./ProductRail"))["ProductRail"];
 
 // "Recently viewed": the last products a visitor opened, per region, kept ONLY in their browser (localStorage
-// `dex-recent-<region>`, slugs only). Nothing is sent to DexCompare and there is no account: the privacy page says so, and clearing
+// `mtg-recent-<region>`, slugs only). Nothing is sent to MTG Compare and there is no account: the privacy page says so, and clearing
 // the site's data (or the rail's own "Clear") removes it. Every storage access is wrapped: a private window, blocked storage or a
 // full quota means no rail, never an error.
 //
@@ -26,7 +26,7 @@ export const RECENT_MAX = 12;
 /** How many cards the rail shows (the most recent first). */
 export const RECENT_SHOWN = 8;
 
-export const recentKey = (region: Region) => `dex-recent-${region}`;
+export const recentKey = (region: Region) => `mtg-recent-${region}`;
 
 /** The slice of the Web Storage API the list needs; tests pass a stub (one that throws, for blocked storage). */
 export type RecentStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
@@ -148,7 +148,7 @@ export function RecentlyViewed({ region, exclude }: { region: Region; exclude?: 
       </div>
       <Rail products={cards} region={region} label="Recently viewed" />
       <p className="mt-3 text-xs leading-5 text-muted">
-        Current prices and stock{checkedAt ? ` (checked ${timeAgo(checkedAt)})` : ""}. This list stays in your browser; DexCompare never receives it.
+        Current prices and stock{checkedAt ? ` (checked ${timeAgo(checkedAt)})` : ""}. This list stays in your browser; MTG Compare never receives it.
       </p>
     </section>
   );

@@ -54,7 +54,7 @@ const getStoreStat = cache((key: string) => storeStat(key));
  */
 export async function storeMeta(r: RegionInfo, s: StoreConfig, page: number): Promise<Metadata> {
   const st = await getStoreStat(s.key);
-  // A long store name pushes the title past 65 characters with " | DexCompare": then it goes out without the suffix.
+  // A long store name pushes the title past 65 characters with " | MTG Compare": then it goes out without the suffix.
   const title = hubTitle(`${s.name} — Pokémon sealed stock & prices${page > 1 ? ` — page ${page}` : ""}`);
   return {
     ...pageMeta({

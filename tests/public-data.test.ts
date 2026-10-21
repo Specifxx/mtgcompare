@@ -1,5 +1,5 @@
 // The public data files (src/lib/public-data/): the exporter's output read back through the store and the engine answers like the
-// database would; the router serves the files in "files" mode and falls back to Neon when they cannot answer; DC2 is the database.
+// database would; the router serves the files in "files" mode and falls back to Neon when they cannot answer; the database is DATABASE_URL's "sealed" schema.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -81,7 +81,7 @@ test("files mode is the default; scripts always use the database", () => {
   assert.equal(publicDataMode({}), "files");
   assert.equal(publicDataMode({ PUBLIC_DATA_MODE: "db" }), "db");
   assert.equal(publicDataMode({ PUBLIC_DATA_MODE: "fallback" }), "fallback");
-  assert.equal(publicDataMode({ DEXCOMPARE_SCRIPT: "1" }), "db", "the importers write and read Neon: the files are made from it");
+  assert.equal(publicDataMode({ MTGCOMPARE_SCRIPT: "1" }), "db", "the importers write and read Neon: the files are made from it");
 });
 
 test("with no files, a read goes to the database as before; with files, it never does", async () => {
@@ -110,8 +110,9 @@ test("with no files, a read goes to the database as before; with files, it never
   }
 });
 
-test("the database is DC2, with DATABASE_URL only while DC2 is unset", () => {
-  assert.equal(databaseUrl({ DC2: "postgres://dc2", DATABASE_URL: "postgres://old" }), "postgres://dc2");
-  assert.equal(databaseUrl({ DATABASE_URL: "postgres://old" }), "postgres://old");
-  assert.equal(databaseUrl({ DC2: " ", DATABASE_URL: "" }), undefined);
+test("the database is SEALED_DATABASE_URL, else DATABASE_URL, always in the \"sealed\" schema (never the old site's tables)", () => {
+  assert.equal(databaseUrl({ SEALED_DATABASE_URL: "postgres://s", DATABASE_URL: "postgres://old" }), "postgres://s?schema=sealed");
+  assert.equal(databaseUrl({ DATABASE_URL: "postgres://old?sslmode=require" }), "postgres://old?sslmode=require&schema=sealed");
+  assert.equal(databaseUrl({ DATABASE_URL: "postgres://old?schema=other" }), "postgres://old?schema=other");
+  assert.equal(databaseUrl({ SEALED_DATABASE_URL: " ", DATABASE_URL: "" }), undefined);
 });

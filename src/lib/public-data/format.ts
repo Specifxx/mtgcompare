@@ -36,7 +36,7 @@ export const FILES: Record<ModelName, string> = {
 export interface PublicDataMeta {
   format: number;
   generatedAt: string;
-  /** Which database the export read ("DC2", …). */
+  /** Which database the export read ("DATABASE_URL", …). */
   source: string;
   counts: Partial<Record<ModelName, number>>;
   /** Store key → when its offers were last written (the common Offer.lastSeen, exact). */

@@ -227,12 +227,12 @@ function fixtureDir(): string {
 }
 
 test("both new loaders run on the public data files alone (no Neon), with the shapes the pages render", async () => {
-  const saved = { mode: process.env.PUBLIC_DATA_MODE, dir: process.env.PUBLIC_DATA_DIR, db: process.env.DATABASE_URL, dc2: process.env.DC2 };
+  const saved = { mode: process.env.PUBLIC_DATA_MODE, dir: process.env.PUBLIC_DATA_DIR, db: process.env.DATABASE_URL, dc2: process.env.SEALED_DATABASE_URL };
   process.env.PUBLIC_DATA_MODE = "files";
   process.env.PUBLIC_DATA_DIR = fixtureDir();
   // An unreachable database: a query the file engine refused would fall through to it and fail the test.
   process.env.DATABASE_URL = "postgresql://nobody:nothing@127.0.0.1:1/none";
-  delete process.env.DC2;
+  delete process.env.SEALED_DATABASE_URL;
   resetPublicData();
   try {
     const { loadCountryData } = await import("../src/content/guides/country-prices-data");
@@ -258,7 +258,7 @@ test("both new loaders run on the public data files alone (no Neon), with the sh
       "Pitch Black (the newest released set with a box open) beside its bundle and booster box",
     );
   } finally {
-    for (const [k, v] of Object.entries({ PUBLIC_DATA_MODE: saved.mode, PUBLIC_DATA_DIR: saved.dir, DATABASE_URL: saved.db, DC2: saved.dc2 })) {
+    for (const [k, v] of Object.entries({ PUBLIC_DATA_MODE: saved.mode, PUBLIC_DATA_DIR: saved.dir, DATABASE_URL: saved.db, SEALED_DATABASE_URL: saved.dc2 })) {
       if (v === undefined) delete process.env[k];
       else process.env[k] = v;
     }

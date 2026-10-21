@@ -2,7 +2,7 @@
 // pre-footer strip) and the tests use it as it stands.
 //
 // THE RULES every paid unit follows. README.md ("eBay listing strips"), DEPLOY.md ("Click events", "eBay's rules, and how each is
-// met") and the About page ("How DexCompare makes money") say the same; the growth release (2026-10, owner-approved) changed the
+// met") and the About page ("How MTG Compare makes money") say the same; the growth release (2026-10, owner-approved) changed the
 // rules marked CHANGED.
 //   • A unit is a LISTING STRIP (components/EbayStrip.tsx: real listings imported once a day, image tiles with price, shipping and
 //     their age), an IN-FEED TILE (one listing the size of a product card, inside a long product grid: the feed section below), a

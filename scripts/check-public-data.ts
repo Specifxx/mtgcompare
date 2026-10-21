@@ -2,7 +2,7 @@
 // (the original SQL and Prisma reads) and once with PUBLIC_DATA_MODE=files over a fresh export of that database, and reports every
 // difference and every read the file engine refused ([public-data:unsupported]). Run it after changing a loader or the engine:
 //
-//   DC2=… npx tsx scripts/export-public-data.ts --out /tmp/pd && DC2=… PUBLIC_DATA_DIR=/tmp/pd npx tsx scripts/check-public-data.ts
+//   DATABASE_URL=… npx tsx scripts/export-public-data.ts --out /tmp/pd && DATABASE_URL=… PUBLIC_DATA_DIR=/tmp/pd npx tsx scripts/check-public-data.ts
 //
 // Exit 1 on any difference or refusal. Rows of GROUP BY reads (no ORDER BY in their SQL) are compared as sets, and a result whose
 // rows match but whose equal-key rows come in another order is counted apart (Postgres orders ties arbitrarily; the files order them

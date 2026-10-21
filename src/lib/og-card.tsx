@@ -10,7 +10,7 @@ export const OG_SIZE = { width: 1200, height: 630 };
 
 const INK = "#15171c";
 const MUTED = "#5c606c";
-const BRAND = "#d2300a";
+const BRAND = "#7a2ec4";
 const LINE = "#e4e3de";
 const OPEN = "#147638";
 const OPEN_SOFT = "#e2f5e8";

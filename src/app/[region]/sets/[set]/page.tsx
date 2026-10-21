@@ -23,7 +23,7 @@ import { isPreorderSet } from "@/lib/release";
 import { preorderPath } from "@/lib/preorder-guides";
 import { regionOfMarket, regionOrNotFound, type Market, type RegionInfo } from "@/lib/regions";
 import { RRP_NOTE } from "@/lib/rrp";
-import { itemListJsonLd, jsonLd, pageMeta, regionAlternates, withPokemon } from "@/lib/seo";
+import { itemListJsonLd, jsonLd, pageMeta, regionAlternates, withMtg } from "@/lib/seo";
 import { ShareButton } from "@/components/ShareButton";
 import { PRODUCT_TYPES } from "@/lib/sealed-title";
 import { SET_BY_SLUG, type PokemonSet } from "@/lib/sets";
@@ -71,7 +71,7 @@ export default async function SetPage({ params }: { params: { region: string; se
   const open = products.filter(cardOpen);
   const perPack = cheapestPerPackByType(products);
   const way = cheapestWayIn(products);
-  const name = withPokemon(s.name);
+  const name = withMtg(s.name);
   const path = `/${r.region}/sets/${s.slug}`;
   const us = r.market === "US";
   const listedTypes = new Set(products.map((p) => p.productType));
@@ -384,7 +384,7 @@ function SetLink({ r, s, dir }: { r: RegionInfo; s: PokemonSet; dir: "prev" | "n
       <Icon name="arrow-right" size={20} className={`text-muted transition-transform group-hover:text-brand ${dir === "prev" ? "rotate-180 group-hover:-translate-x-0.5" : "group-hover:translate-x-0.5"}`} />
       <span className="min-w-0">
         <span className="block text-xs font-semibold uppercase tracking-wide text-muted">{dir === "prev" ? "Previous set" : "Next set"}</span>
-        <span className="block truncate font-semibold group-hover:text-brand">{withPokemon(s.name)}</span>
+        <span className="block truncate font-semibold group-hover:text-brand">{withMtg(s.name)}</span>
         <span className="block text-xs text-muted">{pre ? `Out ${shortDate(s.releaseDate)}` : `Released ${shortDate(s.releaseDate)}`}</span>
       </span>
     </Link>

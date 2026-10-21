@@ -1,0 +1,205 @@
+name: MTG Compare eBay import
+
+# The daily eBay listing import for MTG Compare (the repository root): searches eBay's Browse API with
+# MTG Compare's own keys and REPLACES the EbayListing rows the website's listing strips read. The website never
+# calls eBay and holds no eBay credential: the keys live only here, in GitHub Actions.
+#
+# A run, in order (DEPLOY.md, "The catalogue sweep"): (1) the fixed feeds: chase, sealed, types, sets (265 calls);
+# (2) the CATALOGUE SWEEP (src/lib/ebay-sweep.ts): per marketplace, broad searches paged 200 listings a call, each listing
+# handed to the product the repo's classifier says it is, so one call can feed dozens of products (an item feed for every
+# product found, cheap ones included; up to EBAY_SWEEP_CALLS, default 2100); (3) one search per ELIGIBLE product the
+# sweep did not cover, with what is left of the run cap. Every product page asks for its own listings. Why: one search per
+# product reached 1,735 of the 7,701 eligible keys a day and 44% of those searches came back empty. Every Browse call, sweep
+# pages included, is reserved in the database before it is made and never passes the run cap or the daily cap.
+#
+# ONCE A DAY, on purpose (the owner's decision; DEPLOY.md, "Why daily, and the licence risk"). eBay's API
+# License Agreement 8.1(c), "Age of Displayed eBay Content", has two prongs: "Displayed item listing information
+# may not be more than six (6) hours older than information displayed on the eBay Site" and "other eBay Content must
+# be no more than twenty-four (24) hours older than content displayed on the eBay Site", and "you will disclose in your
+# Application ... how much older your displayed item listing is". A daily import does NOT meet the six-hour prong (and the
+# default 26 h bound exceeds the 24 h one); every strip discloses its age, and eBay could act on the keyset. To switch to the
+# compliant mode (all in DEPLOY.md, "The switch to compliant mode"; the strips' wording follows by itself):
+#   1. the cron below:  "13 */4 * * *"        (every 4 hours; 6 runs a day)
+#   2. EBAY_LISTING_MAX_AGE_HOURS = 5.5       as a repository variable (this job AND the store import read it) and as an
+#      environment variable in Vercel (the website's route reads it; redeploy once)
+#   3. EBAY_RUN_CAP = 380                     (a repository variable): six runs of 380 searches, retries included, are 2,280 a day,
+#      under the 2,500 daily cap with room for a manual run; the default 2500 would use the whole day in the first run.
+#      Each run then buys the fixed feeds (265) and 115 sweep pages.
+#
+# MTG COMPARE'S DEFAULTS ARE LOWER (2026-10-21): the keyset MTG Compare's secrets hold has been shared with RiftCompare, so when the
+# repository variables are unset this job caps itself at 1,500 calls a day (1,500 a run, 1,200 for the sweep). Set EBAY_DAILY_CAP
+# to change it.
+#
+# THE 5,000 CALLS/DAY LIMIT BELONGS TO THE EBAY KEYSET: if the owner's other site uses the same App ID, the database counter cannot
+# see its calls. Use a separate eBay application for MTG Compare, or set EBAY_DAILY_CAP to the agreed share on BOTH sites. The
+# default 2500 is this site's share (half) of a 5,000 keyset shared with the owner's other site: cap that site at 2500 too.
+# Since the sweep, a daily run spends close to the whole 2500.
+#
+# Why 08:37 UTC: it is the FIRST slot after eBay's daily call counter resets in BOTH seasons (midnight Pacific = 07:00 UTC
+# in summer, 08:00 in winter: 08:37 UTC is 01:37 PDT / 00:37 PST), so the scheduled run is always the FIRST run of its budget day and
+# gets the full run cap, and a manual "run now" earlier in the Pacific day belongs to the previous day and can never starve it.
+# (An earlier slot, before the reset, was the LAST run of its day: a manual run that day left it only the slack.) It is also a good time for the
+# audience: 09:37 / 10:37 in the UK / central Europe, 19:37 in Sydney (listings about an hour old for the evening
+# shop), 04:37 in New York and 01:37 in Los Angeles, so the US sees it 15-22 h old at its evening peak (within the
+# 26 h bound; the strips say how old they are). Minute 37 avoids the top-of-the-hour queue. GitHub may start a scheduled
+# run late; the 26 h bound leaves two hours for that, and a run that never comes only blanks the strips (to a search link).
+#
+# Secrets (Settings → Secrets and variables → Actions):
+#   DATABASE_URL                     required: MTG Compare's Neon database (the same secret the old singles site used).
+#                                    The job uses its DIRECT host and its own Postgres schema, "sealed",
+#                                    so it never touches the old site's tables. SEALED_DATABASE_URL, when set, is used instead.
+#   EBAY_CLIENT_ID, EBAY_CLIENT_SECRET   the Production keyset (App ID / Cert ID) of MTG Compare's own eBay
+#                                    application. Without them the job writes a skip message and exits 0.
+# Variables (same page, "Variables" tab), all optional:
+#   EBAY_DAILY_CAP (2500, max 2500)  most Browse calls per Pacific day, across every run of the day (kept in the database); this site's SHARE of the keyset
+#   EBAY_RUN_CAP (2500)              most Browse searches in one run, retries included (a strict ceiling); set it lower than the daily cap
+#                                    to keep room for a manual re-run on the same Pacific day
+#   EBAY_LISTING_MAX_AGE_HOURS (26)  how old a listing may be before the site stops showing it (set the same value in Vercel; the store import reads it too)
+#   NEXT_PUBLIC_EBAY_CAMPAIGN_ID     only to use a different EPN campaign id from the default; the importer enforces it on every stored URL (the website no longer compares it)
+#   EBAY_SWEEP_CALLS (2100)          how many of a run's calls the catalogue sweep may spend (the per-product searches get the rest).
+#
+# Inputs (Run workflow): only (buckets: chase, sealed, types, sets, sweep, items; a list without "sweep" skips the sweep), force,
+# dry_run, and probe: scripts/ebay-sweep-probe.ts instead of the import, about 60 calls (20 pages on EBAY_US, 10 on each other
+# marketplace), each reserved against the daily cap, match counts and sample titles in the log, NO listing written. Its run of
+# 2026-10-11: products with >= 1 / >= 2 listings: US 430/208, UK 266/121, AU 303/130, CA 197/70 (65% of CA listings carried prices
+# eBay converted from USD, refused by design), EU 154/61 (half German- or Japanese-language, refused).
+# Timeout 90 minutes: a full run makes about 2,500 searches, the sweep's pages 200 listings each.
+
+on:
+  schedule:
+    - cron: "37 8 * * *"
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Only these buckets, comma-separated: chase, sealed, types, sets, sweep, items. Blank = all."
+        required: false
+        default: ""
+      force:
+        description: "Buy every planned feed again, even ones refreshed in the last 2 hours (a normal run skips those, so a second dispatch spends nothing on them)."
+        type: boolean
+        default: false
+      dry_run:
+        description: "Print the plan and the expected calls; no eBay call, no database write."
+        type: boolean
+        default: false
+      probe:
+        description: "Measure the catalogue sweep (scripts/ebay-sweep-probe.ts): ~60 reserved calls, match statistics and samples, NO listing written."
+        type: boolean
+        default: false
+
+# write: the public data snapshot goes to main after the import (scripts/publish-public-data.sh). That commit
+# carries no [deploy] marker, so it rides the next release: the sealed import's data commit, which exports
+# the whole database again and is the only data commit production builds (2026-10-16).
+permissions:
+  contents: write
+
+concurrency:
+  group: mtgcompare-ebay-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Check the secrets
+        id: secrets
+        env:
+          # Only whether each secret is set (a boolean) reaches this step; the eBay keys themselves exist only in the Import step.
+          HAS_DB: ${{ secrets.SEALED_DATABASE_URL != '' || secrets.DATABASE_URL != '' }}
+          HAS_EBAY: ${{ secrets.EBAY_CLIENT_ID != '' && secrets.EBAY_CLIENT_SECRET != '' }}
+          DRY: ${{ inputs.dry_run }}
+          ONLY: ${{ inputs.only }}
+        run: |
+          if [ "$HAS_DB" != "true" ]; then
+            echo "DATABASE_URL is not set — nothing to import into." >> "$GITHUB_STEP_SUMMARY"
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          elif [ "$DRY" != "true" ] && [ "$HAS_EBAY" != "true" ]; then
+            echo "EBAY_CLIENT_ID / EBAY_CLIENT_SECRET are not set in this repository's Actions secrets — nothing imported. The site keeps showing the previous listings until they age out (then the compact eBay search link)." >> "$GITHUB_STEP_SUMMARY"
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          elif ! printf '%s\n' "$ONLY" | grep -Eq '^[a-z,]*$'; then
+            echo "::error::The 'only' input takes bucket names separated by commas (chase, sealed, types, sets, sweep, items)."
+            exit 1
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Resolve the database
+        id: db
+        # SEALED_DATABASE_URL if set, else DATABASE_URL: its DIRECT host (no "-pooler") and the "sealed" schema go to every later
+        # step as DATABASE_URL, masked. The old singles site's tables live in the default schema and are never touched.
+        env:
+          SEALED: ${{ secrets.SEALED_DATABASE_URL }}
+          MAIN: ${{ secrets.DATABASE_URL }}
+        run: |
+          URL="${SEALED:-$MAIN}"
+          if [ -z "$URL" ]; then
+            echo "DATABASE_URL is not set — nothing to import into." >> "$GITHUB_STEP_SUMMARY"
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          else
+            DIRECT="$(printf '%s' "$URL" | sed -E 's/-pooler\././')"
+            case "$DIRECT" in
+              *schema=*) ;;
+              *\?*) DIRECT="$DIRECT&schema=sealed" ;;
+              *) DIRECT="$DIRECT?schema=sealed" ;;
+            esac
+            echo "::add-mask::$DIRECT"
+            echo "DATABASE_URL=$DIRECT" >> "$GITHUB_ENV"
+            echo "DB_SOURCE_NAME=$([ -n "$SEALED" ] && echo SEALED_DATABASE_URL || echo DATABASE_URL)" >> "$GITHUB_ENV"
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.secrets.outputs.run == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.secrets.outputs.run == 'true'
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install
+        if: steps.secrets.outputs.run == 'true'
+        run: npm ci --no-audit --no-fund
+
+      - name: Sync the schema
+        if: steps.secrets.outputs.run == 'true'
+        # No --accept-data-loss: a schema change that would drop data fails here, loudly. (The importer also creates
+        # its two tables itself if they are missing.)
+        run: npx prisma db push --skip-generate && npx prisma generate
+
+      - name: Import
+        if: steps.secrets.outputs.run == 'true'
+        env:
+          # The eBay keys exist ONLY in this step's environment.
+          EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
+          EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
+          EBAY_DAILY_CAP: ${{ vars.EBAY_DAILY_CAP || '1500' }}
+          EBAY_RUN_CAP: ${{ vars.EBAY_RUN_CAP || '1500' }}
+          EBAY_SWEEP_CALLS: ${{ vars.EBAY_SWEEP_CALLS || '1200' }}
+          EBAY_LISTING_MAX_AGE_HOURS: ${{ vars.EBAY_LISTING_MAX_AGE_HOURS }}
+          # The affiliate links the importer stores carry this campaign id; it must equal the website's (Vercel) value.
+          NEXT_PUBLIC_EBAY_CAMPAIGN_ID: ${{ vars.NEXT_PUBLIC_EBAY_CAMPAIGN_ID }}
+          ONLY: ${{ inputs.only }}
+          DRY: ${{ inputs.dry_run }}
+          FORCE: ${{ inputs.force }}
+          PROBE: ${{ inputs.probe }}
+        run: |
+          if [ "$PROBE" = "true" ]; then npx tsx scripts/ebay-sweep-probe.ts --pages 2 --max-calls 60; exit 0; fi
+          args=()
+          if [ -n "$ONLY" ]; then args+=(--only "$ONLY"); fi
+          if [ "$DRY" = "true" ]; then args+=(--dry-run); fi
+          if [ "$FORCE" = "true" ]; then args+=(--force); fi
+          npx tsx scripts/ebay-import.ts "${args[@]}"
+
+      # The site reads these files, not the database (src/lib/public-data/): export every public table and
+      # commit it to main, which is the release that puts this import's prices live.
+      - name: Export the public data
+        if: steps.secrets.outputs.run == 'true' && inputs.dry_run != true && inputs.probe != true
+        run: npx tsx scripts/export-public-data.ts
+
+      - name: Publish it to main
+        if: steps.secrets.outputs.run == 'true' && inputs.dry_run != true && inputs.probe != true
+        run: bash scripts/publish-public-data.sh "ebay-import.yml run ${{ github.run_id }}"

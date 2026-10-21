@@ -71,12 +71,12 @@ function assertTitleRule(t: HubTitle, label: string) {
 
 // ─── Titles ────────────────────────────────────────────────────────────────────
 
-test("hubTitle: absolute exactly when the title and ' | DexCompare' pass 65 characters", () => {
-  assert.equal(TITLE_SUFFIX, " | DexCompare");
+test("hubTitle: absolute exactly when the title and ' | MTG Compare' pass 65 characters", () => {
+  assert.equal(TITLE_SUFFIX, " | MTG Compare");
   const fits = "x".repeat(TITLE_MAX - TITLE_SUFFIX.length);
   assert.equal(hubTitle(fits), fits);
   assert.deepEqual(hubTitle(`${fits}y`), { absolute: `${fits}y` });
-  assert.equal(renderedTitle(fits), `${fits} | DexCompare`);
+  assert.equal(renderedTitle(fits), `${fits} | MTG Compare`);
   assert.equal(renderedTitle({ absolute: "A long one" }), "A long one");
 });
 
@@ -127,7 +127,7 @@ test("typeTitle: typeName in the title (no 'Pokémon Pokémon Center…'), live 
   assert.equal(renderedTitle(t), "Pokémon Center Elite Trainer Boxes in Australia — from A$129.95, 7 in stock");
   assert.doesNotMatch(renderedTitle(t), /Pokémon Pokémon/);
   assert.equal(renderedTitle(typeTitle(TYPE_BY_SLUG.get("booster-boxes")!, REGIONS.us, 120, 8999)), "Pokémon Booster Boxes in the US — from $89.99, 120 in stock");
-  assert.equal(renderedTitle(typeTitle(TYPE_BY_SLUG.get("tins")!, REGIONS.nz, 0, null)), "Pokémon Tins in New Zealand — prices & stock | DexCompare");
+  assert.equal(renderedTitle(typeTitle(TYPE_BY_SLUG.get("tins")!, REGIONS.nz, 0, null)), "Pokémon Tins in New Zealand — prices & stock | MTG Compare");
   for (const ty of PRODUCT_TYPES) for (const r of REGION_LIST) for (const [open, from] of [[0, null], [3, 999], [1234, 123456]] as const) assertTitleRule(typeTitle(ty, r, open, from), `${ty.slug}/${r.region}`);
 });
 
@@ -302,7 +302,7 @@ test("topStores: the most in stock, read within 72 hours, at most ten", () => {
 
 // ─── The calendar file ─────────────────────────────────────────────────────────
 
-const DELTA = { code: "me6", name: "Delta Reign", date: "2026-11-06", url: "https://www.dexcompare.app/au/sets/delta-reign", stamp: new Date("2026-10-14T09:30:00Z") };
+const DELTA = { code: "me6", name: "Delta Reign", date: "2026-11-06", url: "https://mtgcompare.app/au/sets/delta-reign", stamp: new Date("2026-10-14T09:30:00Z") };
 
 test("buildIcs: the exact file (golden)", () => {
   assert.equal(
@@ -310,18 +310,18 @@ test("buildIcs: the exact file (golden)", () => {
     [
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
-      "PRODID:-//DexCompare//Pokemon TCG release dates//EN",
+      "PRODID:-//MTG Compare//Pokemon TCG release dates//EN",
       "CALSCALE:GREGORIAN",
       "METHOD:PUBLISH",
       "BEGIN:VEVENT",
-      "UID:me6-release@dexcompare.app",
+      "UID:me6-release@mtgcompare.app",
       "DTSTAMP:20261014T093000Z",
       "DTSTART;VALUE=DATE:20261106",
       "DTEND;VALUE=DATE:20261107",
       "SUMMARY:Pokémon TCG Delta Reign release (English)",
-      "DESCRIPTION:Compare Delta Reign prices: https://www.dexcompare.app/au/sets/",
+      "DESCRIPTION:Compare Delta Reign prices: https://mtgcompare.app/au/sets/",
       " delta-reign",
-      "URL:https://www.dexcompare.app/au/sets/delta-reign",
+      "URL:https://mtgcompare.app/au/sets/delta-reign",
       "TRANSP:TRANSPARENT",
       "END:VEVENT",
       "END:VCALENDAR",
@@ -366,15 +366,15 @@ test("buildIcs parses back: an all-day event on the release date, ending the nex
   assert.equal(calendar.get("VERSION"), "2.0");
   assert.ok(calendar.get("PRODID"));
   for (const p of ["UID", "DTSTAMP", "DTSTART", "DTEND", "SUMMARY"]) assert.ok(event.has(p), p);
-  assert.equal(event.get("UID")!.value, "me6-release@dexcompare.app");
+  assert.equal(event.get("UID")!.value, "me6-release@mtgcompare.app");
   assert.match(event.get("DTSTAMP")!.value, /^\d{8}T\d{6}Z$/);
   assert.deepEqual(event.get("DTSTART"), { params: ";VALUE=DATE", value: "20261106" });
   assert.deepEqual(event.get("DTEND"), { params: ";VALUE=DATE", value: "20261107" });
   assert.equal(unescapeText(event.get("SUMMARY")!.value), "Pokémon TCG Delta Reign release (English)");
-  assert.equal(unescapeText(event.get("DESCRIPTION")!.value), "Compare Delta Reign prices: https://www.dexcompare.app/au/sets/delta-reign");
+  assert.equal(unescapeText(event.get("DESCRIPTION")!.value), "Compare Delta Reign prices: https://mtgcompare.app/au/sets/delta-reign");
   assert.equal(event.get("URL")!.value, DELTA.url);
   // Every set's file parses, and a name with the TEXT specials survives the round trip.
-  for (const s of SETS) parseIcs(buildIcs({ code: s.code, name: s.name, date: s.releaseDate, url: `https://www.dexcompare.app/us/sets/${s.slug}` }));
+  for (const s of SETS) parseIcs(buildIcs({ code: s.code, name: s.name, date: s.releaseDate, url: `https://mtgcompare.app/us/sets/${s.slug}` }));
   const odd = parseIcs(buildIcs({ ...DELTA, name: "Scarlet & Violet, Base; \\Set" }));
   assert.equal(unescapeText(odd.event.get("SUMMARY")!.value), "Pokémon TCG Scarlet & Violet, Base; \\Set release (English)");
 });

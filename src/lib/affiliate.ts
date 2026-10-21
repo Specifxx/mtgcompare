@@ -1,7 +1,7 @@
 // Outbound links. The site earns only through affiliate links, and only two:
 //   • eBay Partner Network: plain SEARCH links (the header item, the product page's marketplace
 //     rows, the strips' "See all" and compact CTA) and LISTING links. The listings are imported
-//     once a day by a GitHub Actions job with DexCompare's own Browse API keys
+//     once a day by a GitHub Actions job with MTG Compare's own Browse API keys
 //     (scripts/ebay-import.ts, lib/ebay-api.ts) and stored in our database; the website never
 //     calls eBay and holds no eBay credential. Listing links carry eBay's own affiliate URL
 //     (campaign below) exactly as eBay returned it (listingHref only validates); its customid is set per feed at import time.
@@ -73,7 +73,7 @@ export type Placement = (typeof PLACEMENTS)[number];
 
 // Both networks give us one free-text field per click, and it is the only way
 // to learn WHERE revenue comes from. Format: dex-<region>-<placement>, e.g.
-// `dex-au-product-marketplace`. Sanitised hard (from Rift Compare): EPN silently
+// `mtg-au-product-marketplace`. Sanitised hard (from Rift Compare): EPN silently
 // drops a click whose customid holds anything outside a conservative set, and a
 // dropped click looks exactly like no revenue. 60 chars is well inside both
 // EPN's and Impact's limits.
@@ -90,7 +90,7 @@ export function affiliateSubId(...parts: (string | null | undefined)[]): string 
 }
 
 function subId(region: Region, placement: Placement): string {
-  return affiliateSubId("dex", region, placement);
+  return affiliateSubId("mtg", region, placement);
 }
 
 // A product or set name as a search query. Product names are store titles, so
@@ -146,22 +146,24 @@ const EBAY_FOR_REGION: Record<Region, string> = {
   sg: "www.ebay.com",
 };
 
+const MTG_WORD = /\bmtg\b|\bmagic\b/i;
+
 /**
- * An EPN-tagged eBay Buy It Now search for Pokémon sealed product, on the
+ * An EPN-tagged eBay Buy It Now search for Magic: The Gathering sealed product, on the
  * region's eBay site. `name` is a product, set or type name, or "" for any.
  */
 export function ebaySearchUrl(name: string, region: Region, placement: Placement): string {
   const terms = searchTerms(name);
-  return epnSearch(/\bpokemon\b/i.test(terms) ? `${terms} sealed` : `Pokemon ${terms} sealed`, region, placement);
+  return epnSearch(MTG_WORD.test(terms) ? `${terms} sealed` : `MTG ${terms} sealed`.replace(/\s+/g, " "), region, placement);
 }
 
 /**
- * The same tagged Buy It Now search for a single CARD (the chase-card tiles): "Pokemon
+ * The same tagged Buy It Now search for a single CARD (the chase-card tiles): "MTG
  * <query>", with no "sealed" in it. `query` is a card name, set and number.
  */
 export function ebayCardSearchUrl(query: string, region: Region, placement: Placement): string {
   const terms = searchTerms(query);
-  return epnSearch(/\bpokemon\b/i.test(terms) ? terms : `Pokemon ${terms}`, region, placement);
+  return epnSearch(MTG_WORD.test(terms) ? terms : `MTG ${terms}`, region, placement);
 }
 
 function epnSearch(q: string, region: Region, placement: Placement): string {
@@ -278,7 +280,7 @@ export interface EbayBannerCreative {
   alt: string;
 }
 
-const BANNER_DEFAULT = { width: 728, height: 90, alt: "Shop Pokémon sealed on eBay (advertisement)" };
+const BANNER_DEFAULT = { width: 728, height: 90, alt: "Shop Magic: The Gathering sealed on eBay (advertisement)" };
 
 function httpsUrl(raw: string | undefined): URL | null {
   const v = (raw ?? "").trim();
@@ -359,13 +361,12 @@ export const EBAY_BANNER: EbayBannerCreative | null = parseEbayBanner({
 export const TCGPLAYER_IMPACT_LINK = process.env.NEXT_PUBLIC_TCGPLAYER_IMPACT_LINK || "https://partner.tcgplayer.com/c/7385758/1780961/21018";
 
 // Impact's site-ownership tokens for this account's promotional properties. The
-// first is the one every CompareEmpire site renders (and the old DexCompare did on
-// this domain); the second is the token Impact issued for this site's own
-// property. Both are rendered, so neither verification lapses while Impact
+// first is the one every CompareEmpire site renders; the second is the token
+// Impact issued for mtgcompare.app. Both are rendered, so neither verification lapses while Impact
 // re-checks a property for its token. Rendered by app/layout.tsx.
 export const IMPACT_SITE_VERIFICATIONS: readonly string[] = [
   "ebb0400c-dec0-45ae-a56e-e7bb1596e965",
-  "f20df7de-d054-4571-b9bc-8777b2eafcdf",
+  "a11ca5e9-2699-42c9-bf8d-09074aae9cec", // MTG Compare's own Impact property (the old singles site rendered it)
 ];
 
 // TCGPLAYER.key in stores.ts. Not imported from there: stores.ts pulls in the
@@ -399,16 +400,15 @@ export function tcgplayerAffiliateUrl(url: string, region: Region, placement: Pl
 }
 
 /**
- * A TCGplayer search for Pokémon sealed product, wrapped. For when we have no
+ * A TCGplayer search for Magic sealed product, wrapped. For when we have no
  * matched TCGplayer product: `name` is the product, set or type name ("" = all
- * Pokémon sealed). TCGplayer is a US marketplace whatever the region.
+ * Magic sealed). TCGplayer is a US marketplace whatever the region.
  */
 export function tcgplayerSearchUrl(name: string, region: Region, placement: Placement): string {
-  const u = new URL("https://www.tcgplayer.com/search/pokemon/product");
-  u.searchParams.set("productLineName", "pokemon");
-  // The product line already says Pokémon; the word itself only narrows the
-  // match. Except in "Pokémon Center", which names a product.
-  const q = searchTerms(name).replace(/\bpokemon\b(?! center)/gi, " ").replace(/\s+/g, " ").trim();
+  const u = new URL("https://www.tcgplayer.com/search/magic/product");
+  u.searchParams.set("productLineName", "magic");
+  // The product line already says Magic; the words only narrow the match.
+  const q = searchTerms(name).replace(/\b(?:mtg|magic(?:\s*:?\s*the\s+gathering)?)\b/gi, " ").replace(/\s+/g, " ").trim();
   if (q) u.searchParams.set("q", q);
   u.searchParams.set("view", "grid");
   u.searchParams.set("ProductTypeName", "Sealed Products");

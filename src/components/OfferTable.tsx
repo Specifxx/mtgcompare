@@ -13,7 +13,7 @@ import { StockPill } from "./StockPill";
 
 // The region's offers, ranked (in the US that includes TCGplayer's, badged as a marketplace), and, with `ebay`, ONE eBay row among
 // them: the product's lowest-priced own eBay listing, ranked by its price among the stores you can buy from now, tinted, labelled "Ad",
-// with eBay's blue button (EbayStrip.tsx OfferRowsWithEbay, lib/ebay-offer-row.ts). The owner's call: DexCompare compares websites, and
+// with eBay's blue button (EbayStrip.tsx OfferRowsWithEbay, lib/ebay-offer-row.ts). The owner's call: MTG Compare compares websites, and
 // eBay is one. When the eBay listing is cheaper than every store you can buy from it is the best price ("Best price" on it, "Best store
 // price" on the cheapest store, and the product page's best-price card shows it: BestPriceCard.tsx); nothing counts it (the title's store
 // count, the median).
@@ -122,7 +122,7 @@ export function OfferTable({
         <p>
           Prices are each store&rsquo;s own, in {r.currency}, read from their public product listings about twice a day; each row says when.
           &ldquo;Not checked recently&rdquo; means we couldn&rsquo;t read that store for over three days, so its stock is unknown. No store pays
-          to be listed or to rank higher: <Link href="/about" prefetch={false} className="underline underline-offset-2 hover:text-ink">how DexCompare works</Link>.
+          to be listed or to rank higher: <Link href="/about" prefetch={false} className="underline underline-offset-2 hover:text-ink">how MTG Compare works</Link>.
           {offers.some((o) => o.marketplace) && " TCGplayer is a marketplace of many sellers; it ranks by price and stock like any store, and its link is an affiliate link."}
         </p>
         {ebay && <p>{ebayRowNote(region).trim()}</p>}

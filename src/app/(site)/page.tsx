@@ -21,7 +21,7 @@ const DESCRIPTION = `Compare Pokémon sealed prices and stock across ${STORES.le
 
 /**
  * The landing page's metadata. hreflang: the seven region homes, and x-default this page, the region chooser that every region
- * home names as its own x-default (seo.ts regionAlternates): the return links. `absolute`: the layout's "%s | DexCompare" template
+ * home names as its own x-default (seo.ts regionAlternates): the return links. `absolute`: the layout's "%s | MTG Compare" template
  * would brand it twice. The share card is the site's (app/opengraph-image.tsx).
  */
 export const metadata: Metadata = {
@@ -55,7 +55,7 @@ const HOW: { icon: IconName; t: string; d: string }[] = [
 // The landing page's FAQ: what a first-time visitor (and a crawler) asks, answered from the same facts the page already states.
 const FAQ: { q: string; a: string }[] = [
   {
-    q: "What is DexCompare?",
+    q: "What is MTG Compare?",
     a: `A free price-comparison site for English-language Pokémon TCG sealed product: booster boxes, Elite Trainer Boxes, booster bundles, collections, tins and more. It reads ${STORES.length} independent stores in ${REGION_LIST.length} regions and ranks every product's listings in stock first, cheapest first.`,
   },
   {
@@ -63,8 +63,8 @@ const FAQ: { q: string; a: string }[] = [
     a: "About twice a day. Every listing says when it was last read, and a store that hasn’t answered for three days is marked as not checked recently, never guessed.",
   },
   {
-    q: "Does DexCompare sell cards?",
-    a: "No. Every buy button goes to the store’s own website, and you buy from the store. DexCompare keeps no accounts and asks for no email.",
+    q: "Does MTG Compare sell cards?",
+    a: "No. Every buy button goes to the store’s own website, and you buy from the store. MTG Compare keeps no accounts and asks for no email.",
   },
   {
     q: "Do stores pay to be listed?",
@@ -76,7 +76,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "Why can’t I find singles or Japanese product?",
-    a: "DexCompare compares English-language sealed product only, so every product page compares like with like. Singles, graded cards, Japanese product, accessories and store-made bundles are left out on purpose.",
+    a: "MTG Compare compares English-language sealed product only, so every product page compares like with like. Singles, graded cards, Japanese product, accessories and store-made bundles are left out on purpose.",
   },
 ];
 

@@ -1,4 +1,4 @@
-// Value discovery (src/lib/deals.ts): the deals bar, the per-pack ranking, below US MSRP, the "new on DexCompare" bulk-day guard,
+// Value discovery (src/lib/deals.ts): the deals bar, the per-pack ranking, below US MSRP, the "new on MTG Compare" bulk-day guard,
 // the deals page's sections and the copy the deals / cheapest-packs / this-week / region home pages print. Pure parts only, with
 // fixtures; the pages' sources are checked for the rules every new route follows (ISR, one strip, capped reads).
 import { test } from "node:test";
@@ -161,7 +161,7 @@ test("pickBelowMsrp: under the set's MSRP (but not under half of it), furthest u
   assert.deepEqual(pickBelowMsrp([at, under, swsh, coll, half, sold, boxUnder]).map((p) => p.slug), ["box", "under"]);
 });
 
-// ─── New on DexCompare ──────────────────────────────────────────────────────────
+// ─── New on MTG Compare ──────────────────────────────────────────────────────────
 
 test("newlyTrackedFilter: the last 14 whole days, minus every day with 200+ creations (imports, re-groupings), newest first", () => {
   const now = new Date("2026-10-14T09:00:00Z");
@@ -249,11 +249,11 @@ test("deals, cheapest-packs, this-week and home copy: never a history, urgency o
   assert.match(RRP_NOTE, /MSRP/);
 });
 
-test("fitTitle: the ' | DexCompare' template when the whole fits in 65 characters, else the title alone", () => {
+test("fitTitle: the ' | MTG Compare' template when the whole fits in 65 characters, else the title alone", () => {
   for (const r of REGION_LIST) {
     for (const t of [dealsCopy.title(r), packsCopy.title(r), digestCopy.title(r), homeCopy.title(r, 68)]) {
       const fit = fitTitle(t);
-      const shown = typeof fit === "string" ? `${fit} | DexCompare` : fit.absolute;
+      const shown = typeof fit === "string" ? `${fit} | MTG Compare` : fit.absolute;
       assert.ok(typeof fit === "string" ? shown.length <= 65 : t.length + 13 > 65, `${r.region}: ${shown}`);
       assert.match(shown, /Pokémon/);
     }

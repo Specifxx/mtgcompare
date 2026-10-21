@@ -15,7 +15,7 @@ export function useSuggestedRegion(): { known: boolean; region: Region | null } 
   useEffect(() => {
     let saved: string | null = null;
     try {
-      saved = localStorage.getItem("dex-region");
+      saved = localStorage.getItem("mtg-region");
     } catch {
       /* storage blocked */
     }

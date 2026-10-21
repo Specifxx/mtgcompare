@@ -15,9 +15,9 @@ const onSite = (entries: { url: string }[]) => {
   }
 };
 
-test("SITE_URL has no trailing slash and defaults to www.dexcompare.app", () => {
+test("SITE_URL has no trailing slash and defaults to mtgcompare.app", () => {
   assert.ok(!SITE_URL.endsWith("/"));
-  if (!process.env.NEXT_PUBLIC_SITE_URL) assert.equal(SITE_URL, "https://www.dexcompare.app");
+  if (!process.env.NEXT_PUBLIC_SITE_URL) assert.equal(SITE_URL, "https://mtgcompare.app");
 });
 
 test("sitemap ids: 0 = static, 1..7 = REGION_LIST order", () => {

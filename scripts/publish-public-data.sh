@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Commits apps/dexcompare-sealed/data/public/ (just written by scripts/export-public-data.ts) to main and pushes it. With the second
+# Commits data/public/ (just written by scripts/export-public-data.ts) to main and pushes it. With the second
 # argument "release", that commit is what puts the new prices live: its subject carries [deploy], so Vercel builds it
 # (scripts/vercel-ignore-build.sh) and the build bundles the files the site reads. Without it (the eBay import) the commit rides the
 # next release, which carries the newest snapshot anyway: production builds once per sealed import, twice a day, not once per
@@ -10,12 +10,12 @@
 # aside, main is fetched again, the files go back on top and the push is retried. A snapshot is a whole-database export, so the
 # latest one simply wins.
 set -euo pipefail
-DIR="apps/dexcompare-sealed/data/public"
+DIR="data/public"
 WHY="${1:-export}"
 MARK=""
 [ "${2:-}" = "release" ] && MARK=" [deploy]"
-git config user.name "dexcompare-data[bot]"
-git config user.email "dexcompare-data@users.noreply.github.com"
+git config user.name "mtgcompare-data[bot]"
+git config user.email "mtgcompare-data@users.noreply.github.com"
 if git diff --quiet -- "$DIR" && [ -z "$(git ls-files --others --exclude-standard -- "$DIR")" ]; then
   echo "[publish] data/public unchanged — nothing to commit."
   exit 0
@@ -33,7 +33,7 @@ for attempt in 1 2 3 4 5; do
     echo "[publish] main already has this snapshot."
     exit 0
   fi
-  git commit -q -m "DexCompare data: $(date -u +%Y-%m-%dT%H:%MZ) ($WHY)$MARK" -m "Public data export (apps/dexcompare-sealed/data/public/), the files the site reads instead of the database."
+  git commit -q -m "MTG Compare data: $(date -u +%Y-%m-%dT%H:%MZ) ($WHY)$MARK" -m "Public data export (data/public/), the files the site reads instead of the database."
   if git push -q origin HEAD:main; then
     echo "[publish] pushed $(git rev-parse --short HEAD) on attempt $attempt."
     exit 0

@@ -10,11 +10,11 @@
   --ink: 21 23 28;
   --muted: 92 96 108;
   --faint: 100 104 115; /* 5.2:1 on --bg, 5.6:1 on --surface (WCAG AA for small text) */
-  --brand: 210 48 10; /* Dex red; white on it is 5.0:1, and it reads at 4.7:1 on --bg */
+  --brand: 122 46 196; /* MTG Compare amethyst (Arcane Ink); white on it is 7.2:1, and it reads at 6.6:1 on --bg */
   --brand-ink: 255 255 255;
-  --brand-soft: 253 236 231;
-  --brand-strong: 180 40 8; /* brand as TEXT on --brand-soft (5.6:1) and on --surface (6.5:1): chips and .btn-soft, where --brand is 4.4:1 */
-  --spark: 255 203 5; /* used sparingly: highlights only */
+  --brand-soft: 240 232 252;
+  --brand-strong: 100 32 166; /* brand as TEXT on --brand-soft and on --surface: chips and .btn-soft */
+  --spark: 212 168 72; /* brass, used sparingly: highlights only */
   --open: 20 118 56; /* 5.0:1 on --open-soft, 5.7:1 on --surface: the 12px stock pill is AA */
   --open-soft: 226 245 232;
   --sold: 100 104 115; /* 4.8:1 on --sold-soft: the 12px sold-out pill is AA */
@@ -46,10 +46,10 @@
     --ink: 238 238 241;
     --muted: 166 170 181;
     --faint: 140 144 156; /* 6.0:1 on --bg, 5.6:1 on --surface */
-    --brand: 255 94 58;
-    --brand-ink: 20 10 6;
-    --brand-soft: 58 26 18;
-    --brand-strong: 255 140 110; /* 6.9:1 on --brand-soft, 7.8:1 on --surface */
+    --brand: 195 148 244;
+    --brand-ink: 18 10 32;
+    --brand-soft: 44 30 72;
+    --brand-strong: 214 186 250; /* on --brand-soft and on --surface */
     --open: 74 206 120;
     --open-soft: 20 48 30;
     --sold: 150 154 164;

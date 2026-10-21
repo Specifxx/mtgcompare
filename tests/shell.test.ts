@@ -45,9 +45,9 @@ const hrefs = (html: string) => [...html.matchAll(/href="([^"]*)"/g)].map((m) =>
 
 // ─── Footer ──────────────────────────────────────────────────────────────────
 
-test("Footer on a region page: Shop, Latest sets, Explore and DexCompare, then the regions; every link internal", () => {
+test("Footer on a region page: Shop, Latest sets, Explore and MTG Compare, then the regions; every link internal", () => {
   const html = render(React.createElement(Footer, { region: "au" }));
-  for (const t of ["Shop", "Latest sets", "Explore", "DexCompare"]) assert.match(html, new RegExp(`<h2 class="eyebrow mb-2">${t}</h2>`), t);
+  for (const t of ["Shop", "Latest sets", "Explore", "MTG Compare"]) assert.match(html, new RegExp(`<h2 class="eyebrow mb-2">${t}</h2>`), t);
   const links = hrefs(html);
   for (const h of [
     "/au/type/booster-boxes",
@@ -82,7 +82,7 @@ test("Footer on a region page: Shop, Latest sets, Explore and DexCompare, then t
   assert.equal(footerColumns("au").length, 4);
 });
 
-test("Footer: no mailto (Contact goes to /contact), the two-line disclosure, and no 'operated by DexCompare'", () => {
+test("Footer: no mailto (Contact goes to /contact), the two-line disclosure, and no 'operated by MTG Compare'", () => {
   for (const region of ["us", null] as const) {
     const html = render(React.createElement(Footer, { region }));
     assert.doesNotMatch(html, /mailto:/i);
@@ -91,16 +91,16 @@ test("Footer: no mailto (Contact goes to /contact), the two-line disclosure, and
     assert.match(html, /How we make money/);
     assert.match(html, /Prices and stock are read from each store about twice a day; the store’s own page is final\./);
     assert.equal(findBannedCopy(html.replace(/<[^>]+>/g, " ")), null);
-    if (OPERATOR === SITE_NAME) assert.doesNotMatch(html, /operated by/i, "never the circular 'DexCompare is operated by DexCompare'");
+    if (OPERATOR === SITE_NAME) assert.doesNotMatch(html, /operated by/i, "never the circular 'MTG Compare is operated by MTG Compare'");
   }
   assert.match(src("components/Footer.tsx"), /OPERATOR !== SITE_NAME && ` Operated by \$\{OPERATOR\}\.`/);
 });
 
-test("Footer with no region: Regions and DexCompare columns only, and no region-scoped link", () => {
+test("Footer with no region: Regions and MTG Compare columns only, and no region-scoped link", () => {
   const html = render(React.createElement(Footer, { region: null }));
   assert.deepEqual(
     footerColumns(null).map((c) => c.title),
-    ["Regions", "DexCompare"],
+    ["Regions", "MTG Compare"],
   );
   assert.doesNotMatch(html, /Latest sets|>Shop<|>Explore</);
   const links = hrefs(html);

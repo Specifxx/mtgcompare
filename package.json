@@ -1,8 +1,8 @@
 {
-  "name": "dexcompare-sealed",
+  "name": "mtgcompare",
   "version": "1.0.0",
   "private": true,
-  "description": "DexCompare — compare Pokémon TCG sealed product prices and stock across independent stores.",
+  "description": "MTG Compare — compare Magic: The Gathering sealed product prices and stock across independent stores.",
   "scripts": {
     "dev": "next dev -p 3003",
     "build": "prisma generate && next build",

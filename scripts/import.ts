@@ -7,7 +7,7 @@
 //
 // Env: DATABASE_URL (required); NEXT_PUBLIC_SITE_URL + REVALIDATE_SECRET
 // (refresh the live pages).
-process.env.DEXCOMPARE_SCRIPT = "1";
+process.env.MTGCOMPARE_SCRIPT = "1";
 
 import { appendFileSync } from "node:fs";
 import { runImport } from "../src/lib/importer";
@@ -42,9 +42,9 @@ async function revalidate(): Promise<string> {
 
 // Fewer product URLs than this across every region's sitemap means the live
 // sitemap is broken (a failed query, a stale copy, the wrong database), not
-// quiet: the local import lists ~8,000. A full import is the only run that can
+// quiet (MTG Compare's catalogue is smaller than DexCompare's ~8,000: the floor is 200). A full import is the only run that can
 // judge it, so --only runs skip the check.
-const MIN_SITEMAP_PRODUCTS = 1000;
+const MIN_SITEMAP_PRODUCTS = 200;
 
 /**
  * After the pages are refreshed, read the live sitemap index and count product
@@ -54,14 +54,20 @@ const MIN_SITEMAP_PRODUCTS = 1000;
  */
 async function checkLiveSitemap(): Promise<string | null> {
   const get = async (url: string) => {
-    const res = await fetch(url, { headers: { "user-agent": "dexcompare-import sitemap check" }, signal: AbortSignal.timeout(60_000) });
+    const res = await fetch(url, { headers: { "user-agent": "mtgcompare-import sitemap check" }, signal: AbortSignal.timeout(60_000) });
     if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
     return res.text();
   };
   try {
     const index = await get(`${SITE_URL}/sitemap.xml`);
     const files = [...index.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]).filter((u) => /\/sitemap\/\d+\.xml$/.test(u));
-    if (!files.length) return `${SITE_URL}/sitemap.xml is not a sitemap index (no /sitemap/<n>.xml entries).`;
+    // Not this site's sitemap shape (the old singles site's, before the first sealed release is live): nothing to judge yet. The
+    // check always reads the PREVIOUS release (this import's data goes live with its own commit), so it must never block the
+    // export that would fix it.
+    if (!files.length) {
+      console.log(`::warning::${SITE_URL}/sitemap.xml is not a sitemap index (no /sitemap/<n>.xml entries) — not checked.`);
+      return null;
+    }
     let products = 0;
     const counts: string[] = [];
     for (const f of files) {
@@ -106,7 +112,7 @@ async function main() {
   // "N stores" counts independent stores only; a marketplace is reported by name.
   const marketplaces = summary.marketplaces.map((m) => `${m.name} ${m.ok ? `read (${m.offers} offers)` : "NOT read"}`);
   const lines = [
-    `## DexCompare import`,
+    `## MTG Compare import`,
     ``,
     [
       ...(summary.stores ? [`${summary.ok}/${summary.stores} stores read`] : []),
@@ -146,7 +152,9 @@ async function main() {
   // 72 hours and are pruned after 14 days, and it is the site's income.
   for (const m of summary.marketplaces) {
     const age = m.lastOkAt ? Date.now() - m.lastOkAt.getTime() : Infinity;
-    if (!m.ok && age > MARKETPLACE_STALE_MS) {
+    // Never read at all (a first run) is the warning above, not a red run: failing here would stop the export that publishes the
+    // stores' prices.
+    if (!m.ok && m.lastOkAt && age > MARKETPLACE_STALE_MS) {
       problems.push(`${m.name} has not been read for ${m.lastOkAt ? `${Math.round(age / 3600_000)} hours` : "any run yet"} (last error: ${m.error ?? "?"}).`);
     }
   }

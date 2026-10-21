@@ -326,15 +326,15 @@ test("recently viewed: most recent first, deduped, at most 12, per region", () =
     rememberRecent("us", slug, s);
   }
   assert.deepEqual(readRecent("us", s), ["surging-sparks-booster-box", "pitch-black-booster-box", "prismatic-evolutions-elite-trainer-box"]);
-  assert.equal(recentKey("us"), "dex-recent-us");
-  assert.ok(s.data.has("dex-recent-us"));
+  assert.equal(recentKey("us"), "mtg-recent-us");
+  assert.ok(s.data.has("mtg-recent-us"));
   assert.deepEqual(readRecent("au", s), [], "each region keeps its own list");
   // Junk in storage is ignored, never trusted: non-strings, odd slugs and duplicates go.
-  s.data.set("dex-recent-uk", JSON.stringify(["ok-slug", 7, "<script>", "ok-slug", "../x", null]));
+  s.data.set("mtg-recent-uk", JSON.stringify(["ok-slug", 7, "<script>", "ok-slug", "../x", null]));
   assert.deepEqual(readRecent("uk", s), ["ok-slug"]);
-  s.data.set("dex-recent-uk", "{not json");
+  s.data.set("mtg-recent-uk", "{not json");
   assert.deepEqual(readRecent("uk", s), []);
-  s.data.set("dex-recent-uk", JSON.stringify({ a: 1 }));
+  s.data.set("mtg-recent-uk", JSON.stringify({ a: 1 }));
   assert.deepEqual(readRecent("uk", s), []);
   clearRecent("us", s);
   assert.deepEqual(readRecent("us", s), []);

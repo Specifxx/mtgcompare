@@ -2,19 +2,22 @@
 // every canonical, hreflang, JSON-LD, robots and sitemap URL is built on it, so
 // a wrong value here is a wrong value in every one of them. NEXT_PUBLIC_SITE_URL
 // in Vercel overrides the default; DEPLOY.md, "Domains" says what to set.
-export const SITE_NAME = "DexCompare";
-export const SITE_URL = normaliseOrigin(process.env.NEXT_PUBLIC_SITE_URL) ?? "https://www.dexcompare.app";
+export const SITE_NAME = "MTG Compare";
+export const SITE_URL = normaliseOrigin(process.env.NEXT_PUBLIC_SITE_URL) ?? "https://mtgcompare.app";
 // The mailbox the contact, terms and privacy pages (and the scrapers' From header) give. The fallback is a legacy
 // address from another brand that still reaches the owner: it stays only so those pages keep a working address until
 // NEXT_PUBLIC_CONTACT_EMAIL is set. Site chrome never prints it: the footer links to /contact, and shows an address only
 // when one has been set on purpose (CONTACT_EMAIL_SET).
 export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "riftcompare@gmail.com";
 export const CONTACT_EMAIL_SET: string | null = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || null;
-export const SITE_TAGLINE = "Pokémon sealed prices and stock, compared across independent stores.";
+export const SITE_TAGLINE = "Magic: The Gathering sealed prices and stock, compared across independent stores.";
 
 // Who runs the site, for the Terms and the footer. Set NEXT_PUBLIC_OPERATOR in
 // Vercel to the trading name (a person or a company); until then the site name
 // stands in. Nothing here invents a legal entity or an address.
+// Wizards of the Coast's Fan Content Policy wording, shown in the footer and on /about.
+export const FAN_CONTENT_DISCLAIMER = `${SITE_NAME} is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.`;
+
 export const OPERATOR = process.env.NEXT_PUBLIC_OPERATOR?.trim() || SITE_NAME;
 
 // The owner's other price-comparison sites, linked from the footer (owner's
@@ -23,7 +26,7 @@ export const OPERATOR = process.env.NEXT_PUBLIC_OPERATOR?.trim() || SITE_NAME;
 export const SISTER_SITES = [
   { name: "RiftCompare", url: "https://riftcompare.com", what: "Riftbound TCG card prices" },
   { name: "OP Compare", url: "https://opcompare.app", what: "One Piece Card Game prices" },
-  { name: "MTG Compare", url: "https://mtgcompare.app", what: "Magic: The Gathering prices" },
+  { name: "MTG Compare", url: "https://mtgcompare.app", what: "Pokémon TCG sealed prices" },
 ] as const;
 
 // Public profiles for Organization.sameAs (an X account, a Bluesky handle…).
@@ -54,7 +57,7 @@ export function sectionHref(region: string, key: SectionKey): string {
   return `/${region}${SECTION_PATHS[key]}`;
 }
 
-/** "https://www.dexcompare.app/" → "https://www.dexcompare.app"; garbage → null. */
+/** "https://mtgcompare.app/" → "https://mtgcompare.app"; garbage → null. */
 function normaliseOrigin(v: string | undefined): string | null {
   if (!v) return null;
   try {

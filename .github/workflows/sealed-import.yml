@@ -1,0 +1,134 @@
+name: MTG Compare sealed import
+
+# Reads every store in src/data/stores.json and TCGplayer's
+# Magic sealed catalogue (its public search API, ~60 requests, one a second,
+# no credentials; src/lib/tcgplayer.ts), replaces the current listings in the
+# MTG Compare database, then asks the live site to re-render its cached pages.
+# Twice a day. No eBay API calls: no eBay credentials are passed to this job at
+# all.
+#
+# Secrets (Settings → Secrets and variables → Actions):
+#   DATABASE_URL                     required: MTG Compare's Neon database (the same secret the old singles site used).
+#                                    The job uses its DIRECT host and its own Postgres schema, "sealed",
+#                                    so it never touches the old site's tables. SEALED_DATABASE_URL, when set, is used instead.
+#   REVALIDATE_SECRET     optional. Same value as REVALIDATE_SECRET in
+#                                    Vercel; without it pages refresh within 24h.
+# Variable (same page, "Variables" tab):
+#   SITE_URL              e.g. https://mtgcompare.app
+#
+
+on:
+  # A merge that changes the schema syncs it straight away (with a quick
+  # TCGplayer-only run that also recomputes every product's stats), so the
+  # deploy it triggers never renders against a database missing a column.
+  push:
+    branches: [main]
+    paths: ["prisma/schema.prisma"]
+  schedule:
+    # 20:47 UTC ≈ early morning in Australia/NZ; 08:47 UTC ≈ Europe's morning.
+    - cron: "47 20 * * *"
+    - cron: "47 8 * * *"
+  workflow_dispatch:
+    inputs:
+      # Store keys and markets; "tcgplayer" (or "US") includes TCGplayer.
+      only:
+        description: "Only these stores or markets, comma-separated (e.g. AU or pokebox,cherry). Blank = all."
+        required: false
+        default: ""
+
+concurrency:
+  group: mtgcompare-sealed-import
+  cancel-in-progress: false
+
+# Writes the public data snapshot to main after the import (scripts/publish-public-data.sh).
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Resolve the database
+        id: db
+        # SEALED_DATABASE_URL if set, else DATABASE_URL: its DIRECT host (no "-pooler") and the "sealed" schema go to every later
+        # step as DATABASE_URL, masked. The old singles site's tables live in the default schema and are never touched.
+        env:
+          SEALED: ${{ secrets.SEALED_DATABASE_URL }}
+          MAIN: ${{ secrets.DATABASE_URL }}
+        run: |
+          URL="${SEALED:-$MAIN}"
+          if [ -z "$URL" ]; then
+            echo "DATABASE_URL is not set — nothing to import into." >> "$GITHUB_STEP_SUMMARY"
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          else
+            DIRECT="$(printf '%s' "$URL" | sed -E 's/-pooler\././')"
+            case "$DIRECT" in
+              *schema=*) ;;
+              *\?*) DIRECT="$DIRECT&schema=sealed" ;;
+              *) DIRECT="$DIRECT?schema=sealed" ;;
+            esac
+            echo "::add-mask::$DIRECT"
+            echo "DATABASE_URL=$DIRECT" >> "$GITHUB_ENV"
+            echo "DB_SOURCE_NAME=$([ -n "$SEALED" ] && echo SEALED_DATABASE_URL || echo DATABASE_URL)" >> "$GITHUB_ENV"
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.db.outputs.found == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.db.outputs.found == 'true'
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install
+        if: steps.db.outputs.found == 'true'
+        run: npm ci --no-audit --no-fund
+
+      - name: Sync the schema
+        if: steps.db.outputs.found == 'true'
+        # No --accept-data-loss: a schema change that would drop data fails
+        # here, loudly, instead of quietly deleting it.
+        run: npx prisma db push --skip-generate && npx prisma generate
+
+      - name: Import
+        if: steps.db.outputs.found == 'true'
+        env:
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL || 'https://mtgcompare.app' }}
+          ONLY: ${{ github.event_name == 'push' && 'tcgplayer' || inputs.only }}
+          # The expired-eBay-listing purge at the end of the import uses the same age bound as the eBay import
+          # (a repository variable; blank = 26 hours).
+          EBAY_LISTING_MAX_AGE_HOURS: ${{ vars.EBAY_LISTING_MAX_AGE_HOURS }}
+        # Three stores at a time: Shopify throttles by IP across all of its
+        # storefronts, and a runner reading ten at once gets 429s from stores
+        # it has barely touched. TCGplayer is read first, in one of the three
+        # slots (~1.5 min, 15 min at most); a failed TCGplayer read keeps its
+        # previous rows and warns, and the job fails once TCGplayer has gone
+        # unread for 48 hours.
+        run: |
+          if [ -n "$ONLY" ]; then
+            npx tsx scripts/import.ts --concurrency 3 --only "$ONLY"
+          else
+            npx tsx scripts/import.ts --concurrency 3
+          fi
+
+      # The site reads these files, not the database (src/lib/public-data/): export every public table and
+      # commit it to main, which is the release that puts this import's prices live.
+      - name: Export the public data
+        if: steps.db.outputs.found == 'true'
+        run: npx tsx scripts/export-public-data.ts
+
+      - name: Publish it to main
+        if: steps.db.outputs.found == 'true'
+        # ONE RELEASE A DAY (owner, 2026-10-17: "reduce the cost"). The 20:47 UTC run (early morning in Australia,
+        # afternoon in the Americas), a manual run and the schema sync release ("release": the commit subject carries
+        # [deploy]); the 08:47 run commits its snapshot without the marker and it rides the next release, which carries a
+        # newer whole-database snapshot anyway. Every release empties Vercel's CDN; the 08:47 read still feeds the alerts.
+        env:
+          RELEASE: ${{ (github.event_name != 'schedule' || github.event.schedule == '47 20 * * *') && 'release' || '' }}
+        run: bash scripts/publish-public-data.sh "sealed-import.yml run ${{ github.run_id }}" $RELEASE

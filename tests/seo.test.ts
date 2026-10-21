@@ -1,19 +1,19 @@
-// The growth release's SEO contracts (src/lib/seo.ts): withPokemon for titles and H1s, the default share image, the guides'
+// The growth release's SEO contracts (src/lib/seo.ts): withMtg for titles and H1s, the default share image, the guides'
 // Article JSON-LD, and the product JSON-LD's description and condition.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { articleJsonLd, DEFAULT_OG_IMAGE, pageMeta, productJsonLd, withPokemon } from "../src/lib/seo";
+import { articleJsonLd, DEFAULT_OG_IMAGE, pageMeta, productJsonLd, withMtg } from "../src/lib/seo";
 import { SITE_NAME, SITE_URL } from "../src/lib/site";
 
-test("withPokemon: 'Pokémon ' in front, unless the name already says it (any case, accented or not)", () => {
-  assert.equal(withPokemon("Pitch Black"), "Pokémon Pitch Black");
-  assert.equal(withPokemon("Booster Boxes"), "Pokémon Booster Boxes");
-  assert.equal(withPokemon("Pokémon Center Elite Trainer Boxes"), "Pokémon Center Elite Trainer Boxes", "never 'Pokémon Pokémon Center…'");
-  assert.equal(withPokemon("pokemon center etb"), "pokemon center etb");
-  assert.equal(withPokemon("POKEMON 151 Booster Bundle"), "POKEMON 151 Booster Bundle");
-  assert.equal(withPokemon("Scarlet & Violet 151 Pokémon Card Collection"), "Scarlet & Violet 151 Pokémon Card Collection", "anywhere in the name");
-  assert.equal(withPokemon("Pokémon Center ETB"), "Pokémon Center ETB", "a decomposed é is still Pokémon");
-  assert.equal(withPokemon("Pokéball Tin"), "Pokémon Pokéball Tin", "Pokéball is not Pokémon");
+test("withMtg: 'Pokémon ' in front, unless the name already says it (any case, accented or not)", () => {
+  assert.equal(withMtg("Pitch Black"), "Pokémon Pitch Black");
+  assert.equal(withMtg("Booster Boxes"), "Pokémon Booster Boxes");
+  assert.equal(withMtg("Pokémon Center Elite Trainer Boxes"), "Pokémon Center Elite Trainer Boxes", "never 'Pokémon Pokémon Center…'");
+  assert.equal(withMtg("pokemon center etb"), "pokemon center etb");
+  assert.equal(withMtg("POKEMON 151 Booster Bundle"), "POKEMON 151 Booster Bundle");
+  assert.equal(withMtg("Scarlet & Violet 151 Pokémon Card Collection"), "Scarlet & Violet 151 Pokémon Card Collection", "anywhere in the name");
+  assert.equal(withMtg("Pokémon Center ETB"), "Pokémon Center ETB", "a decomposed é is still Pokémon");
+  assert.equal(withMtg("Pokéball Tin"), "Pokémon Pokéball Tin", "Pokéball is not Pokémon");
 });
 
 test("pageMeta: without an image, the site's share card (1200×630) and the large Twitter card; with one, that image", () => {
@@ -44,7 +44,7 @@ test("productJsonLd: an optional description, and every offer is NewCondition (s
   assert.ok(!("description" in productJsonLd({ ...base, description: null })));
 });
 
-test("articleJsonLd: headline, dates, mainEntityOfPage, and DexCompare (an Organization) as author and publisher", () => {
+test("articleJsonLd: headline, dates, mainEntityOfPage, and MTG Compare (an Organization) as author and publisher", () => {
   const a = articleJsonLd({ title: "How many packs are in Pokémon products?", description: "Pack counts…", path: "/au/guides/how-many-packs-in-pokemon-products", published: "2026-10-14", updated: "2026-10-20" });
   assert.equal(a["@context"], "https://schema.org");
   assert.equal(a["@type"], "Article");
@@ -61,5 +61,5 @@ test("articleJsonLd: headline, dates, mainEntityOfPage, and DexCompare (an Organ
     assert.equal(who.url, SITE_URL);
   }
   assert.equal(a.publisher.logo.url, `${SITE_URL}/logo.svg`);
-  assert.equal(articleJsonLd({ title: "t", description: "d", path: "/us/guides/x", published: "2026-01-01", updated: "2026-01-01", image: "https://www.dexcompare.app/x.png" }).image, "https://www.dexcompare.app/x.png");
+  assert.equal(articleJsonLd({ title: "t", description: "d", path: "/us/guides/x", published: "2026-01-01", updated: "2026-01-01", image: "https://mtgcompare.app/x.png" }).image, "https://mtgcompare.app/x.png");
 });

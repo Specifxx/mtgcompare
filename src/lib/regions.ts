@@ -1,4 +1,4 @@
-// The markets DexCompare compares within. A market is a region whose stores
+// The markets MTG Compare compares within. A market is a region whose stores
 // all charge in ONE currency, so "cheapest" is always a like-for-like number a
 // buyer there is actually offered. Pure module: safe in client components
 // (notFound() from next/navigation is itself usable on either side).

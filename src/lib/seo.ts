@@ -11,17 +11,16 @@ export function jsonLd(data: unknown): string {
 }
 
 /**
- * A name as a title or H1 says it: "Pokémon " in front, unless the name already says Pokémon (or Pokemon, any case, accented or
- * not): "Pitch Black" → "Pokémon Pitch Black", "Pokémon Center Elite Trainer Box" stays as it is. Searchers type the word; a set
- * or product name alone ("Perfect Order") is ambiguous outside the hobby, and "Pokémon Pokémon Center…" reads as a bug.
+ * A name as a title or H1 says it: "MTG " in front, unless the name already says MTG or Magic (any case): "Edge of Eternities
+ * Play Booster Box" → "MTG Edge of Eternities Play Booster Box", "Magic: The Gathering Foundations Starter Collection" stays as it
+ * is. Searchers type the word; a set or product name alone ("Foundations") is ambiguous outside the hobby.
  */
-export function withPokemon(name: string): string {
-  const plain = name.normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
-  return /pokemon/i.test(plain) ? name : `Pokémon ${name}`;
+export function withMtg(name: string): string {
+  return /\bmtg\b|\bmagic\b/i.test(name) ? name : `MTG ${name}`;
 }
 
 // The eurozone is one market with one page per URL (/eu/…), but nobody in Germany searches with en-IE. These are the euro
-// countries whose English-language searches DexCompare's EU stores serve: the same /eu URL is listed under each, beside en-IE.
+// countries whose English-language searches MTG Compare's EU stores serve: the same /eu URL is listed under each, beside en-IE.
 export const EU_HREFLANGS: readonly string[] = ["en-DE", "en-NL", "en-FR", "en-BE", "en-AT", "en-ES", "en-IT", "en-FI", "en-PT", "en-LU"];
 
 /**
@@ -195,8 +194,8 @@ export function productJsonLd(p: {
     name: p.name,
     ...(p.description ? { description: p.description } : {}),
     ...(p.image ? { image: p.image } : {}),
-    brand: { "@type": "Brand", name: "Pokémon" },
-    category: `Pokémon TCG ${p.productType}`,
+    brand: { "@type": "Brand", name: "Magic: The Gathering" },
+    category: `Magic: The Gathering ${p.productType}`,
     ...(p.setName ? { isRelatedTo: { "@type": "Thing", name: p.setName } } : {}),
     url: `${SITE_URL}${p.path}`,
     offers: {
@@ -237,7 +236,7 @@ export function itemListJsonLd(opts: { name: string; path: string; items: { path
 }
 
 /**
- * A guide's Article. Author and publisher are DexCompare (the Organization), never an invented person. `published` and
+ * A guide's Article. Author and publisher are MTG Compare (the Organization), never an invented person. `published` and
  * `updated` are ISO editorial dates ("2026-10-14"), never the data refresh time. The image is the site's share card unless the
  * guide has its own.
  */

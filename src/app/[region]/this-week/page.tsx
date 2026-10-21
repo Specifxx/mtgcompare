@@ -19,7 +19,7 @@ import type { PokemonSet } from "@/lib/sets";
 
 // /[region]/this-week: a digest that changes every day, built only from today's state: sets releasing in the next 45 days (with
 // their open pre-orders and cheapest box / ETB / bundle), sets out in the last 30, what is cheaper than most stores today, and what
-// DexCompare started tracking in the last 14 days (labelled as exactly that: Product.createdAt is not a release date). Five small
+// MTG Compare started tracking in the last 14 days (labelled as exactly that: Product.createdAt is not a release date). Five small
 // capped reads; cached at the CDN until the next release. One eBay strip, after the first block.
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js, CDN_PAGES), never ISR: an ISR write
@@ -86,7 +86,7 @@ export default async function ThisWeekPage({ params }: { params: { region: strin
           <Icon name="tag" size={16} /> Cheaper today
         </a>
         <a href="#new" className="chip min-h-10">
-          New on DexCompare
+          New on MTG Compare
         </a>
       </nav>
 
@@ -137,10 +137,10 @@ export default async function ThisWeekPage({ params }: { params: { region: strin
         )}
       </Section>
 
-      <Section id="new" title="New on DexCompare" kicker="Recently added">
+      <Section id="new" title="New on MTG Compare" kicker="Recently added">
         <p className="-mt-2 mb-4 max-w-2xl text-sm text-muted">{digestCopy.newLabel}.</p>
         {fresh.length ? (
-          <ProductRail products={fresh} region={r.region} label="New on DexCompare" />
+          <ProductRail products={fresh} region={r.region} label="New on MTG Compare" />
         ) : (
           <Empty
             actions={[
@@ -148,7 +148,7 @@ export default async function ThisWeekPage({ params }: { params: { region: strin
               { href: `/${r.region}/sealed`, label: "All sealed" },
             ]}
           >
-            DexCompare hasn&rsquo;t started tracking anything new in {r.inName} in the last 14 days.
+            MTG Compare hasn&rsquo;t started tracking anything new in {r.inName} in the last 14 days.
           </Empty>
         )}
       </Section>

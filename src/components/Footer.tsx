@@ -2,12 +2,12 @@ import Link from "next/link";
 import { COUNTRY_GUIDE } from "@/content/guides/country-prices";
 import { REGION_LIST, REGIONS, type Region } from "@/lib/regions";
 import { SETS } from "@/lib/sets";
-import { CONTACT_EMAIL_SET, OPERATOR, SISTER_SITES, SITE_NAME, sectionHref, type SectionKey } from "@/lib/site";
+import { CONTACT_EMAIL_SET, FAN_CONTENT_DISCLAIMER, OPERATOR, SISTER_SITES, SITE_NAME, sectionHref, type SectionKey } from "@/lib/site";
 import { LogoMark } from "./Logo";
 
 type FooterLink = { href: string; label: string };
 
-/** The footer's link columns. Region pages get Shop, Latest sets, Explore and DexCompare; pages with no region, Regions and DexCompare. Pure (no database). */
+/** The footer's link columns. Region pages get Shop, Latest sets, Explore and MTG Compare; pages with no region, Regions and MTG Compare. Pure (no database). */
 export function footerColumns(region: Region | null): { title: string; links: FooterLink[] }[] {
   const site: FooterLink[] = [
     { href: "/about", label: "About & how it works" },
@@ -19,7 +19,7 @@ export function footerColumns(region: Region | null): { title: string; links: Fo
   if (!region) {
     return [
       { title: "Regions", links: [...REGION_LIST.map((r) => ({ href: `/${r.region}`, label: r.name })), { href: COUNTRY_GUIDE.path, label: "Prices by country" }] },
-      { title: "DexCompare", links: site },
+      { title: "MTG Compare", links: site },
     ];
   }
   const s = (key: SectionKey, label: string) => ({ href: sectionHref(region, key), label });
@@ -33,7 +33,7 @@ export function footerColumns(region: Region | null): { title: string; links: Fo
       title: "Explore",
       links: [s("deals", "Deals"), s("thisWeek", "This week"), s("releases", "Releases"), s("guides", "Guides"), s("stores", "Where to buy"), s("sealed", "All sealed"), { href: COUNTRY_GUIDE.path, label: "Prices by country" }],
     },
-    { title: "DexCompare", links: site },
+    { title: "MTG Compare", links: site },
   ];
 }
 
@@ -55,7 +55,7 @@ export function Footer({ region }: { region: Region | null }) {
           <Link href={r ? `/${r.region}` : "/"} className="inline-flex min-h-10 items-center gap-2 font-display text-lg font-extrabold tracking-tight">
             <LogoMark className="h-7 w-7" />
             <span>
-              Dex<span className="text-brand">Compare</span>
+              MTG <span className="text-brand">Compare</span>
             </span>
             {r && (
               <span className="ml-1 rounded-full border border-line px-2 py-0.5 font-sans text-xs font-semibold text-muted">
@@ -64,7 +64,7 @@ export function Footer({ region }: { region: Region | null }) {
             )}
           </Link>
           <p className="mt-3 text-sm leading-6 text-muted">
-            Pokémon sealed — booster boxes, Elite Trainer Boxes, bundles, collections and tins — compared across independent stores, in stock and
+            Magic: The Gathering sealed — booster boxes, bundles, Commander decks and more — compared across independent stores, in stock and
             cheapest first.
           </p>
           <p className="mt-4 text-xs leading-5 text-muted">
@@ -135,7 +135,7 @@ export function Footer({ region }: { region: Region | null }) {
             Prices and stock are read from each store about twice a day; the store&rsquo;s own page is final.
             {OPERATOR !== SITE_NAME && ` Operated by ${OPERATOR}.`}
           </p>
-          <p>Not affiliated with Nintendo, Creatures, GAME FREAK or The Pokémon Company.</p>
+          <p>{FAN_CONTENT_DISCLAIMER}</p>
         </div>
       </div>
     </footer>

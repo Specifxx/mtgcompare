@@ -33,7 +33,7 @@ import { RRP_NOTE, usMsrpCents } from "@/lib/rrp";
 import { RIFT_REL, riftHistoryHref } from "@/lib/riftcompare";
 import { offerStock } from "@/lib/sealed-offers";
 import { TYPE_BY_LABEL } from "@/lib/sealed-title";
-import { jsonLd, pageMeta, productJsonLd, regionAlternates, withPokemon } from "@/lib/seo";
+import { jsonLd, pageMeta, productJsonLd, regionAlternates, withMtg } from "@/lib/seo";
 import { SET_BY_CODE } from "@/lib/sets";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js, CDN_PAGES), never ISR: an ISR write
@@ -141,7 +141,7 @@ export async function generateMetadata({ params }: { params: { region: string; s
   const square = image?.includes("tcgplayer-cdn.tcgplayer.com");
   return {
     ...meta,
-    // " | DexCompare" only where the whole title still fits in 65 characters (title.absolute otherwise)
+    // " | MTG Compare" only where the whole title still fits in 65 characters (title.absolute otherwise)
     title,
     openGraph: {
       ...meta.openGraph,
@@ -291,7 +291,7 @@ export default async function ProductPage({ params }: { params: { region: string
       })
     : null;
 
-  const heading = withPokemon(p.name);
+  const heading = withMtg(p.name);
   const riftHref = riftHistoryHref({ imageUrl: p.imageUrl, setReleaseDate: set?.releaseDate, productType: p.productType, name: p.name });
   const typeLink = type ? { href: `/${r.region}/type/${type.slug}`, label: `See ${type.plural} in stock in ${r.inName}` } : { href: `/${r.region}/sealed`, label: `See sealed products in stock in ${r.inName}` };
   const chip = "rounded-full bg-raised px-2.5 py-1 text-xs font-semibold leading-4 text-muted";

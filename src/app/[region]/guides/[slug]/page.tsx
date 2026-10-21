@@ -66,7 +66,7 @@ export default async function GuidePage({ params }: { params: { region: string; 
             <div className="eyebrow">{g.kicker}</div>
             <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">{g.title}</h1>
             <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
-              <span className="font-medium text-ink">By DexCompare</span>
+              <span className="font-medium text-ink">By MTG Compare</span>
               <span aria-hidden="true">·</span>
               <span>
                 Updated <time dateTime={g.updated}>{formatRelease(g.updated)}</time>

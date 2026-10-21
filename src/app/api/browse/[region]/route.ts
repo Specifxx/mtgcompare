@@ -30,7 +30,7 @@ export async function GET(_req: Request, { params }: { params: { region: string 
     return buildIndex(region, cards, checked);
   });
   // Which source answered (src/lib/public-data/): "files <snapshot time> <database>" or "db". The check that a release reads the
-  // bundled files and not Neon: curl -I https://www.dexcompare.app/api/browse/au
+  // bundled files and not Neon: curl -I https://mtgcompare.app/api/browse/au
   res.headers.set("x-dex-data", publicDataStatus());
   return res;
 }

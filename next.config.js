@@ -55,33 +55,26 @@ const nextConfig = {
   // would match /au too and loop.
   async redirects() {
     return [
-      { source: "/sealed", destination: "/au/sealed", permanent: true },
-      { source: "/sealed/:slug", destination: "/au/sealed", permanent: true },
-      { source: "/browse", destination: "/au/sealed", permanent: true },
-      { source: "/sets", destination: "/au/sets", permanent: true },
-      { source: "/sets/:set", destination: "/au/sets/:set", permanent: true },
-      { source: "/stores", destination: "/au/stores", permanent: true },
-      { source: "/restock", destination: "/au", permanent: true },
-      { source: "/restock/:slug", destination: "/au", permanent: true },
-      { source: "/deals", destination: "/au/deals", permanent: true },
-      // The old site's guides and blog posts whose subject the sealed site now covers, each to the page that answers it. Only
-      // slugs that existed under that prefix (apps/dexcompare/src/lib/articles.ts: category "guide" → /guides, "blog" → /blog)
-      // are mapped; tests/guides.test.ts checks every one. They come before the blanket rule below, which matches /guides too.
-      { source: "/guides", destination: "/au/guides", permanent: true },
-      { source: "/guides/pokemon-sealed-products-explained", destination: "/au/guides/pokemon-sealed-products-explained", permanent: true },
-      { source: "/guides/where-to-buy-pokemon-cards", destination: "/au/stores", permanent: true },
-      { source: "/guides/how-to-buy-pokemon-sealed-product-for-less", destination: "/au/cheapest-packs", permanent: true },
-      { source: "/guides/pokemon-card-sets-and-eras-explained", destination: "/au/sets", permanent: true },
-      { source: "/blog", destination: "/au/guides", permanent: true },
-      { source: "/blog/are-booster-boxes-worth-it", destination: "/au/guides/are-pokemon-booster-boxes-worth-it", permanent: true },
-      { source: "/blog/cheapest-way-to-buy-pokemon-cards", destination: "/au/cheapest-packs", permanent: true },
-      { source: "/blog/pokemon-30th-celebration-preorder-guide", destination: "/au/sets/30th-celebration", permanent: true },
-      { source: "/blog/pitch-black-preorder-guide", destination: "/au/sets/pitch-black", permanent: true },
-      { source: "/blog/chaos-rising-restock-playbook", destination: "/au/sets/chaos-rising", permanent: true },
-      // The singles-only guides (grading, fakes, rarities, card values) have no sealed equivalent: the About page. Keep this last.
-      // It skips the guides that live at /guides/<slug> now, the ones that compare every market at once
-      // (src/app/(site)/guides/[slug]: "pokemon-booster-box-prices-by-country"): a redirect runs before the page would.
-      { source: "/guides/:path((?!pokemon-booster-box-prices-by-country$).*)", destination: "/about", permanent: true },
+      // The old MTG Compare was a singles site (until 2026-10-21). Its US pages had no region prefix; its market pages were
+      // /au, /uk, /ca, /eu, /sg, which still exist. Card, deck and member pages have no sealed equivalent: they go to the
+      // sealed browse page of the market (US when none), so old links and Google's index land somewhere useful. Upper-case
+      // region prefixes (/AU) are lowercased by src/middleware.ts: a redirect here matches case-insensitively, so
+      // "/AU/:path*" → "/au/:path*" would match /au too and loop.
+      { source: "/sealed", destination: "/us/sealed", permanent: true },
+      { source: "/sealed/:slug*", destination: "/us/sealed", permanent: true },
+      { source: "/:region(au|uk|ca|eu|sg)/sealed/:slug+", destination: "/:region/sealed", permanent: true },
+      { source: "/sets", destination: "/us/sets", permanent: true },
+      { source: "/sets/:set*", destination: "/us/sets", permanent: true },
+      { source: "/stores", destination: "/us/stores", permanent: true },
+      { source: "/stores/:path*", destination: "/us/stores", permanent: true },
+      { source: "/release-dates", destination: "/us/releases", permanent: true },
+      { source: "/star-trek-preorders", destination: "/us/releases", permanent: true },
+      { source: "/:path(card|cards|singles|browse|search|price-guide|movers|rising|market|commanders|decks|deck|tools|colors|keywords|gallery|trade|embed|c)", destination: "/us/sealed", permanent: true },
+      { source: "/:path(card|cards|singles|browse|search|price-guide|movers|rising|market|commanders|decks|deck|tools|colors|keywords|gallery|trade|embed|c)/:rest*", destination: "/us/sealed", permanent: true },
+      { source: "/:region(au|uk|ca|eu|sg)/:path(card|cards|singles|browse|search|price-guide|movers|rising|market|commanders|decks|tools)/:rest*", destination: "/:region/sealed", permanent: true },
+      { source: "/:path(premium|login|account|profile|dashboard|portfolio|watching|watchlist|alerts|newsletter|unsubscribe|support|feedback|learn|methodology|editorial-policy|creators|authors|admin)", destination: "/about", permanent: true },
+      { source: "/:path(premium|login|account|profile|dashboard|portfolio|watching|watchlist|alerts|newsletter|unsubscribe|support|feedback|learn|methodology|editorial-policy|creators|authors|admin)/:rest*", destination: "/about", permanent: true },
+      // Blog and guide redirects (old slugs that no longer exist) go below this line.
     ];
   },
   async headers() {

@@ -1,4 +1,4 @@
-// Confirms DexCompare's own eBay Browse API keyset works, with the same code the importer runs
+// Confirms MTG Compare's own eBay Browse API keyset works, with the same code the importer runs
 // (src/lib/ebay-api.ts, ebay-normalise.ts). Needs EBAY_CLIENT_ID and EBAY_CLIENT_SECRET in the environment
 // (DEXCOMPARE_EBAY_CLIENT_ID / _SECRET win when set); tsx does not read .env, so export them or:
 //
@@ -28,7 +28,7 @@ async function main() {
     await tokens.get();
     console.log("token: OK (client-credentials grant, scope api_scope)");
   } catch (e) {
-    console.error(`token: FAILED (${e instanceof EbayError ? e.describe() : "error"}). Check the keyset is a PRODUCTION one (not Sandbox) and belongs to DexCompare's own application.`);
+    console.error(`token: FAILED (${e instanceof EbayError ? e.describe() : "error"}). Check the keyset is a PRODUCTION one (not Sandbox) and belongs to MTG Compare's own application.`);
     process.exit(1);
   }
 

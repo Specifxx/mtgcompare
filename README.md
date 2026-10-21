@@ -1,13 +1,12 @@
-# DexCompare (sealed)
+# MTG Compare (sealed)
 
-Pokémon TCG **sealed product** — booster boxes, Elite Trainer Boxes, booster
-bundles, collections, tins, blisters, decks and packs — compared across
-independent stores in seven regions (AU, US, UK, CA, NZ, EU, SG), with live
-stock.
+Magic: The Gathering **sealed product** — play and collector booster boxes, bundles, Commander decks, starter kits, prerelease packs
+and boosters — compared across independent stores in seven regions (AU, US, UK, CA, NZ, EU, SG), with live stock, plus eBay and
+TCGplayer (affiliate) as marketplaces.
 
-This replaces the old singles-focused DexCompare in `apps/dexcompare` (20k
-cards, price history, eBay Browse API, marketplace, forum). That app is left in
-place untouched; nothing deploys from it once the Vercel project points here.
+Rebuilt on 2026-10-21 as a port of DexCompare's sealed app (`Specifxx/CompareEmpire`, `apps/dexcompare-sealed`); the old singles
+site (card database, accounts, Premium) is in git history. Deploying: [DEPLOY.md](DEPLOY.md). Why things are the way they are:
+[DECISIONS.md](DECISIONS.md).
 
 ## What it does
 
@@ -54,7 +53,7 @@ place untouched; nothing deploys from it once the Vercel project points here.
   keystroke never reaches the database). Browse pages (`/<region>/sealed`) are paged in SQL, 48 at a time; filtering,
   sorting or a query switches to the index in the browser.
 - **Recently viewed**: the last 12 products a visitor opened in a region are kept in **their browser's localStorage**
-  (`dex-recent-<region>`), never sent to DexCompare, and shown with today's prices at the end of the region home.
+  (`dex-recent-<region>`), never sent to MTG Compare, and shown with today's prices at the end of the region home.
   Clearing site data removes them; with storage blocked nothing is shown.
 - **Welcomes**: a landing page (`/`) that suggests the visitor's region, a phone menu with every section, and a footer
   of real links per region.
@@ -66,7 +65,7 @@ place untouched; nothing deploys from it once the Vercel project points here.
 - **Earns** through affiliate links, and only two kinds (`src/lib/affiliate.ts`):
   - **eBay Partner Network**: *search links* (Buy It Now, the region's eBay site; NZ uses
     ebay.com.au, SG ebay.com) and **real eBay listings** as image strips and grid tiles. The listings are
-    imported **once a day** by a GitHub Actions job with DexCompare's own Browse API keys and
+    imported **once a day** by a GitHub Actions job with MTG Compare's own Browse API keys and
     stored in the database; the website never calls eBay and holds no eBay credential (see
     "eBay listing strips" below and DEPLOY.md, "eBay listings: the daily import").
   - **TCGplayer via Impact**: every tcgplayer.com link is wrapped in the
@@ -94,7 +93,7 @@ Compare's "Chase cards on eBay" strip): the eBay wordmark, "AD · LIVE LISTINGS 
 "<Type> on eBay") and **how old the data is** ("Updated 9 h ago"), a row of six tiles (four in the slim strip above
 every footer): portrait photo, title, price exactly as eBay returned it (A$717.90, US$24.99, never converted),
 shipping called out ("Free shipping" / "+ A$12.00 shipping"; NZ and SG, served the AU / US feeds, make no shipping claim), the condition when it is not new, and an arrow link.
-Under every strip: "Affiliate link: as an eBay Partner Network affiliate, DexCompare earns from qualifying purchases — at
+Under every strip: "Affiliate link: as an eBay Partner Network affiliate, MTG Compare earns from qualifying purchases — at
 no extra cost to you. Listings are imported from eBay about once a day (updated 9 h ago), so price and availability may
 have changed; check eBay."
 
@@ -127,7 +126,7 @@ have changed; check eBay."
     With **nothing to list** (before the first import, the kill switch, rows older than the age bound) a strip is one
     compact row: wordmark, "Ad" and a "Search Pokémon sealed on eBay" button. There are no text-only banners, chip rows or
     "Still deciding?" rows.
-* **The price table's eBay row** (`listings-offer-row`, the owner's call: DexCompare compares websites, and eBay is one): a product's
+* **The price table's eBay row** (`listings-offer-row`, the owner's call: MTG Compare compares websites, and eBay is one): a product's
   cheapest own eBay listing is a row of its store price table, ranked by its price among the in-stock stores, tinted, labelled "Ad",
   with eBay's blue "View on eBay" button and its age on the row; an eBay search for the product after the in-stock stores when it has
   none. When it is a new listing cheaper than every in-stock store (not on a pre-order) it is the best price: "Best price" on it, "Best store price" on the cheapest
@@ -203,7 +202,7 @@ have changed; check eBay."
 * **Testing without keys**: `tests/ebay-*.test.ts` use fake fetch/database (fixtures in `tests/fixtures/`). For a browser run, import
   against a mock: preload a fetch stub that answers `https://api.ebay.com/*` with `NODE_OPTIONS="--import mock.mjs" npx tsx
   scripts/ebay-import.ts` (the code has no host override: it can only talk to api.ebay.com), then start the site on the same database;
-  or serve saved live answers of `https://www.dexcompare.app/api/ebay/<region>?c=<context>` with Playwright's `page.route`
+  or serve saved live answers of `https://mtgcompare.app/api/ebay/<region>?c=<context>` with Playwright's `page.route`
   (set `fetchedAt` to a few hours ago: the browser enforces the age bound).
 
 ## What this site does not store
@@ -236,7 +235,7 @@ and RiftCompare reads `/api/browse/<region>` for its "Independent stores" lines,
 
 ```
 GitHub Actions (twice a day)               Vercel (Next.js 14, ISR)
-.github/workflows/dexcompare-sealed-import.yml
+.github/workflows/sealed-import.yml
   └─ scripts/import.ts                      pages read ProductStat/Offer,
        ├─ src/lib/importer.ts               scoped to one region/product
        │    reads each store (feeds.ts)     └─ cached until the next import
@@ -246,7 +245,7 @@ GitHub Actions (twice a day)               Vercel (Next.js 14, ISR)
        └─ POST /api/revalidate
 
 GitHub Actions (once a day)                 /api/ebay/<region> reads EbayListing
-.github/workflows/dexcompare-ebay-import.yml  (no eBay call, no secret) for the strips and
+.github/workflows/ebay-import.yml  (no eBay call, no secret) for the strips and
   └─ scripts/ebay-import.ts                   tiles; CDN 1 h + stale-while-revalidate
        → EbayListing (replace per feed) + EbayCallDay (atomic call counter)
        fixed feeds, then the catalogue sweep (src/lib/ebay-sweep.ts), then per-product searches
@@ -317,7 +316,7 @@ npm run dev                        # http://localhost:3003
 ```
 
 Checks: `npm run typecheck`, `npm run lint`, `npm test`. `SITE_URL` defaults
-to `https://www.dexcompare.app`; set `NEXT_PUBLIC_SITE_URL` to override it.
+to `https://mtgcompare.app`; set `NEXT_PUBLIC_SITE_URL` to override it.
 
 ## Adding a store
 
@@ -411,5 +410,5 @@ placement, its marketplace rows under `preorders-ebay` and
 Vercel overrides the built-in one). `.github/workflows/indexnow-submit.yml` (repository
 root) runs daily at 22:37 UTC, after the evening import, and by hand: it follows the
 live sitemap index and submits every page URL for the host the sitemap's URLs are on
-(www.dexcompare.app), with the key the live key file serves. The run fails, with
+(mtgcompare.app), with the key the live key file serves. The run fails, with
 IndexNow's answer in the log, when anything is refused. Google does not take IndexNow.

@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 
 const INK = "#15171c";
 const MUTED = "#5c606c";
-const BRAND = "#d2300a";
+const BRAND = "#7a2ec4";
 const LINE = "#e4e3de";
 const CDN = "public, s-maxage=86400, stale-while-revalidate=86400";
 

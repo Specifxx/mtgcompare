@@ -53,7 +53,7 @@ export interface StickyBuyBarProps {
 }
 
 const placement: Placement = "product-sticky";
-const DISMISS_KEY = "dex-buybar-off";
+const DISMISS_KEY = "mtg-buybar-off";
 
 export function StickyBuyBar(props: StickyBuyBarProps) {
   return props.pick ? <WithPick {...props} pick={props.pick} /> : <Bar {...props} content={staticContent(props)} />;

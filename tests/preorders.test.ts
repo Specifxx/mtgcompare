@@ -404,7 +404,7 @@ test("the new reads run on the public data files alone: the set's TCGplayer offe
   for (const [name, body] of buildPublicFiles(tables, { generatedAt: T0, source: "test" })) fs.writeFileSync(path.join(dir, name), body);
   const saved = { PUBLIC_DATA_MODE: process.env.PUBLIC_DATA_MODE, PUBLIC_DATA_DIR: process.env.PUBLIC_DATA_DIR, DATABASE_URL: process.env.DATABASE_URL, DC2: process.env.DC2 };
   Object.assign(process.env, { PUBLIC_DATA_MODE: "files", PUBLIC_DATA_DIR: dir, DATABASE_URL: "postgresql://nobody:nothing@127.0.0.1:1/none" });
-  delete process.env.DC2;
+  delete process.env.SEALED_DATABASE_URL;
   resetPublicData();
   try {
     const { setMarketplaceOffers, setStoreReach } = await import("../src/lib/data");

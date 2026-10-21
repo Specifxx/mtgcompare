@@ -5,7 +5,7 @@ import { STORES } from "@/lib/stores";
 // The site's share card: every page without an image of its own points og:image here (seo.ts DEFAULT_OG_IMAGE). Drawn by
 // lib/og-card.tsx, static, rendered once at build.
 
-export const alt = `DexCompare — compare Pokémon sealed prices across ${STORES.length} stores in ${REGION_LIST.length} regions`;
+export const alt = `MTG Compare — compare Pokémon sealed prices across ${STORES.length} stores in ${REGION_LIST.length} regions`;
 export const size = OG_SIZE;
 export const contentType = "image/png";
 

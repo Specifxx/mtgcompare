@@ -1,0 +1,142 @@
+name: PageSpeed check MTG Compare
+
+# Google PageSpeed Insights for four MTG Compare pages, phone and desktop: the Lighthouse lab score and Core Web Vitals, plus the
+# real-user (CrUX) field data when Chrome has enough of it. Once a week and on demand. Read-only: it asks Google's API about the
+# live site (https://mtgcompare.app, the canonical host: the apex only redirects there) and writes one table to the job summary.
+#
+# Needs the repository secret PSI_API_KEY: a Google Cloud API key with the "PageSpeed Insights API" enabled (free; 25,000 queries a
+# day). Without it the job writes "skipped" to its summary and SUCCEEDS: the keyless quota is shared by everyone and is usually
+# exhausted, so a keyless run would only fail. A run makes 8 API calls (4 pages x 2 strategies), takes about two minutes on one
+# runner, and never fails on a score: only when every call fails (a wrong key, the API down). DEPLOY.md,
+# "PageSpeed check", says how to read it.
+
+on:
+  schedule:
+    - cron: "23 6 * * 1" # Mondays 06:23 UTC: weekly, no more
+  workflow_dispatch:
+    inputs:
+      paths:
+        description: "Paths to test instead of the default four, separated by spaces (e.g. /us/deals /au/p/some-product)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: psi
+  cancel-in-progress: true
+
+jobs:
+  psi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PSI_API_KEY: ${{ secrets.PSI_API_KEY }}
+      SITE: https://mtgcompare.app
+      # The region home, one in-stock product, the browse page and a type page. A manual run may name others (checked below).
+      PATHS: ${{ inputs.paths || '/us /us/p/pitch-black-elite-trainer-box /us/sealed /us/type/booster-boxes' }}
+    steps:
+      - name: Skip without the PSI_API_KEY secret
+        if: env.PSI_API_KEY == ''
+        run: |
+          echo "::notice::PSI_API_KEY is not set, so the PageSpeed check was skipped. Add the secret to run it (DEPLOY.md, 'PageSpeed check')."
+          {
+            echo "### PageSpeed check: skipped"
+            echo ""
+            echo "The \`PSI_API_KEY\` repository secret is not set (Settings → Secrets and variables → Actions). Nothing was measured."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run PageSpeed Insights
+        if: env.PSI_API_KEY != ''
+        run: |
+          python3 - <<'PY'
+          import json, os, re, sys, time, urllib.error, urllib.parse, urllib.request
+
+          site = os.environ["SITE"].rstrip("/")
+          key = os.environ["PSI_API_KEY"]
+          paths = os.environ.get("PATHS", "").split()
+          # Only site paths: no scheme, host, query or anything a shell or URL would read differently.
+          bad = [p for p in paths if not re.fullmatch(r"/[A-Za-z0-9/_.-]{0,200}", p)]
+          if bad or not paths:
+              print(f"::error::Paths must look like /us/sealed (got {bad or 'none'})")
+              sys.exit(1)
+
+          API = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed"
+
+          def run(url, strategy):
+              q = urllib.parse.urlencode({"url": url, "strategy": strategy, "category": "performance"})
+              # The key goes in a header, never in the URL, so no error message or log line can carry it.
+              req = urllib.request.Request(f"{API}?{q}", headers={"X-goog-api-key": key, "Accept": "application/json"})
+              last = None
+              for attempt in range(2):
+                  try:
+                      with urllib.request.urlopen(req, timeout=150) as r:
+                          return json.load(r), None
+                  except urllib.error.HTTPError as e:
+                      try:
+                          msg = json.load(e).get("error", {}).get("message", "")[:160]
+                      except Exception:
+                          msg = ""
+                      last = f"HTTP {e.code} {msg}".strip()
+                      if e.code < 500 and e.code != 429:
+                          break
+                  except Exception as e:  # a timeout or a dropped connection
+                      last = type(e).__name__
+                  time.sleep(20)
+              return None, last
+
+          def secs(a):
+              v = a.get("numericValue") if a else None
+              return f"{v / 1000:.1f} s" if v is not None else "–"
+
+          def ms(a):
+              v = a.get("numericValue") if a else None
+              return f"{round(v)} ms" if v is not None else "–"
+
+          def field(le, metric, kind):
+              """The page's own real-user p75 (CrUX), or – when Chrome has too little data for it."""
+              m = (le or {}).get("metrics", {}).get(metric)
+              p = m.get("percentile") if m else None
+              if p is None:
+                  return "–"
+              return {"s": f"{p / 1000:.1f} s", "ms": f"{int(p)} ms", "cls": f"{p / 100:.2f}"}[kind]
+
+          rows, failed = [], 0
+          for path in paths:
+              for strategy in ("mobile", "desktop"):
+                  data, err = run(site + path, strategy)
+                  if not data:
+                      failed += 1
+                      print(f"::warning::{path} ({strategy}): {err}")
+                      rows.append(f"| `{path}` | {strategy} | failed: {err} | | | | | | |")
+                      continue
+                  lh = data["lighthouseResult"]
+                  au = lh["audits"]
+                  score = round((lh["categories"]["performance"]["score"] or 0) * 100)
+                  cls = au.get("cumulative-layout-shift", {}).get("numericValue")
+                  le = data.get("loadingExperience")
+                  rows.append(
+                      f"| `{path}` | {strategy} | **{score}** | {secs(au.get('largest-contentful-paint'))} | "
+                      f"{(f'{cls:.3f}' if cls is not None else '–')} | {ms(au.get('total-blocking-time'))} | "
+                      f"{field(le, 'LARGEST_CONTENTFUL_PAINT_MS', 's')} | {field(le, 'INTERACTION_TO_NEXT_PAINT', 'ms')} | "
+                      f"{field(le, 'CUMULATIVE_LAYOUT_SHIFT_SCORE', 'cls')} |"
+                  )
+                  print(f"{path} {strategy}: performance {score}")
+
+          table = [
+              f"### PageSpeed Insights: {site}",
+              "",
+              "Lab = one Lighthouse run from Google's servers (noisy: compare trends, not single runs). Field = Chrome users over the last 28 days (p75; – when Chrome has too little data for the page).",
+              "",
+              "| Page | Strategy | Score | Lab LCP | Lab CLS | Lab TBT | Field LCP | Field INP | Field CLS |",
+              "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+              *rows,
+          ]
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
+              f.write("\n".join(table) + "\n")
+          print("\n".join(table))
+          if failed == len(paths) * 2:
+              print("::error::Every PageSpeed call failed: check the PSI_API_KEY secret and that the PageSpeed Insights API is enabled for it.")
+              sys.exit(1)
+          PY

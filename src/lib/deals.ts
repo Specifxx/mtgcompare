@@ -190,13 +190,13 @@ for (const s of SETS) {
   if (any) MSRP_SETS.push(s.code);
 }
 
-// ─── New on DexCompare ──────────────────────────────────────────────────────────
+// ─── New on MTG Compare ──────────────────────────────────────────────────────────
 
-/** How far back "first seen by DexCompare" looks. */
+/** How far back "first seen by MTG Compare" looks. */
 export const NEW_DAYS = 14;
 /**
- * A day on which DexCompare created this many products or more is an import event (the 2026-09-25 launch created 7,007; a
- * re-grouping re-creates hundreds), not new listings: its products are left out of "New on DexCompare".
+ * A day on which MTG Compare created this many products or more is an import event (the 2026-09-25 launch created 7,007; a
+ * re-grouping re-creates hundreds), not new listings: its products are left out of "New on MTG Compare".
  */
 export const BULK_DAY = 200;
 
@@ -351,9 +351,9 @@ export async function belowMsrpUS(take = 24): Promise<ProductCardData[]> {
 }
 
 /**
- * Products DexCompare first saw in the last NEW_DAYS days that are open in this market, newest first. One read: a CTE counts the
+ * Products MTG Compare first saw in the last NEW_DAYS days that are open in this market, newest first. One read: a CTE counts the
  * Product rows created per day since newSince() and drops every day with BULK_DAY or more (imports, re-groupings), as
- * newlyTrackedFilter does. Product.createdAt is when DexCompare created the row, not a release date: the page says so.
+ * newlyTrackedFilter does. Product.createdAt is when MTG Compare created the row, not a release date: the page says so.
  */
 export async function newlyTracked(market: Market, take = 24, now = new Date()): Promise<ProductCardData[]> {
   const since = newSince(now).toISOString();
@@ -437,7 +437,7 @@ export function nearestRegion(region: Region): Region {
 }
 
 const SUFFIX = ` | ${SITE_NAME}`;
-/** A page title: the layout's " | DexCompare" template when the whole fits in 65 characters, otherwise the title alone (absolute). */
+/** A page title: the layout's " | MTG Compare" template when the whole fits in 65 characters, otherwise the title alone (absolute). */
 export function fitTitle(title: string): string | { absolute: string } {
   return title.length + SUFFIX.length <= 65 ? title : { absolute: title };
 }
@@ -488,7 +488,7 @@ export const digestCopy = {
     `What’s releasing in the next ${SOON_DAYS} days and open for pre-order, what came out in the last ${JUST_RELEASED_DAYS}, and what’s cheaper than most ${r.adjective} stores today. Every number is today’s, checked against each store’s own listings.`,
   description: (r: R) =>
     `Pokémon TCG sets releasing in the next ${SOON_DAYS} days with pre-orders, sets just released, and sealed product cheaper than most ${r.adjective} stores today.`,
-  newLabel: `First seen by DexCompare in the last ${NEW_DAYS} days — not necessarily new releases`,
+  newLabel: `First seen by MTG Compare in the last ${NEW_DAYS} days — not necessarily new releases`,
 };
 
 export const homeCopy = {

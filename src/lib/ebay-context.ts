@@ -4,7 +4,7 @@
 // server: ebay-context-parse.ts).
 //
 // Where the data comes from: scripts/ebay-import.ts, a GitHub Actions job that runs once a day
-// with DexCompare's own keys, searches eBay's Browse API and REPLACES each feed's rows in the
+// with MTG Compare's own keys, searches eBay's Browse API and REPLACES each feed's rows in the
 // EbayListing table. The web route (src/app/api/ebay/[region]/route.ts) only READS that table:
 // no eBay call, no token, no secret exists in the web runtime.
 //
@@ -84,7 +84,7 @@ const MARKET_CODE: Record<MarketplaceId, string> = { EBAY_US: "us", EBAY_AU: "au
 
 /**
  * The affiliateReferenceId the importer asks eBay to put in a feed's affiliate URLs (it becomes the URL's `customid`, which EPN
- * reports by): `dex-<market>-<feed kind>`, e.g. dex-us-chase, dex-au-item, dex-uk-set. Lower case a-z0-9 and "-" only, at most 60
+ * reports by): `mtg-<market>-<feed kind>`, e.g. mtg-us-chase, mtg-au-item, mtg-uk-set. Lower case a-z0-9 and "-" only, at most 60
  * characters. The surface (home, set page, footer...) is NOT in it: one stored URL serves every surface, and eBay's spec says to use
  * the URL as returned, so the browser cannot edit it. The surface is in Vercel's buy_click event ({retailer, placement}).
  */

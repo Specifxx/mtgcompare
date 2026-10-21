@@ -2,7 +2,7 @@
 // so they recrawl now. Run daily by .github/workflows/indexnow-submit.yml (at
 // the repository root) after the evening import, and by hand from Actions.
 //
-//   SITE_URL   where to read the sitemap (default https://www.dexcompare.app)
+//   SITE_URL   where to read the sitemap (default https://mtgcompare.app)
 //
 // The key is whatever the live /indexnow.txt serves (src/lib/indexnow.ts), so
 // the job needs no secret and can never disagree with the site. The request
@@ -13,7 +13,7 @@
 // while the engine fetches the key file; the run waits and retries a few times.
 import { INDEXNOW_BATCH, isIndexNowKey, sitemapUrls, submissionPlan } from "../src/lib/indexnow";
 
-const UA = "DexCompare-indexnow (+https://www.dexcompare.app)";
+const UA = "MTGCompare-indexnow (+https://mtgcompare.app)";
 
 async function get(url: string): Promise<string> {
   const r = await fetch(url, { headers: { "User-Agent": UA } });
@@ -24,7 +24,7 @@ async function get(url: string): Promise<string> {
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function main() {
-  const site = (process.env.SITE_URL || "https://www.dexcompare.app").replace(/\/+$/, "");
+  const site = (process.env.SITE_URL || "https://mtgcompare.app").replace(/\/+$/, "");
   const plan = submissionPlan(await sitemapUrls(`${site}/sitemap.xml`, get));
   if (!plan || !plan.urls.length) {
     console.error(`IndexNow: ${site}/sitemap.xml listed no page URLs — nothing submitted.`);

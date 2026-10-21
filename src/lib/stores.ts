@@ -1,4 +1,4 @@
-// The store registry: every store DexCompare reads, with the collections that
+// The store registry: every store MTG Compare reads, with the collections that
 // hold its Pokémon sealed stock. Lives in src/data/stores.json so the probe
 // (scripts/probe-stores.ts) can regenerate it and a human can edit it.
 //

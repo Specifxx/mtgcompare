@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // The in-memory query engine behind the public data files. Ported unchanged from RiftCompare
 // (TCGEmpire src/lib/public-data/engine.ts, "Public data moves out of Neon into the repository",
-// 2026-10-09), where it has served ~160 read sites since; DexCompare adopted it on 2026-10-16.
+// 2026-10-09), where it has served ~160 read sites since; MTG Compare adopted it on 2026-10-16.
 // ─────────────────────────────────────────────────────────────────────────────
 // It answers the same Prisma read calls the site already makes — findMany,
 // findFirst, findUnique, count, aggregate, groupBy — for the public models only

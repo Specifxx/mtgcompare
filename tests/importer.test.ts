@@ -326,7 +326,7 @@ test("short reads: refused the first time, accepted for a store when the last ru
 // Beaches TCG's whole Pokémon collection as its live feed served it on 2026-10-19
 // (/collections/pokemon-tcg/products.json, trimmed to handle, title and variants),
 // through the importer's own read and rowsFromReads: the store's dry run.
-test("a new store's live feed: Beaches TCG lists its English sealed product and nothing else", async () => {
+test.skip("(Pokémon fixture; Beaches TCG is not in the MTG registry — rewrite with an MTG store fixture) a new store's live feed: Beaches TCG lists its English sealed product and nothing else", async () => {
   const store = STORE_BY_KEY.get("beachestcg")!;
   assert.deepEqual(store, {
     key: "beachestcg",

@@ -2,7 +2,7 @@
 // Changes nothing (no ensureTables, no purge, no write).
 //
 //   DATABASE_URL=… npx tsx scripts/ebay-budget.ts
-process.env.DEXCOMPARE_SCRIPT = "1";
+process.env.MTGCOMPARE_SCRIPT = "1";
 
 import { prisma } from "../src/lib/db";
 import { capsFromEnv } from "../src/lib/ebay-import";

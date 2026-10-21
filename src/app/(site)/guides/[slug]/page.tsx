@@ -56,14 +56,14 @@ export default async function CrossMarketGuide({ params }: Params) {
 
   return (
     <div className="page py-8">
-      <Breadcrumbs items={[{ href: "/", label: "DexCompare" }, { label: "Booster box prices by country" }]} />
+      <Breadcrumbs items={[{ href: "/", label: "MTG Compare" }, { label: "Booster box prices by country" }]} />
       <div className="lg:grid lg:grid-cols-[minmax(0,68ch)_14rem] lg:gap-x-12 xl:gap-x-20">
         <article className="min-w-0 max-w-[68ch]">
           <header>
             <div className="eyebrow">{COUNTRY_GUIDE.kicker}</div>
             <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">{COUNTRY_GUIDE.h1}</h1>
             <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
-              <span className="font-medium text-ink">By DexCompare</span>
+              <span className="font-medium text-ink">By MTG Compare</span>
               <span aria-hidden="true">·</span>
               <span>
                 Updated <time dateTime={COUNTRY_GUIDE.updated}>{formatRelease(COUNTRY_GUIDE.updated)}</time>

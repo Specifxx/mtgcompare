@@ -1,13 +1,13 @@
 // Writes every public table to data/public/ (src/lib/public-data/format.ts), the files the site reads instead of Neon.
-// Run by .github/workflows/dexcompare-public-data.yml after each import, which commits the result to main: that commit is the
-// release that puts the new prices live (a data commit changes apps/dexcompare-sealed, so Vercel builds it).
+// Run by .github/workflows/sealed-import.yml after each import, which commits the result to main: that commit is the
+// release that puts the new prices live (a data commit changes the repository, so Vercel builds it).
 //
-//   DC2=… npx tsx scripts/export-public-data.ts [--out data/public]
+//   DATABASE_URL=… npx tsx scripts/export-public-data.ts [--out data/public]
 //
 // Reads each table once, whole (rule 3 in src/lib/db.ts: whole-table reads belong in scripts), ~25 MB from Neon per run. Refuses
 // to write a snapshot that looks broken (no products, or under half of the last snapshot's products or offers), so a bad import
 // or a half-empty database never reaches the site: the last good files stay.
-process.env.DEXCOMPARE_SCRIPT = "1";
+process.env.MTGCOMPARE_SCRIPT = "1";
 
 import fs from "node:fs";
 import path from "node:path";
@@ -54,7 +54,7 @@ async function main() {
     if (before && now < before / 2) throw new Error(`refusing to export: ${model} fell from ${before} to ${now} rows`);
   }
 
-  const files = buildPublicFiles(tables, { generatedAt: new Date(), source: process.env.DB_SOURCE_NAME || "DC2" });
+  const files = buildPublicFiles(tables, { generatedAt: new Date(), source: process.env.DB_SOURCE_NAME || "DATABASE_URL" });
   fs.mkdirSync(dir, { recursive: true });
   let bytes = 0;
   for (const [name, body] of files) {

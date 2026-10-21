@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CONTACT_EMAIL, OPERATOR, SITE_NAME, SITE_URL } from "@/lib/site";
+import { CONTACT_EMAIL, FAN_CONTENT_DISCLAIMER, OPERATOR, SITE_NAME, SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Terms of use",
@@ -69,8 +69,8 @@ export default function Terms() {
 
         <h2 id="trademarks">Trademarks and content</h2>
         <p>
-          Pokémon and the names of its sets and products are trademarks of Nintendo, Creatures Inc., GAME FREAK inc. and The Pokémon Company, and
-          are used only to identify the products being compared. Product photos are the stores&rsquo; own, shown from the stores&rsquo; servers, and
+          Magic: The Gathering and the names of its sets and products are trademarks of Wizards of the Coast LLC, and are used only to
+          identify the products being compared. {FAN_CONTENT_DISCLAIMER} Product photos are the stores&rsquo; own, shown from the stores&rsquo; servers, and
           remain theirs. {SITE_NAME} is an independent site and is not affiliated with, endorsed or sponsored by any of them, or by any store,
           eBay or TCGplayer.
         </p>
