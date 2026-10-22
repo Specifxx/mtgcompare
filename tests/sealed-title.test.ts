@@ -333,3 +333,12 @@ test("sets.ts: unique codes and slugs, newest first, every set with a booster li
   // Every set's own name finds it.
   for (const s of SETS) assert.equal(detectSet(`${s.name} Collector Booster Box`)?.code, s.code, s.name);
 });
+
+test("a plain Bundle with seller words is the set's Bundle; a named bundle stays its own product", () => {
+  for (const t of ["Aetherdrift Bundle - Factory Sealed - Fast Ship", "IN HAND Edge of Eternities Bundle"]) {
+    const r = identify(t);
+    assert.ok(typeof r === "object" && r.type === "bundle", `${t} → ${JSON.stringify(r)}`);
+  }
+  const named = identify("Duskmourn Nightmare Bundle");
+  assert.ok(typeof named === "object" && named.type === "special-bundle");
+});

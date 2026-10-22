@@ -369,6 +369,11 @@ export function classify(title: string): TypeKey | null {
 
 // Words that say nothing about WHICH product a title is. Removed before the remaining words become the identity of a Commander
 // deck, a Secret Lair drop, a Scene Box, …
+const BUNDLE_SELLER_WORDS = new Set([
+  "factory", "fast", "ship", "ships", "shipping", "shipped", "free", "hand", "brand", "new", "nib", "ready", "now", "stock", "instock",
+  "mint", "official", "authentic", "genuine", "wotc", "wizards", "coast", "release", "presale", "preorder", "pre", "order", "box",
+]);
+
 const NOISE = new Set(
   (
     "magic the gathering mtg tcg trading card cards game games wizards coast of a an and with w for to on by from in english eng en " +
@@ -605,7 +610,8 @@ export function identify(title: string, opts: { strict?: boolean } = {}): Sealed
   // A bundle with a name of its own is not the set's Bundle: "Secrets of Strixhaven - Codex Bundle", "Duskmourn Nightmare Bundle",
   // "Star Trek - Beam Me Up Bundle". Whatever words are left once the set and the noise are gone name it.
   if (type === "bundle" && set) {
-    const rest = signatureTokens(t.replace(/\bfat\s*packs?\b/gi, " "), set, "bundle").filter((w) => w !== "fat");
+    // Seller words never name a bundle ("Aetherdrift Bundle - Factory Sealed - Fast Ship", "IN HAND … Bundle").
+    const rest = signatureTokens(t.replace(/\bfat\s*packs?\b/gi, " "), set, "bundle").filter((w) => w !== "fat" && !BUNDLE_SELLER_WORDS.has(w));
     if (rest.length) type = "special-bundle";
   }
   const info = TYPE_BY_KEY.get(type)!;

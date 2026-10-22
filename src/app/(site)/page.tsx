@@ -307,7 +307,7 @@ export default function Landing() {
       {/* The landing page's one ad unit, last: below every piece of the page's own content. The visitor's suggested region's eBay
           (the US until known, and with no suggestion), and it says which. Real listings imported once a day; with none, the compact
           CTA row. */}
-      <section className="page mt-16" aria-label="Chase cards on eBay">
+      <section className="page mt-16" aria-label="High-end sealed on eBay">
         <SuggestedEbayStrip />
       </section>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqLd) }} />

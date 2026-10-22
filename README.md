@@ -10,6 +10,10 @@ site (card database, accounts, Premium) is in git history. Deploying: [DEPLOY.md
 
 ## What it does
 
+> **Inherited from DexCompare (2026-10-21).** The sections below describe mechanics this site runs unchanged. Their examples
+> (set names, "ETB", "Pokemon …" queries) and measured numbers are DexCompare's Pokémon ones; MTG Compare's queries start "MTG …"
+> and its product types are in `src/lib/sealed-title.ts`.
+
 - **Compares** every tracked store's listing of a product in one region, in
   that region's currency: in stock first, cheapest first.
 - **Tells the truth about stock**: each listing is *In stock*, *Pre-order*
@@ -40,7 +44,7 @@ site (card database, accounts, Premium) is in git history. Deploying: [DEPLOY.md
   worth it, sealed products explained, US MSRP, pre-ordering, what's in an ETB, Pokémon Center ETB vs ETB, the cheapest way to
   buy packs, where to buy online, avoiding resealed product, the Build & Battle Box), linked from the landing page with an FAQ, whose numbers come only from `packs.ts`, `rrp.ts`,
   `sets.ts`, `type-about.ts` and live blocks, each with "checked … ago". Old guide and blog URLs redirect to them.
-- **Booster box prices by country** (`/guides/pokemon-booster-box-prices-by-country`, `src/app/(site)/guides/[slug]`): the one
+- **Booster box prices by country** (`/guides/magic-booster-box-prices-by-country`, `src/app/(site)/guides/[slug]`): the one
   page that compares all seven markets, so it has one region-less URL (no hreflang). The newest booster-box set (the upcoming one
   while it is on pre-order) and the three before it, each market's cheapest open box with its per-pack price, the lead set's ETB
   and bundle, and US MSRP on the US row only. **Prices are never converted** (the site has no exchange-rate source it could print),

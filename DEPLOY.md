@@ -103,7 +103,7 @@ to the HTML-tag token and redeploy), then submit
 
 That URL is a **sitemap index** (`src/app/sitemap.xml/route.ts`) listing
 `/sitemap/0.xml` (the static pages, every active store page and, per region, `/deals`, `/cheapest-packs`, `/this-week`,
-`/guides` and each guide offered there, plus the one region-less guide, `/guides/pokemon-booster-box-prices-by-country`) and `/sitemap/1.xml` …
+`/guides` and each guide offered there, plus the one region-less guide, `/guides/magic-booster-box-prices-by-country`) and `/sitemap/1.xml` …
 `/sitemap/7.xml`, one per region in the order AU, US, UK, CA, NZ, EU, SG
 (`src/lib/sitemap.ts`): a region's type pages, set pages and every product at
 least one store there has in stock or two stores list. Each file carries the
@@ -337,6 +337,10 @@ underperforms:
 
 ## eBay listings: the daily import
 
+> **Inherited from DexCompare (2026-10-21).** The sections below describe mechanics this site runs unchanged. Their examples
+> (set names, "ETB", "Pokemon …" queries) and measured numbers are DexCompare's Pokémon ones; MTG Compare's queries start "MTG …"
+> and its product types are in `src/lib/sealed-title.ts`.
+
 The image strips on the site ("Chase cards on eBay", "Sealed Pokémon on eBay", "<Set> chase cards on
 eBay", "<Product> on eBay") show **real eBay listings**: photo, title, price as eBay returns it, shipping,
 and how old the data is, each tile an affiliate link. They are **imported once a day** by a GitHub Actions
@@ -349,8 +353,8 @@ product the repo's classifier says it is, so one call can feed dozens of product
 > **READ THIS FIRST: the 5,000 calls/day limit belongs to the eBay APPLICATION (the keyset), not to this site.**
 > The database counter (`EbayCallDay`) counts only the searches THIS importer makes; it cannot see the owner's other site if that site uses the
 > same App ID / Cert ID, and eBay's own counter (which a 429 comes from) adds the two. If both sites run on one keyset, either
-> **(a) create a separate eBay application (a separate keyset) for MTG Compare** and put its id and secret in `DEXCOMPARE_EBAY_CLIENT_ID` /
-> `DEXCOMPARE_EBAY_CLIENT_SECRET` (the recommendation: each site then has its own 5,000), or
+> **(a) create a separate eBay application (a separate keyset) for MTG Compare** and put its id and secret in `MTGCOMPARE_EBAY_CLIENT_ID` /
+> `MTGCOMPARE_EBAY_CLIENT_SECRET` (the recommendation: each site then has its own 5,000), or
 > **(b) agree each site's share of the 5,000 and set `EBAY_DAILY_CAP` to that share on BOTH sites**. This site's default, **2,500**, is also the
 > importer's hard maximum: it is MTG Compare's half of a keyset shared with the owner's other site, so that site must be capped at 2,500 too. Since
 > the catalogue sweep, the daily run spends close to its whole 2,500 every day, so the split is no longer theoretical. Until one of these is done, a busy day on the other site can exhaust the shared limit
@@ -439,8 +443,8 @@ also cover every product.
    access yet (apply from the application's page; eBay's Partner Network questionnaire, up to 10 business days). The 5,000
    calls/day default limit is **per application**: if MTG Compare's keyset is also the other site's, the two share it (see the box above).
 2. **GitHub secrets** (Settings → Secrets and variables → Actions → Secrets): `EBAY_CLIENT_ID` and `EBAY_CLIENT_SECRET`
-   (the names the owner set), plus the existing `DEXCOMPARE_SEALED_DATABASE_URL`. `DEXCOMPARE_EBAY_CLIENT_ID` /
-   `DEXCOMPARE_EBAY_CLIENT_SECRET` are accepted too and win when set (to give this site a different keyset from a shared
+   (the names the owner set), plus the existing `DEXCOMPARE_SEALED_DATABASE_URL`. `MTGCOMPARE_EBAY_CLIENT_ID` /
+   `MTGCOMPARE_EBAY_CLIENT_SECRET` are accepted too and win when set (to give this site a different keyset from a shared
    one without renaming anything). The secrets are passed to the **import step only**.
 3. **Optional repository variables** (Variables tab): `EBAY_DAILY_CAP` (default 2500, also the maximum: this site's share of the keyset,
    see the box above), `EBAY_RUN_CAP` (2500), `EBAY_LISTING_MAX_AGE_HOURS` (26), and `NEXT_PUBLIC_EBAY_CAMPAIGN_ID` **only if** you override the
@@ -888,7 +892,7 @@ query's row cap and its card columns:
 | `/<region>/this-week` | `productCountsBySets` (one `GROUP BY`, ≤ 10 sets), the calendar's products, `dealsInMarket` take 8, `newlyTracked` 12 | about 15 KB |
 | `/<region>/guides/<slug>` | at most about 40 rows (existing loaders, one `GROUP BY` by type) | ≤ 20 KB (the index: none) |
 | `/<region>/preorders/<set>` | `setOfferGroups` (≤ 30 products × ≤ 40 offers, as before); added 2026-10-16: outside the US the set's TCGplayer offers (≤ 30 rows) and, for the "across all markets" line, one `GROUP BY` of the set's offers by store (one small row per store, ≤ ~400) | about +10 KB |
-| `/guides/pokemon-booster-box-prices-by-country` | every market's open booster boxes of ≤ 7 candidate sets (take ≤ 98), then the lead set's open ETB and bundle (take ≤ 28), one `StoreStat` aggregate; rendered on first visit, never at build | ≤ 20 KB |
+| `/guides/magic-booster-box-prices-by-country` | every market's open booster boxes of ≤ 7 candidate sets (take ≤ 98), then the lead set's open ETB and bundle (take ≤ 28), one `StoreStat` aggregate; rendered on first visit, never at build | ≤ 20 KB |
 | `/api/browse/<region>` | the search and filter index: one whole-market read per region | about 0.5 MB per region per import |
 | product pages | `inStockAlternatives` (LIMIT 4) added; related products unchanged (take 40) | about +1 KB |
 | `/<region>/sealed` and `/page/<n>` | 48 rows a page plus one `COUNT` (they read the whole market before) | down from about 0.5 MB |
