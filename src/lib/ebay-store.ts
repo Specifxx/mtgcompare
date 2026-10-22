@@ -129,7 +129,7 @@ export function prismaImportDb(prisma: Db): ImportDb {
 
     async used(day) {
       // A database that has not had its first import yet has no table: that is "nothing used", not an error.
-      const has = await prisma.$queryRaw<{ ok: boolean }[]>`SELECT to_regclass('public."EbayCallDay"') IS NOT NULL AS "ok"`;
+      const has = await prisma.$queryRaw<{ ok: boolean }[]>`SELECT to_regclass('"EbayCallDay"') IS NOT NULL AS "ok"`;
       if (!has[0]?.ok) return 0;
       const rows = await prisma.$queryRaw<{ total: number }[]>`SELECT "total" FROM "EbayCallDay" WHERE "day" = ${day}`;
       return rows.length ? Number(rows[0].total) : 0;

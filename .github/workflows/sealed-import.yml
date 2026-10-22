@@ -52,7 +52,8 @@ jobs:
     steps:
       - name: Resolve the database
         id: db
-        # SEALED_DATABASE_URL if set, else DATABASE_URL: its DIRECT host (no "-pooler") and the "sealed" schema go to every later
+        # Raw SQL ignores Prisma's schema= setting, so the connection's search_path is set too (2026-10-22: the first run failed
+        # with 'relation "Offer" does not exist'). SEALED_DATABASE_URL if set, else DATABASE_URL: its DIRECT host (no "-pooler") and the "sealed" schema go to every later
         # step as DATABASE_URL, masked. The old singles site's tables live in the default schema and are never touched.
         env:
           SEALED: ${{ secrets.SEALED_DATABASE_URL }}
@@ -66,8 +67,8 @@ jobs:
             DIRECT="$(printf '%s' "$URL" | sed -E 's/-pooler\././')"
             case "$DIRECT" in
               *schema=*) ;;
-              *\?*) DIRECT="$DIRECT&schema=sealed" ;;
-              *) DIRECT="$DIRECT?schema=sealed" ;;
+              *\?*) DIRECT="$DIRECT&schema=sealed&options=-c%20search_path%3Dsealed" ;;
+              *) DIRECT="$DIRECT?schema=sealed&options=-c%20search_path%3Dsealed" ;;
             esac
             echo "::add-mask::$DIRECT"
             echo "DATABASE_URL=$DIRECT" >> "$GITHUB_ENV"

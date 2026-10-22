@@ -111,8 +111,8 @@ test("with no files, a read goes to the database as before; with files, it never
 });
 
 test("the database is SEALED_DATABASE_URL, else DATABASE_URL, always in the \"sealed\" schema (never the old site's tables)", () => {
-  assert.equal(databaseUrl({ SEALED_DATABASE_URL: "postgres://s", DATABASE_URL: "postgres://old" }), "postgres://s?schema=sealed");
-  assert.equal(databaseUrl({ DATABASE_URL: "postgres://old?sslmode=require" }), "postgres://old?sslmode=require&schema=sealed");
+  assert.equal(databaseUrl({ SEALED_DATABASE_URL: "postgres://s", DATABASE_URL: "postgres://old" }), "postgres://s?schema=sealed&options=-c%20search_path%3Dsealed");
+  assert.equal(databaseUrl({ DATABASE_URL: "postgres://old?sslmode=require" }), "postgres://old?sslmode=require&schema=sealed&options=-c%20search_path%3Dsealed");
   assert.equal(databaseUrl({ DATABASE_URL: "postgres://old?schema=other" }), "postgres://old?schema=other");
   assert.equal(databaseUrl({ SEALED_DATABASE_URL: " ", DATABASE_URL: "" }), undefined);
 });

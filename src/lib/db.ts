@@ -21,7 +21,8 @@ export function databaseUrl(env: Record<string, string | undefined> = process.en
 /** The URL with `schema=sealed` added, unless it already names a schema. */
 export function withSchema(url: string): string {
   if (/[?&]schema=/.test(url)) return url;
-  return `${url}${url.includes("?") ? "&" : "?"}schema=${DB_SCHEMA}`;
+  // schema= is Prisma's (its model queries); search_path is Postgres's, which raw SQL ($queryRaw) needs.
+  return `${url}${url.includes("?") ? "&" : "?"}schema=${DB_SCHEMA}&options=-c%20search_path%3D${DB_SCHEMA}`;
 }
 
 // ─── DATA-EGRESS RULES (read before adding a query) ────────────────────────────

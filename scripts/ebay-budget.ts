@@ -19,7 +19,7 @@ async function main() {
   console.log(`Budget day ${day} (${BUDGET_TZ}): ${used} Browse calls reserved of a ${caps.daily} daily cap (run cap ${caps.run}); ${Math.max(0, caps.daily - used)} left today.`);
   console.log(`Age bound: ${parseMaxAgeHours(env.EBAY_LISTING_MAX_AGE_HOURS)} h (rows older than that are never shown).`);
 
-  const has = await prisma.$queryRaw<{ ok: boolean }[]>`SELECT to_regclass('public."EbayListing"') IS NOT NULL AS "ok"`;
+  const has = await prisma.$queryRaw<{ ok: boolean }[]>`SELECT to_regclass('"EbayListing"') IS NOT NULL AS "ok"`;
   if (!has[0]?.ok) {
     console.log("EbayListing: table does not exist yet (run `prisma db push` or the import).");
     return;
