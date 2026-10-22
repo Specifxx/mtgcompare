@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { REGIONS, type Region } from "@/lib/regions";
 import { sectionHref, SECTION_PATHS, type SectionKey } from "@/lib/site";
 import { EbayNavLink } from "./Ebay";

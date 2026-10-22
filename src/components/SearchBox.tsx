@@ -1,7 +1,7 @@
 "use client";
 
-import { track } from "@vercel/analytics";
-import Link from "next/link";
+import { track } from "@/lib/track";
+import Link from "@/components/Link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from "react";
 import { createPortal } from "react-dom";

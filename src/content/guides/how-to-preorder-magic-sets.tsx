@@ -1,6 +1,6 @@
 // Guide: how to pre-order Magic sets. The process (general facts), the next set's dates (Star Trek, src/content/star-trek.ts, while it
 // is still to come) and its products open at the region's stores today.
-import Link from "next/link";
+import Link from "@/components/Link";
 import type { RegionInfo } from "@/lib/regions";
 import { longDate, STAR_TREK_DATES, starTrekLine, WIZARDS_COLLECTING_STAR_TREK } from "../star-trek";
 import type { GuideData } from "./data";

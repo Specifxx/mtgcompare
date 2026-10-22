@@ -1,7 +1,7 @@
 // Guide: Magic sealed products explained. What each kind is (general facts, Star Trek's contents as Wizards lists them for the
 // detail), today's from-price of each in the region (the cheapest open product of each family), and how many products of each type
 // are open here today (typeSummary).
-import Link from "next/link";
+import Link from "@/components/Link";
 import { money } from "@/lib/format";
 import type { RegionInfo } from "@/lib/regions";
 import { FAMILY, type FamilyKey } from "../families";

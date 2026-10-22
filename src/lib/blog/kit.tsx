@@ -1,6 +1,6 @@
 // The pieces the blog posts are built from: the guides' prose and table pieces (src/content/guides/kit.tsx), plus the cross-market
 // blocks a region-less post needs. No JSX runs when this module loads.
-import Link from "next/link";
+import Link from "@/components/Link";
 import type { ReactNode } from "react";
 import { Checked, Lede, Note, Prose, StackTable } from "@/content/guides/kit";
 import { familyOf, perPackOf, whereText, type MarketCard } from "@/content/families";

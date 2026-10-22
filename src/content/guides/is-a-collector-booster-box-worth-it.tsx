@@ -1,6 +1,6 @@
 // Guide: is a Collector Booster box worth it? No value claim: what a box holds (12 packs; Star Trek's contents as Wizards lists them),
 // what a pack costs in the region's cheapest boxes today against the cheapest loose Collector Boosters, and the questions to ask.
-import Link from "next/link";
+import Link from "@/components/Link";
 import type { RegionInfo } from "@/lib/regions";
 import { FAMILY } from "../families";
 import { STAR_TREK_PRODUCTS, WIZARDS_COLLECTING_STAR_TREK } from "../star-trek";

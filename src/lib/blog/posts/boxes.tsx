@@ -1,5 +1,5 @@
 // The two booster-box posts: the cheapest boxes in stock in each market, and the dearest. Built from the stores' live listings.
-import Link from "next/link";
+import Link from "@/components/Link";
 import { FAMILY } from "@/content/families";
 import type { PostData } from "../data";
 import { ByMarket, Lede, MarketsBlock, NoFx, Prose, type PostOutline } from "../kit";

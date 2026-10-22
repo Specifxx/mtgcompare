@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import type { Metadata } from "next";
 import { regionOrNotFound, type RegionInfo } from "@/lib/regions";
 import { AddToCalendar } from "@/components/AddToCalendar";

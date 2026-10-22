@@ -1,6 +1,6 @@
 // The two cross-market posts: where to buy (stores and stock per market) and whether sealed is cheaper abroad (the same set's box
 // in every market, each in its own currency).
-import Link from "next/link";
+import Link from "@/components/Link";
 import { cheapestPerMarket, perPackOf, whereText, type FamilyKey, type MarketCard } from "@/content/families";
 import { money } from "@/lib/format";
 import { REGION_LIST, regionOfMarket } from "@/lib/regions";

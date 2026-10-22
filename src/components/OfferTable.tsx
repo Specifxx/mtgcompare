@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import type { ReactNode } from "react";
 import type { OfferView } from "@/lib/data";
 import { offerLink, offerRetailer, type Placement } from "@/lib/affiliate";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { COUNTRY_GUIDE } from "@/content/guides/country-prices";
 import { REGION_LIST, REGIONS, type Region } from "@/lib/regions";
 import { SETS } from "@/lib/sets";

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import type { Metadata } from "next";
 import { Icon, type IconName } from "@/components/Icon";
 import { RegionSuggest, SuggestedEbayStrip, SuggestedTypeLinks } from "@/components/RegionSuggest";

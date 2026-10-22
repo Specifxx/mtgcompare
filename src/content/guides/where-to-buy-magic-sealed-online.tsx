@@ -1,6 +1,6 @@
 // Guide: where to buy Magic sealed online. The region's stores with the most in stock today (StoreStat), how much of each type is
 // open here, and what to check before ordering.
-import Link from "next/link";
+import Link from "@/components/Link";
 import { money } from "@/lib/format";
 import type { RegionInfo } from "@/lib/regions";
 import type { GuideData } from "./data";

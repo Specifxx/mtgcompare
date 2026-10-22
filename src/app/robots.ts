@@ -7,6 +7,10 @@ import { SITE_URL } from "@/lib/site";
 const BLOCKED_BOTS = [
   "Bytespider", "meta-externalagent", "Meta-ExternalAgent",
   "MJ12bot", "DotBot", "PetalBot", "DataForSeoBot", "BLEXBot", "Barkrowler", "serpstatbot", "SeekportBot", "ImagesiftBot", "Timpibot",
+  // Added 2026-10-22 (cost: each page a crawler renders is a billed function invocation, ~17,000 product URLs × a release a day):
+  // SEO-tool crawlers and AI training crawlers, which send no visitors. Search engines and AI SEARCH crawlers (OAI-SearchBot,
+  // PerplexityBot, Claude-SearchBot) can still read the site.
+  "AhrefsBot", "SemrushBot", "GPTBot", "CCBot", "ClaudeBot", "anthropic-ai", "Google-Extended", "Applebot-Extended", "Amazonbot", "cohere-ai", "Diffbot", "omgili",
 ];
 
 // QUERY-STRING URLS ARE NOT CRAWLED (2026-10-16). No page reads a query string

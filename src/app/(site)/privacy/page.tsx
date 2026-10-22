@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/components/Link";
 import { ADSENSE_CLIENT } from "@/lib/adsense";
 import { CONTACT_EMAIL, SITE_URL } from "@/lib/site";
 

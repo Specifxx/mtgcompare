@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import { breadcrumbJsonLd, jsonLd } from "@/lib/seo";
 
 export interface Crumb {

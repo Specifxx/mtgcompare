@@ -21,3 +21,16 @@ cards … only focus on sealed products … price all the sealed products compar
   weekly-release rule existed for the Neon data plane, which needed no deploy).
 - **eBay calls default to 1,500 a day** (`ebay-import.yml`), not DexCompare's 2,500: the keyset has been shared with RiftCompare.
 - RiftCompare has no Magic section, so the product page's price-history link is off (`src/lib/riftcompare.ts` `RIFT_SECTION`).
+
+## 2026-10-22 — Vercel cost cut to the bone
+
+**Owner:** "I don't want MTG Compare doing more than like $1 a day … reduce any cost features."
+
+- **Vercel Web Analytics is off** (`src/components/SiteAnalytics.tsx` renders nothing, `src/lib/track.ts` is a no-op, the
+  `@vercel/analytics` package is removed): it bills page views and custom events.
+- **Link prefetching is off by default** (`src/components/Link.tsx` wraps `next/link`): every page is force-dynamic, so each
+  prefetched link was a billed server render, whether or not anyone clicked it.
+- **The eBay strip API is cached 6 hours at the CDN** (was 1): its data changes once a day.
+- **More crawlers are refused in robots.txt**: SEO-tool crawlers (Ahrefs, Semrush) and AI-training crawlers, which render the long
+  tail and send no visitors. Search engines and AI search crawlers still read the site.
+- Unchanged and already cheap: no database reads from pages, no crons, no ISR writes, no image optimisation, one release a day.

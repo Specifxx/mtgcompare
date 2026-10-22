@@ -1,6 +1,6 @@
 "use client";
 
-import { track } from "@vercel/analytics";
+import { track } from "@/lib/track";
 import { useEffect, useRef, useState } from "react";
 import { SITE_URL } from "@/lib/site";
 import { Icon } from "./Icon";

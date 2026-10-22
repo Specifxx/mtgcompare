@@ -167,8 +167,8 @@ test("kill switch: EBAY_LISTINGS=off answers empty and reads nothing", async () 
   assert.equal((await (await call(fake(feedRows("EBAY_AU|chase", 6, 1), { EBAY_LISTINGS: "on" }).deps, "au", "chase")).json()).items.length, 6);
 });
 
-test("headers: public CDN an hour (then stale-while-revalidate) for an answer, 10 minutes for an empty one, nosniff, JSON", async () => {
-  assert.equal(GOOD, "public, max-age=60, s-maxage=3600, stale-while-revalidate=82800");
+test("headers: public CDN six hours (then stale-while-revalidate) for an answer, 10 minutes for an empty one, nosniff, JSON", async () => {
+  assert.equal(GOOD, "public, max-age=300, s-maxage=21600, stale-while-revalidate=21600");
   assert.equal(SHORT, "public, max-age=30, s-maxage=600");
   assert.doesNotMatch(SHORT, /stale/, "an empty or failed answer is never served stale");
   // the edge never keeps a good answer, stale copies included, past a day: the browser's age bound (26 h) still decides what is shown

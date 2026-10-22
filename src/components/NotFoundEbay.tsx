@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/Link";
 import { useEffect, useState } from "react";
 import { REGION_LIST, REGIONS, isRegion, X_DEFAULT_REGION, type Region } from "@/lib/regions";
 import { SETS } from "@/lib/sets";

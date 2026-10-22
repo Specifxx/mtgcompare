@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 
 /**
  * Server-rendered page links, so every row of a long list is reachable from

@@ -17,8 +17,8 @@ import { hoursToMs, parseMaxAgeHours, parseRegion, type ListingsResponse } from 
 import { parseContext } from "./ebay-context-parse";
 import { listingsFor, type ReadDeps } from "./ebay-read";
 
-/** A good answer: browsers 1 minute, the CDN 1 hour, then served stale for up to 23 hours while it revalidates. */
-export const GOOD = "public, max-age=60, s-maxage=3600, stale-while-revalidate=82800";
+/** A good answer: browsers 5 minutes, the CDN 6 hours, then served stale for up to 6 more while it revalidates (cost, 2026-10-22: the listings change once a day, with a release, which empties the CDN anyway). */
+export const GOOD = "public, max-age=300, s-maxage=21600, stale-while-revalidate=21600";
 /** An empty, failed or rejected answer: browsers 30 s, the CDN 10 minutes, never stale. */
 export const SHORT = "public, max-age=30, s-maxage=600";
 

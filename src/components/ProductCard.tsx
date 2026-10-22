@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/Link";
 import type { ProductCardData } from "@/lib/data";
 import { cardOpen } from "@/lib/compact";
 import { medianSaving, money, pctOf, plural } from "@/lib/format";

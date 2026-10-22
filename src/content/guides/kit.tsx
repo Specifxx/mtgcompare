@@ -6,7 +6,7 @@
 // styles every descendant <a>, <p> and <ul>, which would underline a card's link and put bullets on a row of chips.
 //
 // No JSX runs when this module loads (the tests set globalThis.React after their imports): everything here is a function.
-import Link from "next/link";
+import Link from "@/components/Link";
 import { Fragment, type ReactNode } from "react";
 import { AdSenseUnit } from "@/components/AdSenseUnit";
 import { Ago } from "@/components/Ago";

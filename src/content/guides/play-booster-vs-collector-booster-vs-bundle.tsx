@@ -1,7 +1,7 @@
 // Guide: Play Booster vs Collector Booster vs Bundle. What each holds (Wizards' own product listing for the newest set, Star Trek:
 // src/content/star-trek.ts), what each costs in the region today (the cheapest open boxes, Bundles and loose packs), and which suits
 // whom (general guidance, no value claims).
-import Link from "next/link";
+import Link from "@/components/Link";
 import { FAMILY } from "../families";
 import { STAR_TREK_PRODUCTS, WIZARDS_COLLECTING_STAR_TREK } from "../star-trek";
 import { GUIDE_BY_SLUG } from "./index";

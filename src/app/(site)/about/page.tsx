@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ADSENSE_CLIENT } from "@/lib/adsense";
-import Link from "next/link";
+import Link from "@/components/Link";
 import { REGION_LIST } from "@/lib/regions";
 import { CONTACT_EMAIL, FAN_CONTENT_DISCLAIMER, SITE_URL } from "@/lib/site";
 import { STORES, storesInMarket } from "@/lib/stores";

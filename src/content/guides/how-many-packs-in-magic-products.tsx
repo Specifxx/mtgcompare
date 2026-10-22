@@ -1,7 +1,7 @@
 // Guide: how many packs are in each Magic sealed product. Only the counts that hold for every product of a kind (src/content/live.ts
 // FAMILIES: Collector, Draft and Set Booster boxes), the Star Trek contents Wizards lists (src/content/star-trek.ts), and today's
 // cheapest box of each kind in the region with its price per pack where the count is known.
-import Link from "next/link";
+import Link from "@/components/Link";
 import type { RegionInfo } from "@/lib/regions";
 import { FAMILY } from "../families";
 import { STAR_TREK_PRODUCTS, WIZARDS_COLLECTING_STAR_TREK } from "../star-trek";
