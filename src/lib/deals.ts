@@ -72,7 +72,7 @@ export function dealPct(p: ProductCardData): number {
 
 export interface DealSection {
   /** The in-page anchor (/[region]/deals#play-booster-boxes): the hubs' type pages link to it. */
-  id: "play-booster-boxes" | "collector-booster-boxes" | "bundles" | "collections" | "more";
+  id: "play-booster-boxes" | "collector-booster-boxes" | "bundles" | "commander-decks" | "more";
   title: string;
   /** One of them, as a sentence says it: "No booster box is 10% under…". */
   one: string;
@@ -84,7 +84,7 @@ export interface DealSection {
   more: { path: string; label: string };
 }
 
-const NAMED = ["Play Booster Box", "Collector Booster Box", "Bundle", "Commander Deck", "Secret Lair Drop"];
+const NAMED = ["Play Booster Box", "Collector Booster Box", "Bundle", "Commander Deck"];
 
 export const DEAL_SECTIONS: readonly DealSection[] = [
   { id: "play-booster-boxes", title: "Play Booster Boxes", one: "Play Booster Box", types: ["Play Booster Box"], take: 12, more: { path: "/type/play-booster-boxes", label: "All booster boxes" } },
@@ -100,8 +100,8 @@ export const DEAL_SECTIONS: readonly DealSection[] = [
   { id: "commander-decks", title: "Commander decks", one: "Commander deck", types: ["Commander Deck"], take: 8, more: { path: "/type/commander-decks", label: "All Commander decks" } },
   {
     id: "more",
-    title: "Packs, blisters, decks & more",
-    one: "pack, blister or deck",
+    title: "Packs, decks & more",
+    one: "pack or deck",
     types: PRODUCT_TYPES.map((t) => t.label).filter((l) => !NAMED.includes(l)),
     take: 8,
     more: { path: "/sealed?stock=in&sort=saving", label: "Everything by saving" },
@@ -120,7 +120,7 @@ export interface PerPackRow {
   packs: number;
   /** Today's cheapest price ÷ packs, in cents. */
   perPack: number;
-  /** US only: TPCi's MSRP for the product ÷ its packs (rrp.ts), else null. */
+  /** US only: Wizards' MSRP for the product ÷ its packs (rrp.ts), else null. */
   msrpPerPack: number | null;
 }
 
@@ -160,7 +160,7 @@ export function perPackLeadersOf(cards: readonly ProductCardData[], market: stri
 // ─── Below US MSRP ──────────────────────────────────────────────────────────────
 
 /**
- * Open US products priced under TPCi's MSRP for them (rrp.ts), the furthest under first, then the cheaper. Below half the MSRP is
+ * Open US products priced under Wizards' MSRP for them (rrp.ts), the furthest under first, then the cheaper. Below half the MSRP is
  * left out, as below half the median is on the deals page: that is a misread listing far more often than a price. Pure.
  */
 export function pickBelowMsrp(cards: readonly ProductCardData[]): ProductCardData[] {
@@ -459,7 +459,7 @@ export const dealsCopy = {
   description: (r: R, deals: number, bestPct: number | null) =>
     deals > 0
       ? `${plural(deals, "Magic sealed product")} priced at least 10% under the median of 3+ ${r.adjective} stores today${bestPct ? `, up to ${bestPct}% under` : ""}. Booster boxes, Collector boxes, bundles and more, in ${r.currency}.`
-      : `The cheapest Pokémon booster packs per pack in ${r.inName} today, and any sealed product priced 10% under the median of 3+ ${r.adjective} stores.`,
+      : `The cheapest Magic booster packs per pack in ${r.inName} today, and any sealed product priced 10% under the median of 3+ ${r.adjective} stores.`,
   summary: (deals: number, bestPct: number | null) => `${plural(deals, "product")}${bestPct ? ` · up to ${bestPct}% below the median` : ""}`,
   empty: (r: R) => `No product is 10% under the median of 3 or more ${r.adjective} stores today, so here is the cheapest way to buy packs instead.`,
   rail: "Cheaper than most stores today",
@@ -467,16 +467,16 @@ export const dealsCopy = {
 };
 
 export const packsCopy = {
-  title: (r: R) => `Cheapest Pokémon booster packs in ${r.inName} — price per pack today`,
-  h1: (r: R) => `The cheapest way to buy Pokémon booster packs in ${r.inName}`,
+  title: (r: R) => `Cheapest MTG booster packs in ${r.inName} — price per pack today`,
+  h1: (r: R) => `The cheapest way to buy MTG booster packs in ${r.inName}`,
   lede: (r: R) => ({
     lead: `Every sealed product that holds a fixed number of booster packs, ranked by today’s cheapest ${r.adjective} price${tcg(r) ? " (a store’s or a TCGplayer seller’s)" : ""} divided by the packs inside. Prices checked`,
     tail: ".",
   }),
   description: (r: R, best: PerPackRow | null) =>
     best
-      ? `Pokémon booster boxes, Collector boxes, bundles and packs in ${r.inName}, ranked by price per pack today. Cheapest right now: ${best.p.name} at ${money(best.perPack, r.market)} a pack.`
-      : `Pokémon booster boxes, Collector boxes, bundles and packs in ${r.inName}, ranked by price per pack today.`,
+      ? `MTG booster boxes, bundles and packs in ${r.inName}, ranked by price per pack today. Cheapest right now: ${best.p.name} at ${money(best.perPack, r.market)} a pack.`
+      : `MTG booster boxes, bundles and packs in ${r.inName}, ranked by price per pack today.`,
   answer: (r: R, best: PerPackRow) => `${best.p.name}: ${money(best.perPack, r.market)} a pack today (${money(best.p.lowestPriceCents, r.market)} for ${best.packs} packs).`,
   method: "Per pack = the listed price ÷ the booster packs inside; promos, sleeves and dice are not priced; shipping excluded.",
 };
@@ -492,9 +492,9 @@ export const digestCopy = {
 };
 
 export const homeCopy = {
-  title: (r: R, stores: number) => `Pokémon booster boxes & Collector boxes in ${r.inName} — compare ${stores} stores`,
+  title: (r: R, stores: number) => `MTG booster boxes & Collector boxes in ${r.inName} — compare ${stores} stores`,
   description: (r: R, stores: number, inStock: number) =>
-    `Compare Pokémon booster boxes, Collector boxes, bundles and collections across ${plural(stores, `${r.adjective} store`)}${tcg(r) ? " and TCGplayer" : ""}: ${inStock.toLocaleString("en")} in stock today, prices in ${r.currency}.`,
+    `Compare MTG booster boxes, Collector boxes, bundles and Commander decks across ${plural(stores, `${r.adjective} store`)}${tcg(r) ? " and TCGplayer" : ""}: ${inStock.toLocaleString("en")} in stock today, prices in ${r.currency}.`,
 };
 
 /** Where a product can be bought today, in a few words: "5 stores", "5 stores + TCGplayer", "TCGplayer", "Pre-order · 3 stores". */

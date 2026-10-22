@@ -48,17 +48,17 @@ function fake(all: ListingRow[], env: Record<string, string | undefined> = {}, p
   return { deps, log };
 }
 const call = (deps: ReadDeps, region: string, c?: string) => handleListings(new Request(`http://localhost:3091/api/ebay/${region}${c === undefined ? "" : `?c=${encodeURIComponent(c)}`}`), region, deps);
-const ETB = { id: "prod1", productType: "Elite Trainer Box" };
+const PRODUCT = { id: "prod1", productType: "Draft Night" };
 
 test("cascade: item → type → sealed, set → chase, type → sealed, chase and sealed alone", () => {
-  const keys = (c: string, region: Region = "au", p?: typeof ETB | null) => cascadeFor(parseContext(c)!, region, p).map((x) => x.key);
-  assert.deepEqual(keys("item:x", "au", ETB), ["EBAY_AU|item:prod1", "EBAY_AU|type:elite-trainer-boxes", "EBAY_AU|sealed"]);
-  assert.deepEqual(keys("item:x", "nz", ETB), ["EBAY_AU|item:prod1", "EBAY_AU|type:elite-trainer-boxes", "EBAY_AU|sealed"], "NZ reads the AU marketplace's feeds");
-  // the generic sealed feed (boxes, ETBs, UPCs from US$30) stands in only for the types whose own prices are that class
-  assert.deepEqual(keys("item:x", "sg", { id: "p2", productType: "Tin" }), ["EBAY_US|item:p2", "EBAY_US|type:bundles"], "a tin never falls back to boxes");
-  assert.deepEqual(keys("item:x", "au", { id: "p4", productType: "Booster Pack" }), ["EBAY_AU|item:p4", "EBAY_AU|type:booster-packs"]);
+  const keys = (c: string, region: Region = "au", p?: typeof PRODUCT | null) => cascadeFor(parseContext(c)!, region, p).map((x) => x.key);
+  assert.deepEqual(keys("item:x", "au", PRODUCT), ["EBAY_AU|item:prod1", "EBAY_AU|type:draft-night", "EBAY_AU|sealed"]);
+  assert.deepEqual(keys("item:x", "nz", PRODUCT), ["EBAY_AU|item:prod1", "EBAY_AU|type:draft-night", "EBAY_AU|sealed"], "NZ reads the AU marketplace's feeds");
+  // the generic sealed feed (boxes, bundles, Commander decks from US$30) stands in only for the types whose own prices are that class
+  assert.deepEqual(keys("item:x", "sg", { id: "p2", productType: "Bundle" }), ["EBAY_US|item:p2", "EBAY_US|type:bundles"], "a bundle never falls back to boxes");
+  assert.deepEqual(keys("item:x", "au", { id: "p4", productType: "Play Booster Pack" }), ["EBAY_AU|item:p4", "EBAY_AU|type:play-booster-packs"]);
   assert.deepEqual(keys("type:bundles", "us"), ["EBAY_US|type:bundles"]);
-  assert.deepEqual(keys("type:booster-bundles", "us"), ["EBAY_US|type:booster-bundles"]);
+  assert.deepEqual(keys("type:commander-decks", "us"), ["EBAY_US|type:commander-decks"]);
   assert.deepEqual(keys("set:bloomburrow", "uk"), ["EBAY_GB|set:bloomburrow", "EBAY_GB|chase"]);
   assert.deepEqual(keys("type:play-booster-boxes", "eu"), ["EBAY_DE|type:play-booster-boxes", "EBAY_DE|sealed"]);
   assert.deepEqual(keys("chase", "ca"), ["EBAY_CA|chase"]);
@@ -67,14 +67,14 @@ test("cascade: item → type → sealed, set → chase, type → sealed, chase a
 });
 
 test("the cascade answers with the FIRST feed that has rows: a product's own listings from one, any other feed from two", async () => {
-  const all = [...feedRows("EBAY_AU|type:elite-trainer-boxes", 8, 3), ...feedRows("EBAY_AU|sealed", 12, 3), ...feedRows("EBAY_AU|item:prod1", 1, 3)];
-  const f = fake(all, {}, { "my-etb": ETB });
-  let body = await (await call(f.deps, "au", "item:my-etb")).json();
+  const all = [...feedRows("EBAY_AU|type:draft-night", 8, 3), ...feedRows("EBAY_AU|sealed", 12, 3), ...feedRows("EBAY_AU|item:prod1", 1, 3)];
+  const f = fake(all, {}, { "my-product": PRODUCT });
+  let body = await (await call(f.deps, "au", "item:my-product")).json();
   assert.equal(body.feed, "item", "one listing is still the product's eBay price");
   assert.equal(body.items.length, 1);
   assert.deepEqual(f.log.at(-1)!.mins, [1, 2, 2], "the item feed needs one row, the type and sealed feeds two");
   all.push(row("EBAY_AU|item:prod1", 1, 3));
-  body = await (await call(f.deps, "au", "item:my-etb")).json();
+  body = await (await call(f.deps, "au", "item:my-product")).json();
   assert.equal(body.feed, "item");
   assert.equal(body.items.length, 2);
   // a TYPE feed with one row does not qualify: the next feed answers
@@ -253,14 +253,15 @@ test("a stored row whose link is not one eBay item page with a campaign id, or w
   assert.equal(out.items.length, 2);
 });
 
-test("a stored sealed row the importer's rules now refuse (a product's contents, a lot) is not shown; card feeds keep their own filter", async () => {
-  const bad = { ...row("EBAY_US|item:prod1", 0, 1), title: "3 Promo Sealed Pokemon 30th Anniversary Energy Packs From Elite Trainer Box" };
-  const good = { ...row("EBAY_US|item:prod1", 1, 1), title: "Pokemon TCG 30th Celebration Elite Trainer Box Sealed" };
+test("a stored sealed row the importer's rules now refuse (a product's contents, a lot) is not shown; every feed is sealed, the chase one included", async () => {
+  const bad = { ...row("EBAY_US|item:prod1", 0, 1), title: "MTG Tarkir Dragonstorm Collector Booster Pack Pulled From Collector Booster Box" };
+  const good = { ...row("EBAY_US|item:prod1", 1, 1), title: "MTG Tarkir Dragonstorm Play Booster Box Sealed" };
   assert.equal(rowIsSafe(bad), false);
   assert.equal(rowIsSafe(good), true);
-  const body = await (await call(fake([bad, good], {}, { "my-etb": ETB }).deps, "us", "item:my-etb")).json();
+  const body = await (await call(fake([bad, good], {}, { "my-product": PRODUCT }).deps, "us", "item:my-product")).json();
   assert.equal(body.feed, "item");
   assert.deepEqual(body.items.map((i: { title: string }) => i.title), [good.title]);
-  // a chase card's title is never judged by the sealed rules here
-  assert.equal(rowIsSafe({ ...row("EBAY_US|chase", 0, 1), title: "Charizard ex 199/165 Special Illustration Rare from booster box" }), true);
+  // the chase (high-end sealed) feed is sealed product too: the same rules apply to its stored rows
+  assert.equal(rowIsSafe({ ...row("EBAY_US|chase", 0, 1), title: "MTG Final Fantasy Collector Booster Pulled From Collector Booster Box" }), false);
+  assert.equal(rowIsSafe({ ...row("EBAY_US|chase", 0, 1), title: "MTG Final Fantasy Collector Booster Box Sealed" }), true);
 });

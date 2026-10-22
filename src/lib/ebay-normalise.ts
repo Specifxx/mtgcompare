@@ -220,7 +220,7 @@ const PACK_COUNT_OK = new Set<TypeKey>(["bundle", "gift-bundle", "special-bundle
 
 /** Does the title sell several units (or a multi-pack of a single-unit product)? */
 export function multiUnit(title: string, type: TypeKey): boolean {
-  if (CASE_TYPES.has(type)) return false; // a case IS several boxes ("6 Boxes", "Case of 6")
+  if (CASE_TYPES.has(type) || type === "commander-deck-set") return false; // a case IS several boxes ("6 Boxes", "Case of 6"); a deck set several decks ("Set of 4")
   if (MULTI_UNIT.some((re) => re.test(title))) return true;
   return !PACK_COUNT_OK.has(type) && /\b(?:[2-9]|1\d)\s*-\s*packs?\b/i.test(title);
 }
@@ -266,6 +266,16 @@ export interface ItemTarget {
 
 // Words eBay sellers add that say nothing about WHICH product it is (after the classifier's own NOISE list).
 export const EBAY_NOISE = new Set("fast usa tracked nib mint hot cheap bargain great gift gifts hobby collectible collectable collectibles trusted".split(" "));
+// Seller words the classifier keeps as a special bundle's distinctive words ("Aetherdrift Bundle - Factory Sealed - Fast Ship" reads as a
+// special bundle "factory-fast"): with nothing else, the listing is the set's plain Bundle.
+const SELLER_WORDS = new Set("factory fast usa us uk seller ship ships shipping shipped free today same day new brand nib english in hand stock".split(" "));
+
+/** The set's plain Bundle key ("dft|bundle") for a listing the classifier reads as a special bundle only because of seller words; else null. */
+export function plainBundleKey(title: string, groupKey: string): string | null {
+  const parts = groupKey.startsWith("special-bundle|") ? groupParts(groupKey) : null;
+  if (!parts || parts.set === "-" || /\bgift\b/i.test(title)) return null;
+  return parts.tokens.every((t) => SELLER_WORDS.has(t) || EBAY_NOISE.has(t)) ? `${parts.set}|bundle` : null;
+}
 
 export function groupParts(key: string): { type: string; set: string; tokens: string[] } | null {
   const p = key.split("|");
@@ -284,6 +294,7 @@ export function groupParts(key: string): { type: string; set: string; tokens: st
 export function relevantToProduct(title: string, p: ItemTarget): boolean {
   const id = sealedIdentity(title, false);
   if (!id) return false;
+  if (p.type === "bundle" && plainBundleKey(title, id.groupKey) === p.groupKey) return true;
   if (id.type !== p.type) return false;
   if (id.groupKey === p.groupKey) return true;
   const kind = TYPE_BY_KEY.get(p.type)?.kind;

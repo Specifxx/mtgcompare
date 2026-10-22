@@ -241,7 +241,7 @@ export default async function ProductPage({ params }: { params: { region: string
       context={stripContext}
       placement={best ? "listings-product" : "listings-product-soldout"}
       className="mt-14"
-      headings={{ item: `${p.name} on eBay`, type: type ? `${type.plural} on eBay` : undefined, sealed: "Sealed Pokémon on eBay" }}
+      headings={{ item: `${p.name} on eBay`, type: type ? `${type.plural} on eBay` : undefined, sealed: "Sealed Magic on eBay" }}
       search={{ kind: "sealed", query: ebayQ, label: "Search this product on eBay" }}
       highlight={hot ? hotProductHighlight(p.name, ebayQ) : undefined}
     />

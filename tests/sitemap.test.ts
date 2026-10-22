@@ -66,9 +66,9 @@ test("static sitemap with activeStores: only the stores that list something and 
 
 test("region sitemap: known types and sets only, every comparable product, all on SITE_URL", () => {
   const entries = regionSitemap(REGIONS.uk, {
-    typeLabels: ["Booster Box", "Elite Trainer Box", "Not A Type"],
-    setCodes: ["me4", "no-such-set"],
-    productSlugs: ["a-box", "b-etb"],
+    typeLabels: ["Play Booster Box", "Collector Booster Box", "Not A Type"],
+    setCodes: ["blb", "no-such-set"],
+    productSlugs: ["a-box", "b-cbb"],
     lastmod: null,
   });
   onSite(entries);
@@ -76,9 +76,9 @@ test("region sitemap: known types and sets only, every comparable product, all o
   assert.deepEqual(urls, [
     `${SITE_URL}/uk/type/play-booster-boxes`,
     `${SITE_URL}/uk/type/collector-booster-boxes`,
-    `${SITE_URL}/uk/sets/chaos-rising`,
+    `${SITE_URL}/uk/sets/bloomburrow`,
     `${SITE_URL}/uk/p/a-box`,
-    `${SITE_URL}/uk/p/b-etb`,
+    `${SITE_URL}/uk/p/b-cbb`,
   ]);
   assert.ok(entries.every((e) => e.lastModified === undefined));
 });

@@ -6,7 +6,7 @@ import type { FeedSummary, ImportDb, PlanRow } from "../../src/lib/ebay-store";
 
 export const NOW = Date.parse("2026-10-07T06:37:00Z");
 export const SECRET = "SECRET-s3cr3t-value-ZZZ";
-export const CLIENT_ID = "DexComp-DexComp-PRD-1234567890-abcdef12";
+export const CLIENT_ID = "MtgComp-MtgComp-PRD-1234567890-abcdef12";
 export const KEYS: EbayEnv = { EBAY_CLIENT_ID: CLIENT_ID, EBAY_CLIENT_SECRET: SECRET };
 
 // ─── an in-memory ImportDb with the same contract as the SQL ────────────────────
@@ -150,7 +150,7 @@ export function withReference<T extends { itemAffiliateWebUrl?: string }>(items:
 
 // ─── product rows for the planner ───────────────────────────────────────────────
 
-const SETS_FOR_KEY: Record<string, string> = { "booster-box": "Surging Sparks Booster Box", etb: "Surging Sparks Elite Trainer Box" };
+const SETS_FOR_KEY: Record<string, string> = { "play-booster-box": "Aetherdrift Play Booster Box", bundle: "Aetherdrift Bundle" };
 
 let seq = 0;
 /** A PlanRow for a product of `type` priced `cents` in `market` (open unless `soldOut`). The group key is the real classifier's for `name`. */

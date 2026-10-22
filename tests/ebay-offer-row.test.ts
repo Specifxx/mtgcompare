@@ -183,7 +183,7 @@ const cardProps = (ebay: BestPriceCardProps["ebay"]): BestPriceCardProps => ({
 });
 
 test("the best-price card's server HTML is the store's: eBay's top only an invisible, link-free placeholder holding its space", () => {
-  const html = render(React.createElement(BestPriceCard, cardProps({ slug: "30th-celebration-elite-trainer-box", floor: null, packs: 9 })));
+  const html = render(React.createElement(BestPriceCard, cardProps({ slug: "reality-fracture-bundle", floor: null, packs: 9 })));
   // the two stacked cells, in order: the store's (shown), then eBay's (invisible)
   const cells = html.split('class="col-start-1 row-start-1').slice(1);
   assert.equal(cells.length, 2);

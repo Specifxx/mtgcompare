@@ -236,7 +236,7 @@ test("tcgplayer: the read stops at its time limit instead of holding up the stor
 
 // ── placeholder asks, coverage, and what a product's summary counts ──────────
 
-const CA_STORE: StoreConfig = { key: "ca1", name: "CA One", base: "https://ca1.example", market: "CA", platform: "shopify", country: "CA", collections: ["pokemon"] };
+const CA_STORE: StoreConfig = { key: "ca1", name: "CA One", base: "https://ca1.example", market: "CA", platform: "shopify", country: "CA", collections: ["magic"] };
 
 function read(store: StoreConfig, products: TcgProduct[] | { title: string; cents: number; inStock: boolean }[]): StoreRead {
   const feed =
@@ -250,7 +250,7 @@ function read(store: StoreConfig, products: TcgProduct[] | { title: string; cent
           currency: null,
           variants: [{ priceCents: p.cents, available: p.inStock }],
         }));
-  return { store, ok: true, error: null, products: feed.length, rediscovered: false, ms: 0, rows: rowsFromReads(store, [{ handle: "pokemon", ok: true, products: feed }]) };
+  return { store, ok: true, error: null, products: feed.length, rediscovered: false, ms: 0, rows: rowsFromReads(store, [{ handle: "magic", ok: true, products: feed }]) };
 }
 
 test("placeholder asks: far above the stores' asks (sold-out ones count) or the set's own unit are dropped", () => {

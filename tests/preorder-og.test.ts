@@ -15,8 +15,10 @@ import { GET } from "../src/app/og/preorders/[set]/route";
 
 const ROUTE = readFileSync(join(process.cwd(), "src/app/og/preorders/[set]/route.tsx"), "utf8").replace(/^\s*\/\/.*$/gm, "");
 
-test("every art file the card names is committed", () => {
+test("every art file the card names is committed, for a real set (a set with no entry draws the words alone)", () => {
+  const slugs = new Set([...SET_BY_CODE.values()].map((s) => s.slug));
   for (const [slug, files] of Object.entries(PREORDER_OG_ART)) {
+    assert.ok(slugs.has(slug), `${slug} is a set in sets.ts`);
     assert.ok(files.length <= 4, slug);
     for (const f of files) assert.ok(existsSync(join(process.cwd(), "public/preorders", slug, f)), `${slug}/${f}`);
   }

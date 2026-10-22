@@ -16,7 +16,7 @@
 // the hot pass already filled and stops sooner.
 //
 // Matching (matchListing):
-//   • a SET product (booster box, ETB, bundle…, and a UPC with a canonical key): the listing's group key IS the product's;
+//   • a SET product (booster box, bundle, case…): the listing's group key IS the product's;
 //   • a collection, tin, blister or deck: same type; the sets do not disagree (either may be unnamed); every identifying word
 //     of the product is in the listing; and any OTHER word of the listing names no product of that type anywhere in the
 //     catalogue (seller filler like "fast" or "nib" is fine, "super" or "mini" or another deck's name is not: that listing is a
@@ -25,7 +25,7 @@
 //     type's price floor.
 import { MAX_SEARCH_DEPTH, type SearchSpec } from "./ebay-api";
 import { feedReference, type FeedItem, type MarketplaceId } from "./ebay-context";
-import { baseItem, EBAY_NOISE, groupParts, lowestPriceFirst, sealedIdentity, typeFloor } from "./ebay-normalise";
+import { baseItem, EBAY_NOISE, groupParts, lowestPriceFirst, plainBundleKey, sealedIdentity, typeFloor } from "./ebay-normalise";
 import { refusedForType, refusedListing } from "./ebay-rules";
 import type { PlanRow } from "./ebay-store";
 import { HOT_SET_QUERY, HOT_SETS } from "./popular";
@@ -325,6 +325,9 @@ export function matchListing(title: string, index: SweepIndex): { product: Sweep
   if (refusedForType(title, id.type)) return { miss: "rejected" };
   const exact = index.byKey.get(id.groupKey);
   if (exact) return { product: exact };
+  const plain = plainBundleKey(title, id.groupKey); // "Aetherdrift Bundle - Fast Ship": the set's Bundle, not a special one
+  const bundle = plain ? index.byKey.get(plain) : undefined;
+  if (bundle) return { product: bundle };
   const kind = TYPE_BY_KEY.get(id.type)?.kind;
   if (kind === "set" || id.groupKey.startsWith("upc|")) return { miss: "no-product" };
   const parts = groupParts(id.groupKey);

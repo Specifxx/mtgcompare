@@ -17,12 +17,12 @@ import { SETS } from "./sets";
 // (PRODUCT_TYPES order), then name and slug in code-point order (the SQL sorts them COLLATE "C"), so a page is the same rows in the
 // same order wherever it is computed.
 
-/** Set codes, newest release first (sets.ts order breaks a tie: Black Bolt before White Flare). */
+/** Set codes, newest release first (sets.ts order breaks a tie: Foundations Jumpstart before Foundations). */
 export const SET_CODES_NEWEST_FIRST: string[] = SETS.map((s, i) => ({ s, i }))
   .sort((a, b) => b.s.releaseDate.localeCompare(a.s.releaseDate) || a.i - b.i)
   .map(({ s }) => s.code);
 
-/** Product type labels in display rank (PRODUCT_TYPES order: booster boxes and Collector boxes first). */
+/** Product type labels in display rank (PRODUCT_TYPES order: Play and Collector Booster Boxes first). */
 export const TYPE_LABELS_BY_RANK: string[] = PRODUCT_TYPES.map((t) => t.label);
 
 const SET_POS = new Map(SET_CODES_NEWEST_FIRST.map((c, i) => [c, i]));
@@ -87,8 +87,8 @@ export const INDEX_CACHE_CONTROL = "s-maxage=86400, stale-while-revalidate";
 
 // ─── Search ────────────────────────────────────────────────────────────────────
 // Every word typed must match the product: its name, its type, its set's name and code, and the words collectors use for them
-// ("etb", "pc etb", "upc", "b&b", "bb" for booster box). A word matches the start of a word ("pitch" → Pitch Black), and from
-// three letters on, anywhere ("zard" → Charizard). Accents never matter ("pokemon" finds "Pokémon").
+// ("pbb", "cbb", "precon", "sld", "pre-release"). A word matches the start of a word ("dragon" → Tarkir: Dragonstorm), and from
+// three letters on, anywhere ("storm" → Dragonstorm). Accents never matter.
 
 /** Lower case, accents stripped (NFKD without the combining marks). */
 export function foldText(s: string): string {
@@ -101,27 +101,23 @@ function words(s: string): string[] {
 
 /** What collectors type for a product type, beyond the words of its label. */
 const TYPE_ALIASES: Record<string, string[]> = {
-  "Play Booster Box": ["bb", "display"],
-  "Play Booster Box Case": ["bb"],
-  "Collector Booster Box": ["etb"],
-  "Collector Booster Box Case": ["etb"],
-  "Pokémon Center Collector Booster Box": ["etb", "pc", "pcetb"],
-  "Ultra-Premium Collection": ["upc"],
-  "Build & Battle Box": ["bnb"],
-  "Build & Battle Stadium": ["bnb"],
-  "Play Booster Pack": ["packs"],
+  "Play Booster Box": ["pbb", "bb", "display"],
+  "Play Booster Box Case": ["pbb", "bb"],
+  "Collector Booster Box": ["cbb"],
+  "Collector Booster Box Case": ["cbb"],
+  "Draft Booster Box": ["dbb", "bb", "display"],
+  "Set Booster Box": ["sbb", "bb", "display"],
+  "Commander Deck": ["precon", "edh", "cmdr"],
+  "Commander Deck Set": ["precon", "edh", "cmdr"],
+  "Secret Lair Drop": ["sl", "sld"],
 };
 
-// Two-letter abbreviations with an "&" in them, folded to one word before the query is split ("b&b" → bnb, "s&v" → sv).
-const QUERY_PHRASES: [RegExp, string][] = [
-  [/\bb\s*(?:&|and|n)\s*b\b/g, " bnb "],
-  [/\bs\s*(?:&|and)\s*v\b/g, " sv "],
-  [/\bpc\s*-?\s*etb/g, " pc etb "],
-];
+// Spellings folded to one word before the query is split ("pre-release" → prerelease, "secret-lair" stays two words).
+const QUERY_PHRASES: [RegExp, string][] = [[/\bpre\s*-?\s*release/g, " prerelease "]];
 
-// Words that say nothing about which product: every product here is Pokémon, sealed, TCG, and "&" is not a word of any name.
-// Dropped from a query as whole words only ("po" still finds "Pokémon Center"), and only when other words remain.
-const STOP = new Set(["pokemon", "tcg", "sealed", "english", "and", "the"]);
+// Words that say nothing about which product: every product here is Magic, sealed, and "&" is not a word of any name.
+// Dropped from a query as whole words only ("ma" still finds "Marvel"), and only when other words remain.
+const STOP = new Set(["mtg", "magic", "gathering", "tcg", "sealed", "english", "and", "the"]);
 
 function allQueryWords(q: string): string[] {
   let s = foldText(q);
@@ -136,7 +132,7 @@ export function queryWords(q: string): string[] {
   return kept.length ? kept : all;
 }
 
-/** "boxes" → "box", "etbs" → "etb", "secret-lair" → "tin": a plural typed for a singular label. */
+/** "boxes" → "box", "precons" → "precon", "decks" → "deck": a plural typed for a singular label. */
 function singular(w: string): string | null {
   if (w.length < 4) return null;
   if (/(?:x|s|z|ch|sh)es$/.test(w)) return w.slice(0, -2);
@@ -186,8 +182,8 @@ export function matchesQuery(p: ProductCardData, ws: readonly string[]): boolean
 
 /**
  * Every product matching the query, best first: buyable now first; then the products whose SET the query names (the more of its
- * words, the better: "pitch black" → Pitch Black's products before a Black Bolt one); then the newest set; within a set the chase
- * products first (a set's booster box and ETB before its blisters, so "pitch black" lists the box, not eight blisters), and the
+ * words, the better: "marvel super" → Marvel Super Heroes' products before a Marvel's Spider-Man one); then the newest set; within a set the chase
+ * products first (a set's booster boxes before its packs, so "bloomburrow" lists the box, not eight packs), and the
  * cheaper first; then name.
  */
 export function searchCards(cards: readonly ProductCardData[], q: string): ProductCardData[] {
@@ -225,7 +221,7 @@ export function rankSearch(cards: readonly ProductCardData[], q: string, limit =
  * merged and sorted. Only word starts are marked, the way the list matches them.
  */
 export function highlightRanges(text: string, q: string): [number, number][] {
-  const ws = allQueryWords(q); // "pokemon center" marks "Pokémon" too, though it doesn't have to match
+  const ws = allQueryWords(q); // "mtg bloomburrow" marks "MTG" too, though it doesn't have to match
   if (!ws.length) return [];
   // Fold character by character so every folded index maps back to the original one ("é" folds to one "e", "ﬁ" to two letters).
   let folded = "";

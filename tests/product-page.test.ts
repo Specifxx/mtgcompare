@@ -63,7 +63,7 @@ test("the table: eight rows of the ranked list (eBay's among them), the rest in 
     ...Array.from({ length: 3 }, (_, i) => offer(`stale${i}`, 4000 + i, true, { lastSeen: new Date(NOW - 5 * 86_400_000).toISOString() })),
     ...Array.from({ length: 6 }, (_, i) => offer(`sold${i}`, 3000 + i, false)),
   ];
-  const html = render(React.createElement(OfferTable, { offers, region: "us", preorder: false, ebay: { slug: "x-etb", query: "X Elite Trainer Box", floor: null, packs: 9 } }));
+  const html = render(React.createElement(OfferTable, { offers, region: "us", preorder: false, ebay: { slug: "x-bundle", query: "X Bundle", floor: null, packs: 9 } }));
   const first = html.indexOf("<details");
   const before = html.slice(0, first);
   assert.equal([...before.matchAll(/<li data-offer-row=""/g)].length, VISIBLE_ROWS, "exactly 8 rows before the first <details>");
@@ -125,17 +125,17 @@ test("a short table has no groups; a sold-out table shows its first eight closed
 // ─── The sold-out callout ─────────────────────────────────────────────────────
 
 test("sold out: the callout's eBay box is the server's search (soldout-ebay, Ad, sponsored, eBay blue), TCGplayer second, no eBay price", () => {
-  const tcgplayer = { title: "Vivid Voltage Elite Trainer Box", url: "https://www.tcgplayer.com/product/222", priceCents: 13653, inStock: true, lastSeen: new Date(NOW - 3_600_000).toISOString() };
+  const tcgplayer = { title: "Aetherdrift Collector Booster Box", url: "https://www.tcgplayer.com/product/222", priceCents: 13653, inStock: true, lastSeen: new Date(NOW - 3_600_000).toISOString() };
   const html = render(
     React.createElement(SoldOutCallout, {
       region: "uk",
-      productName: "Vivid Voltage Elite Trainer Box",
+      productName: "Aetherdrift Collector Booster Box",
       storesListing: 6,
       notChecked: 0,
       tcgplayer,
-      ebayQuery: "Vivid Voltage Elite Trainer Box",
+      ebayQuery: "Aetherdrift Collector Booster Box",
       pick: { slug: "vivid-voltage-elite-trainer-box", floor: { value: 20, currency: "GBP" }, packs: 8 },
-      instead: { href: "/uk/type/collector-booster-boxes", label: "See Elite Trainer Boxes in stock in the UK" },
+      instead: { href: "/uk/type/collector-booster-boxes", label: "See Collector Booster Boxes in stock in the UK" },
     }),
   );
   assert.match(html, /Sold out at every UK store we track/, "the heading is unchanged");
@@ -147,7 +147,7 @@ test("sold out: the callout's eBay box is the server's search (soldout-ebay, Ad,
   const ebay = links(html).filter((l) => new URL(l.href, "https://mtgcompare.app").hostname.endsWith("ebay.co.uk"));
   assert.equal(ebay.length, 1, "ONE eBay link in the server HTML: the search (the listing is browser-only)");
   const u = new URL(ebay[0].href);
-  assert.equal(u.searchParams.get("customid"), "dex-uk-soldout-ebay");
+  assert.equal(u.searchParams.get("customid"), "mtg-uk-soldout-ebay");
   assert.equal(u.searchParams.get("campid"), EBAY_CAMPAIGN_ID);
   assert.equal(ebay[0].rel, REL_SPONSORED);
   assert.match(ebay[0].cls, /^btn-ad .*w-full/, "a full-width eBay-blue button");
@@ -161,7 +161,7 @@ test("sold out: the callout's eBay box is the server's search (soldout-ebay, Ad,
   // no eBay price, no listing in the server HTML (the invisible listing cell is a placeholder with no link)
   assert.doesNotMatch(html, /£\d/);
   assert.doesNotMatch(html, /ebayimg\.com|\/itm\//);
-  assert.match(html, /href="\/uk\/type\/collector-booster-boxes"[^>]*>See Elite Trainer Boxes in stock in the UK/);
+  assert.match(html, /href="\/uk\/type\/collector-booster-boxes"[^>]*>See Collector Booster Boxes in stock in the UK/);
   for (const p of ["soldout-ebay", "listings-soldout-best", "listings-marketplace", "product-sticky"]) assert.ok((PLACEMENTS as readonly string[]).includes(p), p);
   // pre-order, NZ, SG: no pick, the search alone
   const plain = render(React.createElement(SoldOutCallout, { region: "nz", productName: "X", storesListing: 2, notChecked: 1, tcgplayer: null, ebayQuery: "X" }));
@@ -170,10 +170,10 @@ test("sold out: the callout's eBay box is the server's search (soldout-ebay, Ad,
 });
 
 test("the panel's eBay row in the server HTML: the search, eBay's blue button, placement product-marketplace; the listing cell holds no link", () => {
-  const html = render(React.createElement(MarketplacePanel, { region: "us", productName: "Pitch Black ETB", preorder: false, tcgplayer: null, pick: { slug: "pitch-black-elite-trainer-box", floor: null, packs: 9 }, storeCents: 5499 }));
+  const html = render(React.createElement(MarketplacePanel, { region: "us", productName: "Bloomburrow Bundle", preorder: false, tcgplayer: null, pick: { slug: "bloomburrow-bundle", floor: null, packs: 9 }, storeCents: 5499 }));
   const ebay = links(html).filter((l) => l.href.includes("ebay.com"));
   assert.equal(ebay.length, 1);
-  assert.equal(new URL(ebay[0].href).searchParams.get("customid"), "dex-us-product-marketplace");
+  assert.equal(new URL(ebay[0].href).searchParams.get("customid"), "mtg-us-product-marketplace");
   assert.match(html, /class="btn-ad[^"]*">Search eBay/);
   assert.match(html, /col-start-1 row-start-1 invisible" aria-hidden="true"/, "the listing's cell is reserved, invisible");
   assert.doesNotMatch(html, /\/itm\/|ebayimg/);
@@ -183,7 +183,7 @@ test("the panel's eBay row in the server HTML: the search, eBay's blue button, p
 
 test("the buy bar's server markup: hidden off-screen (translate-y-full, invisible, aria-hidden), phones only, no listing link, no unit", () => {
   const store = { cents: 5499, storeName: "TCG Card Depot", href: "https://depot.example/p", rel: "nofollow noopener", retailer: "TCG Card Depot (US)", marketplace: false };
-  const html = render(React.createElement(StickyBuyBar, { region: "us", anchor: "best", store, pick: { slug: "pitch-black-elite-trainer-box", floor: null, packs: 9 } }));
+  const html = render(React.createElement(StickyBuyBar, { region: "us", anchor: "best", store, pick: { slug: "bloomburrow-bundle", floor: null, packs: 9 } }));
   assert.match(html, /role="region" aria-label="Quick buy"/);
   assert.match(html, /translate-y-full/);
   assert.match(html, /\binvisible\b/);
@@ -205,14 +205,14 @@ test("the buy bar's server markup: hidden off-screen (translate-y-full, invisibl
   const tcg = render(React.createElement(StickyBuyBar, { region: "us", anchor: "best", store: { ...store, storeName: "TCGplayer", marketplace: true, rel: REL_SPONSORED } }));
   assert.match(tcg, /affiliate link/);
   // sold out: the callout's eBay search, labelled Ad, placement product-sticky
-  const sold = render(React.createElement(StickyBuyBar, { region: "uk", anchor: "soldout", pick: null, search: { href: "https://www.ebay.co.uk/sch/i.html?_nkw=x&customid=dex-uk-product-sticky", line: "Sold out at UK stores" } }));
+  const sold = render(React.createElement(StickyBuyBar, { region: "uk", anchor: "soldout", pick: null, search: { href: "https://www.ebay.co.uk/sch/i.html?_nkw=x&customid=mtg-uk-product-sticky", line: "Sold out at UK stores" } }));
   assert.match(sold, /class="ad-pill[^"]*">Ad</);
   assert.match(sold, /Find on eBay/);
   assert.equal(links(sold)[0].rel, REL_SPONSORED);
 });
 
 test("the share button: a 44 px button, the canonical URL, one analytics property", () => {
-  const html = render(React.createElement(ShareButton, { title: "Pokémon Pitch Black Elite Trainer Box", path: "/us/p/pitch-black-elite-trainer-box", kind: "product" }));
+  const html = render(React.createElement(ShareButton, { title: "MTG Bloomburrow Bundle", path: "/us/p/bloomburrow-bundle", kind: "product" }));
   assert.match(html, /<button type="button" class="[^"]*h-11 w-11/);
   assert.match(html, /aria-label="Share this product"/);
   assert.match(html, /aria-live="polite"/);
@@ -254,21 +254,25 @@ test("in-stock ad plan counts the visible rows and the group summaries, not ever
 
 // ─── Words ────────────────────────────────────────────────────────────────────
 
-test("the title: Pokémon + name + the cheapest open price and where; TCGplayer named as a marketplace, never counted as a store; fits 65 or goes absolute", () => {
+test("the title: MTG + name + the cheapest open price and where; TCGplayer named as a marketplace, never counted as a store; fits 65 or goes absolute", () => {
   const open = (stores: number, tcg: boolean) => [...Array.from({ length: stores }, () => ({ marketplace: false })), ...(tcg ? [{ marketplace: true }] : [])];
   assert.equal(openWhere(open(19, false), "US store"), "at 19 US stores");
   assert.equal(openWhere(open(19, true), "US store"), "at 19 US stores and on TCGplayer");
   assert.equal(openWhere(open(0, true), "US store"), "on TCGplayer");
   assert.equal(openWhere(open(1, false), "Australian store"), "at 1 Australian store");
-  const t = productTitle({ name: "Pitch Black Elite Trainer Box", market: "US", inName: "the US", cheapestCents: 5499, where: "at 19 US stores and on TCGplayer" });
-  assert.deepEqual(t, { absolute: "Pokémon Pitch Black Elite Trainer Box — from $54.99 at 19 US stores and on TCGplayer" });
-  const sold = productTitle({ name: "Vivid Voltage ETB", market: "UK", inName: "the UK", cheapestCents: null, where: null });
-  assert.equal(sold, "Pokémon Vivid Voltage ETB — price & stock in the UK");
-  assert.equal(renderedTitle(sold), "Pokémon Vivid Voltage ETB — price & stock in the UK | MTG Compare");
+  const t = productTitle({ name: "Edge of Eternities Collector Booster Box", market: "US", inName: "the US", cheapestCents: 5499, where: "at 19 US stores and on TCGplayer" });
+  assert.deepEqual(t, { absolute: "MTG Edge of Eternities Collector Booster Box — from $54.99 at 19 US stores and on TCGplayer" });
+  const sold = productTitle({ name: "Aetherdrift Bundle", market: "UK", inName: "the UK", cheapestCents: null, where: null });
+  assert.equal(sold, "MTG Aetherdrift Bundle — price & stock in the UK");
+  assert.equal(renderedTitle(sold), "MTG Aetherdrift Bundle — price & stock in the UK | MTG Compare");
   assert.ok(renderedTitle(sold).length <= 65);
-  assert.equal(productTitle({ name: "Pokémon Center Elite Trainer Box", market: "AU", inName: "Australia", cheapestCents: null, where: null }).toString().startsWith("Pokémon Center"), false, "an object: too long for the suffix");
-  assert.deepEqual(fitTitle("x".repeat(52)), "x".repeat(52), "52 + ' | MTG Compare' = 65");
-  assert.deepEqual(fitTitle("x".repeat(53)), { absolute: "x".repeat(53) });
+  assert.equal(
+    typeof productTitle({ name: "Magic: The Gathering Foundations Starter Collection", market: "AU", inName: "Australia", cheapestCents: null, where: null }),
+    "object",
+    "an object: too long for the suffix (and never 'MTG Magic: …')",
+  );
+  assert.deepEqual(fitTitle("x".repeat(51)), "x".repeat(51), "51 + ' | MTG Compare' = 65");
+  assert.deepEqual(fitTitle("x".repeat(52)), { absolute: "x".repeat(52) });
   assert.equal(shortDate("2026-07-17"), "17 Jul 2026");
   assert.equal(releaseChip("2026-07-17", false), "Released 17 Jul 2026");
   assert.equal(releaseChip("2026-11-06", true), "Pre-order · out 6 Nov 2026");
@@ -276,29 +280,30 @@ test("the title: Pokémon + name + the cheapest open price and where; TCGplayer 
 
 const card = (slug: string, productType: string, lowestPriceCents: number, open = true): ProductCardData => ({
   slug,
-  name: `Chaos Rising ${productType}`,
+  name: `Edge of Eternities ${productType}`,
   productType,
-  setCode: "me4",
+  setCode: "eoe",
   imageUrl: null,
   lowestPriceCents,
   inStockStores: open ? 3 : 0,
   listedStores: 5,
   marketplaceOpen: false,
   medianOpenCents: null,
-  releaseDate: "2026-05-22",
+  releaseDate: "2025-08-01",
 });
 
 test("the value check: this product is the cheapest way to buy the set's packs, or another format is (linked); nothing to compare, nothing said", () => {
-  const box = card("chaos-rising-booster-box", "Booster Box", 27000); // A$7.50 a pack
-  const etb = card("chaos-rising-elite-trainer-box", "Elite Trainer Box", 8820); // A$9.80
-  const bundle = card("chaos-rising-booster-bundle", "Booster Bundle", 5496); // A$9.16
-  const picks = cheapestPerPackByType([box, etb, bundle]);
-  const a = valueCheck({ slug: box.slug, productType: "Booster Box", perPack: 750, setName: "Chaos Rising", market: "AU", inName: "Australia", region: "au", picks });
-  assert.deepEqual(a, { text: "At A$7.50 a pack this is the cheapest way to buy Chaos Rising packs in Australia today (ETB A$9.80 and bundle A$9.16 a pack)" });
-  const b = valueCheck({ slug: etb.slug, productType: "Elite Trainer Box", perPack: 980, setName: "Chaos Rising", market: "AU", inName: "Australia", region: "au", picks });
-  assert.deepEqual(b, { text: "The booster box is cheaper per pack today: A$7.50 a pack", href: "/au/p/chaos-rising-booster-box" });
-  assert.equal(valueCheck({ slug: box.slug, productType: "Booster Box", perPack: 750, setName: "Chaos Rising", market: "AU", inName: "Australia", region: "au", picks: cheapestPerPackByType([box]) }), null);
-  assert.equal(valueCheck({ slug: "tin", productType: "Tin", perPack: null, setName: "Chaos Rising", market: "AU", inName: "Australia", region: "au", picks }), null);
+  const box = card("edge-of-eternities-play-booster-box", "Play Booster Box", 22500); // 30 packs: A$7.50 a pack
+  const bundle = card("edge-of-eternities-bundle", "Bundle", 8820); // 9 packs: A$9.80
+  const pack = card("edge-of-eternities-play-booster-pack", "Play Booster Pack", 916); // A$9.16
+  const picks = cheapestPerPackByType([box, bundle, pack]);
+  const at = { setName: "Edge of Eternities", market: "AU", inName: "Australia", region: "au", picks };
+  const a = valueCheck({ ...at, slug: box.slug, productType: "Play Booster Box", perPack: 750 });
+  assert.deepEqual(a, { text: "At A$7.50 a pack this is the cheapest way to buy Edge of Eternities packs in Australia today (Bundle A$9.80 and Play Booster A$9.16 a pack)" });
+  const b = valueCheck({ ...at, slug: bundle.slug, productType: "Bundle", perPack: 980 });
+  assert.deepEqual(b, { text: "The Play Booster Box is cheaper per pack today: A$7.50 a pack", href: "/au/p/edge-of-eternities-play-booster-box" });
+  assert.equal(valueCheck({ ...at, slug: box.slug, productType: "Play Booster Box", perPack: 750, picks: cheapestPerPackByType([box]) }), null);
+  assert.equal(valueCheck({ ...at, slug: "deck", productType: "Commander Deck", perPack: null }), null);
   for (const v of [a!, b!]) assert.equal(findBannedCopy(v.text), null, v.text);
 });
 
@@ -335,24 +340,24 @@ test("quick facts and the description: current facts only, TCGplayer worded as a
   assert.equal(text["US MSRP"], "$59.99");
   const sold = quickFacts({ market: "UK", inName: "the UK", adjective: "UK", packs: null, release: null, cheapest: null, openStores: 0, storeCount: 6, tcgOpen: false, msrp: null, elsewhere: [] });
   assert.deepEqual(sold.map((f) => f.text), ["Sold out at all 6 UK stores that list it"]);
-  const desc = productDescription({ name: "Pitch Black Elite Trainer Box", market: "US", adjective: "US", cheapestCents: 5499, where: "at 19 US stores and on TCGplayer", preorder: false, value: null });
+  const desc = productDescription({ name: "Edge of Eternities Collector Booster Box", market: "US", adjective: "US", cheapestCents: 5499, where: "at 19 US stores and on TCGplayer", preorder: false, value: null });
   for (const s of [...facts.map((f) => f.text), ...sold.map((f) => f.text), desc]) assert.ok(!BANNED_COPY.test(s), s);
-  assert.match(desc, /^Pokémon Pitch Black Elite Trainer Box: in stock at 19 US stores and on TCGplayer, from \$54\.99 today\./);
+  assert.match(desc, /^MTG Edge of Eternities Collector Booster Box: in stock at 19 US stores and on TCGplayer, from \$54\.99 today\./);
 });
 
 // ─── Alternatives ─────────────────────────────────────────────────────────────
 
 test("in-stock alternatives: one tagged-template query, LIMIT 4, same set first, then newest sets, then cheapest; the headline types when it finds none", async () => {
   const calls: { sql: string; values: unknown[] }[] = [];
-  const row = (slug: string, setCode: string | null, cents: number): AltRow => ({ slug, name: slug, productType: "Elite Trainer Box", setCode, imageUrl: null, lowestPriceCents: cents, inStockStores: 2, listedStores: 4, marketplaceOpen: false, medianOpenCents: null });
-  const answer = [row("a", "me4", 9000), row("b", "me5", 7000), row("c", null, 5000)];
+  const row = (slug: string, setCode: string | null, cents: number): AltRow => ({ slug, name: slug, productType: "Bundle", setCode, imageUrl: null, lowestPriceCents: cents, inStockStores: 2, listedStores: 4, marketplaceOpen: false, medianOpenCents: null });
+  const answer = [row("a", "eoe", 9000), row("b", "fra", 7000), row("c", null, 5000)];
   const db = {
     $queryRaw: async <T,>(q: TemplateStringsArray, ...values: unknown[]) => {
       calls.push({ sql: q.join("$?"), values });
       return answer as unknown as T;
     },
   };
-  const out = await inStockAlternatives("UK", "Elite Trainer Box", "me4", "vivid-voltage-elite-trainer-box", 4, { db, today: "2026-10-14", fallback: async () => assert.fail("no fallback when the type has products") });
+  const out = await inStockAlternatives("UK", "Bundle", "eoe", "edge-of-eternities-bundle", 4, { db, today: "2026-10-14", fallback: async () => assert.fail("no fallback when the type has products") });
   assert.deepEqual(out.map((c) => c.slug), ["a", "b", "c"], "the database's order, kept");
   assert.equal(calls.length, 1);
   const { sql, values } = calls[0];
@@ -360,24 +365,24 @@ test("in-stock alternatives: one tagged-template query, LIMIT 4, same set first,
   assert.match(sql, /ORDER BY COALESCE\(p\."setCode" = \$\?, false\) DESC, array_position\(\$\?::text\[\], p\."setCode"\) NULLS LAST, s\."lowestPriceCents" ASC/);
   assert.match(sql, /LIMIT \$\?$/);
   assert.doesNotMatch(sql, /SELECT \*/, "card columns only");
-  assert.deepEqual(values.slice(0, 4), ["UK", "Elite Trainer Box", "vivid-voltage-elite-trainer-box", "me4"]);
+  assert.deepEqual(values.slice(0, 4), ["UK", "Bundle", "edge-of-eternities-bundle", "eoe"]);
   const codes = values[4] as string[];
-  assert.equal(codes[0], "cel30", "released sets newest first (30th Celebration, out 2026-09-16)");
-  assert.ok(codes.indexOf("me5") < codes.indexOf("sv8"), "Pitch Black before Surging Sparks");
-  assert.equal(codes[codes.length - 1], "me6", "a set still to come (Delta Reign) last");
+  assert.equal(codes[0], "fra", "released sets newest first (Reality Fracture, out 2026-10-02)");
+  assert.ok(codes.indexOf("eoe") < codes.indexOf("tdm"), "Edge of Eternities before Tarkir: Dragonstorm");
+  assert.equal(codes[codes.length - 1], "trk", "a set still to come (Star Trek) last");
   assert.deepEqual(codes, setCodesNewestFirst("2026-10-14"));
   assert.equal(values[5], 4);
   assert.equal(out[2].releaseDate, null);
-  assert.equal(altToCard(answer[0]).releaseDate, "2026-05-22", "release dates from sets.ts, as every card");
+  assert.equal(altToCard(answer[0]).releaseDate, "2025-08-01", "release dates from sets.ts, as every card");
   // nothing of the type open: the region's cheapest headline products, the product itself never among them
   const empty = { $queryRaw: async <T,>() => [] as unknown as T };
-  const fb = await inStockAlternatives("UK", "Tin", null, "x", 4, {
+  const fb = await inStockAlternatives("UK", "Secret Lair Drop", null, "x", 4, {
     db: empty,
     fallback: async (market, types, take) => {
       assert.equal(market, "UK");
-      assert.deepEqual(types, ["Booster Box", "Elite Trainer Box", "Booster Bundle", "Pokémon Center Elite Trainer Box"]);
+      assert.deepEqual(types, ["Play Booster Box", "Collector Booster Box", "Bundle"]);
       assert.equal(take, 4);
-      return [altToCard(row("x", null, 1)), altToCard(row("y", "me5", 2))];
+      return [altToCard(row("x", null, 1)), altToCard(row("y", "fra", 2))];
     },
   });
   assert.deepEqual(fb.map((c) => c.slug), ["y"]);

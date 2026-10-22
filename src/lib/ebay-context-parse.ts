@@ -17,7 +17,7 @@ import { SET_BY_SLUG } from "./sets";
 export type ContextKind = "chase" | "sealed" | "set" | "type" | "item";
 
 export interface ParsedContext {
-  /** The canonical request string ("set:surging-sparks"). */
+  /** The canonical request string ("set:bloomburrow"). */
   id: string;
   kind: ContextKind;
   /** The set, type or product slug (null for chase and sealed). */

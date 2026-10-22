@@ -42,7 +42,7 @@ function card(over: Partial<ProductCardData> & Pick<ProductCardData, "name">): P
   n++;
   return {
     slug: over.slug ?? `p-${n}`,
-    productType: "Booster Box",
+    productType: "Play Booster Box",
     setCode: null,
     imageUrl: null,
     lowestPriceCents: 10000,
@@ -55,20 +55,20 @@ function card(over: Partial<ProductCardData> & Pick<ProductCardData, "name">): P
   };
 }
 
-// A small US-like market: two sets' products, a Pokémon Center ETB, a UPC, a Build & Battle box, a sold-out box.
-const PB_BOX = card({ slug: "pitch-black-booster-box", name: "Pitch Black Booster Box", productType: "Booster Box", setCode: "me5", lowestPriceCents: 10000 });
-const PB_ETB = card({ slug: "pitch-black-elite-trainer-box", name: "Pitch Black Elite Trainer Box", productType: "Elite Trainer Box", setCode: "me5", lowestPriceCents: 5750 });
-const PB_PACK = card({ slug: "pitch-black-booster-pack", name: "Pitch Black Booster Pack", productType: "Booster Pack", setCode: "me5", lowestPriceCents: 390 });
-const PB_BLISTER = card({ slug: "pitch-black-3-pack-blister", name: "Pitch Black 3 Pack Blister", productType: "Blister", setCode: "me5", lowestPriceCents: 695 });
-const PB_PC = card({ slug: "pitch-black-pokemon-center-etb", name: "Pitch Black Pokémon Center Elite Trainer Box", productType: "Pokémon Center Elite Trainer Box", setCode: "me5", lowestPriceCents: 11000 });
-const PE_ETB = card({ slug: "prismatic-evolutions-elite-trainer-box", name: "Prismatic Evolutions Elite Trainer Box", productType: "Elite Trainer Box", setCode: "sv8pt5", lowestPriceCents: 8750 });
-const PE_PC = card({ slug: "prismatic-evolutions-pc-etb", name: "Prismatic Evolutions Pokémon Center Elite Trainer Box", productType: "Pokémon Center Elite Trainer Box", setCode: "sv8pt5", lowestPriceCents: 40649 });
-const PE_SOLD = card({ slug: "prismatic-evolutions-booster-bundle", name: "Prismatic Evolutions Booster Bundle", productType: "Booster Bundle", setCode: "sv8pt5", lowestPriceCents: null, inStockStores: 0, listedStores: 9 });
-const UPC = card({ slug: "charizard-ex-upc", name: "Charizard ex Super-Premium Collection", productType: "Ultra-Premium Collection", setCode: null, lowestPriceCents: 19999 });
-const BNB = card({ slug: "black-bolt-build-battle-box", name: "Black Bolt Build & Battle Box", productType: "Build & Battle Box", setCode: "zsv10pt5", lowestPriceCents: 2500 });
-const PIKA = card({ slug: "pikachu-tin", name: "Pikachu ex Tin", productType: "Tin", setCode: "sv8", lowestPriceCents: 2499 });
-const TCG_ONLY = card({ slug: "tcg-only-tin", name: "Paldean Fates Tin", productType: "Tin", setCode: "sv4pt5", inStockStores: 0, listedStores: 0, marketplaceOpen: true, lowestPriceCents: 1999 });
-const MARKET = [UPC, PE_SOLD, PIKA, PB_BLISTER, PE_PC, BNB, PB_PACK, PB_ETB, TCG_ONLY, PE_ETB, PB_PC, PB_BOX];
+// A small US-like market: two Marvel sets' products, a Tarkir sold-out box, a Secret Lair drop (no set), Commander decks.
+const MS_BOX = card({ slug: "marvel-super-heroes-play-booster-box", name: "Marvel Super Heroes Play Booster Box", productType: "Play Booster Box", setCode: "msh", lowestPriceCents: 16000 });
+const MS_BUNDLE = card({ slug: "marvel-super-heroes-bundle", name: "Marvel Super Heroes Bundle", productType: "Bundle", setCode: "msh", lowestPriceCents: 5750 });
+const MS_PACK = card({ slug: "marvel-super-heroes-play-booster-pack", name: "Marvel Super Heroes Play Booster Pack", productType: "Play Booster Pack", setCode: "msh", lowestPriceCents: 590 });
+const MS_DECK = card({ slug: "marvel-super-heroes-commander-deck", name: "Marvel Super Heroes Commander Deck", productType: "Commander Deck", setCode: "msh", lowestPriceCents: 4500 });
+const MS_CBB = card({ slug: "marvel-super-heroes-collector-booster-box", name: "Marvel Super Heroes Collector Booster Box", productType: "Collector Booster Box", setCode: "msh", lowestPriceCents: 30000 });
+const TD_BUNDLE = card({ slug: "tarkir-dragonstorm-bundle", name: "Tarkir: Dragonstorm Bundle", productType: "Bundle", setCode: "tdm", lowestPriceCents: 6000 });
+const TD_CBB = card({ slug: "tarkir-dragonstorm-collector-booster-box", name: "Tarkir: Dragonstorm Collector Booster Box", productType: "Collector Booster Box", setCode: "tdm", lowestPriceCents: 29900 });
+const TD_SOLD = card({ slug: "tarkir-dragonstorm-play-booster-box", name: "Tarkir: Dragonstorm Play Booster Box", productType: "Play Booster Box", setCode: "tdm", lowestPriceCents: null, inStockStores: 0, listedStores: 9 });
+const SLD = card({ slug: "secret-lair-summer-superdrop", name: "Secret Lair Drop Summer Superdrop", productType: "Secret Lair Drop", setCode: null, lowestPriceCents: 19999 });
+const SPM_PRE = card({ slug: "marvels-spider-man-prerelease-pack", name: "Marvel's Spider-Man Prerelease Pack", productType: "Prerelease Pack", setCode: "spm", lowestPriceCents: 2500 });
+const DSK_DECK = card({ slug: "duskmourn-commander-deck-death-toll", name: "Duskmourn Commander Deck Death Toll", productType: "Commander Deck", setCode: "dsk", lowestPriceCents: 4499 });
+const TCG_ONLY = card({ slug: "tcg-only-commander-deck", name: "Bloomburrow Commander Deck Animated Army", productType: "Commander Deck", setCode: "blb", inStockStores: 0, listedStores: 0, marketplaceOpen: true, lowestPriceCents: 3999 });
+const MARKET = [SLD, TD_SOLD, DSK_DECK, MS_DECK, TD_CBB, SPM_PRE, MS_PACK, MS_BUNDLE, TCG_ONLY, TD_BUNDLE, MS_CBB, MS_BOX];
 
 const slugs = (cs: ProductCardData[]) => cs.map((c) => c.slug);
 
@@ -81,45 +81,45 @@ test("SET_CODES_NEWEST_FIRST and TYPE_LABELS_BY_RANK come from sets.ts and seale
   for (let i = 1; i < SET_CODES_NEWEST_FIRST.length; i++) {
     assert.ok(date.get(SET_CODES_NEWEST_FIRST[i - 1])! >= date.get(SET_CODES_NEWEST_FIRST[i])!, `newest first at ${i}`);
   }
-  // Same release day: sets.ts order (Black Bolt is written before White Flare).
-  assert.ok(SET_CODES_NEWEST_FIRST.indexOf("zsv10pt5") < SET_CODES_NEWEST_FIRST.indexOf("rsv10pt5"));
+  // Same release day: sets.ts order (Foundations Jumpstart is written before Foundations).
+  assert.ok(SET_CODES_NEWEST_FIRST.indexOf("j25") < SET_CODES_NEWEST_FIRST.indexOf("fdn"));
   assert.deepEqual(TYPE_LABELS_BY_RANK, PRODUCT_TYPES.map((t) => t.label));
-  assert.equal(TYPE_LABELS_BY_RANK[0], "Booster Box");
+  assert.equal(TYPE_LABELS_BY_RANK[0], "Play Booster Box");
 });
 
 test("relevanceCompare: open first, then newest set, then type rank, then name and slug by code point", () => {
   const sorted = [...MARKET].sort(relevanceCompare);
-  // Open: me5 (newest) by type rank — box, ETB, PC ETB, blister, pack; then zsv10pt5, sv8pt5, sv8, sv4pt5 (TCGplayer-only is open);
-  // then no set (UPC); sold out last.
+  // Open: msh (newest) by type rank — play box, collector box, bundle, Commander deck, pack; then spm, tdm, dsk, blb (TCGplayer-only
+  // is open); then no set (the Secret Lair drop); sold out last.
   assert.deepEqual(slugs(sorted), [
-    PB_BOX.slug,
-    PB_ETB.slug,
-    PB_PC.slug,
-    PB_BLISTER.slug,
-    PB_PACK.slug,
-    BNB.slug,
-    PE_ETB.slug,
-    PE_PC.slug,
-    PIKA.slug,
+    MS_BOX.slug,
+    MS_CBB.slug,
+    MS_BUNDLE.slug,
+    MS_DECK.slug,
+    MS_PACK.slug,
+    SPM_PRE.slug,
+    TD_CBB.slug,
+    TD_BUNDLE.slug,
+    DSK_DECK.slug,
     TCG_ONLY.slug,
-    UPC.slug,
-    PE_SOLD.slug,
+    SLD.slug,
+    TD_SOLD.slug,
   ]);
   // The documented key order, checked key by key on pairs that differ in one key only.
-  const base = card({ name: "B", slug: "b", setCode: "me4", productType: "Elite Trainer Box" });
+  const base = card({ name: "B", slug: "b", setCode: "spm", productType: "Bundle" });
   const v = (o: Partial<ProductCardData>): ProductCardData => ({ ...base, ...o });
-  assert.ok(relevanceCompare(v({ setCode: "me5", inStockStores: 0, listedStores: 2 }), base) > 0, "open beats a newer set");
-  assert.ok(relevanceCompare(v({ setCode: "me1" }), v({ productType: "Tin" })) > 0, "a newer set beats a better type");
-  assert.ok(relevanceCompare(v({ productType: "Tin" }), v({ name: "Z" })) > 0, "type beats name");
+  assert.ok(relevanceCompare(v({ setCode: "msh", inStockStores: 0, listedStores: 2 }), base) > 0, "open beats a newer set");
+  assert.ok(relevanceCompare(v({ setCode: "tdm" }), v({ productType: "Commander Deck" })) > 0, "a newer set beats a better type");
+  assert.ok(relevanceCompare(v({ productType: "Commander Deck" }), v({ name: "Z" })) > 0, "type beats name");
   assert.ok(relevanceCompare(v({ name: "Zebra" }), v({ name: "apple" })) < 0, 'names compare like COLLATE "C": upper case first');
   assert.ok(relevanceCompare(v({ slug: "b-2" }), v({ slug: "b-10" })) > 0, "then slug, byte-wise");
   assert.equal(relevanceCompare(v({ setCode: "not-a-set" }), v({ setCode: null })), 0, "an unknown set code sorts with no set (array_position is NULL)");
-  assert.ok(relevanceCompare(v({ setCode: null }), v({ setCode: "sm1" })) > 0, "no set sorts after every set (NULLS LAST)");
-  assert.ok(relevanceCompare(v({ productType: "Unknown" }), v({ productType: "Booster Bundle Case" })) > 0, "unknown type last");
+  assert.ok(relevanceCompare(v({ setCode: null }), v({ setCode: "rix" })) > 0, "no set sorts after every set (NULLS LAST)");
+  assert.ok(relevanceCompare(v({ productType: "Unknown" }), v({ productType: "Bundle Case" })) > 0, "unknown type last");
 });
 
 test("codePointCompare orders by code point, as Postgres COLLATE \"C\" does", () => {
-  const words = ["b", "B", "é", "e", "a b", "ab", "Ω", "\u{1F600}", "�", "Pokémon", "Pokemon"];
+  const words = ["b", "B", "é", "e", "a b", "ab", "Ω", "\u{1F600}", "�", "Æther", "Aether"];
   const sorted = [...words].sort(codePointCompare);
   const byCodePoints = [...words].sort((a, b) => {
     const x = [...a].map((c) => c.codePointAt(0)!);
@@ -173,7 +173,7 @@ test("the index route: 404 for anything but a region (no read), the loader's ind
   let reads = 0;
   const load = async (region: (typeof REGION_LIST)[number]["region"]): Promise<BrowseIndex> => {
     reads++;
-    return buildIndex(region, [PB_BOX], null);
+    return buildIndex(region, [MS_BOX], null);
   };
   for (const bad of ["xx", "US", "", "us ", "constructor", "__proto__"]) {
     const res = await browseIndexResponse(bad, load);
@@ -187,7 +187,7 @@ test("the index route: 404 for anything but a region (no read), the loader's ind
     assert.equal(res.headers.get("cache-control"), "s-maxage=86400, stale-while-revalidate", "CDN-cached for a day, like every ISR page");
     const body = await res.json();
     assert.ok(isBrowseIndex(body, r.region));
-    assert.equal(body.rows[0][0], PB_BOX.slug);
+    assert.equal(body.rows[0][0], MS_BOX.slug);
   }
   assert.equal(reads, REGION_LIST.length);
   const route = readFileSync(new URL("../src/app/api/browse/[region]/route.ts", import.meta.url), "utf8");
@@ -200,58 +200,60 @@ test("the index route: 404 for anything but a region (no read), the loader's ind
 // ─── Search ──────────────────────────────────────────────────────────────────
 
 test("rankSearch: accents never matter, and every word must match", () => {
-  assert.deepEqual(slugs(rankSearch(MARKET, "pokemon center").products), [PB_PC.slug, PE_PC.slug]);
-  assert.deepEqual(slugs(rankSearch(MARKET, "POKÉMON CENTER").products), [PB_PC.slug, PE_PC.slug]);
-  assert.deepEqual(slugs(rankSearch(MARKET, "pitch black elite").products), [PB_ETB.slug, PB_PC.slug]);
-  assert.equal(rankSearch(MARKET, "pitch charizard").total, 0);
-  assert.deepEqual(queryWords("  Pokémon   Pitch-Black!  "), ["pitch", "black"], "'pokemon' is dropped when other words remain");
-  assert.deepEqual(queryWords("pokemon"), ["pokemon"], "…but not when it is the only word");
+  assert.deepEqual(slugs(rankSearch(MARKET, "collector booster").products), [MS_CBB.slug, TD_CBB.slug]);
+  assert.deepEqual(slugs(rankSearch(MARKET, "CÓLLECTOR BÖOSTER").products), [MS_CBB.slug, TD_CBB.slug]);
+  assert.deepEqual(slugs(rankSearch(MARKET, "super heroes play").products), [MS_BOX.slug, MS_PACK.slug]);
+  assert.equal(rankSearch(MARKET, "super dragonstorm").total, 0);
+  assert.deepEqual(queryWords("  MTG   Marvel-Super!  "), ["marvel", "super"], "'mtg' is dropped when other words remain");
+  assert.deepEqual(queryWords("Magic: The Gathering Tarkir"), ["tarkir"], "so is 'Magic: The Gathering'");
+  assert.deepEqual(queryWords("magic"), ["magic"], "…but not when it is the only word");
   assert.equal(rankSearch(MARKET, "").total, 0);
   assert.equal(rankSearch(MARKET, " & ").total, 0);
 });
 
-test("rankSearch: collectors' words (etb, pc etb, upc, b&b, bb, plurals) and a word inside a name", () => {
-  assert.deepEqual(slugs(rankSearch(MARKET, "prismatic etb").products), [PE_ETB.slug, PE_PC.slug]);
-  assert.deepEqual(slugs(rankSearch(MARKET, "pc etb").products), [PB_PC.slug, PE_PC.slug]);
-  assert.deepEqual(slugs(rankSearch(MARKET, "upc").products), [UPC.slug]);
-  assert.deepEqual(slugs(rankSearch(MARKET, "b&b").products), [BNB.slug]);
-  assert.deepEqual(slugs(rankSearch(MARKET, "B & B black bolt").products), [BNB.slug]);
-  assert.deepEqual(slugs(rankSearch(MARKET, "bb pitch").products), [PB_BOX.slug]);
-  assert.deepEqual(slugs(rankSearch(MARKET, "booster boxes").products), [PB_BOX.slug], "a plural finds the singular label");
-  assert.deepEqual(slugs(rankSearch(MARKET, "secret-lair").products), [PIKA.slug, TCG_ONLY.slug]);
-  assert.deepEqual(slugs(rankSearch(MARKET, "zard").products), [UPC.slug], "three letters or more match inside a word");
-  assert.equal(rankSearch(MARKET, "ar").total, 0, "two letters match word starts only");
-  assert.deepEqual(slugs(rankSearch(MARKET, "sv8pt5 etb").products), [PE_ETB.slug, PE_PC.slug], "a set code is a word");
+test("rankSearch: collectors' words (pbb, cbb, precon, sld, pre-release, plurals) and a word inside a name", () => {
+  assert.deepEqual(slugs(rankSearch(MARKET, "cbb").products), [MS_CBB.slug, TD_CBB.slug]);
+  assert.deepEqual(slugs(rankSearch(MARKET, "tarkir cbb").products), [TD_CBB.slug]);
+  assert.deepEqual(slugs(rankSearch(MARKET, "sld").products), [SLD.slug]);
+  assert.deepEqual(slugs(rankSearch(MARKET, "pre-release").products), [SPM_PRE.slug]);
+  assert.deepEqual(slugs(rankSearch(MARKET, "Pre Release spider-man").products), [SPM_PRE.slug]);
+  assert.deepEqual(slugs(rankSearch(MARKET, "pbb super").products), [MS_BOX.slug]);
+  assert.deepEqual(slugs(rankSearch(MARKET, "play booster boxes").products), [MS_BOX.slug, TD_SOLD.slug], "a plural finds the singular label");
+  assert.deepEqual(slugs(rankSearch(MARKET, "precons").products), [MS_DECK.slug, DSK_DECK.slug, TCG_ONLY.slug]);
+  assert.deepEqual(slugs(rankSearch(MARKET, "commander-decks").products), [MS_DECK.slug, DSK_DECK.slug, TCG_ONLY.slug]);
+  assert.deepEqual(slugs(rankSearch(MARKET, "mmer").products), [SLD.slug], "three letters or more match inside a word");
+  assert.equal(rankSearch(MARKET, "um").total, 0, "two letters match word starts only");
+  assert.deepEqual(slugs(rankSearch(MARKET, "tdm collector").products), [TD_CBB.slug], "a set code is a word");
 });
 
 test("rankSearch order: open first, then the set the words name, newest set, chase types first, cheaper", () => {
-  // Two keystrokes: "pi" is Pitch Black's set (a set-name hit) before Pikachu (a name hit), and the box before the blisters.
-  const pi = slugs(rankSearch(MARKET, "pi").products);
-  assert.deepEqual(pi.slice(0, 5), [PB_BOX.slug, PB_ETB.slug, PB_PC.slug, PB_BLISTER.slug, PB_PACK.slug]);
-  assert.ok(pi.indexOf(PIKA.slug) > 4);
-  // "pr": Prismatic Evolutions (the set the letters start) before a name hit ("Super-Premium"), and sold out last.
-  assert.deepEqual(slugs(rankSearch(MARKET, "pr").products), [PE_ETB.slug, PE_PC.slug, UPC.slug, PE_SOLD.slug]);
-  // "black": both sets are hits; the newer one (Pitch Black) first.
-  const black = slugs(rankSearch(MARKET, "black").products);
-  assert.equal(black[0], PB_BOX.slug);
-  assert.ok(black.indexOf(BNB.slug) > black.indexOf(PB_PACK.slug));
+  // Two keystrokes: "su" is Marvel Super Heroes (a set-name hit) before Summer Superdrop (a name hit), and the box before the packs.
+  const su = slugs(rankSearch(MARKET, "su").products);
+  assert.deepEqual(su.slice(0, 5), [MS_BOX.slug, MS_CBB.slug, MS_BUNDLE.slug, MS_DECK.slug, MS_PACK.slug]);
+  assert.ok(su.indexOf(SLD.slug) > 4);
+  // "dr": Tarkir: Dragonstorm (the set the letters start) before a name hit ("Drop"), and sold out last.
+  assert.deepEqual(slugs(rankSearch(MARKET, "dr").products), [TD_CBB.slug, TD_BUNDLE.slug, SLD.slug, TD_SOLD.slug]);
+  // "marvel": both sets are hits; the newer one (Marvel Super Heroes) first.
+  const marvel = slugs(rankSearch(MARKET, "marvel").products);
+  assert.equal(marvel[0], MS_BOX.slug);
+  assert.ok(marvel.indexOf(SPM_PRE.slug) > marvel.indexOf(MS_PACK.slug));
   // Cheaper first within one set and type.
-  const two = [card({ name: "Pitch Black ETB A", productType: "Elite Trainer Box", setCode: "me5", lowestPriceCents: 6000 }), card({ name: "Pitch Black ETB B", productType: "Elite Trainer Box", setCode: "me5", lowestPriceCents: 5000 })];
-  assert.deepEqual(rankSearch(two, "pitch etb").products.map((p) => p.name), ["Pitch Black ETB B", "Pitch Black ETB A"]);
+  const two = [card({ name: "Marvel Super Heroes Bundle A", productType: "Bundle", setCode: "msh", lowestPriceCents: 6000 }), card({ name: "Marvel Super Heroes Bundle B", productType: "Bundle", setCode: "msh", lowestPriceCents: 5000 })];
+  assert.deepEqual(rankSearch(two, "super bundle").products.map((p) => p.name), ["Marvel Super Heroes Bundle B", "Marvel Super Heroes Bundle A"]);
   // Sold out always after open, whatever its set.
-  const sold = card({ name: "Pitch Black Booster Bundle", productType: "Booster Bundle", setCode: "me5", inStockStores: 0, lowestPriceCents: null });
-  const r = slugs(searchCards([sold, PIKA], "pi"));
-  assert.deepEqual(r, [PIKA.slug, sold.slug]);
+  const sold = card({ name: "Marvel Super Heroes Gift Bundle", productType: "Gift Bundle", setCode: "msh", inStockStores: 0, lowestPriceCents: null });
+  const r = slugs(searchCards([sold, SLD], "su"));
+  assert.deepEqual(r, [SLD.slug, sold.slug]);
 });
 
 test("rankSearch: the limit, the total, and the 'See all' option last", () => {
-  const many = Array.from({ length: 20 }, (_, i) => card({ name: `Pitch Black Blister ${String(i).padStart(2, "0")}`, productType: "Blister", setCode: "me5", lowestPriceCents: 1000 + i }));
-  const r = rankSearch(many, "pitch", 8);
+  const many = Array.from({ length: 20 }, (_, i) => card({ name: `Marvel Super Heroes Commander Deck ${String(i).padStart(2, "0")}`, productType: "Commander Deck", setCode: "msh", lowestPriceCents: 1000 + i }));
+  const r = rankSearch(many, "super", 8);
   assert.equal(r.products.length, 8);
   assert.equal(r.total, 20);
-  assert.equal(rankSearch(many, "pitch").products.length, 8, "8 by default");
-  assert.equal(rankSearch(many, "pitch", 3).products.length, 3);
-  const opts = searchOptions("au", " pitch  black ", r);
+  assert.equal(rankSearch(many, "super").products.length, 8, "8 by default");
+  assert.equal(rankSearch(many, "super", 3).products.length, 3);
+  const opts = searchOptions("au", " marvel  super ", r);
   assert.equal(opts.length, 9);
   assert.deepEqual(
     opts.slice(0, 8).map((o) => o.kind),
@@ -260,25 +262,27 @@ test("rankSearch: the limit, the total, and the 'See all' option last", () => {
   assert.equal(opts[0].href, `/au/p/${many[0].slug}`);
   const all = opts[8];
   assert.equal(all.kind, "all");
-  assert.equal(all.kind === "all" && all.label, "See all results for “pitch  black”");
-  assert.equal(all.href, "/au/sealed?q=pitch%20%20black");
+  assert.equal(all.kind === "all" && all.label, "See all results for “marvel  super”");
+  assert.equal(all.href, "/au/sealed?q=marvel%20%20super");
   assert.equal(all.kind === "all" && all.total, 20);
   // No matches: still the one way through to the full results.
   const none = searchOptions("us", "zzz", rankSearch(MARKET, "zzz"));
   assert.deepEqual(none.map((o) => o.kind), ["all"]);
   assert.deepEqual(searchOptions("us", "   ", rankSearch(MARKET, "   ")), []);
   assert.equal(searchHref("uk", ""), "/uk/sealed");
-  assert.equal(searchHref("uk", "s&v 151"), "/uk/sealed?q=s%26v%20151");
+  assert.equal(searchHref("uk", "d&d 2"), "/uk/sealed?q=d%26d%202");
 });
 
 test("highlightRanges: the query's words where they start a word, in the original string's indices", () => {
-  const name = "Pitch Black Pokémon Center Elite Trainer Box";
+  const name = "Marvel Super Heroes Collector Booster Box";
   const marked = (q: string) => highlightRanges(name, q).map(([a, b]) => name.slice(a, b));
-  assert.deepEqual(marked("pitch bl"), ["Pitch", "Bl"]);
-  assert.deepEqual(marked("pokemon center"), ["Pokémon", "Center"]);
-  assert.deepEqual(marked("pokémon"), ["Pokémon"]);
+  assert.deepEqual(marked("marvel su"), ["Marvel", "Su"]);
+  assert.deepEqual(marked("mtg collector booster"), ["Collector", "Booster"]);
+  assert.deepEqual(marked("cóllector"), ["Collector"]);
   assert.deepEqual(marked("boxes"), ["Box"], "a plural marks its singular");
-  assert.deepEqual(marked("ack"), [], "never inside a word");
+  assert.deepEqual(marked("per"), [], "never inside a word");
+  const accented = "Ætherdrift Ultimé Bundle";
+  assert.deepEqual(highlightRanges(accented, "ultime").map(([a, b]) => accented.slice(a, b)), ["Ultimé"], "an accent in the name still marks");
   assert.deepEqual(highlightRanges("Décor décor", "de"), [[0, 2], [6, 8]]);
 });
 
@@ -287,7 +291,7 @@ test("isBrowsePath: the region's browse page and its numbered pages only", () =>
   assert.ok(isBrowsePath("/us/sealed/", "us"));
   assert.ok(isBrowsePath("/us/sealed/page/3", "us"));
   assert.ok(!isBrowsePath("/au/sealed", "us"));
-  assert.ok(!isBrowsePath("/us/sets/pitch-black", "us"));
+  assert.ok(!isBrowsePath("/us/sets/marvel-super-heroes", "us"));
   assert.ok(!isBrowsePath(null, "us"));
 });
 
@@ -322,10 +326,10 @@ test("recently viewed: most recent first, deduped, at most 12, per region", () =
   assert.equal(pushRecent(Array.from({ length: 12 }, (_, i) => `s-${i}`), "new").at(-1), "s-10", "the oldest drops off");
 
   const s = memoryStorage();
-  for (const slug of ["pitch-black-booster-box", "prismatic-evolutions-elite-trainer-box", "pitch-black-booster-box", "surging-sparks-booster-box"]) {
+  for (const slug of ["bloomburrow-play-booster-box", "tarkir-dragonstorm-bundle", "bloomburrow-play-booster-box", "aetherdrift-play-booster-box"]) {
     rememberRecent("us", slug, s);
   }
-  assert.deepEqual(readRecent("us", s), ["surging-sparks-booster-box", "pitch-black-booster-box", "prismatic-evolutions-elite-trainer-box"]);
+  assert.deepEqual(readRecent("us", s), ["aetherdrift-play-booster-box", "bloomburrow-play-booster-box", "tarkir-dragonstorm-bundle"]);
   assert.equal(recentKey("us"), "mtg-recent-us");
   assert.ok(s.data.has("mtg-recent-us"));
   assert.deepEqual(readRecent("au", s), [], "each region keeps its own list");
@@ -342,18 +346,18 @@ test("recently viewed: most recent first, deduped, at most 12, per region", () =
 
 test("recently viewed with blocked storage (private mode, a full quota): nothing remembered, nothing thrown", () => {
   assert.deepEqual(readRecent("us", throwing), []);
-  assert.deepEqual(rememberRecent("us", "pitch-black-booster-box", throwing), []);
+  assert.deepEqual(rememberRecent("us", "bloomburrow-play-booster-box", throwing), []);
   assert.doesNotThrow(() => clearRecent("us", throwing));
   assert.deepEqual(readRecent("us", null), []);
-  assert.deepEqual(rememberRecent("us", "pitch-black-booster-box", null), []);
+  assert.deepEqual(rememberRecent("us", "bloomburrow-play-booster-box", null), []);
   // Outside a browser (no window): the default storage is "none", not an exception.
   assert.deepEqual(readRecent("us"), []);
-  assert.deepEqual(rememberRecent("us", "pitch-black-booster-box"), []);
+  assert.deepEqual(rememberRecent("us", "bloomburrow-play-booster-box"), []);
 });
 
 test("recentCards: the remembered products the index still lists, in visit order, at most 8; the rail renders nothing on the server", () => {
   const bySlug = new Map(MARKET.map((c) => [c.slug, c]));
-  assert.deepEqual(slugs(recentCards([PE_ETB.slug, "gone", PB_BOX.slug], bySlug)), [PE_ETB.slug, PB_BOX.slug]);
+  assert.deepEqual(slugs(recentCards([TD_BUNDLE.slug, "gone", MS_BOX.slug], bySlug)), [TD_BUNDLE.slug, MS_BOX.slug]);
   assert.equal(recentCards(MARKET.map((c) => c.slug), bySlug).length, 8);
   assert.equal(renderToStaticMarkup(React.createElement(RecentlyViewed, { region: "us" })), "", "never in the server HTML");
 });
@@ -361,22 +365,22 @@ test("recentCards: the remembered products the index still lists, in visit order
 // ─── The query's marketplace box and the grid's server HTML ──────────────────
 
 test("QueryEbayBox: one labelled browse-search unit, eBay for the words typed, TCGplayer in the US only, sponsored rel", () => {
-  const us = renderToStaticMarkup(React.createElement(QueryEbayBox, { region: "us", q: "  prismatic   etb " }));
+  const us = renderToStaticMarkup(React.createElement(QueryEbayBox, { region: "us", q: "  tarkir   cbb " }));
   assert.match(us, /^<div data-ad="browse-search" role="group" aria-label="Sponsored: marketplace searches"/);
   assert.match(us, /class="ad-pill ">Ad<\/span>/);
   assert.ok(us.includes(AFFILIATE_NOTE));
-  assert.match(us, /See “prismatic etb” on eBay — Buy It Now/);
+  assert.match(us, /See “tarkir cbb” on eBay — Buy It Now/);
   const links = [...us.matchAll(/<a [^>]*href="([^"]+)"[^>]*rel="([^"]+)"/g)].map((m) => ({ href: m[1].replace(/&amp;/g, "&"), rel: m[2] }));
   assert.equal(links.length, 2);
   for (const l of links) assert.equal(l.rel, REL_SPONSORED);
   const ebay = new URL(links[0].href);
   assert.equal(ebay.hostname, "www.ebay.com");
-  assert.equal(ebay.searchParams.get("_nkw"), "Pokemon prismatic etb sealed");
-  assert.equal(ebay.searchParams.get("customid"), "dex-us-browse-search");
-  assert.match(links[1].href, /tcgplayer\.com.*sharedid=dex-us-browse-search/);
+  assert.equal(ebay.searchParams.get("_nkw"), "MTG tarkir cbb sealed");
+  assert.equal(ebay.searchParams.get("customid"), "mtg-us-browse-search");
+  assert.match(links[1].href, /tcgplayer\.com.*sharedid=mtg-us-browse-search/);
   assert.match(us, /Search TCGplayer/);
   assert.match(us, />affiliate link</);
-  const au = renderToStaticMarkup(React.createElement(QueryEbayBox, { region: "au", q: "etb" }));
+  const au = renderToStaticMarkup(React.createElement(QueryEbayBox, { region: "au", q: "cbb" }));
   assert.doesNotMatch(au, /tcgplayer/i);
   assert.match(au, /ebay\.com\.au/);
   assert.equal(renderToStaticMarkup(React.createElement(QueryEbayBox, { region: "au", q: "   " })), "");

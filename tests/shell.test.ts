@@ -165,13 +165,13 @@ test("Header with no region: logo, 'Choose region' and the menu; no search, no s
 
 test("NavLink's current-section logic (aria-current='page'): whole segments, and the paths a section also covers", () => {
   assert.equal(isActivePath("/us/sets", "/us/sets"), true);
-  assert.equal(isActivePath("/us/sets/pitch-black", "/us/sets"), true);
+  assert.equal(isActivePath("/us/sets/bloomburrow", "/us/sets"), true);
   assert.equal(isActivePath("/us/sets/", "/us/sets"), true);
   assert.equal(isActivePath("/us/setsx", "/us/sets"), false);
   assert.equal(isActivePath("/us", "/us/sets"), false);
   assert.equal(isActivePath("/us/sealed/page/2", "/us/sealed"), true);
   assert.equal(isActivePath("/us/type/secret-lair", "/us/sealed", ["/us/type"]), true);
-  assert.equal(isActivePath("/us/sealed?q=etb", "/us/sealed"), true);
+  assert.equal(isActivePath("/us/sealed?q=cbb", "/us/sealed"), true);
   assert.equal(isActivePath(null, "/us/sealed"), false);
   assert.equal(isActivePath("/au/sets", "/us/sets"), false);
 });
@@ -179,7 +179,7 @@ test("NavLink's current-section logic (aria-current='page'): whole segments, and
 test("the phone menu: the eleven sections in order, under the region; the regions switch to the same page", () => {
   assert.deepEqual(
     MENU_ROWS.map((r) => r.label),
-    ["Deals", "This week", "All sealed", "Booster boxes", "ETBs", "Booster bundles", "Cheapest per pack", "Sets", "Releases", "Guides", "Where to buy"],
+    ["Deals", "This week", "All sealed", "Play Booster Boxes", "Collector boxes", "Bundles", "Cheapest per pack", "Sets", "Releases", "Guides", "Where to buy"],
   );
   // The sheet's contents render on the first open: the header's server HTML has the empty <dialog> only.
   assert.match(render(React.createElement(Header, { region: "ca" })), /<dialog id="site-menu" data-menu="" aria-label="Menu" class="menu-sheet [^"]*"><\/dialog>/);
@@ -188,8 +188,8 @@ test("the phone menu: the eleven sections in order, under the region; the region
   for (const p of ["/deals", "/this-week", "/sealed", "/type/play-booster-boxes", "/type/collector-booster-boxes", "/type/bundles", "/cheapest-packs", "/sets", "/releases", "/guides", "/stores"])
     assert.ok(hrefs(sheet).includes(`/ca${p}`), p);
   assert.equal(sheet.match(/class="text-2xl leading-none" aria-hidden="true">/g)?.length, 7, "seven flag tiles");
-  assert.equal(pathAfterRegion("/au/sets/pitch-black"), "/sets/pitch-black");
-  assert.equal(regionSwitchHref("/au/sets/pitch-black", "uk", "au"), "/uk/sets/pitch-black");
+  assert.equal(pathAfterRegion("/au/sets/bloomburrow"), "/sets/bloomburrow");
+  assert.equal(regionSwitchHref("/au/sets/bloomburrow", "uk", "au"), "/uk/sets/bloomburrow");
   assert.equal(regionSwitchHref("/about", "uk", null), "/uk", "a page with no region goes to the region's home, not /uk/about");
   assert.equal(regionSwitchHref("/au/p/nope", "uk", null), "/uk", "a 404 under a region: the home, not another 404");
 });
@@ -228,7 +228,7 @@ test("landing page: static, a never-empty CTA box, a GET search form, real type 
   const page = src("app/(site)/page.tsx");
   assert.doesNotMatch(page, /prisma|@\/lib\/db|@\/lib\/data"/, "no database");
   assert.match(page, /text-4xl[^"]*sm:text-6xl/);
-  assert.match(page, /Pokémon sealed, in stock, <span className="text-brand">cheapest first\.<\/span>/);
+  assert.match(page, /Magic sealed, in stock, <span className="text-brand">cheapest first\.<\/span>/);
   assert.match(page, /<div className="mt-6 flex h-12 justify-center sm:mt-8">\s*<RegionSuggest formId="landing-search" \/>/);
   assert.match(page, /<form\s+id="landing-search"\s+action=\{`\/\$\{X_DEFAULT_REGION\}\/sealed`\}\s+method="get"/);
   assert.match(page, /lg:grid-cols-7/);
@@ -247,7 +247,7 @@ test("the share card exists as a route, with its bundled OFL face, and says the 
   assert.match(card, /fonts: \[/);
   assert.match(card, /weight: 800/);
   assert.doesNotMatch(card, /fetch\(|prisma|@\/lib\/db/, "no remote fetch, no database");
-  assert.match(og, /Compare Pokémon[\s\S]*sealed prices across[\s\S]*\$\{STORES\.length\} stores[\s\S]*in \$\{REGION_LIST\.length\} regions/);
+  assert.match(og, /Compare Magic[\s\S]*sealed prices across[\s\S]*\$\{STORES\.length\} stores[\s\S]*in \$\{REGION_LIST\.length\} regions/);
   assert.doesNotMatch(og, /fetch\(|prisma|@\/lib\/db/, "no remote fetch, no database");
   assert.equal(DEFAULT_OG_IMAGE.url, `${SITE_URL}/opengraph-image`);
 });
@@ -255,7 +255,7 @@ test("the share card exists as a route, with its bundled OFL face, and says the 
 // ─── Breadcrumbs ─────────────────────────────────────────────────────────────
 
 test("Breadcrumbs: one '← parent' link below sm, the trail from sm, and the BreadcrumbList JSON-LD once", () => {
-  const items = [{ href: "/us", label: "United States" }, { href: "/us/sets", label: "Sets" }, { label: "Pitch Black" }];
+  const items = [{ href: "/us", label: "United States" }, { href: "/us/sets", label: "Sets" }, { label: "Bloomburrow" }];
   assert.deepEqual(parentCrumb(items), { href: "/us/sets", label: "Sets" });
   assert.equal(parentCrumb([{ label: "Only" }]), null);
   const html = render(React.createElement(Breadcrumbs, { items }));
@@ -272,11 +272,11 @@ test("Breadcrumbs: one '← parent' link below sm, the trail from sm, and the Br
 // ─── Product card ────────────────────────────────────────────────────────────
 
 const card = (o: Partial<ProductCardData> = {}): ProductCardData => ({
-  slug: "pitch-black-elite-trainer-box",
-  name: "Pitch Black Elite Trainer Box",
-  productType: "Pokémon Center Elite Trainer Box",
-  setCode: "me5",
-  imageUrl: "https://cdn.shopify.com/s/files/1/0001/products/pb.jpg",
+  slug: "edge-of-eternities-collector-booster-box",
+  name: "Edge of Eternities Collector Booster Box",
+  productType: "Collector Booster Box",
+  setCode: "eoe",
+  imageUrl: "https://cdn.shopify.com/s/files/1/0001/products/eoe.jpg",
   lowestPriceCents: 5750,
   inStockStores: 12,
   listedStores: 19,
@@ -290,7 +290,7 @@ test("ProductCard: photo on a plate, short type pill, sentence-case 'From' befor
   const html = render(React.createElement(ProductCard, { p: card(), region: "us" }));
   assert.match(html, /class="plate relative m-2 aspect-square lg:mb-0 lg:aspect-\[8\/7\]"/);
   assert.match(html, /mix-blend-multiply/);
-  assert.match(html, /max-w-\[calc\(100%-1\.5rem\)\] truncate[^"]*">PC ETB<\/span>/);
+  assert.match(html, /max-w-\[calc\(100%-1\.5rem\)\] truncate[^"]*">Collector box<\/span>/);
   assert.match(html, /<span class="text-xs font-medium text-muted">From<\/span><span class="tabular [^"]*">\$57\.50<\/span>/);
   assert.doesNotMatch(html, /uppercase tracking-wide text-faint">From|Last listed/);
   assert.match(html, />In stock · 12<span class="stock-unit"> stores<\/span><\/span>/);
@@ -302,13 +302,13 @@ test("ProductCard: photo on a plate, short type pill, sentence-case 'From' befor
 });
 
 test("ProductCard labels: short types, stock in words, and what the click opens", () => {
-  assert.equal(shortTypeLabel("Pokémon Center Elite Trainer Box"), "PC ETB");
-  assert.equal(shortTypeLabel("Elite Trainer Box"), "ETB");
-  assert.equal(shortTypeLabel("Ultra-Premium Collection"), "UPC");
-  assert.equal(shortTypeLabel("Build & Battle Box"), "B&B Box");
-  assert.equal(shortTypeLabel("Build & Battle Stadium"), "B&B Stadium");
-  assert.equal(shortTypeLabel("Booster Bundle"), "Bundle");
-  assert.equal(shortTypeLabel("Booster Box"), "Booster Box");
+  assert.equal(shortTypeLabel("Collector Booster Box"), "Collector box");
+  assert.equal(shortTypeLabel("Play Booster Box"), "Play box");
+  assert.equal(shortTypeLabel("Collector Booster Box Case"), "Collector case");
+  assert.equal(shortTypeLabel("Play Booster Pack"), "Play Booster");
+  assert.equal(shortTypeLabel("Secret Lair Drop"), "Secret Lair");
+  assert.equal(shortTypeLabel("Bundle"), "Bundle");
+  assert.equal(shortTypeLabel("Commander Deck"), "Commander Deck");
   assert.deepEqual(cardStockLabel(card({ inStockStores: 1 }), false), ["In stock · 1", " store"]);
   assert.deepEqual(cardStockLabel(card(), true), ["Pre-order · 12", " stores"]);
   assert.deepEqual(cardStockLabel(card({ inStockStores: 0 }), false), ["On TCGplayer", ""]);
@@ -333,7 +333,7 @@ test("Empty with actions: a designed state, each action a chip with an icon besi
   assert.equal(emptyActionIcon("/au/releases"), "calendar");
   assert.equal(emptyActionIcon("/au/deals"), "tag");
   assert.equal(emptyActionIcon("/au/stores"), "store");
-  assert.equal(emptyActionIcon("/au/sealed?q=etb"), "search");
+  assert.equal(emptyActionIcon("/au/sealed?q=cbb"), "search");
   assert.equal(emptyActionIcon("/nz"), "arrow-right");
   assert.equal(render(React.createElement(Empty, { children: "Nothing." })), '<div class="card px-6 py-10 text-center text-muted">Nothing.</div>');
 });

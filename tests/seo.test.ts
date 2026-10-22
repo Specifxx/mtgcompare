@@ -5,15 +5,14 @@ import assert from "node:assert/strict";
 import { articleJsonLd, DEFAULT_OG_IMAGE, pageMeta, productJsonLd, withMtg } from "../src/lib/seo";
 import { SITE_NAME, SITE_URL } from "../src/lib/site";
 
-test("withMtg: 'Pokémon ' in front, unless the name already says it (any case, accented or not)", () => {
-  assert.equal(withMtg("Pitch Black"), "Pokémon Pitch Black");
-  assert.equal(withMtg("Booster Boxes"), "Pokémon Booster Boxes");
-  assert.equal(withMtg("Pokémon Center Elite Trainer Boxes"), "Pokémon Center Elite Trainer Boxes", "never 'Pokémon Pokémon Center…'");
-  assert.equal(withMtg("pokemon center etb"), "pokemon center etb");
-  assert.equal(withMtg("POKEMON 151 Booster Bundle"), "POKEMON 151 Booster Bundle");
-  assert.equal(withMtg("Scarlet & Violet 151 Pokémon Card Collection"), "Scarlet & Violet 151 Pokémon Card Collection", "anywhere in the name");
-  assert.equal(withMtg("Pokémon Center ETB"), "Pokémon Center ETB", "a decomposed é is still Pokémon");
-  assert.equal(withMtg("Pokéball Tin"), "Pokémon Pokéball Tin", "Pokéball is not Pokémon");
+test("withMtg: 'MTG ' in front, unless the name already says MTG or Magic (any case)", () => {
+  assert.equal(withMtg("Bloomburrow"), "MTG Bloomburrow");
+  assert.equal(withMtg("Play Booster Boxes"), "MTG Play Booster Boxes");
+  assert.equal(withMtg("MTG Foundations Play Booster Box"), "MTG Foundations Play Booster Box", "never 'MTG MTG …'");
+  assert.equal(withMtg("mtg bloomburrow bundle"), "mtg bloomburrow bundle");
+  assert.equal(withMtg("Magic: The Gathering Foundations Starter Collection"), "Magic: The Gathering Foundations Starter Collection");
+  assert.equal(withMtg("Foundations MAGIC Beginner Box"), "Foundations MAGIC Beginner Box", "anywhere in the name");
+  assert.equal(withMtg("Magical Christmasland Secret Lair Drop"), "MTG Magical Christmasland Secret Lair Drop", "Magical is not Magic");
 });
 
 test("pageMeta: without an image, the site's share card (1200×630) and the large Twitter card; with one, that image", () => {

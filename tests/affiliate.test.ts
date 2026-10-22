@@ -44,7 +44,7 @@ const EPN_EXPECTED: Record<Region, { host: string; mkrid: string; siteid: string
 
 test("eBay: every region's search carries the full EPN tag set, on the right site", () => {
   for (const r of REGION_LIST) {
-    const u = new URL(ebaySearchUrl("Surging Sparks Booster Box", r.region, "product-marketplace"));
+    const u = new URL(ebaySearchUrl("Bloomburrow Play Booster Box", r.region, "product-marketplace"));
     const want = EPN_EXPECTED[r.region];
     assert.equal(u.protocol, "https:");
     assert.equal(u.hostname, want.host, r.region);
@@ -55,9 +55,9 @@ test("eBay: every region's search carries the full EPN tag set, on the right sit
     assert.equal(u.searchParams.get("siteid"), want.siteid, r.region);
     assert.equal(u.searchParams.get("campid"), EBAY_CAMPAIGN_ID);
     assert.equal(u.searchParams.get("toolid"), "10001");
-    assert.equal(u.searchParams.get("customid"), `dex-${r.region}-product-marketplace`);
+    assert.equal(u.searchParams.get("customid"), `mtg-${r.region}-product-marketplace`);
     assert.equal(u.searchParams.get("LH_BIN"), "1");
-    assert.equal(u.searchParams.get("_nkw"), "Pokemon Surging Sparks Booster Box sealed");
+    assert.equal(u.searchParams.get("_nkw"), "MTG Bloomburrow Play Booster Box sealed");
   }
   assert.equal(EBAY_CAMPAIGN_ID, "5339155912");
 });
@@ -72,35 +72,36 @@ test("eBay: NZ lands on ebay.com.au and SG on ebay.com, and the labels say so", 
   assert.equal(ebayRetailer("sg"), "eBay (ebay.com)");
 });
 
-test("eBay: queries say Pokemon once, lose store punctuation, and an empty name searches everything", () => {
+test("eBay: queries say MTG once, lose store punctuation, and an empty name searches everything", () => {
   const q = (name: string) => new URL(ebaySearchUrl(name, "au", "browse-empty")).searchParams.get("_nkw");
-  assert.equal(q("Pokémon Center Elite Trainer Box"), "Pokemon Center Elite Trainer Box sealed");
-  assert.equal(q("Twilight Masquerade Single Pack Blister [Pupitar]"), "Pokemon Twilight Masquerade Single Pack Blister Pupitar sealed");
-  assert.equal(q(""), "Pokemon sealed");
+  assert.equal(q("Magic: The Gathering Foundations Starter Collection"), "Magic: The Gathering Foundations Starter Collection sealed");
+  assert.equal(q("MTG Bloomburrow Bundle"), "MTG Bloomburrow Bundle sealed");
+  assert.equal(q("Bloomburrow Commander Deck [Animated Army]"), "MTG Bloomburrow Commander Deck Animated Army sealed");
+  assert.equal(q(""), "MTG sealed");
 });
 
 test("sub-ids are a safe slug, capped at 60 characters", () => {
-  assert.equal(affiliateSubId("dex", "au", "product-best"), "dex-au-product-best");
-  assert.equal(affiliateSubId("Dex", "US", "a b/c?d=é"), "dex-us-a-b-c-d");
-  assert.equal(affiliateSubId(null, undefined, ""), "dex");
-  const long = affiliateSubId("dex", "au", "x".repeat(100));
+  assert.equal(affiliateSubId("mtg", "au", "product-best"), "mtg-au-product-best");
+  assert.equal(affiliateSubId("MTG", "US", "a b/c?d=é"), "mtg-us-a-b-c-d");
+  assert.equal(affiliateSubId(null, undefined, ""), "mtg");
+  const long = affiliateSubId("mtg", "au", "x".repeat(100));
   assert.ok(long.length <= 60);
   assert.match(long, /^[a-z0-9_-]+$/);
   assert.doesNotMatch(long, /-$/);
-  for (const p of PLACEMENTS) for (const r of REGION_LIST) assert.match(affiliateSubId("dex", r.region, p), /^dex-[a-z]{2}-[a-z-]+$/);
+  for (const p of PLACEMENTS) for (const r of REGION_LIST) assert.match(affiliateSubId("mtg", r.region, p), /^mtg-[a-z]{2}-[a-z-]+$/);
 });
 
 test("TCGplayer: a tcgplayer.com URL is wrapped in the Impact deep link, and u decodes to the original", () => {
-  const target = "https://www.tcgplayer.com/product/565606/pokemon-sv08-surging-sparks-surging-sparks-booster-box";
+  const target = "https://www.tcgplayer.com/product/541181/magic-bloomburrow-bloomburrow-play-booster-box";
   const wrapped = tcgplayerAffiliateUrl(target, "us", "product-best");
   assert.ok(wrapped.startsWith(`${TCGPLAYER_IMPACT_LINK}?u=`));
   assert.equal(TCGPLAYER_IMPACT_LINK, "https://partner.tcgplayer.com/c/7385758/1780961/21018");
   const u = new URL(wrapped);
   assert.equal(u.hostname, "partner.tcgplayer.com");
   assert.equal(u.searchParams.get("u"), target);
-  assert.equal(u.searchParams.get("sharedid"), "dex-us-product-best");
+  assert.equal(u.searchParams.get("sharedid"), "mtg-us-product-best");
   // Subdomains are TCGplayer too.
-  assert.notEqual(tcgplayerAffiliateUrl("https://shop.tcgplayer.com/pokemon", "au", "product-table"), "https://shop.tcgplayer.com/pokemon");
+  assert.notEqual(tcgplayerAffiliateUrl("https://shop.tcgplayer.com/magic", "au", "product-table"), "https://shop.tcgplayer.com/magic");
 });
 
 test("TCGplayer: never double-wrapped, and never wraps a look-alike, http, relative or garbage URL", () => {
@@ -119,19 +120,19 @@ test("TCGplayer: never double-wrapped, and never wraps a look-alike, http, relat
   }
 });
 
-test("TCGplayer: the search link is a wrapped Pokémon sealed search", () => {
-  const u = new URL(tcgplayerSearchUrl("Pokémon Surging Sparks Booster Box", "au", "listings-set"));
+test("TCGplayer: the search link is a wrapped Magic sealed search", () => {
+  const u = new URL(tcgplayerSearchUrl("MTG Bloomburrow Play Booster Box", "au", "listings-set"));
   assert.equal(u.origin + u.pathname, TCGPLAYER_IMPACT_LINK);
-  assert.equal(u.searchParams.get("sharedid"), "dex-au-listings-set");
+  assert.equal(u.searchParams.get("sharedid"), "mtg-au-listings-set");
   const target = new URL(u.searchParams.get("u")!);
-  assert.equal(target.origin + target.pathname, "https://www.tcgplayer.com/search/pokemon/product");
-  assert.equal(target.searchParams.get("productLineName"), "pokemon");
+  assert.equal(target.origin + target.pathname, "https://www.tcgplayer.com/search/magic/product");
+  assert.equal(target.searchParams.get("productLineName"), "magic");
   assert.equal(target.searchParams.get("ProductTypeName"), "Sealed Products");
   assert.equal(target.searchParams.get("view"), "grid");
-  assert.equal(target.searchParams.get("q"), "Surging Sparks Booster Box");
-  // "Pokémon Center" names a product; an empty name searches all sealed.
-  const pc = new URL(new URL(tcgplayerSearchUrl("Pokémon Center Elite Trainer Box", "us", "product-table")).searchParams.get("u")!);
-  assert.equal(pc.searchParams.get("q"), "Pokemon Center Elite Trainer Box");
+  assert.equal(target.searchParams.get("q"), "Bloomburrow Play Booster Box");
+  // The product line already says Magic, so "Magic: The Gathering" leaves the words; an empty name searches all sealed.
+  const pc = new URL(new URL(tcgplayerSearchUrl("Magic: The Gathering Foundations Starter Collection", "us", "product-table")).searchParams.get("u")!);
+  assert.equal(pc.searchParams.get("q"), "Foundations Starter Collection");
   const all = new URL(new URL(tcgplayerSearchUrl("", "us", "browse-empty")).searchParams.get("u")!);
   assert.equal(all.searchParams.has("q"), false);
 });
@@ -142,10 +143,10 @@ test("offerLink: TCGplayer is wrapped and sponsored; a store's link goes out unt
   assert.equal(t.rel, REL_SPONSORED);
   assert.equal(t.sponsored, true);
   assert.equal(new URL(t.href).searchParams.get("u"), tcgUrl);
-  assert.equal(new URL(t.href).searchParams.get("sharedid"), "dex-us-product-table");
+  assert.equal(new URL(t.href).searchParams.get("sharedid"), "mtg-us-product-table");
 
   for (const s of STORES.slice(0, 25)) {
-    const url = `${s.base}/products/surging-sparks-booster-box?variant=1`;
+    const url = `${s.base}/products/bloomburrow-play-booster-box?variant=1`;
     assert.deepEqual(offerLink(s.key, url, "au", "product-best"), { href: url, rel: REL_STORE, sponsored: false });
   }
   // A store row is never wrapped, even if its URL were somehow a TCGplayer one.
@@ -161,30 +162,30 @@ test("offerLink: TCGplayer is wrapped and sponsored; a store's link goes out unt
 test("retailer labels, and affiliate.ts's TCGplayer key matches the registry's", () => {
   assert.equal(TCGPLAYER_KEY, TCGPLAYER.key);
   assert.equal(offerRetailer(TCGPLAYER_KEY, "TCGplayer", "US"), "TCGplayer");
-  assert.equal(offerRetailer("pokebox", "Pokebox", "AU"), "Pokebox (AU)");
+  assert.equal(offerRetailer("area5", "Area 5", "AU"), "Area 5 (AU)");
   assert.ok(!STORES.some((s) => s.key === TCGPLAYER_KEY), "TCGplayer is not an independent store");
 });
 
 test("search queries drop store notes and SKU codes, and never send eBay an operator", () => {
   const ebay = (name: string) => new URL(ebaySearchUrl(name, "ca", "product-marketplace")).searchParams.get("_nkw");
   const tcg = (name: string) => new URL(new URL(tcgplayerSearchUrl(name, "us", "product-marketplace")).searchParams.get("u")!).searchParams.get("q");
-  // Real product names from the 2026-09-28 import. TCGplayer finds 0 for the raw one, 36 for the clean one.
-  const sylveon = "30th Celebration Sylveon ex Box - LIMIT 1 PER CUSTOMER - LOCAL PICKUP ONLY";
-  assert.equal(tcg(sylveon), "30th Celebration Sylveon ex Box");
-  assert.equal(ebay(sylveon), "Pokemon 30th Celebration Sylveon ex Box sealed");
-  assert.equal(searchTerms("Trainer's Toolkit 2025 1 Per Customer"), "Trainer's Toolkit 2025");
-  assert.equal(searchTerms("30th Celebration Ultra-Premium Collection Night (Pre Order)"), "30th Celebration Ultra-Premium Collection Night");
-  assert.equal(searchTerms("Phantasmal Flames - 3pk Blister - Weaville MAX 1 PER CUSTOMER"), "Phantasmal Flames 3pk Blister Weaville");
-  assert.equal(searchTerms("Mega Charizard Tin [MCAP - 000]"), "Mega Charizard Tin");
-  assert.equal(searchTerms("V Battle Deck [Melmetal V] [PGO - 0]"), "V Battle Deck Melmetal V");
-  // "-Pikachu" would tell eBay to EXCLUDE Pikachu.
-  assert.equal(ebay("World Championships 2023 Yokohama Deck -Pikachu"), "Pokemon World Championships 2023 Yokohama Deck Pikachu sealed");
+  // Store titles carry notes TCGplayer and eBay would require as words.
+  const fin = "Final Fantasy Collector Booster Box - LIMIT 1 PER CUSTOMER - LOCAL PICKUP ONLY";
+  assert.equal(tcg(fin), "Final Fantasy Collector Booster Box");
+  assert.equal(ebay(fin), "MTG Final Fantasy Collector Booster Box sealed");
+  assert.equal(searchTerms("Foundations Beginner Box 1 Per Customer"), "Foundations Beginner Box");
+  assert.equal(searchTerms("Star Trek Collector Booster Box (Pre Order)"), "Star Trek Collector Booster Box");
+  assert.equal(searchTerms("Bloomburrow - Commander Deck - Animated Army MAX 1 PER CUSTOMER"), "Bloomburrow Commander Deck Animated Army");
+  assert.equal(searchTerms("Edge of Eternities Bundle [EOE - 000]"), "Edge of Eternities Bundle");
+  assert.equal(searchTerms("Commander Deck [Peace Offering] [FDC - 0]"), "Commander Deck Peace Offering");
+  // "-Sauron" would tell eBay to EXCLUDE Sauron.
+  assert.equal(ebay("Tales of Middle-earth Commander Deck -Sauron"), "MTG Tales of Middle-earth Commander Deck Sauron sealed");
   // What a product's name needs stays.
-  assert.equal(searchTerms("Pokémon Center Ultra-Premium Collection"), "Pokemon Center Ultra-Premium Collection");
-  assert.equal(searchTerms("Scarlet & Violet 151 Booster Bundle"), "Scarlet & Violet 151 Booster Bundle");
+  assert.equal(searchTerms("Magic: The Gathering Foundations Starter Collection"), "Magic: The Gathering Foundations Starter Collection");
+  assert.equal(searchTerms("Tarkir: Dragonstorm Play Booster Box"), "Tarkir: Dragonstorm Play Booster Box");
   // A bracketed number is a year or a set, not a SKU code.
-  assert.equal(searchTerms("Kanto Power Mini Tin (2025) - Charizard"), "Kanto Power Mini Tin 2025 Charizard");
-  assert.equal(searchTerms("Scarlet & Violet (151) Elite Trainer Box"), "Scarlet & Violet 151 Elite Trainer Box");
+  assert.equal(searchTerms("Secret Lair Drop (2025) - Showcase"), "Secret Lair Drop 2025 Showcase");
+  assert.equal(searchTerms("Warhammer (40000) Commander Deck"), "Warhammer 40000 Commander Deck");
 });
 
 // ─── eBay everywhere: placements, the in-feed tile, the pre-footer strip, EPN creative ───
@@ -197,9 +198,9 @@ test("eBay units: every placement, in every region, is a tagged search on the ri
   assert.equal(new Set(PLACEMENTS).size, PLACEMENTS.length, "no duplicate placement");
   for (const placement of PLACEMENTS) {
     for (const r of REGION_LIST) {
-      const u = new URL(ebaySearchUrl("Surging Sparks Booster Box", r.region, placement));
+      const u = new URL(ebaySearchUrl("Bloomburrow Play Booster Box", r.region, placement));
       const id = u.searchParams.get("customid")!;
-      assert.equal(id, `dex-${r.region}-${placement}`, `${r.region} ${placement}`);
+      assert.equal(id, `mtg-${r.region}-${placement}`, `${r.region} ${placement}`);
       assert.ok(id.length <= 60, `${id} is ${id.length} characters`);
       assert.equal(u.hostname, EPN_EXPECTED[r.region].host, `${r.region} ${placement}`);
       assert.equal(u.searchParams.get("campid"), "5339155912");
@@ -219,9 +220,9 @@ test("growth release placements (the base commit's contract): each new surface h
   const GROWTH = ["product-sticky", "soldout-ebay", "listings-soldout-best", "listings-marketplace", "browse-search", "listings-deals", "listings-deals-feed", "listings-packs", "listings-digest", "listings-guide", "guide-tcgplayer", "set-sealed", "set-tcgplayer", "listings-set-feed", "listings-type-feed"];
   for (const p of GROWTH) assert.ok((PLACEMENTS as readonly string[]).includes(p), `${p} is a placement`);
   assert.ok(!(PLACEMENTS as readonly string[]).includes("region-home"), "region-home rendered nothing and was removed");
-  // a TCGplayer placement is a sharedid too: the same dex-<region>-<placement> shape
-  assert.equal(new URL(tcgplayerSearchUrl("Pitch Black", "us", "set-tcgplayer")).searchParams.get("sharedid"), "dex-us-set-tcgplayer");
-  assert.equal(new URL(tcgplayerSearchUrl("", "us", "guide-tcgplayer")).searchParams.get("sharedid"), "dex-us-guide-tcgplayer");
+  // a TCGplayer placement is a sharedid too: the same mtg-<region>-<placement> shape
+  assert.equal(new URL(tcgplayerSearchUrl("Pitch Black", "us", "set-tcgplayer")).searchParams.get("sharedid"), "mtg-us-set-tcgplayer");
+  assert.equal(new URL(tcgplayerSearchUrl("", "us", "guide-tcgplayer")).searchParams.get("sharedid"), "mtg-us-guide-tcgplayer");
 });
 
 test("in-feed tiles: feedSlots puts one after every 16 products, at most two, never within the last eight", () => {
@@ -321,7 +322,7 @@ test("pre-footer strip: the feed the page's own strip is not; a region's home pa
 });
 
 test("listing links: eBay's affiliate URL is used exactly as stored; the buy_click carries the placement, the URL the per-feed sub-id", () => {
-  const stored = "https://www.ebay.com.au/itm/123456789012?_skw=a+b&hash=item1%3Ag%3AX%2By&amdata=enc%3AAQAKAAAA%2B%2Fx%3D&mkevt=1&mkcid=1&mkrid=705-53470-19255-0&campid=5339155912&customid=dex-au-item&toolid=10001";
+  const stored = "https://www.ebay.com.au/itm/123456789012?_skw=a+b&hash=item1%3Ag%3AX%2By&amdata=enc%3AAQAKAAAA%2B%2Fx%3D&mkevt=1&mkcid=1&mkrid=705-53470-19255-0&campid=5339155912&customid=mtg-au-item&toolid=10001";
   assert.equal(listingHref(stored), stored, "no rewrite of customid, order or encoding");
   assert.equal(listingHref(stored.replace("5339155912", "1111111111")), stored.replace("5339155912", "1111111111"), "the browser does not compare the campaign id with the build's env");
   assert.equal(listingHref(stored.replace(/&campid=\d+/, "")), null, "a campaign id must be present");
@@ -364,8 +365,8 @@ test("page budgets: pure, monotonic, and the pre-footer strip gives way on short
 
 test("EPN creative: https image and an eBay tracking link only; garbage is ignored, never half-applied", () => {
   const ok = { image: "https://i.ebayimg.com/images/g/abc/s-l728.png", href: "https://rover.ebay.com/rover/1/705-53470-19255-0/1?campid=5339155912&customid=x" };
-  assert.deepEqual(parseEbayBanner(ok), { ...ok, width: 728, height: 90, alt: "Shop Pokémon sealed on eBay (advertisement)" });
-  assert.deepEqual(parseEbayBanner({ ...ok, width: "300", height: "250", alt: "  Pokémon   on eBay " }), { ...ok, width: 300, height: 250, alt: "Pokémon on eBay" });
+  assert.deepEqual(parseEbayBanner(ok), { ...ok, width: 728, height: 90, alt: "Shop Magic: The Gathering sealed on eBay (advertisement)" });
+  assert.deepEqual(parseEbayBanner({ ...ok, width: "300", height: "250", alt: "  Magic   on eBay " }), { ...ok, width: 300, height: 250, alt: "Magic on eBay" });
   assert.equal(parseEbayBanner({ ...ok, href: "https://ebay.us/abc123" })?.href, "https://ebay.us/abc123");
   assert.equal(parseEbayBanner({ ...ok, href: "https://www.ebay.com.au/sch/i.html?_nkw=x&campid=5339155912" })?.width, 728);
   const bad: [string, Parameters<typeof parseEbayBanner>[0]][] = [
@@ -403,7 +404,7 @@ test("EPN creative: https image and an eBay tracking link only; garbage is ignor
   assert.equal(parseEbayBanner({ ...ok, image: "https://ir.ebaystatic.com/cr/v/c01/b.png" })?.width, 728);
   // The creative's own click: our customid is filled in (short links and a set customid are left alone), and the retailer is the host it really goes to.
   const rover = "https://rover.ebay.com/rover/1/705-53470-19255-0/1?campid=5339155912&customid=&toolid=10001";
-  assert.equal(new URL(creativeHref(rover, "eu", "listings-footer")).searchParams.get("customid"), "dex-eu-listings-footer");
+  assert.equal(new URL(creativeHref(rover, "eu", "listings-footer")).searchParams.get("customid"), "mtg-eu-listings-footer");
   assert.equal(creativeHref("https://ebay.us/abc123", "eu", "listings-footer"), "https://ebay.us/abc123");
   assert.equal(creativeHref(ok.href, "au", "listings-home"), ok.href);
   assert.equal(creativeRetailer(rover), "eBay (rover.ebay.com)");
@@ -411,12 +412,12 @@ test("EPN creative: https image and an eBay tracking link only; garbage is ignor
 });
 
 test("search queries drop store-listing noise that eBay would AND into the search", () => {
-  assert.equal(searchTerms("Pokemon Meowth VMAX Special Collection International Version Pack Lineup in Description"), "Pokemon Meowth VMAX Special Collection International Version");
-  assert.equal(searchTerms("Pokemon League Battle Deck Dragapult ex Miscellaneous Cards & Products"), "Pokemon League Battle Deck Dragapult ex");
-  assert.equal(searchTerms("Pokemon Pokeball Tin Series 6 Random Style"), "Pokemon Pokeball Tin Series 6");
-  assert.equal(searchTerms("COLLECTION ONLY- Pokemon TCG: Binder Collection 30th Celebration"), "Pokemon TCG: Binder Collection 30th Celebration");
-  assert.equal(searchTerms("Pokemon Battle Academy Board Game On Sale"), "Pokemon Battle Academy Board Game");
-  assert.equal(searchTerms("Elite Trainer Box 20% VAT"), "Elite Trainer Box");
+  assert.equal(searchTerms("MTG Secret Lair Drop Showcase Pack Lineup in Description"), "MTG Secret Lair Drop Showcase");
+  assert.equal(searchTerms("MTG Duskmourn Commander Deck Miscellaneous Cards & Products"), "MTG Duskmourn Commander Deck");
+  assert.equal(searchTerms("MTG Bloomburrow Commander Deck Random Style"), "MTG Bloomburrow Commander Deck");
+  assert.equal(searchTerms("COLLECTION ONLY- MTG: Foundations Beginner Box"), "MTG: Foundations Beginner Box");
+  assert.equal(searchTerms("MTG Aetherdrift Play Booster Box On Sale"), "MTG Aetherdrift Play Booster Box");
+  assert.equal(searchTerms("Collector Booster Box 20% VAT"), "Collector Booster Box");
   assert.equal(searchTerms("Foo PREPRDER 30 May, 2025"), "Foo 30 May, 2025");
   // A real name keeps its hyphens and its words.
   assert.equal(searchTerms("Ultra-Premium Collection"), "Ultra-Premium Collection");
@@ -424,7 +425,7 @@ test("search queries drop store-listing noise that eBay would AND into the searc
 
 
 test("Impact site verification: both tokens are in the root layout's <head> as meta name=impact-site-verification with a `value` attribute", () => {
-  assert.ok(IMPACT_SITE_VERIFICATIONS.includes("f20df7de-d054-4571-b9bc-8777b2eafcdf"), "this site's own property token");
+  assert.ok(IMPACT_SITE_VERIFICATIONS.includes("a11ca5e9-2699-42c9-bf8d-09074aae9cec"), "this site's own property token");
   assert.ok(IMPACT_SITE_VERIFICATIONS.includes("ebb0400c-dec0-45ae-a56e-e7bb1596e965"), "the account's shared token stays");
   assert.equal(new Set(IMPACT_SITE_VERIFICATIONS).size, IMPACT_SITE_VERIFICATIONS.length);
   for (const t of IMPACT_SITE_VERIFICATIONS) assert.match(t, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);

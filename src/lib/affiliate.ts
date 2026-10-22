@@ -72,7 +72,7 @@ export const PLACEMENTS = [
 export type Placement = (typeof PLACEMENTS)[number];
 
 // Both networks give us one free-text field per click, and it is the only way
-// to learn WHERE revenue comes from. Format: dex-<region>-<placement>, e.g.
+// to learn WHERE revenue comes from. Format: mtg-<region>-<placement>, e.g.
 // `mtg-au-product-marketplace`. Sanitised hard (from Rift Compare): EPN silently
 // drops a click whose customid holds anything outside a conservative set, and a
 // dropped click looks exactly like no revenue. 60 chars is well inside both
@@ -86,7 +86,7 @@ export function affiliateSubId(...parts: (string | null | undefined)[]): string 
     .replace(/[^a-z0-9_-]+/g, "-")
     .replace(/-{2,}/g, "-")
     .replace(/^-|-$/g, "");
-  return s.slice(0, SUBID_MAX).replace(/-$/, "") || "dex";
+  return s.slice(0, SUBID_MAX).replace(/-$/, "") || "mtg";
 }
 
 function subId(region: Region, placement: Placement): string {
@@ -328,7 +328,7 @@ export function parseEbayBanner(env: { image?: string; href?: string; width?: st
 
 /**
  * The creative's link for a region and placement: the pasted tracking link with
- * our customid (dex-<region>-<placement>) filled in when it has none, so EPN's
+ * our customid (mtg-<region>-<placement>) filled in when it has none, so EPN's
  * report can tell the hero from the banner above the footer. Short links
  * (ebay.us) and links that already carry a customid are left as pasted.
  */

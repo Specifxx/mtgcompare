@@ -90,11 +90,12 @@ test("eligibility thresholds: US$50 core for the gated types, US$25 floor for al
     assert.equal(tierOf(t, 49.99), "extension", t);
     assert.equal(tierOf(t, 50), "core", t);
   }
-  for (const t of ["booster-pack", "sleeved-booster"] as TypeKey[]) for (const usd of [10, 25, 50, 500, 5000]) assert.equal(tierOf(t, usd), "no", t);
-  assert.equal(tierOf("etb", null), "no");
+  const PACKS: TypeKey[] = ["play-booster", "collector-booster", "draft-booster", "set-booster", "jumpstart-booster"];
+  for (const t of PACKS) for (const usd of [10, 25, 50, 500, 5000]) assert.equal(tierOf(t, usd), "no", t);
+  assert.equal(tierOf("bundle", null), "no");
   // every type is in exactly one class
   const all = new Set(PRODUCT_TYPES.map((t) => t.key));
-  for (const t of all) assert.ok([ALWAYS_TYPES.has(t), GATED_TYPES.has(t), t === "booster-pack" || t === "sleeved-booster"].filter(Boolean).length === 1, t);
+  for (const t of all) assert.ok([ALWAYS_TYPES.has(t), GATED_TYPES.has(t), PACKS.includes(t)].filter(Boolean).length === 1, t);
 });
 
 test("eligibility edges per currency: US$50 and US$25 in each market's money", () => {
@@ -115,7 +116,7 @@ test("eligibility edges per currency: US$50 and US$25 in each market's money", (
 });
 
 test("item keys: only regions with a ProductStat row, one key per (marketplace, product), highest reference price of the marketplace's regions", () => {
-  const etb = (market: string, usd: number, o = {}) => planRow("etb", market, usdCents(usd, market), { id: "etb1", name: "Surging Sparks Elite Trainer Box", ...o });
+  const etb = (market: string, usd: number, o = {}) => planRow("bundle", market, usdCents(usd, market), { id: "etb1", name: "Aetherdrift Bundle", ...o });
   // AU and NZ share EBAY_AU: one key; SG and US share EBAY_US: one key; UK a second marketplace; EU none (no row)
   const keys = itemKeys([etb("AU", 60), etb("NZ", 70), etb("US", 55), etb("SG", 50), etb("UK", 60)]);
   assert.equal(keys.length, 3);
@@ -126,7 +127,7 @@ test("item keys: only regions with a ProductStat row, one key per (marketplace, 
   assert.equal(itemKeys([etb("NZ", 60, { id: "n" })])[0].marketplace, "EBAY_AU");
   assert.equal(itemKeys([etb("SG", 60, { id: "s" })])[0].marketplace, "EBAY_US");
   // packs never; a price under the floor never; unknown price never
-  assert.equal(itemKeys([planRow("booster-pack", "US", 9999, { id: "bp" }), planRow("sleeved-booster", "US", 9999, { id: "sb" })]).length, 0);
+  assert.equal(itemKeys([planRow("play-booster", "US", 9999, { id: "bp" }), planRow("collector-booster", "US", 9999, { id: "sb" })]).length, 0);
   assert.equal(itemKeys([etb("US", 24, { id: "cheap" })]).length, 0);
   assert.equal(itemKeys([{ ...etb("US", 60, { id: "x" }), openCents: null, anyCents: null }]).length, 0);
 });
@@ -136,9 +137,9 @@ test("ranking: core before extension; within a tier reference price x market wei
     planRow("collection", "US", usdCents(60, "US"), { id: "c-us60", name: "Alpha Premium Collection" }),
     planRow("collection", "DE" === "DE" ? "EU" : "EU", usdCents(60, "EU"), { id: "c-eu60", name: "Alpha Premium Collection" }),
     planRow("collection", "US", usdCents(40, "US"), { id: "c-us40", name: "Beta Premium Collection" }), // extension
-    planRow("tin", "US", usdCents(55, "US"), { id: "t-us55-sold", name: "Gamma Tin", soldOut: true }),
-    planRow("tin", "UK", usdCents(80, "UK"), { id: "t-uk80", name: "Delta Tin" }),
-    planRow("etb", "CA", usdCents(100, "CA"), { id: "e-ca100", name: "Surging Sparks Elite Trainer Box" }),
+    planRow("commander-deck", "US", usdCents(55, "US"), { id: "t-us55-sold", name: "Gamma Commander Deck", soldOut: true }),
+    planRow("commander-deck", "UK", usdCents(80, "UK"), { id: "t-uk80", name: "Delta Commander Deck" }),
+    planRow("bundle", "CA", usdCents(100, "CA"), { id: "e-ca100", name: "Aetherdrift Bundle" }),
   ];
   const order = itemKeys(rows).map((k) => `${k.productId}@${k.marketplace}`);
   // values: t-us55-sold = 55x1x1.5 = 82.5, c-us60 = 60, t-uk80 = 80x0.7 = 56, c-eu60 = 60x0.7 = 42, e-ca100 = 100x0.25 = 25; then the extension c-us40
@@ -149,20 +150,20 @@ test("ranking: core before extension; within a tier reference price x market wei
   // stable: the same input in any order gives the same ranking
   assert.deepEqual(itemKeys([...rows].reverse()).map((k) => `${k.productId}@${k.marketplace}`), order);
   // equal values tie-break by product id
-  const tie = itemKeys([planRow("etb", "US", 6000, { id: "b", name: "Surging Sparks Elite Trainer Box" }), planRow("etb", "US", 6000, { id: "a", name: "Prismatic Evolutions Elite Trainer Box" })]);
+  const tie = itemKeys([planRow("bundle", "US", 6000, { id: "b", name: "Aetherdrift Bundle" }), planRow("bundle", "US", 6000, { id: "a", name: "Tarkir: Dragonstorm Bundle" })]);
   assert.deepEqual(tie.map((k) => k.productId), ["a", "b"]);
   assert.ok(itemKeys(rows).find((k) => k.productId === "t-us55-sold")!.soldOut);
 });
 
 // ─── the plan ───────────────────────────────────────────────────────────────────
 
-test("fixed feeds: chase 5x8 + sealed 5x6 + types 5x9 + sets 5x30 = 40 + 30 + 45 + 150 calls, in priority order", () => {
+test("fixed feeds: chase 5x8 + sealed 5x6 + types 5x8 + sets 5x30 = 40 + 30 + 40 + 150 calls, in priority order", () => {
   const feeds = fixedFeeds(TODAY);
   const calls = (b: string) => feeds.filter((f) => f.bucket === b).reduce((a, f) => a + f.searches.length, 0);
-  assert.deepEqual([calls("chase"), calls("sealed"), calls("types"), calls("sets")], [40, 30, 45, 150]);
+  assert.deepEqual([calls("chase"), calls("sealed"), calls("types"), calls("sets")], [40, 30, 40, 150]);
   assert.equal(CHASE_QUERIES.length, 8);
   assert.equal(SEALED_QUERIES.length, 6);
-  assert.equal(TYPE_FEEDS.length, 9);
+  assert.equal(TYPE_FEEDS.length, 8);
   const order = feeds.map((f) => f.bucket);
   assert.deepEqual([...new Set(order)], ["chase", "sealed", "types", "sets"]);
   assert.equal(order.lastIndexOf("chase") < order.indexOf("sealed"), true);
@@ -171,52 +172,55 @@ test("fixed feeds: chase 5x8 + sealed 5x6 + types 5x9 + sets 5x30 = 40 + 30 + 45
   assert.deepEqual(MARKETPLACE_ORDER.slice(0, PRIORITY_MARKETPLACES.length), [...PRIORITY_MARKETPLACES]);
   assert.deepEqual(feeds.filter((f) => f.bucket === "chase").map((f) => f.feed), MARKETPLACE_ORDER.map((m) => `${m}|chase`));
   for (const f of feeds) for (const s of f.searches) {
-    assert.ok(s.q.length <= 100 && s.q.startsWith("Pokemon "), s.q);
+    assert.ok(s.q.length <= 100 && s.q.startsWith("MTG "), s.q);
+    assert.ok(!/pokemon/i.test(s.q), s.q);
     assert.equal(s.marketplace, f.marketplace);
   }
+  // the chase feed is high-end SEALED, never single cards: no query names a card, a rarity or a grade
+  for (const q of CHASE_QUERIES) assert.ok(/collector booster|case|secret lair|commander deck set|set of 4/.test(q) && !/\b(?:psa|rare|card|single|foil\s+card)\b/i.test(q), q);
   assert.ok(feeds.filter((f) => f.bucket === "types").every((f) => f.searches.length === 1));
   // the high-value type feeds
   const slugs = new Set(feeds.filter((f) => f.bucket === "types").map((f) => f.feed.split("type:")[1]));
-  assert.deepEqual([...slugs].sort(), ["booster-box-cases", "play-booster-boxes", "booster-bundle-cases", "build-and-battle-stadiums", "collections", "elite-trainer-box-cases", "elite-trainer-boxes", "pokemon-center-elite-trainer-boxes", "ultra-premium-collections"]);
+  assert.deepEqual([...slugs].sort(), ["bundles", "collector-booster-box-cases", "collector-booster-boxes", "commander-decks", "gift-bundles", "play-booster-box-cases", "play-booster-boxes", "secret-lair"]);
 });
 
-test("set feeds: the 30 most recently RELEASED sets, never a series-named set, a common-word set or an unreleased one", () => {
+test("set feeds: the 30 most recently RELEASED sets, never a common-word set or an unreleased one; searched as '<set> sealed'", () => {
   const sets = setFeedSets(TODAY);
   assert.equal(sets.length, 30);
-  assert.ok(sets.every((s) => s.releaseDate <= TODAY && !s.generic && !["xy12", "g1", "cel25"].includes(s.code)));
-  assert.ok(!sets.some((s) => s.code === "me6"), "Delta Reign is not out yet");
-  assert.ok(!sets.some((s) => s.code === "me1" || s.code === "sv1"), "series-named");
+  assert.ok(sets.every((s) => s.releaseDate <= TODAY && !s.generic && !["fdn", "j25"].includes(s.code)));
+  assert.ok(!sets.some((s) => s.code === "trk"), "Star Trek is not out yet");
   for (let i = 1; i < sets.length; i++) assert.ok(sets[i - 1].releaseDate >= sets[i].releaseDate, "newest first");
-  assert.equal(sets[0].code, "cel30");
-  assert.equal(setFeedSets("2026-01-01")[0].code, "me2");
-  assert.equal(setQuery(SETS.find((s) => s.code === "sv8")!), "Surging Sparks special illustration rare");
-  assert.equal(setQuery(SETS.find((s) => s.code === "swsh12")!), "Silver Tempest alt art");
-  const xy = SETS.find((s) => s.series === "XY")!;
-  assert.equal(setQuery(xy), `${xy.name} full art`);
-  assert.equal(setQuery(SETS.find((s) => s.code === "pgo")!), "Pokemon GO alt art", "Pokémon GO is a Sword & Shield set; accents are folded");
+  assert.equal(sets[0].code, "fra");
+  assert.equal(setFeedSets("2026-09-01")[0].code, "hob");
+  assert.equal(setQuery(SETS.find((s) => s.code === "blb")!), "Bloomburrow sealed");
+  assert.equal(setQuery(SETS.find((s) => s.code === "tdm")!), "Tarkir Dragonstorm sealed", "':' dropped");
+  assert.equal(setQuery(SETS.find((s) => s.code === "tla")!), "Avatar The Last Airbender sealed");
+  const f = fixedFeeds(TODAY).find((x) => x.bucket === "sets" && x.marketplace === "EBAY_US")!;
+  assert.equal(f.searches[0].q, "MTG Reality Fracture sealed");
 });
 
-test("item queries: Pokemon + the cleaned product name (no 'sealed': eBay ANDs every keyword), at most 100 characters, store noise removed", () => {
-  assert.equal(itemQuery("Surging Sparks Elite Trainer Box"), "Pokemon Surging Sparks Elite Trainer Box");
-  assert.equal(itemQuery("Pokémon GO Elite Trainer Box"), "Pokemon GO Elite Trainer Box");
-  assert.equal(itemQuery("Charizard ex Premium Collection [Limit 1 Per Customer] - Local Pickup Only"), "Pokemon Charizard ex Premium Collection");
-  const long = itemQuery("Mega Evolution Perfect Order " + "Extraordinarily Long Product Name ".repeat(6));
-  assert.ok(long.length <= 100 && long.startsWith("Pokemon "));
+test("item queries: MTG + the cleaned product name (no 'sealed': eBay ANDs every keyword), at most 100 characters, store noise removed", () => {
+  assert.equal(itemQuery("Aetherdrift Bundle"), "MTG Aetherdrift Bundle");
+  assert.equal(itemQuery("Magic: The Gathering Aetherdrift Bundle"), "Magic: The Gathering Aetherdrift Bundle", "a name that says Magic is not prefixed again");
+  assert.equal(itemQuery("Æther Revolt Booster Box"), "MTG Æther Revolt Booster Box");
+  assert.equal(itemQuery("Bloomburrow Commander Deck - Animated Army [Limit 1 Per Customer] - Local Pickup Only"), "MTG Bloomburrow Commander Deck Animated Army");
+  const long = itemQuery("Edge of Eternities Collector Booster Box " + "Extraordinarily Long Product Name ".repeat(6));
+  assert.ok(long.length <= 100 && long.startsWith("MTG "));
   assert.ok(!long.endsWith(" "));
-  for (const q of [itemQuery("Surging Sparks Elite Trainer Box"), itemQuery("Charizard ex Premium Collection"), long]) assert.ok(!/\bsealed\b/i.test(q), q);
+  for (const q of [itemQuery("Aetherdrift Bundle"), itemQuery("Bloomburrow Commander Deck - Animated Army"), long]) assert.ok(!/\bsealed\b/i.test(q), q);
 });
 
 const MANY = (n: number): ReturnType<typeof planRow>[] =>
-  Array.from({ length: n }, (_, i) => planRow("collection", ["US", "AU", "UK", "CA", "EU"][i % 5], usdCents(50 + (i % 500), ["US", "AU", "UK", "CA", "EU"][i % 5]), { id: `c${String(i).padStart(4, "0")}`, name: `Test Collection Number ${i}` }));
+  Array.from({ length: n }, (_, i) => planRow("collection", ["US", "AU", "UK", "CA", "EU"][i % 5], usdCents(50 + (i % 500), ["US", "AU", "UK", "CA", "EU"][i % 5]), { id: `c${String(i).padStart(4, "0")}`, name: `Test Commander Collection Number ${i}` }));
 
-test("a placeholder ask (a sold-out blister at CA$9,999) is not an eligible key, so it cannot eat the day's calls", () => {
+test("a placeholder ask (a sold-out prerelease pack at CA$9,999) is not an eligible key, so it cannot eat the day's calls", () => {
   const real = planRow("collection", "US", usdCents(80, "US"), { id: "real", name: "Real Premium Collection" });
-  const fake = planRow("blister", "CA", usdCents(7299, "CA"), { id: "fake", name: "Placeholder Blister", soldOut: true });
-  const edge = planRow("tin", "US", usdCents(600, "US"), { id: "edge", name: "Edge Tin" });
-  const over = planRow("tin", "US", usdCents(601, "US"), { id: "over", name: "Over Tin" });
+  const fake = planRow("prerelease-pack", "CA", usdCents(7299, "CA"), { id: "fake", name: "Placeholder Prerelease Pack", soldOut: true });
+  const edge = planRow("commander-deck", "US", usdCents(600, "US"), { id: "edge", name: "Edge Commander Deck" });
+  const over = planRow("commander-deck", "US", usdCents(601, "US"), { id: "over", name: "Over Commander Deck" });
   assert.deepEqual(itemKeys([fake, real, edge, over]).map((k) => k.productId).sort(), ["edge", "real"]);
   assert.equal(GATED_MAX_USD, 600);
-  assert.equal(tierOf("booster-box", 9000), "core", "a real vintage box can cost thousands");
+  assert.equal(tierOf("play-booster-box", 9000), "core", "a real vintage box can cost thousands");
 });
 
 test("buildPlan: spends the cap in priority order; a cap hit drops the LEAST valuable; calls never exceed the cap", () => {
@@ -224,7 +228,7 @@ test("buildPlan: spends the cap in priority order; a cap hit drops the LEAST val
   // The per-product priority on its own (sweepCalls 0: no sweep share); the sweep's place in the order is checked below.
   const full = buildPlan(rows, { cap: 2000, sweepCalls: 0, today: TODAY });
   assert.equal(full.sweepBudget, 0);
-  assert.equal(full.calls, 265 + 300);
+  assert.equal(full.calls, 260 + 300);
   assert.equal(full.byBucket.items.feeds, 300);
   assert.equal(full.items.core, 300);
   assert.equal(full.items.coreCovered, 300, "all fit");
@@ -233,7 +237,7 @@ test("buildPlan: spends the cap in priority order; a cap hit drops the LEAST val
   for (let i = 1; i < values.length; i++) assert.ok(values[i - 1] >= values[i], "most valuable first");
   assert.equal(full.feeds.findIndex((f) => f.bucket === "items") > full.feeds.findLastIndex((f) => f.bucket === "sets"), true);
   const idx = (b: string) => BUCKETS.indexOf(b as never);
-  for (const cap of [0, 1, 7, 8, 39, 40, 41, 70, 71, 100, 115, 264, 265, 266, 300, 565]) {
+  for (const cap of [0, 1, 7, 8, 39, 40, 41, 70, 71, 100, 115, 259, 260, 261, 300, 560]) {
     const p = buildPlan(rows, { cap, sweepCalls: 0, today: TODAY });
     assert.ok(p.calls <= cap, `${cap}`);
     assert.equal(p.calls, p.feeds.reduce((a, f) => a + f.searches.length, 0));
@@ -245,8 +249,8 @@ test("buildPlan: spends the cap in priority order; a cap hit drops the LEAST val
   assert.equal(buildPlan(rows, { cap: 0, today: TODAY }).sweepBudget, 0);
   assert.equal(buildPlan(rows, { cap: 7, today: TODAY }).feeds.length, 0, "the first chase feed needs 8 calls");
   assert.equal(buildPlan(rows, { cap: 7, today: TODAY }).sweepBudget, 0, "nothing below a feed that did not fit, the sweep included");
-  // 300 items but a cap of 300 + 265: exactly the 35 least valuable items miss out at cap 530
-  const tight = buildPlan(rows, { cap: 265 + 250, sweepCalls: 0, today: TODAY });
+  // 300 items but a cap of 300 + 260: exactly the 35 least valuable items miss out at cap 510
+  const tight = buildPlan(rows, { cap: 260 + 250, sweepCalls: 0, today: TODAY });
   assert.equal(tight.byBucket.items.feeds, 250);
   assert.equal(tight.items.coreCovered, 250);
   const dropped = new Set(items.map((f) => f.feed));
@@ -257,27 +261,27 @@ test("buildPlan: spends the cap in priority order; a cap hit drops the LEAST val
   // The catalogue sweep's share comes after the sets and before the per-product (pre-plan) items: chase, sealed, types, sets, sweep, items.
   assert.deepEqual(BUCKETS, ["chase", "sealed", "types", "sets", "sweep", "items"]);
   assert.equal(DEFAULT_SWEEP_CALLS, 2100);
-  const withSweep = buildPlan(rows, { cap: 265 + DEFAULT_SWEEP_CALLS + 300, today: TODAY }); // room for every fixed feed, the full share and all 300 items
+  const withSweep = buildPlan(rows, { cap: 260 + DEFAULT_SWEEP_CALLS + 300, today: TODAY }); // room for every fixed feed, the full share and all 300 items
   assert.equal(withSweep.sweepBudget, DEFAULT_SWEEP_CALLS);
-  assert.equal(withSweep.calls, 265 + DEFAULT_SWEEP_CALLS + 300);
+  assert.equal(withSweep.calls, 260 + DEFAULT_SWEEP_CALLS + 300);
   assert.deepEqual(withSweep.byBucket.sweep, { feeds: 5, calls: DEFAULT_SWEEP_CALLS, wanted: 5, wantedCalls: DEFAULT_SWEEP_CALLS, fresh: 0 }, "the sweep's 'feeds' are its marketplaces");
   assert.equal(withSweep.byBucket.items.feeds, 300);
-  const edge = 265 + DEFAULT_SWEEP_CALLS;
-  for (const cap of [0, 7, 100, 264, 265, 266, 300, 1000, edge - 1, edge, edge + 1, 2100, 2365, 2500]) {
+  const edge = 260 + DEFAULT_SWEEP_CALLS;
+  for (const cap of [0, 7, 100, 259, 260, 261, 300, 1000, edge - 1, edge, edge + 1, 2100, 2360, 2500]) {
     const p = buildPlan(rows, { cap, today: TODAY });
     const fixedCalls = p.feeds.filter((f) => f.bucket !== "items").reduce((a, f) => a + f.searches.length, 0);
     const itemCalls = p.feeds.filter((f) => f.bucket === "items").reduce((a, f) => a + f.searches.length, 0);
     assert.ok(p.calls <= cap, `${cap}: ${p.calls}`);
     assert.equal(p.calls, fixedCalls + p.sweepBudget + itemCalls, `${cap}: the plan's calls are its feeds' searches plus the sweep's share`);
     // the sweep gets nothing while a fixed feed is unplanned; a per-product search nothing while the sweep is short of its share
-    assert.equal(p.sweepBudget, cap >= 265 ? Math.min(DEFAULT_SWEEP_CALLS, cap - 265) : 0, `${cap}`);
-    if (p.sweepBudget > 0) assert.equal(fixedCalls, 265, `${cap}`);
+    assert.equal(p.sweepBudget, cap >= 260 ? Math.min(DEFAULT_SWEEP_CALLS, cap - 260) : 0, `${cap}`);
+    if (p.sweepBudget > 0) assert.equal(fixedCalls, 260, `${cap}`);
     if (itemCalls > 0) assert.equal(p.sweepBudget, DEFAULT_SWEEP_CALLS, `${cap}`);
     const planned = p.feeds.map((f) => idx(f.bucket));
     for (let i = 1; i < planned.length; i++) assert.ok(planned[i] >= planned[i - 1]);
   }
   // the items that do fit after the sweep are still the most valuable ones
-  const after = buildPlan(rows, { cap: 265 + DEFAULT_SWEEP_CALLS + 100, today: TODAY });
+  const after = buildPlan(rows, { cap: 260 + DEFAULT_SWEEP_CALLS + 100, today: TODAY });
   assert.equal(after.byBucket.items.feeds, 100);
   assert.deepEqual(after.feeds.filter((f) => f.bucket === "items").map((f) => f.feed), items.slice(0, 100).map((f) => f.feed));
   // EBAY_SWEEP_CALLS sets the share (buildPlan's sweepCalls)
@@ -286,14 +290,14 @@ test("buildPlan: spends the cap in priority order; a cap hit drops the LEAST val
 
 test("buildPlan: the extension (US$25-50) is bought only after EVERY core key, and never below US$25", () => {
   const core = MANY(20);
-  const ext = Array.from({ length: 10 }, (_, i) => planRow("tin", "US", usdCents(25 + i * 2, "US"), { id: `e${i}`, name: `Test Tin Extension ${i}` }));
-  const below = [planRow("tin", "US", usdCents(24, "US"), { id: "low", name: "Cheap Tin" })];
+  const ext = Array.from({ length: 10 }, (_, i) => planRow("commander-deck", "US", usdCents(25 + i * 2, "US"), { id: `e${i}`, name: `Test Tin Extension ${i}` }));
+  const below = [planRow("commander-deck", "US", usdCents(24, "US"), { id: "low", name: "Cheap Tin" })];
   const rows = [...ext, ...below, ...core];
   // the per-product pre-plan on its own (sweepCalls 0), as the run sizes it once the sweep has spent its share
-  const p = buildPlan(rows, { cap: 265 + 20, sweepCalls: 0, today: TODAY });
+  const p = buildPlan(rows, { cap: 260 + 20, sweepCalls: 0, today: TODAY });
   assert.equal(p.items.coreCovered, 20);
   assert.equal(p.items.extensionCovered, 0, "the budget ended exactly at the last core key");
-  const p2 = buildPlan(rows, { cap: 265 + 25, sweepCalls: 0, today: TODAY });
+  const p2 = buildPlan(rows, { cap: 260 + 25, sweepCalls: 0, today: TODAY });
   assert.equal(p2.items.extensionCovered, 5);
   const covered = p2.feeds.filter((f) => f.item?.tier === "extension").map((f) => f.item!.productId);
   assert.deepEqual(covered, ["e9", "e8", "e7", "e6", "e5"], "downward by price: the dearest of the extension first");
@@ -302,7 +306,7 @@ test("buildPlan: the extension (US$25-50) is bought only after EVERY core key, a
   assert.ok(!p3.feeds.some((f) => f.item?.productId === "low"), "never below US$25");
   assert.equal(p3.keys.length, 30);
   // the same order after the sweep's share
-  const p4 = buildPlan(rows, { cap: 265 + DEFAULT_SWEEP_CALLS + 25, today: TODAY });
+  const p4 = buildPlan(rows, { cap: 260 + DEFAULT_SWEEP_CALLS + 25, today: TODAY });
   assert.equal(p4.items.coreCovered, 20);
   assert.deepEqual(p4.feeds.filter((f) => f.item?.tier === "extension").map((f) => f.item!.productId), ["e9", "e8", "e7", "e6", "e5"]);
   assert.ok(!buildPlan(rows, { cap: 5000, today: TODAY }).feeds.some((f) => f.item?.productId === "low"), "never below US$25");
@@ -324,15 +328,15 @@ test("buildPlan: --only buckets, and the plan reports what it wanted vs got", ()
   // the per-product pre-plan against the cap (no sweep share): what it wanted vs what it got
   const r = buildPlan(MANY(3000), { cap: 2000, sweepCalls: 0, today: TODAY });
   assert.equal(r.calls, 2000);
-  assert.ok(r.byBucket.items.wanted === 3000 && r.byBucket.items.feeds === 1735 && r.items.core === 3000 && r.items.coreCovered === 1735);
+  assert.ok(r.byBucket.items.wanted === 3000 && r.byBucket.items.feeds === 1740 && r.items.core === 3000 && r.items.coreCovered === 1740);
   const text = capacityReport(r).join("\n");
   assert.match(text, /NOT all core keys fit/);
   assert.match(capacityReport(buildPlan(rows, { cap: 2000, sweepCalls: 0, today: TODAY })).join("\n"), /ALL core keys fit/);
-  // with the sweep's default share at the default caps: 265 fixed + 2,100 sweep + what is left for the pre-plan
+  // with the sweep's default share at the default caps: 260 fixed + 2,100 sweep + what is left for the pre-plan
   const d = buildPlan(MANY(3000), { cap: DEFAULT_RUN_CAP, today: TODAY });
   assert.equal(d.calls, DEFAULT_RUN_CAP);
   assert.equal(d.sweepBudget, DEFAULT_SWEEP_CALLS);
-  assert.equal(d.byBucket.items.feeds, DEFAULT_RUN_CAP - 265 - DEFAULT_SWEEP_CALLS);
+  assert.equal(d.byBucket.items.feeds, DEFAULT_RUN_CAP - 260 - DEFAULT_SWEEP_CALLS);
   assert.equal(d.byBucket.items.wanted, 3000);
   const dt = capacityReport(d).join("\n");
   assert.ok(dt.includes(`| sweep | 5 | 2,100 | 5 | 2,100 |`), dt);
@@ -341,68 +345,73 @@ test("buildPlan: --only buckets, and the plan reports what it wanted vs got", ()
 
 // ─── hot sets and priority marketplaces (src/lib/popular.ts) ────────────────────
 
-/** Hot-set products (30th Celebration, Pitch Black, Prismatic Evolutions, 151) in several markets, and some that are not hot. */
+/** Hot-set products (Reality Fracture, The Hobbit, Avatar, Final Fantasy) in several markets, and some that are not hot. */
 function hotRows() {
   return [
-    planRow("booster-pack", "US", 600, { name: "30th Celebration Booster Pack", productId: "c30-pack" }),
-    planRow("etb", "US", 6000, { name: "30th Celebration Elite Trainer Box", productId: "c30-etb" }),
-    planRow("collection", "US", 3000, { name: "30th Celebration Pikachu Premium Collection", productId: "c30-col" }),
-    planRow("upc", "US", 15000, { name: "30th Celebration Ultra-Premium Collection (Day)", productId: "c30-upc" }),
-    planRow("pc-etb", "UK", usdCents(90, "UK"), { name: "30th Celebration Pokemon Center Elite Trainer Box", productId: "c30-pcetb" }),
-    planRow("booster-bundle", "EU", usdCents(30, "EU"), { name: "30th Celebration Booster Bundle", productId: "c30-bundle" }),
-    planRow("tin", "AU", 2000, { name: "30th Celebration Mini Tin - Pikachu", productId: "c30-tin" }),
-    planRow("etb", "CA", usdCents(60, "CA"), { name: "30th Celebration Elite Trainer Box", productId: "c30-etb" }),
-    planRow("etb", "US", 5500, { name: "Pitch Black Elite Trainer Box", productId: "me5-etb" }),
-    planRow("booster-box", "US", 16000, { name: "Pitch Black Booster Box", productId: "me5-box" }),
-    planRow("booster-box-case", "US", 90000, { name: "Pitch Black Booster Box Case", productId: "me5-case" }),
-    planRow("etb", "US", 5000, { name: "Prismatic Evolutions Elite Trainer Box", productId: "pe-etb" }),
-    planRow("booster-bundle", "US", 3000, { name: "Scarlet & Violet 151 Booster Bundle", productId: "151-bundle" }),
-    planRow("booster-box", "US", 16000, { name: "Delta Reign Booster Box", productId: "me6-box" }), // not a hot set
-    planRow("etb", "US", 7000, { name: "Surging Sparks Elite Trainer Box", productId: "ss-etb" }), // not a hot set
-    planRow("booster-box", "UK", usdCents(150, "UK"), { name: "Surging Sparks Booster Box", productId: "ss-box" }), // not a hot set
+    planRow("play-booster", "US", 600, { name: "Reality Fracture Play Booster Pack", productId: "fra-pack" }),
+    planRow("bundle", "US", 6000, { name: "Reality Fracture Bundle", productId: "fra-bun" }),
+    planRow("commander-deck", "US", 3000, { name: "Reality Fracture Commander Deck - Shattered Time", productId: "fra-cmd" }),
+    planRow("collector-booster-box", "US", 15000, { name: "Reality Fracture Collector Booster Box", productId: "fra-cbb" }),
+    planRow("gift-bundle", "UK", usdCents(90, "UK"), { name: "Reality Fracture Gift Bundle", productId: "fra-gift" }),
+    planRow("special-bundle", "EU", usdCents(30, "EU"), { name: "Reality Fracture Bundle - Ugin Edition", productId: "fra-sbun" }),
+    planRow("scene-box", "AU", 2000, { name: "Reality Fracture Scene Box - Ugin", productId: "fra-scene" }), // an AU-only type still makes a query there
+    planRow("bundle", "CA", usdCents(60, "CA"), { name: "Reality Fracture Bundle", productId: "fra-bun" }),
+    planRow("bundle", "US", 5500, { name: "The Hobbit Bundle", productId: "hob-bun" }),
+    planRow("play-booster-box", "US", 16000, { name: "The Hobbit Play Booster Box", productId: "hob-box" }),
+    planRow("play-booster-box-case", "US", 90000, { name: "The Hobbit Play Booster Box Case", productId: "hob-case" }),
+    planRow("bundle", "US", 5000, { name: "Avatar: The Last Airbender Bundle", productId: "tla-bun" }),
+    planRow("gift-bundle", "US", 3000, { name: "Final Fantasy Gift Bundle", productId: "fin-gift" }),
+    planRow("play-booster-box", "US", 16000, { name: "Star Trek Play Booster Box", productId: "trk-box" }), // hot, but not out on TODAY
+    planRow("play-booster-box", "US", 16000, { name: "Aetherdrift Play Booster Box", productId: "dft-box" }), // not a hot set
+    planRow("bundle", "US", 7000, { name: "Aetherdrift Bundle", productId: "dft-bun" }), // not a hot set
+    planRow("play-booster-box", "UK", usdCents(150, "UK"), { name: "Aetherdrift Play Booster Box", productId: "ss-box" }), // not a hot set
   ];
 }
 const feedOf = (k: { marketplace: string; productId: string }) => `${k.marketplace}|item:${k.productId}`;
 
 test("hot keys: the hot-set products of the US, UK and EU, ANY type and price (packs and cheap ones too), by hot rank, then marketplace, then value", () => {
-  assert.equal(HOT_SETS[0], "cel30", "30th Celebration is the most wanted");
+  assert.equal(HOT_SETS[0], "trk", "Star Trek is the most wanted");
   assert.deepEqual([...PRIORITY_MARKETPLACES], ["EBAY_US", "EBAY_GB", "EBAY_DE"]);
   const rows = hotRows();
   assert.deepEqual(
-    hotItemKeys(rows).map((k) => `${k.productId}@${k.marketplace}`),
+    hotItemKeys(rows, TODAY).map((k) => `${k.productId}@${k.marketplace}`),
     [
-      // 30th Celebration in the US, dearest first, down to the US$6 booster pack; then in the UK, then in the EU
-      "c30-upc@EBAY_US", "c30-etb@EBAY_US", "c30-col@EBAY_US", "c30-pack@EBAY_US", "c30-pcetb@EBAY_GB", "c30-bundle@EBAY_DE",
-      // then Pitch Black, Prismatic Evolutions and 151, in HOT_SETS order
-      "me5-case@EBAY_US", "me5-box@EBAY_US", "me5-etb@EBAY_US", "pe-etb@EBAY_US", "151-bundle@EBAY_US",
+      // Star Trek is not out on TODAY: Reality Fracture first, in the US dearest first, down to the US$6 pack; then the UK, then the EU
+      "fra-cbb@EBAY_US", "fra-bun@EBAY_US", "fra-cmd@EBAY_US", "fra-pack@EBAY_US", "fra-gift@EBAY_GB", "fra-sbun@EBAY_DE",
+      // then The Hobbit, Avatar and Final Fantasy, in HOT_SETS order
+      "hob-case@EBAY_US", "hob-box@EBAY_US", "hob-bun@EBAY_US", "tla-bun@EBAY_US", "fin-gift@EBAY_US",
     ],
-    "never a set that is not hot, never Australia or Canada",
+    "never a set that is not hot or not out, never Australia or Canada",
   );
-  assert.ok(!itemKeys(rows).some((k) => k.productId === "c30-pack"), "the pack is not an eligible key, and is still searched first");
-  assert.equal(hotItemKeys(rows)[0].rank, 0);
+  assert.ok(!itemKeys(rows).some((k) => k.productId === "fra-pack"), "the pack is not an eligible key, and is still searched first");
+  assert.equal(hotItemKeys(rows, TODAY)[0].rank, 1);
+  assert.equal(hotItemKeys(rows, "2026-11-20")[0].productId, "trk-box", "Star Trek first once it is out");
   // stable whatever the row order
-  assert.deepEqual(hotItemKeys([...rows].reverse()).map(feedOf), hotItemKeys(rows).map(feedOf));
+  assert.deepEqual(hotItemKeys([...rows].reverse(), TODAY).map(feedOf), hotItemKeys(rows, TODAY).map(feedOf));
 });
 
 test("per-product searches: the hot products first, then every other eligible key by value; a hot product that is eligible keeps its tier", () => {
   const rows = hotRows();
-  const feeds = perProductFeeds(rows);
-  const hot = hotItemKeys(rows).map(feedOf);
+  const feeds = perProductFeeds(rows, undefined, TODAY);
+  const hot = hotItemKeys(rows, TODAY).map(feedOf);
   assert.deepEqual(feeds.slice(0, hot.length).map((f) => f.feed), hot);
   assert.ok(feeds.slice(0, hot.length).every((f) => f.hot));
   const rest = feeds.slice(hot.length);
   assert.ok(rest.every((f) => !f.hot && f.item), "then the eligible keys");
   assert.deepEqual(rest.map((f) => f.feed), itemKeys(rows).map(feedOf).filter((f) => !hot.includes(f)), "in itemKeys' order: core by value, then the extension");
-  assert.deepEqual(rest.map((f) => f.feed), ["EBAY_US|item:me6-box", "EBAY_GB|item:ss-box", "EBAY_US|item:ss-etb", "EBAY_CA|item:c30-etb"]);
+  assert.deepEqual(rest.map((f) => f.feed), ["EBAY_US|item:dft-box", "EBAY_US|item:trk-box", "EBAY_GB|item:ss-box", "EBAY_US|item:dft-bun", "EBAY_CA|item:fra-bun"]);
   assert.equal(new Set(feeds.map((f) => f.feed)).size, feeds.length, "each (marketplace, product) once");
-  assert.equal(feeds.find((f) => f.feed === "EBAY_US|item:c30-etb")!.item?.tier, "core", "still a covered core key");
-  const pack = feeds.find((f) => f.feed === "EBAY_US|item:c30-pack")!;
+  assert.equal(feeds.find((f) => f.feed === "EBAY_US|item:fra-bun")!.item?.tier, "core", "still a covered core key");
+  const pack = feeds.find((f) => f.feed === "EBAY_US|item:fra-pack")!;
   assert.equal(pack.item, undefined);
-  // one search each, as for any product: "Pokemon <cleaned name>", the type's floor, the item normaliser
-  assert.deepEqual(pack.searches.map((x) => [x.q, x.limit, x.minPrice, x.ref]), [["Pokemon 30th Booster Pack", 50, 3, "dex-us-item"]]);
+  // one search each, as for any product: "MTG <cleaned name>", the type's floor, the item normaliser
+  assert.deepEqual(pack.searches.map((x) => [x.q, x.limit, x.minPrice, x.ref]), [["MTG Reality Fracture Play Booster Pack", 50, 3, "mtg-us-item"]]);
   assert.equal(pack.rule.kind, "item");
+  // a hot set's products are searched by the keyword sellers use: "Hobbit" for The Hobbit, "Avatar" for Avatar: The Last Airbender
+  assert.equal(feeds.find((f) => f.feed === "EBAY_US|item:hob-box")!.searches[0].q, "MTG Hobbit Play Booster Box");
+  assert.equal(feeds.find((f) => f.feed === "EBAY_US|item:tla-bun")!.searches[0].q, "MTG Avatar Bundle");
   // the plan's pre-plan buys them in the same order, after the fixed feeds
-  const plan = buildPlan(rows, { cap: 265 + 5, sweepCalls: 0, today: TODAY });
+  const plan = buildPlan(rows, { cap: 260 + 5, sweepCalls: 0, today: TODAY });
   assert.deepEqual(plan.feeds.filter((f) => f.bucket === "items").map((f) => f.feed), hot.slice(0, 5));
   assert.equal(plan.byBucket.items.wanted, feeds.length);
   assert.equal(plan.items.core + plan.items.extension, itemKeys(rows).length, "eligible keys are counted once, hot or not");
@@ -410,15 +419,15 @@ test("per-product searches: the hot products first, then every other eligible ke
 
 test("hot coverage: per hot set and priority marketplace, products with an item feed / products listed (counts only)", () => {
   const rows = hotRows();
-  const has = new Set(["EBAY_US|item:c30-etb", "EBAY_US|item:c30-pack", "EBAY_GB|item:c30-pcetb", "EBAY_AU|item:c30-tin"]);
+  const has = new Set(["EBAY_US|item:fra-bun", "EBAY_US|item:fra-pack", "EBAY_GB|item:fra-gift", "EBAY_AU|item:fra-scene"]);
   const cov = hotCoverage(rows, (f) => has.has(f));
   assert.equal(cov.length, HOT_SETS.length * PRIORITY_MARKETPLACES.length);
   const at = (set: string, mp: string) => cov.find((c) => c.set === set && c.marketplace === mp)!;
-  assert.deepEqual([at("cel30", "EBAY_US").withFeed, at("cel30", "EBAY_US").products], [2, 4]);
-  assert.deepEqual([at("cel30", "EBAY_GB").withFeed, at("cel30", "EBAY_GB").products], [1, 1]);
-  assert.deepEqual([at("cel30", "EBAY_DE").withFeed, at("cel30", "EBAY_DE").products], [0, 1]);
-  assert.deepEqual([at("me5", "EBAY_US").withFeed, at("me5", "EBAY_US").products], [0, 3]);
-  assert.equal(at("me4", "EBAY_US").products, 0);
+  assert.deepEqual([at("fra", "EBAY_US").withFeed, at("fra", "EBAY_US").products], [2, 4]);
+  assert.deepEqual([at("fra", "EBAY_GB").withFeed, at("fra", "EBAY_GB").products], [1, 1]);
+  assert.deepEqual([at("fra", "EBAY_DE").withFeed, at("fra", "EBAY_DE").products], [0, 1]);
+  assert.deepEqual([at("hob", "EBAY_US").withFeed, at("hob", "EBAY_US").products], [0, 3]);
+  assert.equal(at("msh", "EBAY_US").products, 0);
   assert.ok(!cov.some((c) => (c.marketplace as string) === "EBAY_AU"), "the priority marketplaces only");
 });
 
@@ -458,9 +467,14 @@ test("caps: daily 2500 (clamped 0..2500), run 2500, sweep 2100, and the run's al
 
 // ─── the run ────────────────────────────────────────────────────────────────────
 
-/** A search handler: chase-shaped cards for card queries, and the product's own title for an item query; counts searches. */
+/**
+ * A search handler: high-end sealed (collector boxes) for the chase queries, a set's Commander deck set for a set query, nothing a
+ * product matches for a sweep query, and the product's own title for any other (sealed, type and item) query; counts searches.
+ */
 function ebay(over: { onSearch?: (n: number, url: string) => Response | undefined } = {}): { handler: Handler; n: () => number } {
   let n = 0;
+  const chase = new Set(CHASE_QUERIES.map((q) => `MTG ${q}`));
+  const sweep = new Set(SWEEP_QUERIES.map((x) => `MTG ${x.q}`));
   const handler: Handler = (url, init) => {
     if (url.includes("/oauth2/token")) return okToken();
     n++;
@@ -468,10 +482,15 @@ function ebay(over: { onSearch?: (n: number, url: string) => Response | undefine
     if (forced) return forced;
     const q = new URL(url).searchParams.get("q") ?? "";
     const mp = ((init?.headers ?? {}) as Record<string, string>)["X-EBAY-C-MARKETPLACE-ID"] ?? "EBAY_US";
-    const subject = q.replace(/^Pokemon /, "").replace(/ sealed$/, "");
-    const cards = Array.from({ length: 4 }, (_, i) => summary(`${n}${i}`, `${subject} ${190 + i}/165 Special Illustration Rare Pokemon Card`, 60 + i, mp));
-    const product = Array.from({ length: 3 }, (_, i) => summary(`${n}${i}`, `Pokemon TCG ${subject} Sealed NEW ${i}`, 70 + i * 10, mp));
-    return json({ itemSummaries: withReference(/Elite Trainer Box|Collection|Tin/.test(q) && !/special illustration|alt art|full art/.test(q) ? product : cards, requestedReference(init)) });
+    const subject = q.replace(/^MTG /, "").replace(/ sealed$/, "");
+    const items = chase.has(q)
+      ? Array.from({ length: 4 }, (_, i) => summary(`${n}${i}`, `MTG Final Fantasy Collector Booster Box Sealed NEW ${i}`, 300 + i * 10, mp))
+      : sweep.has(q)
+        ? Array.from({ length: 4 }, (_, i) => summary(`${n}${i}`, `MTG Mystery Lot of cards ${i}`, 60 + i, mp))
+        : /^(?:.+) sealed$/.test(q) && !TYPE_FEEDS.some((t) => q === `MTG ${t.query}`) && !SEALED_QUERIES.some((x) => q === `MTG ${x}`)
+          ? Array.from({ length: 3 }, (_, i) => summary(`${n}${i}`, `MTG ${subject} Commander Deck Set of 4 Sealed NEW ${i}`, 200 + i * 10, mp))
+          : Array.from({ length: 3 }, (_, i) => summary(`${n}${i}`, `MTG ${subject} Sealed NEW ${i}`, 70 + i * 10, mp));
+    return json({ itemSummaries: withReference(items, requestedReference(init)) });
   };
   return { handler, n: () => n };
 }
@@ -490,10 +509,10 @@ test("run: every search is reserved BEFORE it is made; the database counter equa
   const fetch0 = h.deps.fetch;
   h.deps.fetch = async (u, i) => (u.includes("/item_summary/search") && order.push("search"), fetch0(u, i));
   const s = await runImport(deps(db, h), { concurrency: 1 });
-  // the fixed feeds (265), the sweep (every query's first page in each of the 5 marketplaces: the mock's pages are short, so each
+  // the fixed feeds (260), the sweep (every query's first page in each of the 5 marketplaces: the mock's pages are short, so each
   // query ends after one), then one search per eligible key the sweep did not cover (the mock's cards match no product: all 40)
   const sweepCalls = SWEEP_QUERIES.length * MARKETPLACE_ORDER.length;
-  const total = 265 + sweepCalls + 40;
+  const total = 260 + sweepCalls + 40;
   assert.equal(s.buckets.sweep.calls, sweepCalls);
   assert.equal(s.sweep.length, 5);
   assert.equal(h.searches().length, total);
@@ -520,12 +539,12 @@ test("run: every search is reserved BEFORE it is made; the database counter equa
   // phase order: every fixed feed's search, then the sweep's pages, then the per-product searches
   const kinds = h.searches().map((c) => requestedReference(c.init)!.split("-")[2]);
   const qs = h.searches().map((c) => new URL(c.url).searchParams.get("q") ?? "");
-  const sweepQs = new Set(SWEEP_QUERIES.map((x) => `Pokemon ${x.q}`));
+  const sweepQs = new Set(SWEEP_QUERIES.map((x) => `MTG ${x.q}`));
   const firstSweep = qs.findIndex((q) => sweepQs.has(q));
-  assert.equal(firstSweep, 265);
-  assert.ok(kinds.slice(0, 265).every((k) => k !== "item"), "fixed feeds first");
-  assert.ok(qs.slice(265, 265 + sweepCalls).every((q) => sweepQs.has(q)), "then the sweep");
-  assert.ok(qs.slice(265 + sweepCalls).every((q) => !sweepQs.has(q)) && kinds.slice(265).every((k) => k === "item"), "then the per-product searches");
+  assert.equal(firstSweep, 260);
+  assert.ok(kinds.slice(0, 260).every((k) => k !== "item"), "fixed feeds first");
+  assert.ok(qs.slice(260, 260 + sweepCalls).every((q) => sweepQs.has(q)), "then the sweep");
+  assert.ok(qs.slice(260 + sweepCalls).every((q) => !sweepQs.has(q)) && kinds.slice(260).every((k) => k === "item"), "then the per-product searches");
 });
 
 test("run: three overlapping runs and a manual dispatch can never pass the daily cap", async () => {
@@ -577,12 +596,12 @@ test("run: a 429 stops the whole run, keeps the previous rows, and says so", asy
   const e = ebay({ onSearch: (n) => (n >= 30 ? json({ errors: [{ message: "too many" }] }, 429, { "retry-after": "60" }) : undefined) });
   const h = harness(e.handler);
   const db = fakeDb(MANY(40));
-  db.feeds.set("EBAY_US|set:cel30", { items: [{ id: "old", title: "old", imageUrl: "https://i.ebayimg.com/x", price: { value: "1.00", currency: "USD" }, url: "https://www.ebay.com/itm/1" }], fetchedAt: new Date(NOW - 3600_000) });
+  db.feeds.set("EBAY_US|set:reality-fracture", { items: [{ id: "old", title: "old", imageUrl: "https://i.ebayimg.com/x", price: { value: "1.00", currency: "USD" }, url: "https://www.ebay.com/itm/1" }], fetchedAt: new Date(NOW - 3600_000) });
   const s = await runImport(deps(db, h), { concurrency: 3 });
   assert.equal(s.stopped, "rate-limited");
   assert.ok(h.searches().length <= 30 + 3, `${h.searches().length} searches after a 429`);
   assert.equal(db.days.get(s.day), h.searches().length);
-  assert.equal(db.feeds.get("EBAY_US|set:cel30")!.items[0].id, "old", "a feed the run never refreshed keeps its rows");
+  assert.equal(db.feeds.get("EBAY_US|set:reality-fracture")!.items[0].id, "old", "a feed the run never refreshed keeps its rows");
   assert.ok(s.feedsRefreshed < s.feedsPlanned);
   assert.ok(runReport(s).join("\n").includes("rate-limited"));
 });
@@ -596,7 +615,7 @@ test("run: a token failure stops before any search and reports only eBay's OAuth
   assert.equal(h.searches().length, 0);
   assert.equal(db.days.size, 0, "no budget spent");
   const text = JSON.stringify(s.tokenError) + runReport(s).join("\n");
-  assert.ok(!/secret-ish|SECRET|DexComp-/.test(text));
+  assert.ok(!/secret-ish|SECRET|MtgComp-/.test(text));
 });
 
 test("run: retries once on a 5xx or a timeout, and once without the price filter on a 400; each retry is reserved", async () => {
@@ -712,7 +731,7 @@ test("after a 429 in the catalogue sweep no worker starts another search (three 
     if (url.includes("/oauth2/token")) return okToken();
     n++;
     if (n === 3) return json({ errors: [{ message: "too many" }] }, 429, { "retry-after": "60" });
-    const items = Array.from({ length: SWEEP_PAGE }, (_, i) => summary(`p${n}-${i}`, `Pokemon Test Collection Number ${i} 190/165 Special Illustration Rare Pokemon Card`, 70));
+    const items = Array.from({ length: SWEEP_PAGE }, (_, i) => summary(`p${n}-${i}`, `MTG Test Commander Collection Number ${i} Pulled From Collector Booster Box`, 70));
     return json({ total: 100_000, itemSummaries: withReference(items, requestedReference(init)) });
   });
   const db = fakeDb(MANY(40));
@@ -729,7 +748,7 @@ test("fresh feeds are not bought again (a re-run, an overlapping run, a retry af
   const db = fakeDb(MANY(30));
   const e = ebay();
   const first = await runImport(deps(db, harness(e.handler), NOSWEEP), { concurrency: 3 });
-  assert.equal(first.searches, 265 + 30);
+  assert.equal(first.searches, 260 + 30);
   assert.equal(first.buckets.sweep.calls, 0);
   // the same instant again: every feed that has rows is fresh and is not bought again (only feeds that came back empty are tried again)
   const h2 = harness(e.handler);
@@ -739,14 +758,14 @@ test("fresh feeds are not bought again (a re-run, an overlapping run, a retry af
   assert.equal(again.buckets.items.fresh, 30);
   assert.equal(again.buckets.items.refreshed, 0);
   assert.equal(again.buckets.chase.refreshed, 0);
-  assert.ok(h2.searches().length < 295 && stored >= 185, `${h2.searches().length} searches the second time, ${stored} feeds stored the first`);
+  assert.ok(h2.searches().length < 290 && stored >= 185, `${h2.searches().length} searches the second time, ${stored} feeds stored the first`);
   assert.equal(again.plan.items.coreCovered, again.plan.items.core, "fresh item feeds still count as covered");
   assert.ok(runReport(again).join("\n").includes("Fresh (not bought)"));
-  assert.ok(h2.searches().every((c) => requestedReference(c.init) !== "dex-us-item"), "no item feed bought again");
+  assert.ok(h2.searches().every((c) => requestedReference(c.init) !== "mtg-us-item"), "no item feed bought again");
   // forced: everything again
   const h3 = harness(e.handler);
   await runImport(deps(db, h3, NOSWEEP), { concurrency: 3, force: true });
-  assert.equal(h3.searches().length, 295);
+  assert.equal(h3.searches().length, 290);
   // the window is 2 hours (a quarter of the bound at most): 1.9 h on a feed is still fresh, 2.1 h on it is bought again
   assert.equal(freshWindowMs({}), hoursToMs(2));
   assert.equal(freshWindowMs({ EBAY_LISTING_MAX_AGE_HOURS: "5.5" }), hoursToMs(1.375), "compliant mode: a quarter of 5.5 h");
@@ -756,12 +775,12 @@ test("fresh feeds are not bought again (a re-run, an overlapping run, a retry af
   const soon = await runImport(deps(db, h3b, NOSWEEP), { concurrency: 3 });
   assert.equal(soon.buckets.chase.fresh, 5);
   assert.equal(soon.buckets.items.fresh, 30);
-  assert.ok(h3b.searches().length < 295, "an accidental re-dispatch within 2 h re-buys nothing that has rows");
+  assert.ok(h3b.searches().length < 290, "an accidental re-dispatch within 2 h re-buys nothing that has rows");
   const h4 = harness(e.handler);
   h4.clock.t = NOW + 3 * 3600_000 + 1;
   db.feeds.forEach((v) => (v.fetchedAt = new Date(NOW))); // as the forced run left them
   const later = await runImport(deps(db, h4, NOSWEEP), { concurrency: 3 });
-  assert.equal(h4.searches().length, 295);
+  assert.equal(h4.searches().length, 290);
   assert.equal(later.buckets.chase.fresh, 0);
   // a feed fresher than the share is skipped and the budget goes further down the plan instead
   const hourOld = () => ({ items: [{ id: "o", title: "o", imageUrl: "https://i.ebayimg.com/x", price: { value: "1.00", currency: "USD" }, url: "https://www.ebay.com/itm/1" }], fetchedAt: new Date(NOW - 3600_000) });
@@ -795,13 +814,13 @@ test("fresh feeds are not bought again (a re-run, an overlapping run, a retry af
   assert.equal(s7.buckets.sweep.calls, 0, "the marketplace is not swept again");
   assert.equal(s7.buckets.items.fresh, 60);
   assert.equal(s7.buckets.items.calls, 0, "nor its fresh item feeds searched one by one");
-  assert.equal(h7.searches().length, 265, "only the fixed feeds, which had no rows");
+  assert.equal(h7.searches().length, 260, "only the fixed feeds, which had no rows");
   // forced: swept again (one page per query: the mock's pages are short), and every item feed bought again
   const h8 = harness(e.handler);
   const s8 = await runImport(deps(db4, h8), { concurrency: 3, force: true });
   assert.equal(s8.buckets.sweep.fresh, 0);
   assert.equal(s8.buckets.sweep.calls, SWEEP_QUERIES.length);
-  assert.equal(h8.searches().length, 265 + SWEEP_QUERIES.length + 60);
+  assert.equal(h8.searches().length, 260 + SWEEP_QUERIES.length + 60);
   // stale (older than the window): swept again without forcing
   const h9 = harness(e.handler);
   h9.clock.t = NOW + 3 * 3600_000;
@@ -876,11 +895,11 @@ test("the importer says what it will do with today's budget BEFORE the first sea
   assert.match(text, /reserved so far today: 640 of the 2,500 daily cap \(1,860 left\)/);
   assert.match(text, /at most 300 searches, retries included \(the smallest of: run cap 2,500, 1,860 left of today's 2,500, --max-calls 300\)/);
   assert.match(text, /Plan: \d+ feeds in 300 searches \(chase 5 feeds\/40 calls/);
-  // 300 - 265 fixed = 35 for the sweep; nothing left for per-product searches
-  assert.match(text, /sweep up to 35 calls over 5 marketplaces, items: whatever the sweep leaves/);
+  // 300 - 260 fixed = 40 for the sweep; nothing left for per-product searches
+  assert.match(text, /sweep up to 40 calls over 5 marketplaces, items: whatever the sweep leaves/);
   assert.match(text, /stops early on a 429, a 401\/403 on a search, 6 failed searches in a row, or 30 with no listings in a row/);
   assert.match(text, /another application on the same eBay keyset is invisible/);
-  assert.ok(!/SECRET|DexComp-|Bearer/.test(text));
+  assert.ok(!/SECRET|MtgComp-|Bearer/.test(text));
   assert.equal(s.searches, 300);
   assert.equal(db.days.get(day), 640 + 300);
   // the running total against the caps, every PROGRESS_EVERY searches
@@ -893,7 +912,7 @@ test("the importer says what it will do with today's budget BEFORE the first sea
   assert.equal(sweepLines.length, 5);
   for (const l of sweepLines) assert.match(l, /^sweep EBAY_[A-Z]{2}: \d+ pages \(\d+ on the hot sets\), \d+ listings matched to \d+ of \d+ products; \d+ item feeds written\.$/);
   assert.deepEqual(sweepLines.map((l) => l.split(":")[0].slice(6)), [...MARKETPLACE_ORDER], "swept in the priority order: US, UK, EU, then AU and CA");
-  assert.ok(lines.some((l) => l.startsWith("Priorities (src/lib/popular.ts): marketplaces in the order EBAY_US, EBAY_GB, EBAY_DE, EBAY_AU, EBAY_CA; hot sets cel30,")));
+  assert.ok(lines.some((l) => l.startsWith("Priorities (src/lib/popular.ts): marketplaces in the order EBAY_US, EBAY_GB, EBAY_DE, EBAY_AU, EBAY_CA; hot sets trk, fra,")));
   // nothing left today: it says so
   const spent = fakeDb(MANY(10));
   spent.days.set(day, 2500);
@@ -908,7 +927,7 @@ test("the importer says what it will do with today's budget BEFORE the first sea
   assert.equal(startReport(s2, { force: true, freshMs: hoursToMs(2) }).join("\n").includes("--force"), true);
 });
 
-test("each feed asks eBay for its own affiliateReferenceId (dex-<market>-<kind>) and the stored links keep eBay's URL as returned", async () => {
+test("each feed asks eBay for its own affiliateReferenceId (mtg-<market>-<kind>) and the stored links keep eBay's URL as returned", async () => {
   const refs = new Map<string, Set<string>>();
   const e = ebay();
   const h = harness((url, init) => {
@@ -921,12 +940,12 @@ test("each feed asks eBay for its own affiliateReferenceId (dex-<market>-<kind>)
   });
   const db = fakeDb(MANY(40));
   await runImport(deps(db, h), { concurrency: 1 });
-  assert.deepEqual([...(refs.get("EBAY_US") ?? [])].sort(), ["dex-us-chase", "dex-us-item", "dex-us-sealed", "dex-us-set", "dex-us-type"]);
-  assert.deepEqual([...(refs.get("EBAY_AU") ?? [])].sort(), ["dex-au-chase", "dex-au-sealed", "dex-au-set", "dex-au-type"].concat(refs.get("EBAY_AU")?.has("dex-au-item") ? ["dex-au-item"] : []).sort());
+  assert.deepEqual([...(refs.get("EBAY_US") ?? [])].sort(), ["mtg-us-chase", "mtg-us-item", "mtg-us-sealed", "mtg-us-set", "mtg-us-type"]);
+  assert.deepEqual([...(refs.get("EBAY_AU") ?? [])].sort(), ["mtg-au-chase", "mtg-au-sealed", "mtg-au-set", "mtg-au-type"].concat(refs.get("EBAY_AU")?.has("mtg-au-item") ? ["mtg-au-item"] : []).sort());
   for (const [feed, v] of db.feeds) {
     const kind = feed.split("|")[1].split(":")[0];
     const mp = { EBAY_US: "us", EBAY_AU: "au", EBAY_GB: "uk", EBAY_CA: "ca", EBAY_DE: "eu" }[feed.split("|")[0] as "EBAY_US"];
-    for (const it of v.items) assert.equal(new URL(it.url).searchParams.get("customid"), `dex-${mp}-${kind}`, `${feed}: the URL is eBay's, with the feed's sub-id`);
+    for (const it of v.items) assert.equal(new URL(it.url).searchParams.get("customid"), `mtg-${mp}-${kind}`, `${feed}: the URL is eBay's, with the feed's sub-id`);
   }
   assert.ok(db.feeds.size > 100);
 });
@@ -942,34 +961,34 @@ test("replaceFeed's advisory lock and UTC timestamps are in the SQL (source chec
 });
 
 test("run: a feed's rows are REPLACED (never appended); an empty or failed refresh keeps the old rows; a refresh failure of one feed does not stop the rest", async () => {
-  const rows = [planRow("etb", "US", 6000, { id: "etb-us", name: "Surging Sparks Elite Trainer Box" }), planRow("etb", "US", 7000, { id: "etb-none", name: "Prismatic Evolutions Elite Trainer Box" })];
+  const rows = [planRow("bundle", "US", 6000, { id: "bun-us", name: "Aetherdrift Bundle" }), planRow("bundle", "US", 7000, { id: "bun-none", name: "Tarkir: Dragonstorm Bundle" })];
   const db = fakeDb(rows);
   const old = (id: string) => ({ items: [{ id, title: "old", imageUrl: "https://i.ebayimg.com/x", price: { value: "1.00", currency: "USD" }, url: "https://www.ebay.com/itm/1" }], fetchedAt: new Date(NOW - 20 * 3600_000) });
-  db.feeds.set("EBAY_US|item:etb-us", old("a"));
-  db.feeds.set("EBAY_US|item:etb-none", old("b"));
+  db.feeds.set("EBAY_US|item:bun-us", old("a"));
+  db.feeds.set("EBAY_US|item:bun-none", old("b"));
   const handler: Handler = (url) => {
     if (url.includes("/oauth2/token")) return okToken();
     const q = new URL(url).searchParams.get("q") ?? "";
-    if (q.includes("Prismatic")) return json({ itemSummaries: [summary("1", "Pokemon Japanese Prismatic Evolutions Elite Trainer Box", 80), summary("2", "Prismatic Evolutions EMPTY box", 80)] }); // nothing relevant
-    return json({ itemSummaries: [summary("11", "Pokemon TCG Surging Sparks Elite Trainer Box Sealed", 90), summary("12", "Pokemon Surging Sparks Elite Trainer Box NEW", 70)] });
+    if (q.includes("Tarkir")) return json({ itemSummaries: [summary("1", "MTG Japanese Tarkir Dragonstorm Bundle", 80), summary("2", "Tarkir Dragonstorm Bundle EMPTY box", 80)] }); // nothing relevant
+    return json({ itemSummaries: [summary("11", "Magic The Gathering Aetherdrift Bundle Sealed", 90), summary("12", "MTG Aetherdrift Bundle NEW", 70)] });
   };
   const h = harness(handler);
   const s = await runImport(deps(db, h), { only: ["items"], concurrency: 1 });
-  const fresh = db.feeds.get("EBAY_US|item:etb-us")!;
+  const fresh = db.feeds.get("EBAY_US|item:bun-us")!;
   assert.deepEqual(fresh.items.map((i) => i.price.value), ["70.00", "90.00"], "replaced, lowest price first");
   assert.equal(fresh.fetchedAt.getTime(), NOW);
-  assert.equal(db.feeds.get("EBAY_US|item:etb-none")!.items[0].id, "b", "an empty result keeps the old rows");
+  assert.equal(db.feeds.get("EBAY_US|item:bun-none")!.items[0].id, "b", "an empty result keeps the old rows");
   assert.equal(s.buckets.items.emptied, 1);
   assert.equal(s.buckets.items.refreshed, 1);
   // every search of a feed failing keeps the rows too
   const h2 = harness((url) => (url.includes("/oauth2/token") ? okToken() : json({}, 500)));
   const db2 = fakeDb(rows);
-  db2.feeds.set("EBAY_US|item:etb-us", old("a"));
+  db2.feeds.set("EBAY_US|item:bun-us", old("a"));
   const s2 = await runImport(deps(db2, h2), { only: ["items"], concurrency: 1 });
-  assert.equal(db2.feeds.get("EBAY_US|item:etb-us")!.items[0].id, "a");
+  assert.equal(db2.feeds.get("EBAY_US|item:bun-us")!.items[0].id, "a");
   assert.equal(s2.buckets.items.failed, 2);
   // a database failure on one feed is that feed's failure only
-  const db3 = fakeDb(rows, { failReplace: (f) => f.includes("etb-us") });
+  const db3 = fakeDb(rows, { failReplace: (f) => f.includes("bun-us") });
   const e3 = ebay();
   const s3 = await runImport(deps(db3, harness(e3.handler)), { only: ["items"], concurrency: 1 });
   assert.equal(s3.buckets.items.failed, 1);
@@ -1005,7 +1024,7 @@ test("run: a dry run makes no call and writes nothing", async () => {
   assert.equal(db.replaced.length, 0);
   // the plan it prints: the fixed feeds, the sweep's share and the per-product pre-plan
   assert.equal(s.plan.sweepBudget, DEFAULT_SWEEP_CALLS);
-  assert.equal(s.plan.calls, 265 + DEFAULT_SWEEP_CALLS + 30);
+  assert.equal(s.plan.calls, 260 + DEFAULT_SWEEP_CALLS + 30);
   assert.equal(s.searches, 0);
   assert.deepEqual(s.sweep, []);
   assert.ok(runReport(s).join("\n").startsWith("DRY RUN"));
@@ -1013,16 +1032,16 @@ test("run: a dry run makes no call and writes nothing", async () => {
   const h2 = harness(e.handler);
   const s2 = await runImport(deps(fakeDb(MANY(30)), h2, { EBAY_SWEEP_CALLS: "0" }), { dryRun: true });
   assert.equal(h2.calls.length, 0);
-  assert.equal(s2.plan.calls, 265 + 30);
+  assert.equal(s2.plan.calls, 260 + 30);
 });
 
 test("selectFeedItems: each rule keeps what it should, and an item feed keeps 8 at most", () => {
-  const feed = (kind: "item" | "chase") => ({ ...fixedFeeds(TODAY)[0], rule: kind === "chase" ? { kind: "chase" as const } : { kind: "item" as const, target: { groupKey: "sv8|etb", type: "etb" as const, setCode: "sv8" } }, marketplace: "EBAY_US" as const });
-  const etbs = Array.from({ length: 20 }, (_, i) => summary(String(i), `Pokemon TCG Surging Sparks Elite Trainer Box Sealed Copy ${String.fromCharCode(65 + i)}`, 100 - i));
-  const out = selectFeedItems(feed("item"), [etbs], NOW);
+  const feed = (kind: "item" | "chase") => ({ ...fixedFeeds(TODAY)[0], rule: kind === "chase" ? { kind: "chase" as const } : { kind: "item" as const, target: { groupKey: "dft|bundle", type: "bundle" as const, setCode: "dft" } }, marketplace: "EBAY_US" as const });
+  const bundles = Array.from({ length: 20 }, (_, i) => summary(String(i), "Magic The Gathering Aetherdrift Bundle Sealed", 100 - i));
+  const out = selectFeedItems(feed("item"), [bundles], NOW);
   assert.equal(out.length, 8);
   assert.deepEqual(out.map((o) => Number(o.price.value)), [81, 82, 83, 84, 85, 86, 87, 88]);
-  assert.deepEqual(selectFeedItems(feed("chase"), [etbs], NOW), []);
+  assert.deepEqual(selectFeedItems(feed("chase"), [bundles], NOW), [], "a Bundle is sealed, but not high-end");
   assert.deepEqual(selectFeedItems(feed("item"), [], NOW), []);
 });
 
@@ -1043,8 +1062,8 @@ test("run: hot sets first: each marketplace's sweep starts with the hot pass; th
   const rows = hotRows();
   const db = fakeDb(rows);
   const old = (ageH: number) => ({ items: [{ id: "o", title: "old", imageUrl: "https://i.ebayimg.com/x", price: { value: "1.00", currency: "USD" }, url: "https://www.ebay.com/itm/1" }], fetchedAt: new Date(NOW - ageH * 3600_000) });
-  db.feeds.set("EBAY_US|item:c30-col", old(5)); // stale for the skip-fresh rule, still shown: counts as a feed after the run
-  db.feeds.set("EBAY_US|item:c30-pack", old(29.5)); // still there at the start; the run takes over 30 minutes, so the end purge removes it
+  db.feeds.set("EBAY_US|item:fra-cmd", old(5)); // stale for the skip-fresh rule, still shown: counts as a feed after the run
+  db.feeds.set("EBAY_US|item:fra-pack", old(29.5)); // still there at the start; the run takes over 30 minutes, so the end purge removes it
   let n = 0;
   const h = harness((url, init) => {
     if (url.includes("/oauth2/token")) return okToken(n);
@@ -1053,11 +1072,11 @@ test("run: hot sets first: each marketplace's sweep starts with the hot pass; th
     const q = new URL(url).searchParams.get("q") ?? "";
     const mp = ((init?.headers ?? {}) as Record<string, string>)["X-EBAY-C-MARKETPLACE-ID"];
     const ref = requestedReference(init);
-    // the hot pass finds 30th Celebration ETBs in the US (two listings)
-    if (q === "Pokemon 30th elite trainer box" && mp === "EBAY_US")
-      return json({ total: 2, itemSummaries: withReference([summary("h1", "Pokemon 30th Anniversary Celebration Elite Trainer Box Sealed", 70), summary("h2", "Pokemon TCG 30th Celebration Elite Trainer Box", 65)], ref) });
-    // anything else: one single card, which no product takes
-    return json({ total: 1, itemSummaries: withReference([summary(`c${n}`, "Charizard ex 199/165 Special Illustration Rare Pokemon Card", 50, mp)], ref) });
+    // the hot pass finds Reality Fracture Bundles in the US (two listings)
+    if (q === "MTG reality fracture bundle" && mp === "EBAY_US")
+      return json({ total: 2, itemSummaries: withReference([summary("h1", "MTG Reality Fracture Bundle Sealed", 70), summary("h2", "Magic The Gathering Reality Fracture Bundle", 65)], ref) });
+    // anything else: one single card pulled from a box, which no product takes
+    return json({ total: 1, itemSummaries: withReference([summary(`c${n}`, "MTG Reality Fracture Borderless Mythic Pulled From Collector Booster Box", 50, mp)], ref) });
   });
   const s = await runImport(deps(db, h, { EBAY_SWEEP_CALLS: "300" }), { only: ["sweep", "items"], concurrency: 1 });
   assert.equal(s.stopped, null);
@@ -1066,9 +1085,9 @@ test("run: hot sets first: each marketplace's sweep starts with the hot pass; th
     return { q: u.searchParams.get("q")!, mp: ((c.init?.headers ?? {}) as Record<string, string>)["X-EBAY-C-MARKETPLACE-ID"], limit: u.searchParams.get("limit") };
   });
   // the sweep, marketplace by marketplace in the priority order, each starting with every hot query FOR WHAT IT LISTS before any general one
-  const hotQs = new Set(hotSweepQueries(rows, TODAY).map((x) => `Pokemon ${x.q}`));
-  assert.equal(hotQs.size, 10, "30th Celebration: ETB, bundle, collection, tin, pack; Pitch Black: box, ETB, case; Prismatic Evolutions: ETB; 151: bundle");
-  const hotFor = (mp: string) => hotSweepQueries(rows.filter((r) => MARKETPLACE_OF_REGION[r.market.toLowerCase() as Region] === mp), TODAY).map((x) => `Pokemon ${x.q}`);
+  const hotQs = new Set(hotSweepQueries(rows, TODAY).map((x) => `MTG ${x.q}`));
+  assert.equal(hotQs.size, 11, "Reality Fracture: collector box, bundle (and the special one), gift bundle, Commander deck, scene box, pack; The Hobbit: box, bundle, case; Avatar: bundle; Final Fantasy: gift bundle");
+  const hotFor = (mp: string) => hotSweepQueries(rows.filter((r) => MARKETPLACE_OF_REGION[r.market.toLowerCase() as Region] === mp), TODAY).map((x) => `MTG ${x.q}`);
   assert.ok(MARKETPLACE_ORDER.some((mp) => hotFor(mp).length < hotQs.size), "a type only another market lists is not searched there");
   const sweep = calls.filter((c) => c.limit === "200");
   assert.deepEqual([...new Set(sweep.map((c) => c.mp))], [...MARKETPLACE_ORDER]);
@@ -1084,38 +1103,40 @@ test("run: hot sets first: each marketplace's sweep starts with the hot pass; th
     assert.equal(qs[0], hotFor(mp)[0], `${mp}: the most wanted hot set first of all`);
   }
   assert.ok(s.sweep.every((m) => m.hotPages === hotFor(m.marketplace).length && m.hotQueries.length === hotFor(m.marketplace).length));
-  assert.ok(db.feeds.has("EBAY_US|item:c30-etb"), "the hot pass wrote the 30th Celebration ETB's feed");
+  assert.ok(db.feeds.has("EBAY_US|item:fra-bun"), "the hot pass wrote the Reality Fracture Bundle's feed");
   // then one search per product the sweep did not cover: the hot ones (the US$6 pack included) before every other eligible key
   const perProduct = calls.filter((c) => c.limit === "50").map((c) => `${c.mp} ${c.q}`);
   const expected = perProductFeeds(rows, undefined, TODAY)
-    .filter((f) => f.feed !== "EBAY_US|item:c30-etb")
+    .filter((f) => f.feed !== "EBAY_US|item:fra-bun")
     .map((f) => `${f.marketplace} ${f.searches[0].q}`);
   assert.deepEqual(perProduct, expected);
-  // a hot set's own products are searched by the keyword sellers use ("30th", "151"), not the set's catalogue name
-  assert.equal(perProduct[0], "EBAY_US Pokemon 30th Ultra-Premium Collection Day");
-  assert.ok(perProduct.includes("EBAY_US Pokemon 30th Booster Pack"));
-  assert.equal(perProduct.indexOf("EBAY_US Pokemon 151 Booster Bundle"), 9, "the last of the 10 hot products the sweep missed...");
-  assert.equal(perProduct.indexOf("EBAY_US Pokemon Delta Reign Booster Box"), 10, "...then the most valuable other eligible key");
+  // a hot set's own products are searched by the keyword sellers use ("Hobbit", "Avatar"), not the set's catalogue name
+  assert.equal(perProduct[0], "EBAY_US MTG Reality Fracture Collector Booster Box");
+  assert.ok(perProduct.includes("EBAY_US MTG Reality Fracture Play Booster Pack"));
+  assert.ok(perProduct.includes("EBAY_US MTG Hobbit Play Booster Box"));
+  assert.equal(perProduct.indexOf("EBAY_US MTG Final Fantasy Gift Bundle"), 9, "the last of the 10 hot products the sweep missed...");
+  assert.equal(perProduct.indexOf("EBAY_US MTG Aetherdrift Play Booster Box"), 10, "...then the most valuable other eligible key");
+  assert.equal(perProduct.indexOf("EBAY_US MTG Star Trek Play Booster Box"), 11, "Star Trek is not out: an eligible key, not a hot one yet");
   assert.deepEqual(s.hotItems, { keys: 11, fresh: 0, covered: 1, searched: 10, refreshed: 0 });
   assert.equal(s.buckets.items.skipped, 0);
-  assert.equal(s.buckets.items.planned, 14);
-  assert.equal(s.feedsPlanned, 13, "the booster pack's own search is best effort (not an eligible key): outside the job's exit check, in the hot-set line");
+  assert.equal(s.buckets.items.planned, 15);
+  assert.equal(s.feedsPlanned, 14, "the booster pack's own search is best effort (not an eligible key): outside the job's exit check, in the hot-set line");
   // every call reserved, and the bucket counts add up
   assert.equal(db.days.get(s.day), h.searches().length);
   assert.equal(s.buckets.sweep.calls + s.buckets.items.calls, h.searches().length);
   // the Hot sets table: products with an item feed after the run / products listed (the 29.5-hour-old feed was purged at the end)
-  assert.ok(!db.feeds.has("EBAY_US|item:c30-pack"));
-  const cel = s.hot.find((c) => c.set === "cel30" && c.marketplace === "EBAY_US")!;
-  assert.deepEqual([cel.withFeed, cel.products], [2, 4], "the swept ETB and the 5-hour-old collection");
+  assert.ok(!db.feeds.has("EBAY_US|item:fra-pack"));
+  const fra = s.hot.find((c) => c.set === "fra" && c.marketplace === "EBAY_US")!;
+  assert.deepEqual([fra.withFeed, fra.products], [2, 4], "the swept Bundle and the 5-hour-old Commander deck");
   const text = runReport(s).join("\n");
-  assert.match(text, /\| cel30 \(30th Celebration\) \| 2\/4 \(50%\) \| 0\/1 \(0%\) \| 0\/1 \(0%\) \|/);
-  assert.match(text, /\| me5 \(Pitch Black\) \| 0\/3 \(0%\) \| - \| - \|/);
-  assert.match(text, /\| me4 \(Chaos Rising\) \| - \| - \| - \|/);
+  assert.match(text, /\| fra \(Reality Fracture\) \| 2\/4 \(50%\) \| 0\/1 \(0%\) \| 0\/1 \(0%\) \|/);
+  assert.match(text, /\| hob \(The Hobbit\) \| 0\/3 \(0%\) \| - \| - \|/);
+  assert.match(text, /\| msh \(Marvel Super Heroes\) \| - \| - \| - \|/);
   assert.match(text, /Hot-set products in EBAY_US, EBAY_GB, EBAY_DE: 11; 1 covered by the sweep, 0 fresh \(not bought again\), 10 searched one by one this run \(0 found listings\)\./);
   const usHot = hotFor("EBAY_US").length;
-  assert.match(text, new RegExp(`\\| EBAY_US \\| 11 \\| \\d+ \\| ${usHot} \\(${usHot}\\) \\|`), "the sweep table's hot-pass column");
+  assert.match(text, new RegExp(`\\| EBAY_US \\| 12 \\| \\d+ \\| ${usHot} \\(${usHot}\\) \\|`), "the sweep table's hot-pass column");
   // counts only: no listing title, product name or price
-  assert.ok(!/Anniversary|Elite Trainer Box|Booster Pack|Special Illustration|Charizard|\$\d|£|€|65\.00|70\.00/.test(text), text);
+  assert.ok(!/Magic The Gathering|Sealed|Borderless|Pulled|Booster Pack|\$\d|£|€|65\.00|70\.00/.test(text), text);
 });
 
 test("DEPLOY.md says what the owner must know: both prongs of 8.1(c), the whole switch, the shared keyset, the reporting granularity", async () => {

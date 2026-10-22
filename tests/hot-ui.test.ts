@@ -16,7 +16,8 @@ import { MarketplacePanel } from "../src/components/Marketplaces";
 (globalThis as unknown as { React: typeof React }).React = React;
 
 const TODAY = new Date("2026-10-11T12:00:00Z");
-const cel30 = SET_BY_CODE.get("cel30")!;
+const hob = SET_BY_CODE.get("hob")!;
+const fra = SET_BY_CODE.get("fra")!;
 
 /** Server markup, without React's "useLayoutEffect does nothing on the server" warning (the strip's scroll compensation). */
 function render(el: React.ReactElement): string {
@@ -44,7 +45,7 @@ test("one hot placement per surface (home, set, product), each a tagged search w
   for (const p of ["hot-home", "hot-set", "hot-product"] as const) {
     assert.ok((PLACEMENTS as readonly string[]).includes(p), p);
     for (const r of REGION_LIST) {
-      const u = new URL(ebaySearchUrl(hotSetQuery(cel30), r.region, p));
+      const u = new URL(ebaySearchUrl(hotSetQuery(hob), r.region, p));
       assert.equal(u.searchParams.get("campid"), EBAY_CAMPAIGN_ID, r.region);
       assert.equal(u.searchParams.get("customid"), `mtg-${r.region}-${p}`);
       assert.equal(u.searchParams.get("mkevt"), "1");
@@ -56,80 +57,84 @@ test("one hot placement per surface (home, set, product), each a tagged search w
   assert.equal(hotPlacement("listings-product-soldout"), "hot-product");
 });
 
-test("a hot set's search: 'Pokemon' + its eBay keyword (30th Celebration is '30th', so '30th Anniversary' listings match too), + 'sealed'", () => {
-  assert.equal(hotSetQuery(cel30), "Pokemon 30th");
+test("a hot set's search: 'MTG' + its eBay keyword (The Hobbit is 'Hobbit', so 'LOTR Hobbit' listings match too), + 'sealed'", () => {
+  assert.equal(hotSetQuery(hob), "MTG Hobbit");
   const q = (code: string) => new URL(ebaySearchUrl(hotSetQuery(SET_BY_CODE.get(code)!), "us", "hot-set")).searchParams.get("_nkw");
-  assert.equal(q("cel30"), "Pokemon 30th sealed");
-  assert.equal(q("sv3pt5"), "Pokemon 151 sealed");
-  assert.equal(q("sv8pt5"), "Pokemon Prismatic Evolutions sealed", "any other hot set by its name");
+  assert.equal(q("hob"), "MTG Hobbit sealed");
+  assert.equal(q("tla"), "MTG Avatar sealed");
+  assert.equal(q("fra"), "MTG Reality Fracture sealed", "any other hot set by its name");
+  assert.equal(HOT_SETS[0], "trk", "Star Trek is the most wanted");
   for (const code of HOT_SETS) assert.ok(SET_BY_CODE.has(code), `${code} is a set in sets.ts`);
 });
 
 test("only a hot set that is out gets a highlight; the home page's is the most wanted one that is out", () => {
-  assert.deepEqual(hotSetHighlight(cel30, TODAY), { label: "Shop 30th Celebration on eBay", query: "Pokemon 30th" });
-  assert.equal(isHotSet("sv1"), false);
-  assert.equal(hotSetHighlight(SET_BY_CODE.get("sv1"), TODAY), undefined, "not a hot set");
+  assert.deepEqual(hotSetHighlight(hob, TODAY), { label: "Shop The Hobbit on eBay", query: "MTG Hobbit" });
+  assert.equal(isHotSet("blb"), false);
+  assert.equal(hotSetHighlight(SET_BY_CODE.get("blb"), TODAY), undefined, "not a hot set");
   assert.equal(hotSetHighlight(null, TODAY), undefined);
-  // 30th Celebration came out on 2026-09-16: before then it is a pre-order set and gets nothing, as in the importer.
+  // Reality Fracture came out on 2026-10-02: before then it is a pre-order set and gets nothing, as in the importer; Star Trek
+  // (2026-11-13, the most wanted) is not out on TODAY.
   const before = new Date("2026-09-01T00:00:00Z");
-  assert.equal(isHotReleased("cel30", before), false);
-  assert.equal(hotSetHighlight(cel30, before), undefined);
-  assert.equal(isHotReleased("cel30", TODAY), true);
+  assert.equal(isHotReleased("fra", before), false);
+  assert.equal(hotSetHighlight(fra, before), undefined);
+  assert.equal(isHotReleased("fra", TODAY), true);
+  assert.equal(isHotReleased("trk", TODAY), false);
   assert.equal(isHotReleased(null, TODAY), false);
-  assert.equal(firstHotSet(TODAY)?.code, "cel30");
-  assert.equal(firstHotSet(before)?.code, "me5", "the next hot set that was out");
+  assert.equal(firstHotSet(TODAY)?.code, "fra");
+  assert.equal(firstHotSet(before)?.code, "hob", "the next hot set that was out");
+  assert.equal(firstHotSet(new Date("2026-11-20T00:00:00Z"))?.code, "trk");
   // a product's button names it (cut at about 40 characters): "Shop this" would point at the type's tiles when its own are missing
-  assert.deepEqual(hotProductHighlight("30th Celebration Booster Bundle", "q"), { label: "Shop 30th Celebration Booster Bundle on eBay", query: "q" });
-  assert.equal(hotProductHighlight("30th Celebration Pokémon Center Elite Trainer Box", "q").label, "Shop 30th Celebration Pokémon Center Elite T… on eBay");
+  assert.deepEqual(hotProductHighlight("The Hobbit Play Booster Box", "q"), { label: "Shop The Hobbit Play Booster Box on eBay", query: "q" });
+  assert.equal(hotProductHighlight("Reality Fracture Collector Booster Box Case", "q").label, "Shop Reality Fracture Collector Booster Box… on eBay");
 });
 
 test("the strip's server markup (loading): the highlight is the CTA's one visible button, and the invisible reserved box holds it too (same height when the strip replaces it)", () => {
-  const highlight = hotSetHighlight(cel30, TODAY)!;
+  const highlight = hotSetHighlight(hob, TODAY)!;
   const html = render(React.createElement(EbayStrip, { region: "us", context: "sealed", placement: "listings-home-sealed", search: { kind: "sealed", query: "" }, highlight }));
   const links = hotLinks(html);
   assert.equal(links.length, 2, "one in the visible CTA, one in the reserved box");
   for (const l of links) {
     assert.equal(l.rel, REL_SPONSORED);
-    assert.equal(l.text, "Shop 30th Celebration on eBay ↗");
+    assert.equal(l.text, "Shop The Hobbit on eBay ↗");
     const u = new URL(l.href);
     assert.equal(u.hostname, "www.ebay.com");
     assert.equal(u.searchParams.get("campid"), EBAY_CAMPAIGN_ID);
-    assert.equal(u.searchParams.get("_nkw"), "Pokemon 30th sealed");
+    assert.equal(u.searchParams.get("_nkw"), "MTG Hobbit sealed");
     assert.equal(u.searchParams.get("customid"), "mtg-us-hot-home", "the home page's own placement");
   }
-  assert.ok(html.indexOf('aria-hidden="true" class="ad-box invisible') < html.indexOf("Shop 30th Celebration"), "the first copy is inside the invisible box");
+  assert.ok(html.indexOf('aria-hidden="true" class="ad-box invisible') < html.indexOf("Shop The Hobbit"), "the first copy is inside the invisible box");
   assert.match(html, /min-h-11/, "a 44 px tap target");
   assert.match(html, /data-state="cta"[\s\S]*>Ad</, "still labelled Ad");
-  assert.doesNotMatch(html, /Search Pok[ée]mon sealed on eBay/, "the CTA's button is the highlight, not a second search");
+  assert.doesNotMatch(html, /Search Magic sealed on eBay/, "the CTA's button is the highlight, not a second search");
   // Without a highlight nothing changes.
   const plain = render(React.createElement(EbayStrip, { region: "us", context: "sealed", placement: "listings-home-sealed", search: { kind: "sealed", query: "" } }));
   assert.equal(hotLinks(plain).length, 0);
-  assert.match(plain, /Search Pokémon sealed on eBay/);
+  assert.match(plain, /Search Magic sealed on eBay/);
 });
 
 test("the compact CTA with a highlight: its words, its search, placement hot-product, labelled Ad; the label wraps, never truncates", () => {
-  const html = render(React.createElement(EbayCta, { region: "uk", placement: "listings-product", search: { kind: "sealed", query: "x", label: "Search this product on eBay" }, highlight: hotProductHighlight("30th Celebration Sylveon ex Box", "30th Celebration Sylveon ex Box") }));
+  const html = render(React.createElement(EbayCta, { region: "uk", placement: "listings-product", search: { kind: "sealed", query: "x", label: "Search this product on eBay" }, highlight: hotProductHighlight("Hobbit Commander Deck", "Hobbit Commander Deck") }));
   const [l, ...rest] = hotLinks(html);
   assert.equal(rest.length, 0);
-  assert.equal(l.text, "Shop 30th Celebration Sylveon ex Box on eBay ↗");
+  assert.equal(l.text, "Shop Hobbit Commander Deck on eBay ↗");
   assert.equal(new URL(l.href).searchParams.get("customid"), "mtg-uk-hot-product");
   assert.doesNotMatch(html, /<span class="truncate">Shop /);
   assert.equal(new URL(l.href).hostname, "www.ebay.co.uk");
-  assert.equal(new URL(l.href).searchParams.get("_nkw"), "Pokemon 30th Celebration Sylveon ex Box sealed");
+  assert.equal(new URL(l.href).searchParams.get("_nkw"), "MTG Hobbit Commander Deck sealed");
   assert.doesNotMatch(html, /Search this product on eBay/);
   assert.match(html, /data-ad="listings-product"/);
   assert.match(html, />Ad</);
 });
 
 test("a set page's button: a hot set keeps hot-set, any other released set gets 'Shop <set> sealed on eBay' (set-sealed), a pre-order set none", () => {
-  const sv1 = SET_BY_CODE.get("sv1")!;
-  assert.equal(isHotSet("sv1"), false);
-  assert.deepEqual(setSealedHighlight(sv1, TODAY), { label: "Shop Scarlet & Violet sealed on eBay", query: "Pokemon Scarlet & Violet", placement: "set-sealed" });
-  assert.deepEqual(setSealedHighlight(cel30, TODAY), hotSetHighlight(cel30, TODAY), "a hot set that is out: its hot-set button, unchanged");
-  assert.equal(setSealedHighlight(cel30, TODAY)?.placement, undefined, "the strip picks hot-set for it (hotPlacement)");
-  const me6 = SET_BY_CODE.get("me6")!; // Delta Reign, out 2026-11-06
-  assert.equal(setSealedHighlight(me6, TODAY), undefined, "not out yet: no button, as in the importer");
-  assert.equal(setSealedHighlight(cel30, new Date("2026-09-01T00:00:00Z")), undefined, "a hot set before release: none either");
+  const sv1 = SET_BY_CODE.get("tdm")!;
+  assert.equal(isHotSet("tdm"), false);
+  assert.deepEqual(setSealedHighlight(sv1, TODAY), { label: "Shop Tarkir: Dragonstorm sealed on eBay", query: "MTG Tarkir: Dragonstorm", placement: "set-sealed" });
+  assert.deepEqual(setSealedHighlight(hob, TODAY), hotSetHighlight(hob, TODAY), "a hot set that is out: its hot-set button, unchanged");
+  assert.equal(setSealedHighlight(hob, TODAY)?.placement, undefined, "the strip picks hot-set for it (hotPlacement)");
+  const trk = SET_BY_CODE.get("trk")!; // Star Trek, out 2026-11-13
+  assert.equal(setSealedHighlight(trk, TODAY), undefined, "not out yet: no button, as in the importer");
+  assert.equal(setSealedHighlight(fra, new Date("2026-09-01T00:00:00Z")), undefined, "a hot set before release: none either");
   assert.equal(setSealedHighlight(null, TODAY), undefined);
   // In the strip (the set page's own props): the reserved box and the CTA each hold it, under set-sealed, a sealed search, labelled Ad.
   const html = render(
@@ -137,7 +142,7 @@ test("a set page's button: a hot set keeps hot-set, any other released set gets 
       region: "us",
       context: `set:${sv1.slug}`,
       placement: "listings-set",
-      search: { kind: "card", query: `${sv1.name} special illustration rare`, label: `Search ${sv1.name} on eBay` },
+      search: { kind: "sealed", query: sv1.name, label: `Search ${sv1.name} on eBay` },
       highlight: setSealedHighlight(sv1, TODAY),
     }),
   );
@@ -147,19 +152,19 @@ test("a set page's button: a hot set keeps hot-set, any other released set gets 
   assert.equal(links.length, 2, "one in the visible CTA, one in the reserved box");
   for (const l of links) {
     assert.equal(l.rel, REL_SPONSORED);
-    assert.equal(l.text, "Shop Scarlet &amp; Violet sealed on eBay ↗");
+    assert.equal(l.text, "Shop Tarkir: Dragonstorm sealed on eBay ↗");
     const u = new URL(l.href);
-    assert.equal(u.searchParams.get("_nkw"), "Pokemon Scarlet & Violet sealed");
+    assert.equal(u.searchParams.get("_nkw"), "MTG Tarkir: Dragonstorm sealed");
     assert.equal(u.searchParams.get("campid"), EBAY_CAMPAIGN_ID);
   }
   assert.equal(hotLinks(html).length, 0, "not a hot placement");
-  assert.doesNotMatch(html, /Search Scarlet &amp; Violet on eBay/, "the CTA's button is the highlight");
+  assert.doesNotMatch(html, /Search Tarkir: Dragonstorm on eBay/, "the CTA's button is the highlight");
   assert.match(html, /data-state="cta"[\s\S]*>Ad</, "still labelled Ad");
   assert.ok((PLACEMENTS as readonly string[]).includes("set-sealed"));
 });
 
 test("the marketplace panel: eBay's row is always eBay's blue button (every product), and a popular product's 'Popular set' chip sits OUTSIDE the ad link", () => {
-  const props = { region: "us" as const, productName: "30th Celebration Sylveon ex Box", preorder: false, tcgplayer: null };
+  const props = { region: "us" as const, productName: "The Hobbit Play Booster Box", preorder: false, tcgplayer: null };
   const hot = render(React.createElement(MarketplacePanel, { ...props, popular: true }));
   assert.match(hot, /Popular set/);
   assert.match(hot, /class="[^"]*bg-brand-soft[^"]*text-brand-strong[^"]*">Popular set</, "the AA-contrast chip (brand-strong on brand-soft)");
@@ -176,7 +181,7 @@ test("the pages pass the highlight where the owner asked, and add no unit for it
   const src = (p: string) => readFileSync(new URL(`../src/app/[region]/${p}`, import.meta.url), "utf8");
   const home = src("page.tsx");
   assert.match(home, /placement="listings-home-sealed"[^\n]*highlight=\{hotHighlight\}/, "the home page's sealed strip");
-  assert.doesNotMatch(home, /placement="listings-home" [^\n]*highlight=/, "not the chase strip under the stats");
+  assert.doesNotMatch(home, /placement="listings-home" [^\n]*highlight=/, "not the high-end (chase) strip under the stats");
   assert.match(home, /hotSetHighlight\(firstHotSet\(\)\)/);
   assert.match(src("sets/[set]/page.tsx"), /highlight=\{setSealedHighlight\(s\)\}/, "every released set's page: hot sets keep hot-set, the others get set-sealed");
   const product = src("p/[slug]/page.tsx");

@@ -38,7 +38,7 @@ const card = (o: Partial<ProductCardData> = {}): ProductCardData => ({
   slug: o.slug ?? `p-${n++}`,
   name: "Product",
   productType: "Collection",
-  setCode: "me4",
+  setCode: "eoe",
   imageUrl: null,
   lowestPriceCents: 9000,
   inStockStores: 4,
@@ -57,8 +57,8 @@ test("pickDeals: 10% to 50% under the median, inclusive at both ends, and nothin
   const drop = [at(9001), at(9500), at(10000), at(12000), at(4999), at(1295)];
   const got = pickDeals([...drop, ...keep], "US");
   assert.deepEqual(got.map((p) => p.lowestPriceCents), [5000, 7500, 9000]);
-  // The misread listing the 50% floor is for: AU's A$12.95 blister against a A$42.45 median.
-  assert.equal(isDeal(card({ productType: "Blister", lowestPriceCents: 1295, medianOpenCents: 4245 }), "AU"), false);
+  // The misread listing the 50% floor is for: AU's A$12.95 "Commander deck" against a A$42.45 median.
+  assert.equal(isDeal(card({ productType: "Commander Deck", lowestPriceCents: 1295, medianOpenCents: 4245 }), "AU"), false);
 });
 
 test("pickDeals: three or more stores in stock, and a median to compare with", () => {
@@ -68,12 +68,12 @@ test("pickDeals: three or more stores in stock, and a median to compare with", (
   assert.equal(pickDeals([card({ lowestPriceCents: null })], "US").length, 0);
 });
 
-test("pickDeals: the type's price floor still applies (a $69 'booster box' 31% under is a deposit or a misread, not a deal)", () => {
-  // US booster box floor: 7000 cents. Inside the ratio window, under the floor: dropped.
-  assert.equal(pickDeals([card({ productType: "Booster Box", lowestPriceCents: 6900, medianOpenCents: 10000 })], "US").length, 0);
-  assert.equal(pickDeals([card({ productType: "Booster Box", lowestPriceCents: 7000, medianOpenCents: 10000 })], "US").length, 1);
+test("pickDeals: the type's price floor still applies (a $69 'play booster box' 31% under is a deposit or a misread, not a deal)", () => {
+  // US Play Booster Box floor: 7000 cents. Inside the ratio window, under the floor: dropped.
+  assert.equal(pickDeals([card({ productType: "Play Booster Box", lowestPriceCents: 6900, medianOpenCents: 10000 })], "US").length, 0);
+  assert.equal(pickDeals([card({ productType: "Play Booster Box", lowestPriceCents: 7000, medianOpenCents: 10000 })], "US").length, 1);
   // The same price in Australia is under the A$105 floor.
-  assert.equal(pickDeals([card({ productType: "Booster Box", lowestPriceCents: 10000, medianOpenCents: 12000 })], "AU").length, 0);
+  assert.equal(pickDeals([card({ productType: "Play Booster Box", lowestPriceCents: 10000, medianOpenCents: 12000 })], "AU").length, 0);
   // An unknown type has no floor.
   assert.equal(pickDeals([card({ productType: "Mystery", lowestPriceCents: 50, medianOpenCents: 60 })], "US").length, 1);
 });
@@ -102,63 +102,66 @@ test("every deal's badge is the product page's medianSaving(), and the bar is th
 test("the deals page's sections: every product type in exactly one, 48 deals at most, the anchors the type pages link to", () => {
   assert.deepEqual(
     DEAL_SECTIONS.map((s) => s.id),
-    ["play-booster-boxes", "collector-booster-boxes", "bundles", "collections", "more"],
+    ["play-booster-boxes", "collector-booster-boxes", "bundles", "commander-decks", "more"],
   );
   for (const t of PRODUCT_TYPES) assert.equal(DEAL_SECTIONS.filter((s) => s.types.includes(t.label)).length, 1, t.label);
   assert.equal(DEAL_SECTIONS.reduce((n, s) => n + s.take, 0), 48);
-  assert.equal(dealSectionOf("Pokémon Center Elite Trainer Box").id, "collector-booster-boxes");
-  assert.equal(dealSectionOf("Booster Pack").id, "more");
+  assert.equal(dealSectionOf("Collector Booster Box").id, "collector-booster-boxes");
+  assert.equal(dealSectionOf("Commander Deck").id, "commander-decks");
+  assert.equal(dealSectionOf("Play Booster Pack").id, "more");
   assert.equal(dealSectionOf("Something new").id, "more");
 });
 
 // ─── Price per pack ─────────────────────────────────────────────────────────────
 
 test("rankPerPack: open pack types with a fixed count, above the floor, cheapest per pack first", () => {
-  const box = card({ slug: "box", productType: "Booster Box", setCode: "me4", lowestPriceCents: 14400 }); // 36 → 400
-  const etb = card({ slug: "etb", productType: "Elite Trainer Box", setCode: "me4", lowestPriceCents: 4500 }); // 9 → 500
-  const bundle = card({ slug: "bundle", productType: "Booster Bundle", setCode: "sv8", lowestPriceCents: 2400 }); // 6 → 400, cheaper product
-  const pack = card({ slug: "pack", productType: "Booster Pack", setCode: "me4", lowestPriceCents: 449 });
-  const swshEtb = card({ slug: "swsh-etb", productType: "Elite Trainer Box", setCode: "swsh12", lowestPriceCents: 4000 }); // 8 → 500
-  const collection = card({ slug: "coll", productType: "Collection", lowestPriceCents: 100 }); // no fixed count
-  const blister = card({ slug: "blister", productType: "Blister", name: "Checklane Blister", lowestPriceCents: 600 }); // count varies: no price
-  const soldOut = card({ slug: "sold", productType: "Booster Box", lowestPriceCents: 9000, inStockStores: 0 });
-  const junk = card({ slug: "junk", productType: "Booster Box", lowestPriceCents: 3600 }); // under the $70 floor
-  const ranked = rankPerPack([pack, etb, collection, box, blister, soldOut, junk, swshEtb, bundle], "US");
-  assert.deepEqual(ranked.map((r) => r.p.slug), ["bundle", "box", "pack", "swsh-etb", "etb"]);
-  assert.deepEqual(ranked.map((r) => r.perPack), [400, 400, 449, 500, 500]);
-  assert.deepEqual(ranked.map((r) => r.packs), [6, 36, 1, 8, 9]);
-  // US MSRP per pack (rrp.ts): $4.49 for a Mega Evolution box or pack, $49.99 / 9 for its ETB; none for Sword & Shield.
-  assert.equal(ranked.find((r) => r.p.slug === "box")!.msrpPerPack, 449);
-  assert.equal(ranked.find((r) => r.p.slug === "etb")!.msrpPerPack, 555);
-  assert.equal(ranked.find((r) => r.p.slug === "swsh-etb")!.msrpPerPack, null);
-  assert.ok(rankPerPack([box], "AU").every((r) => r.msrpPerPack === null), "MSRP is US only");
+  const box = card({ slug: "box", productType: "Play Booster Box", setCode: "eoe", lowestPriceCents: 12000 }); // 30 → 400
+  const bundle = card({ slug: "bundle", productType: "Bundle", setCode: "tdm", lowestPriceCents: 3600 }); // 9 → 400, cheaper product
+  const pack = card({ slug: "pack", productType: "Play Booster Pack", setCode: "eoe", lowestPriceCents: 449 });
+  const trkPack = card({ slug: "trk-pack", productType: "Play Booster Pack", setCode: "trk", lowestPriceCents: 649 });
+  const trkBundle = card({ slug: "trk-bundle", productType: "Bundle", setCode: "trk", lowestPriceCents: 4500 }); // 9 → 500
+  const draft = card({ slug: "draft", productType: "Draft Booster Box", setCode: "woe", lowestPriceCents: 18000 }); // 36 → 500
+  const collection = card({ slug: "coll", productType: "Collection", lowestPriceCents: 100 }); // not a pack type
+  const odd = card({ slug: "odd", productType: "Draft Booster Box", setCode: "cmr", lowestPriceCents: 9000 }); // display size unconfirmed: no price
+  const soldOut = card({ slug: "sold", productType: "Play Booster Box", lowestPriceCents: 9000, inStockStores: 0 });
+  const junk = card({ slug: "junk", productType: "Play Booster Box", lowestPriceCents: 3600 }); // under the $70 floor
+  const ranked = rankPerPack([pack, trkBundle, collection, box, odd, soldOut, junk, draft, bundle, trkPack], "US");
+  assert.deepEqual(ranked.map((r) => r.p.slug), ["bundle", "box", "pack", "trk-bundle", "draft", "trk-pack"]);
+  assert.deepEqual(ranked.map((r) => r.perPack), [400, 400, 449, 500, 500, 649]);
+  assert.deepEqual(ranked.map((r) => r.packs), [9, 30, 1, 9, 36, 1]);
+  // US MSRP per pack (rrp.ts): Star Trek's $6.99 Play Booster, its $69.99 / 9 Bundle; none where Wizards published none.
+  assert.equal(ranked.find((r) => r.p.slug === "trk-pack")!.msrpPerPack, 699);
+  assert.equal(ranked.find((r) => r.p.slug === "trk-bundle")!.msrpPerPack, 778);
+  assert.equal(ranked.find((r) => r.p.slug === "box")!.msrpPerPack, null);
+  assert.equal(ranked.find((r) => r.p.slug === "draft")!.msrpPerPack, null);
+  assert.ok(rankPerPack([trkPack], "AU").every((r) => r.msrpPerPack === null), "MSRP is US only");
 });
 
 test("perPackLeadersOf: one group per pack type in PACK_TYPES order, and the overall top ten", () => {
   const cards: ProductCardData[] = [];
-  for (let i = 0; i < 14; i++) cards.push(card({ productType: "Booster Pack", lowestPriceCents: 400 + i * 10 }));
-  for (let i = 0; i < 3; i++) cards.push(card({ productType: "Booster Box", lowestPriceCents: 13000 + i * 100 }));
+  for (let i = 0; i < 14; i++) cards.push(card({ productType: "Play Booster Pack", lowestPriceCents: 400 + i * 10 }));
+  for (let i = 0; i < 3; i++) cards.push(card({ productType: "Play Booster Box", lowestPriceCents: 10800 + i * 100 }));
   cards.push(card({ productType: "Collection", lowestPriceCents: 900 }));
   const { byType, top10 } = perPackLeadersOf(cards, "US");
-  assert.deepEqual(byType.map((g) => g.type), ["Booster Box", "Booster Pack"]);
+  assert.deepEqual(byType.map((g) => g.type), ["Play Booster Box", "Play Booster Pack"]);
   assert.ok(byType.every((g) => PACK_TYPES.includes(g.type)));
   assert.equal(byType[1].rows.length, 14);
   assert.equal(top10.length, 10);
   assert.ok(top10.every((r, i) => i === 0 || top10[i - 1].perPack <= r.perPack), "cheapest per pack first");
-  assert.equal(top10[0].p.productType, "Booster Box", "a box at $3.61 a pack beats every loose pack");
+  assert.equal(top10[0].p.productType, "Play Booster Box", "a box at $3.60 a pack beats every loose pack");
 });
 
 // ─── Below US MSRP ──────────────────────────────────────────────────────────────
 
 test("pickBelowMsrp: under the set's MSRP (but not under half of it), furthest under first; no MSRP, no entry", () => {
-  const under = card({ slug: "under", productType: "Elite Trainer Box", setCode: "sv8", lowestPriceCents: 4500 }); // 4999
-  const at = card({ slug: "at", productType: "Elite Trainer Box", setCode: "sv8", lowestPriceCents: 4999 });
-  const boxUnder = card({ slug: "box", productType: "Booster Box", setCode: "me4", lowestPriceCents: 12000 }); // 16164: 0.74
-  const half = card({ slug: "half", productType: "Booster Box", setCode: "me4", lowestPriceCents: 8000 }); // under half: a misread
-  const swsh = card({ slug: "swsh", productType: "Elite Trainer Box", setCode: "swsh12", lowestPriceCents: 1000 }); // no MSRP we trust
-  const coll = card({ slug: "coll", productType: "Collection", setCode: "sv8", lowestPriceCents: 100 });
-  const sold = card({ slug: "sold", productType: "Elite Trainer Box", setCode: "sv8", lowestPriceCents: 3000, inStockStores: 0 });
-  assert.deepEqual(pickBelowMsrp([at, under, swsh, coll, half, sold, boxUnder]).map((p) => p.slug), ["box", "under"]);
+  const under = card({ slug: "under", productType: "Bundle", setCode: "trk", lowestPriceCents: 6000 }); // 6999: 0.86
+  const at = card({ slug: "at", productType: "Bundle", setCode: "trk", lowestPriceCents: 6999 });
+  const packUnder = card({ slug: "pack", productType: "Play Booster Pack", setCode: "trk", lowestPriceCents: 500 }); // 699: 0.72
+  const half = card({ slug: "half", productType: "Play Booster Pack", setCode: "trk", lowestPriceCents: 300 }); // under half: a misread
+  const noMsrp = card({ slug: "eoe", productType: "Bundle", setCode: "eoe", lowestPriceCents: 1000 }); // no MSRP we trust
+  const coll = card({ slug: "coll", productType: "Collection", setCode: "trk", lowestPriceCents: 100 });
+  const sold = card({ slug: "sold", productType: "Bundle", setCode: "trk", lowestPriceCents: 5000, inStockStores: 0 });
+  assert.deepEqual(pickBelowMsrp([at, under, noMsrp, coll, half, sold, packUnder]).map((p) => p.slug), ["pack", "under"]);
 });
 
 // ─── New on MTG Compare ──────────────────────────────────────────────────────────
@@ -190,11 +193,11 @@ test("newlyTrackedFilter: the last 14 whole days, minus every day with 200+ crea
 
 test("setsAround: releasing in the next 45 days (soonest first) and out in the last 30 (newest first)", () => {
   const { soon, recent } = setsAround("2026-10-14");
-  assert.deepEqual(soon.map((s) => s.code), ["me6"], "Delta Reign, 6 November 2026");
-  assert.deepEqual(recent.map((s) => s.code), ["cel30"], "30th Celebration, 16 September 2026");
-  const later = setsAround("2026-11-06");
+  assert.deepEqual(soon.map((s) => s.code), ["trk"], "Star Trek, 13 November 2026");
+  assert.deepEqual(recent.map((s) => s.code), ["fra"], "Reality Fracture, 2 October 2026");
+  const later = setsAround("2026-11-13");
   assert.deepEqual(later.soon.map((s) => s.code), []);
-  assert.deepEqual(later.recent.map((s) => s.code), ["me6"], "release day counts as released");
+  assert.deepEqual(later.recent.map((s) => s.code), ["trk"], "release day counts as released");
   assert.ok(SETS.length > 10);
 });
 
@@ -203,7 +206,7 @@ test("setsAround: releasing in the next 45 days (soonest first) and out in the l
 const SAYS_NOW = /\btoday\b|\bchecked\b|\bright now\b/i;
 
 test("deals, cheapest-packs, this-week and home copy: never a history, urgency or value claim; the deals and digest copy says 'today' or 'checked'", () => {
-  const best = { p: card({ name: "Chaos Rising Booster Box", productType: "Booster Box", lowestPriceCents: 26995 }), packs: 36, perPack: 750, msrpPerPack: null };
+  const best = { p: card({ name: "Edge of Eternities Play Booster Box", productType: "Play Booster Box", lowestPriceCents: 22500 }), packs: 30, perPack: 750, msrpPerPack: null };
   for (const r of REGION_LIST) {
     const lede = dealsCopy.lede(r);
     const packs = packsCopy.lede(r);
@@ -238,7 +241,7 @@ test("deals, cheapest-packs, this-week and home copy: never a history, urgency o
       if (now) assert.match(text, SAYS_NOW, `${r.region} ${what} says today or checked: "${text}"`);
       assert.doesNotMatch(text, /United States|\bin United Kingdom|Europe \(eurozone\)/, `${r.region} ${what} uses inName`);
     }
-    assert.match(dealsCopy.title(r), /^Pokémon booster box & ETB deals in /);
+    assert.match(dealsCopy.title(r), /^MTG booster box & bundle deals in /);
     assert.match(dealsCopy.h1(r), new RegExp(`cheaper than most ${r.adjective} stores today$`));
     assert.equal(lede.tail.includes("TCGplayer"), r.region === "us", "the TCGplayer note is the US's alone");
     assert.match(digestCopy.description(r), /.{60,160}/);
@@ -254,13 +257,13 @@ test("fitTitle: the ' | MTG Compare' template when the whole fits in 65 characte
     for (const t of [dealsCopy.title(r), packsCopy.title(r), digestCopy.title(r), homeCopy.title(r, 68)]) {
       const fit = fitTitle(t);
       const shown = typeof fit === "string" ? `${fit} | MTG Compare` : fit.absolute;
-      assert.ok(typeof fit === "string" ? shown.length <= 65 : t.length + 13 > 65, `${r.region}: ${shown}`);
-      assert.match(shown, /Pokémon/);
+      assert.ok(typeof fit === "string" ? shown.length <= 65 : t.length + " | MTG Compare".length > 65, `${r.region}: ${shown}`);
+      assert.match(shown, /\bMTG\b|\bMagic\b/);
     }
   }
-  assert.equal(fitTitle("Pokémon booster box & ETB deals in the US"), "Pokémon booster box & ETB deals in the US");
-  assert.deepEqual(fitTitle("Cheapest Pokémon booster packs in New Zealand — price per pack today"), {
-    absolute: "Cheapest Pokémon booster packs in New Zealand — price per pack today",
+  assert.equal(fitTitle("MTG booster box & bundle deals in the US"), "MTG booster box & bundle deals in the US");
+  assert.deepEqual(fitTitle("Cheapest MTG booster packs in New Zealand — price per pack today"), {
+    absolute: "Cheapest MTG booster packs in New Zealand — price per pack today",
   });
 });
 

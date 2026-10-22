@@ -13,7 +13,7 @@ export default function OG() {
   // The headline in four set lines (a ragged wrap leaves "regions" alone on the last one); the store count in the brand's red.
   return ogCard({
     lines: [
-      ["Compare Pokémon", false],
+      ["Compare Magic", false],
       ["sealed prices across", false],
       [`${STORES.length} stores`, true],
       [`in ${REGION_LIST.length} regions`, false],

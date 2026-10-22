@@ -84,7 +84,7 @@ export default async function TypePage({ params }: { params: { region: string; t
       region={r.region}
       context={`type:${t.slug}`}
       placement="listings-type"
-      headings={{ type: `${name} on eBay`, sealed: "Sealed Pokémon on eBay" }}
+      headings={{ type: `${name} on eBay`, sealed: "Sealed Magic on eBay" }}
       search={{ kind: "sealed", query: t.label, label: `Search ${name} on eBay` }}
     />
   );

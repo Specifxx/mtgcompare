@@ -205,7 +205,7 @@ export default async function ReleasesPage({ params }: { params: { region: strin
           </Link>
         </li>
         <li>
-          <Link href={`/${r.region}/guides/how-to-preorder-pokemon-tcg`} prefetch={false} className="chip min-h-10">
+          <Link href={`/${r.region}/guides/how-to-preorder-magic-sets`} prefetch={false} className="chip min-h-10">
             How to pre-order
           </Link>
         </li>

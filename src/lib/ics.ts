@@ -82,7 +82,7 @@ export function buildIcs(e: IcsRelease): string {
   return `${lines.map(foldIcsLine).join("\r\n")}\r\n`;
 }
 
-/** The download's file name: "pokemon-tcg-delta-reign-release.ics". */
+/** The download's file name: "mtg-star-trek-release.ics". */
 export function icsFileName(slug: string): string {
-  return `pokemon-tcg-${slug}-release.ics`;
+  return `mtg-${slug}-release.ics`;
 }

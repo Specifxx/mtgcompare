@@ -5,8 +5,8 @@ import { EBAY_CAMPAIGN_ID } from "../src/lib/affiliate";
 import {
   baseItem,
   CHASE_FLOOR,
+  HIGH_END_FLOOR_USD,
   imageKey,
-  isJunkTitle,
   lowestPriceFirst,
   multiUnit,
   normaliseChase,
@@ -20,6 +20,8 @@ import {
   typeFloor,
   upgradeImage,
   usdToMarketplace,
+  refusedForType,
+  refusedListing,
   type ItemTarget,
 } from "../src/lib/ebay-normalise";
 import { cleanTitle, MARKETPLACE_IDS, MARKETPLACES, type MarketplaceId } from "../src/lib/ebay-context";
@@ -30,7 +32,9 @@ const FIXTURE = JSON.parse(readFileSync(new URL("./fixtures/ebay-search-us.json"
 const RAW: unknown[] = FIXTURE.itemSummaries;
 const by = (needle: string) => RAW.find((r) => (r as { title: string }).title.includes(needle));
 
-// ─── chase cards (ported from the on-demand client's tests: same filters) ────────
+// ─── the high-end sealed ("chase") feed ─────────────────────────────────────────
+// MTG Compare lists no single cards: the "chase" feed key now holds collector booster boxes, cases, Secret Lair drops and Commander
+// deck sets, through the same classifier as every other feed.
 
 test("normaliseChase: accepts the good fixtures and keeps only whitelisted fields, with shipping", () => {
   const good = RAW.map((r) => normaliseChase(r, "EBAY_US", NOW)).filter(Boolean);
@@ -38,7 +42,7 @@ test("normaliseChase: accepts the good fixtures and keeps only whitelisted field
   for (const g of good) {
     assert.deepEqual(Object.keys(g!).filter((k) => !["condition", "ship"].includes(k)).sort(), ["id", "imageUrl", "price", "title", "url"]);
     assert.equal(g!.price.currency, "USD");
-    assert.ok(Number(g!.price.value) >= CHASE_FLOOR.USD);
+    assert.ok(Number(g!.price.value) >= HIGH_END_FLOOR_USD);
     assert.match(g!.imageUrl, /^https:\/\/i\.ebayimg\.com\//);
     const u = new URL(g!.url);
     assert.equal(u.protocol, "https:");
@@ -52,119 +56,105 @@ test("normaliseChase: accepts the good fixtures and keeps only whitelisted field
     if (raw.itemAffiliateWebUrl?.startsWith("https://") && raw.itemAffiliateWebUrl.includes(`campid=${EBAY_CAMPAIGN_ID}&`)) assert.equal(g!.url, raw.itemAffiliateWebUrl, g!.title);
   }
   assert.deepEqual(good[0]!.ship, { value: "4.5", currency: "USD" });
-  assert.equal(good[1]!.condition, "Graded");
+  assert.equal(good[1]!.condition, "Brand New");
 });
 
 test("normaliseChase: every reject case is rejected, garbage never throws", () => {
   assert.equal(normaliseChase(by("Custom Proxy"), "EBAY_US", NOW), null);
   assert.equal(normaliseChase(by("Japanese"), "EBAY_US", NOW), null);
-  assert.equal(normaliseChase(by("Mewtwo ex 231/217"), "EBAY_US", NOW), null, "EUR price on EBAY_US");
-  assert.equal(normaliseChase(by("Mega Charizard X"), "EBAY_US", NOW), null, "converted price");
-  assert.equal(normaliseChase(by("223/197"), "EBAY_US", NOW), null, "below the USD 15 floor");
+  assert.equal(normaliseChase(by("Sealed EUR"), "EBAY_US", NOW), null, "EUR price on EBAY_US");
+  assert.equal(normaliseChase(by("converted"), "EBAY_US", NOW), null, "converted price");
+  assert.equal(normaliseChase(by("below the floor"), "EBAY_US", NOW), null, "below the collector box floor");
   assert.equal(normaliseChase(by("auction"), "EBAY_US", NOW), null, "AUCTION only");
-  assert.equal(normaliseChase(by("lot of 20"), "EBAY_US", NOW), null, "a lot");
-  assert.equal(normaliseChase(by("Booster Box"), "EBAY_US", NOW), null, "sealed product");
+  assert.equal(normaliseChase(by("lot of 2"), "EBAY_US", NOW), null, "a lot");
+  assert.equal(normaliseChase(by("Play Booster Box Sealed"), "EBAY_US", NOW), null, "sealed, but not high-end");
   assert.equal(normaliseChase(by("ENDED"), "EBAY_US", NOW), null, "ended");
-  assert.equal(normaliseChase(by("Blastoise"), "EBAY_US", NOW), null, "image off eBay hosts");
+  assert.equal(normaliseChase(by("Thunder Junction"), "EBAY_US", NOW), null, "image off eBay hosts");
   assert.equal(normaliseChase(by("no photo"), "EBAY_US", NOW), null, "no image");
-  assert.equal(normaliseChase(by("Espeon"), "EBAY_US", NOW), null, "no price");
-  assert.equal(normaliseChase(by("lovely thing"), "EBAY_US", NOW), null, "not recognisably a card");
-  for (const g of [null, undefined, 5, "x", [], {}, { itemId: 1 }, { itemId: "a", title: "x" }, { itemId: "a", title: "Charizard ex 1/2", price: "5" }]) assert.equal(normaliseChase(g, "EBAY_US", NOW), null);
-  const ok = by("Umbreon");
+  assert.equal(normaliseChase(by("no price"), "EBAY_US", NOW), null, "no price");
+  assert.equal(normaliseChase(by("lovely thing"), "EBAY_US", NOW), null, "not recognisably a product");
+  for (const g of [null, undefined, 5, "x", [], {}, { itemId: 1 }, { itemId: "a", title: "x" }, { itemId: "a", title: "MTG Final Fantasy Collector Booster Box", price: "5" }]) assert.equal(normaliseChase(g, "EBAY_US", NOW), null);
+  const ok = by("Tarkir Dragonstorm");
   assert.ok(normaliseChase(ok, "EBAY_US", NOW));
   assert.equal(normaliseChase({ ...(ok as object), adultOnly: true }, "EBAY_US", NOW), null, "adult-only");
 });
 
+test("normaliseChase: high-end sealed only (no single card, no pack, no play box), and never a card pulled from a box", () => {
+  const ok = (t: string, p = 700) => normaliseChase(summary("1", t, p), "EBAY_US", NOW);
+  for (const t of [
+    "MTG Final Fantasy Collector Booster Box Sealed",
+    "MTG Aetherdrift Collector Booster Box Case 4 Boxes Sealed",
+    "MTG Edge of Eternities Play Booster Box Case 6 Boxes",
+    "MTG Bloomburrow Commander Deck Set of 4 Sealed",
+    "Secret Lair x Final Fantasy Sealed Foil Edition",
+  ])
+    assert.ok(ok(t), t);
+  for (const t of [
+    "MTG Final Fantasy Play Booster Box Sealed",
+    "MTG Final Fantasy Bundle Sealed",
+    "MTG Edge of Eternities Collector Booster Pack",
+    "MTG Bloomburrow Commander Deck Animated Army Sealed",
+    "MTG Final Fantasy Cloud Strife Borderless Foil 1/1 Pulled From Collector Booster Box",
+    "Sephiroth #412 Serialized MTG Final Fantasy From Collector Booster Box",
+    "Pokemon Surging Sparks Booster Box Sealed",
+  ])
+    assert.equal(ok(t), null, t);
+  assert.equal(ok("MTG Final Fantasy Collector Booster Box Sealed", 99), null, "under the US$100 high-end floor");
+});
+
 test("baseItem: eBay's affiliate URL is kept EXACTLY; a missing one is rebuilt from itemWebUrl with the EPN tags and the feed's sub-id; a foreign or http one is not trusted", () => {
-  const umbreon = baseItem(by("Umbreon"), "EBAY_US", NOW, "chase")!;
-  const u = new URL(umbreon.url);
+  const tdm = baseItem(by("Tarkir Dragonstorm"), "EBAY_US", NOW, "chase")!;
+  const u = new URL(tdm.url);
   assert.equal(u.searchParams.get("mkevt"), "1");
   assert.equal(u.searchParams.get("mkrid"), "711-53200-19255-0");
   assert.equal(u.searchParams.get("campid"), EBAY_CAMPAIGN_ID);
-  assert.equal(u.searchParams.get("customid"), "dex-us-chase", "the fallback names its own feed");
-  assert.equal(baseItem(by("Umbreon"), "EBAY_AU", NOW, "item"), null, "a USD price is not valid on EBAY_AU");
-  assert.equal(new URL(baseItem({ ...(by("Umbreon") as object), price: { value: "70.00", currency: "AUD" } }, "EBAY_AU", NOW, "item")!.url).searchParams.get("customid"), "dex-au-item");
+  assert.equal(u.searchParams.get("customid"), "mtg-us-chase", "the fallback names its own feed");
+  assert.equal(baseItem(by("Tarkir Dragonstorm"), "EBAY_AU", NOW, "item"), null, "a USD price is not valid on EBAY_AU");
+  assert.equal(new URL(baseItem({ ...(by("Tarkir Dragonstorm") as object), price: { value: "70.00", currency: "AUD" } }, "EBAY_AU", NOW, "item")!.url).searchParams.get("customid"), "mtg-au-item");
   // an eBay-issued URL passes through untouched, whatever it holds (query order, encodings, a customid of eBay's own)
-  const issued = "https://www.ebay.com.au/itm/123456789012?_skw=a+b&hash=item1%3Ag%3AX%2By&amdata=enc%3AAQAKAAAA%2B%2Fx%3D&mkevt=1&mkcid=1&mkrid=705-53470-19255-0&campid=5339155912&customid=dex-au-sealed&toolid=10001";
-  const raw = { ...(by("Umbreon") as object), itemAffiliateWebUrl: issued, price: { value: "70.00", currency: "AUD" } };
+  const issued = "https://www.ebay.com.au/itm/123456789012?_skw=a+b&hash=item1%3Ag%3AX%2By&amdata=enc%3AAQAKAAAA%2B%2Fx%3D&mkevt=1&mkcid=1&mkrid=705-53470-19255-0&campid=5339155912&customid=mtg-au-sealed&toolid=10001";
+  const raw = { ...(by("Tarkir Dragonstorm") as object), itemAffiliateWebUrl: issued, price: { value: "70.00", currency: "AUD" } };
   assert.equal(baseItem(raw, "EBAY_AU", NOW, "sealed")!.url, issued);
   // not ours (another campaign) or not an item page: rebuilt from itemWebUrl instead, never edited
   const other = baseItem({ ...raw, itemAffiliateWebUrl: issued.replace("5339155912", "1111111111") }, "EBAY_AU", NOW, "sealed")!;
   assert.notEqual(other.url, issued);
   assert.equal(new URL(other.url).searchParams.get("campid"), EBAY_CAMPAIGN_ID);
-  assert.equal(new URL(other.url).searchParams.get("customid"), "dex-au-sealed");
-  for (const n of ["Alakazam", "Venusaur"]) {
+  assert.equal(new URL(other.url).searchParams.get("customid"), "mtg-au-sealed");
+  for (const n of ["Wilds of Eldraine", "Lost Caverns"]) {
     const it = baseItem(by(n), "EBAY_US", NOW, "chase")!;
     assert.equal(new URL(it.url).protocol, "https:", n);
     assert.equal(new URL(it.url).searchParams.get("campid"), EBAY_CAMPAIGN_ID, n);
     assert.ok(!it.url.includes("1111111111"), n);
   }
-  assert.equal(baseItem({ ...(by("Umbreon") as object), itemWebUrl: "https://evil.com/itm/1" }, "EBAY_US", NOW, "chase"), null);
+  assert.equal(baseItem({ ...(by("Tarkir Dragonstorm") as object), itemWebUrl: "https://evil.com/itm/1" }, "EBAY_US", NOW, "chase"), null);
 });
 
 test("baseItem: the thumbnail stands in for a missing primary image", () => {
-  const pikachu = baseItem(RAW.find((r) => (r as { title: string }).title.startsWith("Pikachu ex 238/191 Special Illustration Rare Surging")), "EBAY_US", NOW, "chase")!;
-  assert.match(pikachu.imageUrl, /ccc333/);
+  const eoe = baseItem(RAW.find((r) => (r as { title: string }).title.startsWith("MTG Edge of Eternities Collector Booster Box")), "EBAY_US", NOW, "chase")!;
+  assert.match(eoe.imageUrl, /ccc333/);
 });
 
-test("chase price floors and currencies per marketplace (AUD, GBP, CAD, EUR, USD)", () => {
+test("search price floors and currencies per marketplace (AUD, GBP, CAD, EUR, USD); the high-end floor on top", () => {
   assert.deepEqual(CHASE_FLOOR, { USD: 15, AUD: 20, GBP: 12, CAD: 20, EUR: 15 });
   const mk = (value: string, currency: string) => ({ ...(RAW[0] as object), price: { value, currency } });
-  const cases: [MarketplaceId, string, string, string][] = [
-    ["EBAY_US", "USD", "14.99", "15.00"],
-    ["EBAY_AU", "AUD", "19.99", "20.00"],
-    ["EBAY_GB", "GBP", "11.99", "12.00"],
-    ["EBAY_CA", "CAD", "19.99", "20.00"],
-    ["EBAY_DE", "EUR", "14.99", "15.00"],
-  ];
-  for (const [mp, cur, below, atFloor] of cases) {
-    assert.equal(MARKETPLACES[mp].currency, cur);
-    assert.equal(normaliseChase(mk(below, cur), mp, NOW), null, `${mp} ${below}`);
-    assert.ok(normaliseChase(mk(atFloor, cur), mp, NOW), `${mp} ${atFloor}`);
+  for (const mp of MARKETPLACE_IDS) {
+    const cur = MARKETPLACES[mp].currency;
+    const floor = Math.max(typeFloor("collector-booster-box", mp), usdToMarketplace(HIGH_END_FLOOR_USD, mp));
+    assert.equal(normaliseChase(mk((floor - 0.01).toFixed(2), cur), mp, NOW), null, `${mp} under ${floor}`);
+    assert.ok(normaliseChase(mk(floor.toFixed(2), cur), mp, NOW), `${mp} ${floor}`);
   }
-  assert.equal(normaliseChase(mk("30.00", "USD"), "EBAY_AU", NOW), null, "USD on the AU marketplace is the wrong currency");
+  assert.equal(normaliseChase(mk("300.00", "USD"), "EBAY_AU", NOW), null, "USD on the AU marketplace is the wrong currency");
 });
 
-test("junk titles: reproductions, foreign cards that do not say so, sealed product, kits, merchandise", () => {
-  const junk = [
-    "Custom Charizard ex Special Illustration Rare", "Charizard ex Proxy 199/165", "Pikachu ex SIR Replica", "Reprint Charizard ex 199/165", "Orica Charizard ex", "Fan Art Charizard ex holo",
-    "Lot of 10 Charizard ex rare", "Charizard ex rare damaged", "Japanese Charizard ex SIR", "Korean Charizard ex SIR", "Charizard ex SIR Deutsch", "Pokemon 151 Booster Bundle holo rare",
-    "Umbreon ex 161/131 Prismatic Evolutions Reproduction Card Holo",
-    "Pokemon Card Game Charizard ex SAR 201/165 sv2a Scarlet & Violet 151 Mint",
-    "PSA 10 Charizard 003/032 CLL Holo Kartenspiel Pokemon Classic Japanisch 2023",
-    "Pokémon: 30 Jahre - Gengar ex - Special Illustration Rare - 30C DE 154/128",
-    "Pokemon Mew ex 152/128 Special Illustration Rare 30th Celebration DE",
-    "Glurak Charizard ex 199/165 SV 151 SIR EN Holo PSA 8 ENG",
-    "Dracaufeu ex 199/165 Illustration Spéciale Rare 151 FR",
-    "Charizard ex 223/197 Special Illustration Rare FR Obsidian Flames",
-    "Umbreon ex SAR 217/187 Pokemon Card sv8a Terastal Fest",
-    "Charizard ex Illustration Rare 199/165 Pokemon Russian Card",
-    "Charizard ex Tarjeta Pokemon Rara 199/165",
-    "Pokemon Karte Glurak ex 199/165 Sammelkarte",
-    "PSA 10 Charizard 003/032 CLL Holo Kartenspiel Pokemon Classic Japanisch 2023",
-    "Charizard ex Ultra Premium Collection Pokemon TCG Special Illustration Rare",
-    "Charizard ex League Battle Deck 199/165",
-    "Charizard ex Oversized Jumbo Promo Card 199/165",
-    "Charizard ex Art Print Special Illustration Rare 8x10",
-    "Charizard ex SIR Toploader Holder 199/165",
-    "Charizard ex Ultra Premium", "Rare Candy Pokemon trainer", "Pikachu holo",
-  ];
-  for (const t of junk) assert.ok(isJunkTitle(t), t);
-  for (const t of [
-    "Charizard ex 199/165 Special Illustration Rare Scarlet & Violet 151 NM",
-    "Umbreon ex Special Illustration Rare 161/131 Prismatic Evolutions Pokemon Card",
-    "PSA 10 Charizard ex 199/165 Pokemon 151 SIR",
-    "Mega Charizard X ex 013/132 Mega Evolution Ultra Rare Holo",
-    "Pikachu ex 238/191 SIR Surging Sparks sv8 English NM",
-  ])
-    assert.ok(!isJunkTitle(t), t);
-});
-
-test("normaliseSetChase: a card that names another set is refused, one naming this set or none is kept", () => {
-  const mk = (t: string) => summary("1", t, 80);
-  assert.ok(normaliseSetChase(mk("Pikachu ex 238/191 Special Illustration Rare Surging Sparks"), "EBAY_US", NOW, "sv8"));
-  assert.ok(normaliseSetChase(mk("Pikachu ex 238/191 Special Illustration Rare"), "EBAY_US", NOW, "sv8"));
-  assert.equal(normaliseSetChase(mk("Umbreon ex 161/131 Special Illustration Rare Prismatic Evolutions"), "EBAY_US", NOW, "sv8"), null);
+test("normaliseSetChase: sealed product of THIS set only; another set's, a single and a lot are refused", () => {
+  const mk = (t: string, p = 150) => summary("1", t, p);
+  assert.ok(normaliseSetChase(mk("MTG Final Fantasy Play Booster Box Sealed"), "EBAY_US", NOW, "fin"));
+  assert.ok(normaliseSetChase(mk("MTG Final Fantasy Bundle Sealed", 60), "EBAY_US", NOW, "fin"));
+  assert.ok(normaliseSetChase(mk("MTG Final Fantasy Collector Booster Box Sealed", 300), "EBAY_US", NOW, "fin"));
+  assert.equal(normaliseSetChase(mk("MTG Aetherdrift Play Booster Box Sealed"), "EBAY_US", NOW, "fin"), null, "another set");
+  assert.equal(normaliseSetChase(mk("MTG Final Fantasy Cloud Strife 1/1 Pulled From Collector Booster Box"), "EBAY_US", NOW, "fin"), null, "a card");
+  assert.equal(normaliseSetChase(mk("MTG Final Fantasy Play Booster Box x2 Sealed", 300), "EBAY_US", NOW, "fin"), null, "two boxes");
+  assert.equal(normaliseSetChase(mk("MTG Final Fantasy Play Booster Box Sealed", 40), "EBAY_US", NOW, "fin"), null, "under the box floor");
 });
 
 // ─── images, shipping, money ────────────────────────────────────────────────────
@@ -176,7 +166,7 @@ test("upgradeImage: s-l225 → s-l500 on the same path; never a downgrade, never
   assert.equal(upgradeImage("https://i.ebayimg.com/images/g/AbC/s-l500.jpg"), "https://i.ebayimg.com/images/g/AbC/s-l500.jpg");
   assert.equal(upgradeImage("https://i.ebayimg.com/thumbs/images/g/AbC/s-l225.jpg"), "https://i.ebayimg.com/thumbs/images/g/AbC/s-l225.jpg");
   assert.equal(upgradeImage("not a url"), "not a url");
-  const it = baseItem(summary("9", "Charizard ex 199/165 Special Illustration Rare", 80), "EBAY_US", NOW, "chase")!;
+  const it = baseItem(summary("9", "MTG Final Fantasy Collector Booster Box Sealed", 180), "EBAY_US", NOW, "chase")!;
   assert.match(it.imageUrl, /^https:\/\/i\.ebayimg\.com\/images\/g\/img9\/s-l500\.jpg$/);
   assert.equal(imageKey("https://i.ebayimg.com/images/g/AbC/s-l225.jpg"), imageKey("https://i.ebayimg.com/images/g/AbC/s-l1600.webp?x=1"));
   assert.notEqual(imageKey("https://i.ebayimg.com/images/g/AbC/s-l225.jpg"), imageKey("https://i.ebayimg.com/images/g/XyZ/s-l225.jpg"));
@@ -199,7 +189,7 @@ test("shippingFrom: free when zero, a cost when given, nothing when eBay gave no
 
 // ─── rows of a feed ─────────────────────────────────────────────────────────────
 
-const mkItem = (id: string, photo: string, price = 30) => ({ ...summary(id, `Charizard ex ${id} 199/165 Special Illustration Rare`, price), image: { imageUrl: `https://i.ebayimg.com/images/g/${photo}/s-l225.jpg` } });
+const mkItem = (id: string, photo: string, price = 300) => ({ ...summary(id, "MTG Final Fantasy Collector Booster Box Sealed", price), image: { imageUrl: `https://i.ebayimg.com/images/g/${photo}/s-l225.jpg` } });
 
 test("roundRobin: spread across queries, de-duplicated by id and by photo, capped", () => {
   const norm = (xs: unknown[]) => xs.map((x) => normaliseChase(x, "EBAY_US", NOW)!).filter(Boolean);
@@ -218,9 +208,9 @@ test("roundRobin: spread across queries, de-duplicated by id and by photo, cappe
 
 test("lowestPriceFirst: de-duplicated, ascending by price, stable, capped", () => {
   const norm = (xs: unknown[]) => xs.map((x) => normaliseChase(x, "EBAY_US", NOW)!).filter(Boolean);
-  const items = norm([mkItem("c", "pc", 50), mkItem("a", "pa", 20), mkItem("b", "pb", 20), mkItem("a", "pz", 5), mkItem("d", "pa", 1), mkItem("e", "pe", 99)]);
+  const items = norm([mkItem("c", "pc", 500), mkItem("a", "pa", 200), mkItem("b", "pb", 200), mkItem("a", "pz", 150), mkItem("d", "pa", 160), mkItem("e", "pe", 990)]);
   const out = lowestPriceFirst(items, 3);
-  assert.deepEqual(out.map((o) => o.price.value), ["20.00", "20.00", "50.00"]);
+  assert.deepEqual(out.map((o) => o.price.value), ["200.00", "200.00", "500.00"]);
   assert.deepEqual(out.map((o) => o.id), ["v1|a|0", "v1|b|0", "v1|c|0"], "ties by id; a repeated id or photo is dropped");
   // no derived statistics anywhere in the output
   for (const o of out) for (const k of Object.keys(o)) assert.ok(["id", "title", "imageUrl", "price", "ship", "condition", "url"].includes(k), k);
@@ -229,83 +219,85 @@ test("lowestPriceFirst: de-duplicated, ascending by price, stable, capped", () =
 // ─── floors ─────────────────────────────────────────────────────────────────────
 
 test("type floors in each marketplace's currency, and US$ thresholds", () => {
-  assert.equal(typeFloor("booster-box", "EBAY_US"), 70);
-  assert.equal(typeFloor("booster-box", "EBAY_AU"), 105);
-  assert.equal(typeFloor("etb", "EBAY_GB"), 20); // 25 x 0.78 = 19.5, rounded up
-  assert.equal(typeFloor("booster-box", "EBAY_DE"), 63);
-  assert.equal(typeFloor("booster-box", "EBAY_CA"), 96); // 95.9
+  assert.equal(typeFloor("play-booster-box", "EBAY_US"), 70);
+  assert.equal(typeFloor("play-booster-box", "EBAY_AU"), 105);
+  assert.equal(typeFloor("bundle", "EBAY_GB"), 20); // 25 x 0.78 = 19.5, rounded up
+  assert.equal(typeFloor("play-booster-box", "EBAY_DE"), 63);
+  assert.equal(typeFloor("play-booster-box", "EBAY_CA"), 96); // 95.9
   assert.equal(usdToMarketplace(30, "EBAY_US"), 30);
   assert.equal(usdToMarketplace(30, "EBAY_AU"), 45);
   assert.equal(usdToMarketplace(30, "EBAY_GB"), 24); // 23.4
-  for (const id of MARKETPLACE_IDS) assert.ok(typeFloor("tin", id) >= 1);
+  for (const id of MARKETPLACE_IDS) assert.ok(typeFloor("play-booster", id) >= 1);
 });
 
 // ─── sealed feeds ───────────────────────────────────────────────────────────────
 
-test("sealed feeds refuse pre-sales, 'read description' notes, dented boxes and eBay Live lots; a Pre-Release kit stays", () => {
+test("sealed feeds refuse pre-sales, 'read description' notes, dented boxes and eBay Live lots", () => {
   const ok = (t: string, p = 150) => normaliseSealed(summary("1", t, p), "EBAY_US", NOW);
   for (const t of [
-    "Pokemon Delta Reign Booster Box Presale 11/6",
-    "Pokemon Delta Reign Elite Trainer Box 11/6 PRESALE",
-    "PRE SALE Pokemon Delta Reign Booster Box",
-    "Pokemon Delta Reign Booster Box Pre-Order",
-    "Pokemon Astral Radiance Booster Box SEALED DENTS READ DESC",
-    "Check Desc Pokemon Astral Radiance Booster Box",
-    "Pokemon Surging Sparks Booster Box dented corner",
-    "#001 - [EBAY LIVE] Pokemon Surging Sparks Booster Box",
+    "MTG Star Trek Play Booster Box Presale 11/13",
+    "MTG Star Trek Bundle 11/13 PRESALE",
+    "PRE SALE MTG Star Trek Play Booster Box",
+    "MTG Star Trek Play Booster Box Pre-Order",
+    "MTG Aetherdrift Play Booster Box SEALED DENTS READ DESC",
+    "Check Desc MTG Aetherdrift Play Booster Box",
+    "MTG Aetherdrift Play Booster Box dented corner",
+    "#001 - [EBAY LIVE] MTG Aetherdrift Play Booster Box",
   ]) assert.equal(ok(t), null, t);
-  assert.ok(ok("Pokemon Surging Sparks Booster Box Factory Sealed"));
-  const target: ItemTarget = { groupKey: "bloomburrow|booster-box", type: "booster-box", setCode: "sv8" };
-  assert.equal(relevantToProduct("Pokemon Surging Sparks Booster Box Presale", target), false);
+  assert.ok(ok("MTG Aetherdrift Play Booster Box Factory Sealed"));
+  const target: ItemTarget = { groupKey: "dft|play-booster-box", type: "play-booster-box", setCode: "dft" };
+  assert.equal(relevantToProduct("MTG Aetherdrift Play Booster Box Presale", target), false);
 });
 
-test("titles lose emoji and decoration, and 'Pokemon Pokemon' is said once", () => {
-  assert.equal(cleanTitle("🔥 Pokemon Charizard ex 234/091 PSA 10 ✅"), "Pokemon Charizard ex 234/091 PSA 10");
-  assert.equal(cleanTitle("Pokemon Pokemon Card Game MEGA Charizard ex"), "Pokemon Card Game MEGA Charizard ex");
-  assert.equal(cleanTitle("💙 *** Pokémon Pokémon Surging Sparks ETB *** 💙"), "Pokémon Surging Sparks ETB");
-  assert.equal(cleanTitle("Charizard ex — 199/165 (Mint) ★"), "Charizard ex — 199/165 (Mint)");
+test("titles lose emoji and decoration, and 'MTG MTG' is said once", () => {
+  assert.equal(cleanTitle("🔥 MTG Final Fantasy Collector Booster Box ✅"), "MTG Final Fantasy Collector Booster Box");
+  assert.equal(cleanTitle("MTG MTG Final Fantasy Play Booster Box"), "MTG Final Fantasy Play Booster Box");
+  assert.equal(cleanTitle("💙 *** Magic Magic Aetherdrift Bundle *** 💙"), "Magic Aetherdrift Bundle");
+  assert.equal(cleanTitle("Aetherdrift Bundle — Sealed (Mint) ★"), "Aetherdrift Bundle — Sealed (Mint)");
   assert.equal(cleanTitle("x".repeat(200)).length, 80);
   assert.equal(cleanTitle(undefined), "");
-  const it = baseItem(summary("1", "🔥 Pokemon Pokemon Charizard ex 199/165 PSA 10 ✅", 150), "EBAY_US", NOW, "chase");
-  assert.equal(it?.title, "Pokemon Charizard ex 199/165 PSA 10");
+  const it = baseItem(summary("1", "🔥 MTG MTG Final Fantasy Collector Booster Box ✅", 150), "EBAY_US", NOW, "chase");
+  assert.equal(it?.title, "MTG Final Fantasy Collector Booster Box");
 });
 
-test("normaliseSealed: only whole sealed products the classifier accepts, over their type's floor", () => {
+test("normaliseSealed: only whole sealed Magic products the classifier accepts, over their type's floor", () => {
   const ok = (t: string, p = 150) => normaliseSealed(summary("1", t, p), "EBAY_US", NOW);
-  assert.ok(ok("Pokemon TCG Surging Sparks Booster Box Factory Sealed NEW"));
-  assert.ok(ok("Pokemon Prismatic Evolutions Elite Trainer Box ETB Sealed", 90));
-  assert.equal(ok("Pokemon Surging Sparks Booster Pack", 150), null, "a pack is not a feed product");
-  assert.equal(ok("Pokemon Surging Sparks Booster Box Japanese"), null);
-  assert.ok(ok("Pokemon Surging Sparks Booster Box"), "a plain title that says Pokemon");
-  assert.equal(ok("Pokemon Surging Sparks Booster Box", 40), null, "under the booster box floor");
-  assert.equal(ok("Magic the Gathering Booster Box Sealed"), null);
-  assert.equal(ok("Surging Sparks Elite Trainer Box", 90), null, "strict: the title must say Pokemon");
+  assert.ok(ok("Magic The Gathering Aetherdrift Play Booster Box Factory Sealed NEW"));
+  assert.ok(ok("MTG Aetherdrift Bundle Sealed", 50));
+  assert.ok(ok("MTG Bloomburrow Commander Deck Animated Army Sealed", 50));
+  assert.equal(ok("MTG Aetherdrift Play Booster Pack", 150), null, "a pack is not a feed product");
+  assert.equal(ok("MTG Aetherdrift Play Booster Box Japanese"), null);
+  assert.ok(ok("Aetherdrift Play Booster Box"), "a plain title naming the set");
+  assert.equal(ok("MTG Aetherdrift Play Booster Box", 40), null, "under the booster box floor");
+  assert.equal(ok("Pokemon Surging Sparks Booster Box Sealed"), null, "another game");
+  assert.equal(ok("Yu-Gi-Oh Booster Box Sealed"), null, "another game");
+  assert.equal(ok("MTG Aetherdrift Collector Booster Pulled From Collector Booster Box", 150), null, "a product's contents");
   // several units in one listing never reach the sealed feed (a 2-8 unit price under one product's name)
   for (const title of [
-    "Pokemon Surging Sparks Booster Box x2 Sealed",
-    "Pokemon Surging Sparks Elite Trainer Box (2) Sealed",
-    "Pokemon Two Surging Sparks Elite Trainer Boxes Sealed",
-    "Pokemon Surging Sparks Elite Trainer Box 2-Pack",
-    "Pokemon Prismatic Evolutions Costco 8-Pack Mini Tin Box",
-    "Pokemon 3 Surging Sparks Booster Boxes",
-    "Pokemon Surging Sparks Elite Trainer Box Qty 2",
+    "MTG Aetherdrift Play Booster Box x2 Sealed",
+    "MTG Aetherdrift Bundle (2) Sealed",
+    "MTG Two Aetherdrift Bundles Sealed",
+    "MTG Aetherdrift Bundle Twin Pack",
+    "MTG 3 Aetherdrift Play Booster Boxes",
+    "MTG Aetherdrift Bundle Qty 2",
   ])
     assert.equal(ok(title, 200), null, title);
-  assert.ok(ok("Pokemon Scarlet & Violet 151 Elite Trainer Box ETB Sealed", 90), "151 is a set, not a quantity");
+  assert.ok(ok("MTG Murders at Karlov Manor Bundle 9 Play Boosters Sealed", 60), "9 packs is the bundle, not a quantity");
 });
 
 test("normaliseType: exactly the type's products", () => {
-  const t = (title: string, type: "etb" | "booster-box" | "booster-box-case", p = 200) => normaliseType(summary("1", title, p), "EBAY_US", NOW, type);
-  assert.ok(t("Pokemon Surging Sparks Elite Trainer Box Sealed", "etb", 60));
-  assert.equal(t("Pokemon Surging Sparks Booster Box Sealed", "etb"), null);
-  assert.equal(t("Pokemon Surging Sparks Elite Trainer Box Case 10 Count Sealed", "etb", 700), null, "a case is not an ETB");
-  assert.ok(t("Pokemon Surging Sparks Booster Box Case 6 Boxes Sealed", "booster-box-case", 900));
-  assert.equal(t("Pokemon Surging Sparks Booster Box Case 6 Boxes Sealed", "booster-box"), null);
+  const t = (title: string, type: "bundle" | "play-booster-box" | "play-booster-box-case", p = 200) => normaliseType(summary("1", title, p), "EBAY_US", NOW, type);
+  assert.ok(t("MTG Aetherdrift Bundle Sealed", "bundle", 60));
+  assert.equal(t("MTG Aetherdrift Play Booster Box Sealed", "bundle"), null);
+  assert.equal(t("MTG Aetherdrift Bundle Case 10 Count Sealed", "bundle", 700), null, "a case is not a bundle");
+  assert.ok(t("MTG Aetherdrift Play Booster Box Case 6 Boxes Sealed", "play-booster-box-case", 900));
+  assert.equal(t("MTG Aetherdrift Play Booster Box Case 6 Boxes Sealed", "play-booster-box"), null);
+  assert.equal(t("MTG Aetherdrift Play Booster Box Case Fresh Sealed", "play-booster-box-case", 900), null, "a case-fresh box is not the case");
   // several units in one listing never reach a type feed either
-  assert.equal(t("Pokemon Surging Sparks Elite Trainer Box x2 Sealed", "etb", 120), null);
-  assert.equal(t("Pokemon 2 Surging Sparks Elite Trainer Boxes Sealed", "etb", 120), null);
-  assert.equal(t("Pokemon Surging Sparks Booster Box Set of Two", "booster-box", 400), null);
-  assert.ok(t("Pokemon Scarlet & Violet 151 Elite Trainer Box Sealed", "etb", 80));
+  assert.equal(t("MTG Aetherdrift Bundle x2 Sealed", "bundle", 120), null);
+  assert.equal(t("MTG 2 Aetherdrift Bundles Sealed", "bundle", 120), null);
+  assert.equal(t("MTG Aetherdrift Play Booster Box Set of Two", "play-booster-box", 400), null);
+  assert.ok(t("MTG Murders at Karlov Manor Bundle 9 Play Boosters Sealed", "bundle", 80));
 });
 
 // ─── one product: relevance ─────────────────────────────────────────────────────
@@ -315,149 +307,134 @@ function target(name: string): ItemTarget {
   assert.ok(isIdentity(id), name);
   return { groupKey: id.groupKey, type: id.type, setCode: id.set?.code ?? null };
 }
-const ETB = target("Surging Sparks Elite Trainer Box");
-const BOX = target("Surging Sparks Booster Box");
-const COLLECTION = target("Charizard ex Premium Collection");
-const TIN = target("Paldea Evolved Pikachu Mini Tin");
-const BUNDLE = target("Surging Sparks Booster Bundle");
-const BLISTER = target("Paldea Evolved 3-Pack Blister");
-const S151_ETB = target("Scarlet & Violet 151 Elite Trainer Box");
-const S151_UPC = target("Scarlet & Violet 151 Ultra-Premium Collection");
-const LUCARIO = target("Lucario Collection Box 2025");
+const BUNDLE = target("Aetherdrift Bundle");
+const BOX = target("Aetherdrift Play Booster Box");
+const CBOX = target("Final Fantasy Collector Booster Box");
+const DECK = target("Bloomburrow Commander Deck Animated Army");
+const GIFT = target("Bloomburrow Gift Bundle");
+const CASE = target("Aetherdrift Play Booster Box Case");
+const PACK = target("Aetherdrift Play Booster Pack");
+const DSET = target("Duskmourn Commander Deck Set of 4");
 
 // [title, target, accepted]
 const RELEVANCE: [string, ItemTarget, boolean][] = [
   // the right product, noisy SEO titles, in every spelling sellers use
-  ["Pokemon TCG Scarlet & Violet Surging Sparks Elite Trainer Box ETB Sealed NEW", ETB, true],
-  ["Surging Sparks Elite Trainer Box - Pokemon TCG - Factory Sealed - Fast Ship", ETB, true],
-  ["Pokémon SV8 Surging Sparks ETB Elite Trainer Box 9 Packs Brand New", ETB, true],
-  ["Scarlet & Violet Surging Sparks Elite Trainer Box USA Seller Free Shipping", ETB, true],
-  ["NEW Pokemon TCG: Surging Sparks Elite Trainer Box (Pikachu) Sealed!", ETB, true],
-  ["Pokemon Surging Sparks ETB - Sealed - Ships Today", ETB, true],
-  ["Pokemon TCG Scarlet & Violet Surging Sparks Booster Box 36 Packs Sealed", BOX, true],
-  ["Surging Sparks Booster Box Display - Factory Sealed English", BOX, true],
-  ["Pokemon Surging Sparks Booster Box SV8 Brand New Sealed Fast Shipping", BOX, true],
-  ["Pokemon TCG Charizard ex Premium Collection Box Sealed NEW Fast Ship", COLLECTION, true],
-  ["Charizard ex Premium Collection - Pokemon TCG - Brand New Factory Sealed", COLLECTION, true],
-  ["Pokemon Paldea Evolved Pikachu Mini Tin Sealed NEW", TIN, true],
+  ["Magic The Gathering Aetherdrift Bundle Sealed NEW", BUNDLE, true],
+  ["Aetherdrift Bundle - MTG - Factory Sealed - Fast Ship", BUNDLE, true],
+  ["MTG Aetherdrift Bundle 9 Play Boosters Brand New", BUNDLE, true],
+  ["Magic: The Gathering Aetherdrift Bundle USA Seller Free Shipping", BUNDLE, true],
+  ["NEW MTG: Aetherdrift Bundle Sealed!", BUNDLE, true],
+  ["MTG Aetherdrift Bundle - Sealed - Ships Today", BUNDLE, true],
+  ["MTG Aetherdrift Bundle - Sealed - Ashiok Edition", BUNDLE, false],
+  ["Magic The Gathering Aetherdrift Play Booster Box 30 Packs Sealed", BOX, true],
+  ["Aetherdrift Play Booster Box Display - Factory Sealed English", BOX, true],
+  ["MTG Aetherdrift Play Booster Box DFT Brand New Sealed Fast Shipping", BOX, true],
+  ["MTG Final Fantasy Collector Booster Box Sealed NEW Fast Ship", CBOX, true],
+  ["Final Fantasy Collector Booster Box - Magic The Gathering - Factory Sealed", CBOX, true],
+  ["MTG Bloomburrow Commander Deck Animated Army Sealed NEW", DECK, true],
+  ["MTG Bloomburrow Gift Bundle Sealed", GIFT, true],
+  ["MTG Aetherdrift Play Booster Box Case 6 Boxes Factory Sealed", CASE, true],
+  ["MTG Aetherdrift Play Booster Pack Sealed", PACK, true],
+  ["MTG Duskmourn Commander Deck Set of 4 Sealed", DSET, true],
   // other products, singles, cases, lots, empty or opened, other languages, damaged
-  ["Surging Sparks Elite Trainer Box Case 10 Count Factory Sealed", ETB, false],
-  ["Pokemon Surging Sparks Booster Box 36 Packs", ETB, false],
-  ["Pokemon Surging Sparks Pokemon Center Elite Trainer Box PC ETB", ETB, false],
-  ["Pokemon Surging Sparks Elite Trainer Box EMPTY BOX ONLY", ETB, false],
-  ["Pokemon Surging Sparks Elite Trainer Box Japanese", ETB, false],
-  ["Prismatic Evolutions Elite Trainer Box Sealed", ETB, false],
-  ["Surging Sparks Elite Trainer Box opened no shrink wrap", ETB, false],
-  ["2x Surging Sparks Elite Trainer Box Lot Sealed", ETB, false],
-  ["Surging Sparks Pikachu ex 238/191 Special Illustration Rare Pokemon Card", ETB, false],
-  ["Surging Sparks Elite Trainer Box Sleeves and Dice Accessory Set", ETB, false],
-  ["Surging Sparks Elite Trainer Box Damaged Box Dent on corner", ETB, false],
-  ["Pokemon Surging Sparks Booster Bundle 6 Packs", ETB, false],
-  ["Costco Surging Sparks Elite Trainer Box", ETB, false],
-  ["Pokemon Surging Sparks Elite Trainer Box Korean", ETB, false],
-  ["Pokemon Surging Sparks Elite Trainer Box + Booster Bundle Combo", ETB, false],
-  ["Surging Sparks Booster Box Case (6 Boxes) Sealed", BOX, false],
-  ["Pokemon Surging Sparks Half Booster Box 18 packs", BOX, false],
-  ["Pokemon Surging Sparks Booster Pack Single Sealed", BOX, false],
-  ["Pokemon Surging Sparks Elite Trainer Box", BOX, false],
-  ["Pokemon Surging Sparks Booster Box Japanese", BOX, false],
-  ["Pokemon Surging Sparks Booster Box EMPTY", BOX, false],
-  ["Pokemon Stellar Crown Booster Box Sealed", BOX, false],
-  ["Pokemon Pikachu ex Premium Collection Box Sealed", COLLECTION, false],
-  ["Pokemon Charizard ex Special Collection Box Sealed", COLLECTION, false],
-  ["Pokemon Charizard ex Premium Collection EMPTY box", COLLECTION, false],
-  ["Pokemon Charizard ex Premium Collection Japanese", COLLECTION, false],
-  ["Pokemon Charizard ex Premium Collection Case of 6", COLLECTION, false],
-  ["Pokemon Charizard ex Tin Sealed", COLLECTION, false],
-  ["Pokemon Paldea Evolved Eevee Mini Tin Sealed", TIN, false],
-  ["Pokemon Paldea Evolved Pikachu Tin Sealed", TIN, false],
-  ["Magic The Gathering Surging Sparks Elite Trainer Box", ETB, false],
+  ["MTG Aetherdrift Bundle Case 10 Count Factory Sealed", BUNDLE, false],
+  ["MTG Aetherdrift Play Booster Box 30 Packs", BUNDLE, false],
+  ["MTG Aetherdrift Gift Bundle Sealed", BUNDLE, false],
+  ["MTG Aetherdrift Bundle EMPTY BOX ONLY", BUNDLE, false],
+  ["MTG Aetherdrift Bundle Japanese", BUNDLE, false],
+  ["MTG Tarkir Dragonstorm Bundle Sealed", BUNDLE, false],
+  ["MTG Aetherdrift Bundle opened no shrink wrap", BUNDLE, false],
+  ["2x MTG Aetherdrift Bundle Lot Sealed", BUNDLE, false],
+  ["MTG Aetherdrift Sab-Sunen Borderless 1/1 Pulled From Bundle", BUNDLE, false],
+  ["MTG Aetherdrift Bundle Sleeves and Dice Accessory Set", BUNDLE, false],
+  ["MTG Aetherdrift Bundle Damaged Box Dent on corner", BUNDLE, false],
+  ["Costco MTG Aetherdrift Bundle", BUNDLE, false],
+  ["MTG Aetherdrift Bundle Korean", BUNDLE, false],
+  ["MTG Aetherdrift Bundle German Deutsch", BUNDLE, false],
+  ["MTG Aetherdrift Play Booster Box Case (6 Boxes) Sealed", BOX, false],
+  ["MTG Aetherdrift Play Booster Box Case Fresh", CASE, false],
+  ["MTG Aetherdrift Play Booster Pack Single Sealed", BOX, false],
+  ["MTG Aetherdrift Bundle", BOX, false],
+  ["MTG Aetherdrift Play Booster Box Japanese", BOX, false],
+  ["MTG Aetherdrift Play Booster Box EMPTY", BOX, false],
+  ["MTG Aetherdrift Collector Booster Box Sealed", BOX, false],
+  ["MTG Tarkir Dragonstorm Play Booster Box Sealed", BOX, false],
+  ["MTG Final Fantasy Play Booster Box Sealed", CBOX, false],
+  ["MTG Final Fantasy Collector Booster Pack Sealed", CBOX, false],
+  ["MTG Final Fantasy Collector Booster Box EMPTY box", CBOX, false],
+  ["MTG Final Fantasy Collector Booster Box Japanese", CBOX, false],
+  ["MTG Bloomburrow Commander Deck Squirreled Away Sealed", DECK, false],
+  ["MTG Bloomburrow Commander Deck Set of 4 Sealed", DECK, false],
+  ["MTG Bloomburrow Bundle Sealed", GIFT, false],
+  ["Pokemon Aetherdrift Bundle", BUNDLE, false],
   ["Yu-Gi-Oh Booster Box Sealed", BOX, false],
-  ["Pokemon Paldea Evolved Pikachu Mini Tin x3 Lot", TIN, false],
-  // several units in one listing: the price is not one product's (review F3)
-  ["Pokemon Surging Sparks Elite Trainer Box x2 Sealed", ETB, false],
-  ["Two Surging Sparks Elite Trainer Boxes", ETB, false],
-  ["Pokemon Surging Sparks Elite Trainer Box X2 sealed", ETB, false],
-  ["Pokemon Surging Sparks Elite Trainer Box (2)", ETB, false],
-  ["Pokemon Surging Sparks Elite Trainer Box Qty 2", ETB, false],
-  ["2 Surging Sparks Elite Trainer Boxes", ETB, false],
-  ["Surging Sparks 2 ETBs Sealed", ETB, false],
-  ["Pokemon Surging Sparks Elite Trainer Box Set of Two", ETB, false],
-  ["Pokemon Surging Sparks Elite Trainer Box Double Pack", ETB, false],
-  ["Pokemon Surging Sparks Elite Trainer Box 2-Pack", ETB, false],
-  ["Pokemon Surging Sparks Elite Trainer Box - 4 Boxes", ETB, false],
-  ["Pokemon Surging Sparks Elite Trainer Box Multi-buy", ETB, false],
-  ["Pokemon Surging Sparks Bundle 2 ETB", ETB, false],
-  ["Pokemon Surging Sparks Booster Box x 2", BOX, false],
-  ["Three Surging Sparks Booster Boxes", BOX, false],
+  ["MTG Aetherdrift Play Booster Pack x10 Lot", PACK, false],
+  ["MTG Aetherdrift 5 Play Booster Packs Sealed", PACK, false],
+  ["MTG Aetherdrift & Tarkir Dragonstorm Play Booster Box", BOX, false],
+  // several units in one listing: the price is not one product's
+  ["MTG Aetherdrift Bundle x2 Sealed", BUNDLE, false],
+  ["Two MTG Aetherdrift Bundles", BUNDLE, false],
+  ["MTG Aetherdrift Bundle X2 sealed", BUNDLE, false],
+  ["MTG Aetherdrift Bundle (2)", BUNDLE, false],
+  ["MTG Aetherdrift Bundle Qty 2", BUNDLE, false],
+  ["2 MTG Aetherdrift Bundles", BUNDLE, false],
+  ["MTG Aetherdrift Bundle Set of Two", BUNDLE, false],
+  ["MTG Aetherdrift Bundle Double Pack", BUNDLE, false],
+  ["MTG Aetherdrift Bundle - 4 Boxes", BUNDLE, false],
+  ["MTG Aetherdrift Bundle Multi-buy", BUNDLE, false],
+  ["MTG Aetherdrift Play Booster Box x 2", BOX, false],
+  ["Three MTG Aetherdrift Play Booster Boxes", BOX, false],
+  ["MTG Final Fantasy Collector Booster Box x2 Sealed", CBOX, false],
+  ["MTG Bloomburrow Commander Deck Animated Army (2) Sealed", DECK, false],
+  ["MTG Bloomburrow Commander Deck Animated Army Lot of 3", DECK, false],
   // ...and wording that only LOOKS like a quantity stays accepted
-  ["Pokemon Surging Sparks Elite Trainer Box 9 Packs Sealed", ETB, true],
-  ["Pokemon Surging Sparks Booster Box 36 Booster Packs in Box", BOX, true],
-  ["Pokemon Surging Sparks Elite Trainer Box ETB SV8 Pikachu NEW", ETB, true],
-  // legitimate product names that contain numbers: all accepted (the owner's list)
-  ["Pokemon Paldea Evolved 3-Pack Blister Sealed NEW", BLISTER, true],
-  ["Pokemon TCG 3 Pack Blister Paldea Evolved Factory Sealed", BLISTER, true],
-  ["Pokemon Surging Sparks Booster Bundle (6 Packs) Sealed", BUNDLE, true],
-  ["Pokemon Surging Sparks Booster Bundle 6 Booster Packs Brand New", BUNDLE, true],
-  ["Pokemon Scarlet & Violet 151 Elite Trainer Box ETB Sealed", S151_ETB, true],
-  ["Pokemon 151 Elite Trainer Box - Factory Sealed - Fast Ship", S151_ETB, true],
-  ["Pokemon Scarlet & Violet 151 Ultra-Premium Collection UPC Sealed", S151_UPC, true],
-  ["Pokemon SV3.5 151 Ultra Premium Collection Mew Sealed", S151_UPC, true],
-  ["Pokemon Lucario Collection Box 2025 Sealed NEW", LUCARIO, true],
-  // ...and the same products sold several at a time are refused
-  ["Pokemon Paldea Evolved 3-Pack Blister x2 Sealed", BLISTER, false],
-  ["Pokemon Surging Sparks Booster Bundle x2 (12 Packs)", BUNDLE, false],
-  ["Pokemon Surging Sparks Booster Bundle Qty 2", BUNDLE, false],
-  ["Two Pokemon 151 Elite Trainer Boxes Sealed", S151_ETB, false],
-  ["Pokemon 151 2 ETBs Sealed", S151_ETB, false],
-  ["Pokemon Scarlet & Violet 151 Ultra-Premium Collection Set of Two", S151_UPC, false],
-  ["Pokemon Lucario Collection Box 2025 (2) Sealed", LUCARIO, false],
-  ["Pokemon Lucario Collection Box 2025 Lot of 3", LUCARIO, false],
+  ["MTG Aetherdrift Bundle 9 Packs Sealed", BUNDLE, true],
+  ["MTG Aetherdrift Play Booster Box 30 Booster Packs in Box", BOX, true],
+  ["MTG Final Fantasy Collector Booster Box 12 Packs Sealed", CBOX, true],
+  ["MTG Aetherdrift Play Booster Box Case 6 Boxes Sealed", CASE, true],
+  ["MTG Duskmourn Commander Deck Set of 4 Decks Sealed", DSET, true],
+  ["MTG Bloomburrow Gift Bundle x2", GIFT, false],
 ];
 
-test("multiUnit: quantity wording per type; N-pack is fine for a blister, bundle or tin", () => {
-  assert.equal(multiUnit("Prismatic Evolutions Costco 8-Pack Mini Tin Box", "tin"), true, "Costco combo");
-  assert.equal(multiUnit("Pokemon Prismatic Evolutions Mini Tin 2 Pack", "tin"), false);
-  assert.equal(multiUnit("Pokemon 3-Pack Blister Sealed", "blister"), false);
-  assert.equal(multiUnit("Pokemon Elite Trainer Box 3-Pack", "etb"), true);
-  assert.equal(multiUnit("Pokemon Scarlet & Violet 151 Elite Trainer Box", "etb"), false, "151 is the set");
-  assert.equal(multiUnit("Pokemon SV3.5 151 Ultra-Premium Collection", "upc"), false, "3.5 is the set");
-  assert.equal(multiUnit("Pokemon Double Crisis Booster Box", "booster-box"), false, "Double Crisis is a set");
-});
-test("a multi-unit Costco mini tin is not the single Prismatic Evolutions Mini Tin", () => {
-  const PRISM_TIN = target("Prismatic Evolutions Mini Tin");
-  assert.equal(relevantToProduct("Prismatic Evolutions Costco 8-Pack Mini Tin Box", PRISM_TIN), false);
-  assert.equal(relevantToProduct("Pokemon Prismatic Evolutions Mini Tin Sealed", PRISM_TIN), true);
+test("multiUnit: quantity wording per type; N-pack is fine for a bundle or a prerelease kit, a case IS several boxes", () => {
+  assert.equal(multiUnit("MTG Aetherdrift Play Booster Box Costco", "play-booster-box"), true, "Costco combo");
+  assert.equal(multiUnit("MTG Aetherdrift Bundle 9-Pack", "bundle"), false);
+  assert.equal(multiUnit("MTG Aetherdrift Prerelease Pack 6-Pack Kit", "prerelease-pack"), false);
+  assert.equal(multiUnit("MTG Aetherdrift Play Booster Box 3-Pack", "play-booster-box"), true);
+  assert.equal(multiUnit("MTG Aetherdrift Play Booster Box Case 6 Boxes", "play-booster-box-case"), false, "a case is several boxes");
+  assert.equal(multiUnit("MTG Aetherdrift Play Booster Box x2", "play-booster-box"), true);
 });
 
 test(`relevantToProduct: ${RELEVANCE.length} realistic eBay titles, the right product accepted and every wrong one refused`, () => {
   assert.ok(RELEVANCE.length >= 70);
   assert.ok(RELEVANCE.filter((r) => r[2]).length >= 20 && RELEVANCE.filter((r) => !r[2]).length >= 40, "both ways");
-  for (const [title, tgt, want] of RELEVANCE) assert.equal(relevantToProduct(title, tgt), want, `${want ? "should accept" : "should refuse"}: ${title}`);
+  for (const [title, tgt, want] of RELEVANCE) {
+    const accepted = relevantToProduct(title, tgt) && !refusedListing(title) && !refusedForType(title, tgt.type);
+    assert.equal(accepted, want, `${want ? "should accept" : "should refuse"}: ${title}`);
+  }
 });
 
 test("normaliseItemFeed: relevance, the type's floor, currency, shipping and the affiliate URL together", () => {
-  const good = summary("77", "Pokemon TCG Surging Sparks Elite Trainer Box Sealed NEW", 79, "EBAY_US", { shippingOptions: [{ shippingCost: { value: "8.00", currency: "USD" } }] });
-  const it = normaliseItemFeed(good, "EBAY_US", NOW, ETB)!;
+  const good = summary("77", "MTG Aetherdrift Bundle Sealed NEW", 49, "EBAY_US", { shippingOptions: [{ shippingCost: { value: "8.00", currency: "USD" } }] });
+  const it = normaliseItemFeed(good, "EBAY_US", NOW, BUNDLE)!;
   assert.ok(it);
   assert.deepEqual(it.ship, { value: "8.00", currency: "USD" });
   assert.equal(new URL(it.url).searchParams.get("campid"), EBAY_CAMPAIGN_ID);
-  assert.equal(normaliseItemFeed(summary("78", "Pokemon TCG Surging Sparks Elite Trainer Box Sealed NEW", 19), "EBAY_US", NOW, ETB), null, "under the ETB floor (US$25)");
-  assert.equal(normaliseItemFeed(summary("79", "Pokemon TCG Surging Sparks Elite Trainer Box Sealed NEW", 80, "EBAY_AU"), "EBAY_US", NOW, ETB), null, "AUD on the US marketplace");
-  assert.equal(normaliseItemFeed(summary("80", "Pokemon TCG Surging Sparks Elite Trainer Box Sealed", 80, "EBAY_US", { buyingOptions: ["AUCTION"] }), "EBAY_US", NOW, ETB), null, "auction");
-  assert.equal(normaliseItemFeed(summary("81", "Pokemon TCG Surging Sparks Elite Trainer Box Sealed", 80, "EBAY_US", { image: { imageUrl: "https://evil.example/x.jpg" }, thumbnailImages: [] }), "EBAY_US", NOW, ETB), null, "an image that is not eBay's");
+  assert.equal(normaliseItemFeed(summary("78", "MTG Aetherdrift Bundle Sealed NEW", 19), "EBAY_US", NOW, BUNDLE), null, "under the bundle floor (US$25)");
+  assert.equal(normaliseItemFeed(summary("79", "MTG Aetherdrift Bundle Sealed NEW", 80, "EBAY_AU"), "EBAY_US", NOW, BUNDLE), null, "AUD on the US marketplace");
+  assert.equal(normaliseItemFeed(summary("80", "MTG Aetherdrift Bundle Sealed", 80, "EBAY_US", { buyingOptions: ["AUCTION"] }), "EBAY_US", NOW, BUNDLE), null, "auction");
+  assert.equal(normaliseItemFeed(summary("81", "MTG Aetherdrift Bundle Sealed", 80, "EBAY_US", { image: { imageUrl: "https://evil.example/x.jpg" }, thumbnailImages: [] }), "EBAY_US", NOW, BUNDLE), null, "an image that is not eBay's");
 });
 
 test("a booster pack's own search refuses multi-pack lots and other non-units, as the sweep does", () => {
-  const target: ItemTarget = { groupKey: "cel30|booster-pack", type: "booster-pack", setCode: "cel30" };
-  const ok = (t: string) => normaliseItemFeed(summary("1", t, 20), "EBAY_US", NOW, target);
+  const ok = (t: string) => normaliseItemFeed(summary("1", t, 20), "EBAY_US", NOW, PACK);
   for (const t of [
-    "Pokemon 30th Celebration 5 Booster Packs Sealed",
-    "Pokemon TCG 30th Celebration Booster Packs",
-    "Pokemon 30th Celebration Booster Pack - 4 Packs",
-    "Pokemon 30th Celebration Booster Pack x10",
-    "Pokemon 30th Celebration Booster Pack Lot",
+    "MTG Aetherdrift 5 Play Booster Packs Sealed",
+    "MTG Aetherdrift Play Booster Packs",
+    "MTG Aetherdrift Play Booster Pack - 4 Packs",
+    "MTG Aetherdrift Play Booster Pack x10",
+    "MTG Aetherdrift Play Booster Pack Lot",
   ])
     assert.equal(ok(t), null, t);
-  assert.ok(ok("Pokemon 30th Celebration Booster Pack Sealed"));
+  assert.ok(ok("MTG Aetherdrift Play Booster Pack Sealed"));
 });

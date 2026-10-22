@@ -30,15 +30,15 @@ import { fakeDb, harness, json, NOW, okToken, planRow, requestedReference, summa
 // A small catalogue, as the store import files it (the real classifier makes the group keys).
 function catalogue(): PlanRow[] {
   return [
-    planRow("booster-box", "US", 16000, { name: "Surging Sparks Booster Box", productId: "bb" }),
-    planRow("etb", "US", 5000, { name: "Surging Sparks Elite Trainer Box", productId: "etb" }),
-    planRow("collection", "US", 4000, { name: "Charizard ex Premium Collection", productId: "chz" }),
-    planRow("collection", "US", 12000, { name: "Charizard ex Super-Premium Collection", productId: "chz-super" }),
-    planRow("tin", "US", 2000, { name: "151 - Mini Tin - Slowpoke & Sandshrew", productId: "tin-slow" }),
-    planRow("tin", "US", 2000, { name: "151 - Mini Tin - Scyther & Weezing", productId: "tin-scy" }),
-    planRow("blister", "US", 1500, { name: "Surging Sparks - 3 Pack Blister - Quagsire", productId: "bl-q" }),
-    planRow("booster-pack", "US", 500, { name: "Surging Sparks Booster Pack", productId: "pack" }),
-    planRow("etb", "AU", 9000, { name: "Surging Sparks Elite Trainer Box", productId: "etb" }),
+    planRow("play-booster-box", "US", 16000, { name: "Aetherdrift Play Booster Box", productId: "bb" }),
+    planRow("bundle", "US", 5000, { name: "Aetherdrift Bundle", productId: "bun" }),
+    planRow("commander-deck", "US", 4000, { name: "Bloomburrow Commander Deck - Animated Army", productId: "army" }),
+    planRow("commander-deck", "US", 9000, { name: "Bloomburrow Commander Deck - Animated Army Collector's Edition", productId: "army-ce" }),
+    planRow("commander-deck", "US", 4500, { name: "Bloomburrow Commander Deck - Squirreled Away", productId: "squirrel" }),
+    planRow("scene-box", "US", 3000, { name: "Final Fantasy Scene Box - Cloud", productId: "scene-cloud" }),
+    planRow("scene-box", "US", 3000, { name: "Final Fantasy Scene Box - Tifa", productId: "scene-tifa" }),
+    planRow("play-booster", "US", 500, { name: "Aetherdrift Play Booster Pack", productId: "pack" }),
+    planRow("bundle", "AU", 9000, { name: "Aetherdrift Bundle", productId: "bun" }),
   ];
 }
 
@@ -52,54 +52,52 @@ const hit = (title: string) => {
 };
 
 test("sweep matching: set products by their group key, whatever the seller adds", () => {
-  assert.equal(hit("Pokemon TCG Surging Sparks Booster Box 36 Packs Factory Sealed FAST SHIP"), "bb");
-  assert.equal(hit("IN HAND Pokemon Scarlet & Violet Surging Sparks Elite Trainer Box ETB Sealed"), "etb");
-  assert.equal(hit("Pokemon Surging Sparks Sleeved Booster Pack Sealed"), "no-product", "a sleeved booster is not the plain pack product");
-  assert.equal(hit("Pokemon Prismatic Evolutions Booster Bundle Sealed"), "no-product", "a product this marketplace does not list");
+  assert.equal(hit("Magic The Gathering Aetherdrift Play Booster Box 30 Packs Factory Sealed FAST SHIP"), "bb");
+  assert.equal(hit("IN HAND MTG Aetherdrift Bundle Sealed"), "bun", "seller words do not make a plain Bundle a special one");
+  assert.equal(hit("MTG Aetherdrift Bundle - Factory Sealed - Fast Ship"), "bun");
+  assert.equal(hit("MTG Aetherdrift Gift Bundle"), "no-product", "a Gift Bundle is not the Bundle");
+  assert.equal(hit("MTG Aetherdrift Collector Booster Pack Sealed"), "no-product", "a collector booster is not the play booster product");
+  assert.equal(hit("MTG Tarkir Dragonstorm Bundle Sealed"), "no-product", "a product this marketplace does not list");
 });
 
-test("sweep matching: a collection, tin or blister needs all its words, and nothing that names another product", () => {
-  assert.equal(hit("Pokemon TCG Charizard ex Premium Collection Box NEW SEALED"), "chz");
-  assert.equal(hit("Pokemon Charizard ex Super Premium Collection Sealed"), "chz-super", "the most specific product wins");
-  assert.equal(hit("Pokemon 151 Mini Tin Slowpoke Sandshrew Factory Sealed"), "tin-slow");
-  assert.equal(hit("Pokemon TCG Scarlet & Violet 151 Mini Tin Scyther & Weezing 2 Packs"), "tin-scy");
-  assert.equal(hit("Pokemon Surging Sparks 3 Pack Blister Quagsire Promo Coin Holo"), "bl-q", "promo-card words are filler");
-  assert.equal(hit("Pokemon 151 Mini Tin Slowpoke Sandshrew Scyther"), "no-product", "a word that names another product makes it not this one");
-  assert.equal(hit("Pokemon 151 Mini Tin"), "no-product", "no identifying word: which tin?");
+test("sweep matching: a Commander deck or a scene box needs all its words, and nothing that names another product", () => {
+  assert.equal(hit("MTG Bloomburrow Commander Deck Animated Army Sealed NEW"), "army");
+  assert.equal(hit("MTG Bloomburrow Animated Army Commander Deck Collector's Edition Sealed"), "army-ce", "the most specific product wins");
+  assert.equal(hit("MTG Bloomburrow Squirreled Away Commander Deck Factory Sealed"), "squirrel");
+  assert.equal(hit("MTG Final Fantasy Scene Box Cloud Sealed"), "scene-cloud");
+  assert.equal(hit("MTG Final Fantasy Scene Box Cloud Promo Foil"), "scene-cloud", "promo-card words are filler");
+  assert.equal(hit("MTG Bloomburrow Commander Deck Animated Army Squirreled Away"), "no-product", "a word that names another product makes it not this one");
+  assert.equal(hit("MTG Bloomburrow Commander Deck"), "rejected", "no identifying word: which deck?");
 });
 
 test("sweep matching: lots, several units, random variants, Japanese naming and damage are never handed to a product", () => {
   for (const t of [
-    "Pokemon TCG 151 Mini Tins (10-Pack) Slowpoke Sandshrew SEALED",
-    "Pokemon 151 Mini Tin Slowpoke Sandshrew Full Set",
-    "Pokemon 151 Mini Tin - One Variation Chosen At Random",
-    "Pokemon Surging Sparks Booster Box x2 Sealed",
-    "Pokemon Card Game MEGA Expansion Pack Surging Sparks Box",
-    "Pokemon Surging Sparks Booster Box Sealed READ (DAMAGE)",
-    "Pokemon Surging Sparks Booster Box Presale",
-    "Japanese Pokemon Surging Sparks Booster Box",
-    "Pokemon Surging Sparks Booster Box EMPTY",
+    "MTG Final Fantasy Scene Boxes Lot Cloud Tifa",
+    "MTG Final Fantasy Scene Box Cloud Full Set",
+    "MTG Final Fantasy Scene Box - One Chosen At Random",
+    "MTG Aetherdrift Play Booster Box x2 Sealed",
+    "MTG Aetherdrift Japanese Play Booster Box",
+    "MTG Aetherdrift Play Booster Box Sealed READ (DAMAGE)",
+    "MTG Aetherdrift Play Booster Box Presale",
+    "Japanese MTG Aetherdrift Play Booster Box",
+    "MTG Aetherdrift Play Booster Box EMPTY",
   ])
     assert.equal(hit(t), "rejected", t);
 });
 
 test("filler: seller and shipping words are filler, set words only for a set the title names; product words never", () => {
-  for (const w of ["fast", "nib", "coin", "holo", "express"]) assert.ok(isFiller(w), w);
-  for (const w of ["mini", "super", "ex", "mega", "charizard", "pikachu", "slowpoke", "spc", "quick", "day", "moon", "ultra"]) assert.ok(!isFiller(w), w);
-  const named = setWordsIn("Pokemon Victini Illustration Collection Black Bolt White Flare");
-  for (const w of ["black", "bolt", "white", "flare"]) assert.ok(isFiller(w, named), w);
-  assert.ok(!isFiller("moon", setWordsIn("Pokemon Moon Ball Tin")), "Moon Ball is not a set");
+  for (const w of ["fast", "nib", "coin", "holo", "express", "foil", "promo"]) assert.ok(isFiller(w), w);
+  for (const w of ["collector", "commander", "gift", "play", "draft", "army", "cloud", "quick", "day", "moon", "ultra"]) assert.ok(!isFiller(w), w);
+  const named = setWordsIn("MTG Commander Deck Edge of Eternities World Shaper");
+  for (const w of ["edge", "eternities"]) assert.ok(isFiller(w, named), w);
+  assert.ok(!isFiller("moon", setWordsIn("MTG Moon Secret Lair")), "Moon is not a set");
 });
 
-test("sweep matching: the reviewers' wrong matches stay refused (partials, multi-pack lots, case-fresh boxes, Japanese naming, other eras)", () => {
+test("sweep matching: the reviewers' wrong matches stay refused (partials, multi-pack lots, case-fresh boxes, Japanese naming, other sets)", () => {
   const rows = [
     ...catalogue(),
-    planRow("booster-box-case", "US", 90000, { name: "Surging Sparks Booster Box Case", productId: "bbcase" }),
-    planRow("tin", "US", 60000, { name: "Mewtwo EX Tin 2012", productId: "mewtwo2012" }),
-    planRow("tin", "US", 3000, { name: "Ultra Ball Tin", productId: "ultra" }),
-    planRow("tin", "US", 3000, { name: "Pokemon GO - Ultra Ball Tin", productId: "ultra-go" }),
-    planRow("etb", "US", 5000, { name: "Scarlet & Violet Elite Trainer Box", productId: "sv1etb" }),
-    planRow("booster-pack", "US", 500, { name: "Scarlet & Violet 151 Booster Pack", productId: "151pack" }),
+    planRow("play-booster-box-case", "US", 90000, { name: "Aetherdrift Play Booster Box Case", productId: "bbcase" }),
+    planRow("bundle", "US", 5000, { name: "Tarkir: Dragonstorm Bundle", productId: "tdm-bun" }),
   ];
   const ix = buildSweepIndex(rows, "EBAY_US", sweepVocabulary(rows));
   const m = (t: string) => {
@@ -107,40 +105,32 @@ test("sweep matching: the reviewers' wrong matches stay refused (partials, multi
     return "product" in r ? r.product.productId : r.miss;
   };
   for (const t of [
-    "Pokemon Charizard ex Premium Collection Missing Promo",
-    "Pokemon Charizard ex Premium Collection Without Packs",
-    "Pokemon Charizard ex Premium Collection Coin Only",
-    "Pokemon Charizard ex Premium Collection No Packs",
-    "Pokemon 151 Mini Tins Lot Slowpoke Sandshrew",
-    "Pokemon Surging Sparks 5 Booster Packs Sealed",
-    "Pokemon Surging Sparks Booster Pack - 10 Packs",
-    "Pokemon Surging Sparks Booster Packs (5 Packs)",
-    "Pokemon Surging Sparks Booster Pack x10",
-    "Pokemon Surging Sparks Booster Box Case Fresh",
-    "Pokémon Card Game Scarlet & Violet 151 Booster Pack",
-    "POKÉMON CARD GAME Scarlet & Violet Premium Trainer Box ex",
-    "Pokemon Surging Sparks Booster Box - You Choose",
-    "3 Promo Sealed Pokemon Surging Sparks Energy Packs From Elite Trainer Box",
-    "Pokemon 151 Mini Tin Slowpoke Sandshrew - Choose Your Tin",
+    "MTG Bloomburrow Commander Deck Animated Army Missing Promo",
+    "MTG Bloomburrow Commander Deck Animated Army Without Packs",
+    "MTG Final Fantasy Scene Boxes Lot Cloud Tifa",
+    "MTG Aetherdrift 5 Play Booster Packs Sealed",
+    "MTG Aetherdrift Play Booster Pack - 10 Packs",
+    "MTG Aetherdrift Play Booster Packs (5 Packs)",
+    "MTG Aetherdrift Play Booster Pack x10",
+    "MTG Aetherdrift Play Booster Box Case Fresh",
+    "MTG Aetherdrift Play Booster Box - You Choose",
+    "MTG Aetherdrift Collector Booster Pulled From Play Booster Box",
+    "MTG Final Fantasy Scene Box Cloud - Choose Your Scene",
+    "MTG Aetherdrift & Tarkir Dragonstorm Bundle",
   ])
     assert.equal(m(t), "rejected", t);
-  assert.notEqual(m("Pokemon Destined Rivals Mewtwo ex Tin"), "mewtwo2012", "a re-read that drops the year is not a signature");
-  assert.notEqual(m("Pokemon Evolutions Charizard EX Box"), "chz", "a listing that names a set is only that set's product");
-  assert.equal(m("Pokemon Ultra Ball Tin Sealed"), "ultra", "an unnamed listing takes the unnamed product, never the Pokémon GO one");
-  const goOnly = rows.filter((r) => r.productId !== "ultra");
-  const ix2 = buildSweepIndex(goOnly, "EBAY_US", sweepVocabulary(rows), sweepSignatureSets(rows)); // catalogue-wide, as the importer builds them
-  const r2 = matchListing("Pokemon Ultra Ball Tin Sealed", ix2);
-  assert.ok(!("product" in r2), "with only the GO tin listed here, an unnamed Ultra Ball tin is not assumed to be it (other sets share the words)");
-  assert.equal(m("Pokemon Surging Sparks Booster Box (36 ct) Factory Sealed"), "bb", "a box's own pack count is not a lot");
-  assert.equal(m("Pokemon Surging Sparks Booster Pack Sealed"), "pack");
+  assert.equal(m("MTG Tarkir Dragonstorm Bundle Sealed"), "tdm-bun", "a listing that names a set is only that set's product");
+  assert.equal(m("MTG Aetherdrift Play Booster Box Case 6 Boxes Sealed"), "bbcase");
+  assert.equal(m("MTG Aetherdrift Play Booster Box (30 ct) Factory Sealed"), "bb", "a box's own pack count is not a lot");
+  assert.equal(m("MTG Aetherdrift Play Booster Pack Sealed"), "pack");
 });
 
 test("collector: a 'New other' or 'Like New' condition is not a sealed product", () => {
   const c = new SweepCollector(usIndex(), NOW);
   c.addPage([
-    summary("n1", "Pokemon Surging Sparks Booster Box", 150, "EBAY_US", { condition: "New other (see details)" }),
-    summary("n2", "Pokemon Surging Sparks Booster Box", 150, "EBAY_US", { condition: "Like New" }),
-    summary("n3", "Pokemon Surging Sparks Booster Box", 150, "EBAY_US", { condition: "Neu: Sonstige (siehe Arti" }),
+    summary("n1", "MTG Aetherdrift Play Booster Box", 150, "EBAY_US", { condition: "New other (see details)" }),
+    summary("n2", "MTG Aetherdrift Play Booster Box", 150, "EBAY_US", { condition: "Like New" }),
+    summary("n3", "MTG Aetherdrift Play Booster Box", 150, "EBAY_US", { condition: "Neu: Sonstige (siehe Arti" }),
   ]);
   assert.equal(c.stats.miss.condition, 3);
   assert.equal(c.feeds().size, 0);
@@ -149,19 +139,19 @@ test("collector: a 'New other' or 'Like New' condition is not a sealed product",
 test("collector: keeps lowest price first, de-duplicated, at most 8; refuses used, under-floor and unmatched listings; counts why", () => {
   const c = new SweepCollector(usIndex(), NOW);
   const page = [
-    summary("1", "Pokemon Surging Sparks Booster Box Sealed", 150),
-    summary("2", "Pokemon Surging Sparks Booster Box Sealed", 140),
-    summary("2", "Pokemon Surging Sparks Booster Box Sealed", 140), // the same listing twice
-    summary("3", "Pokemon Surging Sparks Booster Box Sealed", 20), // under the booster box floor
-    summary("4", "Pokemon Surging Sparks Booster Box Sealed", 160, "EBAY_US", { condition: "Used" }),
-    summary("5", "Pokemon Mystery Lot of cards", 50),
-    summary("6", "Pokemon Charizard ex Premium Collection", 45),
+    summary("1", "MTG Aetherdrift Play Booster Box Sealed", 150),
+    summary("2", "MTG Aetherdrift Play Booster Box Sealed", 140),
+    summary("2", "MTG Aetherdrift Play Booster Box Sealed", 140), // the same listing twice
+    summary("3", "MTG Aetherdrift Play Booster Box Sealed", 20), // under the booster box floor
+    summary("4", "MTG Aetherdrift Play Booster Box Sealed", 160, "EBAY_US", { condition: "Used" }),
+    summary("5", "MTG Mystery Lot of cards", 50),
+    summary("6", "MTG Bloomburrow Commander Deck Animated Army", 45),
   ];
   const gain = c.addPage(page);
   assert.equal(gain, 3);
   const feeds = c.feeds();
   assert.deepEqual(feeds.get("bb")!.map((i) => i.price.value), ["140.00", "150.00"]);
-  assert.equal(feeds.get("chz")!.length, 1);
+  assert.equal(feeds.get("army")!.length, 1);
   assert.equal(c.stats.miss.floor, 1);
   assert.equal(c.stats.miss.condition, 1);
   assert.equal(c.stats.miss.rejected, 1);
@@ -173,14 +163,14 @@ test("paging: 200 a page with the offset, round-robin across queries, stops at t
   const u = new URL(buildSearchUrl(spec));
   assert.equal(u.searchParams.get("limit"), "200");
   assert.equal(u.searchParams.get("offset"), "400");
-  assert.equal(u.searchParams.get("q"), "Pokemon elite trainer box");
+  assert.equal(u.searchParams.get("q"), "MTG play booster box");
   assert.equal(new URL(buildSearchUrl(sweepSpec(SWEEP_QUERIES[0], "EBAY_US", 0))).searchParams.get("offset"), null);
 
   // query A: two good pages then the end (a short page); query B: always the same listings (dry after its minimum); query C: errors
   const queries = [
-    { key: "a", q: "booster box", types: ["booster-box"] as const },
-    { key: "b", q: "elite trainer box", types: ["etb"] as const },
-    { key: "c", q: "tin", types: ["tin"] as const },
+    { key: "a", q: "play booster box", types: ["play-booster-box"] as const },
+    { key: "b", q: "bundle", types: ["bundle"] as const },
+    { key: "c", q: "scene box", types: ["scene-box"] as const },
   ];
   const seen: string[] = [];
   const c = new SweepCollector(usIndex(), NOW);
@@ -189,13 +179,13 @@ test("paging: 200 a page with the offset, round-robin across queries, stops at t
     50,
     async (s) => {
       seen.push(`${s.q}@${s.offset ?? 0}`);
-      if (s.q.endsWith("tin")) throw new Error("boom");
-      if (s.q.endsWith("booster box")) {
+      if (s.q.endsWith("scene box")) throw new Error("boom");
+      if (s.q.endsWith("play booster box")) {
         const n = (s.offset ?? 0) / SWEEP_PAGE;
-        const items = Array.from({ length: n < 2 ? SWEEP_PAGE : 3 }, (_, i) => summary(`a${n}-${i}`, "Pokemon Surging Sparks Booster Box Sealed", 150 + i));
+        const items = Array.from({ length: n < 2 ? SWEEP_PAGE : 3 }, (_, i) => summary(`a${n}-${i}`, "MTG Aetherdrift Play Booster Box Sealed", 150 + i));
         return { items, total: 403 };
       }
-      return { items: Array.from({ length: SWEEP_PAGE }, () => summary("b-same", "Pokemon Surging Sparks Elite Trainer Box", 60)), total: 9000 };
+      return { items: Array.from({ length: SWEEP_PAGE }, () => summary("b-same", "MTG Aetherdrift Bundle", 60)), total: 9000 };
     },
     { concurrency: 1, queries, isFatal: () => false },
   );
@@ -205,10 +195,10 @@ test("paging: 200 a page with the offset, round-robin across queries, stops at t
   assert.equal(by.b.stopped, "dry");
   assert.equal(by.b.pages, 3, "page 1 gains; pages 2 and 3 gain nothing: dry after two");
   assert.equal(by.c.stopped, "error");
-  assert.ok(seen.indexOf("Pokemon booster box@200") > seen.indexOf("Pokemon elite trainer box@0"), "round-robin: every query's first page before anyone's second");
+  assert.ok(seen.indexOf("MTG play booster box@200") > seen.indexOf("MTG bundle@0"), "round-robin: every query's first page before anyone's second");
 
   // the budget ends it
-  const tight = await sweepMarketplace(new SweepCollector(usIndex(), NOW), 2, async () => ({ items: Array.from({ length: SWEEP_PAGE }, (_, i) => summary(`x${Math.random()}-${i}`, "Pokemon Surging Sparks Booster Box", 150)), total: 100000 }), {
+  const tight = await sweepMarketplace(new SweepCollector(usIndex(), NOW), 2, async () => ({ items: Array.from({ length: SWEEP_PAGE }, (_, i) => summary(`x${Math.random()}-${i}`, "MTG Aetherdrift Play Booster Box", 150)), total: 100000 }), {
     concurrency: 2,
     queries: [queries[0]],
   });
@@ -217,7 +207,7 @@ test("paging: 200 a page with the offset, round-robin across queries, stops at t
 });
 
 test("shares: by product count x audience weight (the US first), with a floor for a small marketplace, never more than the budget", () => {
-  const rows = [...catalogue(), ...Array.from({ length: 40 }, (_, i) => planRow("tin", "CA", 2000, { name: `Tin - Pikachu ${i}`, productId: `ca${i}` }))];
+  const rows = [...catalogue(), ...Array.from({ length: 40 }, (_, i) => planRow("secret-lair", "CA", 4000, { name: `Secret Lair Drop - Test Drop ${i}`, productId: `ca${i}` }))];
   const vocab = sweepVocabulary(rows);
   const ix = (["EBAY_US", "EBAY_AU", "EBAY_CA"] as const).map((m) => buildSweepIndex(rows, m, vocab));
   assert.deepEqual(ix.map((x) => x.products.length), [8, 1, 40]);
@@ -243,60 +233,64 @@ test("shares: by product count x audience weight (the US first), with a floor fo
 
 function hotCatalogue(): PlanRow[] {
   return [
-    planRow("etb", "US", 6000, { name: "30th Celebration Elite Trainer Box", productId: "c30-etb" }),
-    planRow("pc-etb", "UK", 9000, { name: "30th Celebration Pokemon Center Elite Trainer Box", productId: "c30-pcetb" }),
-    planRow("booster-pack", "US", 600, { name: "30th Celebration Booster Pack", productId: "c30-pack" }),
-    planRow("upc", "US", 15000, { name: "30th Celebration Ultra-Premium Collection (Day)", productId: "c30-upc" }),
-    planRow("collection", "US", 3000, { name: "30th Celebration Pikachu Premium Collection", productId: "c30-col" }),
-    planRow("tin", "AU", 2000, { name: "30th Celebration Mini Tin - Pikachu", productId: "c30-tin" }), // an AU-only type still makes a query
-    planRow("etb", "US", 5500, { name: "Pitch Black Elite Trainer Box", productId: "me5-etb" }),
-    planRow("booster-box-case", "US", 90000, { name: "Pitch Black Booster Box Case", productId: "me5-case" }),
-    planRow("booster-bundle", "US", 3000, { name: "Scarlet & Violet 151 Booster Bundle", productId: "151-bundle" }),
-    planRow("booster-box", "US", 16000, { name: "Surging Sparks Booster Box", productId: "bb" }), // not a hot set
+    planRow("play-booster-box", "US", 16000, { name: "Reality Fracture Play Booster Box", productId: "fra-pbb" }),
+    planRow("collector-booster-box", "UK", 30000, { name: "Reality Fracture Collector Booster Box", productId: "fra-cbb" }),
+    planRow("bundle", "US", 5000, { name: "Reality Fracture Bundle", productId: "fra-bun" }),
+    planRow("special-bundle", "US", 9000, { name: "Reality Fracture Bundle - Ugin Edition", productId: "fra-sbun" }),
+    planRow("play-booster", "US", 600, { name: "Reality Fracture Play Booster Pack", productId: "fra-pack" }),
+    planRow("commander-deck", "AU", 6000, { name: "Reality Fracture Commander Deck - Shattered Time", productId: "fra-cmd" }), // an AU-only type still makes a query
+    planRow("bundle", "US", 5500, { name: "The Hobbit Bundle", productId: "hob-bun" }),
+    planRow("collector-booster-box-case", "US", 90000, { name: "The Hobbit Collector Booster Box Case", productId: "hob-case" }),
+    planRow("play-booster-box", "US", 15000, { name: "Avatar: The Last Airbender Play Booster Box", productId: "tla-pbb" }),
+    planRow("play-booster-box", "US", 16000, { name: "Star Trek Play Booster Box", productId: "trk-pbb" }), // hot, not out yet
+    planRow("play-booster-box", "US", 16000, { name: "Aetherdrift Play Booster Box", productId: "bb" }), // not a hot set
   ];
 }
 
-test("hot queries: per hot set in HOT_SETS order, one per product type the catalogue has for it; 30th Celebration is searched as '30th' and 151 as '151'", () => {
+test("hot queries: per hot set in HOT_SETS order, one per product type the catalogue has for it; The Hobbit is searched as 'hobbit' and Avatar as 'avatar'", () => {
   assert.equal(HOT_SHARE, 0.5);
-  assert.deepEqual(HOT_SETS.slice(0, 2), ["cel30", "me5"]);
-  assert.equal(HOT_SET_QUERY.cel30, "30th");
+  assert.deepEqual(HOT_SETS.slice(0, 3), ["trk", "fra", "hob"]);
+  assert.equal(HOT_SET_QUERY.hob, "Hobbit");
   const qs = hotSweepQueries(hotCatalogue(), "2026-10-07");
   assert.deepEqual(
     qs.map((x) => [x.key, x.q, [...x.types]]),
     [
-      ["hot-cel30-etb", "30th elite trainer box", ["etb", "pc-etb"]], // an ETB and a Pokémon Center ETB share one query
-      ["hot-cel30-collection", "30th collection", ["upc", "collection"]],
-      ["hot-cel30-tin", "30th tin", ["tin"]],
-      ["hot-cel30-pack", "30th booster pack", ["booster-pack"]],
-      ["hot-me5-etb", "pitch black elite trainer box", ["etb"]],
-      ["hot-me5-box-case", "pitch black booster box case", ["booster-box-case"]],
-      ["hot-sv3pt5-bundle", "151 booster bundle", ["booster-bundle"]],
+      ["hot-fra-play-box", "reality fracture play booster box", ["play-booster-box"]],
+      ["hot-fra-collector-box", "reality fracture collector booster box", ["collector-booster-box"]],
+      ["hot-fra-bundle", "reality fracture bundle", ["bundle", "special-bundle"]], // a Bundle and a special Bundle share one query
+      ["hot-fra-commander", "reality fracture commander deck", ["commander-deck"]],
+      ["hot-fra-play-pack", "reality fracture play booster", ["play-booster"]],
+      ["hot-hob-bundle", "hobbit bundle", ["bundle"]],
+      ["hot-hob-collector-box-case", "hobbit collector booster box case", ["collector-booster-box-case"]],
+      ["hot-tla-play-box", "avatar play booster box", ["play-booster-box"]],
     ],
   );
   assert.equal(new Set(qs.map((x) => x.q)).size, qs.length, "no query twice");
-  assert.ok(!qs.some((x) => /surging/.test(x.q)), "only hot sets");
-  // "Pokemon <words> <phrase>", 200 a page, the lowest floor of its types (the pack's for the pack query)
-  const pack = qs.find((x) => x.key === "hot-cel30-pack")!;
+  assert.ok(!qs.some((x) => /aetherdrift|star trek/.test(x.q)), "only hot sets that are out");
+  // "MTG <words> <phrase>", 200 a page, the lowest floor of its types (the pack's for the pack query)
+  const pack = qs.find((x) => x.key === "hot-fra-play-pack")!;
   const u = new URL(buildSearchUrl(sweepSpec(pack, "EBAY_US", 0)));
-  assert.equal(u.searchParams.get("q"), "Pokemon 30th booster pack");
+  assert.equal(u.searchParams.get("q"), "MTG reality fracture play booster");
   assert.equal(u.searchParams.get("limit"), "200");
-  assert.equal(sweepSpec(qs[0], "EBAY_US", 0).minPrice, typeFloor("etb", "EBAY_US"), "the ETB's floor, lower than the Pokémon Center ETB's");
-  // every phrase: a case is its box's phrase + "case"; collections and UPCs are "collection"; packs and sleeved boosters "booster pack"
+  const bundle = qs.find((x) => x.key === "hot-fra-bundle")!;
+  assert.equal(sweepSpec(bundle, "EBAY_US", 0).minPrice, typeFloor("bundle", "EBAY_US"), "the Bundle's floor, lower than the special Bundle's");
+  // every phrase: a case is its box's phrase + "case"
   for (const t of PRODUCT_TYPES) assert.ok(HOT_TYPE_QUERY[t.key].phrase.length > 0, t.key);
-  assert.equal(HOT_TYPE_QUERY["etb-case"].phrase, "elite trainer box case");
-  assert.equal(HOT_TYPE_QUERY["booster-bundle-case"].phrase, "booster bundle case");
-  assert.equal(HOT_TYPE_QUERY["sleeved-booster"].phrase, "booster pack");
-  assert.equal(HOT_TYPE_QUERY["build-battle-stadium"].phrase, "build battle");
-  // a hot set that is not out yet is skipped (30th Celebration came out on 2026-09-16)
+  assert.equal(HOT_TYPE_QUERY["play-booster-box-case"].phrase, "play booster box case");
+  assert.equal(HOT_TYPE_QUERY["collector-booster-box-case"].phrase, "collector booster box case");
+  assert.equal(HOT_TYPE_QUERY["bundle-case"].phrase, "bundle case");
+  assert.equal(HOT_TYPE_QUERY["special-bundle"].phrase, "bundle");
+  // a hot set that is not out yet is skipped (Reality Fracture came out on 2026-10-02; Star Trek comes out on 2026-11-13)
   const before = hotSweepQueries(hotCatalogue(), "2026-09-01");
-  assert.ok(!before.some((x) => x.key.startsWith("hot-cel30")));
-  assert.equal(before[0].key, "hot-me5-etb");
+  assert.ok(!before.some((x) => x.key.startsWith("hot-fra")));
+  assert.equal(before[0].key, "hot-hob-bundle");
+  assert.equal(hotSweepQueries(hotCatalogue(), "2026-11-20")[0].key, "hot-trk-play-box", "Star Trek first once it is out");
   // an unknown code, or a hot set the catalogue has nothing of, makes no query
-  assert.deepEqual(hotSweepQueries(hotCatalogue(), "2026-10-07", ["nope", "me4"]), []);
-  assert.equal(hotSetWords("sv8pt5"), "prismatic evolutions");
-  assert.equal(hotSetWords("pgo"), "pokemon go", "accents folded");
-  assert.equal(hotSetWords("sv1"), "scarlet violet", "'&' dropped");
-  assert.equal(hotSetWords("cel30"), "30th");
+  assert.deepEqual(hotSweepQueries(hotCatalogue(), "2026-10-07", ["nope", "msh"]), []);
+  assert.equal(hotSetWords("fra"), "reality fracture");
+  assert.equal(hotSetWords("dft"), "aetherdrift");
+  assert.equal(hotSetWords("tdm"), "tarkir: dragonstorm");
+  assert.equal(hotSetWords("hob"), "hobbit");
   assert.equal(hotSetWords("nope"), null);
 });
 
@@ -310,7 +304,7 @@ test("the hot pass runs first, with at most half the marketplace's share; the ge
     seen.push(s.q);
     return { items: Array.from({ length: SWEEP_PAGE }, () => ({})), total: 100_000 };
   };
-  const hotQs = new Set(hot.map((x) => `Pokemon ${x.q}`));
+  const hotQs = new Set(hot.map((x) => `MTG ${x.q}`));
   const r = await sweepWithHot(ix(), 41, endless, { concurrency: 3, hot, queries: general });
   const lastHot = seen.findLastIndex((q) => hotQs.has(q));
   const firstGeneral = seen.findIndex((q) => !hotQs.has(q));
@@ -318,7 +312,7 @@ test("the hot pass runs first, with at most half the marketplace's share; the ge
   assert.equal(r.hot.reduce((a, p) => a + p.pages, 0), 20, "half of 41, rounded down");
   assert.equal(r.general.reduce((a, p) => a + p.pages, 0), 21, "the rest");
   assert.equal(seen.length, 41, "never past the share");
-  assert.equal(seen[0], "Pokemon 30th elite trainer box", "30th Celebration first");
+  assert.equal(seen[0], "MTG reality fracture play booster box", "Reality Fracture first (Star Trek is not out)");
   // round-robin inside the hot pass: every hot query's first page before any second page
   assert.deepEqual(seen.slice(0, hot.length).sort(), [...hotQs].sort());
   // a hot pass that ends early leaves the rest of the share to the general queries
@@ -353,30 +347,30 @@ test("run: the sweep writes an item feed for every product with two or more list
     const q = u.searchParams.get("q") ?? "";
     const offset = Number(u.searchParams.get("offset") ?? 0);
     const ref = requestedReference(init);
-    if (q === "Pokemon booster box" && offset === 0)
-      return json({ total: 3, itemSummaries: withReference([summary("s1", "Pokemon Surging Sparks Booster Box Sealed", 150), summary("s2", "Pokemon Surging Sparks Booster Box", 145), summary("s3", "Pokemon Surging Sparks Booster Box 36 packs", 155)], ref) });
-    if (q === "Pokemon tin" && offset === 0)
-      return json({ total: 2, itemSummaries: withReference([summary("t1", "Pokemon 151 Mini Tin Slowpoke Sandshrew", 25), summary("t2", "Pokemon 151 Mini Tin Slowpoke & Sandshrew Sealed", 22)], ref) });
-    if (q.startsWith("Pokemon Surging Sparks Elite Trainer Box"))
-      return json({ total: 2, itemSummaries: withReference([summary("e1", "Pokemon Surging Sparks Elite Trainer Box", 60), summary("e2", "Pokemon Surging Sparks Elite Trainer Box ETB", 58)], ref) });
+    if (q === "MTG play booster box" && offset === 0)
+      return json({ total: 3, itemSummaries: withReference([summary("s1", "MTG Aetherdrift Play Booster Box Sealed", 150), summary("s2", "Magic The Gathering Aetherdrift Play Booster Box", 145), summary("s3", "MTG Aetherdrift Play Booster Box 30 packs", 155)], ref) });
+    if (q === "MTG scene box" && offset === 0)
+      return json({ total: 2, itemSummaries: withReference([summary("t1", "MTG Final Fantasy Scene Box Cloud", 35), summary("t2", "MTG Final Fantasy Scene Box Cloud Sealed", 32)], ref) });
+    if (q.startsWith("MTG Aetherdrift Bundle"))
+      return json({ total: 2, itemSummaries: withReference([summary("e1", "MTG Aetherdrift Bundle", 60), summary("e2", "MTG Aetherdrift Bundle Sealed", 58)], ref) });
     return json({ total: 0, itemSummaries: [] });
   });
   const logs: string[] = [];
   const s = await runImport({ db, api: h.deps, env: { EBAY_SWEEP_CALLS: "200" }, log: (l) => logs.push(l) }, { only: ["sweep", "items"] });
   assert.equal(s.stopped, null, logs.join("\n"));
-  // the sweep covered the booster box and the tin in the US
+  // the sweep covered the booster box and the Cloud scene box in the US
   assert.ok(db.feeds.has("EBAY_US|item:bb"));
   assert.deepEqual(db.feeds.get("EBAY_US|item:bb")!.items.map((i) => i.price.value), ["145.00", "150.00", "155.00"]);
-  assert.ok(db.feeds.has("EBAY_US|item:tin-slow"));
-  assert.ok(!db.feeds.has("EBAY_US|item:tin-scy"), "nothing found: no feed");
-  // the per-product search ran for the eligible ETB the sweep did not cover, and never for the box it did
+  assert.ok(db.feeds.has("EBAY_US|item:scene-cloud"));
+  assert.ok(!db.feeds.has("EBAY_US|item:scene-tifa"), "nothing found: no feed");
+  // the per-product search ran for the eligible Bundle the sweep did not cover, and never for the box it did
   const itemSearches = h.searches().map((c) => new URL(c.url).searchParams.get("q"));
-  assert.ok(itemSearches.some((q) => q?.startsWith("Pokemon Surging Sparks Elite Trainer Box")));
-  assert.ok(!itemSearches.some((q) => q === "Pokemon Surging Sparks Booster Box"));
-  assert.ok(db.feeds.has("EBAY_US|item:etb"));
+  assert.ok(itemSearches.some((q) => q?.startsWith("MTG Aetherdrift Bundle")));
+  assert.ok(!itemSearches.some((q) => q === "MTG Aetherdrift Play Booster Box"));
+  assert.ok(db.feeds.has("EBAY_US|item:bun"));
   assert.equal(s.buckets.items.covered >= 1, true);
   // every sweep link is eBay's own, tagged with the item feed's reference
-  for (const it of db.feeds.get("EBAY_US|item:bb")!.items) assert.equal(new URL(it.url).searchParams.get("customid"), "dex-us-item");
+  for (const it of db.feeds.get("EBAY_US|item:bb")!.items) assert.equal(new URL(it.url).searchParams.get("customid"), "mtg-us-item");
   // budget: every search reserved, never more than the cap
   assert.equal([...db.days.values()].reduce((a, b) => a + b, 0), h.searches().length);
   assert.ok(s.sweep.some((m) => m.marketplace === "EBAY_US" && m.written >= 2));
@@ -389,11 +383,11 @@ test("run: a 429 during the sweep stops the run, keeps what the sweep already fo
   const h = harness((url, init) => {
     if (url.includes("/oauth2/token")) return okToken();
     n++;
-    if (n === 1) return json({ total: 2, itemSummaries: withReference([summary("e1", "Pokemon Surging Sparks Elite Trainer Box", 60), summary("e2", "Pokemon Surging Sparks Elite Trainer Box ETB", 58)], requestedReference(init)) });
+    if (n === 1) return json({ total: 2, itemSummaries: withReference([summary("e1", "MTG Aetherdrift Play Booster Box", 160), summary("e2", "MTG Aetherdrift Play Booster Box Sealed", 158)], requestedReference(init)) });
     return json({ errors: [] }, 429, { "retry-after": "60" });
   });
   const s = await runImport({ db, api: h.deps, env: { EBAY_SWEEP_CALLS: "100" }, log: () => {} }, { only: ["sweep", "items"], concurrency: 1 });
   assert.equal(s.stopped, "rate-limited");
-  assert.ok(db.feeds.has("EBAY_US|item:etb"), "the page that came back is written");
+  assert.ok(db.feeds.has("EBAY_US|item:bb"), "the page that came back is written");
   assert.equal(s.buckets.items.planned, 0);
 });

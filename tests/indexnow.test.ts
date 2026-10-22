@@ -28,8 +28,8 @@ test("the sitemap index is followed to its pages, never submitting the child sit
   assert.deepEqual(await sitemapUrls("https://x.test/s.xml", async () => "<urlset><url><loc>https://x.test/a</loc></url></urlset>", 0), ["https://x.test/a"], "a plain urlset");
 });
 
-test("the request names the host of the sitemap's own URLs (www), never the apex the old workflow named", () => {
-  const plan = submissionPlan(["https://mtgcompare.app", "https://mtgcompare.app/au/sealed", "https://mtgcompare.app/old"]);
+test("the request names the host of the sitemap's own URLs (the apex), and leaves any other host out", () => {
+  const plan = submissionPlan(["https://mtgcompare.app", "https://mtgcompare.app/au/sealed", "https://www.mtgcompare.app/old"]);
   assert.ok(plan);
   assert.equal(plan.host, "mtgcompare.app");
   assert.equal(plan.keyLocation, "https://mtgcompare.app/indexnow.txt");
@@ -47,8 +47,8 @@ test("the job fails loudly: a refused batch, no key file, an empty sitemap; dail
   assert.match(s, /SiteVerificationNotCompleted/, "a new host's first answer is retried, not a failure on the spot");
   const wf = readFileSync(new URL("../.github/workflows/indexnow-submit.yml", import.meta.url), "utf8");
   assert.match(wf, /cron: "37 22 \* \* \*"/, "after the 20:47 UTC import");
-  assert.match(wf, /working-directory: apps\/dexcompare-sealed/);
-  assert.doesNotMatch(wf, /HOST = "dexcompare\.app"/, "the apex host is gone");
+  assert.doesNotMatch(wf, /working-directory:|apps\//, "the app is the repo root: no apps/ prefix");
+  assert.doesNotMatch(wf, /HOST = "/, "the host comes from the sitemap's own URLs, never hard-coded");
 });
 
 test("the key file route reads no data and is built once per deploy", () => {

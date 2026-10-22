@@ -69,17 +69,22 @@ export function releaseChip(set: Pick<MtgSet, "code" | "releaseDate">, now: Date
 
 // ─── Set pages ─────────────────────────────────────────────────────────────────
 
+/** Sold without any booster box: sets.ts sells it in no booster line (a Commander-only release like Commander 2019). */
+export function soldWithoutBox(set: Pick<MtgSet, "noBoosterBox" | "boosters">): boolean {
+  return !!set.noBoosterBox || !set.boosters?.length;
+}
+
 /**
  * A set page's title, by release state. Upcoming: the pre-order wording and the date, the query people type before a set is
- * out. Sold without a booster box (sets.ts noBoosterBox): never "booster box". Otherwise the box first.
+ * out. Sold without a booster box (no booster line in sets.ts): never "booster box". Otherwise the box first.
  */
 export function setTitle(set: MtgSet, r: Pick<RegionInfo, "inName">, now: Date = new Date()): HubTitle {
   const name = withMtg(set.name);
   if (isPreorderSet(set.code, now)) {
-    const what = set.noBoosterBox ? "sealed" : "booster box & bundle";
+    const what = soldWithoutBox(set) ? "sealed" : "booster box & bundle";
     return hubTitle(`${name} pre-orders: ${what} prices in ${r.inName} (out ${shortDate(set.releaseDate)})`);
   }
-  if (set.noBoosterBox) return hubTitle(`${name} sealed prices in ${r.inName}`);
+  if (soldWithoutBox(set)) return hubTitle(`${name} sealed prices in ${r.inName}`);
   return hubTitle(`${name} booster box, bundle & sealed prices in ${r.inName}`);
 }
 
@@ -146,9 +151,9 @@ export function setIntro(set: MtgSet, r: Pick<RegionInfo, "inName" | "adjective"
       `${r.adjective} stores we track list ${plural(products.length, "sealed product")} from it, and ${open} ${open === 1 ? "is" : "are"} in stock today${low != null && open ? `, from ${money(low, r.market)}` : ""}.`,
     );
   }
-  if (set.noBoosterBox) {
-    const types = typeList(products, ["Play Booster Box", "Play Booster Box Case"]);
-    out.push(`It was not sold as a booster box${types ? `: here its packs come in ${types}` : ""}.`);
+  if (soldWithoutBox(set)) {
+    const types = typeList(products);
+    out.push(`It was not sold as a booster box${types ? `: stores here list it as ${types}` : ""}.`);
   }
   const way = cheapestWayIn(products);
   if (way) {
@@ -175,7 +180,7 @@ function lineFact(set: MtgSet, key: TypeKey, label: string, market?: string): Se
 }
 
 /**
- * The 'Set facts' list: series, English release date, the booster box (or that there is none: sets.ts noBoosterBox), and the
+ * The 'Set facts' list: series, English release date, the booster box (or that there is none: soldWithoutBox), and the
  * packs inside each booster box and the bundle (packs.ts). `listed` is the product types the region lists for
  * the set: given, a product line is only described when it is actually listed, so the page never implies a product exists that
  * no store has. `market` "US" adds Wizards' MSRP to each line rrp.ts knows.
@@ -188,7 +193,7 @@ export function setFacts(set: MtgSet, listed?: Iterable<string>, market?: string
     { term: "Series", detail: set.series },
     { term: "English release", detail: `${formatRelease(set.releaseDate)}${pre ? " (pre-order)" : ""}` },
   ];
-  if (set.noBoosterBox) facts.push({ term: "Booster box", detail: "Not sold as a booster box" });
+  if (soldWithoutBox(set)) facts.push({ term: "Booster box", detail: "Not sold as a booster box" });
   const lines: [TypeKey, string][] = [
     ["play-booster-box", "Play Booster Box"],
     ["draft-booster-box", "Draft Booster Box"],
