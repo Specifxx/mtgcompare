@@ -63,7 +63,7 @@ export function GET(_req: Request, { params }: { params: { set: string } }) {
               <rect x="18" y="30" width="30" height="4" fill={BRAND} />
             </svg>
             <div style={{ display: "flex", fontSize: 40, fontWeight: 800, letterSpacing: -1 }}>
-              Dex<span style={{ color: BRAND }}>Compare</span>
+              MTG <span style={{ color: BRAND }}>Compare</span>
             </div>
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>

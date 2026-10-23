@@ -5,7 +5,7 @@
 // pack's, and a line whose products differ in price (a Commander deck and its Collector's Edition) has no entry.
 import { TYPE_BY_LABEL, type TypeKey } from "./sealed-title";
 
-export const RRP_AS_OF = "2026-10";
+export { RRP_AS_OF, RRP_NOTE } from "./rrp-note";
 
 const BY_SET: Record<string, Partial<Record<TypeKey, number>>> = {
   // Wizards' "Collecting Magic: The Gathering | Star Trek" article (published 14 July 2026, read 16 October 2026): "MSRPs for
@@ -32,5 +32,4 @@ export function usMsrpForCard(market: string, typeLabel: string, setCode: string
   return t ? usMsrpCents(t.key, setCode) : null;
 }
 
-/** The one-line disclosure that goes wherever an MSRP is printed. */
-export const RRP_NOTE = `MSRP is Wizards of the Coast's announced US list price (as of ${RRP_AS_OF}); stores set their own.`;
+

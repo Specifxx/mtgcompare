@@ -6,6 +6,8 @@ import { cardSelect, OPEN, toCard, type ProductCardData } from "@/lib/data";
 import type { Market, RegionInfo } from "@/lib/regions";
 import { familyIn, lastCheckedIn, topStores, type FamilyKey, type StoreRow } from "../live";
 import type { GuideSlug } from "./index";
+import { GIFT_CAP, GIFT_TYPES, PER_PACK_TYPES, cardsFor, openCount, openOfSets, openOfType, setCountsOf, wrapFor, type Wrap } from "./more-data";
+import { SETS } from "@/lib/sets";
 
 export type { StoreRow };
 
@@ -28,6 +30,15 @@ export interface GuideData {
   types: TypeSummaryRow[];
   /** The region's stores with the most sealed Magic in stock (at most 12 rows). */
   stores: StoreRow[];
+  /** Per product type label: open products, as the guide's EXTRA read orders them (more-data.ts). */
+  byType?: Partial<Record<string, ProductCardData[]>>;
+  /** Per product type label: how many are open in the region. */
+  openByType?: Partial<Record<string, number>>;
+  /** Per set code: products listed and open (the release calendar, Universes Beyond). */
+  sets?: Record<string, { products: number; open: number }>;
+  /** The weekly wrap's real week-over-week moves (from the price-history file), and the cards they name. */
+  wrap?: Wrap;
+  cards?: ProductCardData[];
 }
 
 export const emptyGuideData = (today: string, checked: string | null = null): GuideData => ({ checked, today, rows: {}, types: [], stores: [] });
@@ -60,7 +71,54 @@ const READS: Record<GuideSlug, readonly [FamilyKey, number][]> = {
   "how-to-avoid-resealed-magic-products": [["play-box", 3], ["collector-box", 3]],
   "where-to-buy-magic-sealed-online": [],
   "magic-msrp": [],
+  "cheapest-way-to-buy-magic-packs": [],
+  "play-vs-collector-booster-box-value-by-set": [],
+  "universes-beyond-sealed-price-guide": [],
+  "commander-precon-price-guide": [],
+  "secret-lair-drops-explained": [],
+  "magic-sealed-gifts-under-50": [],
+  "magic-release-dates-preorder-calendar": [],
+  "magic-sealed-market-wrap": [],
 };
+
+const UB_CODES = SETS.filter((x) => x.series === "Universes Beyond").map((x) => x.code);
+/** The calendar's sets: every set out in the last 365 days or not out yet. */
+export function calendarSets(today: string) {
+  const back = new Date(Date.parse(`${today}T00:00:00Z`) - 365 * 86_400_000).toISOString().slice(0, 10);
+  return SETS.filter((x) => x.releaseDate >= back);
+}
+
+/** The new guides' own reads (more-data.ts), by slug: what fills byType, openByType, sets and wrap. */
+async function extraFor(slug: GuideSlug, market: RegionInfo["market"], today: string): Promise<Partial<GuideData>> {
+  const types = async (labels: readonly string[], take: number, order: "asc" | "desc" = "asc", extra: Record<string, unknown> = {}) =>
+    Object.fromEntries(await Promise.all(labels.map(async (l) => [l, await openOfType(market, l, take, order, extra)] as const)));
+  const counts = async (labels: readonly string[]) => Object.fromEntries(await Promise.all(labels.map(async (l) => [l, await openCount(market, l)] as const)));
+  switch (slug) {
+    case "cheapest-way-to-buy-magic-packs":
+      return { byType: await types(PER_PACK_TYPES, 40), openByType: await counts(PER_PACK_TYPES) };
+    case "play-vs-collector-booster-box-value-by-set":
+      return { byType: await types(["Play Booster Box", "Collector Booster Box"], 200) };
+    case "universes-beyond-sealed-price-guide":
+      return { byType: { ub: await openOfSets(market, UB_CODES, 400) }, sets: await setCountsOf(market, UB_CODES) };
+    case "commander-precon-price-guide":
+      return { byType: await types(["Commander Deck", "Commander Deck Set"], 12), openByType: await counts(["Commander Deck", "Commander Deck Set"]) };
+    case "secret-lair-drops-explained": {
+      const [cheap, dear] = await Promise.all([openOfType(market, "Secret Lair Drop", 8), openOfType(market, "Secret Lair Drop", 3, "desc")]);
+      return { byType: { cheapest: cheap, dearest: dear }, openByType: await counts(["Secret Lair Drop"]) };
+    }
+    case "magic-sealed-gifts-under-50":
+      // Dearest first under the cap: the most a gift of that kind gets for the money, in the region's own currency.
+      return { byType: await types(GIFT_TYPES, 4, "desc", { lte: GIFT_CAP[market] }) };
+    case "magic-release-dates-preorder-calendar":
+      return { sets: await setCountsOf(market, calendarSets(today).map((x) => x.code)) };
+    case "magic-sealed-market-wrap": {
+      const wrap = wrapFor(market);
+      return { wrap, cards: await cardsFor(market, [...wrap.lower, ...wrap.higher].map((m) => m.slug)) };
+    }
+    default:
+      return {};
+  }
+}
 
 /** The guides that also read named products (a release's own sealed line), by the words its names contain. */
 const NAMED: Partial<Record<GuideSlug, string>> = {
@@ -91,5 +149,6 @@ export async function loadGuideData(slug: GuideSlug, r: RegionInfo, now: Date = 
   ]);
   const rows: GuideData["rows"] = Object.fromEntries(lists);
   if (named) rows.named = namedRows;
-  return { ...emptyGuideData(today, await checked), rows, stores, types };
+  const extra = await extraFor(slug, r.market, today);
+  return { ...emptyGuideData(today, await checked), rows, stores, types, ...extra };
 }

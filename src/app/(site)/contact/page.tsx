@@ -44,7 +44,7 @@ export default function Contact() {
 
         <h2 id="stores">Stores: get listed, or removed</h2>
         <p>
-          If you sell English Pokémon TCG sealed product online on Shopify or WooCommerce, we can list you for free — email your store&rsquo;s
+          If you sell English Magic: The Gathering sealed product online on Shopify or WooCommerce, we can list you for free — email your store&rsquo;s
           address and we run the same check as for every other store (<Link href="/about#which-stores">which stores and why</Link>). If you
           would rather not be listed, say so and you are removed within a day, no questions asked. Nothing about being listed can be bought, and
           nothing a store pays or offers changes where it ranks.

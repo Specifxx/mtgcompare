@@ -34,3 +34,29 @@ cards … only focus on sealed products … price all the sealed products compar
 - **More crawlers are refused in robots.txt**: SEO-tool crawlers (Ahrefs, Semrush) and AI-training crawlers, which render the long
   tail and send no visitors. Search engines and AI search crawlers still read the site.
 - Unchanged and already cheap: no database reads from pages, no crons, no ISR writes, no image optimisation, one release a day.
+
+## 2026-10-23: titles at 60 characters, built in lib/seo-titles.ts; eight data-driven guides
+
+- Every price page's `<title>` (with " | MTG Compare" only when it still fits) is at most 60 characters and every description at most
+  160 (`src/lib/seo-titles.ts`, `tests/seo-titles.test.ts`). Titles are candidate lists, most specific first; long names and regions
+  lose the extras (the from-price, the box wording), never the query. A long store title is tidied and cut at a word, never rewritten.
+  The page bodies' copy (hub-copy, deals, product-copy) is unchanged; only `generateMetadata` reads the new builders.
+- Eight new guides read live data through `src/content/guides/more-data.ts`. Per-pack figures use lib/packs.ts counts only. The gift
+  guide's cap is a round figure in each region's own currency (GIFT_CAP), stated as such: never a conversion of US$50.
+- The weekly market wrap prints only real week-over-week moves from `data/public/price-history.json` (2+ stores on both days, moves of
+  5–50%); with no file or under eight days of snapshots it says so and shows no numbers.
+- Guide sitemap lastmod is the guide's editorial `updated` date (blog posts and the by-country guide likewise), never the import time.
+
+## 2026-10-23 — DexCompare's newer interface, ported (owner: "make mtgcompare.app look and convert as well as dexcompare.app")
+
+- The landing page is force-dynamic and CDN-cached a day (it renders the US "In stock today" grid on the server), no longer
+  prerendered; other regions load through `/api/picks/<region>` (one-day CDN cache). The region is chosen in the browser: the
+  saved region, then the browser language and time zone, and `/api/geo` only when those cannot decide (cost).
+- Pre-order banner (the next real upcoming set), Black Friday page and banner (1 November to a week after Cyber Monday), MSRP
+  badge (only Wizards' published prices in `rrp.ts`), "checked … ago", price history (chart from 7 days; the export writes it,
+  nothing in `data/public` by hand), two tools only (value checker, eBay selling-fee calculator).
+- GA4 events (region select, search without its words, store click, affiliate click) go through `src/lib/gtag.ts`, a no-op until
+  `NEXT_PUBLIC_GA_ID` is set; GA4 sets cookies, so the privacy page must change before it is.
+- Not ported, on purpose: Speed Insights, Vercel Analytics, the `/go` redirect (a billed function per click), the Discord/Telegram
+  feed, DexCompare's Pokémon guides and tools.
+- Store combos sold as "BUNDLE: …, …" are refused, and a set's own code ("Fra Reality Fracture Bundle") never names a bundle.

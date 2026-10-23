@@ -329,7 +329,64 @@ export function setsOfYear(year: number): MtgSet[] {
 
 /** A store page is worth indexing only when the store lists something and is not dormant; otherwise noindex, and no sitemap URL. */
 export function storeIndexable(st: { listed: number; dormant: boolean } | null | undefined): boolean {
-  return !!st && st.listed > 0 && !st.dormant;
+  return !!st && st.listed >= STORE_MIN_LISTED && !st.dormant;
+}
+
+/**
+ * The fewest listings a store page needs to be indexed (SEO release, 2026-10-21): a page of one or two products is thin whatever its
+ * intro says. hub-data.ts activeStoreKeys (the sitemap) uses the same number.
+ */
+export const STORE_MIN_LISTED = 3;
+
+/**
+ * A store page's intro: what this store sells, in its own numbers (data.ts storeTypeRows), so no two store pages read alike. Facts only,
+ * current state only: never a claim about the store's service, reliability or prices beyond what was read.
+ */
+export function storeIntro(o: {
+  name: string;
+  host: string;
+  platform: "shopify" | "woocommerce" | "tcgplayer";
+  r: Pick<RegionInfo, "inName" | "adjective" | "currency">;
+  rows: readonly { productType: string; listed: number; inStock: number; cheapest: number; sets: readonly string[] }[];
+  storesInRegion: number;
+  dormant: boolean;
+}): string[] {
+  const listed = o.rows.reduce((n, x) => n + x.listed, 0);
+  const inStock = o.rows.reduce((n, x) => n + x.inStock, 0);
+  const cheapest = o.rows.reduce((n, x) => n + x.cheapest, 0);
+  const out: string[] = [];
+  out.push(
+    `${o.name} (${o.host}) is one of the ${plural(o.storesInRegion, `${o.r.adjective} online store`)} MTG Compare reads about twice a day for Magic: The Gathering sealed product. ` +
+      (listed
+        ? `Right now it lists ${plural(listed, "sealed product")}, ${inStock} of them in stock, every price in ${o.r.currency} as the store shows it.`
+        : `We haven’t found any Magic sealed product on its site yet.`),
+  );
+  if (listed) {
+    const order = new Map(PRODUCT_TYPES.map((t, i) => [t.label, i]));
+    const top = [...o.rows].sort((a, b) => b.listed - a.listed || (order.get(a.productType) ?? 99) - (order.get(b.productType) ?? 99)).slice(0, 3);
+    const named = top.map((x) => {
+      const t = PRODUCT_TYPES.find((y) => y.label === x.productType);
+      return plural(x.listed, x.productType, t?.plural ?? `${x.productType}s`);
+    });
+    const sets = [...new Set(o.rows.flatMap((x) => x.sets))];
+    const newest = SETS.find((s) => sets.includes(s.code));
+    const oldest = [...SETS].reverse().find((s) => sets.includes(s.code));
+    const range = sets.length > 1 && newest && oldest && newest.code !== oldest.code ? ` Its range covers ${plural(sets.length, "set")}, from ${oldest.name} to ${newest.name}.` : newest ? ` Its listings come from ${newest.name}.` : "";
+    out.push(`Most of what it lists is ${sentence(named)}.${range}`);
+    out.push(
+      o.dormant
+        ? `It had nothing we could show as in stock at the last read, so its listings stay on product pages marked sold out.`
+        : cheapest
+          ? `${plural(cheapest, "product")} it has in stock ${cheapest === 1 ? "is" : "are"} at the cheapest price of any ${o.r.adjective} store we track today; each product page ranks every store by price.`
+          : `Each product below links to its own page, where every ${o.r.adjective} store we track is ranked by price, in stock first.`,
+    );
+  }
+  return out;
+}
+
+function sentence(items: string[]): string {
+  if (items.length <= 1) return items.join("");
+  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
 }
 
 export function storesTitle(r: Pick<RegionInfo, "inName">, n: number): HubTitle {

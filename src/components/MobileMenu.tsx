@@ -74,6 +74,7 @@ export function Glyph({ name }: { name: IconName | GlyphName }) {
 /** The phone menu's rows, in order (all under /<region>). */
 export const MENU_ROWS: { key: SectionKey; label: string; glyph: IconName | GlyphName }[] = [
   { key: "deals", label: "Deals", glyph: "tag" },
+  { key: "blackFriday", label: "Black Friday", glyph: "tag" },
   { key: "thisWeek", label: "This week", glyph: "clock" },
   { key: "sealed", label: "All sealed", glyph: "grid" },
   { key: "boosterBoxes", label: "Play Booster Boxes", glyph: "cube" },
@@ -83,6 +84,7 @@ export const MENU_ROWS: { key: SectionKey; label: string; glyph: IconName | Glyp
   { key: "sets", label: "Sets", glyph: "layers" },
   { key: "releases", label: "Releases", glyph: "calendar" },
   { key: "guides", label: "Guides", glyph: "book" },
+  { key: "tools", label: "Tools", glyph: "check" },
   { key: "stores", label: "Where to buy", glyph: "store" },
 ];
 

@@ -8,6 +8,8 @@ import { rankOffers } from "./sealed-offers";
 import { isMarketplace, STORE_BY_KEY, storeHost, TCGPLAYER } from "./stores";
 import { cardOpen } from "./compact";
 import type { Market } from "./regions";
+import { publicRowsBy } from "./public-data/store";
+import { routeRaw } from "./public-data/route";
 
 export interface ProductCardData {
   slug: string;
@@ -459,4 +461,62 @@ export async function marketsWithType(typeLabel: string): Promise<Market[]> {
 /** Passes the browse/sitemap bar in a market: something to buy or something to compare (COMPARABLE, for one row). */
 export function comparable(s: { inStockStores: number; listedStores: number; marketplaceOpen: boolean }): boolean {
   return s.inStockStores > 0 || s.marketplaceOpen || s.listedStores >= 2;
+}
+
+/** One product type's listings at one store: how many it lists, has in stock, and has in stock at the region's cheapest price. */
+export interface StoreTypeRow {
+  productType: string;
+  listed: number;
+  inStock: number;
+  /** In stock at or under the product's cheapest open price in the market (the store is the cheapest, or tied). */
+  cheapest: number;
+  /** The set codes its listings of this type come from. */
+  sets: string[];
+}
+
+/**
+ * What a store's page says about it in its intro (SEO release, 2026-10-21): its listings grouped by product type. One store's rows
+ * only (rule 1: scoped to one entity), at most one row per product type; from the public files, or one GROUP BY on Neon.
+ */
+export async function storeTypeRows(store: string): Promise<StoreTypeRow[]> {
+  const fromFiles = (): StoreTypeRow[] => {
+    const acc = new Map<string, StoreTypeRow>();
+    for (const o of publicRowsBy("Offer", "store", [store])) {
+      const p = publicRowsBy("Product", "id", [o.productId])[0];
+      if (!p) continue;
+      const type = String(p.productType);
+      const row = acc.get(type) ?? { productType: type, listed: 0, inStock: 0, cheapest: 0, sets: [] };
+      row.listed++;
+      if (o.inStock === true) {
+        row.inStock++;
+        const st = publicRowsBy("ProductStat", "productId", [o.productId]).find((x) => x.market === o.market);
+        const low = (st?.lowestPriceCents as number | null | undefined) ?? null;
+        if (low != null && (o.priceCents as number) <= low) row.cheapest++;
+      }
+      if (p.setCode != null && !row.sets.includes(String(p.setCode))) row.sets.push(String(p.setCode));
+      acc.set(type, row);
+    }
+    return [...acc.values()];
+  };
+  return routeRaw(fromFiles, () => prisma.$queryRaw<StoreTypeRow[]>`
+    SELECT p."productType" AS "productType",
+      count(*)::int AS "listed",
+      (count(*) FILTER (WHERE o."inStock"))::int AS "inStock",
+      (count(*) FILTER (WHERE o."inStock" AND s."lowestPriceCents" IS NOT NULL AND o."priceCents" <= s."lowestPriceCents"))::int AS "cheapest",
+      coalesce(array_agg(DISTINCT p."setCode") FILTER (WHERE p."setCode" IS NOT NULL), '{}') AS "sets"
+    FROM "Offer" o
+    JOIN "Product" p ON p."id" = o."productId"
+    LEFT JOIN "ProductStat" s ON s."productId" = o."productId" AND s."market" = o."market"
+    WHERE o."store" = ${store}
+    GROUP BY 1
+    LIMIT 32`);
+}
+
+/** The cards of the given products in one market, in the order given (at most 48: a section's worth). */
+export async function cardsBySlugs(market: Market, slugs: readonly string[]): Promise<ProductCardData[]> {
+  const some = [...new Set(slugs)].slice(0, 48);
+  if (!some.length) return [];
+  const rows = await prisma.productStat.findMany({ where: { market, product: { slug: { in: some } } }, take: some.length, select: cardSelect });
+  const bySlug = new Map(rows.map(toCard).map((c) => [c.slug, c]));
+  return some.map((s) => bySlug.get(s)).filter((c): c is ProductCardData => !!c);
 }

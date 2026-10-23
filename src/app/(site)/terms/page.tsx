@@ -18,7 +18,7 @@ export default function Terms() {
       <p className="mt-2 text-sm text-faint">Last updated {LAST_UPDATED}</p>
       <div className="prose-dex mt-6">
         <p>
-          {SITE_NAME} ({SITE_URL.replace(/^https?:\/\//, "")}) is a free price-comparison site for Pokémon TCG sealed product, operated by {OPERATOR}{" "}
+          {SITE_NAME} ({SITE_URL.replace(/^https?:\/\//, "")}) is a free price-comparison site for Magic: The Gathering sealed product, operated by {OPERATOR}{" "}
           (&ldquo;we&rdquo;). By using it you agree to these terms. They are short because the site does little: it reads stores&rsquo; public
           listings and shows them side by side.
         </p>

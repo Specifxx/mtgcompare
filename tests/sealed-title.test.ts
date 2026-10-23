@@ -342,3 +342,11 @@ test("a plain Bundle with seller words is the set's Bundle; a named bundle stays
   const named = identify("Duskmourn Nightmare Bundle");
   assert.ok(typeof named === "object" && named.type === "special-bundle");
 });
+
+test("a store's own 'BUNDLE:' combo is refused, and a leading set code never names a bundle (real store titles, 2026-10-23)", () => {
+  assert.equal(identify("BUNDLE: Reality Fracture Collector Pack, Marvel Play Booster, Reality Fracture Play Booster"), "multiple");
+  for (const [t, key] of [["Fra Reality Fracture Bundle", "fra|bundle"], ["MSH Marvel Super Heroes Bundle", "msh|bundle"]] as const) {
+    const r = identify(t);
+    assert.ok(typeof r === "object" && r.groupKey === key, `${t} → ${JSON.stringify(r)}`);
+  }
+});

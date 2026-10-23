@@ -45,7 +45,6 @@ export default function Privacy() {
           servers</b> (ebayimg.com), which shares your IP address and browser type with eBay. We ask your browser not to send the page address
           along (no-referrer). Nothing is loaded until the strip is near the screen, and eBay sets no cookie through it. We store the
           imported listings only briefly (about a day) and then delete them; they hold nothing about visitors.
-          <> Set logos on the set pages are loaded from the Pokémon TCG image catalogue (images.pokemontcg.io / images.scrydex.com), which can see that request.</>
         </p>
         {ADSENSE_CLIENT && (
           <>

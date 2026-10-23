@@ -402,7 +402,7 @@ test("AddToCalendar: a real button the server renders at its final size, named f
 test("the hub pages use the hub copy and the capped reads", () => {
   const src = (p: string) => readFileSync(new URL(`../src/app/[region]/${p}`, import.meta.url), "utf8");
   const setPage = src("sets/[set]/page.tsx");
-  assert.match(setPage, /setTitle\(s, r\)/);
+  assert.match(setPage, /seoCopy\.setTitle\(s, r, /); // the <title> rule lives in lib/seo-titles.ts (tests/seo-titles.test.ts)
   assert.match(setPage, /setDescription\(s, r, products\)/);
   assert.doesNotMatch(setPage, /image: s\.logo/, "the default share card, not the set's logo");
   assert.match(setPage, /tiles="set"/);

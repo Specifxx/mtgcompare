@@ -16,7 +16,7 @@ import { lastCheckedAt, marketsWithSet, productsBySet, type ProductCardData } fr
 import { cardOpen } from "@/lib/compact";
 import { gridPageHasRoomForFooter } from "@/lib/ebay-ads";
 import { money, timeAgo } from "@/lib/format";
-import { cheapestWayIn, prevNextSet, releaseChip, setDescription, setFacts, setIntro, setTitle, shortDate, titleText } from "@/lib/hub-copy";
+import { cheapestWayIn, prevNextSet, releaseChip, setDescription, setFacts, setIntro, shortDate, soldWithoutBox, titleText } from "@/lib/hub-copy";
 import { thumb } from "@/lib/images";
 import { cheapestPerPackByType, type PerPackPick } from "@/lib/per-pack";
 import { isPreorderSet } from "@/lib/release";
@@ -24,10 +24,12 @@ import { preorderPath } from "@/lib/preorder-guides";
 import { regionOfMarket, regionOrNotFound, type Market, type RegionInfo } from "@/lib/regions";
 import { RRP_NOTE } from "@/lib/rrp";
 import { itemListJsonLd, jsonLd, pageMeta, regionAlternates, withMtg } from "@/lib/seo";
+import { fitDescription, seoCopy, seoTitleText } from "@/lib/seo-titles";
 import { ShareButton } from "@/components/ShareButton";
 import { PRODUCT_TYPES } from "@/lib/sealed-title";
 import { SET_BY_SLUG, type MtgSet } from "@/lib/sets";
 import { SITE_URL } from "@/lib/site";
+import { toolHref } from "@/content/tools";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js, CDN_PAGES), never ISR: an ISR write
 // costs about twenty renders, and the data only changes with a release, which empties the CDN anyway.
@@ -49,11 +51,11 @@ export async function generateMetadata({ params }: { params: { region: string; s
   const regions = products.length ? (await marketsWithSet(s.code)).map(regionOfMarket).filter((x): x is RegionInfo => !!x) : [];
   // The title follows the release state (pre-order wording and the date until the set is out; never "booster box" for a set sold
   // without one), and the description is built from the products loaded above. No image: the site's share card (pageMeta's default).
-  const title = setTitle(s, r);
+  const title = seoCopy.setTitle(s, r, { preorder: isPreorderSet(s.code), withoutBox: soldWithoutBox(s), date: shortDate(s.releaseDate) });
   return {
     ...pageMeta({
       title: titleText(title),
-      description: setDescription(s, r, products),
+      description: fitDescription(setDescription(s, r, products), setDescription(s, r, products).replace(/; cheapest per pack: [^;]+/, "")),
       path: `/${r.region}/sets/${s.slug}`,
       alternates: products.length ? regionAlternates(r.region, `/sets/${s.slug}`, regions) : undefined,
       noindex: products.length === 0,
@@ -85,6 +87,7 @@ export default async function SetPage({ params }: { params: { region: string; se
       .slice(0, 4)
       .map((t) => ({ href: `/${r.region}/type/${t.slug}`, label: `${t.plural} in ${r.inName}` })),
     { href: `/${r.region}/stores`, label: `Stores in ${r.inName}` },
+    { href: toolHref(r.region, "value-checker"), label: "Value checker" },
   ];
   // This set's chase cards as an image strip of real listings (cascade: generic chase cards for a set with no feed of its own); with none
   // to list, the compact CTA row. It sits on a row of its own after the first products (ProductGrid `strip`), so the products come first.
@@ -130,6 +133,8 @@ export default async function SetPage({ params }: { params: { region: string; se
             <SetChips s={s} pre={pre} open={open.length} total={products.length} />
           </ul>
         </div>
+        {/* The page's answer in a sentence, above the grid (the longer "About" sits below it). */}
+        <p className="mt-4 max-w-3xl text-[15px] leading-7 text-muted">{setDescription(s, r, products)}</p>
 
         {(way || pre || us) && (
           // Two fixed columns from sm (the cheapest pack; then the calendar and the labelled TCGplayer link stacked), so no line

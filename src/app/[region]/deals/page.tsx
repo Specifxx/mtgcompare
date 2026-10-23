@@ -9,12 +9,13 @@ import { Icon } from "@/components/Icon";
 import { ProductGrid } from "@/components/ProductGrid";
 import { Empty, Section } from "@/components/Section";
 import { lastCheckedAt, type ProductCardData } from "@/lib/data";
-import { belowMsrpUS, dealPct, dealsBySection, dealsCopy, fitTitle, nearestRegion, perPackLeaders, stockLabel, type PerPackRow } from "@/lib/deals";
+import { belowMsrpUS, dealPct, dealsBySection, dealsCopy, nearestRegion, perPackLeaders, stockLabel, type PerPackRow } from "@/lib/deals";
 import { money, plural, timeAgo } from "@/lib/format";
 import { isPreorderSet } from "@/lib/release";
 import { REGIONS, regionOrNotFound, type Market, type RegionInfo } from "@/lib/regions";
 import { RRP_NOTE } from "@/lib/rrp";
 import { itemListJsonLd, jsonLd, pageMeta, regionAlternates } from "@/lib/seo";
+import { fitDescription, seoCopy, seoTitleText } from "@/lib/seo-titles";
 
 // /[region]/deals: products whose cheapest in-stock price is at least 10% under the median of the 3+ stores that have it, today
 // (lib/deals.ts: the same bar as every card's "N% below the median" badge, so the page and the badges always agree). One section per
@@ -39,13 +40,13 @@ export async function generateMetadata({ params }: { params: { region: string } 
   const best = deals.length ? Math.max(...deals.map(dealPct)) : null;
   return {
     ...pageMeta({
-      title: dealsCopy.title(r),
-      description: dealsCopy.description(r, deals.length, best),
+      title: seoTitleText(seoCopy.dealsTitle(r)),
+      description: seoCopy.dealsDescription(r, deals.length, best),
       path: `/${r.region}/deals`,
       alternates: regionAlternates(r.region, "/deals"),
       noindex: deals.length < THIN && leaders.top10.length < THIN,
     }),
-    title: fitTitle(dealsCopy.title(r)),
+    title: seoCopy.dealsTitle(r),
   };
 }
 

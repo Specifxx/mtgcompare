@@ -10,6 +10,14 @@ import * as whereToBuy from "./where-to-buy-magic-sealed-online";
 import * as preorder from "./how-to-preorder-magic-sets";
 import * as resealed from "./how-to-avoid-resealed-magic-products";
 import * as msrp from "./magic-msrp";
+import * as cheapestPacks from "./cheapest-way-to-buy-magic-packs";
+import * as playVsCollector from "./play-vs-collector-booster-box-value-by-set";
+import * as universesBeyond from "./universes-beyond-sealed-price-guide";
+import * as commander from "./commander-precon-price-guide";
+import * as secretLair from "./secret-lair-drops-explained";
+import * as gifts from "./magic-sealed-gifts-under-50";
+import * as calendar from "./magic-release-dates-preorder-calendar";
+import * as wrap from "./magic-sealed-market-wrap";
 
 export const GUIDE_MODULES: Record<GuideSlug, GuideModule> = {
   "play-booster-vs-collector-booster-vs-bundle": compare,
@@ -20,4 +28,12 @@ export const GUIDE_MODULES: Record<GuideSlug, GuideModule> = {
   "how-to-preorder-magic-sets": preorder,
   "how-to-avoid-resealed-magic-products": resealed,
   "magic-msrp": msrp,
+  "cheapest-way-to-buy-magic-packs": cheapestPacks,
+  "play-vs-collector-booster-box-value-by-set": playVsCollector,
+  "universes-beyond-sealed-price-guide": universesBeyond,
+  "commander-precon-price-guide": commander,
+  "secret-lair-drops-explained": secretLair,
+  "magic-sealed-gifts-under-50": gifts,
+  "magic-release-dates-preorder-calendar": calendar,
+  "magic-sealed-market-wrap": wrap,
 };

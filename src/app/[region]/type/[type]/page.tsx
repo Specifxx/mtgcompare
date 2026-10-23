@@ -12,12 +12,13 @@ import { Empty, Section } from "@/components/Section";
 import { lastCheckedAt, marketsWithType } from "@/lib/data";
 import { gridPageHasRoomForFooter } from "@/lib/ebay-ads";
 import { money, plural, timeAgo } from "@/lib/format";
-import { dealsAnchor, shortDate, titleText, typeDescription, typeMsrpFact, typeName, typePacksFact, typePerPackRows, typeTitle } from "@/lib/hub-copy";
+import { dealsAnchor, shortDate, titleText, typeMsrpFact, typeName, typePacksFact, typePerPackRows } from "@/lib/hub-copy";
 import { typePageData } from "@/lib/hub-data";
 import { regionOfMarket, regionOrNotFound, type Market, type RegionInfo } from "@/lib/regions";
 import { RRP_NOTE } from "@/lib/rrp";
 import { PRODUCT_TYPES, TYPE_BY_SLUG } from "@/lib/sealed-title";
 import { itemListJsonLd, jsonLd, pageMeta, regionAlternates } from "@/lib/seo";
+import { fitDescription, seoCopy, seoTitleText } from "@/lib/seo-titles";
 import { SET_BY_CODE } from "@/lib/sets";
 import { TYPE_ABOUT } from "@/lib/type-about";
 
@@ -42,11 +43,11 @@ export async function generateMetadata({ params }: { params: { region: string; t
   // Empty here: noindex, and no hreflang set. Otherwise advertise only the
   // regions that list the type (their copies are the indexable ones).
   const regions = total ? (await marketsWithType(t.label)).map(regionOfMarket).filter((x): x is RegionInfo => !!x) : [];
-  const title = typeTitle(t, r, d.openCount, from);
+  const title = seoCopy.typeTitle(t, r, d.openCount, from);
   return {
     ...pageMeta({
       title: titleText(title),
-      description: typeDescription(t, r, { open: d.openCount, total }, from),
+      description: seoCopy.typeDescription(t, r, { open: d.openCount, total }, from),
       path: `/${r.region}/type/${t.slug}`,
       alternates: total ? regionAlternates(r.region, `/type/${t.slug}`, regions) : undefined,
       noindex: total === 0,

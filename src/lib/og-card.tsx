@@ -82,7 +82,7 @@ export function ogCard({ lines, sub, chips, tag, size = 64 }: OgCard): ImageResp
               <rect x="18" y="30" width="30" height="4" fill={BRAND} />
             </svg>
             <div style={{ display: "flex", fontSize: 42, fontWeight: 800, letterSpacing: -1 }}>
-              Dex<span style={{ color: BRAND }}>Compare</span>
+              MTG <span style={{ color: BRAND }}>Compare</span>
             </div>
             {tag && (
               <div style={{ display: "flex", marginLeft: 8, padding: "4px 14px", borderRadius: 999, background: INK, color: "#ffffff", fontSize: 22, fontWeight: 600 }}>{tag}</div>

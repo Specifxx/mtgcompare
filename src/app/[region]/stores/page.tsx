@@ -7,10 +7,11 @@ import { EbayStrip } from "@/components/EbayStrip";
 import { Icon, type IconName } from "@/components/Icon";
 import { storeStats } from "@/lib/data";
 import { plural, timeAgo } from "@/lib/format";
-import { storesDescription, storesTitle, titleText, topStores } from "@/lib/hub-copy";
+import { titleText, topStores } from "@/lib/hub-copy";
 import { regionOrNotFound, type RegionInfo } from "@/lib/regions";
 import { OFFER_STALE_H } from "@/lib/sealed-offers";
 import { pageMeta, regionAlternates } from "@/lib/seo";
+import { fitDescription, seoCopy, seoTitleText } from "@/lib/seo-titles";
 import { storeHost, storesInMarket, type StoreConfig } from "@/lib/stores";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js, CDN_PAGES), never ISR: an ISR write
@@ -20,11 +21,11 @@ export const dynamic = "force-dynamic";
 export function generateMetadata({ params }: { params: { region: string } }): Metadata {
   const r = regionOrNotFound(params.region);
   const n = storesInMarket(r.market).length;
-  const title = storesTitle(r, n);
+  const title = seoCopy.storesTitle(r, n);
   return {
     ...pageMeta({
       title: titleText(title),
-      description: storesDescription(r, n),
+      description: seoCopy.storesDescription(r, n),
       path: `/${r.region}/stores`,
       alternates: regionAlternates(r.region, "/stores"),
     }),
@@ -46,10 +47,10 @@ export default async function StoresPage({ params }: { params: { region: string 
   return (
     <div className="page py-8">
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { label: "Stores" }]} />
-      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Where to buy Pokémon TCG sealed online in {r.inName}</h1>
+      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Where to buy Magic sealed online in {r.inName}</h1>
       <p className="mt-3 max-w-2xl leading-7 text-muted">
         {/* One text node: a sentence split around {values} moves its later pieces when the web font arrives (a layout shift). */}
-        {`${plural(stores.length, "independent game and card store")} that sell Pokémon sealed product online in ${r.currency}, compared in one place. We read their public product listings about twice a day; every product page ranks them by price and stock, and no store pays to be listed or to rank higher.`}
+        {`${plural(stores.length, "independent game and card store")} that sell Magic: The Gathering sealed product online in ${r.currency}, compared in one place. We read their public product listings about twice a day; every product page ranks them by price and stock, and no store pays to be listed or to rank higher.`}
       </p>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] lg:gap-10">
@@ -64,7 +65,7 @@ export default async function StoresPage({ params }: { params: { region: string 
                 <Link href={`/${r.region}/stores/${lead.key}`} prefetch={false} className="font-semibold text-ink hover:text-brand">
                   {lead.name}
                 </Link>{" "}
-                has the most Pokémon sealed in stock: {plural(lead.inStock, "product")}, read <Ago iso={lead.lastOkAt!.toISOString()} initial={timeAgo(lead.lastOkAt)} />.
+                has the most Magic sealed in stock: {plural(lead.inStock, "product")}, read <Ago iso={lead.lastOkAt!.toISOString()} initial={timeAgo(lead.lastOkAt)} />.
               </p>
               {top.length > 1 && (
                 <h3 className="eyebrow mt-4">

@@ -8,13 +8,14 @@ import { Icon } from "@/components/Icon";
 import { ProductRail } from "@/components/ProductRail";
 import { Empty, Section } from "@/components/Section";
 import { calendarProducts, CALENDAR_TYPES, lastCheckedAt, type ProductCardData } from "@/lib/data";
-import { dealsCopy, dealsInMarket, digestCopy, fitTitle, JUST_RELEASED_DAYS, newlyTracked, productCountsBySets, setsAround, SOON_DAYS, stockLabel } from "@/lib/deals";
+import { dealsCopy, dealsInMarket, digestCopy, JUST_RELEASED_DAYS, newlyTracked, productCountsBySets, setsAround, SOON_DAYS, stockLabel } from "@/lib/deals";
 import { money, plural, relativeDay, timeAgo } from "@/lib/format";
 import { thumb } from "@/lib/images";
 import { packsForLabel, perPackCents } from "@/lib/packs";
 import { formatRelease } from "@/lib/release";
 import { regionOrNotFound, type RegionInfo } from "@/lib/regions";
 import { pageMeta, regionAlternates } from "@/lib/seo";
+import { fitDescription, seoCopy, seoTitleText } from "@/lib/seo-titles";
 import type { MtgSet } from "@/lib/sets";
 
 // /[region]/this-week: a digest that changes every day, built only from today's state: sets releasing in the next 45 days (with
@@ -30,12 +31,12 @@ export function generateMetadata({ params }: { params: { region: string } }): Me
   const r = regionOrNotFound(params.region);
   return {
     ...pageMeta({
-      title: digestCopy.title(r),
+      title: seoTitleText(seoCopy.digestTitle(r)),
       description: digestCopy.description(r),
       path: `/${r.region}/this-week`,
       alternates: regionAlternates(r.region, "/this-week"),
     }),
-    title: fitTitle(digestCopy.title(r)),
+    title: seoCopy.digestTitle(r),
   };
 }
 

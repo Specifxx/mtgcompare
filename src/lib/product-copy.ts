@@ -187,3 +187,49 @@ export function productDescription(o: { name: string; market: string; adjective:
   const value = o.value && !o.value.href ? ` ${o.value.text}.` : "";
   return `${head}${value} Every store's price and stock, checked about twice a day.`;
 }
+
+/**
+ * The product page's "About" paragraphs (SEO release, 2026-10-21): what the product is (type-about.ts), its set and release, its pack
+ * count and today's price per pack, how many of the region's stores have it, and how the median compares, as plain sentences that
+ * differ from product to product. Facts only, current state only: nothing here may match BANNED_COPY (tests/product-page.test.ts).
+ */
+export function productIntro(o: {
+  name: string;
+  productType: string;
+  /** type-about.ts's sentence for the type, when it has one. */
+  about: string | null;
+  set: { name: string; series: string; releaseDate: string } | null;
+  preorder: boolean;
+  packs: number | null;
+  market: string;
+  inName: string;
+  adjective: string;
+  cheapest: { cents: number; storeName: string; marketplace: boolean } | null;
+  medianCents: number | null;
+  openStores: number;
+  storeCount: number;
+  /** The other regions MTG Compare lists it in. */
+  elsewhere: number;
+}): string[] {
+  const name = withMtg(o.name);
+  const m = (c: number) => money(c, o.market);
+  const out: string[] = [];
+  const what = o.set
+    ? `${name} is ${/^[AEIOU]/.test(o.productType) ? "an" : "a"} ${o.productType} from ${o.set.name}, a Magic: The Gathering release ${o.preorder ? `releasing on ${shortDate(o.set.releaseDate)}` : `released on ${shortDate(o.set.releaseDate)}`}.`
+    : `${name} is a Magic: The Gathering ${o.productType.toLowerCase()} that MTG Compare compares across ${o.adjective} stores.`;
+  out.push([what, o.about, o.packs != null ? `It holds ${plural(o.packs, "booster pack")}.` : null].filter(Boolean).join(" "));
+  const stock: string[] = [];
+  if (o.cheapest) {
+    const where = o.cheapest.marketplace ? `on ${o.cheapest.storeName}, a marketplace` : `at ${o.cheapest.storeName}`;
+    stock.push(`${o.preorder ? "The cheapest pre-order price" : "The cheapest price"} in ${o.inName} right now is ${m(o.cheapest.cents)} ${where}${o.packs ? `, or ${m(Math.round(o.cheapest.cents / o.packs))} a pack` : ""}.`);
+    if (o.storeCount > 0) stock.push(`${plural(o.openStores, `${o.adjective} store`)} of the ${plural(o.storeCount, "store", "stores")} we track that list it ${o.openStores === 1 ? "has" : "have"} it ${o.preorder ? "open for pre-order" : "in stock"} today.`);
+    if (o.medianCents != null && o.openStores >= 2 && o.medianCents > o.cheapest.cents)
+      stock.push(`The median of those stores is ${m(o.medianCents)}, so the cheapest is ${m(o.medianCents - o.cheapest.cents)} under what a typical store asks.`);
+  } else if (o.storeCount > 0) {
+    stock.push(`None of the ${plural(o.storeCount, `${o.adjective} store`)} we track that list it has it in stock right now; the table shows each one's last price, and the stores are read about twice a day.`);
+  }
+  if (o.elsewhere > 0) stock.push(`MTG Compare also compares it in ${plural(o.elsewhere, "other region")}, each in its own currency.`);
+  stock.push("Prices exclude shipping, so check the store’s delivery cost before you buy.");
+  out.push(stock.join(" "));
+  return out;
+}

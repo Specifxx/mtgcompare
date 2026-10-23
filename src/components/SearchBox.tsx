@@ -1,6 +1,7 @@
 "use client";
 
 import { track } from "@/lib/track";
+import { gaEvent } from "@/lib/gtag";
 import Link from "@/components/Link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent } from "react";
@@ -221,6 +222,7 @@ export function SearchBox({ region, size = "sm", autoFocus = false }: { region: 
       window.dispatchEvent(new CustomEvent(BROWSE_QUERY_EVENT, { detail: t }));
       return;
     }
+    gaEvent("search", { region, how: "submit" }); // never the words typed (see the header comment)
     router.push(searchHref(region, t));
   };
 

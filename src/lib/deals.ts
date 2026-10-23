@@ -454,7 +454,7 @@ export const dealsCopy = {
   lede: (r: R) => ({
     lead: `Products where the cheapest in-stock price is at least 10% under the median of 3 or more ${r.adjective} stores that have it, checked`,
     tail:
-      `. Today’s prices only: we keep no price history.` + (tcg(r) ? ` In the US the cheapest can be a TCGplayer seller’s.` : ""),
+      `. The median is today’s, across stores; a product page shows its own daily price chart once it has a week of snapshots.` + (tcg(r) ? ` In the US the cheapest can be a TCGplayer seller’s.` : ""),
   }),
   description: (r: R, deals: number, bestPct: number | null) =>
     deals > 0

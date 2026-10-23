@@ -2,16 +2,32 @@
 
 import Link from "@/components/Link";
 import { useEffect, useState } from "react";
-import { REGIONS, X_DEFAULT_REGION, isRegion, regionFromTimeZone, type Region } from "@/lib/regions";
+import { REGIONS, X_DEFAULT_REGION, isRegion, regionFromAcceptLanguage, regionFromTimeZone, type Region } from "@/lib/regions";
 import { EbayStrip } from "./EbayStrip";
 
+/** Where the guess came from: a region the visitor browsed before, the browser's language, its time zone, /api/geo, or a click. */
+export type RegionSource = "saved" | "geo" | "language" | "timezone" | "picked";
+
+let geoAnswer: Promise<{ region: Region | null; source: RegionSource | null }> | null = null;
+
+/** /api/geo (Vercel's x-vercel-ip-country, else Accept-Language), asked once per page however many components want it. */
+function askGeo(): Promise<{ region: Region | null; source: RegionSource | null }> {
+  geoAnswer ??= fetch("/api/geo", { headers: { accept: "application/json" } })
+    .then((r) => (r.ok ? (r.json() as Promise<{ region: string | null; source: RegionSource | null }>) : { region: null, source: null }))
+    .then((j) => (isRegion(j.region) ? { region: j.region, source: j.source } : { region: null, source: null }))
+    .catch(() => ({ region: null, source: null }));
+  return geoAnswer;
+}
+
 /**
- * The landing page's guess at the visitor's region: the one they last browsed (RegionSwitcher remembers it), else their time
- * zone's. A suggestion, never a redirect: the landing page stays crawlable and a traveller can pick another region. Unknown
- * until mount (the page is static, the same HTML for everyone), and null when the time zone maps to no region (UTC, Asia/Tokyo).
+ * The visitor's likely region, worked out in the browser so the landing page stays one CDN copy for everyone. In order, and free
+ * until the last step: the region they last browsed (RegionSwitcher remembers it); the browser's language when it names a country
+ * we compare and the time zone doesn't contradict it ("en-AU" → au; an Australian with an en-US browser and a Sydney time zone is au);
+ * else the time zone alone. Only when none of those decides is /api/geo asked (one tiny Edge function call: the owner's budget is
+ * about $1 a day). A suggestion, never a redirect. Unknown until mount; null when nothing maps to a region.
  */
-export function useSuggestedRegion(): { known: boolean; region: Region | null } {
-  const [s, setS] = useState<{ known: boolean; region: Region | null }>({ known: false, region: null });
+export function useSuggestedRegion(): { known: boolean; region: Region | null; source: RegionSource | null } {
+  const [s, setS] = useState<{ known: boolean; region: Region | null; source: RegionSource | null }>({ known: false, region: null, source: null });
   useEffect(() => {
     let saved: string | null = null;
     try {
@@ -19,13 +35,31 @@ export function useSuggestedRegion(): { known: boolean; region: Region | null } 
     } catch {
       /* storage blocked */
     }
+    if (isRegion(saved)) {
+      setS({ known: true, region: saved, source: "saved" });
+      return;
+    }
     let tz: string | undefined;
     try {
       tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     } catch {
       /* no Intl time zone */
     }
-    setS({ known: true, region: isRegion(saved) ? saved : regionFromTimeZone(tz) });
+    const byZone = regionFromTimeZone(tz);
+    const byLanguage = regionFromAcceptLanguage((navigator.languages?.length ? navigator.languages : [navigator.language]).join(","));
+    if (byLanguage && (!byZone || byZone === byLanguage)) {
+      setS({ known: true, region: byLanguage, source: "language" });
+      return;
+    }
+    if (byZone) {
+      setS({ known: true, region: byZone, source: "timezone" });
+      return;
+    }
+    let live = true;
+    askGeo().then((g) => live && setS({ known: true, region: g.region, source: g.region ? g.source : null }));
+    return () => {
+      live = false;
+    };
   }, []);
   return s;
 }

@@ -26,7 +26,7 @@ export const OPERATOR = process.env.NEXT_PUBLIC_OPERATOR?.trim() || SITE_NAME;
 export const SISTER_SITES = [
   { name: "RiftCompare", url: "https://riftcompare.com", what: "Riftbound TCG card prices" },
   { name: "OP Compare", url: "https://opcompare.app", what: "One Piece Card Game prices" },
-  { name: "MTG Compare", url: "https://mtgcompare.app", what: "Pokémon TCG sealed prices" },
+  { name: "MTG Compare", url: "https://mtgcompare.app", what: "Magic: The Gathering sealed prices" },
 ] as const;
 
 // Public profiles for Organization.sameAs (an X account, a Bluesky handle…).
@@ -37,6 +37,7 @@ export const SOCIAL_LINKS: string[] = [];
 // so the three never disagree. Labels differ by place ("Stores" in the nav, "Where to buy" in the menu) and live there.
 export const SECTION_PATHS = {
   deals: "/deals",
+  blackFriday: "/black-friday",
   thisWeek: "/this-week",
   sealed: "/sealed",
   boosterBoxes: "/type/play-booster-boxes",
@@ -48,6 +49,7 @@ export const SECTION_PATHS = {
   sets: "/sets",
   releases: "/releases",
   guides: "/guides",
+  tools: "/tools",
   stores: "/stores",
 } as const;
 export type SectionKey = keyof typeof SECTION_PATHS;

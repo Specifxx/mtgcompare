@@ -5,7 +5,8 @@ import type { RegionInfo } from "@/lib/regions";
 import { longDate, STAR_TREK_CHECKED, STAR_TREK_PRODUCTS, starTrekLine, WIZARDS_COLLECTING_STAR_TREK } from "../star-trek";
 import type { GuideData } from "./data";
 import { GUIDE_BY_SLUG } from "./index";
-import { GuideBody, Lede, LiveBlock, Prose, StackTable, whereText, whereToBuy, type BodyProps, type GuideOutline } from "./kit";
+import { faqSection } from "./kit-more";
+import { GuideBody, guideHref, Lede, LiveBlock, Prose, StackTable, whereText, whereToBuy, type BodyProps, type GuideOutline } from "./kit";
 
 const GUIDE = GUIDE_BY_SLUG.get("magic-msrp")!;
 
@@ -57,6 +58,24 @@ export function outline(r: RegionInfo, data: GuideData): GuideOutline {
           </Prose>
         ),
       },
+      {
+        id: "other-sets",
+        title: "Other sets",
+        body: (
+          <Prose>
+            <p>
+              Wizards does not publish an MSRP for most sets, so MTG Compare shows one only where Wizards published it, with its source. For every other set, compare
+              stores against each other: see <a href={guideHref(r, "cheapest-way-to-buy-magic-packs")}>the cheapest way to buy packs</a> and{" "}
+              <a href={`/${r.region}/deals`}>today’s deals</a>.
+            </p>
+          </Prose>
+        ),
+      },
+      faqSection([
+        { q: "What is the MSRP of a Star Trek Play Booster?", a: (() => { const x = STAR_TREK_PRODUCTS.find((p) => p.name === "Play Booster" && p.msrpUsCents != null); return x ? `${money(x.msrpUsCents, "US")}, the US list price Wizards of the Coast set (${WIZARDS_COLLECTING_STAR_TREK.label}).` : "Wizards has not published one we can confirm."; })() },
+        { q: "Do stores have to sell at MSRP?", a: "No. MSRP is a suggested list price; each store sets its own." },
+        { q: "Why is there no MSRP for a booster box?", a: "Wizards lists MSRPs per pack and per product, not for a box of packs, so MTG Compare never works one out from a pack's MSRP." },
+      ]),
       whereToBuy(r, { tcg: { query: "Magic Star Trek", label: "Star Trek product" } }),
     ],
   };

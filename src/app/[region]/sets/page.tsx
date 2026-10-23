@@ -3,11 +3,12 @@ import type { Metadata } from "next";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Icon } from "@/components/Icon";
 import { plural } from "@/lib/format";
-import { firstSetYear, nextSet, setsBySeries, setsIndexTitle, shortDate, titleText } from "@/lib/hub-copy";
+import { firstSetYear, nextSet, setsBySeries, shortDate, titleText } from "@/lib/hub-copy";
 import { setCountsGrouped, type SetCount } from "@/lib/hub-data";
 import { isPreorderSet } from "@/lib/release";
 import { regionOrNotFound, type RegionInfo } from "@/lib/regions";
 import { pageMeta, regionAlternates } from "@/lib/seo";
+import { fitDescription, seoCopy, seoTitleText } from "@/lib/seo-titles";
 import { SETS, type MtgSet } from "@/lib/sets";
 import { slugify } from "@/lib/sealed-title";
 
@@ -17,12 +18,15 @@ export const dynamic = "force-dynamic";
 
 export function generateMetadata({ params }: { params: { region: string } }): Metadata {
   const r = regionOrNotFound(params.region);
-  const title = setsIndexTitle(r);
+  const title = seoCopy.setsIndexTitle(r);
   const series = setsBySeries();
   return {
     ...pageMeta({
       title: titleText(title),
-      description: `All ${SETS.length} English Magic: The Gathering sets in release order, from ${series[0].series} back to ${series[series.length - 1].series} (${firstSetYear()}), with release dates and what ${r.adjective} stores have of each in stock today.`,
+      description: fitDescription(
+        `All ${SETS.length} English Magic: The Gathering sets in release order, from ${series[0].series} to ${series[series.length - 1].series} (${firstSetYear()} on), with release dates and what ${r.adjective} stores have in stock today.`,
+        `All ${SETS.length} English Magic: The Gathering sets in release order since ${firstSetYear()}, with release dates and what ${r.adjective} stores have in stock today.`,
+      ),
       path: `/${r.region}/sets`,
       alternates: regionAlternates(r.region, "/sets"),
     }),

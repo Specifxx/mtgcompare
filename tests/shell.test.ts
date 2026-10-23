@@ -79,7 +79,7 @@ test("Footer on a region page: Shop, Latest sets, Explore and MTG Compare, then 
   // every link is internal but the owner's sister sites ("Also from us", tests/footer.test.ts)
   const sisters = new Set<string>(SISTER_SITES.map((s) => s.url));
   for (const h of links) if (!sisters.has(h)) assert.match(h, /^\//, `${h} is internal`);
-  assert.equal(footerColumns("au").length, 4);
+  assert.equal(footerColumns("au").length, 5); // Shop, Latest sets, Explore, Guides (every guide: no orphans), MTG Compare
 });
 
 test("Footer: no mailto (Contact goes to /contact), the two-line disclosure, and no 'operated by MTG Compare'", () => {
@@ -176,16 +176,16 @@ test("NavLink's current-section logic (aria-current='page'): whole segments, and
   assert.equal(isActivePath("/au/sets", "/us/sets"), false);
 });
 
-test("the phone menu: the eleven sections in order, under the region; the regions switch to the same page", () => {
+test("the phone menu: the thirteen sections in order, under the region; the regions switch to the same page", () => {
   assert.deepEqual(
     MENU_ROWS.map((r) => r.label),
-    ["Deals", "This week", "All sealed", "Play Booster Boxes", "Collector boxes", "Bundles", "Cheapest per pack", "Sets", "Releases", "Guides", "Where to buy"],
+    ["Deals", "Black Friday", "This week", "All sealed", "Play Booster Boxes", "Collector boxes", "Bundles", "Cheapest per pack", "Sets", "Releases", "Guides", "Tools", "Where to buy"],
   );
   // The sheet's contents render on the first open: the header's server HTML has the empty <dialog> only.
   assert.match(render(React.createElement(Header, { region: "ca" })), /<dialog id="site-menu" data-menu="" aria-label="Menu" class="menu-sheet [^"]*"><\/dialog>/);
   const sheet = render(React.createElement(MenuSheet, { region: "ca", pathname: "/ca/stores", onClose() {} }));
   assert.match(sheet, /aria-current="page"[^>]*href="\/ca\/stores"|href="\/ca\/stores"[^>]*aria-current="page"/, "the current section is marked");
-  for (const p of ["/deals", "/this-week", "/sealed", "/type/play-booster-boxes", "/type/collector-booster-boxes", "/type/bundles", "/cheapest-packs", "/sets", "/releases", "/guides", "/stores"])
+  for (const p of ["/deals", "/black-friday", "/this-week", "/sealed", "/type/play-booster-boxes", "/type/collector-booster-boxes", "/type/bundles", "/cheapest-packs", "/sets", "/releases", "/guides", "/tools", "/stores"])
     assert.ok(hrefs(sheet).includes(`/ca${p}`), p);
   assert.equal(sheet.match(/class="text-2xl leading-none" aria-hidden="true">/g)?.length, 7, "seven flag tiles");
   assert.equal(pathAfterRegion("/au/sets/bloomburrow"), "/sets/bloomburrow");

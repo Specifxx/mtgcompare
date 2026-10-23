@@ -607,11 +607,14 @@ export function identify(title: string, opts: { strict?: boolean } = {}): Sealed
 
   let type: TypeKey = c;
   if (type === "secret-lair") set = null;
+  // A store's own combination sold as a "bundle" is not a product: "BUNDLE: Reality Fracture Collector Pack, Marvel Play Booster,
+  // Reality Fracture Play Booster" (a "BUNDLE:" prefix, or a list naming two or more boosters, packs or decks).
+  if ((type === "bundle" || type === "special-bundle") && (/^\s*bundle\s*[:\-–]/i.test(t) || (t.match(/\b(?:boosters?|packs?|decks?)\b/gi)?.length ?? 0) >= 2 && /,/.test(t))) return "multiple";
   // A bundle with a name of its own is not the set's Bundle: "Secrets of Strixhaven - Codex Bundle", "Duskmourn Nightmare Bundle",
   // "Star Trek - Beam Me Up Bundle". Whatever words are left once the set and the noise are gone name it.
   if (type === "bundle" && set) {
     // Seller words never name a bundle ("Aetherdrift Bundle - Factory Sealed - Fast Ship", "IN HAND … Bundle").
-    const rest = signatureTokens(t.replace(/\bfat\s*packs?\b/gi, " "), set, "bundle").filter((w) => w !== "fat" && !BUNDLE_SELLER_WORDS.has(w));
+    const rest = signatureTokens(t.replace(/\bfat\s*packs?\b/gi, " "), set, "bundle").filter((w) => w !== "fat" && !BUNDLE_SELLER_WORDS.has(w) && w !== set!.code);
     if (rest.length) type = "special-bundle";
   }
   const info = TYPE_BY_KEY.get(type)!;

@@ -10,16 +10,17 @@ import { OutboundLink } from "@/components/OutboundLink";
 import { pageHref, Pagination } from "@/components/Pagination";
 import { StockPill } from "@/components/StockPill";
 import { REL_STORE, storeRetailer } from "@/lib/affiliate";
-import { PAGE_SIZE, storeOffers, storeStat } from "@/lib/data";
+import { PAGE_SIZE, storeOffers, storeStat, storeTypeRows } from "@/lib/data";
 import { listHasRoomForFooter } from "@/lib/ebay-ads";
 import { money, timeAgo } from "@/lib/format";
-import { hubTitle, storeIndexable, titleText } from "@/lib/hub-copy";
+import { storeIndexable, storeIntro, titleText } from "@/lib/hub-copy";
 import { thumb } from "@/lib/images";
 import { regionOfMarket, type RegionInfo } from "@/lib/regions";
 import { offerStock, offerStockLabel } from "@/lib/sealed-offers";
 import { isPreorderSet } from "@/lib/release";
 import { pageMeta } from "@/lib/seo";
-import { isMarketplace, STORE_BY_KEY, storeHost, type StoreConfig } from "@/lib/stores";
+import { fitDescription, seoCopy } from "@/lib/seo-titles";
+import { isMarketplace, STORE_BY_KEY, storeHost, storesInMarket, type StoreConfig } from "@/lib/stores";
 
 // Shared by /[region]/stores/[store] (page 1) and …/page/[n]: a big store has
 // 1,400 listings, so each page of 48 is its own cached render reading only its
@@ -54,12 +55,15 @@ const getStoreStat = cache((key: string) => storeStat(key));
  */
 export async function storeMeta(r: RegionInfo, s: StoreConfig, page: number): Promise<Metadata> {
   const st = await getStoreStat(s.key);
-  // A long store name pushes the title past 65 characters with " | MTG Compare": then it goes out without the suffix.
-  const title = hubTitle(`${s.name} — Magic sealed stock & prices${page > 1 ? ` — page ${page}` : ""}`);
+  // At most 60 characters shown (lib/seo-titles.ts): a long store name drops the extras, then the suffix.
+  const title = seoCopy.storeTitle(s.name, page);
   return {
     ...pageMeta({
       title: titleText(title),
-      description: `Pokémon booster boxes, Collector boxes and sealed product at ${s.name} (${storeHost(s)}), with stock and prices compared against other ${r.adjective} stores.`,
+      description: fitDescription(
+        `Magic booster boxes, Collector boxes and sealed product at ${s.name} (${storeHost(s)}), with stock and prices compared against other ${r.adjective} stores.${page > 1 ? ` Page ${page}.` : ""}`,
+        `Magic sealed product at ${s.name} (${storeHost(s)}), with stock and prices compared against other ${r.adjective} stores.${page > 1 ? ` Page ${page}.` : ""}`,
+      ),
       path: pageHref(`/${r.region}/stores/${s.key}`, page),
       noindex: !storeIndexable(st),
     }),
@@ -68,7 +72,8 @@ export async function storeMeta(r: RegionInfo, s: StoreConfig, page: number): Pr
 }
 
 export async function StorePage({ r, s, page }: { r: RegionInfo; s: StoreConfig; page: number }) {
-  const [offers, st] = await Promise.all([storeOffers(s.key, page), getStoreStat(s.key)]);
+  // The intro (page 1 only: later pages are the same store's list, and say so) reads the store's listings by type: one store's rows.
+  const [offers, st, typeRows] = await Promise.all([storeOffers(s.key, page), getStoreStat(s.key), page === 1 ? storeTypeRows(s.key) : Promise.resolve([])]);
   const listed = Math.max(st?.listed ?? 0, offers.length);
   const pages = Math.max(1, Math.ceil(listed / PAGE_SIZE));
   if (page > 1 && !offers.length) notFound();
@@ -107,6 +112,13 @@ export async function StorePage({ r, s, page }: { r: RegionInfo; s: StoreConfig;
           Visit {storeHost(s)} <span aria-hidden="true">↗</span>
         </OutboundLink>
       </div>
+      {page === 1 && (
+        <div className="mt-6 max-w-3xl space-y-3 leading-7 text-muted">
+          {storeIntro({ name: s.name, host: storeHost(s), platform: s.platform, r, rows: typeRows, storesInRegion: storesInMarket(s.market).length, dormant: !!st?.dormant }).map((t) => (
+            <p key={t}>{t}</p>
+          ))}
+        </div>
+      )}
       {offers.length ? (
         <div className="card mt-6 overflow-hidden">
           <ul className="divide-y divide-line">

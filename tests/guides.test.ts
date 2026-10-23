@@ -242,3 +242,92 @@ test("old MTG Compare blog and guide URLs: kept posts are served, dropped ones 3
   assert.equal(to(rules, "/guides/some-old-guide"), "/us/guides");
   assert.equal(to(rules, "/us/guides/magic-msrp"), undefined);
 });
+
+// ─── The data-driven guides (2026-10-23) ──────────────────────────────────────
+
+import { weekMoves, playVsCollector, GIFT_CAP } from "../src/content/guides/more-data";
+import { validateJsonLd, jsonLdBlocks } from "./helpers/jsonld";
+
+const NEW_GUIDES: GuideSlug[] = [
+  "cheapest-way-to-buy-magic-packs",
+  "play-vs-collector-booster-box-value-by-set",
+  "universes-beyond-sealed-price-guide",
+  "commander-precon-price-guide",
+  "secret-lair-drops-explained",
+  "magic-sealed-gifts-under-50",
+  "magic-release-dates-preorder-calendar",
+  "magic-sealed-market-wrap",
+];
+
+const typed = (name: string, productType: string, cents: number, setCode: string | null): ProductCardData => ({ ...card(name, cents, 4, false, setCode), productType });
+function newFixture(): GuideData {
+  return {
+    ...guideFixture(),
+    byType: {
+      "Play Booster Box": [typed("Bloomburrow Play Booster Box", "Play Booster Box", 14400, "blb"), typed("Aetherdrift Play Booster Box", "Play Booster Box", 15000, "dft")],
+      "Collector Booster Box": [typed("Bloomburrow Collector Booster Box", "Collector Booster Box", 30000, "blb")],
+      Bundle: [typed("Bloomburrow Bundle", "Bundle", 4500, "blb")],
+      "Commander Deck": [typed("Bloomburrow Commander Deck - Animated Army", "Commander Deck", 4000, "blb")],
+      cheapest: [typed("Secret Lair x Something", "Secret Lair Drop", 3000, null)],
+      ub: [typed("Final Fantasy Bundle", "Bundle", 5000, "fin")],
+    },
+    openByType: { "Commander Deck": 12, "Secret Lair Drop": 40 },
+    sets: { fin: { products: 20, open: 9 }, trk: { products: 10, open: 8 } },
+  };
+}
+
+test("the new guides: registered, unique titles and descriptions, each with an FAQ shown on the page and sent as valid FAQPage JSON-LD", () => {
+  const titles = new Set(GUIDES.map((g) => g.title));
+  const descs = new Set(GUIDES.map((g) => g.description));
+  assert.equal(titles.size, GUIDES.length);
+  assert.equal(descs.size, GUIDES.length);
+  for (const slug of NEW_GUIDES) {
+    const g = GUIDE_BY_SLUG.get(slug)!;
+    assert.ok(g, slug);
+    const t = guideMetaTitle(g.title);
+    assert.ok((typeof t === "string" ? `${t} | MTG Compare` : t.absolute).length <= 60, `${slug}: <title> over 60`);
+    for (const region of guideRegions(g)) {
+      for (const data of [newFixture(), emptyGuideData(TODAY, null)]) {
+        const html = renderGuide(slug, region, data);
+        const { docs, errors } = jsonLdBlocks(html);
+        assert.deepEqual(errors, []);
+        const faq = docs.find((d) => (d as { "@type"?: string })["@type"] === "FAQPage") as { mainEntity: { name: string }[] } | undefined;
+        assert.ok(faq, `${slug} (${region}): FAQPage`);
+        assert.deepEqual(validateJsonLd(faq), [], slug);
+        const shown = text(html);
+        for (const q of faq!.mainEntity) assert.ok(shown.includes(q.name), `${slug}: "${q.name}" is on the page`);
+        assert.equal(findBannedCopy(shown), null, `${slug} (${region}): ${findBannedCopy(shown)}`);
+        assert.doesNotMatch(shown, NO_VALUE_TALK, slug);
+        assert.doesNotMatch(shown, /Pokémon|DexCompare/i, slug);
+        assert.match(html, new RegExp(`href="/${region}/`), `${slug}: internal links`);
+      }
+    }
+  }
+});
+
+test("the cost-per-pack guides use lib/packs.ts counts only: a 36-pack early Play box, a 30-pack later one, 12 Collector Boosters", () => {
+  const html = renderGuide("cheapest-way-to-buy-magic-packs", "us", newFixture());
+  assert.match(text(html), /\$4(?:\.00)? a pack for Bloomburrow Play Booster Box \(\$144(?:\.00)? for 36 packs\)/);
+  const pairs = playVsCollector(newFixture().byType!["Play Booster Box"]!, newFixture().byType!["Collector Booster Box"]!);
+  assert.deepEqual(pairs.map((p) => [p.code, p.play!.perPack, p.collector!.perPack]), [["blb", 400, 2500]], "only sets with both boxes");
+});
+
+test("the gift guide's cap is a round figure in each region's own currency, never a conversion", () => {
+  for (const r of REGION_LIST) assert.ok(Number.isInteger(GIFT_CAP[r.market] / 500), r.market);
+  assert.match(text(renderGuide("magic-sealed-gifts-under-50", "au", newFixture())), /A\$75\.00 is a round AUD figure/);
+});
+
+test("the market wrap: real week-over-week moves only; with no history or under a week of it, it says so and shows no number", () => {
+  const empty = text(renderGuide("magic-sealed-market-wrap", "us", emptyGuideData(TODAY, CHECKED)));
+  assert.match(empty, /don’t have a full week of snapshots yet/);
+  assert.doesNotMatch(empty.replace(/Affiliate[\s\S]*$/, ""), /\$\d/, "no price without history");
+  assert.deepEqual(weekMoves(null, "US").lower, []);
+  const d = 20000;
+  const h = { v: 1 as const, since: d - 10, through: d, series: { US: { a: [[d - 10, 10000, 3], [d - 3, 9000, 3]] as [number, number, number][], b: [[d - 10, 10000, 3], [d - 1, 11000, 4]] as [number, number, number][], c: [[d - 10, 10000, 1]] as [number, number, number][], z: [[d - 10, 10000, 3], [d, 2000, 3]] as [number, number, number][] } } };
+  const w = weekMoves(h, "US");
+  assert.deepEqual(w.lower.map((m) => [m.slug, m.before, m.after, m.pct]), [["a", 10000, 9000, -10]]);
+  assert.deepEqual(w.higher.map((m) => [m.slug, m.pct]), [["b", 10]]);
+  assert.equal(w.compared, 3, "c is at one store: not compared; z's 80% move is a misfiled listing, compared but not shown");
+  const short = weekMoves({ ...h, since: d - 5 }, "US");
+  assert.deepEqual([short.lower, short.higher], [[], []], "under eight days: no moves");
+});

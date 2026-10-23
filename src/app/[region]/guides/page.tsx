@@ -9,6 +9,7 @@ import { POSTS, postPath } from "@/lib/blog";
 import { SETS } from "@/lib/sets";
 import { regionOrNotFound } from "@/lib/regions";
 import { jsonLd, pageMeta, regionAlternates } from "@/lib/seo";
+import { fitDescription, seoCopy, seoTitleText } from "@/lib/seo-titles";
 import { SITE_URL } from "@/lib/site";
 
 // The guides index: the region's guides as cards. Built from the registry alone: no database read.
@@ -19,8 +20,8 @@ export const dynamic = "force-dynamic";
 export function generateMetadata({ params }: { params: { region: string } }): Metadata {
   const r = regionOrNotFound(params.region);
   return pageMeta({
-    title: `Magic sealed buying guides for ${r.inName}`,
-    description: `Plain-English guides to buying Magic: The Gathering sealed product in ${r.inName}: pack counts, Play vs Collector Boosters, pre-orders and more, with today’s prices.`,
+    title: seoTitleText(seoCopy.guidesTitle(r)),
+    description: seoCopy.guidesDescription(r),
     path: `/${r.region}/guides`,
     alternates: regionAlternates(r.region, "/guides"),
   });

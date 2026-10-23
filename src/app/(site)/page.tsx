@@ -1,7 +1,10 @@
 import Link from "@/components/Link";
+import { PreorderRegionLinks } from "@/components/PreorderBanner";
 import type { Metadata } from "next";
 import { Icon, type IconName } from "@/components/Icon";
 import { RegionSuggest, SuggestedEbayStrip, SuggestedTypeLinks } from "@/components/RegionSuggest";
+import { HomeRegionGrid } from "@/components/HomeRegionGrid";
+import { regionPicks } from "@/lib/picks";
 import { REGION_LIST, REGIONS, X_DEFAULT_REGION, type Region } from "@/lib/regions";
 import { DEFAULT_OG_IMAGE } from "@/lib/seo";
 import { SITE_NAME, SITE_URL, sectionHref, type SectionKey } from "@/lib/site";
@@ -13,8 +16,10 @@ import { GuideCard } from "@/content/guides/kit";
 import { jsonLd } from "@/lib/seo";
 import { ADSENSE_CLIENT } from "@/lib/adsense";
 
-// Fully static: counts come from the store registry, not the database, so
-// this page costs nothing to serve and never depends on the database.
+// Rendered per request and kept by Vercel's CDN for a day (next.config.js CDN_PAGES, "/"), like the region pages, never ISR and never
+// prerendered at build (a build reads no data: tests/vercel-ignore-build.test.ts). The region grid's default (US) picks come from the
+// public data files; the counts from the store registry. It reads no cookie or header: one copy for everyone.
+export const dynamic = "force-dynamic";
 
 const TITLE = `${SITE_NAME} — Magic sealed prices & stock from ${STORES.length} stores`;
 const DESCRIPTION = `Compare Magic sealed prices and stock across ${STORES.length} independent stores in ${REGION_LIST.length} regions. Booster boxes, Collector boxes and more, cheapest in stock first.`;
@@ -41,6 +46,7 @@ const POPULAR_LINKS: { key: SectionKey; label: string }[] = [
   { key: "boosterBoxes", label: "Booster boxes" },
   { key: "collectorBoxes", label: "Collector Booster Boxes" },
   { key: "deals", label: "Deals" },
+  { key: "blackFriday", label: "Black Friday deals" },
   { key: "perPack", label: "Cheapest per pack" },
   { key: "releases", label: "Releases" },
   { key: "guides", label: "Guides" },
@@ -86,7 +92,9 @@ const faqLd = {
   mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
 };
 
-export default function Landing() {
+export default async function Landing() {
+  // The default region's grid, read once at build from the public data files (a release rebuilds it): the static HTML is filled.
+  const initialPicks = await regionPicks(X_DEFAULT_REGION).catch(() => []);
   const guides = guidesFor(X_DEFAULT_REGION);
   const gr = REGIONS[X_DEFAULT_REGION];
   return (
@@ -127,6 +135,14 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* The region grid: the default region's products in the static HTML, then the visitor's region (saved, language, time zone,
+          then /api/geo) in the browser, so this page stays one static copy for everyone and every region link stays crawlable. */}
+      <div className="mb-12">
+        <HomeRegionGrid initial={initialPicks} />
+        <div className="page mt-6">
+          <PreorderRegionLinks />
+        </div>
+      </div>
       {/* Content first (owner, 2026-10-15: "the best chance for AdSense approval, considering Google has lazy crawlers"). A reviewer
           or crawler that reads only the first screens of the server HTML meets original text, not a wall of links: what the site is
           and how it works, then the regions, the guides with their summaries, and every answer written out (no collapsed details).

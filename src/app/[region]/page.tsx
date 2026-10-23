@@ -1,4 +1,6 @@
 import Link from "@/components/Link";
+import { inSeason } from "@/lib/black-friday";
+import { PreorderBanner } from "@/components/PreorderBanner";
 import { cache } from "react";
 import type { Metadata } from "next";
 import { Ago } from "@/components/Ago";
@@ -12,7 +14,7 @@ import { SearchBox } from "@/components/SearchBox";
 import { Empty, Section } from "@/components/Section";
 import { StockPill } from "@/components/StockPill";
 import { homeRails, regionOverview, type ProductCardData } from "@/lib/data";
-import { dealsCopy, dealsInMarket, fitTitle, homeCopy, nearestRegion, stockLabel } from "@/lib/deals";
+import { dealsCopy, dealsInMarket, nearestRegion, stockLabel } from "@/lib/deals";
 import { cardOpen } from "@/lib/compact";
 import { money, plural, timeAgo } from "@/lib/format";
 import { thumb } from "@/lib/images";
@@ -22,6 +24,7 @@ import { openPreorderGuides } from "@/lib/preorder-guides";
 import { isPreorderSet, formatRelease } from "@/lib/release";
 import { REGIONS, regionOrNotFound, type Market, type RegionInfo } from "@/lib/regions";
 import { ogCardImage, pageMeta, regionAlternates } from "@/lib/seo";
+import { fitDescription, seoCopy, seoTitleText } from "@/lib/seo-titles";
 import { PRODUCT_TYPES } from "@/lib/sealed-title";
 import { SETS, type MtgSet } from "@/lib/sets";
 import { storesInMarket } from "@/lib/stores";
@@ -37,15 +40,16 @@ export async function generateMetadata({ params }: { params: { region: string } 
   const r = regionOrNotFound(params.region);
   const n = storesInMarket(r.market).length;
   const overview = await getOverview(r.market);
+  const title = seoCopy.homeTitle(r, n);
   const meta = pageMeta({
-    title: homeCopy.title(r, n),
-    description: homeCopy.description(r, n, overview.inStock),
+    title: seoTitleText(title),
+    description: seoCopy.homeDescription(r, n, overview.inStock),
     path: `/${r.region}`,
     alternates: regionAlternates(r.region, ""),
   });
   return {
     ...meta,
-    title: fitTitle(homeCopy.title(r, n)),
+    title,
     // The region's own share card (app/og/[region]): what a link to /au or /us shows on Reddit, Discord or X.
     openGraph: { ...meta.openGraph, images: [ogCardImage(`/og/${r.region}`, `MTG Compare: Magic sealed prices across ${n} ${r.adjective} stores`)] },
   };
@@ -136,6 +140,23 @@ export default async function RegionHome({ params }: { params: { region: string 
       {/* The page carries two strips of its own (sealed, chase cards): no third one above the footer. */}
       <NoPreFooter />
       <div className="page">
+        {/* The next set on pre-order, when there is one: its hub, the page people compare pre-orders on (components/PreorderBanner). */}
+        <div className="mt-8 grid gap-3">
+          <PreorderBanner region={r.region} />
+          {inSeason(new Date().toISOString().slice(0, 10)) && (
+            <Link
+              href={`/${r.region}/black-friday`}
+              prefetch={false}
+              className="card flex flex-wrap items-center justify-between gap-3 px-5 py-4 transition-shadow hover:shadow-lift"
+            >
+              <span>
+                <span className="font-display text-lg font-bold">Black Friday deals in {r.inName}</span>
+                <span className="block text-sm text-muted">Every product furthest under the median store price today, biggest gap first.</span>
+              </span>
+              <span className="shrink-0 text-sm font-semibold text-brand-strong">See the deals →</span>
+            </Link>
+          )}
+        </div>
         {deals.length > 0 && (
           <Section title={dealsCopy.rail} kicker={dealsCopy.railKicker} href={`/${r.region}/deals`} linkLabel="All deals">
             <ProductRail products={deals} region={r.region} eager={4} label={dealsCopy.rail} />
@@ -331,7 +352,7 @@ function HowItWorks({ r, stores }: { r: RegionInfo; stores: number }) {
       t: "We read the stores",
       d: (
         <>
-          Twice a day, the sealed Pokémon listings of{" "}
+          Twice a day, the sealed Magic listings of{" "}
           <Link href={`/${r.region}/stores`} prefetch={false} className="font-medium text-brand-strong underline-offset-2 hover:underline">
             {plural(stores, `${r.adjective} store`)}
           </Link>

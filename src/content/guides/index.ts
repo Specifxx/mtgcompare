@@ -24,11 +24,19 @@ export type GuideSlug =
   | "where-to-buy-magic-sealed-online"
   | "how-to-preorder-magic-sets"
   | "how-to-avoid-resealed-magic-products"
-  | "magic-msrp";
+  | "magic-msrp"
+  | "cheapest-way-to-buy-magic-packs"
+  | "play-vs-collector-booster-box-value-by-set"
+  | "universes-beyond-sealed-price-guide"
+  | "commander-precon-price-guide"
+  | "secret-lair-drops-explained"
+  | "magic-sealed-gifts-under-50"
+  | "magic-release-dates-preorder-calendar"
+  | "magic-sealed-market-wrap";
 
 export interface Guide {
   slug: GuideSlug;
-  /** The H1, the Article headline and the <title>. With " | MTG Compare" it should fit in 65 characters; past that it goes out as title.absolute. */
+  /** The H1, the Article headline and the <title>. With " | MTG Compare" it should fit in 60 characters; past that it goes out as title.absolute. */
   title: string;
   /** Meta description, Article description and the index card's text: at most 160 characters. */
   description: string;
@@ -46,6 +54,8 @@ export interface Guide {
 }
 
 const D = "2026-10-21";
+/** The data-driven guides' first edition, and the MSRP guide's refresh. */
+const D2 = "2026-10-23";
 const SEALED_EBAY = { heading: "Sealed Magic on eBay", query: "Magic the Gathering sealed" };
 
 export const GUIDES: readonly Guide[] = [
@@ -132,8 +142,96 @@ export const GUIDES: readonly Guide[] = [
     description: "The US MSRP Wizards of the Coast set for the newest Magic set's boosters, Bundles and Commander decks, against what US stores charge today.",
     kicker: "US list prices",
     published: D,
-    updated: D,
+    updated: D2,
     regions: ["us"],
+    topic: { types: ["play-booster-box", "collector-booster-box", "bundle", "commander-deck"] },
+    ebay: SEALED_EBAY,
+  },
+  {
+    slug: "cheapest-way-to-buy-magic-packs",
+    title: "Cheapest way to buy Magic packs: cost per pack",
+    description: "What a Magic booster pack costs in each kind of product today, from Play and Collector Booster boxes to Bundles and loose packs, ranked by price per pack.",
+    kicker: "Price per pack",
+    published: D2,
+    updated: D2,
+    regions: "all",
+    topic: { types: ["play-booster-box", "collector-booster-box", "bundle", "play-booster"] },
+    ebay: { heading: "Magic booster boxes on eBay", query: "MTG booster box" },
+  },
+  {
+    slug: "play-vs-collector-booster-box-value-by-set",
+    title: "Play vs Collector Booster box: price per pack by set",
+    description: "Set by set, what a pack costs in the cheapest Play Booster box and the cheapest Collector Booster box at the stores we compare today, side by side.",
+    kicker: "Set by set",
+    published: D2,
+    updated: D2,
+    regions: "all",
+    topic: { types: ["play-booster-box", "collector-booster-box"] },
+    ebay: { heading: "Magic booster boxes on eBay", query: "MTG booster box" },
+  },
+  {
+    slug: "universes-beyond-sealed-price-guide",
+    title: "Universes Beyond sealed price guide",
+    description: "Every Universes Beyond Magic set, from Warhammer 40,000 to Star Trek: release dates, what stores have in stock today and the cheapest sealed product of each.",
+    kicker: "Universes Beyond",
+    published: D2,
+    updated: D2,
+    regions: "all",
+    topic: { types: ["play-booster-box", "collector-booster-box", "commander-deck", "bundle"] },
+    ebay: { heading: "Universes Beyond on eBay", query: "MTG Universes Beyond sealed" },
+  },
+  {
+    slug: "commander-precon-price-guide",
+    title: "Commander precon price guide: Magic decks today",
+    description: "What Magic Commander precons cost at the stores we compare today: the cheapest decks in stock, how many are open, and what to check before you buy one.",
+    kicker: "Commander decks",
+    published: D2,
+    updated: D2,
+    regions: "all",
+    topic: { types: ["commander-deck", "commander-deck-set"] },
+    ebay: { heading: "Commander decks on eBay", query: "MTG Commander deck sealed" },
+  },
+  {
+    slug: "secret-lair-drops-explained",
+    title: "Secret Lair drops explained, with today’s prices",
+    description: "What a Magic Secret Lair drop is, how it is sold, and what Secret Lair drops cost at the stores we compare today, from the cheapest in stock up.",
+    kicker: "Secret Lair",
+    published: D2,
+    updated: D2,
+    regions: "all",
+    topic: { types: ["secret-lair"] },
+    ebay: { heading: "Secret Lair on eBay", query: "MTG Secret Lair sealed" },
+  },
+  {
+    slug: "magic-sealed-gifts-under-50",
+    title: "Magic sealed gifts under $50: what’s in stock",
+    description: "Magic: The Gathering sealed gifts under a round local price cap ($50 in the US): Bundles, Commander decks, starter kits and packs in stock today.",
+    kicker: "Gift ideas",
+    published: D2,
+    updated: D2,
+    regions: "all",
+    topic: { types: ["bundle", "commander-deck", "starter", "play-booster"] },
+    ebay: SEALED_EBAY,
+  },
+  {
+    slug: "magic-release-dates-preorder-calendar",
+    title: "Magic release dates & pre-order calendar",
+    description: "Magic: The Gathering English release dates for every upcoming set and the last twelve months, with what's open for pre-order or in stock today.",
+    kicker: "Release calendar",
+    published: D2,
+    updated: D2,
+    regions: "all",
+    topic: { types: ["play-booster-box", "collector-booster-box", "bundle"] },
+    ebay: SEALED_EBAY,
+  },
+  {
+    slug: "magic-sealed-market-wrap",
+    title: "Magic sealed market wrap: this week’s price moves",
+    description: "This week's real moves in Magic sealed prices: products whose cheapest in-stock price is lower or higher than seven days ago, from our daily snapshots.",
+    kicker: "Weekly wrap",
+    published: D2,
+    updated: D2,
+    regions: "all",
     topic: { types: ["play-booster-box", "collector-booster-box", "bundle", "commander-deck"] },
     ebay: SEALED_EBAY,
   },
@@ -157,7 +255,7 @@ export function guideFor(slug: string, region: Region): Guide | null {
   return g && guideRegions(g).includes(region) ? g : null;
 }
 
-/** The <title>: the template adds " | MTG Compare" (13 characters) when the whole still fits in 65; otherwise the title alone. */
+/** The <title>: the template adds " | MTG Compare" (13 characters) when the whole still fits in 60; otherwise the title alone. */
 export function guideMetaTitle(title: string): string | { absolute: string } {
-  return title.length + " | MTG Compare".length <= 65 ? title : { absolute: title };
+  return title.length + " | MTG Compare".length <= 60 ? title : { absolute: title };
 }

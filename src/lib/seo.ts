@@ -263,3 +263,33 @@ export function regionOfPath(pathname: string): RegionInfo | null {
   const first = pathname.split("/").filter(Boolean)[0];
   return isRegion(first) ? REGIONS[first] : null;
 }
+
+/** A visible FAQ as FAQPage: only questions and answers the page itself shows, in the same words. */
+export function faqJsonLd(faq: readonly { q: string; a: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  };
+}
+
+/** A tool page (src/app/[region]/tools/[tool]): the calculator as a free WebApplication, and its FAQ as visible Q&A on the page. */
+export function toolJsonLd(t: { title: string; description: string; path: string; faq: readonly { q: string; a: string }[] }) {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        name: t.title,
+        description: t.description,
+        url: `${SITE_URL}${t.path}`,
+        applicationCategory: "UtilitiesApplication",
+        operatingSystem: "Any",
+        isAccessibleForFree: true,
+        offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        publisher: { "@id": ORG_ID },
+      },
+      { "@type": "FAQPage", mainEntity: t.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
+    ],
+  };
+}

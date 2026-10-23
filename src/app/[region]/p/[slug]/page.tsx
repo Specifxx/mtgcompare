@@ -1,4 +1,8 @@
 import Link from "@/components/Link";
+import { PriceHistoryChart } from "@/components/PriceHistoryChart";
+import { PreorderBanner } from "@/components/PreorderBanner";
+import { dailySeries, daysOfHistory, MIN_DAYS, readPriceHistory } from "@/lib/price-history";
+import { preorderPath } from "@/lib/preorder-guides";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import type { Metadata } from "next";
@@ -25,7 +29,11 @@ import { plural, timeAgo } from "@/lib/format";
 import { thumb } from "@/lib/images";
 import { packsFor } from "@/lib/packs";
 import { cheapestPerPackByType } from "@/lib/per-pack";
-import { openWhere, productDescription, productTitle, quickFacts, releaseChip, valueCheck } from "@/lib/product-copy";
+import { openWhere, productDescription, productIntro, quickFacts, releaseChip, valueCheck } from "@/lib/product-copy";
+import { guidesFor } from "@/content/guides";
+import { toolHref } from "@/content/tools";
+import { prevNextSet } from "@/lib/hub-copy";
+import { TYPE_ABOUT } from "@/lib/type-about";
 import { inStockAlternatives, relatedWithFormats } from "@/lib/product-data";
 import { isPreorderSet } from "@/lib/release";
 import { regionOrNotFound, REGION_LIST, type Market, type RegionInfo } from "@/lib/regions";
@@ -34,6 +42,7 @@ import { RIFT_REL, riftHistoryHref } from "@/lib/riftcompare";
 import { offerStock } from "@/lib/sealed-offers";
 import { TYPE_BY_LABEL } from "@/lib/sealed-title";
 import { jsonLd, pageMeta, productJsonLd, regionAlternates, withMtg } from "@/lib/seo";
+import { fitDescription, seoCopy, shortName } from "@/lib/seo-titles";
 import { SET_BY_CODE } from "@/lib/sets";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js, CDN_PAGES), never ISR: an ISR write
@@ -123,11 +132,11 @@ export async function generateMetadata({ params }: { params: { region: string; s
     return !!s && comparable(s);
   });
   const image = thumb(p.imageUrl, 1200);
-  const title = productTitle({ name: p.name, market: r.market, inName: r.inName, cheapestCents: cheapest?.priceCents ?? null, where });
+  const title = seoCopy.productTitle({ name: p.name, market: r.market, inName: r.inName, cheapestCents: cheapest?.priceCents ?? null });
   const plainTitle = typeof title === "string" ? title : title.absolute;
   const meta = pageMeta({
     title: plainTitle,
-    description: desc,
+    description: fitDescription(desc, desc.replace(p.name, shortName(p.name, 60))),
     path,
     alternates: noindex ? undefined : regionAlternates(r.region, `/p/${p.slug}`, indexable),
     image,
@@ -292,10 +301,47 @@ export default async function ProductPage({ params }: { params: { region: string
     : null;
 
   const heading = withMtg(p.name);
+  // The daily price history (lib/price-history.ts): a chart once the product has MIN_DAYS of snapshots here, nothing before.
+  const history = readPriceHistory();
+  const historyDays = history && daysOfHistory(history, r.market, p.slug) >= MIN_DAYS ? dailySeries(history, r.market, p.slug, 90) : [];
   const riftHref = riftHistoryHref({ imageUrl: p.imageUrl, setReleaseDate: set?.releaseDate, productType: p.productType, name: p.name });
   const typeLink = type ? { href: `/${r.region}/type/${type.slug}`, label: `See ${type.plural} in stock in ${r.inName}` } : { href: `/${r.region}/sealed`, label: `See sealed products in stock in ${r.inName}` };
   const chip = "rounded-full bg-raised px-2.5 py-1 text-xs font-semibold leading-4 text-muted";
   const img = p.imageUrl ? { big: thumb(p.imageUrl, 900)!, small: thumb(p.imageUrl, 240)! } : null;
+  // "About" (SEO release, 2026-10-21): the page's own words under the facts, and where to go next: the set, its neighbours, the type,
+  // the guides about this type, and the tools. All internal links, all pure (no read).
+  const intro = productIntro({
+    name: p.name,
+    productType: p.productType,
+    about: type ? TYPE_ABOUT[type.slug] ?? null : null,
+    set: set ? { name: set.name, series: set.series, releaseDate: set.releaseDate } : null,
+    preorder: pre,
+    packs,
+    market: r.market,
+    inName: r.inName,
+    adjective: r.adjective,
+    cheapest: best ? { cents: best.priceCents, storeName: best.storeName, marketplace: best.marketplace } : null,
+    medianCents: median,
+    openStores,
+    storeCount: stores.length,
+    elsewhere: elsewhere.length,
+  });
+  const { prev: prevSet, next: nextSet } = set ? prevNextSet(set.code) : { prev: null, next: null };
+  const aboutGuides = guidesFor(r.region)
+    .filter((g) => type && g.topic.types?.includes(type.key))
+    .slice(0, 3);
+  const hub = pre && set ? preorderPath(r.region, set.code) : null;
+  const explore = [
+    ...(hub && set ? [{ href: hub, label: `${set.name} pre-orders, store by store` }] : []),
+    ...(set ? [{ href: `/${r.region}/sets/${set.slug}`, label: `All ${set.name} sealed` }] : []),
+    ...(prevSet ? [{ href: `/${r.region}/sets/${prevSet.slug}`, label: prevSet.name }] : []),
+    ...(nextSet ? [{ href: `/${r.region}/sets/${nextSet.slug}`, label: nextSet.name }] : []),
+    { href: typeLink.href, label: type ? `${type.plural} in ${r.inName}` : `Sealed in ${r.inName}` },
+    { href: `/${r.region}/deals`, label: `Deals in ${r.inName}` },
+    ...aboutGuides.map((g) => ({ href: `/${r.region}/guides/${g.slug}`, label: g.title })),
+    { href: toolHref(r.region, "value-checker"), label: "Value checker" },
+    { href: toolHref(r.region, "selling-fee-calculator"), label: "Selling-fee calculator" },
+  ];
 
   // "Quick facts": the value check, then short facts side by side, then the cheapest offer, the stock, and the other regions as links.
   // In stock it comes before the strip (between the panel and it); sold out, after it (the order the brief sets: strip, other regions).
@@ -434,7 +480,8 @@ export default async function ProductPage({ params }: { params: { region: string
                     rel: bestLink.rel,
                     sponsored: bestLink.sponsored,
                     retailer: offerRetailer(best.store, best.storeName, r.market),
-                    button: best.marketplace ? `Buy on ${best.storeName}` : `Go to ${best.storeName}`,
+                    button: best.marketplace ? `Buy on ${best.storeName}` : `Buy at ${best.storeName}`,
+                    checked: best.lastSeen,
                   }}
                   packs={packs}
                   median={median}
@@ -495,7 +542,7 @@ export default async function ProductPage({ params }: { params: { region: string
             <Icon name="clock" size={14} className="mr-1.5 inline align-[-2px]" />
             Price history: TCGplayer&rsquo;s market price for this product over time, with its TCGplayer and eBay prices, is on{" "}
             <a href={riftHref} rel={RIFT_REL} target="_blank" className="font-semibold text-ink underline decoration-line underline-offset-2 hover:decoration-ink">
-              RiftCompare&rsquo;s Pokémon section ↗
+              RiftCompare ↗
             </a>
           </p>
         )}
@@ -518,6 +565,40 @@ export default async function ProductPage({ params }: { params: { region: string
           {factsCard}
         </>
       )}
+
+      {historyDays.length >= MIN_DAYS && (
+        <Section id="history" title="Price history" kicker={`Cheapest in-stock price in ${r.inName}`}>
+          <PriceHistoryChart values={historyDays} market={r.market} />
+        </Section>
+      )}
+
+      {/* The next set on pre-order, when there is one (components/PreorderBanner: gone on its release day). */}
+      <div className="mt-12">
+        <PreorderBanner region={r.region} />
+      </div>
+
+      <section aria-labelledby="about-h" className="mt-14 max-w-3xl">
+        <h2 id="about-h" className="font-display text-2xl font-bold tracking-tight">
+          About {heading}
+        </h2>
+        <div className="mt-4 space-y-3 leading-7 text-muted">
+          {intro.map((t) => (
+            <p key={t}>{t}</p>
+          ))}
+        </div>
+        <nav aria-label="Keep exploring" className="mt-6">
+          <h3 className="eyebrow">Keep exploring</h3>
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {explore.map((l) => (
+              <li key={l.href}>
+                <Link href={l.href} prefetch={false} className="chip min-h-10">
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </section>
 
       {grid.length > 0 && set && (
         <Section title={`More from ${set.name}`} href={`/${r.region}/sets/${set.slug}`} linkLabel="Whole set">

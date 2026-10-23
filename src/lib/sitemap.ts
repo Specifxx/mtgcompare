@@ -8,6 +8,7 @@
 import type { MetadataRoute } from "next";
 import { guidesFor } from "../content/guides";
 import { COUNTRY_GUIDE } from "../content/guides/country-prices";
+import { TOOLS, toolRegions } from "../content/tools";
 import { POSTS, postPath } from "./blog";
 import { openPreorderGuides } from "./preorder-guides";
 import { REGION_LIST, regionOfMarket, type Region, type RegionInfo } from "./regions";
@@ -64,6 +65,7 @@ export function staticSitemap(lastmod: Partial<Record<string, Date | null>>, act
     // The pages built from each import's current state (deals, price per pack, the week's digest) change with it. The guides index
     // changes only when a guide is added or edited, so the import time would be a false lastmod there: it has none.
     out.push(url(`/${r.region}/deals`, m, "daily", 0.7));
+    out.push(url(`/${r.region}/black-friday`, m, "daily", 0.7));
     out.push(url(`/${r.region}/cheapest-packs`, m, "daily", 0.6));
     out.push(url(`/${r.region}/this-week`, m, "daily", 0.5));
     out.push(url(`/${r.region}/guides`, null, "weekly", 0.5));
@@ -77,12 +79,18 @@ export function staticSitemap(lastmod: Partial<Record<string, Date | null>>, act
   }
   // Every guide, in each region it is offered in (the registry is pure: no database read). No lastmod: a guide's live blocks
   // change with each import, but its text only when it is edited.
-  for (const r of REGION_LIST) for (const g of guidesFor(r.region)) out.push(url(`/${r.region}/guides/${g.slug}`, null, "weekly", 0.6));
+  // lastmod is the guide's own editorial `updated` date (its text), never the import time.
+  for (const r of REGION_LIST) for (const g of guidesFor(r.region)) out.push(url(`/${r.region}/guides/${g.slug}`, new Date(`${g.updated}T00:00:00Z`), "weekly", 0.6));
+  // The tools (src/content/tools): the index and every tool, in every region it is offered in. No lastmod: copy changes only when edited.
+  for (const r of REGION_LIST) {
+    out.push(url(`/${r.region}/tools`, null, "monthly", 0.5));
+    for (const t of TOOLS) if (toolRegions(t).includes(r.region)) out.push(url(`/${r.region}/tools/${t.slug}`, null, "monthly", 0.6));
+  }
   // The one guide that compares every market, at its single region-less URL.
-  out.push(url(COUNTRY_GUIDE.path, null, "weekly", 0.6));
+  out.push(url(COUNTRY_GUIDE.path, new Date(`${COUNTRY_GUIDE.updated}T00:00:00Z`), "weekly", 0.6));
   // The blog: its index and every post (the registry is pure). No lastmod, as the guides.
   out.push(url("/blog", null, "weekly", 0.5));
-  for (const p of POSTS) out.push(url(postPath(p.slug), null, "weekly", 0.6));
+  for (const p of POSTS) out.push(url(postPath(p.slug), new Date(`${p.updated}T00:00:00Z`), "weekly", 0.6));
   return out;
 }
 

@@ -4,7 +4,9 @@ import type { ReactNode } from "react";
 import { ebayRetailerForHref, REL_SPONSORED, type Placement } from "@/lib/affiliate";
 import { shipLabel } from "@/lib/ebay-context";
 import type { PriceFloor } from "@/lib/ebay-offer-row";
-import { medianSaving, money, pctOf, plural } from "@/lib/format";
+import { medianSaving, money, msrpBadge, pctOf, plural, timeAgo, type MsrpBadge } from "@/lib/format";
+import { RRP_NOTE } from "@/lib/rrp-note";
+import { Ago } from "./Ago";
 import type { Region } from "@/lib/regions";
 import { EbayMark } from "./EbayMark";
 import { useEbayPick } from "./EbayStrip";
@@ -39,6 +41,8 @@ export interface BestStore {
   sponsored: boolean;
   retailer: string;
   button: string;
+  /** When the store's price was last read (ISO): "checked 3 hours ago" under the price. */
+  checked?: string;
 }
 
 export interface BestPriceCardProps {
@@ -69,9 +73,18 @@ export function BestPriceCard(props: BestPriceCardProps) {
 }
 
 /** The median and MSRP badges of a price: present for the store when they are, and then for eBay (a cheaper price only adds to them). */
-function badgesFor(cents: number, { median, medianStores, msrp }: BestPriceCardProps): { saving: string | null; belowMsrp: number | null } {
-  const vs = msrp != null ? pctOf(cents, msrp) : null;
-  return { saving: medianSaving(cents, median, medianStores), belowMsrp: vs != null && vs < 0 ? -vs : null };
+function badgesFor(cents: number, { median, medianStores, msrp }: BestPriceCardProps): { saving: string | null; msrpVs: MsrpBadge | null } {
+  return { saving: medianSaving(cents, median, medianStores), msrpVs: msrpBadge(cents, msrp) };
+}
+
+/** The MSRP badge: green under it, plain at it, muted over it (a fact, never an alarm). RRP_NOTE as its tooltip. */
+function MsrpPill({ b }: { b: MsrpBadge }) {
+  const tone = b.tone === "under" ? "border-open/40 text-open" : b.tone === "at" ? "border-line text-ink" : "border-line text-muted";
+  return (
+    <span data-msrp={b.tone} title={RRP_NOTE} className={`shrink-0 rounded-full border px-2 ${tone}`}>
+      {b.text}
+    </span>
+  );
 }
 
 function WithEbay(props: BestPriceCardProps & { ebay: NonNullable<BestPriceCardProps["ebay"]> }) {
@@ -100,7 +113,7 @@ function WithEbay(props: BestPriceCardProps & { ebay: NonNullable<BestPriceCardP
 function StoreTop(props: BestPriceCardProps) {
   const { preorder, store, packs, market } = props;
   const perPack = packs ? Math.round(store.cents / packs) : null;
-  const { saving, belowMsrp } = badgesFor(store.cents, props);
+  const { saving, msrpVs } = badgesFor(store.cents, props);
   return (
     <>
       {/* on a phone the button is always on a line of its own, as in eBay's version (same height whichever is shown) */}
@@ -116,16 +129,27 @@ function StoreTop(props: BestPriceCardProps) {
           <div className="mt-1 text-sm text-muted">
             {store.where}
             {store.sponsored && <span> · marketplace · affiliate link</span>}
+            {store.checked && (
+              <span>
+                {" "}
+                · checked <Ago iso={store.checked} initial={timeAgo(store.checked)} />
+              </span>
+            )}
           </div>
         </div>
-        <OutboundLink href={store.href} rel={store.rel} retailer={store.retailer} placement="product-best" className="btn-primary self-start px-6 py-3 text-base sm:self-auto">
+        <OutboundLink
+          href={store.href}
+          rel={store.rel}
+          retailer={store.retailer}
+          placement="product-best"
+          className="btn-primary self-start px-6 py-3 text-base sm:self-auto">
           {store.button} <span aria-hidden="true">↗</span>
         </OutboundLink>
       </div>
-      {(saving || belowMsrp != null) && (
+      {(saving || msrpVs) && (
         <p className="mt-3 flex flex-wrap gap-2 text-sm font-semibold text-open">
           {saving && <span>{saving}</span>}
-          {belowMsrp != null && <span className="rounded-full border border-open/40 px-2">{belowMsrp}% below US MSRP</span>}
+          {msrpVs && <MsrpPill b={msrpVs} />}
         </p>
       )}
     </>
@@ -139,8 +163,8 @@ function EbayTop(props: BestPriceCardProps & { cents: number | null; href: strin
   const perPack = packs ? Math.round(shown / packs) : null;
   // the badge line only where the store's card has one (a cheaper price only adds to the badges, so eBay's has them too)
   const storeBadges = badgesFor(store.cents, props);
-  const { saving, belowMsrp } = badgesFor(shown, props);
-  const badgeLine = storeBadges.saving != null || storeBadges.belowMsrp != null;
+  const { saving, msrpVs } = badgesFor(shown, props);
+  const badgeLine = storeBadges.saving != null || storeBadges.msrpVs != null;
   return (
     <>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -180,7 +204,7 @@ function EbayTop(props: BestPriceCardProps & { cents: number | null; href: strin
       {badgeLine && (
         <p className="mt-3 flex flex-nowrap gap-2 overflow-hidden whitespace-nowrap text-sm font-semibold text-open">
           {saving && <span className="min-w-0 truncate">{saving}</span>}
-          {belowMsrp != null && <span className="shrink-0 rounded-full border border-open/40 px-2">{belowMsrp}% below US MSRP</span>}
+          {msrpVs && <MsrpPill b={msrpVs} />}
         </p>
       )}
     </>

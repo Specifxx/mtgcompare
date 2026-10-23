@@ -117,7 +117,7 @@ export const OLD_GUIDE_POSTS: readonly string[] = ["where-to-buy-magic-cards", "
 export const POST_BY_SLUG: ReadonlyMap<string, Post> = new Map(POSTS.map((p) => [p.slug, p]));
 export const postPath = (slug: string) => `/blog/${slug}`;
 
-/** The <title>: the template adds " | MTG Compare" when the whole still fits in 65; otherwise the title alone. */
+/** The <title>: the template adds " | MTG Compare" when the whole still fits in 60; otherwise the title alone. */
 export function postMetaTitle(title: string): string | { absolute: string } {
-  return title.length + " | MTG Compare".length <= 65 ? title : { absolute: title };
+  return title.length + " | MTG Compare".length <= 60 ? title : { absolute: title };
 }

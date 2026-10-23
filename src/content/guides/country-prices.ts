@@ -16,7 +16,7 @@ export type { MarketCard };
 export const COUNTRY_GUIDE = {
   slug: "magic-booster-box-prices-by-country",
   path: "/guides/magic-booster-box-prices-by-country",
-  title: "Magic booster box prices by country: US, UK, Australia & more",
+  title: "Magic booster box prices by country: US, UK, Australia, more",
   /** The H1: shorter than the <title>. */
   h1: "Magic booster box prices by country",
   description: "What a Magic booster box costs today in the US, the UK, Australia, Canada, New Zealand, Europe and Singapore: each country’s cheapest store price.",

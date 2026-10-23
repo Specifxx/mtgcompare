@@ -8,7 +8,7 @@ import { EbayStrip } from "@/components/EbayStrip";
 import { Icon } from "@/components/Icon";
 import { Empty, Section } from "@/components/Section";
 import { lastCheckedAt } from "@/lib/data";
-import { fitTitle, nearestRegion, packsCopy, perPackLeaders, stockLabel, type PerPackRow } from "@/lib/deals";
+import { nearestRegion, packsCopy, perPackLeaders, stockLabel, type PerPackRow } from "@/lib/deals";
 import { money, plural, timeAgo } from "@/lib/format";
 import { thumb } from "@/lib/images";
 import { isPreorderSet } from "@/lib/release";
@@ -16,6 +16,7 @@ import { REGIONS, regionOrNotFound, type Market, type RegionInfo } from "@/lib/r
 import { RRP_NOTE } from "@/lib/rrp";
 import { TYPE_BY_LABEL } from "@/lib/sealed-title";
 import { itemListJsonLd, jsonLd, pageMeta, regionAlternates } from "@/lib/seo";
+import { fitDescription, seoCopy, seoTitleText } from "@/lib/seo-titles";
 import { SET_BY_CODE } from "@/lib/sets";
 
 // /[region]/cheapest-packs: every product that holds a fixed number of booster packs, ranked by today's cheapest price ÷ its packs
@@ -37,13 +38,13 @@ export async function generateMetadata({ params }: { params: { region: string } 
   const leaders = await getLeaders(r.market);
   return {
     ...pageMeta({
-      title: packsCopy.title(r),
-      description: packsCopy.description(r, leaders.top10[0] ?? null),
+      title: seoTitleText(seoCopy.packsTitle(r)),
+      description: seoCopy.packsDescription(r, leaders.top10[0] ? { name: leaders.top10[0].p.name, perPack: leaders.top10[0].perPack } : null),
       path: `/${r.region}/cheapest-packs`,
       alternates: regionAlternates(r.region, "/cheapest-packs"),
       noindex: leaders.top10.length < 3,
     }),
-    title: fitTitle(packsCopy.title(r)),
+    title: seoCopy.packsTitle(r),
   };
 }
 
@@ -101,7 +102,7 @@ export default async function CheapestPacksPage({ params }: { params: { region: 
             ))}
           </nav>
           <Section id="top-10" title="Top 10 across every product type" kicker="Cheapest per pack first">
-            <PackTable r={r} rows={leaders.top10} showType caption={`The ten cheapest Pokémon products per booster pack in ${r.inName} today`} />
+            <PackTable r={r} rows={leaders.top10} showType caption={`The ten cheapest Magic products per booster pack in ${r.inName} today`} />
             {us && <p className="mt-3 text-xs text-muted">{RRP_NOTE}</p>}
           </Section>
         </>

@@ -4,6 +4,7 @@ import { REGION_LIST, REGIONS, type Region } from "@/lib/regions";
 import { SETS } from "@/lib/sets";
 import { CONTACT_EMAIL_SET, FAN_CONTENT_DISCLAIMER, OPERATOR, SISTER_SITES, SITE_NAME, sectionHref, type SectionKey } from "@/lib/site";
 import { LogoMark } from "./Logo";
+import { footerSeoSections } from "./seo/HubLinks";
 
 type FooterLink = { href: string; label: string };
 
@@ -32,8 +33,10 @@ export function footerColumns(region: Region | null): { title: string; links: Fo
     { title: "Latest sets", links: SETS.slice(0, 6).map((set) => ({ href: `/${region}/sets/${set.slug}`, label: set.name })) },
     {
       title: "Explore",
-      links: [s("deals", "Deals"), s("thisWeek", "This week"), s("releases", "Releases"), s("guides", "Guides"), s("stores", "Where to buy"), s("sealed", "All sealed"), { href: COUNTRY_GUIDE.path, label: "Prices by country" }],
+      links: [s("deals", "Deals"), s("blackFriday", "Black Friday deals"), s("thisWeek", "This week"), s("releases", "Releases"), s("guides", "Guides"), s("tools", "Tools"), s("stores", "Where to buy"), s("sealed", "All sealed"), { href: COUNTRY_GUIDE.path, label: "Prices by country" }],
     },
+    // Every guide offered in the region (components/seo/HubLinks): no guide is an orphan.
+    ...footerSeoSections(region).filter((sec) => sec.title === "Guides"),
     { title: "MTG Compare", links: site },
   ];
 }

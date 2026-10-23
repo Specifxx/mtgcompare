@@ -32,14 +32,14 @@ const SUFFIX = " | MTG Compare"; // the root layout's title template
 export function browseTitle(r: RegionInfo, page: number): string {
   const suffix = page > 1 ? ` — page ${page}` : "";
   const long = `All Magic sealed products in ${r.inName}${suffix}`;
-  return `${long}${SUFFIX}`.length <= 65 ? long : `Magic sealed products in ${r.inName}${suffix}`;
+  return `${long}${SUFFIX}`.length <= 60 ? long : `Magic sealed products in ${r.inName}${suffix}`;
 }
 
 export function browseMeta(r: RegionInfo, page: number): Metadata {
   const base = `/${r.region}/sealed`;
   return pageMeta({
     title: browseTitle(r, page),
-    description: `Every Magic: The Gathering sealed product ${r.adjective} stores${r.market === "US" ? " and TCGplayer" : ""} list — booster boxes, Collector boxes, bundles, collections, tins and packs — with current stock and the lowest price in ${r.currency}.`,
+    description: `Every Magic sealed product ${r.adjective} stores${r.market === "US" ? " and TCGplayer" : ""} list: booster boxes, bundles, Commander decks and packs, with today’s stock and lowest price in ${r.currency}.${page > 1 ? ` Page ${page}.` : ""}`,
     path: pageHref(base, page),
     // Page 1 is the canonical browse page in every region (with hreflang); a
     // later page is canonical to itself (pageMeta's default) and has no alternates.

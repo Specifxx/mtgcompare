@@ -69,3 +69,22 @@ export function medianSaving(lowestCents: number | null | undefined, medianCents
   if (pct == null) return null;
   return `${-pct}% below the median of ${plural(inStockStores, "store")}`;
 }
+
+export interface MsrpBadge {
+  /** "At MSRP", "12% over MSRP", "8% under MSRP". */
+  text: string;
+  tone: "under" | "at" | "over";
+}
+
+/**
+ * A price against the list price (rrp.ts: TPCi's US MSRP, the only list price we hold): "At MSRP" within 1% either way, else
+ * "N% over MSRP" / "N% under MSRP", rounded. Null without an MSRP (every region but the US, and products TPCi gives none):
+ * the badge is left out, never guessed.
+ */
+export function msrpBadge(cents: number | null | undefined, msrpCents: number | null | undefined): MsrpBadge | null {
+  if (cents == null || cents <= 0 || msrpCents == null || msrpCents <= 0) return null;
+  const pct = ((cents - msrpCents) / msrpCents) * 100;
+  if (Math.abs(pct) < 1) return { text: "At MSRP", tone: "at" };
+  const n = Math.round(Math.abs(pct));
+  return pct > 0 ? { text: `${n}% over MSRP`, tone: "over" } : { text: `${n}% under MSRP`, tone: "under" };
+}

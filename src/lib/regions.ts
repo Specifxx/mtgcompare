@@ -100,3 +100,36 @@ export function regionFromTimeZone(tz: string | undefined | null): Region | null
   if (/^Europe\//.test(tz)) return "eu";
   return null;
 }
+
+// ─── Region from the visitor's country (the landing page's suggestion, src/app/api/geo) ────────────────────────────────────────
+// Vercel's x-vercel-ip-country is an ISO 3166-1 alpha-2 code. Only the markets MTG Compare compares map to a region; anywhere else
+// gets no suggestion (the landing page then shows its region grid without one, never a wrong currency).
+
+/** The eurozone: the countries the EU market's stores (and its euro prices) serve. */
+const EUROZONE = new Set(["AT", "BE", "HR", "CY", "EE", "FI", "FR", "DE", "GR", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PT", "SK", "SI", "ES"]);
+
+export function regionFromCountry(code: string | null | undefined): Region | null {
+  const c = (code ?? "").trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(c)) return null;
+  if (c === "AU") return "au";
+  if (c === "NZ") return "nz";
+  if (c === "US" || c === "PR") return "us";
+  if (c === "GB" || c === "UK" || c === "IM" || c === "JE" || c === "GG") return "uk";
+  if (c === "CA") return "ca";
+  if (c === "SG") return "sg";
+  return EUROZONE.has(c) ? "eu" : null;
+}
+
+/**
+ * The fallback when there is no country header (local runs, some proxies): the first language tag in Accept-Language that names a
+ * country we compare ("en-AU,en;q=0.9" → au, "de-DE" → eu). A bare language ("en") names no country, so it suggests nothing.
+ */
+export function regionFromAcceptLanguage(header: string | null | undefined): Region | null {
+  for (const part of (header ?? "").split(",")) {
+    const tag = part.split(";")[0].trim();
+    const country = /^[a-z]{2,3}-([a-z]{2})\b/i.exec(tag)?.[1];
+    const r = regionFromCountry(country);
+    if (r) return r;
+  }
+  return null;
+}

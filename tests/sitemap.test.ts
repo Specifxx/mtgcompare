@@ -4,7 +4,7 @@ import { REGION_LIST, REGIONS } from "../src/lib/regions";
 import { regionOfSitemapId, regionSitemap, SITEMAP_IDS, sitemapIdOf, STATIC_SITEMAP_ID, staticSitemap } from "../src/lib/sitemap";
 import { SITE_URL } from "../src/lib/site";
 import { STORES } from "../src/lib/stores";
-import { GUIDES, guideRegions } from "../src/content/guides";
+import { GUIDE_BY_SLUG, GUIDES, guideRegions } from "../src/content/guides";
 import { COUNTRY_GUIDE } from "../src/content/guides/country-prices";
 
 const onSite = (entries: { url: string }[]) => {
@@ -104,6 +104,8 @@ test("static sitemap: every guide in each region it is offered in, and nowhere e
   assert.equal(`${SITE_URL}${COUNTRY_GUIDE.path}`, `${SITE_URL}/guides/magic-booster-box-prices-by-country`);
   assert.ok(!urls.has(`${SITE_URL}/au/guides/magic-msrp`));
   const at = entries.find((e) => e.url === `${SITE_URL}/uk/guides/how-many-packs-in-magic-products`)!;
-  assert.deepEqual([at.changeFrequency, at.priority, at.lastModified], ["weekly", 0.6, undefined], "editorial: no import-time lastmod");
+  // lastmod is the guide's editorial `updated` date, never the import time.
+  assert.deepEqual([at.changeFrequency, at.priority, at.lastModified], ["weekly", 0.6, new Date(`${GUIDE_BY_SLUG.get("how-many-packs-in-magic-products")!.updated}T00:00:00Z`)], "editorial lastmod");
+  for (const r of REGION_LIST) for (const p of ["/deals", "/cheapest-packs", "/black-friday", "/tools"]) assert.ok(urls.has(`${SITE_URL}/${r.region}${p}`), `${r.region}${p}`);
   assert.equal(urls.size, entries.length, "no duplicate URLs");
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { track } from "@/lib/track";
+import { gaEvent } from "@/lib/gtag";
 import type { ReactNode } from "react";
 import type { Placement } from "@/lib/affiliate";
 
@@ -18,6 +19,14 @@ import type { Placement } from "@/lib/affiliate";
 // Middle-click opens a tab without a `click` event, so it is caught through
 // auxclick (button 1 only; right-click is button 2 and opens a menu, not the
 // link). Each handler takes only its own button, so one click never fires both.
+function hostOf(href: string): string {
+  try {
+    return new URL(href).hostname;
+  } catch {
+    return "";
+  }
+}
+
 export function OutboundLink({
   href,
   rel,
@@ -42,6 +51,8 @@ export function OutboundLink({
   function record() {
     try {
       track("buy_click", { retailer: retailer.slice(0, 255), placement: placement.slice(0, 255) });
+      // GA4 (lib/gtag.ts, a no-op without NEXT_PUBLIC_GA_ID): a paid link (eBay, TCGplayer: rel "sponsored") is affiliate_click.
+      gaEvent(/\bsponsored\b/.test(rel) ? "affiliate_click" : "outbound_store_click", { retailer: retailer.slice(0, 100), placement, link_domain: hostOf(href) });
     } catch {
       /* analytics must never get in the way of the link */
     }

@@ -9,10 +9,11 @@ import { Icon } from "@/components/Icon";
 import { Empty } from "@/components/Section";
 import { calendarProducts, CALENDAR_TYPES } from "@/lib/data";
 import { money, plural, relativeDay } from "@/lib/format";
-import { isoDay, nextSet, releasesTitle, setsOfYear, shortDate, titleText } from "@/lib/hub-copy";
+import { isoDay, nextSet, setsOfYear, shortDate, titleText } from "@/lib/hub-copy";
 import { setCountsGrouped, type SetCount } from "@/lib/hub-data";
 import { formatRelease, isPreorderSet } from "@/lib/release";
 import { jsonLd, pageMeta, regionAlternates, withMtg } from "@/lib/seo";
+import { fitDescription, seoCopy, seoTitleText } from "@/lib/seo-titles";
 import { COUNTRY_GUIDE } from "@/content/guides/country-prices";
 import { preorderPath } from "@/lib/preorder-guides";
 import { SETS, type MtgSet } from "@/lib/sets";
@@ -30,14 +31,16 @@ export function generateMetadata({ params }: { params: { region: string } }): Me
   const r = regionOrNotFound(params.region);
   // The year is the render's: the page re-renders at least daily (its CDN copy lasts a day), so it rolls over on its own on 1 January.
   const year = new Date().getUTCFullYear();
-  const title = releasesTitle(r, year);
+  const title = seoCopy.releasesTitle(r, year);
   const next = nextSet();
   return {
     ...pageMeta({
       title: titleText(title),
-      description: `Every Magic: The Gathering set releasing in ${year}, with English release dates${
-        next ? `: ${withMtg(next.name)} is next, out ${shortDate(next.releaseDate)}` : ""
-      }. What ${r.adjective} stores have in stock or open for pre-order today.`,
+      description: fitDescription(
+        `Every Magic: The Gathering set releasing in ${year}, with English release dates${next ? `: ${withMtg(next.name)} is next, out ${shortDate(next.releaseDate)}` : ""}. What ${r.adjective} stores have in stock or open for pre-order today.`,
+        `Magic: The Gathering ${year} release dates${next ? `: ${withMtg(next.name)} is next, out ${shortDate(next.releaseDate)}` : ""}. What ${r.adjective} stores have in stock or on pre-order today.`,
+        `Magic: The Gathering ${year} release dates, and what ${r.adjective} stores have in stock or on pre-order today.`,
+      ),
       path: `/${r.region}/releases`,
       alternates: regionAlternates(r.region, "/releases"),
     }),

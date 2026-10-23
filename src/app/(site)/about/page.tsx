@@ -7,7 +7,7 @@ import { STORES, storesInMarket } from "@/lib/stores";
 
 export const metadata: Metadata = {
   title: "How MTG Compare works",
-  description: "How MTG Compare finds Pokémon sealed prices and stock, what it does and doesn't store, how it makes money, and how stores get listed.",
+  description: "How MTG Compare finds Magic sealed prices and stock, what it does and doesn't store, how it makes money, and how stores get listed.",
   alternates: { canonical: `${SITE_URL}/about` },
 };
 
@@ -59,12 +59,12 @@ export default function About() {
         <p>
           A store is listed when it passes four checks, run by a script before it is added (the feed, currency and robots.txt checks run again on every read): it publishes a
           <b> public catalogue feed</b> (the Shopify or WooCommerce product listing its own website is built on — we read that, not the
-          pages); it lists <b>at least three</b> Pokémon sealed products; it prices them <b>in its region&rsquo;s currency</b>; and its{" "}
+          pages); it lists <b>at least three</b> Magic sealed products; it prices them <b>in its region&rsquo;s currency</b>; and its{" "}
           <b>robots.txt</b> allows the read. We pause between requests and back off when a store asks us to.
         </p>
         <p>
           That rule decides who is missing, too. Big-box chains and department stores without a public feed are out of scope, however large
-          their Pokémon range, and so is any store that prices a region in a converted currency. It is why the store lists are independent
+          their Magic range, and so is any store that prices a region in a converted currency. It is why the store lists are independent
           hobby and games stores, and why a region with few of those (Singapore, New Zealand) has fewer comparisons than Australia or the US.
           Marketplaces are not stores: TCGplayer appears in the US as a marketplace, badged as such, and is never counted in &ldquo;N stores&rdquo;.
         </p>
@@ -118,8 +118,9 @@ export default function About() {
 
         <h2>What we don&rsquo;t keep</h2>
         <p>
-          MTG Compare keeps no price history and no stock history — only what each store lists right now — and no data about you: no
-          accounts, no emails, no cookies. We count page views and clicks on buy links, without knowing who made them. See{" "}
+          MTG Compare keeps one snapshot a day of each product&rsquo;s cheapest in-stock price and how many stores have it in stock
+          (the price history on product pages, from 23 October 2026), and nothing more about the stores&rsquo; past listings. It keeps no
+          data about you: no accounts, no emails, no cookies. We count page views and clicks on buy links, without knowing who made them. See{" "}
           <Link href="/privacy">privacy</Link>.
         </p>
 
@@ -154,7 +155,7 @@ export default function About() {
         <p>Where eBay appears:</p>
         <ul>
           <li>
-            <b>Listing strips</b>, in a dashed, tinted box of their own: two on each region&rsquo;s home page (sealed Pokémon, then chase
+            <b>Listing strips</b>, in a dashed, tinted box of their own: two on each region&rsquo;s home page (sealed Magic, then chase
             cards further down), one on the landing page, and one on product, set, type, release, store, deals, cheapest-per-pack and
             &ldquo;this week&rdquo; pages, the first page of the product list and each guide; most pages also have a slimmer strip above
             the footer.
@@ -212,7 +213,7 @@ export default function About() {
 
         <h2 id="stores">For stores</h2>
         <p>
-          If you sell English Pokémon sealed product online on Shopify or WooCommerce, we can list you for free. Email{" "}
+          If you sell English Magic sealed product online on Shopify or WooCommerce, we can list you for free. Email{" "}
           <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> with your store&rsquo;s address and it goes through the same checks as every
           other store (<a href="#which-stores">above</a>). If you&rsquo;d rather not be listed, email us and we&rsquo;ll remove you within a day.
           We read a few pages of your catalogue twice a day and respect robots.txt. Listing is free and cannot be bought; nothing changes the

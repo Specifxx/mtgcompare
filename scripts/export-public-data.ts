@@ -14,6 +14,7 @@ import path from "node:path";
 import { prisma } from "../src/lib/db";
 import { buildPublicFiles, type Tables } from "../src/lib/public-data/export";
 import { META_FILE, type PublicDataMeta } from "../src/lib/public-data/format";
+import { dayOf, HISTORY_FILE, isPriceHistory, updatePriceHistory, type PriceHistory } from "../src/lib/price-history";
 
 const BATCH = 5000;
 
@@ -61,6 +62,23 @@ async function main() {
     fs.writeFileSync(path.join(dir, name), body);
     bytes += body.length;
   }
+  // The daily price history (lib/price-history.ts): today's cheapest in-stock price and in-stock store count per product per market,
+  // folded into the file already in the checkout (the last import's), so the history rides with the snapshot it came from.
+  const historyPath = path.join(dir, HISTORY_FILE);
+  let prevHistory: PriceHistory | null = null;
+  try {
+    const j = JSON.parse(fs.readFileSync(historyPath, "utf8")) as unknown;
+    prevHistory = isPriceHistory(j) ? j : null;
+  } catch {
+    /* first run: scripts/backfill-price-history.ts seeds it from git */
+  }
+  const slugOf = new Map((tables.Product as unknown as { id: string; slug: string }[]).map((p) => [p.id, p.slug]));
+  const todayRows = (tables.ProductStat as unknown as { productId: string; market: string; lowestPriceCents: number | null; inStockStores: number; marketplaceOpen: boolean }[])
+    .map((s) => ({ market: s.market, slug: slugOf.get(s.productId) ?? "", cents: s.inStockStores > 0 || s.marketplaceOpen ? s.lowestPriceCents : null, stores: s.inStockStores }))
+    .filter((r) => r.slug);
+  const history = JSON.stringify(updatePriceHistory(prevHistory, todayRows, dayOf(new Date())));
+  fs.writeFileSync(historyPath, history);
+  bytes += history.length;
   console.log(`[export] wrote ${files.size} files (${(bytes / 1e6).toFixed(1)} MB) to ${path.relative(process.cwd(), dir)}:`, Object.fromEntries(Object.entries(tables).map(([k, v]) => [k, v.length])));
   await prisma.$disconnect();
 }
