@@ -106,6 +106,21 @@ test("an empty [deploy] commit is a release (release.yml)", () => {
   assert.doesNotMatch(wf, /^\s+schedule:/m, "the imports are the schedule");
 });
 
+test("a [deploy] commit that changed only docs (Markdown, docs/) does not build (2026-10-23)", () => {
+  const docsRepo = (files: string[]) => {
+    const dir = repo(false, "base2");
+    for (const f of files) {
+      mkdirSync(dirname(join(dir, f)), { recursive: true });
+      writeFileSync(join(dir, f), "x");
+    }
+    git(dir, "add", ".");
+    git(dir, "commit", "-q", "-m", "Docs [deploy]");
+    return dir;
+  };
+  assert.equal(gate(docsRepo(["COST.md", "docs/notes.md"]), "production", "Docs [deploy]").status, SKIP);
+  assert.equal(gate(docsRepo(["COST.md", "src/page.tsx"]), "production", "Docs [deploy]").status, BUILD);
+});
+
 test("the sealed import's data commit carries the marker; the eBay import's does not", () => {
   const pub = src("scripts/publish-public-data.sh");
   assert.match(pub, /\[ "\$\{2:-\}" = "release" \] && MARK=" \[deploy\]"/);

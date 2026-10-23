@@ -88,6 +88,12 @@ case "$diff" in
     exit 0
     ;;
   1)
+    # DOCS-ONLY (2026-10-23, cost): a [deploy] commit that changed only Markdown or docs/ changes nothing the site serves, so a
+    # build would only empty the CDN and render every page again. An empty [deploy] commit (release.yml) still builds, above.
+    if ! git diff --relative --name-only HEAD^ HEAD 2>/dev/null | grep -qvE '(\.md$|^docs/)'; then
+      echo "[vercel-ignore-build] $label: '$DEPLOY_MARKER', but only docs changed — skipping."
+      exit 0
+    fi
     echo "[vercel-ignore-build] $label: '$DEPLOY_MARKER' and the commit changed files — building."
     exit 1
     ;;

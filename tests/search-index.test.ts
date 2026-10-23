@@ -184,16 +184,15 @@ test("the index route: 404 for anything but a region (no read), the loader's ind
     const res = await browseIndexResponse(r.region, load);
     assert.equal(res.status, 200);
     assert.match(res.headers.get("content-type") ?? "", /application\/json/);
-    assert.equal(res.headers.get("cache-control"), "s-maxage=86400, stale-while-revalidate", "CDN-cached for a day, like every ISR page");
+    assert.equal(res.headers.get("cache-control"), "public, s-maxage=86400, stale-while-revalidate=86400", "CDN-cached for a day, like every page");
     const body = await res.json();
     assert.ok(isBrowseIndex(body, r.region));
     assert.equal(body.rows[0][0], MS_BOX.slug);
   }
   assert.equal(reads, REGION_LIST.length);
   const route = readFileSync(new URL("../src/app/api/browse/[region]/route.ts", import.meta.url), "utf8");
-  assert.match(route, /export const dynamic = "force-static";/);
-  assert.match(route, /export const revalidate = 86400;/);
-  assert.match(route, /export function generateStaticParams\(\) \{\s*return \[\];\s*\}/);
+  assert.match(route, /export const dynamic = "force-dynamic";/, "the CDN caches it, not ISR (2026-10-23)");
+  assert.doesNotMatch(route, /export const revalidate|generateStaticParams/);
   assert.doesNotMatch(route, /export (async )?function (POST|PUT|PATCH|DELETE)/, "GET only");
 });
 
