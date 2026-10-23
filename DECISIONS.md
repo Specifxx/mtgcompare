@@ -85,3 +85,16 @@ cards … only focus on sealed products … price all the sealed products compar
   (it is a superset: offer count, low/high, currency, availability, condition), so nothing was ported.
 - `SISTER_SITES` lists the three other games only, with the words each is found by as the anchor: Riftbound (riftcompare.com),
   One Piece (opcompare.app) and Pokémon (www.dexcompare.app). The old row linked mtgcompare.app to itself and had no Pokémon site.
+
+## 2026-10-23 — The browse index leaves ISR for the CDN
+
+- `/api/browse/<region>` was the last ISR surface every release rewrote (seven indexes, US 531,157 B raw measured locally, billed
+  per 8 KB). It is now `force-dynamic` and kept a day by Vercel's CDN through its own `Cache-Control: public, s-maxage=86400,
+  stale-while-revalidate=86400` (`INDEX_CACHE_CONTROL`), the pages' pattern. It reads no cookie or header, so one copy is right for
+  everyone. The sitemap stays ISR (eight small files). `COST.md`.
+
+## 2026-10-23 — A docs-only `[deploy]` commit does not build
+
+- `scripts/vercel-ignore-build.sh` skips a `[deploy]` commit whose changes are only `*.md` or `docs/`: it serves nothing new and a
+  build empties the CDN. An empty `[deploy]` commit (`release.yml`) still builds. Vercel Web Analytics stays off (2026-10-22) and is
+  not re-added with a `beforeSend` filter: the owner's cost decision stands.

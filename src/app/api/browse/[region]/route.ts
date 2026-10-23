@@ -8,20 +8,15 @@ import { browseIndexResponse, buildIndex } from "@/lib/search-index";
 // tuples. The header typeahead, the browse grid's filters and the recently-viewed rail load it once per page session
 // (lib/index-client.ts) and do all their searching and sorting in the browser.
 //
-// An ISR route handler, like the pages: rendered on the first request after a deploy or an import (the importer's
-// revalidatePath("/", "layout") purges it with every page), then served from the cache and the CDN for a day. So the database
-// sees one whole-market read per region per import, however many visitors search.
+// Force-dynamic and kept a day by Vercel's CDN through its own Cache-Control (lib/search-index.ts INDEX_CACHE_CONTROL), like the
+// pages (2026-10-23, cost): it was an ISR route, so every release wrote each region's whole index (tens of KB, billed per 8 KB) to
+// the ISR cache on top of the CDN copy. A release empties the CDN; the next request renders it once per edge.
 //
 // RiftCompare's Pokémon section reads this index too, server-side and cached six hours (its src/lib/pokemon/dexcompare.ts), for
 // each product's cheapest store and store counts, joined by the TCGplayer id in the image URL. It accepts INDEX_VERSION 1 only: a
 // change to the tuple or a new version hides its store lines until it is updated (its ops monitor flags that), so say so there. Nothing is built at deploy time (no
 // static params), so a build never needs the database. /api/ is disallowed in robots.txt.
-export const dynamic = "force-static";
-export const revalidate = 86400;
-
-export function generateStaticParams() {
-  return [];
-}
+export const dynamic = "force-dynamic";
 
 export async function GET(_req: Request, { params }: { params: { region: string } }) {
   const res = await browseIndexResponse(params.region, async (region) => {

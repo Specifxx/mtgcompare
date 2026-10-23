@@ -79,11 +79,11 @@ export async function browseIndexResponse(regionParam: string, load: (region: Re
 }
 
 /**
- * The index's Cache-Control: the header Next gives every ISR page of this site (revalidate = 86400), which `next start` leaves off
- * a route handler. The CDN keeps it a day or until the importer's revalidatePath purges it; the browser asks again on its next page
- * load (within one, lib/index-client.ts keeps it in memory).
+ * The index's Cache-Control: the route is force-dynamic (no ISR write), so this header alone keeps it at Vercel's CDN for a day,
+ * until the next release empties the CDN; the browser asks again on its next page load (within one, lib/index-client.ts keeps it
+ * in memory).
  */
-export const INDEX_CACHE_CONTROL = "s-maxage=86400, stale-while-revalidate";
+export const INDEX_CACHE_CONTROL = "public, s-maxage=86400, stale-while-revalidate=86400";
 
 // ─── Search ────────────────────────────────────────────────────────────────────
 // Every word typed must match the product: its name, its type, its set's name and code, and the words collectors use for them
