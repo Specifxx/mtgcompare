@@ -1,5 +1,6 @@
 import Link from "@/components/Link";
 import type { Metadata } from "next";
+import { SinglesNote } from "@/components/seo/SinglesNote";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { guidesFor } from "@/content/guides";
 import { COUNTRY_GUIDE } from "@/content/guides/country-prices";
@@ -44,7 +45,7 @@ export default function GuidesIndex({ params }: { params: { region: string } }) 
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { label: "Guides" }]} />
       <header className="max-w-3xl">
         <div className="eyebrow">Guides</div>
-        <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">Magic sealed buying guides</h1>
+        <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">MTG booster box, bundle &amp; Commander deck price guides</h1>
         <p className="mt-3 text-lg leading-8 text-muted">
           Plain-English answers to what people ask before they buy Magic: The Gathering sealed product in {r.inName}, with prices from today’s listings at the stores
           we compare.
@@ -88,6 +89,8 @@ export default function GuidesIndex({ params }: { params: { region: string } }) 
           </Link>
         </li>
       </ul>
+
+      <SinglesNote r={r} className="mt-14" />
 
       <div className="mt-14 grid gap-10 lg:grid-cols-2">
         <section aria-labelledby="from-blog">

@@ -12,7 +12,7 @@ import type { ProductCardData } from "../src/lib/data";
 import { findBannedCopy } from "../src/lib/copy-rules";
 import { REGION_LIST, REGIONS, type Market, type Region } from "../src/lib/regions";
 import { TYPE_BY_KEY } from "../src/lib/sealed-title";
-import { GUIDE_BY_SLUG, GUIDES, guideFor, guideMetaTitle, guideRegions, guidesFor, type GuideSlug } from "../src/content/guides";
+import { GUIDE_BY_SLUG, GUIDES, guideFor, guideMetaTitle, guideRegions, guidesFor, guideTitleIn, type GuideSlug } from "../src/content/guides";
 import { emptyGuideData, type GuideData } from "../src/content/guides/data";
 import { GUIDE_MODULES } from "../src/content/guides/modules";
 import { stripIndex } from "../src/content/guides/kit";
@@ -257,6 +257,9 @@ const NEW_GUIDES: GuideSlug[] = [
   "magic-sealed-gifts-under-50",
   "magic-release-dates-preorder-calendar",
   "magic-sealed-market-wrap",
+  "mtg-booster-box-prices",
+  "collector-booster-box-prices",
+  "mtg-bundle-prices",
 ];
 
 const typed = (name: string, productType: string, cents: number, setCode: string | null): ProductCardData => ({ ...card(name, cents, 4, false, setCode), productType });
@@ -330,4 +333,29 @@ test("the market wrap: real week-over-week moves only; with no history or under 
   assert.equal(w.compared, 3, "c is at one store: not compared; z's 80% move is a misfiled listing, compared but not shown");
   const short = weekMoves({ ...h, since: d - 5 }, "US");
   assert.deepEqual([short.lower, short.higher], [[], []], "under eight days: no moves");
+});
+
+test("the sealed price guides say their region in the title, and every regional <title> fits 60 characters", () => {
+  for (const slug of ["mtg-booster-box-prices", "collector-booster-box-prices", "mtg-bundle-prices"] as const) {
+    const g = GUIDE_BY_SLUG.get(slug)!;
+    assert.ok(g.titleIn?.includes("{in}"), slug);
+    for (const r of REGION_LIST) {
+      const title = guideTitleIn(g, r);
+      assert.ok(title.endsWith(`in ${r.inName}`), `${slug}: ${title}`);
+      const t = guideMetaTitle(title);
+      assert.ok((typeof t === "string" ? `${t} | MTG Compare` : t.absolute).length <= 60, `${slug} (${r.region}): ${title}`);
+    }
+  }
+  assert.equal(guideTitleIn(GUIDE_BY_SLUG.get("magic-msrp")!, REGIONS.us), GUIDE_BY_SLUG.get("magic-msrp")!.title, "no titleIn: the title");
+  assert.equal(guideTitleIn(GUIDE_BY_SLUG.get("mtg-booster-box-prices")!, REGIONS.au), "MTG booster box prices in Australia");
+});
+
+test("the sealed price guides link every product and set they price, and give no per-pack price for a Bundle", () => {
+  const html = renderGuide("mtg-bundle-prices", "uk", newFixture());
+  assert.match(html, /href="\/uk\/p\/[^"]+"/);
+  assert.match(html, /href="\/uk\/sets\/bloomburrow"/);
+  assert.doesNotMatch(text(html), /Per pack/);
+  const box = renderGuide("mtg-booster-box-prices", "au", newFixture());
+  assert.match(text(box), /The cheapest is Bloomburrow Play Booster Box at A\$144\b/);
+  assert.match(box, /href="\/au\/type\/play-booster-boxes"/);
 });

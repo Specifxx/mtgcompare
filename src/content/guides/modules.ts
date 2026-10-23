@@ -18,6 +18,9 @@ import * as secretLair from "./secret-lair-drops-explained";
 import * as gifts from "./magic-sealed-gifts-under-50";
 import * as calendar from "./magic-release-dates-preorder-calendar";
 import * as wrap from "./magic-sealed-market-wrap";
+import * as boxPrices from "./mtg-booster-box-prices";
+import * as collectorPrices from "./collector-booster-box-prices";
+import * as bundlePrices from "./mtg-bundle-prices";
 
 export const GUIDE_MODULES: Record<GuideSlug, GuideModule> = {
   "play-booster-vs-collector-booster-vs-bundle": compare,
@@ -36,4 +39,7 @@ export const GUIDE_MODULES: Record<GuideSlug, GuideModule> = {
   "magic-sealed-gifts-under-50": gifts,
   "magic-release-dates-preorder-calendar": calendar,
   "magic-sealed-market-wrap": wrap,
+  "mtg-booster-box-prices": boxPrices,
+  "collector-booster-box-prices": collectorPrices,
+  "mtg-bundle-prices": bundlePrices,
 };

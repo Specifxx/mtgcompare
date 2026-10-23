@@ -6,7 +6,7 @@ import { cardSelect, OPEN, toCard, type ProductCardData } from "@/lib/data";
 import type { Market, RegionInfo } from "@/lib/regions";
 import { familyIn, lastCheckedIn, topStores, type FamilyKey, type StoreRow } from "../live";
 import type { GuideSlug } from "./index";
-import { GIFT_CAP, GIFT_TYPES, PER_PACK_TYPES, cardsFor, openCount, openOfSets, openOfType, setCountsOf, wrapFor, type Wrap } from "./more-data";
+import { BOX_LABELS, GIFT_CAP, GIFT_TYPES, PER_PACK_TYPES, cardsFor, openCount, openOfSets, openOfType, setCountsOf, wrapFor, type Wrap } from "./more-data";
 import { SETS } from "@/lib/sets";
 
 export type { StoreRow };
@@ -79,6 +79,9 @@ const READS: Record<GuideSlug, readonly [FamilyKey, number][]> = {
   "magic-sealed-gifts-under-50": [],
   "magic-release-dates-preorder-calendar": [],
   "magic-sealed-market-wrap": [],
+  "mtg-booster-box-prices": [],
+  "collector-booster-box-prices": [],
+  "mtg-bundle-prices": [],
 };
 
 const UB_CODES = SETS.filter((x) => x.series === "Universes Beyond").map((x) => x.code);
@@ -115,6 +118,14 @@ async function extraFor(slug: GuideSlug, market: RegionInfo["market"], today: st
       const wrap = wrapFor(market);
       return { wrap, cards: await cardsFor(market, [...wrap.lower, ...wrap.higher].map((m) => m.slug)) };
     }
+    case "mtg-booster-box-prices":
+      return { byType: await types(BOX_LABELS, 120), openByType: await counts(BOX_LABELS) };
+    case "collector-booster-box-prices": {
+      const [cheap, dear, n] = await Promise.all([openOfType(market, "Collector Booster Box", 120), openOfType(market, "Collector Booster Box", 3, "desc"), openCount(market, "Collector Booster Box")]);
+      return { byType: { "Collector Booster Box": cheap, dearest: dear }, openByType: { "Collector Booster Box": n } };
+    }
+    case "mtg-bundle-prices":
+      return { byType: await types(["Bundle", "Play Booster Box"], 80), openByType: await counts(["Bundle"]) };
     default:
       return {};
   }

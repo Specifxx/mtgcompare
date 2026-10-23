@@ -106,9 +106,12 @@ export const seoCopy = {
 
   digestTitle: (r: R) => fitFirst(`This week in Magic sealed: ${r.inName}`),
 
-  guidesTitle: (r: R) => fitFirst(`Magic sealed buying guides for ${r.inName}`, `Magic sealed buying guides`),
+  guidesTitle: (r: R) => fitFirst(`MTG booster box price guides in ${r.inName}`, `MTG booster box price guides`),
   guidesDescription: (r: R) =>
-    fitDescription(`Plain-English guides to buying Magic sealed product in ${r.inName}: cost per pack, Play vs Collector Boosters, Commander decks, pre-orders, with today’s prices.`),
+    fitDescription(
+      `Guides to MTG booster box, Collector Booster box, Bundle and Commander deck prices in ${r.inName}, with today’s prices from the stores we compare.`,
+      `Guides to MTG booster box, Collector Booster box, Bundle and Commander deck prices in ${r.inName}, with today’s prices.`,
+    ),
 
   storesTitle: (r: R, n: number) => fitFirst(`Where to buy Magic sealed product in ${r.inName}: ${n} stores`, `Where to buy Magic sealed in ${r.inName}: ${n} stores`, `Where to buy Magic sealed in ${r.inName}`),
   storesDescription: (r: R, n: number) =>

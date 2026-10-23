@@ -22,11 +22,13 @@ export const OPERATOR = process.env.NEXT_PUBLIC_OPERATOR?.trim() || SITE_NAME;
 
 // The owner's other price-comparison sites, linked from the footer (owner's
 // call, 2026-10-14: the four sites cross-link in every footer). Plain followed
-// links — our own sites, not affiliates — so no nofollow or sponsored.
+// links — our own sites, not affiliates — so no nofollow or sponsored. The other
+// three games only (2026-10-23): the old list linked this site to itself and had
+// no Pokémon site. `anchor` is the link text, the words each site is found by.
 export const SISTER_SITES = [
-  { name: "RiftCompare", url: "https://riftcompare.com", what: "Riftbound TCG card prices" },
-  { name: "OP Compare", url: "https://opcompare.app", what: "One Piece Card Game prices" },
-  { name: "MTG Compare", url: "https://mtgcompare.app", what: "Magic: The Gathering sealed prices" },
+  { name: "RiftCompare", url: "https://riftcompare.com", game: "Riftbound", anchor: "Riftbound card prices", what: "RiftCompare" },
+  { name: "OP Compare", url: "https://opcompare.app", game: "One Piece", anchor: "One Piece Card Game prices", what: "OP Compare" },
+  { name: "DexCompare", url: "https://www.dexcompare.app", game: "Pokémon", anchor: "Pokémon TCG sealed prices", what: "DexCompare" },
 ] as const;
 
 // Public profiles for Organization.sameAs (an X account, a Bluesky handle…).

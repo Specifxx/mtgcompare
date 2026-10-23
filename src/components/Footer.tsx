@@ -98,16 +98,16 @@ export function Footer({ region }: { region: Region | null }) {
             </nav>
           ))}
         </div>
-        {/* The owner's sister sites, one row across the footer. */}
-        <nav aria-label="Also from us" className={r ? "lg:col-span-2" : "md:col-span-2"}>
-          <h2 className="eyebrow mb-2">Also from us</h2>
+        {/* The owner's sister sites, one row across the footer: the anchor says what each compares, the site's name after it. */}
+        <nav aria-label="Compare other TCGs" className={r ? "lg:col-span-2" : "md:col-span-2"}>
+          <h2 className="eyebrow mb-2">Compare other TCGs</h2>
           <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
             {SISTER_SITES.map((s) => (
               <li key={s.url}>
                 <a href={s.url} target="_blank" rel="noopener" className="font-semibold text-muted hover:text-ink">
-                  {s.name}
+                  {s.anchor}
                 </a>
-                <span className="text-xs text-faint"> — {s.what}</span>
+                <span className="text-xs text-faint"> at {s.what}</span>
               </li>
             ))}
           </ul>

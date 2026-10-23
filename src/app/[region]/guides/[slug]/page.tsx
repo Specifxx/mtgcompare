@@ -6,7 +6,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { NoPreFooter } from "@/components/Ebay";
 import { Icon } from "@/components/Icon";
 import { loadGuideData } from "@/content/guides/data";
-import { guideFor, guideMetaTitle, guideRegions, guidesFor } from "@/content/guides";
+import { guideFor, guideMetaTitle, guideRegions, guidesFor, guideTitleIn } from "@/content/guides";
 import { GuideCard, Toc, TocDisclosure, typeHref } from "@/content/guides/kit";
 import { GUIDE_MODULES } from "@/content/guides/modules";
 import { timeAgo } from "@/lib/format";
@@ -25,8 +25,9 @@ export function generateMetadata({ params }: { params: { region: string; slug: s
   const r = regionOrNotFound(params.region);
   const g = guideFor(params.slug, r.region);
   if (!g) return {};
+  const title = guideTitleIn(g, r);
   const meta = pageMeta({
-    title: g.title,
+    title,
     description: g.description,
     path: `/${r.region}/guides/${g.slug}`,
     // hreflang lists only the regions the guide is offered in (the MSRP guide: the US alone).
@@ -34,8 +35,8 @@ export function generateMetadata({ params }: { params: { region: string; slug: s
   });
   return {
     ...meta,
-    title: guideMetaTitle(g.title),
-    openGraph: { ...meta.openGraph, type: "article", publishedTime: g.published, modifiedTime: g.updated, images: [ogCardImage(`/og/guides/${g.slug}`, g.title)] },
+    title: guideMetaTitle(title),
+    openGraph: { ...meta.openGraph, type: "article", publishedTime: g.published, modifiedTime: g.updated, images: [ogCardImage(`/og/guides/${g.slug}`, title)] },
   };
 }
 
@@ -44,6 +45,7 @@ export default async function GuidePage({ params }: { params: { region: string; 
   const g = guideFor(params.slug, r.region);
   if (!g) notFound();
   const mod = GUIDE_MODULES[g.slug];
+  const title = guideTitleIn(g, r);
   const data = await loadGuideData(g.slug, r);
   const toc = mod.outline(r, data).sections.map(({ id, title }) => ({ id, title }));
   const path = `/${r.region}/guides/${g.slug}`;
@@ -59,12 +61,12 @@ export default async function GuidePage({ params }: { params: { region: string; 
     <div className="page py-8">
       {/* The guide's own strip (after its first live block) is its one eBay unit: the layout's pre-footer strip stands down. */}
       <NoPreFooter />
-      <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { href: `/${r.region}/guides`, label: "Guides" }, { label: g.title }]} />
+      <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { href: `/${r.region}/guides`, label: "Guides" }, { label: title }]} />
       <div className="lg:grid lg:grid-cols-[minmax(0,68ch)_14rem] lg:gap-x-12 xl:gap-x-20">
         <article className="min-w-0 max-w-[68ch]">
           <header>
             <div className="eyebrow">{g.kicker}</div>
-            <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">{g.title}</h1>
+            <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">{title}</h1>
             <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
               <span className="font-medium text-ink">By MTG Compare</span>
               <span aria-hidden="true">·</span>
@@ -142,7 +144,7 @@ export default async function GuidePage({ params }: { params: { region: string; 
       </section>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonLd(articleJsonLd({ title: g.title, description: g.description, path, published: g.published, updated: g.updated })) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(articleJsonLd({ title, description: g.description, path, published: g.published, updated: g.updated })) }}
       />
     </div>
   );

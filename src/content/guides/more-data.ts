@@ -115,6 +115,31 @@ export function playVsCollector(play: readonly ProductCardData[], collector: rea
     .map((s) => ({ code: s.code, name: s.name, releaseDate: s.releaseDate, play: p.get(s.code)!, collector: c.get(s.code)! }));
 }
 
+// ─── The sealed price guides (booster box, Collector Booster box, Bundle) ──────
+
+/** The booster-box type labels the booster box price guide reads: Play Booster boxes first, then the older Draft and Set lines. */
+export const BOX_LABELS = ["Play Booster Box", "Draft Booster Box", "Set Booster Box"] as const;
+
+/**
+ * The cheapest open product of each set, newest set first (SETS order), from products read cheapest first. A product with no set
+ * code is skipped (it has no set row to sit in). At most `take` sets.
+ */
+export function cheapestBySet(products: readonly ProductCardData[], take = 12): { code: string; name: string; slug: string; releaseDate: string; p: ProductCardData }[] {
+  const first = new Map<string, ProductCardData>();
+  for (const p of products) if (p.setCode && p.lowestPriceCents != null && !first.has(p.setCode)) first.set(p.setCode, p);
+  return SETS.filter((s) => first.has(s.code))
+    .slice(0, take)
+    .map((s) => ({ code: s.code, name: s.name, slug: s.slug, releaseDate: s.releaseDate, p: first.get(s.code)! }));
+}
+
+/** Low, middle (median) and high of the open prices given, or null with none. */
+export function priceSpread(products: readonly ProductCardData[]): { low: number; median: number; high: number; n: number } | null {
+  const c = products.map((p) => p.lowestPriceCents).filter((x): x is number => x != null && x > 0).sort((a, b) => a - b);
+  if (!c.length) return null;
+  const mid = c.length >> 1;
+  return { low: c[0], median: c.length % 2 ? c[mid] : Math.round((c[mid - 1] + c[mid]) / 2), high: c[c.length - 1], n: c.length };
+}
+
 // ─── Gifts ─────────────────────────────────────────────────────────────────────
 
 /**
