@@ -1,11 +1,11 @@
 {
  "format": 1,
- "generatedAt": "2026-10-23T13:54:56.209Z",
+ "generatedAt": "2026-10-23T13:55:08.817Z",
  "source": "DATABASE_URL",
  "counts": {
-  "Product": 3613,
+  "Product": 3602,
   "Offer": 35554,
-  "ProductStat": 7444,
+  "ProductStat": 7455,
   "StoreStat": 384,
   "EbayListing": 12183
  },
@@ -373,19 +373,19 @@
   "troveofcollectibles": "2026-10-23T13:49:18.062Z",
   "underhillgaming": "2026-10-23T13:49:18.062Z",
   "universetcg": "2026-10-23T13:49:18.062Z",
-  "untouchables": "2026-10-22T23:37:47.159Z",
-  "upnorthgames": "2026-10-22T23:37:47.159Z",
-  "urbanempirecollectables": "2026-10-22T23:37:47.159Z",
-  "vaultgamestore": "2026-10-22T23:37:47.159Z",
-  "vegas": "2026-10-22T23:37:47.159Z",
-  "vortexgames": "2026-10-22T23:37:47.159Z",
-  "vulcancollectibles": "2026-10-22T23:37:47.159Z",
-  "waypointgames": "2026-10-22T23:37:47.159Z",
-  "wizardtower": "2026-10-22T23:37:47.159Z",
-  "wolfdentcg": "2026-10-22T23:37:47.159Z",
-  "zamliytcg": "2026-10-22T23:37:47.159Z",
-  "zatu": "2026-10-22T23:37:47.159Z",
-  "zcgamestcg": "2026-10-22T23:37:47.159Z",
-  "zulusgames": "2026-10-22T23:37:47.159Z"
+  "untouchables": "2026-10-23T13:49:18.062Z",
+  "upnorthgames": "2026-10-23T13:49:18.062Z",
+  "urbanempirecollectables": "2026-10-23T13:49:18.062Z",
+  "vaultgamestore": "2026-10-23T13:49:18.062Z",
+  "vegas": "2026-10-23T13:49:18.062Z",
+  "vortexgames": "2026-10-23T13:49:18.062Z",
+  "vulcancollectibles": "2026-10-23T13:49:18.062Z",
+  "waypointgames": "2026-10-23T13:49:18.062Z",
+  "wizardtower": "2026-10-23T13:49:18.062Z",
+  "wolfdentcg": "2026-10-23T13:49:18.062Z",
+  "zamliytcg": "2026-10-23T13:49:18.062Z",
+  "zatu": "2026-10-23T13:49:18.062Z",
+  "zcgamestcg": "2026-10-23T13:49:18.062Z",
+  "zulusgames": "2026-10-23T13:49:18.062Z"
  }
 }
