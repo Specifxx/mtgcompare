@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import Link from "@/components/Link";
 import { ADSENSE_CLIENT } from "@/lib/adsense";
 import { CONTACT_EMAIL, SITE_URL } from "@/lib/site";
@@ -15,6 +16,7 @@ const LAST_UPDATED = ADSENSE_CLIENT ? "15 October 2026" : "14 October 2026";
 export default function Privacy() {
   return (
     <div className="page max-w-3xl py-12">
+      <Breadcrumbs items={[{ href: "/", label: "MTG Compare" }, { label: "Privacy" }]} />
       <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Privacy</h1>
       <p className="mt-2 text-sm text-faint">Last updated {LAST_UPDATED}</p>
       <div className="prose-dex mt-6">

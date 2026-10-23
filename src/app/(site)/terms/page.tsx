@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import Link from "@/components/Link";
 import { CONTACT_EMAIL, FAN_CONTENT_DISCLAIMER, OPERATOR, SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -14,6 +15,7 @@ const LAST_UPDATED = "5 October 2026";
 export default function Terms() {
   return (
     <div className="page max-w-3xl py-12">
+      <Breadcrumbs items={[{ href: "/", label: "MTG Compare" }, { label: "Terms" }]} />
       <h1 className="font-display text-4xl font-extrabold tracking-tight">Terms of use</h1>
       <p className="mt-2 text-sm text-faint">Last updated {LAST_UPDATED}</p>
       <div className="prose-dex mt-6">

@@ -23,7 +23,7 @@ import { TYPE_BY_KEY } from "@/lib/sealed-title";
 import { familyOf, perPackOf, whereText } from "../families";
 export { whereText };
 import type { GuideData } from "./data";
-import type { Guide } from "./index";
+import { guideTitleIn, type Guide } from "./index";
 
 
 // ─── The shape of a guide module ───────────────────────────────────────────────
@@ -505,7 +505,7 @@ export function GuideCard({ r, guide, headingLevel = 2 }: { r: RegionInfo; guide
   return (
     <Link href={guideHref(r, guide.slug)} prefetch={false} className="card group flex h-full flex-col p-5 transition-shadow hover:shadow-lift sm:p-6">
       <span className="eyebrow">{guide.kicker}</span>
-      <H className="mt-2 font-display text-xl font-bold leading-snug tracking-tight group-hover:text-brand">{guide.title}</H>
+      <H className="mt-2 font-display text-xl font-bold leading-snug tracking-tight group-hover:text-brand">{guideTitleIn(guide, r)}</H>
       <p className="mt-2 flex-1 text-[15px] leading-6 text-muted">{guide.description}</p>
       <span className="mt-4 flex items-center justify-between gap-3 text-xs text-muted">
         <span>

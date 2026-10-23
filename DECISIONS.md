@@ -60,3 +60,28 @@ cards … only focus on sealed products … price all the sealed products compar
 - Not ported, on purpose: Speed Insights, Vercel Analytics, the `/go` redirect (a billed function per click), the Discord/Telegram
   feed, DexCompare's Pokémon guides and tools.
 - Store combos sold as "BUNDLE: …, …" are refused, and a set's own code ("Fra Reality Fracture Bundle") never names a bundle.
+
+## 2026-10-23 — Retarget the landing page at sealed queries; the sister-site row becomes "Compare other TCGs"
+
+- Search Console (28 days) showed the site found mostly for singles queries ("mtg card prices", "magic card prices") it no longer
+  answers. The landing page now leads with the sealed queries: title "MTG Booster Box & Commander Deck Prices | MTG Compare", H1
+  "MTG booster box, bundle & Commander deck prices, cheapest first", a description naming the four product kinds and the regions
+  (under 60 and 155 characters, `tests/home-report.test.ts`). Region homes say "booster box, bundle & Commander deck prices"; the
+  guides index is "MTG booster box price guides in <region>".
+- The singles searches get a plain answer, not a redirect: `SinglesNote` ("Looking for MTG card prices?") on the landing page and
+  every guides index says the site compares sealed product only and links the sealed guides of the region.
+- The landing page carries a written market report (`src/components/home/MarketReport.tsx`, `src/lib/home-report.ts`): price ranges
+  of the four kinds in the US, the cheapest of each today, a region table and a line per region in its own currency, and the share of
+  listed products open per region. It reads the public data files through the guides' capped reads at render (no new data file),
+  says "today", and prints week-on-week moves only from `price-history.json` (until a week of snapshots exists it says so). An empty
+  read renders nothing. "Restock" talk stays within `copy-rules.ts`: the report describes the release cycle and the twice-daily
+  reads, never "back in stock".
+- Three guides answer "<product> price <country>" queries: `mtg-booster-box-prices`, `collector-booster-box-prices` and
+  `mtg-bundle-prices`. A guide may set `titleIn` ("MTG booster box prices in {in}"): its H1, `<title>`, breadcrumb and Article
+  headline name the region (`guideTitleIn`); `title` stays the registry's unique name. A Bundle gets no per-pack price.
+- The landing FAQ's questions are `<h3>`s (the FAQPage JSON-LD unchanged); the landing page, the region homes and the about,
+  contact, privacy and terms pages gained a BreadcrumbList (a visible trail, except the landing page's single crumb). Organization
+  and WebSite stay in the root layout, once per page. The Product + AggregateOffer of product pages already matched camcompare's
+  (it is a superset: offer count, low/high, currency, availability, condition), so nothing was ported.
+- `SISTER_SITES` lists the three other games only, with the words each is found by as the anchor: Riftbound (riftcompare.com),
+  One Piece (opcompare.app) and Pokémon (www.dexcompare.app). The old row linked mtgcompare.app to itself and had no Pokémon site.

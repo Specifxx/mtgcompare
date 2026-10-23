@@ -24,6 +24,7 @@ import { openPreorderGuides } from "@/lib/preorder-guides";
 import { isPreorderSet, formatRelease } from "@/lib/release";
 import { REGIONS, regionOrNotFound, type Market, type RegionInfo } from "@/lib/regions";
 import { ogCardImage, pageMeta, regionAlternates } from "@/lib/seo";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { fitDescription, seoCopy, seoTitleText } from "@/lib/seo-titles";
 import { PRODUCT_TYPES } from "@/lib/sealed-title";
 import { SETS, type MtgSet } from "@/lib/sets";
@@ -77,11 +78,12 @@ export default async function RegionHome({ params }: { params: { region: string 
       <section className="relative overflow-hidden border-b border-line bg-surface">
         <div className="page relative grid gap-10 py-8 sm:py-12 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-center">
           <div className="min-w-0">
+            <Breadcrumbs items={[{ href: "/", label: "MTG Compare" }, { label: r.name }]} />
             <div className="eyebrow">
               <span aria-hidden="true">{r.flag}</span> {r.name} · prices in {r.currency}
             </div>
             <h1 className="mt-3 max-w-3xl font-display text-3xl font-bold leading-[1.1] tracking-tight sm:text-5xl">
-              Compare Magic booster box &amp; bundle prices in <span className="text-brand">{r.inName}</span>
+              Compare MTG booster box, bundle &amp; Commander deck prices in <span className="text-brand">{r.inName}</span>
             </h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-muted sm:text-lg">
               Today&rsquo;s prices and stock from {plural(storeCount, `${r.adjective} store`)}

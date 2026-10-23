@@ -15,14 +15,20 @@ import { COUNTRY_GUIDE } from "@/content/guides/country-prices";
 import { GuideCard } from "@/content/guides/kit";
 import { jsonLd } from "@/lib/seo";
 import { ADSENSE_CLIENT } from "@/lib/adsense";
+import { breadcrumbJsonLd } from "@/lib/seo";
+import { emptyHomeReport, loadHomeReport } from "@/lib/home-report";
+import { MarketReport } from "@/components/home/MarketReport";
+import { SinglesNote } from "@/components/seo/SinglesNote";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js CDN_PAGES, "/"), like the region pages, never ISR and never
 // prerendered at build (a build reads no data: tests/vercel-ignore-build.test.ts). The region grid's default (US) picks come from the
 // public data files; the counts from the store registry. It reads no cookie or header: one copy for everyone.
 export const dynamic = "force-dynamic";
 
-const TITLE = `${SITE_NAME} — Magic sealed prices & stock from ${STORES.length} stores`;
-const DESCRIPTION = `Compare Magic sealed prices and stock across ${STORES.length} independent stores in ${REGION_LIST.length} regions. Booster boxes, Collector boxes and more, cheapest in stock first.`;
+// Retargeted 2026-10-23 at the sealed queries people search (DECISIONS.md, "Retarget the landing page at sealed queries"): the
+// product kinds first, the brand last. Under 60 and 155 characters (tests/seo-titles.test.ts).
+const TITLE = `MTG Booster Box & Commander Deck Prices | ${SITE_NAME}`;
+const DESCRIPTION = `Compare MTG booster box, Collector Booster box, Bundle and Commander deck prices across ${STORES.length} stores in the US, UK, Australia, Canada and more.`;
 
 /**
  * The landing page's metadata. hreflang: the seven region homes, and x-default this page, the region chooser that every region
@@ -94,7 +100,7 @@ const faqLd = {
 
 export default async function Landing() {
   // The default region's grid, read once at build from the public data files (a release rebuilds it): the static HTML is filled.
-  const initialPicks = await regionPicks(X_DEFAULT_REGION).catch(() => []);
+  const [initialPicks, report] = await Promise.all([regionPicks(X_DEFAULT_REGION).catch(() => []), loadHomeReport(X_DEFAULT_REGION).catch(() => emptyHomeReport())]);
   const guides = guidesFor(X_DEFAULT_REGION);
   const gr = REGIONS[X_DEFAULT_REGION];
   return (
@@ -103,7 +109,7 @@ export default async function Landing() {
         <div className="page relative pb-12 pt-8 text-center sm:pb-16 sm:pt-20">
           <p className="eyebrow">Play boxes · Collector boxes · Bundles · Commander decks</p>
           <h1 className="mx-auto max-w-3xl font-display text-4xl font-bold leading-[1.05] tracking-tight mt-3 sm:mt-4 sm:text-6xl">
-            Magic sealed, in stock, <span className="text-brand">cheapest first.</span>
+            MTG booster box, bundle &amp; Commander deck prices, <span className="text-brand">cheapest first.</span>
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted sm:mt-6 sm:text-lg sm:leading-8">
             Prices and stock from {STORES.length} independent stores in {REGION_LIST.length} regions, read about twice a day. Free, no sign-up, and no store pays to be
@@ -176,6 +182,10 @@ export default async function Landing() {
           </div>
         </div>
       </section>
+
+      <MarketReport report={report} />
+
+      <SinglesNote r={gr} />
 
       <section id="regions" className="page mt-14" aria-labelledby="regions-h">
         <h2 id="regions-h" className="mb-2 text-center font-display text-2xl font-bold tracking-tight">
@@ -272,14 +282,14 @@ export default async function Landing() {
           Questions
         </h2>
         {/* Written out, not collapsed: every answer is visible text in the first render. */}
-        <dl className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
+        <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
           {FAQ.map((f) => (
             <div key={f.q} className="px-4 py-4">
-              <dt className="font-semibold">{f.q}</dt>
-              <dd className="mt-1.5 text-[15px] leading-7 text-muted">{f.a}</dd>
+              <h3 className="font-semibold">{f.q}</h3>
+              <p className="mt-1.5 text-[15px] leading-7 text-muted">{f.a}</p>
             </div>
           ))}
-        </dl>
+        </div>
       </section>
 
       <section className="page mt-14 text-center" aria-labelledby="compare-h">
@@ -327,6 +337,7 @@ export default async function Landing() {
         <SuggestedEbayStrip />
       </section>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbJsonLd([{ href: "/", label: SITE_NAME }])) }} />
     </div>
   );
 }

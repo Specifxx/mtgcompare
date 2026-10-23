@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import Link from "@/components/Link";
 import { CONTACT_EMAIL, SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -13,6 +14,7 @@ const SUBJECT = (s: string) => `mailto:${CONTACT_EMAIL}?subject=${encodeURICompo
 export default function Contact() {
   return (
     <div className="page max-w-3xl py-12">
+      <Breadcrumbs items={[{ href: "/", label: "MTG Compare" }, { label: "Contact" }]} />
       <h1 className="font-display text-4xl font-extrabold tracking-tight">Contact</h1>
       <div className="prose-dex mt-6">
         <p>

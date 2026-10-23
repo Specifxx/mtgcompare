@@ -32,12 +32,21 @@ export type GuideSlug =
   | "secret-lair-drops-explained"
   | "magic-sealed-gifts-under-50"
   | "magic-release-dates-preorder-calendar"
-  | "magic-sealed-market-wrap";
+  | "magic-sealed-market-wrap"
+  | "mtg-booster-box-prices"
+  | "collector-booster-box-prices"
+  | "mtg-bundle-prices";
 
 export interface Guide {
   slug: GuideSlug;
   /** The H1, the Article headline and the <title>. With " | MTG Compare" it should fit in 60 characters; past that it goes out as title.absolute. */
   title: string;
+  /**
+   * The title as the region's copy says it, with "{in}" for the region ("MTG booster box prices in {in}" → "… in Australia"): the
+   * H1, the <title> and the Article headline of /<region>/guides/<slug>, for guides that answer a "… price <country>" query. Absent:
+   * `title` everywhere.
+   */
+  titleIn?: string;
   /** Meta description, Article description and the index card's text: at most 160 characters. */
   description: string;
   /** The index card's eyebrow: two or three words. */
@@ -56,6 +65,8 @@ export interface Guide {
 const D = "2026-10-21";
 /** The data-driven guides' first edition, and the MSRP guide's refresh. */
 const D2 = "2026-10-23";
+/** The sealed price guides (booster box, Collector Booster box, Bundle), first edition. */
+const D3 = "2026-10-23";
 const SEALED_EBAY = { heading: "Sealed Magic on eBay", query: "Magic the Gathering sealed" };
 
 export const GUIDES: readonly Guide[] = [
@@ -235,6 +246,42 @@ export const GUIDES: readonly Guide[] = [
     topic: { types: ["play-booster-box", "collector-booster-box", "bundle", "commander-deck"] },
     ebay: SEALED_EBAY,
   },
+  {
+    slug: "mtg-booster-box-prices",
+    title: "MTG booster box prices today, set by set",
+    titleIn: "MTG booster box prices in {in}",
+    description: "What a Magic Play Booster box costs today at the stores we compare: the cheapest in stock, the cheapest box of every recent set and the price per pack.",
+    kicker: "Booster boxes",
+    published: D3,
+    updated: D3,
+    regions: "all",
+    topic: { types: ["play-booster-box", "draft-booster-box", "set-booster-box"] },
+    ebay: { heading: "Magic booster boxes on eBay", query: "MTG booster box" },
+  },
+  {
+    slug: "collector-booster-box-prices",
+    title: "Collector Booster box prices, set by set",
+    titleIn: "MTG Collector Booster box prices in {in}",
+    description: "What a Magic Collector Booster box costs today: the cheapest and dearest in stock, and each recent set's cheapest box with its price per pack.",
+    kicker: "Collector boxes",
+    published: D3,
+    updated: D3,
+    regions: "all",
+    topic: { types: ["collector-booster-box", "collector-booster"] },
+    ebay: { heading: "Collector Booster boxes on eBay", query: "MTG collector booster box" },
+  },
+  {
+    slug: "mtg-bundle-prices",
+    title: "Magic Bundle prices: every set's Bundle today",
+    titleIn: "MTG Bundle prices in {in}",
+    description: "What a Magic: The Gathering Bundle costs today at the stores we compare: the cheapest Bundles in stock, each recent set's Bundle and how many are open.",
+    kicker: "Bundles",
+    published: D3,
+    updated: D3,
+    regions: "all",
+    topic: { types: ["bundle", "play-booster-box"] },
+    ebay: { heading: "Magic Bundles on eBay", query: "MTG bundle sealed" },
+  },
 ];
 
 export const GUIDE_BY_SLUG: ReadonlyMap<string, Guide> = new Map(GUIDES.map((g) => [g.slug, g]));
@@ -258,4 +305,9 @@ export function guideFor(slug: string, region: Region): Guide | null {
 /** The <title>: the template adds " | MTG Compare" (13 characters) when the whole still fits in 60; otherwise the title alone. */
 export function guideMetaTitle(title: string): string | { absolute: string } {
   return title.length + " | MTG Compare".length <= 60 ? title : { absolute: title };
+}
+
+/** A guide's title in one region's copy: `titleIn` with the region's "in" name, else `title`. */
+export function guideTitleIn(g: Pick<Guide, "title" | "titleIn">, r: { inName: string }): string {
+  return g.titleIn ? g.titleIn.replace("{in}", r.inName) : g.title;
 }

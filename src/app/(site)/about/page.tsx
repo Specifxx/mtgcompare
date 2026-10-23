@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ADSENSE_CLIENT } from "@/lib/adsense";
 import Link from "@/components/Link";
 import { REGION_LIST } from "@/lib/regions";
@@ -15,6 +16,7 @@ export const metadata: Metadata = {
 export default function About() {
   return (
     <div className="page max-w-3xl py-12">
+      <Breadcrumbs items={[{ href: "/", label: "MTG Compare" }, { label: "About" }]} />
       <h1 className="font-display text-4xl font-extrabold tracking-tight">How MTG Compare works</h1>
       <div className="prose-dex mt-6">
         <p>

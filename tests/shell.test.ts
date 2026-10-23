@@ -228,7 +228,7 @@ test("landing page: static, a never-empty CTA box, a GET search form, real type 
   const page = src("app/(site)/page.tsx");
   assert.doesNotMatch(page, /prisma|@\/lib\/db|@\/lib\/data"/, "no database");
   assert.match(page, /text-4xl[^"]*sm:text-6xl/);
-  assert.match(page, /Magic sealed, in stock, <span className="text-brand">cheapest first\.<\/span>/);
+  assert.match(page, /MTG booster box, bundle &amp; Commander deck prices, <span className="text-brand">cheapest first\.<\/span>/);
   assert.match(page, /<div className="mt-6 flex h-12 justify-center sm:mt-8">\s*<RegionSuggest formId="landing-search" \/>/);
   assert.match(page, /<form\s+id="landing-search"\s+action=\{`\/\$\{X_DEFAULT_REGION\}\/sealed`\}\s+method="get"/);
   assert.match(page, /lg:grid-cols-7/);
