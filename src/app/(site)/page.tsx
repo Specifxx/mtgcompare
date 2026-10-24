@@ -19,6 +19,8 @@ import { breadcrumbJsonLd } from "@/lib/seo";
 import { emptyHomeReport, loadHomeReport } from "@/lib/home-report";
 import { MarketReport } from "@/components/home/MarketReport";
 import { SinglesNote } from "@/components/seo/SinglesNote";
+import { HalloweenDecor } from "@/components/home/HalloweenDecor";
+import { InnistradComing } from "@/components/home/InnistradComing";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js CDN_PAGES, "/"), like the region pages, never ISR and never
 // prerendered at build (a build reads no data: tests/vercel-ignore-build.test.ts). The region grid's default (US) picks come from the
@@ -105,8 +107,10 @@ export default async function Landing() {
   const gr = REGIONS[X_DEFAULT_REGION];
   return (
     <div>
-      <section>
-        <div className="page relative pb-12 pt-8 text-center sm:pb-16 sm:pt-20">
+      <section className="mc-hero relative">
+        <HalloweenDecor />
+        <div className="page mc-hero-content pb-12 pt-10 text-center sm:pb-16 sm:pt-20">
+          <InnistradComing />
           <p className="eyebrow">Play boxes · Collector boxes · Bundles · Commander decks</p>
           <h1 className="mx-auto max-w-3xl font-display text-4xl font-bold leading-[1.05] tracking-tight mt-3 sm:mt-4 sm:text-6xl">
             MTG booster box, bundle &amp; Commander deck prices, <span className="text-brand">cheapest first.</span>

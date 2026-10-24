@@ -261,3 +261,169 @@ html:has(.menu-sheet[open]) {
 body:has([data-ebay-no-prefooter]) [data-ebay-prefooter] {
   display: none;
 }
+
+/* ---------------------------------------------------------------------------
+   Halloween (data-season="halloween", lib/season.ts; 16-31 October in the visitor's own time, ported from RiftCompare).
+   The landing hero turns to a moonlit Innistrad night: a violet sky with a harvest moon, cobwebs in its top corners, bats,
+   candlelit jack-o'-lanterns in its bottom corners, and "Night falls on Innistrad" above the eyebrow. Everything keys off the
+   attribute, so on 1 November the site is exactly its usual self with no deploy. Decoration sits behind the hero content
+   (.mc-hero-content is z-index 1) and never takes pointer events. Brand, buy and stock colours are untouched.
+   --------------------------------------------------------------------------- */
+.mc-decor,
+.mc-moon {
+  display: none;
+}
+:root[data-season="halloween"] .mc-decor {
+  display: block;
+}
+:root[data-season="halloween"] .mc-moon {
+  display: inline-flex;
+}
+.mc-hero-content {
+  position: relative;
+  z-index: 1;
+}
+:root[data-season="halloween"] .mc-hero {
+  background-image:
+    radial-gradient(circle at 82% 18%, rgb(255 214 140 / 0.35) 0, rgb(255 214 140 / 0.12) 70px, transparent 160px),
+    radial-gradient(ellipse 80% 70% at 50% 0%, rgb(122 46 196 / 0.16) 0%, transparent 75%),
+    linear-gradient(180deg, rgb(122 46 196 / 0.08), transparent);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-season="halloween"] .mc-hero {
+    background-image:
+      radial-gradient(circle at 82% 18%, rgb(255 210 130 / 0.22) 0, rgb(255 190 90 / 0.08) 80px, transparent 170px),
+      radial-gradient(ellipse 80% 70% at 50% 0%, #2a1250 0%, rgb(42 18 80 / 0.4) 45%, transparent 80%);
+  }
+}
+.mc-decor {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.mc-web {
+  position: absolute;
+  top: 0;
+  width: clamp(56px, 13vw, 190px);
+  aspect-ratio: 1;
+  background-color: rgb(60 40 110 / 0.28);
+  -webkit-mask: url(/brand/cobweb.svg) 0 0 / contain no-repeat;
+  mask: url(/brand/cobweb.svg) 0 0 / contain no-repeat;
+}
+@media (prefers-color-scheme: dark) {
+  .mc-web { background-color: rgb(225 220 255 / 0.3); }
+}
+.mc-web-l { left: 0; }
+.mc-web-r { right: 0; transform: scaleX(-1); }
+.mc-pumpkins {
+  position: absolute;
+  bottom: 6px;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+}
+.mc-pumpkins-l { left: 14px; }
+.mc-pumpkins-r { right: 14px; }
+.mc-pumpkin {
+  display: block;
+  width: clamp(40px, 5.2vw, 80px);
+  aspect-ratio: 100 / 92;
+  background: url(/brand/pumpkin.svg) center / contain no-repeat;
+  filter: drop-shadow(0 0 10px rgb(255 140 30 / 0.5));
+  animation: mc-candle 2.6s ease-in-out infinite;
+}
+.mc-pumpkin-sm {
+  width: clamp(28px, 3.4vw, 52px);
+  animation-delay: -1.1s;
+}
+@keyframes mc-candle {
+  0%, 100% { filter: drop-shadow(0 0 10px rgb(255 140 30 / 0.5)); }
+  30% { filter: drop-shadow(0 0 16px rgb(255 160 40 / 0.75)); }
+  34% { filter: drop-shadow(0 0 7px rgb(255 130 30 / 0.4)); }
+  62% { filter: drop-shadow(0 0 18px rgb(255 170 50 / 0.8)); }
+}
+/* Bats: a two-wing silhouette drawn with a mask, flapping as they cross the strip ABOVE the hero's content (never behind its text). */
+.mc-bat {
+  position: absolute;
+  left: -40px;
+  width: 30px;
+  aspect-ratio: 2 / 1;
+  background-color: rgb(40 20 70 / 0.7);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20'%3E%3Cpath d='M20 6c1-2 2-3 2-3l1 3c4-4 9-5 17-3-4 1-6 4-6 8-2-2-5-2-7 1-1-2-3-3-5-2-2-1-4 0-5 2-2-3-5-3-7-1 0-4-2-7-6-8 8-2 13-1 17 3l1-3s1 1 2 3z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20'%3E%3Cpath d='M20 6c1-2 2-3 2-3l1 3c4-4 9-5 17-3-4 1-6 4-6 8-2-2-5-2-7 1-1-2-3-3-5-2-2-1-4 0-5 2-2-3-5-3-7-1 0-4-2-7-6-8 8-2 13-1 17 3l1-3s1 1 2 3z'/%3E%3C/svg%3E") center / contain no-repeat;
+  animation: mc-fly 19s linear infinite, mc-flap 0.32s ease-in-out infinite alternate;
+}
+@media (prefers-color-scheme: dark) {
+  .mc-bat { background-color: rgb(200 180 240 / 0.55); }
+}
+.mc-bat-1 { top: 8px; animation-delay: -3s, 0s; }
+.mc-bat-2 { top: 18px; width: 22px; animation-duration: 25s, 0.28s; animation-delay: -14s, -0.1s; }
+.mc-bat-3 { top: 4px; width: 18px; animation-duration: 31s, 0.25s; animation-delay: -22s, -0.2s; }
+@keyframes mc-fly {
+  0% { transform: translate3d(0, 0, 0); }
+  25% { transform: translate3d(28vw, 6px, 0); }
+  50% { transform: translate3d(55vw, -4px, 0); }
+  75% { transform: translate3d(82vw, 5px, 0); }
+  100% { transform: translate3d(calc(100vw + 80px), 0, 0); }
+}
+@keyframes mc-flap {
+  from { scale: 1 1; }
+  to { scale: 1 0.8; }
+}
+.mc-moon {
+  align-items: center;
+  gap: 0.55rem;
+  border-radius: 9999px;
+  border: 1px solid rgb(122 46 196 / 0.35);
+  background: rgb(var(--surface) / 0.85);
+  padding: 0.4rem 0.9rem 0.4rem 0.7rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: rgb(var(--brand-strong));
+  box-shadow: 0 0 22px rgb(122 46 196 / 0.18);
+  transition: box-shadow 200ms ease, border-color 200ms ease;
+}
+.mc-moon:hover,
+.mc-moon:focus-visible {
+  border-color: rgb(var(--brand));
+  box-shadow: 0 0 30px rgb(122 46 196 / 0.35);
+}
+.mc-moon b {
+  font-family: var(--font-display), Georgia, serif;
+  font-weight: 800;
+  color: rgb(var(--ink));
+}
+.mc-eyes {
+  display: inline-flex;
+  gap: 4px;
+}
+.mc-eyes i {
+  display: block;
+  width: 9px;
+  height: 4px;
+  border-radius: 50%;
+  background: #ffcf6b;
+  box-shadow: 0 0 6px 1px rgb(255 150 30 / 0.9);
+  animation: mc-blink 4.6s ease-in-out infinite;
+}
+.mc-eyes i:first-child { transform: rotate(14deg); }
+.mc-eyes i:last-child { transform: rotate(-14deg); }
+@keyframes mc-blink {
+  0%, 90%, 100% { scale: 1 1; }
+  93% { scale: 1 0.1; }
+}
+@media (max-width: 639.98px) {
+  /* Tucked into the corners, below the search box: nothing over the hero's text or controls on a phone. */
+  .mc-pumpkin-sm,
+  .mc-bat-3 { display: none; }
+  .mc-pumpkin { width: 30px; }
+  .mc-pumpkins { bottom: 4px; }
+  .mc-pumpkins-l { left: 8px; }
+  .mc-pumpkins-r { right: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mc-bat { display: none; }
+  .mc-pumpkin,
+  .mc-eyes i { animation: none; }
+}
