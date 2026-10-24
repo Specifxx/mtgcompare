@@ -17,6 +17,7 @@ import {
   STAR_TREK_MYTHICS,
   WIZARDS_COLLECTING_FRA,
   WIZARDS_FRA_GALLERY,
+  scryfallNormal,
   type ScryfallCard,
 } from "@/content/set-reveals";
 import {
@@ -52,19 +53,21 @@ const Src = ({ s }: { s: Source }) => (
 
 function CardGrid({ cards }: { cards: readonly ScryfallCard[] }) {
   return (
-    <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+    <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
       {cards.map((c) => (
         <li key={c.number} className="min-w-0">
-          <a href={c.url} rel="noopener" className="block">
-            {/* Scryfall's own image, hotlinked unmodified. */}
+          <a href={c.url} rel="noopener" className="group block">
+            {/* Scryfall's own image of the whole card, hotlinked unmodified (its 488×680 "normal" size: the 146px "small"
+                one is blurred at tile width). */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={c.image}
+              src={scryfallNormal(c.image)}
               alt={c.name}
-              width={146}
-              height={204}
+              width={488}
+              height={680}
               loading="lazy"
-              className="h-auto w-full rounded-lg"
+              decoding="async"
+              className="aspect-[488/680] h-auto w-full rounded-[4.75%/3.5%] bg-raised shadow-card transition-transform group-hover:-translate-y-0.5"
             />
             <span className="mt-1 block text-sm font-semibold text-ink">
               {c.name}

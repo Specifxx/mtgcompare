@@ -8,6 +8,7 @@ import { Logo } from "./Logo";
 import { MobileMenu } from "./MobileMenu";
 import { NavLink } from "./NavLink";
 import { RegionSwitcher } from "./RegionSwitcher";
+import { ThemeToggle } from "./ThemeToggle";
 import { SearchBox } from "./SearchBox";
 
 /**
@@ -71,12 +72,14 @@ export function Header({ region }: { region: Region | null }) {
             <div className="hdr-search min-w-0 flex-1 lg:ml-auto lg:w-56 lg:flex-none xl:w-64">
               <SearchBox region={region} size="sm" />
             </div>
+            <ThemeToggle />
             <RegionSwitcher region={region} compact />
             <MobileMenu region={region} className="lg:hidden" />
           </>
         ) : (
           <>
             <div className="ml-auto" />
+            <ThemeToggle />
             <RegionSwitcher region={null} />
             <MobileMenu region={null} />
           </>

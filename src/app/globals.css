@@ -37,8 +37,9 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
+/* Dark is the default (owner, 2026-10-24): a visitor who has not chosen light gets it, decided before first paint by
+   THEME_BOOT_SCRIPT (lib/theme.ts) from their own saved choice; no server read, so one CDN copy serves everyone. */
+:root:not([data-theme="light"]) {
     --bg: 15 16 19;
     --surface: 23 24 29;
     --raised: 29 31 37;
@@ -62,7 +63,6 @@
     --ad-line: 120 130 156;
     --shadow: 0 0 0;
     color-scheme: dark;
-  }
 }
 
 html {
@@ -141,10 +141,8 @@ body {
   .plate {
     @apply isolate overflow-hidden rounded-lg bg-white ring-1 ring-line;
   }
-  @media (prefers-color-scheme: dark) {
-    .plate {
-      background-color: #f3f3f1;
-    }
+  :root:not([data-theme="light"]) .plate {
+    background-color: #f3f3f1;
   }
   /* One row that scrolls sideways (chips, a product rail): snap to each child, no scrollbar, and a fade at the right edge that says
      there is more. The 4px of block padding (cancelled by the margin) keeps focus rings from being clipped by the scroll box. */
@@ -289,12 +287,10 @@ body:has([data-ebay-no-prefooter]) [data-ebay-prefooter] {
     radial-gradient(ellipse 80% 70% at 50% 0%, rgb(122 46 196 / 0.16) 0%, transparent 75%),
     linear-gradient(180deg, rgb(122 46 196 / 0.08), transparent);
 }
-@media (prefers-color-scheme: dark) {
-  :root[data-season="halloween"] .mc-hero {
+:root[data-season="halloween"]:not([data-theme="light"]) .mc-hero {
     background-image:
       radial-gradient(circle at 82% 18%, rgb(255 210 130 / 0.22) 0, rgb(255 190 90 / 0.08) 80px, transparent 170px),
       radial-gradient(ellipse 80% 70% at 50% 0%, #2a1250 0%, rgb(42 18 80 / 0.4) 45%, transparent 80%);
-  }
 }
 .mc-decor {
   position: absolute;
@@ -311,9 +307,7 @@ body:has([data-ebay-no-prefooter]) [data-ebay-prefooter] {
   -webkit-mask: url(/brand/cobweb.svg) 0 0 / contain no-repeat;
   mask: url(/brand/cobweb.svg) 0 0 / contain no-repeat;
 }
-@media (prefers-color-scheme: dark) {
-  .mc-web { background-color: rgb(225 220 255 / 0.3); }
-}
+:root:not([data-theme="light"]) .mc-web { background-color: rgb(225 220 255 / 0.3); }
 .mc-web-l { left: 0; }
 .mc-web-r { right: 0; transform: scaleX(-1); }
 .mc-pumpkins {
@@ -354,9 +348,7 @@ body:has([data-ebay-no-prefooter]) [data-ebay-prefooter] {
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 20'%3E%3Cpath d='M20 6c1-2 2-3 2-3l1 3c4-4 9-5 17-3-4 1-6 4-6 8-2-2-5-2-7 1-1-2-3-3-5-2-2-1-4 0-5 2-2-3-5-3-7-1 0-4-2-7-6-8 8-2 13-1 17 3l1-3s1 1 2 3z'/%3E%3C/svg%3E") center / contain no-repeat;
   animation: mc-fly 19s linear infinite, mc-flap 0.32s ease-in-out infinite alternate;
 }
-@media (prefers-color-scheme: dark) {
-  .mc-bat { background-color: rgb(200 180 240 / 0.55); }
-}
+:root:not([data-theme="light"]) .mc-bat { background-color: rgb(200 180 240 / 0.55); }
 .mc-bat-1 { top: 8px; animation-delay: -3s, 0s; }
 .mc-bat-2 { top: 18px; width: 22px; animation-duration: 25s, 0.28s; animation-delay: -14s, -0.1s; }
 .mc-bat-3 { top: 4px; width: 18px; animation-duration: 31s, 0.25s; animation-delay: -22s, -0.2s; }
@@ -427,3 +419,8 @@ body:has([data-ebay-no-prefooter]) [data-ebay-prefooter] {
   .mc-pumpkin,
   .mc-eyes i { animation: none; }
 }
+
+/* ThemeToggle: the icon for the theme you would switch TO. */
+.theme-icon-dark { display: none; }
+:root[data-theme="light"] .theme-icon-dark { display: block; }
+:root[data-theme="light"] .theme-icon-light { display: none; }

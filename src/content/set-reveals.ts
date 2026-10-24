@@ -12,6 +12,9 @@ export interface ScryfallCard {
   image: string;
 }
 
+/** Scryfall's "normal" (488×680) image of the same card for a "small" image URL: Scryfall's own file, never altered. */
+export const scryfallNormal = (url: string) => url.replace("cards.scryfall.io/small/", "cards.scryfall.io/normal/");
+
 export const CARDS_CHECKED = "2026-10-24";
 export const SCRYFALL_TRK = {
   label: "Scryfall's Star Trek (TRK) card list",
