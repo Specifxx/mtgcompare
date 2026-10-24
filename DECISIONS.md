@@ -99,3 +99,11 @@ the content, candlelit jack-o'-lanterns in the bottom corners, and "Night falls 
 Innistrad (the hero form's own GET search, no new data read). Decoration is behind the content, takes no pointer events, sits only
 in the hero's padding and corners on a phone, and reduced motion gets no bats and no flicker. `tests/season.test.ts`. To remove the
 season: delete `HalloweenDecor`, `InnistradComing`, their calls and the `.mc-` CSS block.
+
+## 2026-10-24: Set-reveal posts (Star Trek and Reality Fracture chase cards and Collector Boosters)
+
+Four blog posts in RiftCompare's best-performing format (query-led title, real counts, card list, FAQ): Star Trek chase cards,
+Star Trek Collector Booster contents, Reality Fracture chase cards, Reality Fracture Collector Booster and products. A "chase card"
+is defined by Wizards' own rarity and print-run numbers (mythic rares, Signed Headliners, serialized cards), never a card price: the
+site has no singles data. Card lists are Scryfall's (`src/content/set-reveals.ts`, main-set mythics, images hotlinked unmodified),
+product facts Wizards' Collecting articles; each post ties the cards to the boxes that carry them and shows live sealed prices.
