@@ -336,19 +336,18 @@ test("page budgets: pure, monotonic, and the pre-footer strip gives way on short
   assert.equal(gridPageHasRoomForFooter(40), true);
   assert.equal(listHasRoomForFooter(5), false);
   assert.equal(listHasRoomForFooter(48), true);
-  // The product page (growth release): the table shows eight rows at most, so the plan counts VISIBLE rows (min(offers + 1, 8): the
-  // eBay row is one) and the collapsed groups' summaries, then the "Quick facts" card, never every offer.
+  // The product page: every row of the table is visible (VISIBLE_ROWS 1000, owner 2026-10-24), so the plan counts every offer and the
+  // eBay row, then the "Quick facts" card.
   const thin = productAdPlan({ offerRows: 1, elsewhere: 0, related: 0 });
   assert.deepEqual(thin, { tableGroup: false, preFooter: false });
   assert.equal(productAdPlan({ offerRows: 3, elsewhere: 0, related: 8 }).tableGroup, false, "four phone rows and the facts are not a screen");
   assert.deepEqual(productAdPlan({ offerRows: 6, elsewhere: 0, related: 8 }), { tableGroup: false, preFooter: true }, "seven desktop rows and the facts are not a screen there: the strip goes to the bottom");
   assert.deepEqual(productAdPlan({ offerRows: 6, elsewhere: 1, related: 8 }), { tableGroup: true, preFooter: false }, "…the other regions' tiles make it one");
-  assert.deepEqual(productAdPlan({ offerRows: 30, summaries: 2, elsewhere: 6, related: 8 }), productAdPlan({ offerRows: 9, summaries: 2, elsewhere: 6, related: 8 }), "30 offers or 9: the same eight visible rows");
+  assert.deepEqual(productAdPlan({ offerRows: 9, elsewhere: 6, related: 8 }), { tableGroup: true, preFooter: false }, "ten rows: the pre-footer strip would be too dense");
+  assert.deepEqual(productAdPlan({ offerRows: 30, elsewhere: 6, related: 8 }), { tableGroup: true, preFooter: true }, "30 visible offers: a long page holds both");
   assert.deepEqual(productAdPlan({ offerRows: 4, elsewhere: 0, related: 4 }), { tableGroup: false, preFooter: true }, "a short table: the strip at the bottom, in the pre-footer strip's place");
-  // Ad density (at most a quarter of <main>, at 390 and 1440): the collapsed table makes a page shorter, so it holds fewer units.
-  assert.deepEqual(productAdPlan({ offerRows: 12, summaries: 1, elsewhere: 3, related: 8 }), { tableGroup: true, preFooter: false }, "the pre-footer strip would take the desktop page past a quarter");
   assert.deepEqual(productAdPlan({ offerRows: 7, elsewhere: 0, related: 0 }), { tableGroup: false, preFooter: false }, "nothing under the facts: one strip would be over a quarter of the page");
-  assert.deepEqual(productAdPlan({ offerRows: 12, summaries: 1, elsewhere: 3, related: 0, rail: 4 }), { tableGroup: true, preFooter: false }, "a product with no set: a rail of four");
+  assert.deepEqual(productAdPlan({ offerRows: 12, elsewhere: 3, related: 0, rail: 4 }), { tableGroup: true, preFooter: false }, "a product with no set: a rail of four");
   // More content never takes a unit away.
   for (let rows = 0; rows < 15; rows++) {
     const a = productAdPlan({ offerRows: rows, elsewhere: 2, related: 4 });

@@ -495,33 +495,9 @@ export default async function ProductPage({ params }: { params: { region: string
                   ebay={ebayBest ? { slug: p.slug, floor: ebayFloor, packs: rowPacks(type?.key, packs) } : null}
                 />
               </div>
-              <CompareLink n={p.offers.length} />
-              <MarketplacePanel
-                region={r.region}
-                productName={p.name}
-                preorder={pre}
-                tcgplayer={tcgplayer}
-                tcgplayerIsBest={best.marketplace && !ebayBest /* when the card may turn to eBay, TCGplayer keeps its row here */}
-                popular={hot}
-                pick={ebayPick}
-                storeCents={best.priceCents}
-              />
             </>
           ) : (
             <>
-              <div id="soldout" className="mt-4">
-                <SoldOutCallout
-                  region={r.region}
-                  productName={p.name}
-                  storesListing={stores.length}
-                  notChecked={stores.filter((o) => offerStock(o, now) === "unknown").length}
-                  tcgplayer={tcgplayer}
-                  ebayQuery={ebayQ}
-                  pick={ebayPick}
-                  instead={typeLink}
-                />
-              </div>
-              {p.offers.length > 0 && <CompareLink n={p.offers.length} soldOut />}
             </>
           )}
         </div>
@@ -547,6 +523,36 @@ export default async function ProductPage({ params }: { params: { region: string
           </p>
         )}
       </Section>
+
+      {/* Marketplaces (eBay, TCGplayer) come AFTER the store rows (owner, 2026-10-24: at the top they read as the price rows, and a
+          sold-out page looked like nothing was compared). */}
+      {best && bestLink ? (
+        <div className="mt-10">
+          <MarketplacePanel
+            region={r.region}
+            productName={p.name}
+            preorder={pre}
+            tcgplayer={tcgplayer}
+            tcgplayerIsBest={best.marketplace && !ebayBest /* when the card may turn to eBay, TCGplayer keeps its row here */}
+            popular={hot}
+            pick={ebayPick}
+            storeCents={best.priceCents}
+          />
+        </div>
+      ) : (
+        <div id="soldout" className="mt-10">
+          <SoldOutCallout
+            region={r.region}
+            productName={p.name}
+            storesListing={stores.length}
+            notChecked={stores.filter((o) => offerStock(o, now) === "unknown").length}
+            tcgplayer={tcgplayer}
+            ebayQuery={ebayQ}
+            pick={ebayPick}
+            instead={typeLink}
+          />
+        </div>
+      )}
 
       {!best && alternatives.length > 0 && (
         <Section id="instead" title="In stock instead" href={typeLink.href} linkLabel="See all">
@@ -638,12 +644,3 @@ export default async function ProductPage({ params }: { params: { region: string
   );
 }
 
-/** "Compare all 29 prices ↓": from the top of the page to the table (#prices). */
-function CompareLink({ n, soldOut = false }: { n: number; soldOut?: boolean }) {
-  const label = soldOut ? (n > 1 ? `See all ${n} stores we checked` : "See the store we checked") : n > 1 ? `Compare all ${n} prices` : "See the price table";
-  return (
-    <a href="#prices" className="mt-2 flex min-h-11 items-center justify-center gap-1.5 rounded-xl text-sm font-semibold text-brand-strong hover:bg-raised">
-      {label} <span aria-hidden="true">↓</span>
-    </a>
-  );
-}

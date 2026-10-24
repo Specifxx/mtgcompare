@@ -165,7 +165,7 @@ export const STRIP_DESK = 420;
 export const ROW_PHONE = 89;
 export const ROW_DESK = 69;
 export const SUMMARY_H = 53;
-const VISIBLE = 8; // lib/ebay-offer-row.ts VISIBLE_ROWS (this module stays import-free)
+const VISIBLE = 1000; // lib/ebay-offer-row.ts VISIBLE_ROWS: every row shows (this module stays import-free)
 type Px = { phone: number; desk: number };
 //   • In stock, from the Marketplaces panel to the table's first row (the section's margin and heading); sold out, from the callout's
 //     eBay box (the rest of the callout, the "See all … stores" link, the heading). From the last visible row to the end of "How these

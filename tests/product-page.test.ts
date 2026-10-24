@@ -56,7 +56,7 @@ const offer = (store: string, priceCents: number, inStock = true, extra: Partial
 
 // ─── The price table ──────────────────────────────────────────────────────────
 
-test("the table: eight rows of the ranked list (eBay's among them), the rest in two server-rendered <details>, one red button, every store link in the HTML", () => {
+test("the table: every row of the ranked list (eBay's at its rank) in the server HTML, no collapsed group, one red button, every store link", () => {
   // 14 in stock, 3 not checked recently, 6 sold out: 23 stores + the eBay row
   const offers = [
     ...Array.from({ length: 14 }, (_, i) => offer(`open${i}`, 5000 + i * 100)),
@@ -64,19 +64,14 @@ test("the table: eight rows of the ranked list (eBay's among them), the rest in 
     ...Array.from({ length: 6 }, (_, i) => offer(`sold${i}`, 3000 + i, false)),
   ];
   const html = render(React.createElement(OfferTable, { offers, region: "us", preorder: false, ebay: { slug: "x-bundle", query: "X Bundle", floor: null, packs: 9 } }));
-  const first = html.indexOf("<details");
-  const before = html.slice(0, first);
-  assert.equal([...before.matchAll(/<li data-offer-row=""/g)].length, VISIBLE_ROWS, "exactly 8 rows before the first <details>");
-  assert.equal([...html.matchAll(/<li data-offer-row=""/g)].length, 24, "every row is in the HTML");
-  // the groups: the 6 other open stores and the eBay search (server state: straight after the open stores), then the 9 closed ones
-  const groups = html.split("<details").slice(1);
-  assert.equal(groups.length, 3, "two row groups, then 'How these prices work'");
-  assert.match(groups[0], /Show 6 more in-stock stores/);
-  assert.match(groups[0], /data-ad="listings-offer-row"/, "the eBay row ranks after the 14 open stores: in the first group");
-  assert.match(groups[1], /9 stores sold out or not checked/);
-  assert.equal([...groups[1].matchAll(/<li data-offer-row=""/g)].length, 9);
-  for (const g of groups.slice(0, 2)) assert.match(g, /<summary class="btn-ghost[^"]*w-full[^"]*justify-center/);
-  assert.match(groups[2], /How these prices work/);
+  const details = html.split("<details").slice(1);
+  assert.equal(details.length, 1, "no row group: only 'How these prices work'");
+  assert.match(details[0], /How these prices work/);
+  assert.doesNotMatch(html, /Show \d+ more|sold out or not checked<\/summary>/);
+  const rows = [...html.matchAll(/<li data-offer-row=""[^>]*>/g)].map((m) => m[0]);
+  assert.equal(rows.length, 24, "every row is visible in the HTML");
+  assert.ok(html.slice(0, html.indexOf("<details")).match(/<li data-offer-row=""/g)!.length === 24, "all of them before 'How these prices work'");
+  assert.equal(rows.findIndex((r) => r.includes('data-ad="listings-offer-row"')), 14, "the eBay row ranks straight after the 14 open stores");
   // one red button, on the cheapest open row; the other open rows btn-soft, the closed ones btn-ghost
   assert.equal([...html.matchAll(/class="btn-primary/g)].length, 1);
   const a = links(html);
@@ -84,6 +79,7 @@ test("the table: eight rows of the ranked list (eBay's among them), the rest in 
   assert.ok(a.find((l) => l.href === "https://open5.example/p")!.cls.startsWith("btn-soft"));
   assert.ok(a.find((l) => l.href === "https://sold0.example/p")!.cls.startsWith("btn-ghost"));
   for (const o of offers) assert.ok(a.some((l) => l.href === o.url), `${o.store}'s link is in the server HTML`);
+  for (const l of a.filter((l) => l.href.includes("ebay."))) assert.equal(l.rel, REL_SPONSORED);
   // the footer keeps the short version; the long one is in the details, whole
   assert.match(html, /In stock first, then cheapest\./);
   assert.match(html, /No store pays to rank\./);
@@ -91,20 +87,24 @@ test("the table: eight rows of the ranked list (eBay's among them), the rest in 
   assert.match(html, /<details class="group\/how mt-3 text-xs text-muted">/);
 });
 
-test("the split comes after ranking: the eBay row takes its place in the first eight and pushes the eighth store into the first group", () => {
+test("the split comes after ranking (mechanics, with an explicit small `visible`): the eBay row keeps its place; by default nothing is hidden", () => {
   const rows = Array.from({ length: 12 }, (_, i) => ({ key: `s${i}`, open: i < 10 }));
-  const server = splitRows([...rows.slice(0, 10), { key: "ebay", open: true }, ...rows.slice(10)]);
+  const ranked = [...rows.slice(0, 10), { key: "ebay", open: true }, ...rows.slice(10)];
+  const all = splitRows(ranked);
+  assert.equal(all.shown.length, 13, "default: every row shown");
+  assert.deepEqual([all.moreOpen, all.moreClosed], [[], []]);
+  assert.ok(VISIBLE_ROWS >= 1000);
+  const server = splitRows(ranked, 8);
   assert.deepEqual(server.shown.map((r) => r.key), ["s0", "s1", "s2", "s3", "s4", "s5", "s6", "s7"]);
   assert.deepEqual(server.moreOpen.map((r) => r.key), ["s8", "s9", "ebay"]);
-  const client = splitRows([...rows.slice(0, 3), { key: "ebay", open: true }, ...rows.slice(3)]);
+  const client = splitRows([...rows.slice(0, 3), { key: "ebay", open: true }, ...rows.slice(3)], 8);
   assert.equal(client.shown.length, server.shown.length, "the same number of visible rows: the visible height does not change");
   assert.deepEqual(client.moreOpen.map((r) => r.key), ["s7", "s8", "s9"]);
   assert.deepEqual(client.moreClosed, server.moreClosed);
-  // the shape the ad plan counts is the same in both states
-  assert.deepEqual(tableShape(12, 10), { visible: 8, moreOpen: 3, moreClosed: 2, summaries: 2 });
+  // the shape the ad plan counts: every row visible, no summaries
+  assert.deepEqual(tableShape(12, 10), { visible: 13, moreOpen: 0, moreClosed: 0, summaries: 0 });
   assert.deepEqual(tableShape(3, 1), { visible: 4, moreOpen: 0, moreClosed: 0, summaries: 0 });
-  assert.deepEqual(tableShape(7, 7), { visible: 8, moreOpen: 0, moreClosed: 0, summaries: 0 });
-  assert.deepEqual(tableShape(8, 8), { visible: 8, moreOpen: 1, moreClosed: 0, summaries: 1 });
+  assert.deepEqual(tableShape(30, 8), { visible: 31, moreOpen: 0, moreClosed: 0, summaries: 0 });
   assert.equal(moreOpenLabel([{ key: "a" }, { key: "ebay" }]), "Show 1 more in-stock store");
   assert.equal(moreOpenLabel([{ key: "a" }, { key: "tcgplayer" }]), "Show 2 more in-stock offers", "a marketplace is not a store");
   assert.equal(moreOpenLabel([{ key: "ebay" }]), "Show eBay too");
@@ -113,12 +113,15 @@ test("the split comes after ranking: the eBay row takes its place in the first e
   assert.equal(moreClosedLabel(1, true), "1 more store sold out or not checked");
 });
 
-test("a short table has no groups; a sold-out table shows its first eight closed rows and says 'more' for the rest", () => {
+test("no table has row groups: a short one and an all-sold-out one show every row", () => {
   const short = render(React.createElement(OfferTable, { offers: [offer("a", 5000), offer("b", 6000, false)], region: "uk", preorder: false, ebay: { slug: "x", query: "X", floor: null, packs: null } }));
   assert.equal([...short.matchAll(/<details/g)].length, 1, "only 'How these prices work'");
   const sold = Array.from({ length: 11 }, (_, i) => offer(`s${i}`, 3000 + i, false));
   const html = render(React.createElement(OfferTable, { offers: sold, region: "uk", preorder: false, ebay: { slug: "x", query: "X", floor: null, packs: null } }));
-  assert.match(html, /4 more stores sold out or not checked/, "7 closed rows and the eBay search show, 4 wait");
+  assert.equal([...html.matchAll(/<details/g)].length, 1, "no sold-out group");
+  assert.equal([...html.matchAll(/<li data-offer-row=""/g)].length, 12, "11 closed rows and the eBay search, all visible");
+  assert.doesNotMatch(html, /more stores? sold out or not checked/);
+  for (const o of sold) assert.ok(links(html).some((l) => l.href === o.url));
   assert.doesNotMatch(html, /class="btn-primary/, "nothing open, no red button");
 });
 
@@ -245,11 +248,16 @@ test("sold-out ad plan: the strip after the table, the alternatives and the fact
   }
 });
 
-test("in-stock ad plan counts the visible rows and the group summaries, not every offer", () => {
-  // 30 offers or 10: the same eight visible rows (and two summaries): the same plan
-  assert.deepEqual(productAdPlan({ offerRows: 30, summaries: 2, elsewhere: 3, related: 8 }), productAdPlan({ offerRows: 10, summaries: 2, elsewhere: 3, related: 8 }));
-  assert.deepEqual(productAdPlan({ offerRows: 30, summaries: 2, elsewhere: 3, related: 8 }), { tableGroup: true, preFooter: false }, "the strip after the facts; no pre-footer strip (density)");
-  assert.deepEqual(productAdPlan({ offerRows: 30, summaries: 2, elsewhere: 6, related: 8 }), { tableGroup: true, preFooter: false });
+test("in-stock ad plan counts every row (all visible), and more rows never take a unit away", () => {
+  const shape = tableShape(30, 20);
+  assert.equal(shape.summaries, 0);
+  assert.deepEqual(productAdPlan({ offerRows: 30, summaries: shape.summaries, elsewhere: 3, related: 8 }), { tableGroup: true, preFooter: true }, "a 31-row table is long enough for both");
+  assert.deepEqual(productAdPlan({ offerRows: 9, elsewhere: 6, related: 8 }), { tableGroup: true, preFooter: false }, "ten rows: no pre-footer strip (density)");
+  for (let rows = 1; rows < 40; rows++) {
+    const a = productAdPlan({ offerRows: rows, elsewhere: 3, related: 8 });
+    const b = productAdPlan({ offerRows: rows + 1, elsewhere: 3, related: 8 });
+    assert.ok(Number(b.tableGroup) + Number(b.preFooter) >= Number(a.tableGroup) + Number(a.preFooter), `${rows} rows`);
+  }
 });
 
 // ─── Words ────────────────────────────────────────────────────────────────────
@@ -388,13 +396,16 @@ test("in-stock alternatives: one tagged-template query, LIMIT 4, same set first,
   assert.deepEqual(fb.map((c) => c.slug), ["y"]);
 });
 
-test("the page wires it all: one strip, the anchors the buy bar and the compare link use, the alternatives read only where they show", () => {
+test("the page wires it all: one strip, the anchors the buy bar uses, no compare link, the marketplaces after the table, the alternatives read only where they show", () => {
   const src = readFileSync(new URL("../src/app/[region]/p/[slug]/page.tsx", import.meta.url), "utf8");
   assert.equal((src.match(/<EbayStrip/g) ?? []).length, 1);
   assert.match(src, /<div id="best"/);
   assert.match(src, /<div id="soldout"/);
   assert.match(src, /<Section id="prices"/);
-  assert.match(src, /href="#prices"/);
+  assert.doesNotMatch(src, /CompareLink|href="#prices"|Compare all/, "every price is visible: no jump link to the table");
+  const prices = src.indexOf('<Section id="prices"');
+  assert.ok(src.indexOf("<MarketplacePanel") > prices, "the marketplaces panel comes after the price table");
+  assert.ok(src.indexOf('<div id="soldout"') > prices && src.indexOf("<SoldOutCallout") > prices, "the sold-out callout too");
   assert.match(src, /fetchPriority="high"/);
   assert.match(src, /hidden aspect-square[^"]*lg:sticky lg:top-\[calc\(var\(--hdr\)\+1\.5rem\)\] lg:flex/);
   assert.match(src, /const alternatives = !best \|\| !p\.setCode \? await inStockAlternatives\(/);

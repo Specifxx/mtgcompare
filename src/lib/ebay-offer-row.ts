@@ -127,8 +127,11 @@ export function ebayRowNote(region: string): string {
 // The split happens AFTER ranking, so the eBay listing keeps its honest place: when it arrives in the browser and ranks into the first
 // eight, the eighth store row moves into the first group, and the visible part keeps its height (every row is the same height).
 
-/** Rows shown before the collapsed groups. */
-export const VISIBLE_ROWS = 8;
+/**
+ * Rows shown before the collapsed groups: ALL of them (owner, 2026-10-24: "I want it to be all there visible" — a price hidden behind
+ * "Show 12 more" read as not in stock). The groups only appear if this is ever lowered again.
+ */
+export const VISIBLE_ROWS = 1000;
 /** The eBay row's key among the store rows (OfferRowsWithEbay). */
 export const EBAY_ROW_KEY = "ebay";
 
