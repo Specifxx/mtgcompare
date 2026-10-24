@@ -85,3 +85,17 @@ cards … only focus on sealed products … price all the sealed products compar
   (it is a superset: offer count, low/high, currency, availability, condition), so nothing was ported.
 - `SISTER_SITES` lists the three other games only, with the words each is found by as the anchor: Riftbound (riftcompare.com),
   One Piece (opcompare.app) and Pokémon (www.dexcompare.app). The old row linked mtgcompare.app to itself and had no Pokémon site.
+
+## 2026-10-24: Halloween on the landing page, off by itself on 1 November
+
+The owner asked for the site to be Halloween-themed like RiftCompare, reverting automatically afterwards. Ported RiftCompare's
+mechanism (`src/lib/season.ts`): 16-31 October in the VISITOR's local time, decided in the browser by `SEASON_BOOT_SCRIPT`, which
+stamps `data-season="halloween"` on `<html>` before first paint (`?season=halloween|off` previews). The client decides because every
+page is one CDN copy for a day and reads no cookie or header (`tests/cache-ttl.test.ts`); a server date check would switch the theme
+up to a day late. The server only decides whether the season's markup is in the HTML at all (`seasonMarkupLive`, a day of slack
+either side), and CSS hides it outside the attribute, so 1 November needs no deploy; the markup drops out of the HTML on the first
+render after 1 November. Magic flavour, brand kept: an amethyst moonlit sky on the landing hero, cobwebs, bats in the strip above
+the content, candlelit jack-o'-lanterns in the bottom corners, and "Night falls on Innistrad" linking to the US store search for
+Innistrad (the hero form's own GET search, no new data read). Decoration is behind the content, takes no pointer events, sits only
+in the hero's padding and corners on a phone, and reduced motion gets no bats and no flicker. `tests/season.test.ts`. To remove the
+season: delete `HalloweenDecor`, `InnistradComing`, their calls and the `.mc-` CSS block.
