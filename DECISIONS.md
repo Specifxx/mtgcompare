@@ -107,3 +107,13 @@ Star Trek Collector Booster contents, Reality Fracture chase cards, Reality Frac
 is defined by Wizards' own rarity and print-run numbers (mythic rares, Signed Headliners, serialized cards), never a card price: the
 site has no singles data. Card lists are Scryfall's (`src/content/set-reveals.ts`, main-set mythics, images hotlinked unmodified),
 product facts Wizards' Collecting articles; each post ties the cards to the boxes that carry them and shows live sealed prices.
+
+## 2026-10-24: Dark theme by default; blog thumbnails and product tiles
+
+- Dark is the default for a visitor with no saved choice (owner). `lib/theme.ts` `THEME_BOOT_SCRIPT` stamps `data-theme` on
+  `<html>` before first paint from localStorage `mc-theme`; the header's `ThemeToggle` saves the choice. globals.css keys the dark
+  palette on `:root:not([data-theme="light"])`, never `prefers-color-scheme`, so no-JS is dark too and the server reads nothing
+  (pages stay one CDN copy). `tests/theme.test.ts` pins it.
+- /blog cards carry a thumbnail like RiftCompare's: three of the set's mythics (Scryfall's whole-card "normal" images, hotlinked
+  unmodified) for a set post, else the post's own share image. Card grids in posts use the "normal" image (the "small" one blurs).
+- `ByMarket` leads with the site's own `ProductCard` tiles for the US (live price and stock only; nothing invented).

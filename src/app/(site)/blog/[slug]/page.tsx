@@ -5,6 +5,7 @@ import { Ago } from "@/components/Ago";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Toc, TocDisclosure } from "@/content/guides/kit";
 import { POST_BY_SLUG, POSTS, postMetaTitle, postPath } from "@/lib/blog";
+import { PostCover } from "@/lib/blog/Cover";
 import { loadPostData } from "@/lib/blog/data";
 import { POST_MODULES } from "@/lib/blog/modules";
 import { timeAgo } from "@/lib/format";
@@ -83,9 +84,12 @@ export default async function PostPage({ params }: Params) {
         <ul role="list" className="mt-4 grid gap-4 sm:grid-cols-3">
           {more.map((x) => (
             <li key={x.slug}>
-              <Link href={postPath(x.slug)} prefetch={false} className="card block h-full p-5 hover:shadow-lift">
-                <span className="eyebrow">{x.kicker}</span>
-                <span className="mt-2 block font-display text-lg font-bold leading-snug">{x.title}</span>
+              <Link href={postPath(x.slug)} prefetch={false} className="card group block h-full overflow-hidden hover:shadow-lift">
+                <PostCover post={x} index={POSTS.indexOf(x)} />
+                <span className="block p-5">
+                  <span className="eyebrow">{x.kicker}</span>
+                  <span className="mt-2 block font-display text-lg font-bold leading-snug group-hover:text-brand">{x.title}</span>
+                </span>
               </Link>
             </li>
           ))}

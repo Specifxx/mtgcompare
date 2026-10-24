@@ -9,6 +9,8 @@ import {
   whereText,
   type MarketCard,
 } from "@/content/families";
+import { ProductCard } from "@/components/ProductCard";
+import { cardOpen } from "@/lib/compact";
 import { money } from "@/lib/format";
 import { REGION_LIST, regionOfMarket, type Market } from "@/lib/regions";
 import type { PostData } from "./data";
@@ -109,20 +111,59 @@ export function MarketProducts({
   );
 }
 
-/** Every market's products, one sub-table each, in REGION_LIST order. */
+/**
+ * The post's products as the site's own product tiles (photo, live price, stock), for one market (the US by default): the
+ * same tile a buyer sees on a browse page, so a post shows what it is talking about. In-stock products first; nothing when the
+ * market has none (the tables below say so).
+ */
+export function ProductTiles({
+  cards,
+  market = "US",
+  take = 4,
+  keep = () => true,
+}: {
+  cards: readonly MarketCard[];
+  market?: Market;
+  take?: number;
+  keep?: (p: MarketCard) => boolean;
+}) {
+  const r = regionOfMarket(market)!;
+  const mine = cards.filter((c) => c.market === market && keep(c));
+  const list = [...mine.filter(cardOpen), ...mine.filter((c) => !cardOpen(c))].slice(0, take);
+  if (!list.length) return null;
+  return (
+    <div className="mb-6">
+      <h3 className="mb-3 font-display text-lg font-bold">
+        In {r.inName} today <span className="text-xs font-normal text-muted">{r.currency}</span>
+      </h3>
+      <ul role="list" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {list.map((p) => (
+          <li key={p.slug} className="grid min-w-0">
+            <ProductCard p={p} region={r.region} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** Every market's products, one sub-table each, in REGION_LIST order, under the US products as tiles (`tiles`, on by default). */
 export function ByMarket({
   cards,
   take = 8,
   label,
   keep = () => true,
+  tiles = true,
 }: {
   cards: readonly MarketCard[];
   take?: number;
   label?: (p: MarketCard) => string;
   keep?: (p: MarketCard) => boolean;
+  tiles?: boolean;
 }) {
   return (
     <>
+      {tiles && <ProductTiles cards={cards} keep={keep} />}
       {REGION_LIST.map((r) => (
         <div
           key={r.region}
