@@ -3,9 +3,24 @@ import type { PostSlug } from "./index";
 import type { PostModule } from "./kit";
 import { cheapest, dearest } from "./posts/boxes";
 import { cheaperAbroad, whereToBuy } from "./posts/markets";
-import { commanderDecks, mechanics, releaseDate, whereToBuyStarTrek } from "./posts/star-trek";
+import {
+  fracturesChase,
+  fracturesProducts,
+  starTrekChase,
+  starTrekCollector,
+} from "./posts/set-reveals";
+import {
+  commanderDecks,
+  mechanics,
+  releaseDate,
+  whereToBuyStarTrek,
+} from "./posts/star-trek";
 
 export const POST_MODULES: Record<PostSlug, PostModule> = {
+  "star-trek-mtg-chase-cards": starTrekChase,
+  "star-trek-collector-booster-contents": starTrekCollector,
+  "reality-fracture-chase-cards": fracturesChase,
+  "reality-fracture-collector-booster-products": fracturesProducts,
   "magic-star-trek-release-date-products": releaseDate,
   "magic-star-trek-commander-decks": commanderDecks,
   "magic-star-trek-mechanics-explained": mechanics,
