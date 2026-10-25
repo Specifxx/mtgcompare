@@ -180,3 +180,5 @@ popular sets; Reality Fracture was out but Star Trek was leading; older product 
 **Owner:** "it says zero visitors when there's clearly been visitors." It had been off since 2026-10-22 (cost). Page views are
 counted again (`src/components/VercelPageViews.tsx`, query strings stripped); custom events stay off (`src/lib/track.ts` no-op),
 so the bill is one event per page view. The project's Analytics tab must be enabled in Vercel for the script's data to be kept.
+- 2026-10-25, later: buy clicks too. `src/lib/track.ts` sends `buy_click` (retailer, placement) and drops every other event name;
+  search and share events stay off.
