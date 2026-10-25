@@ -2,9 +2,43 @@ import type { Metadata } from "next";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ADSENSE_CLIENT } from "@/lib/adsense";
 import Link from "@/components/Link";
-import { REGION_LIST } from "@/lib/regions";
+import { DUTIES_NOTE, REGION_LIST } from "@/lib/regions";
+import { PROBE_ADDRESSES } from "@/lib/shipping-probe";
 import { CONTACT_EMAIL, FAN_CONTENT_DISCLAIMER, SITE_URL } from "@/lib/site";
 import { STORES, storesInMarket } from "@/lib/stores";
+import { SuggestedTypeLinks } from "@/components/RegionSuggest";
+import { COUNTRY_GUIDE } from "@/content/guides/country-prices";
+import { PRODUCT_TYPES } from "@/lib/sealed-title";
+import { faqJsonLd, jsonLd } from "@/lib/seo";
+
+// The questions a first-time visitor (and a crawler) asks, answered from the facts this page states. Moved here from the landing
+// page when it was cut short (2026-10-25), with its FAQPage JSON-LD: the markup goes only where the answers are shown.
+const FAQ: { q: string; a: string }[] = [
+  {
+    q: "What is MTG Compare?",
+    a: `A free price-comparison site for English-language Magic: The Gathering sealed product: play and collector booster boxes, bundles, Commander decks and more. It reads ${STORES.length} independent stores in ${REGION_LIST.length} regions and ranks every product's listings in stock first, cheapest first.`,
+  },
+  {
+    q: "How often are prices and stock checked?",
+    a: "About twice a day. Every listing says when it was last read, and a store that hasn’t answered for three days is marked as not checked recently, never guessed.",
+  },
+  {
+    q: "Does MTG Compare sell cards?",
+    a: "No. Every buy button goes to the store’s own website, and you buy from the store. MTG Compare keeps no accounts and asks for no email.",
+  },
+  {
+    q: "Do stores pay to be listed?",
+    a: `No. Stores are ranked by price and stock only. The site earns from marked eBay and TCGplayer affiliate links${ADSENSE_CLIENT ? " and Google ads" : ""}, which never change the order of the stores.`,
+  },
+  {
+    q: "Which prices are shown?",
+    a: "Each store’s own listed price, in your region’s currency, before shipping. Beside it is the store’s shipping for one item, measured weekly from its own checkout where we can; “Price + shipping” on a product page ranks by both. The store’s checkout is final.",
+  },
+  {
+    q: "Why can’t I find singles or Japanese product?",
+    a: "MTG Compare compares English-language sealed product only, so every product page compares like with like. Singles, graded cards, Japanese product, accessories and store-made bundles are left out on purpose.",
+  },
+];
 
 export const metadata: Metadata = {
   title: "How MTG Compare works",
@@ -24,6 +58,11 @@ export default function About() {
           starter kits, prerelease packs and boosters — across {STORES.length} independent stores in {REGION_LIST.length} regions. It does one job: show you
           who has something in stock and who is cheapest.
         </p>
+        <p>
+          The same booster box is often priced very differently from one shop to the next on the same day, and one shop&rsquo;s sold-out
+          page says nothing about the next one&rsquo;s stock. Every listing here carries the time it was last read, so you can see how fresh a
+          price is before you click through.
+        </p>
 
         <h2>Where the prices come from</h2>
         <p>
@@ -37,6 +76,7 @@ export default function About() {
           by the time you click. It is compared with the US stores on the same terms: price, then stock. It is never counted as one of the
           stores.
         </p>
+
         <ul>
           <li>
             <b>In stock</b> — the store listed it as available when we last read it.
@@ -56,6 +96,26 @@ export default function About() {
           titles, and we&rsquo;d rather leave a listing out than put it on the wrong product: singles, graded cards, accessories, other
           languages and store-made bundles are excluded.
         </p>
+
+        <h2>Shipping and tax</h2>
+        <p>
+          Shipping differs between stores, and within a country by where you live: a box that is cheaper by $10 is not cheaper if it costs
+          $20 more to post to you. So once a week we ask each store&rsquo;s own checkout what it charges to post one item (a cart with a
+          pack, then with items around a few price points, up to a booster box) to several addresses in each region:{" "}
+          {REGION_LIST.map((r) => `${PROBE_ADDRESSES[r.market].map((a) => a.label).join(", ")} (${r.short})`).join("; ")}. Each row of a price table
+          shows what was quoted for an item near its price, as a range when it depends on the address or the order value, and &ldquo;Shipping
+          at checkout&rdquo; when we have no measurement (stores whose checkout we cannot ask, and TCGplayer). We never guess a rate. Pick
+          &ldquo;Price + shipping&rdquo; above a price table to rank by the price plus the cheapest measured shipping; the default ranking is
+          price and stock. The carts we create only ask for a quote; nothing is ordered, and the store&rsquo;s own checkout is always final.
+        </p>
+        <ul>
+          {REGION_LIST.map((r) => (
+            <li key={r.region}>
+              <b>{r.name}</b> — {r.taxNote}
+            </li>
+          ))}
+        </ul>
+        <p>{DUTIES_NOTE}</p>
 
         <h2 id="which-stores">Which stores, and why</h2>
         <p>
@@ -158,7 +218,7 @@ export default function About() {
         <ul>
           <li>
             <b>Listing strips</b>, in a dashed, tinted box of their own: two on each region&rsquo;s home page (sealed Magic, then chase
-            cards further down), one on the landing page, and one on product, set, type, release, store, deals, cheapest-per-pack and
+            cards further down), and one on product, set, type, release, store, deals, cheapest-per-pack and
             &ldquo;this week&rdquo; pages, the first page of the product list and each guide; most pages also have a slimmer strip above
             the footer.
           </li>
@@ -228,11 +288,41 @@ export default function About() {
               {i > 0 && ", "}
               <Link href={`/${r.region}/stores`}>
                 {storesInMarket(r.market).length} in {r.name}
-              </Link>
+              </Link>{" "}
+              ({r.currency})
             </span>
           ))}
-          .
+          . Each region compares its own stores in its own currency, so a price is one you can actually pay, before shipping. The same
+          booster box in all seven, side by side: <Link href={COUNTRY_GUIDE.path}>booster box prices by country</Link>.
         </p>
+      </div>
+
+      <section id="compare" className="mt-10" aria-labelledby="compare-h">
+        <h2 id="compare-h" className="mb-3 font-display text-xl font-bold text-ink">
+          What we compare
+        </h2>
+        <SuggestedTypeLinks types={PRODUCT_TYPES.slice(0, 13).map((t) => ({ slug: t.slug, label: t.plural }))} align="start" />
+        <p className="mt-3 text-sm leading-6 text-muted">
+          English-language Magic: The Gathering sealed product only; <a href="#refuse" className="font-medium text-brand underline underline-offset-2">what we refuse</a> is above.
+        </p>
+      </section>
+
+      <section id="faq" className="mt-10" aria-labelledby="faq-h">
+        <h2 id="faq-h" className="mb-4 font-display text-xl font-bold text-ink">
+          Questions
+        </h2>
+        {/* Written out, not collapsed: every answer is visible text in the first render, each question a real <h3>. */}
+        <div className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
+          {FAQ.map((f) => (
+            <div key={f.q} className="px-4 py-4">
+              <h3 className="font-semibold">{f.q}</h3>
+              <p className="mt-1.5 text-[15px] leading-7 text-muted">{f.a}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className="prose-dex mt-6">
 
         <h2>Not affiliated</h2>
         <p>
@@ -240,6 +330,7 @@ export default function About() {
           Gathering and its trademarks are theirs. {FAN_CONTENT_DISCLAIMER}
         </p>
       </div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqJsonLd(FAQ)) }} />
     </div>
   );
 }

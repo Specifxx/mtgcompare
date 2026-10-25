@@ -25,7 +25,7 @@ import { ebaySearchUrl, offerLink, offerRetailer } from "@/lib/affiliate";
 import { productAdPlan, soldOutAdPlan } from "@/lib/ebay-ads";
 import { rowPacks, tableShape } from "@/lib/ebay-offer-row";
 import { comparable, productPage, type ProductCardData } from "@/lib/data";
-import { plural, timeAgo } from "@/lib/format";
+import { money, plural, timeAgo } from "@/lib/format";
 import { thumb } from "@/lib/images";
 import { packsFor } from "@/lib/packs";
 import { cheapestPerPackByType } from "@/lib/per-pack";
@@ -44,6 +44,8 @@ import { TYPE_BY_LABEL } from "@/lib/sealed-title";
 import { jsonLd, pageMeta, productJsonLd, regionAlternates, withMtg } from "@/lib/seo";
 import { fitDescription, seoCopy, shortName } from "@/lib/seo-titles";
 import { SET_BY_CODE } from "@/lib/sets";
+import { shippingCell } from "@/lib/shipping";
+import { rankRows } from "@/lib/shipping-rank";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js, CDN_PAGES), never ISR: an ISR write
 // costs about twenty renders, and the data only changes with a release, which empties the CDN anyway.
@@ -179,6 +181,14 @@ export default async function ProductPage({ params }: { params: { region: string
   const open = p.offers.filter((o) => offerStock(o, now) === "open");
   const best = open[0] ?? null;
   const bestLink = best ? offerLink(best.store, best.url, r.region, "product-best") : null;
+  // "Price + shipping" (the table's switch): the in-stock offer cheapest with its cheapest measured shipping, for the best-price card.
+  // Null when no in-stock store has a measurement (the card then stays the price card in either ranking).
+  const byTotal = rankRows(
+    open.map((o) => ({ o, open: true, cents: o.priceCents, ship: o.marketplace ? null : shippingCell(o.store, r.market, o.priceCents, (c) => money(c, r.market)) })),
+    "total",
+  )[0];
+  const totalBest = byTotal?.ship ? byTotal : null;
+  const totalLink = totalBest ? offerLink(totalBest.o.store, totalBest.o.url, r.region, "product-best") : null;
   const stores = p.offers.filter((o) => !o.marketplace);
   const openStores = open.filter((o) => !o.marketplace).length;
   const tcgOpen = open.some((o) => o.marketplace);
@@ -273,8 +283,8 @@ export default async function ProductPage({ params }: { params: { region: string
   // The explanations that used to sit under the card, now first in the table's "How these prices work".
   const notes = [
     p.offers.some((o) => o.marketplace)
-      ? "Prices exclude shipping. TCGplayer’s is one seller’s listing when we last checked; check it, or the store, before you buy."
-      : "Store prices exclude shipping; check the store before you buy.",
+      ? "Prices exclude shipping (each row shows the store’s measured shipping where we have it). TCGplayer’s is one seller’s listing when we last checked; check it, or the store, before you buy."
+      : "Store prices exclude shipping (each row shows the store’s measured shipping where we have it); check the store before you buy.",
     ...(ebayBest && best ? ["An eBay listing shown as the best price is one seller’s, imported from eBay on a schedule; its shipping is beside its price, and eBay’s page is final."] : []),
     ...(packs != null ? ["Per-pack prices are the listed price divided by the packs the product holds."] : []),
     ...(msrp != null ? [RRP_NOTE] : []),
@@ -493,6 +503,25 @@ export default async function ProductPage({ params }: { params: { region: string
                   openCount={open.length}
                   highestOpenCents={open[open.length - 1].priceCents}
                   ebay={ebayBest ? { slug: p.slug, floor: ebayFloor, packs: rowPacks(type?.key, packs) } : null}
+                  total={
+                    totalBest && totalLink
+                      ? {
+                          store: {
+                            cents: totalBest.o.priceCents,
+                            where: `at ${totalBest.o.storeName}`,
+                            marketplace: false,
+                            href: totalLink.href,
+                            rel: totalLink.rel,
+                            sponsored: totalLink.sponsored,
+                            retailer: offerRetailer(totalBest.o.store, totalBest.o.storeName, r.market),
+                            button: `Buy at ${totalBest.o.storeName}`,
+                          },
+                          shipCents: totalBest.ship!.min,
+                          shipText: totalBest.ship!.text,
+                          shipTitle: totalBest.ship!.title,
+                        }
+                      : null
+                  }
                 />
               </div>
             </>

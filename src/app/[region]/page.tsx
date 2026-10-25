@@ -29,6 +29,8 @@ import { fitDescription, seoCopy, seoTitleText } from "@/lib/seo-titles";
 import { PRODUCT_TYPES } from "@/lib/sealed-title";
 import { SETS, type MtgSet } from "@/lib/sets";
 import { storesInMarket } from "@/lib/stores";
+import { emptyHomeReport, loadHomeReport } from "@/lib/home-report";
+import { MarketReport } from "@/components/home/MarketReport";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js, CDN_PAGES), never ISR: an ISR write
 // costs about twenty renders, and the data only changes with a release, which empties the CDN anyway.
@@ -61,7 +63,13 @@ const HEADLINE = ["Play Booster Box", "Collector Booster Box", "Bundle"];
 
 export default async function RegionHome({ params }: { params: { region: string } }) {
   const r = regionOrNotFound(params.region);
-  const [{ boxes, etbs, preorders, latestSets: bySet }, overview, deals] = await Promise.all([homeRails(r.market), getOverview(r.market), dealsInMarket(r.market, { take: 8 })]);
+  const [{ boxes, etbs, preorders, latestSets: bySet }, overview, deals, report] = await Promise.all([
+    homeRails(r.market),
+    getOverview(r.market),
+    dealsInMarket(r.market, { take: 8 }),
+    // The written market report, moved here from the landing page (2026-10-25): this region's figures, after the rails.
+    loadHomeReport(r.region).catch(() => emptyHomeReport(r.region)),
+  ]);
   // The soonest upcoming set with a pre-order page: the rail's "see all" goes there.
   const preorderGuide = openPreorderGuides()[0] ?? null;
   const storeCount = storesInMarket(r.market).length;
@@ -229,6 +237,9 @@ export default async function RegionHome({ params }: { params: { region: string 
             <Empty actions={[{ href: `/${other.region}`, label: `MTG Compare ${other.name}` }]}>We&rsquo;re still reading {r.adjective} stores for the first time. Check back shortly.</Empty>
           </div>
         )}
+      </div>
+      <div className="mb-4">
+        <MarketReport report={report} />
       </div>
     </div>
   );

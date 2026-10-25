@@ -224,19 +224,34 @@ test("landing metadata: hreflang for the seven region homes plus x-default '/', 
   assert.ok(title.length <= 65, title);
 });
 
-test("landing page: static, a never-empty CTA box, a GET search form, real type links, the strip by suggested region", () => {
+test("landing page: static and short: hero, one fair paragraph, the region's five, the hot buttons, and nothing else", () => {
   const page = src("app/(site)/page.tsx");
   assert.doesNotMatch(page, /prisma|@\/lib\/db|@\/lib\/data"/, "no database");
   assert.match(page, /text-4xl[^"]*sm:text-6xl/);
   assert.match(page, /MTG booster box, bundle &amp; Commander deck prices, <span className="text-brand">cheapest first\.<\/span>/);
   assert.match(page, /<div className="mt-6 flex h-12 justify-center sm:mt-8">\s*<RegionSuggest formId="landing-search" \/>/);
   assert.match(page, /<form\s+id="landing-search"\s+action=\{`\/\$\{X_DEFAULT_REGION\}\/sealed`\}\s+method="get"/);
-  assert.match(page, /lg:grid-cols-7/);
+  assert.match(page, /ranked by price and stock only[\s\S]*No store pays to be listed or to rank, and every affiliate link is marked\.[\s\S]*href="\/about"[\s\S]*How it works/);
+  assert.match(page, /<HomeRegionGrid initial=\{initialPicks\} preorder=\{preorder\} \/>/);
+  // What moved to /about, the guides index and the region homes stays off the landing page.
+  assert.doesNotMatch(page, /FAQPage|faqJsonLd|GuideCard|MarketReport|SuggestedTypeLinks|EbayStrip|AdSlot/);
+  assert.equal((page.match(/<section/g) ?? []).length, 2, "the hero and the fair paragraph; the grid is its own section");
   const suggest = src("components/RegionSuggest.tsx");
   assert.match(suggest, /Choose your region <span aria-hidden="true">↓<\/span>/);
+  assert.match(suggest, /href="#regions"/);
+  assert.match(src("components/HomeRegionGrid.tsx"), /<section id="regions"/, "the CTA's fallback jump lands on the region switcher");
   assert.match(suggest, /setAttribute\("action", `\/\$\{region \?\? X_DEFAULT_REGION\}\/sealed`\)/);
-  assert.match(suggest, /placement="listings-landing"[\s\S]*regionKnown=\{false\}/);
   assert.match(suggest, /href=\{`\/\$\{to\}\/type\/\$\{t\.slug\}`\}/);
+});
+
+test("/about carries what the landing page used to: the FAQ with its FAQPage JSON-LD, what we compare, the regions", () => {
+  const about = src("app/(site)/about/page.tsx");
+  assert.match(about, /<h3 className="font-semibold">\{f\.q\}<\/h3>/, "FAQ questions are real h3s");
+  assert.match(about, /jsonLd\(faqJsonLd\(FAQ\)\)/, "the FAQPage markup only where the answers are shown");
+  assert.match(about, /<SuggestedTypeLinks types=\{PRODUCT_TYPES/);
+  assert.match(about, /COUNTRY_GUIDE\.path/);
+  assert.match(about, /href=\{`\/\$\{r\.region\}\/stores`\}/);
+  assert.doesNotMatch(about, /one on the landing page/, "the landing page carries no eBay strip now");
 });
 
 test("the share card exists as a route, with its bundled OFL face, and says the registry's numbers", () => {

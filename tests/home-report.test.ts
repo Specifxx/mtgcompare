@@ -75,5 +75,7 @@ test("landing page metadata: the sealed queries first, title under 60 and descri
   assert.ok(title.length < 60, title);
   assert.ok(desc.length < 155, `${desc.length}: ${desc}`);
   assert.match(title, /^MTG Booster Box/);
-  assert.match(page, /<h3 className="font-semibold">\{f\.q\}<\/h3>/, "FAQ questions are real h3s");
+  const region = readFileSync(new URL("../src/app/[region]/page.tsx", import.meta.url), "utf8");
+  assert.match(region, /loadHomeReport\(r\.region\)/, "the market report lives on each region home");
+  assert.match(region, /<MarketReport report=\{report\} \/>/);
 });

@@ -733,7 +733,8 @@ export function useEbayPick({ region, slug, floor, packs, placement }: { region:
 // The price table's split into visible rows and collapsed groups, and its store rows (imported here, beside the two functions that use
 // them; OfferTable.tsx imports this module too, which is fine: neither uses the other while the modules load).
 import { EBAY_ROW_KEY, moreClosedLabel, moreOpenLabel, splitRows } from "@/lib/ebay-offer-row";
-import { StoreRow, type StoreRowData } from "./OfferTable";
+import { StoreRow, useRankedRows, type StoreRowData } from "./OfferRows";
+import { ebayIndexTotal } from "@/lib/shipping-rank";
 
 /**
  * The store rows of a product's price table with ONE eBay row among them (the owner's call, 2026-10-11: eBay is one of the websites
@@ -751,11 +752,15 @@ import { StoreRow, type StoreRowData } from "./OfferTable";
  * ranks into the first eight, the eighth store row moves into the first group: every row is the same height (88 px on a phone), so the
  * visible part of the table, and everything under it, stays where it was.
  */
-export function OfferRowsWithEbay({ rows, region, slug, query, floor, packs = null, allowBest = true, preorder = false }: { rows: StoreRowData[]; region: Region; slug: string; query: string; floor: PriceFloor | null; packs?: number | null; allowBest?: boolean; preorder?: boolean }) {
+export function OfferRowsWithEbay({ rows: given, region, slug, query, floor, packs = null, allowBest: allowGiven = true, preorder = false }: { rows: StoreRowData[]; region: Region; slug: string; query: string; floor: PriceFloor | null; packs?: number | null; allowBest?: boolean; preorder?: boolean }) {
   const placement: Placement = "listings-offer-row";
   const { ref, item, cents, bestable, age } = useEbayPick({ region, slug, floor, packs, placement });
   const [thumbOk, setThumbOk] = useState<Record<string, false>>({});
-  const at = ebayRowIndex(rows, cents);
+  // "Price + shipping" (OfferRows.tsx): the store rows re-rank; the eBay row's shipping is never compared, so it ranks after the rows
+  // with measured shipping and is not the best price there.
+  const { mode, rows } = useRankedRows(given);
+  const at = mode === "total" ? ebayIndexTotal(rows, cents) : ebayRowIndex(rows, cents);
+  const allowBest = allowGiven && mode === "price";
   // the cheapest store you can buy from: when the eBay listing beats it (a new listing; never on a pre-order product, `allowBest`), the
   // listing is the best price and the store's badge says "store". The best-price card applies the same rule (BestPriceCard.tsx).
   const best = rows.find((r) => r.open);
@@ -821,7 +826,7 @@ function EbayOfferRow({ region, placement, query, item, cents, age, best, thumb,
       data-offer-row=""
       data-ad={placement}
       data-state={item ? "listing" : "search"}
-      className="grid grid-cols-[1fr_auto] items-center gap-x-3 bg-ad px-4 py-3 shadow-[inset_3px_0_0_#3665f3] sm:grid-cols-[2.5rem_1fr_auto_7rem_auto] sm:gap-x-4 sm:px-5 sm:py-3.5"
+      className="grid grid-cols-[1fr_auto] items-center gap-x-3 bg-ad px-4 py-3 shadow-[inset_3px_0_0_#3665f3] sm:grid-cols-[2.5rem_1fr_auto_10rem_auto] sm:gap-x-4 sm:px-5 sm:py-3.5"
     >
       <span className="relative hidden h-10 w-10 items-center justify-center overflow-hidden rounded-md border border-line bg-surface text-muted sm:flex sm:[grid-area:1/1/3]">
         {item && thumb ? (

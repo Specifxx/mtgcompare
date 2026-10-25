@@ -117,3 +117,34 @@ product facts Wizards' Collecting articles; each post ties the cards to the boxe
 - /blog cards carry a thumbnail like RiftCompare's: three of the set's mythics (Scryfall's whole-card "normal" images, hotlinked
   unmodified) for a set post, else the post's own share image. Card grids in posts use the "normal" image (the "small" one blurs).
 - `ByMarket` leads with the site's own `ProductCard` tiles for the US (live price and stock only; nothing invented).
+
+## The landing page, cut short (2026-10-25)
+
+User feedback: the home page was too long. It is now the hero (headline, one line, "Continue to <region>", search), one paragraph on
+how ranking is fair (linking /about), "Most stocked in <region> today" (five products: the newest Play and Collector Booster Boxes
+ordered by in-stock store count, lib/picks.ts, region switcher kept, fixed-size slots) and six hot buttons for that region (Deals,
+Play / Collector Booster Boxes, a set's pre-orders while one is open else Commander decks, Guides, Stores), then the footer.
+Moved, not dropped: the FAQ and its FAQPage JSON-LD, "What we compare", the region/currency notes and the country guide link to
+/about; the market report to each region home (its own region's figures); the guides grid lives on the guides index; "Popular right
+now" became the hot buttons. The landing eBay strip is gone (the page is too short to carry a unit), and /about's eBay list says so.
+
+## 2026-10-25: Measured shipping on the price table, a "Price + shipping" ranking, and a tax line
+
+User feedback: shipping (and tax) differ by country AND by area within one; a store $10 cheaper that charges $20 more to post is not
+cheaper. So:
+- **Measured, never guessed.** `scripts/probe-shipping-rates.ts` (weekly, `.github/workflows/shipping-rates.yml`, one runner per market,
+  3 stores at once, ≥1 s between a store's requests) asks each Shopify store's own storefront for a quote: one item a cart (its
+  cheapest sealed item, then items near 40/80/150/300 in its currency), quoted to 8 AU capitals, 4 NZ cities (both islands), 4 US/UK/CA
+  cities, 4 eurozone capitals and Singapore. Ported from the old singles site's probe, cut down to single items. Output:
+  `src/data/shipping-rates.json`, bundled (no Neon, no runtime fetch); committed WITHOUT `[deploy]`, it rides the next daily release.
+  A store not measured this week keeps its measurement 42 days, then drops out. WooCommerce stores and TCGplayer have no figure.
+- **A row's figure** (`lib/shipping-quote.ts` quoteAt): per address, the measured item at or under the row's price; when the next
+  measured item up was quoted differently (a free-over-$X threshold, a bigger parcel) the address gets the range between; under the
+  store's cheapest measured item: unknown. The row shows the range across addresses ("+ $10.95–$14.95 shipping", "Free shipping",
+  "free at $150"), and "Shipping at checkout" without a measurement.
+- **The ranking rule is unchanged** (price, then stock). "Price + shipping" is the visitor's choice (localStorage, read only in the
+  browser: pages stay CDN-cacheable): open rows with measured shipping by price + cheapest measured shipping, then open rows without
+  one, then the rest. The eBay row's shipping is never compared: in that ranking it sits among the unknown rows and is never the best
+  price. The best-price card stacks its two tops in one cell (no layout shift).
+- **Tax**: one line per region (`RegionInfo.taxNote`): US and CA prices exclude sales tax (state/province, added at checkout); AU, NZ,
+  UK, EU and SG listed prices include GST/VAT. Cross-border duties: one sentence, no numbers (`DUTIES_NOTE`).

@@ -12,6 +12,7 @@ import { EbayMark } from "./EbayMark";
 import { useEbayPick } from "./EbayStrip";
 import { OutboundLink } from "./OutboundLink";
 import { StockPill } from "./StockPill";
+import { useShipMode } from "@/lib/ship-mode";
 
 // The product page's best-price card. The best price is the cheapest store you can buy from, OR the product's eBay listing when that is
 // cheaper (the owner's call, 2026-10-11: "eBay's price counts as the cheapest price if it is the cheapest"). The listing is the one the
@@ -64,12 +65,48 @@ export interface BestPriceCardProps {
   highestOpenCents: number;
   /** The product's eBay listing, in the stores' currency only (not NZ or SG), never for a pre-order. Null = the stores' card only. */
   ebay: { slug: string; floor: PriceFloor | null; packs: number | null } | null;
+  /** The best price + cheapest measured shipping (the price table's "Price + shipping" ranking, lib/shipping-rank.ts): shown when the
+   *  visitor picks that ranking. Null when no in-stock store has measured shipping. */
+  total?: { store: BestStore; shipCents: number; shipText: string; shipTitle: string } | null;
 }
 
 const placement: Placement = "listings-best-price";
 
 export function BestPriceCard(props: BestPriceCardProps) {
-  return <Card {...props} top={props.ebay ? <WithEbay {...props} ebay={props.ebay} /> : <StoreTop {...props} />} />;
+  const top = props.ebay ? <WithEbay {...props} ebay={props.ebay} /> : <StoreTop {...props} />;
+  return <Card {...props} top={props.total ? <WithTotal {...props} total={props.total} priceTop={top} /> : top} />;
+}
+
+/** "Price" or "Price + shipping" (the table's switch): both tops stacked in one grid cell, the other invisible, so nothing moves. */
+function WithTotal({ total, priceTop, ...props }: BestPriceCardProps & { total: NonNullable<BestPriceCardProps["total"]>; priceTop: ReactNode }) {
+  const on = useShipMode() === "total";
+  const { market, preorder } = props;
+  const { store } = total;
+  return (
+    <div className="grid grid-cols-[minmax(0,1fr)]">
+      <div className={`col-start-1 row-start-1 ${on ? "invisible" : ""}`} aria-hidden={on || undefined}>
+        {priceTop}
+      </div>
+      <div className={`col-start-1 row-start-1 ${on ? "" : "invisible"}`} aria-hidden={!on || undefined}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <div className="truncate text-sm font-medium text-muted">{preorder ? "Cheapest pre-order" : "Best price in stock"} + shipping</div>
+            <div className="tabular font-display text-4xl font-extrabold tracking-tight">{money(store.cents + total.shipCents, market)}</div>
+            <div className="tabular mt-0.5 truncate text-sm text-muted" title={total.shipTitle}>
+              {money(store.cents, market)} {total.shipText.startsWith("+") ? total.shipText : `+ ${total.shipText.toLowerCase()}`}, cheapest measured
+            </div>
+            <div className="mt-1 truncate text-sm text-muted">
+              {store.where}
+              {store.sponsored && <span> · affiliate link</span>}
+            </div>
+          </div>
+          <OutboundLink href={store.href} rel={store.rel} retailer={store.retailer} placement="product-best" className="btn-primary self-start px-6 py-3 text-base sm:self-auto">
+            {store.button} <span aria-hidden="true">↗</span>
+          </OutboundLink>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /** The median and MSRP badges of a price: present for the store when they are, and then for eBay (a cheaper price only adds to them). */

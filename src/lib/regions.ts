@@ -31,17 +31,22 @@ export interface RegionInfo {
   shopifyCountry: string | null;
   // hreflang for alternates between regional copies of the same page.
   hreflang: string;
+  // One line on tax, under the product page's price table and on /about: whether the listed prices include it.
+  taxNote: string;
 }
 
 export const REGIONS: Record<Region, RegionInfo> = {
-  au: { region: "au", market: "AU", name: "Australia", inName: "Australia", short: "AU", adjective: "Australian", flag: "🇦🇺", currency: "AUD", locale: "en-AU", shopifyCountry: "AU", hreflang: "en-AU" },
-  nz: { region: "nz", market: "NZ", name: "New Zealand", inName: "New Zealand", short: "NZ", adjective: "New Zealand", flag: "🇳🇿", currency: "NZD", locale: "en-NZ", shopifyCountry: "NZ", hreflang: "en-NZ" },
-  us: { region: "us", market: "US", name: "United States", inName: "the US", short: "US", adjective: "US", flag: "🇺🇸", currency: "USD", locale: "en-US", shopifyCountry: "US", hreflang: "en-US" },
-  uk: { region: "uk", market: "UK", name: "United Kingdom", inName: "the UK", short: "UK", adjective: "UK", flag: "🇬🇧", currency: "GBP", locale: "en-GB", shopifyCountry: "GB", hreflang: "en-GB" },
-  ca: { region: "ca", market: "CA", name: "Canada", inName: "Canada", short: "CA", adjective: "Canadian", flag: "🇨🇦", currency: "CAD", locale: "en-CA", shopifyCountry: "CA", hreflang: "en-CA" },
-  eu: { region: "eu", market: "EU", name: "Europe (eurozone)", inName: "Europe", short: "EU", adjective: "European", flag: "🇪🇺", currency: "EUR", locale: "en-IE", shopifyCountry: null, hreflang: "en-IE" },
-  sg: { region: "sg", market: "SG", name: "Singapore", inName: "Singapore", short: "SG", adjective: "Singapore", flag: "🇸🇬", currency: "SGD", locale: "en-SG", shopifyCountry: "SG", hreflang: "en-SG" },
+  au: { region: "au", market: "AU", name: "Australia", inName: "Australia", short: "AU", adjective: "Australian", flag: "🇦🇺", currency: "AUD", locale: "en-AU", shopifyCountry: "AU", hreflang: "en-AU", taxNote: "Australian stores list prices including GST." },
+  nz: { region: "nz", market: "NZ", name: "New Zealand", inName: "New Zealand", short: "NZ", adjective: "New Zealand", flag: "🇳🇿", currency: "NZD", locale: "en-NZ", shopifyCountry: "NZ", hreflang: "en-NZ", taxNote: "New Zealand stores list prices including GST." },
+  us: { region: "us", market: "US", name: "United States", inName: "the US", short: "US", adjective: "US", flag: "🇺🇸", currency: "USD", locale: "en-US", shopifyCountry: "US", hreflang: "en-US", taxNote: "US prices exclude sales tax, which depends on your state (and sometimes city) and is added at checkout." },
+  uk: { region: "uk", market: "UK", name: "United Kingdom", inName: "the UK", short: "UK", adjective: "UK", flag: "🇬🇧", currency: "GBP", locale: "en-GB", shopifyCountry: "GB", hreflang: "en-GB", taxNote: "UK stores list prices including VAT." },
+  ca: { region: "ca", market: "CA", name: "Canada", inName: "Canada", short: "CA", adjective: "Canadian", flag: "🇨🇦", currency: "CAD", locale: "en-CA", shopifyCountry: "CA", hreflang: "en-CA", taxNote: "Canadian prices exclude GST/HST and provincial sales tax, which depend on your province and are added at checkout." },
+  eu: { region: "eu", market: "EU", name: "Europe (eurozone)", inName: "Europe", short: "EU", adjective: "European", flag: "🇪🇺", currency: "EUR", locale: "en-IE", shopifyCountry: null, hreflang: "en-IE", taxNote: "Eurozone stores list prices including VAT." },
+  sg: { region: "sg", market: "SG", name: "Singapore", inName: "Singapore", short: "SG", adjective: "Singapore", flag: "🇸🇬", currency: "SGD", locale: "en-SG", shopifyCountry: "SG", hreflang: "en-SG", taxNote: "Singapore stores list prices including GST." },
 };
+
+// Cross-border buys (an EU store's prices are its own country's VAT; a store abroad may ship to you): one honest sentence, no numbers.
+export const DUTIES_NOTE = "Buying from a store in another country can add import duties or tax on delivery; the store's checkout or the carrier tells you.";
 
 export const REGION_LIST: RegionInfo[] = ["au", "us", "uk", "ca", "nz", "eu", "sg"].map((r) => REGIONS[r as Region]);
 
