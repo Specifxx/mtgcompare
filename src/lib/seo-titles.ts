@@ -1,3 +1,4 @@
+import { SET_BY_CODE } from "./sets";
 // The <title>s and meta descriptions of the price pages, as search results show them. Every page's generateMetadata builds its
 // words here, so one rule holds site-wide (tests/seo-titles.test.ts):
 //   • A rendered title (with the layout's " | MTG Compare" when it fits) is at most 60 characters; a description at most 160.
@@ -67,6 +68,37 @@ export function shortName(name: string, max: number): string {
   const at = cut.lastIndexOf(" ");
   n = (at > 20 ? cut.slice(0, at) : cut.slice(0, room)).replace(/[\s,:;–—&-]+$/, "");
   return n;
+}
+
+/** The name with its set's name (or one of its aliases) replaced by the set code in capitals, or null when the name does not carry it. */
+export function withSetCode(name: string, setCode?: string | null): string | null {
+  const set = setCode ? SET_BY_CODE.get(setCode) : undefined;
+  if (!set) return null;
+  const code = set.code.toUpperCase();
+  const fold = (t: string) => t.normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+  const plain = fold(name);
+  for (const src of [set.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), ...(set.aliases ?? [])]) {
+    const re = new RegExp(`\\b${src}\\b`, "i");
+    const m = re.exec(plain);
+    if (m) return `${plain.slice(0, m.index)}${code}${plain.slice(m.index + m[0].length)}`.replace(/^\s*[-:–—]\s*/, "").replace(/\s*([-:–—])\s*/, " $1 ").replace(/\s{2,}/g, " ").replace(/^(\w+) [-:–—] /, "$1 ").trim();
+  }
+  return null;
+}
+
+/**
+ * shortName, but a name that ends in its product type keeps the type and is cut in the part before it: "Commander Legends: Battle
+ * for Baldur's Gate Collector Booster Box" → "Commander Legends: Battle for… Collector Booster Box", never "…Baldur's Gate".
+ */
+export function keepTypeName(name: string, max: number, productType?: string): string {
+  const n = shortName(name, max);
+  if (!productType || !name.toLowerCase().endsWith(productType.toLowerCase()) || n.toLowerCase().endsWith(productType.toLowerCase())) return n;
+  const head = name.slice(0, name.length - productType.length).replace(/[\s,:;–—-]+$/, "");
+  const room = max - productType.length - 2 - (withMtg(name) === name ? 0 : 4); // "… " and "MTG "
+  if (room < 8) return n;
+  const cut = head.slice(0, room + 1);
+  const at = cut.lastIndexOf(" ");
+  const kept = (at > 8 ? cut.slice(0, at) : cut.slice(0, room)).replace(/[\s,:;–—&-]+$/, "");
+  return `${kept}… ${productType}`;
 }
 
 type R = Pick<RegionInfo, "inName" | "adjective" | "market" | "currency">;
@@ -192,10 +224,72 @@ export const seoCopy = {
   // ─── Products ──────────────────────────────────────────────────────────────
 
   /** /<region>/p/<slug>: "MTG Bloomburrow Collector Booster Box price in the US: from $245". */
-  productTitle: (o: { name: string; market: string; inName: string; cheapestCents: number | null }) => {
-    const name = withMtg(shortName(o.name, SEO_TITLE_MAX - " price".length));
+  productTitle: (o: { name: string; market: string; inName: string; cheapestCents: number | null; productType?: string; setCode?: string | null }) => {
+    // Every title names its region and keeps the product's TYPE (2026-10-26 audit: long names were cut from the end, so a
+    // Collector Booster Box and a Collector Booster Pack of the same set shared "MTG Commander Legends: … price", and the same
+    // product had one title in all seven regions). The region falls back to its code ("AU", "UK") when the name is long.
+    const code = o.market;
+    const full = withMtg(o.name);
     const from = fromText(o.cheapestCents, o.market);
-    return fitFirst(...(from ? [`${name} price in ${o.inName}: from ${from}`, `${name} price: from ${from}`] : []), `${name} price in ${o.inName}`, `${name} price`, name);
+    const tail = ` price, ${code}`;
+    // A Secret Lair drop: its own words in the middle of store noise ("Avatar … Secret Lair A Lot to Learn Rainbow Foil Edition"):
+    // "Secret Lair <its words> Foil|Non-Foil", the edition kept as one word.
+    if (o.productType === "Secret Lair Drop") {
+      const finish = /\bnon[\s-]*foil\b|\bregular\b/i.test(o.name) ? " Non-Foil" : /\bfoil\b/i.test(o.name) ? " Foil" : "";
+      // "<brand> Secret Lair <drop>": the drop's own words first, the brand after (cut first when long).
+      const at = o.name.search(/\bsecret\s*lair\b/i);
+      const pre = at > 0 ? o.name.slice(0, at).replace(/[\s,:;–—-]+$/, "") : "";
+      const post = at > 0 ? o.name.slice(at) : o.name;
+      const words = `${post} ${pre}`
+        .replace(/[[\]()]/g, " ")
+        .replace(/\b(?:secret\s*lair(?:\s*drop)?(?:\s*series)?|superdrop|drop|edition|traditional|rainbow|galaxy|etched|textured|non[\s-]*foil|foil|regular|english|mtg|magic(?::?\s*the\s*gathering)?)\b/gi, " ")
+        .replace(/\s*[-:–—]\s*(?=[-:–—]|$)/g, " ")
+        .replace(/^\s*[-:–—x×]\s*/i, "")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+      const room = SEO_TITLE_MAX - tail.length - "MTG Secret Lair ".length - finish.length;
+      const lastTwo = words.split(" ").slice(-2).join(" ");
+      for (let max = room; max > 10; max -= 3) {
+        // Too long: the start AND the last two words ("Dungeons & Dragons®: Death … Beholder II"), so siblings stay apart.
+        const own = words.length <= room ? words : `${shortName(words, max - lastTwo.length - 3)} … ${lastTwo}`;
+        const t = `MTG Secret Lair ${own}${finish}${tail}`;
+        if (t.length <= SEO_TITLE_MAX && own) return fitFirst(...(from ? [`${full} price in ${o.inName}: from ${from}`] : []), `${full} price in ${o.inName}`, `${full}${tail}`, t);
+      }
+    }
+    // Before cutting words, shorten the SET name to its code: the words that tell a set's products apart (a Commander deck's name, a
+    // Secret Lair's title) are usually after it, and cutting from the end loses them ("AFR Aura of Courage Commander Deck").
+    const coded = withSetCode(o.name, o.setCode);
+    const short = coded ? withMtg(coded) : null;
+    if (short && `${short}${tail}`.length <= SEO_TITLE_MAX) return fitFirst(...(from ? [`${full} price in ${o.inName}: from ${from}`] : []), `${full} price in ${o.inName}`, `${full}${tail}`, `${short}${tail}`);
+    // Still too long: "MTG <SET CODE> … <the name's last words>" (the words that tell a set's products apart come last: a Commander
+    // deck's or a Secret Lair's own name), as many as fit.
+    const set = o.setCode ? SET_BY_CODE.get(o.setCode) : undefined;
+    {
+      const lead = set ? `MTG ${set.code.toUpperCase()} … ` : "MTG … ";
+      const words = (coded ?? o.name).split(/\s+/);
+      let end = "";
+      for (let i = words.length - 1; i >= 0; i--) {
+        const next = `${words[i]} ${end}`.trim();
+        if (`${lead}${next}${tail}`.length > SEO_TITLE_MAX) break;
+        end = next;
+      }
+      end = end.replace(/^[-:–—,]\s*/, "");
+      // Without a set code, the start names the product ("Secret Lair x Hatsune Miku"): keep the start AND the last words.
+      if (!set) {
+        const last = (coded ?? o.name).split(/\s+/).slice(-2).join(" ");
+        const head = withMtg(shortName(o.name, SEO_TITLE_MAX - tail.length - last.length - 3));
+        const both = `${head} … ${last}`;
+        if (!head.endsWith(last) && `${both}${tail}`.length <= SEO_TITLE_MAX) return fitFirst(...(from ? [`${full} price in ${o.inName}: from ${from}`] : []), `${full} price in ${o.inName}`, `${full}${tail}`, `${both}${tail}`);
+      } else if (end.split(" ").length >= 2) return fitFirst(...(from ? [`${full} price in ${o.inName}: from ${from}`] : []), `${full} price in ${o.inName}`, `${full}${tail}`, `${lead}${end}${tail}`);
+    }
+    let fitted = withMtg(keepTypeName(coded ?? o.name, SEO_TITLE_MAX - tail.length, o.productType));
+    // shortName counts the "MTG " it will need from the full name; a name whose only "MTG" is cut away still gets one: shrink until it fits.
+    for (let max = SEO_TITLE_MAX - tail.length - 4; `${fitted}${tail}`.length > SEO_TITLE_MAX && max > 12; max -= 4) fitted = withMtg(keepTypeName(coded ?? o.name, max, o.productType));
+    return fitFirst(
+      ...(from ? [`${full} price in ${o.inName}: from ${from}`, `${full} price in ${o.inName}`] : [`${full} price in ${o.inName}`]),
+      `${full}${tail}`,
+      `${fitted}${tail}`,
+    );
   },
   /** The product description, cut to 160: the page's own sentence (product-copy.ts productDescription) with a short name when needed. */
   productDescription: (full: string, short: () => string) => fitDescription(full, short()),

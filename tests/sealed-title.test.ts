@@ -363,3 +363,14 @@ test("a box's own pack count in brackets is what is inside, not a lot (tcgdragon
   assert.equal(key("2x Secrets of Strixhaven Play Booster Box"), "multiple");
   assert.equal(key("Secrets of Strixhaven 30x Play Booster Packs"), "multiple");
 });
+
+test("store notes never split one product into two (2026-10-26 SEO audit: duplicate pages)", () => {
+  const key = (t: string) => {
+    const r = identify(t);
+    return typeof r === "object" ? r.groupKey : r;
+  };
+  assert.equal(key("Edge of Eternities Bundle - One per customer"), key("Edge of Eternities Bundle"));
+  assert.equal(key("Star Trek - Beam Me Up Bundle (releases Nov 6th)"), key("Star Trek - Beam Me Up Bundle"));
+  assert.equal(key("Reality Fracture - Secret Lair Bundle - delayed until after release"), key("Reality Fracture - Secret Lair Bundle"));
+  assert.equal(key("Tarkir: Dragonstorm Commander Deck - Mardu Surge (Limit One)"), key("Tarkir: Dragonstorm Commander Deck - Mardu Surge"));
+});

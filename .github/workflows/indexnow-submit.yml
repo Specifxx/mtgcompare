@@ -26,7 +26,7 @@ jobs:
     timeout-minutes: 15
 
     env:
-      SITE_URL: https://mtgcompare.app
+      SITE_URL: ${{ vars.SITE_URL || 'https://mtgcompare.app' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

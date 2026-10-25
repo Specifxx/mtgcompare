@@ -106,3 +106,20 @@ test("the route files build their <title>s with lib/seo-titles.ts", () => {
   ])
     assert.match(src(p), new RegExp(`seoCopy\\.${fn}\\(`), p);
 });
+
+test("product titles keep the region and the product type, so siblings and regions never share a title (2026-10-26 audit)", () => {
+  const t = (name: string, productType: string, market: string, inName: string, setCode: string | null) =>
+    shownTitle(seoCopy.productTitle({ name, productType, market, inName, cheapestCents: null, setCode }));
+  const box = t("Commander Legends: Battle for Baldur's Gate Collector Booster Box", "Collector Booster Box", "AU", "Australia", "clb");
+  const pack = t("Commander Legends: Battle for Baldur's Gate Collector Booster Pack", "Collector Booster Pack", "AU", "Australia", "clb");
+  assert.notEqual(box, pack);
+  assert.ok(box.length <= 60 && pack.length <= 60, `${box} / ${pack}`);
+  const decks = ["Aura of Courage", "Draconic Rage", "Dungeons of Death", "Planar Portal"].map((d) =>
+    t(`Adventures in the Forgotten Realms Commander Deck - ${d}`, "Commander Deck", "US", "the US", "afr"));
+  assert.equal(new Set(decks).size, 4, decks.join(" / "));
+  const au = t("Bloomburrow Commander Deck - Animated Army", "Commander Deck", "AU", "Australia", "blb");
+  const ca = t("Bloomburrow Commander Deck - Animated Army", "Commander Deck", "CA", "Canada", "blb");
+  assert.notEqual(au, ca);
+  const sl = ["I", "II"].map((n) => t(`Dungeons & Dragons®: Death is In the Eyes of the Beholder ${n} MTG Secret Lair`, "Secret Lair Drop", "US", "the US", null));
+  assert.notEqual(sl[0], sl[1]);
+});

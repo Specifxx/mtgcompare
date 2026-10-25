@@ -198,3 +198,13 @@ so the bill is one event per page view. The project's Analytics tab must be enab
   `/about#money` now says three kinds of affiliate links.
 - The two new guides are AU-only (their titles name Australia). "Best" Commander precons means only what our data shows: cheapest in
   stock, and stocked by the most stores.
+
+## 2026-10-26 — SEO audit fixes
+
+- Product titles keep the region (its code when long: "…price, AU") and the product type, and shorten the set name to its code
+  or keep the name's last words before cutting what tells siblings apart; Secret Lair drops lead with the drop's own words. Over the
+  catalogue × 7 regions, colliding titles fell from 2,773 to 245 (mostly duplicate products the next import merges).
+- The classifier ignores store notes that had split one product into two pages: purchase limits ("One per customer", "Limit
+  One" — "Limit Break VII" stays a deck name), dates ("Nov 6th"), "delayed until".
+- The Organization JSON-LD names a mailbox only when NEXT_PUBLIC_CONTACT_EMAIL is set (the fallback is another brand's).
+- Workflows read the canonical origin from the SITE_URL repository variable, so moving to www is configuration, not code.

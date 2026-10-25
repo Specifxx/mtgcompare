@@ -2,7 +2,7 @@ name: PageSpeed check MTG Compare
 
 # Google PageSpeed Insights for four MTG Compare pages, phone and desktop: the Lighthouse lab score and Core Web Vitals, plus the
 # real-user (CrUX) field data when Chrome has enough of it. Once a week and on demand. Read-only: it asks Google's API about the
-# live site (https://mtgcompare.app, the canonical host: the apex only redirects there) and writes one table to the job summary.
+# live site (vars.SITE_URL, default https://mtgcompare.app: the canonical host; the other one only redirects there) and writes one table to the job summary.
 #
 # Needs the repository secret PSI_API_KEY: a Google Cloud API key with the "PageSpeed Insights API" enabled (free; 25,000 queries a
 # day). Without it the job writes "skipped" to its summary and SUCCEEDS: the keyless quota is shared by everyone and is usually
@@ -33,7 +33,7 @@ jobs:
     timeout-minutes: 15
     env:
       PSI_API_KEY: ${{ secrets.PSI_API_KEY }}
-      SITE: https://mtgcompare.app
+      SITE: ${{ vars.SITE_URL || 'https://mtgcompare.app' }}
       # The region home, one in-stock product, the browse page and a type page. A manual run may name others (checked below).
       PATHS: ${{ inputs.paths || '/us /us/p/pitch-black-elite-trainer-box /us/sealed /us/type/booster-boxes' }}
     steps:

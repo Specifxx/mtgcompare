@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { REGION_LIST, REGIONS, X_DEFAULT_REGION, xDefaultRegion, isRegion, type Region, type RegionInfo } from "./regions";
-import { CONTACT_EMAIL, SITE_NAME, SITE_TAGLINE, SITE_URL, SOCIAL_LINKS } from "./site";
+import { CONTACT_EMAIL_SET, SITE_NAME, SITE_TAGLINE, SITE_URL, SOCIAL_LINKS } from "./site";
 
 /**
  * JSON-LD for a <script> tag. Store titles flow into this, so "<" is escaped:
@@ -128,7 +128,8 @@ export function organizationJsonLd() {
     url: SITE_URL,
     logo: `${SITE_URL}/logo.svg`,
     description: SITE_TAGLINE,
-    contactPoint: { "@type": "ContactPoint", email: CONTACT_EMAIL, contactType: "customer support", url: `${SITE_URL}/contact` },
+    // The mailbox is named only when one was set for this site (NEXT_PUBLIC_CONTACT_EMAIL): the fallback is another brand's.
+    contactPoint: { "@type": "ContactPoint", ...(CONTACT_EMAIL_SET ? { email: CONTACT_EMAIL_SET } : {}), contactType: "customer support", url: `${SITE_URL}/contact` },
     ...(SOCIAL_LINKS.length ? { sameAs: SOCIAL_LINKS } : {}),
   };
 }

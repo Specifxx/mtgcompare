@@ -371,7 +371,7 @@ export function classify(title: string): TypeKey | null {
 // deck, a Secret Lair drop, a Scene Box, …
 const BUNDLE_SELLER_WORDS = new Set([
   "factory", "fast", "ship", "ships", "shipping", "shipped", "free", "hand", "brand", "new", "nib", "ready", "now", "stock", "instock",
-  "mint", "official", "authentic", "genuine", "wotc", "wizards", "coast", "release", "presale", "preorder", "pre", "order", "box",
+  "mint", "official", "authentic", "genuine", "wotc", "wizards", "coast", "release", "presale", "preorder", "pre", "order", "box", "one",
 ]);
 
 const NOISE = new Set(
@@ -383,7 +383,10 @@ const NOISE = new Set(
     "commander deck decks precon preconstructed booster boosters pack packs box boxes display kit bundle bundles scene " +
     "prerelease pre x edition " +
     "max per customer household person account local pickup pick up livestream live stream msrp vat deal webstore tbd " +
-    "jan feb mar apr may jun jul aug sep sept oct nov dec play draft set"
+    "jan feb mar apr may jun jul aug sep sept oct nov dec play draft set " +
+    // Store notes that split one product into two pages (2026-10-26 audit: "Edge of Eternities Bundle - One per customer",
+    // "Secret Lair Bundle - delayed until after …", "Beam Me Up Bundle - releases Nov 6th").
+    "delayed delay until after january february march april june july august september october november december"
   ).split(" "),
 );
 // Words that describe a KIND of product rather than which one it is: a title left with only these names no particular product.
@@ -420,6 +423,9 @@ function signatureTokens(title: string, set: MtgSet | null, type: TypeKey): stri
     if (own) t = t.replace(new RegExp(own.re.source, "gi"), " ");
   }
   t = t
+    .replace(/\b\d{1,2}(?:st|nd|rd|th)\b/g, " ") // a date's day ("Nov 6th"), never a product's
+    // Purchase limits as whole phrases ("Limit One", "One per customer"): "Limit Break VII" is a Final Fantasy deck's own name.
+    .replace(/\blimit(?:ed)?\s*(?:to\s*)?(?:one|\d+)\b(?:\s*per\s*\w+)?|\b(?:one|\d+)\s*per\s*(?:customer|household|order|person|account)\b/g, " ")
     .replace(/\bcollector'?s?\s*edition\b|\bcollectors?\s*ed\b/g, " ")
     // "Commander 2019", "Commander: Bloomburrow" leftovers, trailing ISO dates.
     .replace(/\bcommander\b/g, " ")

@@ -137,7 +137,7 @@ export async function generateMetadata({ params }: { params: { region: string; s
     return !!s && comparable(s);
   });
   const image = thumb(p.imageUrl, 1200);
-  const title = seoCopy.productTitle({ name: p.name, market: r.market, inName: r.inName, cheapestCents: cheapest?.priceCents ?? null });
+  const title = seoCopy.productTitle({ name: p.name, market: r.market, inName: r.inName, cheapestCents: cheapest?.priceCents ?? null, productType: p.productType, setCode: p.setCode });
   const plainTitle = typeof title === "string" ? title : title.absolute;
   const meta = pageMeta({
     title: plainTitle,
