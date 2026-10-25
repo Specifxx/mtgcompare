@@ -35,7 +35,9 @@ export type GuideSlug =
   | "magic-sealed-market-wrap"
   | "mtg-booster-box-prices"
   | "collector-booster-box-prices"
-  | "mtg-bundle-prices";
+  | "mtg-bundle-prices"
+  | "best-commander-precons-australia"
+  | "where-to-buy-mtg-booster-boxes-australia";
 
 export interface Guide {
   slug: GuideSlug;
@@ -67,6 +69,8 @@ const D = "2026-10-21";
 const D2 = "2026-10-23";
 /** The sealed price guides (booster box, Collector Booster box, Bundle), first edition. */
 const D3 = "2026-10-23";
+/** The Australian guides, first edition. */
+const D4 = "2026-10-25";
 const SEALED_EBAY = { heading: "Sealed Magic on eBay", query: "Magic the Gathering sealed" };
 
 export const GUIDES: readonly Guide[] = [
@@ -281,6 +285,29 @@ export const GUIDES: readonly Guide[] = [
     regions: "all",
     topic: { types: ["bundle", "play-booster-box"] },
     ebay: { heading: "Magic Bundles on eBay", query: "MTG bundle sealed" },
+  },
+  // Australia-only guides (2026-10-25): AU stores' live prices, each product row with an Amazon AU link (lib/amazon.ts).
+  {
+    slug: "best-commander-precons-australia",
+    title: "Best Commander precon decks in Australia",
+    description: "The Magic Commander precon decks Australian stores have in stock today, cheapest first, with each deck's lowest AUD price and how many stores carry it.",
+    kicker: "Commander decks",
+    published: D4,
+    updated: D4,
+    regions: ["au"],
+    topic: { types: ["commander-deck", "commander-deck-set"] },
+    ebay: { heading: "Commander decks on eBay", query: "MTG Commander deck sealed" },
+  },
+  {
+    slug: "where-to-buy-mtg-booster-boxes-australia",
+    title: "Where to buy MTG booster boxes in Australia",
+    description: "Which Australian stores have Magic booster boxes in stock today, the cheapest Play and Collector Booster boxes in AUD, and what to check before you order.",
+    kicker: "Where to buy",
+    published: D4,
+    updated: D4,
+    regions: ["au"],
+    topic: { types: ["play-booster-box", "collector-booster-box"] },
+    ebay: { heading: "Magic booster boxes on eBay", query: "MTG booster box" },
   },
 ];
 

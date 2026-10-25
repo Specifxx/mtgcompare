@@ -1,3 +1,4 @@
+import { AmazonAlso } from "@/components/Amazon";
 import Link from "@/components/Link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
@@ -136,6 +137,7 @@ export default async function SetPage({ params }: { params: { region: string; se
         </div>
         {/* The page's answer in a sentence, above the grid (the longer "About" sits below it). */}
         <p className="mt-4 max-w-3xl text-[15px] leading-7 text-muted">{setDescription(s, r, products)}</p>
+        <AmazonAlso region={r.region} name={`Magic The Gathering ${s.name}`} placement="amazon-set" page={path} />
 
         {(way || pre || us) && (
           // Two fixed columns from sm (the cheapest pack; then the calendar and the labelled TCGplayer link stacked), so no line

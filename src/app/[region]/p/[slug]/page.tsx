@@ -13,6 +13,7 @@ import { hotProductHighlight, isHotReleased, NoPreFooter } from "@/components/Eb
 import { EbayStrip } from "@/components/EbayStrip";
 import { marketplaceOf } from "@/lib/ebay-context";
 import { ebayQuery, MarketplacePanel, SoldOutCallout } from "@/components/Marketplaces";
+import { AmazonProductRow } from "@/components/Amazon";
 import { OfferTable } from "@/components/OfferTable";
 import { ProductGrid } from "@/components/ProductGrid";
 import { ProductRail } from "@/components/ProductRail";
@@ -591,6 +592,8 @@ export default async function ProductPage({ params }: { params: { region: string
           />
         </div>
       )}
+      {/* Amazon Australia (AU, NZ, SG only): a marketplace link with no price, after the paid rows and never in the table. */}
+      <AmazonProductRow region={r.region} name={p.name} slug={p.slug} />
 
       {!best && alternatives.length > 0 && (
         <Section id="instead" title="In stock instead" href={typeLink.href} linkLabel="See all">

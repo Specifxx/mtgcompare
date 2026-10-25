@@ -182,3 +182,19 @@ counted again (`src/components/VercelPageViews.tsx`, query strings stripped); cu
 so the bill is one event per page view. The project's Analytics tab must be enabled in Vercel for the script's data to be kept.
 - 2026-10-25, later: buy clicks too. `src/lib/track.ts` sends `buy_click` (retailer, placement) and drops every other event name;
   search and share events stay off.
+
+## 2026-10-25: Amazon Australia (Amazon Associates) links
+
+- `src/lib/amazon.ts` builds direct amazon.com.au links: `/dp/<ASIN>?tag=` when `src/data/amazon-asins.json` has the product's slug
+  (filled by hand, never guessed), else `/s?k=<searchTerms(name), "MTG " prefixed when it lacks MTG/Magic>&tag=`. The tag is
+  `AMAZON_AU_TAG` read on the server (default `compareempire-22`); no NEXT_PUBLIC variable. rel is exactly
+  `sponsored nofollow noopener` (owner spec; the eBay/TCGplayer REL_SPONSORED keeps noreferrer).
+- Shown in AU, NZ and SG only ("Amazon Australia (ships to NZ)" with "may ship…; check delivery"), never US/UK/CA/EU. A marketplace
+  link with no Amazon price, rating or stock: never a store, never in the offer table, never best price. Product page: its own card
+  after the marketplaces; type, set and deals pages: one "Also check Amazon AU" line; the two AU guides: a column per product row.
+- Clicks go through OutboundLink: Vercel gets buy_click (retailer "Amazon AU", `amazon-*` placements), GA4 also gets
+  `amazon_click {product, region, page}`. No new Vercel event names.
+- The footer carries "As an Amazon Associate I earn from qualifying purchases." and links `/affiliate-disclosure` on every page;
+  `/about#money` now says three kinds of affiliate links.
+- The two new guides are AU-only (their titles name Australia). "Best" Commander precons means only what our data shows: cheapest in
+  stock, and stocked by the most stores.

@@ -68,6 +68,12 @@ export const PLACEMENTS = [
   // Every other RELEASED set's page gets the same kind of button ("Shop <set> sealed on eBay", components/Ebay.tsx
   // setSealedHighlight) in its strip's top line, under its own placement so it can be told apart from the hot sets'.
   "set-sealed",
+  // Amazon Australia (lib/amazon.ts): AU, NZ and SG only, a marketplace link, never a store row. Its buy_click carries one of these.
+  "amazon-product", // product page: the Amazon row under the Marketplaces panel (or the sold-out callout)
+  "amazon-type", // type page: the one "Also check Amazon AU" line under the hero
+  "amazon-set", // set page: the same line
+  "amazon-deals", // /[region]/deals: the same line
+  "amazon-guide", // a guide: a product row's "Check price on Amazon AU" link
 ] as const;
 export type Placement = (typeof PLACEMENTS)[number];
 

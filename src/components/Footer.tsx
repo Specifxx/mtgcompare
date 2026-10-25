@@ -4,6 +4,7 @@ import { REGION_LIST, REGIONS, type Region } from "@/lib/regions";
 import { featureOrder } from "@/lib/release";
 import { SET_BY_CODE, SETS } from "@/lib/sets";
 import { CONTACT_EMAIL_SET, FAN_CONTENT_DISCLAIMER, OPERATOR, SISTER_SITES, SITE_NAME, sectionHref, type SectionKey } from "@/lib/site";
+import { AMAZON_DISCLOSURE } from "@/lib/amazon";
 import { LogoMark } from "./Logo";
 import { footerSeoSections } from "./seo/HubLinks";
 
@@ -16,6 +17,7 @@ export function footerColumns(region: Region | null): { title: string; links: Fo
     { href: "/blog", label: "Blog" },
     { href: "/about#stores", label: "For stores" },
     { href: "/contact", label: "Contact" },
+    { href: "/affiliate-disclosure", label: "Affiliate disclosure" },
     { href: "/terms", label: "Terms" },
     { href: "/privacy", label: "Privacy" },
   ];
@@ -79,6 +81,12 @@ export function Footer({ region }: { region: Region | null }) {
             No store pays to be listed or to rank.{" "}
             <Link href="/about#money" className="whitespace-nowrap font-semibold text-ink underline decoration-line underline-offset-2 hover:decoration-ink">
               How we make money&nbsp;→
+            </Link>
+          </p>
+          <p className="mt-2 text-xs leading-5 text-muted" data-amazon-disclosure="">
+            {AMAZON_DISCLOSURE}{" "}
+            <Link href="/affiliate-disclosure" prefetch={false} className="whitespace-nowrap font-semibold text-ink underline decoration-line underline-offset-2 hover:decoration-ink">
+              Affiliate disclosure
             </Link>
           </p>
           {CONTACT_EMAIL_SET && <p className="mt-3 select-all text-xs text-muted">{CONTACT_EMAIL_SET}</p>}

@@ -82,6 +82,8 @@ const READS: Record<GuideSlug, readonly [FamilyKey, number][]> = {
   "mtg-booster-box-prices": [],
   "collector-booster-box-prices": [],
   "mtg-bundle-prices": [],
+  "best-commander-precons-australia": [],
+  "where-to-buy-mtg-booster-boxes-australia": [],
 };
 
 const UB_CODES = SETS.filter((x) => x.series === "Universes Beyond").map((x) => x.code);
@@ -126,6 +128,10 @@ async function extraFor(slug: GuideSlug, market: RegionInfo["market"], today: st
     }
     case "mtg-bundle-prices":
       return { byType: await types(["Bundle", "Play Booster Box"], 80), openByType: await counts(["Bundle"]) };
+    case "best-commander-precons-australia":
+      return { byType: await types(["Commander Deck", "Commander Deck Set"], 15), openByType: await counts(["Commander Deck", "Commander Deck Set"]) };
+    case "where-to-buy-mtg-booster-boxes-australia":
+      return { byType: await types(["Play Booster Box", "Collector Booster Box"], 120), openByType: await counts(["Play Booster Box", "Collector Booster Box"]) };
     default:
       return {};
   }
@@ -155,7 +161,7 @@ export async function loadGuideData(slug: GuideSlug, r: RegionInfo, now: Date = 
           })
           .then((rows) => rows.map(toCard))
       : Promise.resolve([] as ProductCardData[]),
-    slug === "where-to-buy-magic-sealed-online" ? topStores(r.market, 12) : Promise.resolve([] as StoreRow[]),
+    slug === "where-to-buy-magic-sealed-online" || slug === "where-to-buy-mtg-booster-boxes-australia" ? topStores(r.market, 12) : Promise.resolve([] as StoreRow[]),
     slug === "where-to-buy-magic-sealed-online" || slug === "magic-sealed-products-explained" ? typeSummary(r.market) : Promise.resolve([] as TypeSummaryRow[]),
   ]);
   const rows: GuideData["rows"] = Object.fromEntries(lists);

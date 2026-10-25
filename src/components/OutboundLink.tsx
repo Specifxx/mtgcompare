@@ -37,6 +37,7 @@ export function OutboundLink({
   children,
   "aria-label": ariaLabel,
   onFocus,
+  amazon,
 }: {
   href: string;
   rel: string;
@@ -47,12 +48,15 @@ export function OutboundLink({
   children: ReactNode;
   "aria-label"?: string;
   onFocus?: (e: React.FocusEvent<HTMLAnchorElement>) => void;
+  /** An Amazon AU link (lib/amazon.ts): also GA4's amazon_click {product, region, page}. Vercel still gets only buy_click. */
+  amazon?: { product: string; region: string; page: string };
 }) {
   function record() {
     try {
       track("buy_click", { retailer: retailer.slice(0, 255), placement: placement.slice(0, 255) });
       // GA4 (lib/gtag.ts, a no-op without NEXT_PUBLIC_GA_ID): a paid link (eBay, TCGplayer: rel "sponsored") is affiliate_click.
       gaEvent(/\bsponsored\b/.test(rel) ? "affiliate_click" : "outbound_store_click", { retailer: retailer.slice(0, 100), placement, link_domain: hostOf(href) });
+      if (amazon) gaEvent("amazon_click", { product: amazon.product.slice(0, 100), region: amazon.region, page: amazon.page.slice(0, 100) });
     } catch {
       /* analytics must never get in the way of the link */
     }

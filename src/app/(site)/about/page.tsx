@@ -28,7 +28,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "Do stores pay to be listed?",
-    a: `No. Stores are ranked by price and stock only. The site earns from marked eBay and TCGplayer affiliate links${ADSENSE_CLIENT ? " and Google ads" : ""}, which never change the order of the stores.`,
+    a: `No. Stores are ranked by price and stock only. The site earns from marked eBay, TCGplayer and Amazon affiliate links${ADSENSE_CLIENT ? " and Google ads" : ""}, which never change the order of the stores.`,
   },
   {
     q: "Which prices are shown?",
@@ -188,9 +188,10 @@ export default function About() {
 
         <h2 id="money">How MTG Compare makes money</h2>
         <p>
-          {ADSENSE_CLIENT ? "Through one Google ad in some guides, and through affiliate links of only two kinds" : "Through affiliate links, and only two kinds"}: <b>eBay</b> (the eBay Partner Network) and <b>TCGplayer</b> (through Impact). If you
+          {ADSENSE_CLIENT ? "Through one Google ad in some guides, and through affiliate links of only three kinds" : "Through affiliate links, and only three kinds"}: <b>eBay</b> (the eBay Partner Network), <b>TCGplayer</b> (through Impact) and, in Australia, New Zealand and Singapore, <b>Amazon Australia</b> (Amazon Associates). If you
           buy through one we may earn a small commission, at no cost to you &mdash; the price is the same as going direct. Every one is
-          marked where it appears: eBay with an &ldquo;Ad&rdquo; label, TCGplayer with &ldquo;affiliate link&rdquo;.
+          marked where it appears: eBay with an &ldquo;Ad&rdquo; label, TCGplayer with &ldquo;affiliate link&rdquo;, Amazon with &ldquo;As an Amazon Associate I earn from qualifying purchases.&rdquo; Amazon is never one of the stores compared, and we show no Amazon price or stock.{" "}
+          <Link href="/affiliate-disclosure">Affiliate disclosure</Link>.
         </p>
         {ADSENSE_CLIENT && (
           <p>

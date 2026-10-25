@@ -125,11 +125,17 @@ test("registry: unique slugs, ISO editorial dates, descriptions ≤ 160, titles 
   }
 });
 
-test("the MSRP guide is US-only; every other guide is in all seven regions", () => {
+const AU_ONLY = ["best-commander-precons-australia", "where-to-buy-mtg-booster-boxes-australia"];
+test("the MSRP guide is US-only, the two Australian guides AU-only; every other guide is in all seven regions", () => {
   assert.deepEqual(guideRegions(GUIDE_BY_SLUG.get("magic-msrp")!), ["us"]);
   for (const r of REGION_LIST.filter((x) => x.region !== "us")) assert.equal(guideFor("magic-msrp", r.region), null, r.region);
-  assert.equal(guidesFor("us").length, GUIDES.length);
-  for (const g of GUIDES.filter((x) => x.slug !== "magic-msrp")) assert.equal(guideRegions(g).length, 7, g.slug);
+  for (const s of AU_ONLY) {
+    assert.deepEqual(guideRegions(GUIDE_BY_SLUG.get(s)!), ["au"], s);
+    for (const r of REGION_LIST.filter((x) => x.region !== "au")) assert.equal(guideFor(s, r.region), null, `${s} ${r.region}`);
+  }
+  assert.equal(guidesFor("us").length, GUIDES.length - AU_ONLY.length);
+  assert.equal(guidesFor("au").length, GUIDES.length - 1);
+  for (const g of GUIDES.filter((x) => x.slug !== "magic-msrp" && !AU_ONLY.includes(x.slug))) assert.equal(guideRegions(g).length, 7, g.slug);
   assert.equal(guideFor("no-such-guide", "au"), null);
 });
 

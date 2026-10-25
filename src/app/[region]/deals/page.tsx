@@ -1,3 +1,4 @@
+import { AmazonAlso } from "@/components/Amazon";
 import Link from "@/components/Link";
 import { cache } from "react";
 import type { Metadata } from "next";
@@ -109,6 +110,7 @@ export default async function DealsPage({ params }: { params: { region: string }
             {dealsCopy.summary(deals.length, best)}
           </p>
         )}
+        <AmazonAlso region={r.region} name="Magic The Gathering sealed" placement="amazon-deals" page={`/${r.region}/deals`} />
       </header>
 
       {/* In-page links: one per section that has deals, then the per-pack ranking (and, in the US, below MSRP). */}

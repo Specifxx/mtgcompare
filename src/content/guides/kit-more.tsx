@@ -8,6 +8,8 @@ import { money } from "@/lib/format";
 import { packsForLabel, perPackCents } from "@/lib/packs";
 import type { RegionInfo } from "@/lib/regions";
 import { faqJsonLd, jsonLd } from "@/lib/seo";
+import { AmazonLink } from "@/components/Amazon";
+import { amazonRegion } from "@/lib/amazon";
 import { whereText } from "../families";
 import { NoneYet, ProductTh, StackTable, type GuideSection } from "./kit";
 
@@ -44,9 +46,27 @@ export const packsOfCard = (p: Pick<ProductCardData, "productType" | "setCode" |
  * A live table of products: name (linked), price, price per pack (only where lib/packs.ts is sure of the count) and where it is
  * open. `label` names each row's kind (its type label by default).
  */
-export function CardTable({ r, caption, products, label, empty, perPack = true }: { r: RegionInfo; caption: string; products: readonly ProductCardData[]; label?: (p: ProductCardData) => string; empty?: string; perPack?: boolean }) {
+export function CardTable({
+  r,
+  caption,
+  products,
+  label,
+  empty,
+  perPack = true,
+  amazonPage,
+}: {
+  r: RegionInfo;
+  caption: string;
+  products: readonly ProductCardData[];
+  label?: (p: ProductCardData) => string;
+  empty?: string;
+  perPack?: boolean;
+  /** The guide's path: each row also gets a "Check price on Amazon AU" link (AU, NZ, SG only; no Amazon price is shown). */
+  amazonPage?: string;
+}) {
   if (!products.length) return <NoneYet>{empty}</NoneYet>;
-  const head = perPack ? ["Product", "Price", "Per pack", "In stock at"] : ["Product", "Price", "In stock at"];
+  const amazon = !!amazonPage && amazonRegion(r.region);
+  const head = [...(perPack ? ["Product", "Price", "Per pack", "In stock at"] : ["Product", "Price", "In stock at"]), ...(amazon ? ["Amazon AU"] : [])];
   return (
     <StackTable
       caption={caption}
@@ -57,6 +77,7 @@ export function CardTable({ r, caption, products, label, empty, perPack = true }
           <span key="p" className="font-semibold">{money(p.lowestPriceCents, r.market)}</span>,
           ...(perPack ? [<span key="pp">{pp != null ? money(pp, r.market) : "—"}</span>] : []),
           <span key="w" className="text-muted">{whereText(p)}</span>,
+          ...(amazon ? [<AmazonLink key="a" region={r.region} name={p.name} slug={p.slug} placement="amazon-guide" page={amazonPage!} />] : []),
         ];
         return { key: p.slug, th: <ProductTh r={r} label={label ? label(p) : p.productType} p={p} />, cells };
       })}

@@ -1,3 +1,4 @@
+import { AmazonAlso } from "@/components/Amazon";
 import Link from "@/components/Link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
@@ -102,6 +103,8 @@ export default async function TypePage({ params }: { params: { region: string; t
       <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
         {name} in {r.inName}
       </h1>
+
+      <AmazonAlso region={r.region} name={`Magic The Gathering ${t.label}`} placement="amazon-type" page={path} />
 
       {/* The intro, two lines; "More about" opens the rest of it (the clamp lifts while the details are open) and the facts below. */}
       <div className="mt-3 max-w-3xl [&:has(details[open])>p]:line-clamp-none">
