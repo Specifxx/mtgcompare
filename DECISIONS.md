@@ -174,3 +174,9 @@ popular sets; Reality Fracture was out but Star Trek was leading; older product 
 - Featuring is by date (`release.ts featureOrder/featureSort`, `popular.ts hotSetsByFeature/featureRank`): the newest released set
   leads, the pre-order set second. `hotRank` (the eBay importer's spending order) is unchanged: it is the owner's priority list.
 - sealed-title: a box's own bracketed pack count ("Play Booster Box (30x Packs)") is no longer read as a lot.
+
+## 2026-10-25 — Vercel Web Analytics back on, page views only
+
+**Owner:** "it says zero visitors when there's clearly been visitors." It had been off since 2026-10-22 (cost). Page views are
+counted again (`src/components/VercelPageViews.tsx`, query strings stripped); custom events stay off (`src/lib/track.ts` no-op),
+so the bill is one event per page view. The project's Analytics tab must be enabled in Vercel for the script's data to be kept.
