@@ -90,7 +90,9 @@ test("Footer: no mailto (Contact goes to /contact), the two-line disclosure, and
     assert.match(html, /eBay and TCGplayer links are affiliate links and are marked where they appear\.<br\/>No store pays to be listed or to rank\./);
     assert.match(html, /How we make money/);
     assert.match(html, /Prices and stock are read from each store about twice a day; the store’s own page is final\./);
-    assert.equal(findBannedCopy(html.replace(/<[^>]+>/g, " ")), null);
+    // the footer links the history-backed /back-in-stock page by its name; nothing else history-backed is allowed
+    assert.equal(findBannedCopy(html.replace(/<[^>]+>/g, " "), { history: true }), null);
+    assert.equal(findBannedCopy(html.replace(/<a [^>]*href="\/[a-z]{2}\/back-in-stock"[^>]*>Back in stock<\/a>/g, " ").replace(/<[^>]+>/g, " ")), null);
     if (OPERATOR === SITE_NAME) assert.doesNotMatch(html, /operated by/i, "never the circular 'MTG Compare is operated by MTG Compare'");
   }
   assert.match(src("components/Footer.tsx"), /OPERATOR !== SITE_NAME && ` Operated by \$\{OPERATOR\}\.`/);
@@ -176,16 +178,16 @@ test("NavLink's current-section logic (aria-current='page'): whole segments, and
   assert.equal(isActivePath("/au/sets", "/us/sets"), false);
 });
 
-test("the phone menu: the thirteen sections in order, under the region; the regions switch to the same page", () => {
+test("the phone menu: the sixteen sections in order, under the region; the regions switch to the same page", () => {
   assert.deepEqual(
     MENU_ROWS.map((r) => r.label),
-    ["Deals", "Black Friday", "This week", "All sealed", "Play Booster Boxes", "Collector boxes", "Bundles", "Cheapest per pack", "Sets", "Releases", "Guides", "Tools", "Where to buy"],
+    ["Deals", "Black Friday", "This week", "Back in stock", "Price moves", "Older sets in stock", "All sealed", "Play Booster Boxes", "Collector boxes", "Bundles", "Cheapest per pack", "Sets", "Releases", "Guides", "Tools", "Where to buy"],
   );
   // The sheet's contents render on the first open: the header's server HTML has the empty <dialog> only.
   assert.match(render(React.createElement(Header, { region: "ca" })), /<dialog id="site-menu" data-menu="" aria-label="Menu" class="menu-sheet [^"]*"><\/dialog>/);
   const sheet = render(React.createElement(MenuSheet, { region: "ca", pathname: "/ca/stores", onClose() {} }));
   assert.match(sheet, /aria-current="page"[^>]*href="\/ca\/stores"|href="\/ca\/stores"[^>]*aria-current="page"/, "the current section is marked");
-  for (const p of ["/deals", "/black-friday", "/this-week", "/sealed", "/type/play-booster-boxes", "/type/collector-booster-boxes", "/type/bundles", "/cheapest-packs", "/sets", "/releases", "/guides", "/tools", "/stores"])
+  for (const p of ["/deals", "/black-friday", "/this-week", "/back-in-stock", "/price-moves", "/out-of-print", "/sealed", "/type/play-booster-boxes", "/type/collector-booster-boxes", "/type/bundles", "/cheapest-packs", "/sets", "/releases", "/guides", "/tools", "/stores"])
     assert.ok(hrefs(sheet).includes(`/ca${p}`), p);
   assert.equal(sheet.match(/class="text-2xl leading-none" aria-hidden="true">/g)?.length, 7, "seven flag tiles");
   assert.equal(pathAfterRegion("/au/sets/bloomburrow"), "/sets/bloomburrow");
@@ -307,8 +309,10 @@ test("ProductCard: photo on a plate, short type pill, sentence-case 'From' befor
   assert.match(html, /mix-blend-multiply/);
   assert.match(html, /max-w-\[calc\(100%-1\.5rem\)\] truncate[^"]*">Collector box<\/span>/);
   assert.match(html, /<span class="text-xs font-medium text-muted">From<\/span><span class="tabular [^"]*">\$57\.50<\/span>/);
+  // stock first: the pill comes before the price in the markup
+  assert.ok(html.indexOf("In stock at 12 of 19") < html.indexOf("$57.50"), "stock before price");
   assert.doesNotMatch(html, /uppercase tracking-wide text-faint">From|Last listed/);
-  assert.match(html, />In stock · 12<span class="stock-unit"> stores<\/span><\/span>/);
+  assert.match(html, />In stock at 12 of 19<span class="stock-unit"> stores<\/span><\/span>/);
   assert.match(html, /\+ TCGplayer/);
   assert.match(html, /Compare 20 prices&nbsp;→|Compare 20 prices →/);
   assert.match(html, /lg:opacity-0[^"]*lg:group-hover:opacity-100[^"]*lg:group-focus-visible:opacity-100/);
@@ -324,16 +328,18 @@ test("ProductCard labels: short types, stock in words, and what the click opens"
   assert.equal(shortTypeLabel("Secret Lair Drop"), "Secret Lair");
   assert.equal(shortTypeLabel("Bundle"), "Bundle");
   assert.equal(shortTypeLabel("Commander Deck"), "Commander Deck");
-  assert.deepEqual(cardStockLabel(card({ inStockStores: 1 }), false), ["In stock · 1", " store"]);
-  assert.deepEqual(cardStockLabel(card(), true), ["Pre-order · 12", " stores"]);
+  assert.deepEqual(cardStockLabel(card({ inStockStores: 1 }), false), ["In stock at 1 of 19", " stores"]);
+  assert.deepEqual(cardStockLabel(card(), true), ["Pre-order at 12 of 19", " stores"]);
   assert.deepEqual(cardStockLabel(card({ inStockStores: 0 }), false), ["On TCGplayer", ""]);
-  assert.deepEqual(cardStockLabel(card({ inStockStores: 0, marketplaceOpen: false, listedStores: 3 }), false), ["Listed at 3", " stores"]);
+  assert.deepEqual(cardStockLabel(card({ inStockStores: 0, marketplaceOpen: false, listedStores: 3 }), false), ["Sold out at all 3", " stores"]);
   assert.deepEqual(cardStockLabel(card({ inStockStores: 0, marketplaceOpen: false, listedStores: 0 }), false), ["Not in stock", ""]);
   assert.equal(cardCompareLabel(card({ marketplaceOpen: false })), "Compare 19 prices");
   assert.equal(cardCompareLabel(card({ inStockStores: 1, listedStores: 1, marketplaceOpen: false })), "See the offer");
   assert.equal(cardCompareLabel(card({ inStockStores: 0, marketplaceOpen: false })), "See alternatives");
   const sold = render(React.createElement(ProductCard, { p: card({ inStockStores: 0, marketplaceOpen: false, listedStores: 3 }), region: "au" }));
-  assert.match(sold, /text-faint">Sold out<\/span>/);
+  assert.match(sold, />Sold out at all 3<span class="stock-unit"> stores/);
+  assert.match(sold, /No price while sold out/);
+  assert.deepEqual(cardStockLabel(card({ inStockStores: 0, marketplaceOpen: false, listedStores: 1 }), false), ["Sold out at 1", " store"]);
   assert.doesNotMatch(sold, />From</);
 });
 

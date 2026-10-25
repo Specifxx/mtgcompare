@@ -350,3 +350,16 @@ test("a store's own 'BUNDLE:' combo is refused, and a leading set code never nam
     assert.ok(typeof r === "object" && r.groupKey === key, `${t} → ${JSON.stringify(r)}`);
   }
 });
+
+test("a box's own pack count in brackets is what is inside, not a lot (tcgdragon, 2026-10-25); a counted lot is still refused", () => {
+  const key = (t: string) => {
+    const r = identify(t);
+    return typeof r === "string" ? r : r.groupKey;
+  };
+  assert.equal(key("Magic: The Gathering - Secrets of Strixhaven - Play Booster Box (30x Packs)"), "sos|play-booster-box");
+  assert.equal(key("Magic: The Gathering - Secrets of Strixhaven - Collector Booster Box (12x Packs)"), "sos|collector-booster-box");
+  assert.equal(key("Magic: The Gathering - Universes Beyond - Marvel Super Heroes - Jumpstart Booster Box (24x Packs)"), "msh|jumpstart-booster-box");
+  assert.equal(key("Secrets of Strixhaven Play Booster Box (2x)"), "multiple");
+  assert.equal(key("2x Secrets of Strixhaven Play Booster Box"), "multiple");
+  assert.equal(key("Secrets of Strixhaven 30x Play Booster Packs"), "multiple");
+});

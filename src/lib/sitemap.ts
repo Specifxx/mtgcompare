@@ -68,6 +68,11 @@ export function staticSitemap(lastmod: Partial<Record<string, Date | null>>, act
     out.push(url(`/${r.region}/black-friday`, m, "daily", 0.7));
     out.push(url(`/${r.region}/cheapest-packs`, m, "daily", 0.6));
     out.push(url(`/${r.region}/this-week`, m, "daily", 0.5));
+    // The stock pages (lib/stock.ts): back in stock and price moves are built from the daily price history, older sets from today's
+    // stock; all change with each import.
+    out.push(url(`/${r.region}/back-in-stock`, m, "daily", 0.6));
+    out.push(url(`/${r.region}/price-moves`, m, "daily", 0.5));
+    out.push(url(`/${r.region}/out-of-print`, m, "daily", 0.6));
     out.push(url(`/${r.region}/guides`, null, "weekly", 0.5));
     // Pre-order pages, until release day (they are noindexed from then on: lib/preorder-guides.ts).
     for (const { set } of openPreorderGuides(today)) out.push(url(`/${r.region}/preorders/${set.slug}`, m, "daily", 0.8));

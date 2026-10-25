@@ -18,16 +18,19 @@ import { dealsCopy, dealsInMarket, nearestRegion, stockLabel } from "@/lib/deals
 import { cardOpen } from "@/lib/compact";
 import { money, plural, timeAgo } from "@/lib/format";
 import { thumb } from "@/lib/images";
-import { hotRank } from "@/lib/popular";
+import { hotPicks } from "@/lib/hot-picks";
 import { COUNTRY_GUIDE } from "@/content/guides/country-prices";
 import { openPreorderGuides } from "@/lib/preorder-guides";
-import { isPreorderSet, formatRelease } from "@/lib/release";
+import { featureOrder, featureSort, isPreorderSet, formatRelease } from "@/lib/release";
 import { REGIONS, regionOrNotFound, type Market, type RegionInfo } from "@/lib/regions";
 import { ogCardImage, pageMeta, regionAlternates } from "@/lib/seo";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { fitDescription, seoCopy, seoTitleText } from "@/lib/seo-titles";
 import { PRODUCT_TYPES } from "@/lib/sealed-title";
-import { SETS, type MtgSet } from "@/lib/sets";
+import { SET_BY_CODE, SETS, type MtgSet } from "@/lib/sets";
+import { stockHeadline } from "@/lib/stock";
+import { olderInStockData } from "@/lib/stock-data";
+import { StockRow } from "@/components/StockRow";
 import { storesInMarket } from "@/lib/stores";
 import { emptyHomeReport, loadHomeReport } from "@/lib/home-report";
 import { MarketReport } from "@/components/home/MarketReport";
@@ -59,22 +62,23 @@ export async function generateMetadata({ params }: { params: { region: string } 
 }
 
 const QUICK_TYPES = ["play-booster-boxes", "collector-booster-boxes", "bundles", "commander-decks", "prerelease-packs", "secret-lair", "play-booster-packs", "starter-kits"];
-const HEADLINE = ["Play Booster Box", "Collector Booster Box", "Bundle"];
 
 export default async function RegionHome({ params }: { params: { region: string } }) {
   const r = regionOrNotFound(params.region);
-  const [{ boxes, etbs, preorders, latestSets: bySet }, overview, deals, report] = await Promise.all([
+  const [{ boxes, etbs, preorders, latestSets: bySet }, overview, deals, report, older] = await Promise.all([
     homeRails(r.market),
     getOverview(r.market),
     dealsInMarket(r.market, { take: 8 }),
     // The written market report, moved here from the landing page (2026-10-25): this region's figures, after the rails.
     loadHomeReport(r.region).catch(() => emptyHomeReport(r.region)),
+    olderInStockData(r.market).catch(() => []),
   ]);
   // The soonest upcoming set with a pre-order page: the rail's "see all" goes there.
   const preorderGuide = openPreorderGuides()[0] ?? null;
   const storeCount = storesInMarket(r.market).length;
-  const latestSets = SETS.filter((s) => bySet.has(s.code)).slice(0, 4);
-  // The owner's most wanted set that is out (lib/popular.ts HOT_SETS: 30th Celebration first) gets the sealed strip's highlighted
+  // The newest released set leads, the set on pre-order second (release.ts featureOrder): a pre-order is never the top card.
+  const latestSets = featureOrder(SETS.filter((s) => bySet.has(s.code)).slice(0, 4).map((s) => s.code)).map((c) => SET_BY_CODE.get(c)!);
+  // The first hot set that is out, in featuring order (lib/popular.ts hotSetsByFeature: the newest release first), gets the sealed strip's highlighted
   // eBay button, "Shop 30th Celebration on eBay": inside that strip's own top line, so the page keeps its two units.
   const hotHighlight = hotSetHighlight(firstHotSet());
   const hot = hotPicks(preorders, boxes);
@@ -106,6 +110,15 @@ export default async function RegionHome({ params }: { params: { region: string 
             >
               <Link href={`/${r.region}/deals`} prefetch={false} className="chip min-h-10 border-brand/30 bg-brand-soft font-semibold text-brand-strong hover:border-brand/60">
                 <Icon name="tag" size={16} /> Deals
+              </Link>
+              <Link href={`/${r.region}/back-in-stock`} prefetch={false} className="chip min-h-10 border-open/30 bg-open-soft font-semibold text-open hover:border-open/60">
+                <Icon name="check" size={16} /> Back in stock
+              </Link>
+              <Link href={`/${r.region}/out-of-print`} prefetch={false} className="chip min-h-10">
+                Older sets in stock
+              </Link>
+              <Link href={`/${r.region}/price-moves`} prefetch={false} className="chip min-h-10">
+                Price moves
               </Link>
               {QUICK_TYPES.map((slug) => {
                 const t = PRODUCT_TYPES.find((x) => x.slug === slug)!;
@@ -228,6 +241,21 @@ export default async function RegionHome({ params }: { params: { region: string 
           )}
         </Section>
 
+        {older.length > 0 && (
+          <Section title="Older sets still in stock" kicker="Released 18+ months ago" href={`/${r.region}/out-of-print`} linkLabel="All older sets in stock">
+            <p className="-mt-2 mb-4 max-w-2xl text-sm text-muted">
+              Boxes, bundles and Commander decks from older sets that {r.adjective} stores, often local game stores, still have on the shelf. Today&rsquo;s stock and price only; older product&rsquo;s prices can move.
+            </p>
+            <ol className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-[repeat(2,minmax(0,1fr))]">
+              {older.slice(0, 4).map((g) => (
+                <li key={g.set.code}>
+                  <StockRow p={g.items[0]} r={r} />
+                </li>
+              ))}
+            </ol>
+          </Section>
+        )}
+
         <HowItWorks r={r} stores={storeCount} />
         {/* The visitor's own recently viewed products, from this browser's storage: rendered at the end, so nothing above moves. */}
         <RecentlyViewed region={r.region} />
@@ -245,20 +273,6 @@ export default async function RegionHome({ params }: { params: { region: string 
   );
 }
 
-/**
- * "Hot right now" (desktop hero): three products from the rails already loaded, no extra read. The newest set's headline pre-order
- * first, then the in-stock booster boxes of the owner's hot sets (lib/popular.ts HOT_SETS order: the sets the owner sees people buying),
- * then anything else the rails hold.
- */
-function hotPicks(preorders: ProductCardData[], boxes: ProductCardData[]): ProductCardData[] {
-  const rank = (p: ProductCardData) => hotRank(p.setCode);
-  const pre = preorders.filter((p) => HEADLINE.includes(p.productType)).sort((a, b) => HEADLINE.indexOf(a.productType) - HEADLINE.indexOf(b.productType))[0];
-  const hotBoxes = [...boxes].sort((a, b) => (rank(a) === rank(b) ? 0 : rank(a) < rank(b) ? -1 : 1));
-  const out: ProductCardData[] = [];
-  for (const p of [pre, ...hotBoxes, ...preorders]) if (p && cardOpen(p) && !out.some((x) => x.slug === p.slug) && out.length < 3) out.push(p);
-  return out;
-}
-
 function HotRow({ p, r }: { p: ProductCardData; r: RegionInfo }) {
   const img = thumb(p.imageUrl, 200);
   const pre = isPreorderSet(p.setCode);
@@ -273,14 +287,16 @@ function HotRow({ p, r }: { p: ProductCardData; r: RegionInfo }) {
       </span>
       <span className="min-w-0 flex-1">
         <span className="line-clamp-2 text-sm font-semibold leading-snug group-hover:text-brand">{p.name}</span>
+        {/* stock first, then the price */}
+        <span className="mt-1 flex flex-wrap items-center gap-x-1.5" title={stockLabel(p, pre)}>
+          <StockPill state="open" preorder={pre} size="sm">
+            {stockHeadline(p, pre).text}
+          </StockPill>
+          {p.inStockStores > 0 && p.marketplaceOpen && <span className="text-[11px] font-medium text-muted">+ TCGplayer</span>}
+        </span>
         <span className="mt-0.5 block text-sm text-muted">
           From <span className="tabular font-display font-bold text-ink">{money(p.lowestPriceCents, r.market)}</span>
         </span>
-      </span>
-      <span className="shrink-0" title={stockLabel(p, pre)}>
-        <StockPill state="open" preorder={pre}>
-          {pre ? "Pre-order" : "In stock"}
-        </StockPill>
       </span>
     </Link>
   );
@@ -333,14 +349,14 @@ function SetCard({ r, s, items: all }: { r: RegionInfo; s: MtgSet; items: Produc
                 <span className="tabular text-right font-semibold">
                   {cardOpen(p) ? (
                     <>
-                      {money(p.lowestPriceCents, r.market)}
-                      <span className="block text-xs font-normal text-faint sm:inline sm:text-sm">
-                        <span className="hidden sm:inline"> · </span>
+                      <span className="block text-xs font-semibold text-open sm:inline sm:text-sm">
                         {stockLabel(p)}
+                        <span className="hidden sm:inline font-normal text-faint"> · </span>
                       </span>
+                      {money(p.lowestPriceCents, r.market)}
                     </>
                   ) : (
-                    <span className="text-faint">Sold out</span>
+                    <span className="text-faint">{stockHeadline(p).text}</span>
                   )}
                 </span>
               </Link>

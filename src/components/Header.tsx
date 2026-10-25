@@ -16,7 +16,7 @@ import { SearchBox } from "./SearchBox";
  * state: a type page is part of "All sealed", the per-pack ranking and the weekly digest sit with "Deals".
  */
 export const HEADER_NAV: { key: SectionKey; label: string; also?: string[]; xl?: boolean }[] = [
-  { key: "deals", label: "Deals", also: [SECTION_PATHS.perPack, SECTION_PATHS.thisWeek] },
+  { key: "deals", label: "Deals", also: [SECTION_PATHS.perPack, SECTION_PATHS.thisWeek, SECTION_PATHS.backInStock, SECTION_PATHS.priceMoves, SECTION_PATHS.outOfPrint] },
   { key: "sealed", label: "All sealed", also: ["/type"] },
   { key: "sets", label: "Sets" },
   { key: "releases", label: "Releases" },

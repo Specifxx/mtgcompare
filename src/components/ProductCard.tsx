@@ -31,15 +31,18 @@ export function shortTypeLabel(label: string): string {
 }
 
 /**
- * The card's stock line, as [words, count unit]. Open: "In stock · 12 stores" ("Pre-order · …" for a set not out yet), or "On
- * TCGplayer" when no store has it. Sold out: how many stores list it (dormant stores are not counted, importer.ts dormantStores),
- * or plainly "Not in stock". The unit (" stores") is its own part: a card too narrow for it (a 320px phone) drops it (globals.css
- * .card-body), and the pill's title keeps the whole sentence.
+ * The card's stock line, as [words, count unit], and the first thing under the name (stock first: owner's feedback, 2026-10-25).
+ * Open: "In stock at 12 of 15 stores" (independent stores in stock, of the stores that list it; "Pre-order at …" for a set not out
+ * yet), or "On TCGplayer" when no store has it. Sold out: "Sold out at all 5 stores" (dormant stores are not counted, importer.ts
+ * dormantStores), or plainly "Not in stock". The unit (" stores") is its own part: a card too narrow for it (a 320px phone) drops it
+ * (globals.css .card-body), and the pill's title keeps the whole sentence.
  */
 export function cardStockLabel(p: Pick<ProductCardData, "inStockStores" | "listedStores" | "marketplaceOpen">, preorder: boolean): [string, string] {
   const unit = (n: number) => ` ${n === 1 ? "store" : "stores"}`;
-  if (cardOpen(p)) return p.inStockStores ? [`${preorder ? "Pre-order" : "In stock"} · ${p.inStockStores}`, unit(p.inStockStores)] : ["On TCGplayer", ""];
-  return p.listedStores ? [`Listed at ${p.listedStores}`, unit(p.listedStores)] : ["Not in stock", ""];
+  const of = Math.max(p.listedStores, p.inStockStores);
+  if (cardOpen(p)) return p.inStockStores ? [`${preorder ? "Pre-order" : "In stock"} at ${p.inStockStores} of ${of}`, unit(of)] : ["On TCGplayer", ""];
+  if (!p.listedStores) return ["Not in stock", ""];
+  return p.listedStores === 1 ? ["Sold out at 1", " store"] : [`Sold out at all ${p.listedStores}`, unit(p.listedStores)];
 }
 
 /** The card's last line: what the click opens. Counts every listing on the product page (stores, plus TCGplayer when it is open). */
@@ -110,14 +113,10 @@ export function ProductCard({ p, region, priority = false }: { p: ProductCardDat
             </p>
           )}
           <div className="mt-auto">
-            <p className="flex items-baseline gap-1.5">
-              {open && <span className="text-xs font-medium text-muted">From</span>}
-              <span className={`tabular font-display text-lg font-bold ${open ? "" : "text-faint"}`}>{open ? money(p.lowestPriceCents, market) : "Sold out"}</span>
-            </p>
-            {perPack != null && <p className="tabular text-xs text-muted">≈ {money(perPack, market)} / pack</p>}
-            {/* The pill, then "+ TCGplayer" beside it where the card is wide enough (a desktop) and under it where not (a phone). */}
+            {/* Stock first, then the price: where it can be bought is what a buyer hunting a box needs to know (owner, 2026-10-25). The
+                pill, then "+ TCGplayer" beside it where the card is wide enough (a desktop) and under it where not (a phone). */}
             <div
-              className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5"
+              className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5"
               title={`${stock}${unit}${open && n > 0 && p.marketplaceOpen ? " and on TCGplayer" : ""}`}
             >
               <StockPill state={open ? "open" : "soldout"} preorder={pre} size="sm">
@@ -126,6 +125,15 @@ export function ProductCard({ p, region, priority = false }: { p: ProductCardDat
               </StockPill>
               {n > 0 && p.marketplaceOpen && <span className="text-[11px] font-medium leading-4 text-muted">+ TCGplayer</span>}
             </div>
+            {open ? (
+              <p className="mt-1.5 flex items-baseline gap-1.5">
+                <span className="text-xs font-medium text-muted">From</span>
+                <span className="tabular font-display text-lg font-bold">{money(p.lowestPriceCents, market)}</span>
+              </p>
+            ) : (
+              <p className="mt-1.5 text-xs font-medium text-faint">No price while sold out</p>
+            )}
+            {perPack != null && <p className="tabular text-xs text-muted">≈ {money(perPack, market)} / pack</p>}
           </div>
           {/* What the click opens. On a phone or tablet it is always there (the cue that a card opens a price comparison); on a
               desktop it shows on hover or keyboard focus, its line reserved (invisible until then), so nothing moves. */}

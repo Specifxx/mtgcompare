@@ -12,6 +12,8 @@ export interface Pick {
   img: string | null;
   cents: number | null;
   stores: number;
+  /** Independent stores that list it (in stock or not): "in stock at 12 of 15 stores". */
+  listed: number;
   tcg: boolean;
 }
 
@@ -24,5 +26,5 @@ export async function regionPicks(region: Region): Promise<Pick[]> {
   pool.sort((a, b) => b.p.inStockStores - a.p.inStockStores || a.i - b.i);
   return pool
     .slice(0, PICK_SLOTS)
-    .map(({ p }) => ({ slug: p.slug, name: p.name, type: p.productType, img: p.imageUrl, cents: p.lowestPriceCents, stores: p.inStockStores, tcg: p.marketplaceOpen }));
+    .map(({ p }) => ({ slug: p.slug, name: p.name, type: p.productType, img: p.imageUrl, cents: p.lowestPriceCents, stores: p.inStockStores, listed: Math.max(p.listedStores, p.inStockStores), tcg: p.marketplaceOpen }));
 }

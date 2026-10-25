@@ -254,13 +254,17 @@ function Card({ top, ...p }: BestPriceCardProps & { top: ReactNode }) {
   const vsMsrp = msrp != null ? pctOf(store.cents, msrp) : null;
   return (
     <div className="card p-5">
-      {top}
-      <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-4 text-sm text-muted">
+      {/* Stock first (owner, 2026-10-25): where it can be bought leads the card, before the price. Independent stores only in the count;
+          TCGplayer is named beside it, never counted as a store. */}
+      <div className="mb-4 flex flex-wrap items-center gap-2 border-b border-line pb-4 text-sm text-muted" data-stock-first="">
         <StockPill state="open" preorder={preorder}>
-          {preorder ? "Pre-order" : "In stock"}{" "}
-          {p.openStores ? `at ${p.openStores} of ${plural(p.storeCount, "store")}${p.tcgOpen ? " + TCGplayer" : ""}` : "on TCGplayer"}
+          {p.openStores ? `${preorder ? "Pre-order" : "In stock"} at ${p.openStores} of ${plural(p.storeCount, "store")}` : `${preorder ? "Pre-order" : "In stock"} on TCGplayer`}
         </StockPill>
+        {p.openStores > 0 && p.tcgOpen && <span className="font-medium">+ TCGplayer</span>}
         {!p.openStores && p.storeCount > 0 && <span>no {p.adjective} store we track has it in stock</span>}
+      </div>
+      {top}
+      <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-4 text-sm text-muted empty:hidden">
         {p.openCount > 1 && (
           <span>
             up to {money(p.highestOpenCents, market)} — you save {money(p.highestOpenCents - store.cents, market)} by buying at the cheapest

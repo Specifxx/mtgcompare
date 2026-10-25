@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { ebayRetailer, ebaySearchUrl, REL_SPONSORED, type Placement } from "@/lib/affiliate";
-import { HOT_SET_QUERY, HOT_SETS, isHotSet } from "@/lib/popular";
+import { HOT_SET_QUERY, hotSetsByFeature, isHotSet } from "@/lib/popular";
 import type { Region } from "@/lib/regions";
 import { isPreorderSet } from "@/lib/release";
 import { SET_BY_CODE, type MtgSet } from "@/lib/sets";
@@ -73,9 +73,9 @@ export function setSealedHighlight(set: SetName | null | undefined, now: Date = 
   return { label: `Shop ${set.name} sealed on eBay`, query, placement: "set-sealed" };
 }
 
-/** The most wanted hot set that is out (HOT_SETS order): the one the region home page highlights. */
+/** The first hot set that is out, in featuring order (popular.ts hotSetsByFeature: the newest release first): the one the region home page highlights. */
 export function firstHotSet(now: Date = new Date()): MtgSet | null {
-  for (const code of HOT_SETS) {
+  for (const code of hotSetsByFeature(now.toISOString().slice(0, 10))) {
     const s = SET_BY_CODE.get(code);
     if (s && isHotReleased(code, now)) return s;
   }

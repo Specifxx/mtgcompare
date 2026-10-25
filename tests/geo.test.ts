@@ -52,7 +52,8 @@ test("the landing page: the region grid's server HTML has every region link and 
   assert.equal((grid.match(/class="card h-\[5\.5rem\] overflow-hidden sm:h-\[18\.5rem\]"/g) ?? []).length, 5, "five slots of fixed height: filling them moves nothing");
   assert.match(grid, /Most stocked in the US today/);
   const hot = grid.match(/data-hot-button=""/g) ?? [];
-  assert.ok(hot.length >= 4 && hot.length <= 6, `${hot.length} hot buttons`);
+  assert.ok(hot.length >= 4 && hot.length <= 8, `${hot.length} hot buttons`);
+  for (const k of ["/us/back-in-stock", "/us/out-of-print"]) assert.match(grid, new RegExp(`href="${k}"`), k);
   for (const k of ["/us/deals", "/us/type/play-booster-boxes", "/us/type/collector-booster-boxes", "/us/guides", "/us/stores"]) assert.match(grid, new RegExp(`href="${k}"`), k);
   for (const f of ["src/middleware.ts", "src/app/api/geo/route.ts", "src/components/HomeRegionGrid.tsx", "src/components/RegionSuggest.tsx"])
     assert.doesNotMatch(readFileSync(f, "utf8"), /NextResponse\.redirect\([^)]*geo|location\.(assign|replace|href\s*=)/, `${f}: no geo redirect`);

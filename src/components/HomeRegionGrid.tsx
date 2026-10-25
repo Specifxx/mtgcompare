@@ -38,12 +38,15 @@ export interface HotPreorder {
   name: string;
 }
 
-// The pages people come for, in this order. With a set on pre-order its hub takes the Commander decks' place, so the row is always six.
+// The pages people come for, in this order. With a set on pre-order its hub takes the Commander decks' place, so there are always eight
+// (two rows of four on a desktop).
 const HOT: { key: SectionKey; label: string; icon?: IconName }[] = [
   { key: "deals", label: "Deals", icon: "tag" },
   { key: "boosterBoxes", label: "Play Booster Boxes" },
   { key: "collectorBoxes", label: "Collector Booster Boxes" },
   { key: "commanderDecks", label: "Commander decks" },
+  { key: "backInStock", label: "Back in stock", icon: "check" },
+  { key: "outOfPrint", label: "Older sets in stock", icon: "clock" },
   { key: "guides", label: "Buying guides", icon: "info" },
   { key: "stores", label: "Stores", icon: "store" },
 ];
@@ -128,12 +131,13 @@ export function HomeRegionGrid({ initial, preorder = null }: { initial: Pick[]; 
                       <span className="hidden text-[11px] sm:block font-semibold uppercase tracking-wide text-muted">{p.type}</span>
                       <span className="line-clamp-1 text-sm font-semibold leading-5 group-hover:text-brand sm:mt-0.5 sm:line-clamp-2">{p.name}</span>
                     </span>
+                    {/* Stock first, then the price (owner, 2026-10-25). */}
                     <span className="mt-1 flex items-baseline gap-2 sm:mt-auto sm:block sm:pt-1.5">
-                      <span className="tabular block font-display text-lg font-extrabold">{p.cents != null ? money(p.cents, r.market) : "—"}</span>
-                      <span className="block truncate text-xs text-muted">
-                        {p.stores > 0 ? `${plural(p.stores, "store")} in stock` : "in stock"}
-                        {p.tcg && r.market === "US" ? " + TCGplayer" : ""}
+                      <span className="block truncate text-xs font-semibold text-open">
+                        {p.stores > 0 ? `In stock at ${p.stores} of ${plural(p.listed ?? p.stores, "store")}` : "In stock"}
+                        {p.tcg && r.market === "US" ? <span className="font-medium text-muted"> + TCGplayer</span> : null}
                       </span>
+                      <span className="tabular block font-display text-lg font-extrabold">{p.cents != null ? money(p.cents, r.market) : "—"}</span>
                     </span>
                   </div>
                 </Link>
@@ -149,12 +153,12 @@ export function HomeRegionGrid({ initial, preorder = null }: { initial: Pick[]; 
         })}
       </ol>
       <p className="mt-2 text-xs leading-5 text-muted">
-        The newest Play and Collector Booster Boxes, by how many {r.adjective} stores have them in stock. Cheapest in-stock price in {r.currency}, before shipping.{" "}
+        The newest Play and Collector Booster Boxes, by how many {r.adjective} stores have them in stock (of the stores that list them; TCGplayer is never counted as a store). Cheapest in-stock price in {r.currency}, before shipping.{" "}
         {source === "geo" || source === "language" ? "Region suggested from your location." : null}
       </p>
 
       <h2 className="mt-10 font-display text-xl font-bold tracking-tight">Jump to</h2>
-      <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6" aria-label={`Popular pages in ${r.inName}`}>
+      <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4" aria-label={`Popular pages in ${r.inName}`}>
         {hot.map((h) => (
           <li key={h.label} className="flex">
             <Link

@@ -106,6 +106,27 @@ export const seoCopy = {
 
   digestTitle: (r: R) => fitFirst(`This week in Magic sealed: ${r.inName}`),
 
+  // The stock pages (lib/stock.ts). Counts are the caller's, from the page's own data.
+  backTitle: (r: R) => fitFirst(`MTG sealed back in stock in ${r.inName}`, `MTG back in stock: ${r.inName}`),
+  backDescription: (r: R, n: number) =>
+    fitDescription(
+      n > 0
+        ? `${plural(n, "Magic sealed product")} that ${r.adjective} stores had none of in one daily check and have in stock again in the next: booster boxes, bundles, Commander decks.`
+        : `Magic sealed product that ${r.adjective} stores had none of in one daily check and have in stock again in the next, from MTG Compare's daily snapshots.`,
+    ),
+  movesTitle: (r: R) => fitFirst(`MTG booster box price moves this week in ${r.inName}`, `MTG price moves this week: ${r.inName}`),
+  movesDescription: (r: R) =>
+    fitDescription(
+      `The week's biggest changes in the cheapest in-stock price of popular sets' booster boxes, bundles and Commander decks across ${r.adjective} stores, up and down, in ${r.currency}.`,
+      `The week's biggest changes in the cheapest in-stock price of popular Magic sets' sealed product in ${r.inName}.`,
+    ),
+  oopTitle: (r: R) => fitFirst(`Older MTG sets still in stock in ${r.inName}`, `Older MTG sets in stock: ${r.inName}`),
+  oopDescription: (r: R, sets: number, stores: number) =>
+    fitDescription(
+      `Booster boxes, bundles and Commander decks from ${plural(sets, "older Magic set")} that ${r.adjective} stores still have in stock today, by how many stores carry them.`,
+      `Older Magic sets' booster boxes and Commander decks ${r.adjective} stores still stock today (${plural(stores, "store listing")}).`,
+    ),
+
   guidesTitle: (r: R) => fitFirst(`MTG booster box price guides in ${r.inName}`, `MTG booster box price guides`),
   guidesDescription: (r: R) =>
     fitDescription(

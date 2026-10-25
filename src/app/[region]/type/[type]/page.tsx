@@ -7,6 +7,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { NoPreFooter } from "@/components/Ebay";
 import { EbayStrip } from "@/components/EbayStrip";
 import { Icon } from "@/components/Icon";
+import { StockFilter } from "@/components/StockFilter";
 import { ProductGrid } from "@/components/ProductGrid";
 import { Empty, Section } from "@/components/Section";
 import { lastCheckedAt, marketsWithType } from "@/lib/data";
@@ -170,6 +171,23 @@ export default async function TypePage({ params }: { params: { region: string; t
         </ul>
       </nav>
 
+      {/* "In stock only", on by default (components/StockFilter): the sold-out list is in the HTML, hidden until the filter is off. */}
+      <StockFilter
+        soldCount={sold.length}
+        soldLabel="sold out everywhere"
+        soldOut={
+          sold.length > 0 ? (
+            <Section title="Sold out everywhere" kicker={`Listed, but no store${r.market === "US" ? " or TCGplayer seller" : ""} has them right now`}>
+          <ProductGrid products={sold} region={r.region} />
+          {soldCount > sold.length && (
+            <p className="mt-4 text-sm text-muted">
+              The {sold.length} listed by the most stores, of {soldCount} sold out.
+            </p>
+          )}
+        </Section>
+          ) : null
+        }
+      >
       <Section id="in-stock" title="In stock now" kicker={more ? `Cheapest first · ${open.length} of ${openCount}` : "Cheapest first"}>
         {open.length ? (
           <>
@@ -189,6 +207,8 @@ export default async function TypePage({ params }: { params: { region: string; t
           </>
         )}
       </Section>
+
+      </StockFilter>
 
       {perPack.length >= 2 && (
         <Section id="per-pack" title="Cheapest per pack" kicker={more ? `Among the ${open.length} cheapest in stock` : "In stock now"}>
@@ -236,16 +256,6 @@ export default async function TypePage({ params }: { params: { region: string; t
         </Section>
       )}
 
-      {sold.length > 0 && (
-        <Section title="Sold out everywhere" kicker={`Listed, but no store${r.market === "US" ? " or TCGplayer seller" : ""} has them right now`}>
-          <ProductGrid products={sold} region={r.region} />
-          {soldCount > sold.length && (
-            <p className="mt-4 text-sm text-muted">
-              The {sold.length} listed by the most stores, of {soldCount} sold out.
-            </p>
-          )}
-        </Section>
-      )}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />
     </div>
   );

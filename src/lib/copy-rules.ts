@@ -29,6 +29,11 @@ const PHRASES = [
   String.raw`\bwas\s+${AMOUNT}`,
 ];
 
+// Backed by the daily price history (lib/price-history.ts, data/public/price-history.json) since 2026-10-25, and ONLY where a page
+// is built from it: /<region>/back-in-stock lists products whose snapshots went from nothing open to open, and the links to that
+// page carry its name. Everywhere else (a product card, a title, a product page) the phrase is still banned: the card does not know.
+const HISTORY_PHRASES = [String.raw`\bback\s+in\s+stock\b`];
+
 /**
  * Case-insensitive, and NOT global (a /g regex keeps lastIndex between .test() calls and would skip matches): history,
  * urgency and value claims the site's data cannot back. `BANNED_COPY.test(text)` is the check; findBannedCopy says what matched.
@@ -36,6 +41,9 @@ const PHRASES = [
 export const BANNED_COPY = new RegExp(PHRASES.join("|"), "i");
 
 /** The first banned phrase in `text`, or null: for a test's failure message. */
-export function findBannedCopy(text: string): string | null {
-  return BANNED_COPY.exec(text)?.[0] ?? null;
+export function findBannedCopy(text: string, { history = false }: { history?: boolean } = {}): string | null {
+  return (history ? HISTORY_BANNED_COPY : BANNED_COPY).exec(text)?.[0] ?? null;
 }
+
+/** BANNED_COPY without the phrases the price history backs (HISTORY_PHRASES): for the history pages and the links to them only. */
+export const HISTORY_BANNED_COPY = new RegExp(PHRASES.filter((p) => !HISTORY_PHRASES.includes(p)).join("|"), "i");

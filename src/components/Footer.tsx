@@ -1,7 +1,8 @@
 import Link from "@/components/Link";
 import { COUNTRY_GUIDE } from "@/content/guides/country-prices";
 import { REGION_LIST, REGIONS, type Region } from "@/lib/regions";
-import { SETS } from "@/lib/sets";
+import { featureOrder } from "@/lib/release";
+import { SET_BY_CODE, SETS } from "@/lib/sets";
 import { CONTACT_EMAIL_SET, FAN_CONTENT_DISCLAIMER, OPERATOR, SISTER_SITES, SITE_NAME, sectionHref, type SectionKey } from "@/lib/site";
 import { LogoMark } from "./Logo";
 import { footerSeoSections } from "./seo/HubLinks";
@@ -30,10 +31,11 @@ export function footerColumns(region: Region | null): { title: string; links: Fo
       title: "Shop",
       links: [s("boosterBoxes", "Play Booster Boxes"), s("collectorBoxes", "Collector Booster Boxes"), s("bundles", "Bundles"), s("commanderDecks", "Commander decks"), s("secretLair", "Secret Lair"), s("perPack", "Cheapest per pack")],
     },
-    { title: "Latest sets", links: SETS.slice(0, 6).map((set) => ({ href: `/${region}/sets/${set.slug}`, label: set.name })) },
+    // The newest released set first, the one on pre-order second (release.ts featureOrder): never a pre-order at the top.
+    { title: "Latest sets", links: featureOrder(SETS.slice(0, 6).map((x) => x.code)).map((c) => SET_BY_CODE.get(c)!).map((set) => ({ href: `/${region}/sets/${set.slug}`, label: set.name })) },
     {
       title: "Explore",
-      links: [s("deals", "Deals"), s("blackFriday", "Black Friday deals"), s("thisWeek", "This week"), s("releases", "Releases"), s("guides", "Guides"), s("tools", "Tools"), s("stores", "Where to buy"), s("sealed", "All sealed"), { href: COUNTRY_GUIDE.path, label: "Prices by country" }],
+      links: [s("deals", "Deals"), s("blackFriday", "Black Friday deals"), s("thisWeek", "This week"), s("backInStock", "Back in stock"), s("priceMoves", "Price moves"), s("outOfPrint", "Older sets in stock"), s("releases", "Releases"), s("guides", "Guides"), s("tools", "Tools"), s("stores", "Where to buy"), s("sealed", "All sealed"), { href: COUNTRY_GUIDE.path, label: "Prices by country" }],
     },
     // Every guide offered in the region (components/seo/HubLinks): no guide is an orphan.
     ...footerSeoSections(region).filter((sec) => sec.title === "Guides"),

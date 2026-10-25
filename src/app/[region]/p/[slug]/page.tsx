@@ -18,6 +18,8 @@ import { ProductGrid } from "@/components/ProductGrid";
 import { ProductRail } from "@/components/ProductRail";
 import { Section } from "@/components/Section";
 import { BestPriceCard } from "@/components/BestPriceCard";
+import { StockPill } from "@/components/StockPill";
+import { stockHeadline } from "@/lib/stock";
 import { ShareButton } from "@/components/ShareButton";
 import { StickyBuyBar } from "@/components/StickyBuyBar";
 import { RecentTracker } from "@/components/Recent";
@@ -526,8 +528,15 @@ export default async function ProductPage({ params }: { params: { region: string
               </div>
             </>
           ) : (
-            <>
-            </>
+            // Sold out everywhere: said plainly where the price would be (stock first), the stores that list it counted.
+            <div id="best" className="card mt-4 p-5" data-stock-first="">
+              <StockPill state="soldout">{stockHeadline({ inStockStores: 0, listedStores: stores.length, marketplaceOpen: false }, pre).text}</StockPill>
+              <p className="mt-3 text-sm text-muted">
+                {stores.length
+                  ? `No ${r.adjective} store we track${r.market === "US" ? " and no TCGplayer seller" : ""} has it ${pre ? "open for pre-order" : "in stock"} right now. The stores that list it are below.`
+                  : `None of the ${r.adjective} stores we track list it right now.`}
+              </p>
+            </div>
           )}
         </div>
       </div>

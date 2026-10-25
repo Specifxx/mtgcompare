@@ -148,3 +148,29 @@ cheaper. So:
   price. The best-price card stacks its two tops in one cell (no layout shift).
 - **Tax**: one line per region (`RegionInfo.taxNote`): US and CA prices exclude sales tax (state/province, added at checkout); AU, NZ,
   UK, EU and SG listed prices include GST/VAT. Cross-border duties: one sentence, no numbers (`DUTIES_NOTE`).
+
+## Stock first, and three stock pages (2026-10-25)
+
+Owner's creator feedback: stock matters more than price for Magic boxes (often only at LGS); prices move on select products of
+popular sets; Reality Fracture was out but Star Trek was leading; older product (LTR Collector boxes) is still at stores.
+
+- Cards, the hero's "Hot right now", the latest-set rows, the landing picks and the product page's best-price card lead with stock
+  before price: "In stock at 12 of 15 stores" (`lib/stock.ts stockHeadline`, ProductCard `cardStockLabel`). "of N" is the
+  independent stores that LIST the product, not every store in the region (a store that never carried it is not "sold out" of it).
+  TCGplayer is "+ TCGplayer", never counted. A sold-out product page now says so in the price slot.
+- `/<region>/back-in-stock`: from `data/public/price-history.json`, nothing open in one daily snapshot then open in a later one
+  (last 7 days) and open in the latest. A product's first snapshot is never a return (that is "Newly listed", deals.ts
+  newlyTracked, shown below). A day with more than max(25, 10% of the market) returns is treated as a failed read the day before
+  and dropped. Under 2 days: "Not enough history yet". `copy-rules.ts` keeps "back in stock" banned everywhere except
+  history-built pages and links to them (`findBannedCopy(text, { history: true })`).
+- `/<region>/price-moves`: cheapest in-stock price today vs 7 days ago, both open, at least 10% and 5.00, ratio within x2, only
+  the headline types of popular sets (`popularSetCodes`: released HOT_SETS, the 6 newest released, the 8 most stocked). Empty
+  state until 8 days of snapshots (MTG had 2 on 2026-10-25).
+- `/<region>/out-of-print` ("Older sets in stock"): headline types from sets released 18+ months ago with an independent store in
+  stock, grouped by set, most store stock first. The copy says only "released more than 18 months ago": we do not know print
+  status, and never say anything about future value.
+- "In stock only" on type and set pages is a client toggle (`StockFilter`), ON by default; both lists are in the one cached HTML.
+  The browse grid's existing toggle stays OFF by default: turning it on loads the whole region index on every visit.
+- Featuring is by date (`release.ts featureOrder/featureSort`, `popular.ts hotSetsByFeature/featureRank`): the newest released set
+  leads, the pre-order set second. `hotRank` (the eBay importer's spending order) is unchanged: it is the owner's priority list.
+- sealed-title: a box's own bracketed pack count ("Play Booster Box (30x Packs)") is no longer read as a lot.

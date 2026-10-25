@@ -601,7 +601,9 @@ export function identify(title: string, opts: { strict?: boolean } = {}): Sealed
   // The set's Commander decks together are one product; any other multiple is a store's lot. Judged without the set's name, whose
   // digits are not a count ("Masters 25 Booster Pack", "Modern Horizons 3 Play Booster").
   const own = set ? matchers().find((x) => x.set.code === set!.code) : undefined;
-  const bare = own ? t.replace(new RegExp(own.re.source, "gi"), " ") : t;
+  // A booster box's own pack count in brackets ("Play Booster Box (30x Packs)", tcgdragon) says what is inside, not a lot.
+  const boxCount = /-booster-box$/.test(c) ? /\(\s*\d{1,2}\s*x?\s*(?:booster\s*)?packs\s*\)/gi : null;
+  const bare = (own ? t.replace(new RegExp(own.re.source, "gi"), " ") : t).replace(boxCount ?? /$^/, " ");
   if (c !== "commander-deck-set" && (MULTIPLE.test(bare) || countedPacks(bare))) return "multiple";
   if (c === "commander-deck-set" && /\b(?:[2-9]|[1-9]\d)\s*x\b|\blots?\s*of\b|\bcombo\b/i.test(bare)) return "multiple";
 

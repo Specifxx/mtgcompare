@@ -9,6 +9,7 @@ import { NoPreFooter, setSealedHighlight } from "@/components/Ebay";
 import { EbayStrip } from "@/components/EbayStrip";
 import { Icon } from "@/components/Icon";
 import { OutboundLink } from "@/components/OutboundLink";
+import { StockFilter } from "@/components/StockFilter";
 import { ProductGrid } from "@/components/ProductGrid";
 import { Empty, Section } from "@/components/Section";
 import { AFFILIATE_NOTE_SHORT, REL_SPONSORED, TCGPLAYER_RETAILER, tcgplayerSearchUrl } from "@/lib/affiliate";
@@ -203,7 +204,15 @@ export default async function SetPage({ params }: { params: { region: string; se
 
       <Section id="products" title={`${s.name} sealed products`} kicker={products.length ? `${products.length} listed in ${r.inName}` : undefined}>
         {products.length ? (
-          <ProductGrid products={products} region={r.region} eager={4} tiles="set" strip={strip} />
+          // "In stock only", on by default (components/StockFilter): in stock first; the sold-out ones are in the HTML, hidden until
+          // the filter is off. With nothing in stock, the whole list shows (there is nothing to filter to).
+          open.length && open.length < products.length ? (
+            <StockFilter soldCount={products.length - open.length} soldOut={<div className="mt-4"><ProductGrid products={products.filter((p) => !cardOpen(p))} region={r.region} /></div>}>
+              <ProductGrid products={open} region={r.region} eager={4} tiles="set" strip={strip} />
+            </StockFilter>
+          ) : (
+            <ProductGrid products={products} region={r.region} eager={4} tiles="set" strip={strip} />
+          )
         ) : (
           <>
             <Empty

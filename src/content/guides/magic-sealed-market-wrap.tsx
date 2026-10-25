@@ -74,7 +74,7 @@ export function outline(r: RegionInfo, data: GuideData): GuideOutline {
                 where it goes next.
               </p>
             </Prose>
-            <NextLinks links={[{ href: `/${r.region}/deals`, label: "Today’s deals", icon: "tag" }, { href: `/${r.region}/this-week`, label: "This week’s releases", icon: "calendar" }]} />
+            <NextLinks links={[{ href: `/${r.region}/deals`, label: "Today’s deals", icon: "tag" }, { href: `/${r.region}/this-week`, label: "This week’s releases", icon: "calendar" }, { href: `/${r.region}/price-moves`, label: "This week’s price moves", icon: "tag" }, { href: `/${r.region}/out-of-print`, label: "Older sets still in stock", icon: "store" }]} />
           </>
         ),
       },
