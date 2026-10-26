@@ -20,6 +20,9 @@ export const metadata: Metadata = {
   title: { default: `${SITE_NAME} — Magic: The Gathering sealed prices & stock`, template: `%s | ${SITE_NAME}` },
   description: SITE_TAGLINE,
   applicationName: SITE_NAME,
+  // Large image previews and full snippets in Google (Search, Discover, Images), as RiftCompare does.
+  // A page that sets its own `robots` (noindex) replaces this whole object.
+  robots: { googleBot: { "max-image-preview": "large", "max-snippet": -1 } },
   // Search Console ownership of mtgcompare.app (owner, 2026-10-16); GOOGLE_SITE_VERIFICATION replaces it.
   verification: { google: process.env.GOOGLE_SITE_VERIFICATION || "N0wgTl_HUriBqcifrYzMsLDL2KYnnzOY7q8AG0XUS_U" },
 };
