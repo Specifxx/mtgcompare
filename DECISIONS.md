@@ -245,3 +245,11 @@ so the bill is one event per page view. The project's Analytics tab must be enab
 - Outside the US, TCGplayer's row is its US$ offer (usMarketplace) or a TCGplayer search. It is labelled US$ and never compared.
 - The in-stock page's Marketplaces panel under the table is gone, since it repeated both rows. The sold-out callout stays. The best-price
   card is unchanged.
+
+## One family of sites — 2026-10-26
+
+Owner, after the strategy review: "execute on all the recommended items". One of
+them: one family of sites people recognise, without moving any domain. The
+footer's sister-sites block now names the Compare Empire family, and every live
+sister site is in it (Gundam Compare and Lorcana Compare joined MTG Compare's and
+DexCompare's lists the same day). YGO Compare joins once it is public.

@@ -5,10 +5,10 @@ import { SISTER_SITES } from "../src/lib/site";
 
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 
-test("footer: the three other games' sites, as plain followed links with descriptive anchors (never this site itself)", () => {
+test("footer: the other games' sites, as plain followed links with descriptive anchors (never this site itself)", () => {
   assert.deepEqual(
     SISTER_SITES.map((s) => s.url),
-    ["https://riftcompare.com", "https://opcompare.app", "https://www.dexcompare.app"],
+    ["https://riftcompare.com", "https://opcompare.app", "https://www.dexcompare.app", "https://gundamcompare.com", "https://lorcanacompare.com"],
   );
   for (const s of SISTER_SITES) assert.match(s.anchor, new RegExp(`^${s.game}\\b.*prices$`), s.name);
   const footer = src("src/components/Footer.tsx");

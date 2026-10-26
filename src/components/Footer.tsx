@@ -110,7 +110,7 @@ export function Footer({ region }: { region: Region | null }) {
         </div>
         {/* The owner's sister sites, one row across the footer: the anchor says what each compares, the site's name after it. */}
         <nav aria-label="Compare other TCGs" className={r ? "lg:col-span-2" : "md:col-span-2"}>
-          <h2 className="eyebrow mb-2">Compare other TCGs</h2>
+          <h2 className="eyebrow mb-2">Compare other TCGs · the Compare Empire family</h2>
           <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
             {SISTER_SITES.map((s) => (
               <li key={s.url}>
