@@ -22,17 +22,3 @@ export function rankRows<T extends RankableRow>(rows: readonly T[], mode: ShipMo
   known.sort((a, b) => a.cents + a.ship!.min - (b.cents + b.ship!.min) || idx.get(a)! - idx.get(b)!);
   return [...known, ...rows.filter((r) => r.open && !r.ship), ...rows.filter((r) => !r.open)];
 }
-
-/** Where the eBay row goes among rows ranked by `mode` (lib/ebay-offer-row.ts ebayRowIndex for "price"): its shipping is never
- *  compared, so in "total" it ranks by price among the open rows whose shipping is unknown, after every row with known shipping. */
-export function ebayIndexTotal(rows: readonly RankableRow[], cents: number | null): number {
-  let lastOpen = -1;
-  rows.forEach((r, i) => {
-    if (r.open) lastOpen = i;
-  });
-  if (cents != null) {
-    const i = rows.findIndex((r, j) => j <= lastOpen && r.open && !r.ship && r.cents > cents);
-    if (i >= 0) return i;
-  }
-  return lastOpen + 1;
-}

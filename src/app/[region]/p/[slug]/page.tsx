@@ -12,7 +12,7 @@ import { Icon } from "@/components/Icon";
 import { hotProductHighlight, isHotReleased, NoPreFooter } from "@/components/Ebay";
 import { EbayStrip } from "@/components/EbayStrip";
 import { marketplaceOf } from "@/lib/ebay-context";
-import { ebayQuery, MarketplacePanel, SoldOutCallout } from "@/components/Marketplaces";
+import { ebayQuery, SoldOutCallout } from "@/components/Marketplaces";
 import { AmazonProductRow } from "@/components/Amazon";
 import { OfferTable } from "@/components/OfferTable";
 import { ProductGrid } from "@/components/ProductGrid";
@@ -223,7 +223,9 @@ export default async function ProductPage({ params }: { params: { region: string
   //   • The phone buy bar (StickyBuyBar) repeats the top of the page and hides whenever any of these is in view.
   // EVERY product asks for its own listings: the daily catalogue sweep (lib/ebay-sweep.ts) gives an item feed to every product it finds on
   // eBay; where it found fewer than two, the route answers with the type's listings, then (for box-class types only) generic sealed.
-  const shape = tableShape(p.offers.length, open.length, p.offers.length > 0);
+  // The table's pinned TCGplayer row is one of the offers in the US; elsewhere (its US$ offer, or a search) one row more.
+  const tcgExtra = p.offers.length > 0 && !p.offers.some((o) => o.marketplace) ? 1 : 0;
+  const shape = tableShape(p.offers.length + tcgExtra, open.length + tcgExtra, p.offers.length > 0);
   const stripContext = `item:${p.slug}`;
   // The eBay row of the price table skips a listing under 40% of the cheapest store price, when the store prices are in the eBay site's
   // currency (not NZ or SG, served the AU and US sites): such a listing is a part of the product or a single card, not the product. The
@@ -246,8 +248,8 @@ export default async function ProductPage({ params }: { params: { region: string
   // The table's eBay pick, for every other place that may show the same listing (the panel, the sold-out box, the buy bar): the same
   // arguments, so the same single request.
   const ebayPick = ebayBest ? { slug: p.slug, floor: ebayFloor, packs: rowPacks(type?.key, packs) } : null;
-  // A product of one of the owner's hot sets (lib/popular.ts: 30th Celebration first), once the set is out: the panel carries a "Popular
-  // set" chip, and the strip the highlighted "Shop <product> on eBay" button. Where the strip goes is the plan's call as for any product.
+  // A product of one of the owner's hot sets (lib/popular.ts: 30th Celebration first), once the set is out: the strip carries the
+  // highlighted "Shop <product> on eBay" button. Where the strip goes is the plan's call as for any product.
   const hot = isHotReleased(p.setCode);
   const ebayQ = ebayQuery(p.name, tcgplayer);
 
@@ -544,8 +546,17 @@ export default async function ProductPage({ params }: { params: { region: string
 
       <Section id="prices" title={tableTitle}>
         {p.offers.length ? (
-          // eBay is one of the websites compared: the product's cheapest own eBay listing is a row of the table, ranked by price (an ad, tinted).
-          <OfferTable offers={p.offers} region={r.region} preorder={pre} packs={packs} ebay={{ slug: p.slug, query: ebayQ, floor: ebayFloor, packs: rowPacks(type?.key, packs) }} notes={notes} />
+          // eBay and TCGplayer are pinned at the top of the table, eBay first, TCGplayer second, then the stores cheapest first; each is an
+          // ordinary row with its own button colour, and the cheapest row of the whole table is highlighted (owner, 2026-10-26).
+          <OfferTable
+            offers={p.offers}
+            region={r.region}
+            preorder={pre}
+            packs={packs}
+            ebay={{ slug: p.slug, query: ebayQ, floor: ebayFloor, packs: rowPacks(type?.key, packs) }}
+            pinned={{ productName: p.name, tcgplayer }}
+            notes={notes}
+          />
         ) : (
           <div className="card px-6 py-8 text-muted">
             None of the {r.adjective} stores we track list {p.name} right now.
@@ -563,22 +574,9 @@ export default async function ProductPage({ params }: { params: { region: string
         )}
       </Section>
 
-      {/* Marketplaces (eBay, TCGplayer) come AFTER the store rows (owner, 2026-10-24: at the top they read as the price rows, and a
-          sold-out page looked like nothing was compared). */}
-      {best && bestLink ? (
-        <div className="mt-10">
-          <MarketplacePanel
-            region={r.region}
-            productName={p.name}
-            preorder={pre}
-            tcgplayer={tcgplayer}
-            tcgplayerIsBest={best.marketplace && !ebayBest /* when the card may turn to eBay, TCGplayer keeps its row here */}
-            popular={hot}
-            pick={ebayPick}
-            storeCents={best.priceCents}
-          />
-        </div>
-      ) : (
+      {/* eBay and TCGplayer are rows of the table now (pinned at its top), so an in-stock page has no separate marketplaces panel. Sold out
+          everywhere, the callout still says so plainly and leads to the marketplaces and to what is in stock instead. */}
+      {!best && (
         <div id="soldout" className="mt-10">
           <SoldOutCallout
             region={r.region}

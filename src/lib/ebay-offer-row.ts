@@ -1,8 +1,9 @@
-// The eBay row of a product's price table (components/OfferTable.tsx, EbayStrip.tsx OfferRowsWithEbay): which listing it shows, where it
-// sits among the store rows, and the note under the table. Pure, shared by the server table and the browser.
+// The eBay row of a product's price table (components/OfferTable.tsx, EbayStrip.tsx OfferRowsWithEbay): which listing it shows, and the
+// note under the table. Pure, shared by the server table and the browser.
 //
 // The owner's calls (2026-10-11): MTG Compare compares WEBSITES, and eBay is one of them, so the product's cheapest eBay listing is a row of
-// the store table, ranked by its price among the stores you can buy from now, tinted and with eBay's blue button, labelled "Ad"; and when
+// the store table with eBay's blue button, labelled "Ad" (since 2026-10-26 pinned FIRST, TCGplayer second, then the stores cheapest
+// first, each row in the store rows' layout: the owner's call, EbayStrip.tsx OfferRowsWithEbay); and when
 // it is a new listing cheaper than every one of those stores (and the product is not a pre-order) it COUNTS AS THE CHEAPEST PRICE: the "Best price" badge in the table, and the product
 // page's best-price card (components/BestPriceCard.tsx). It is never counted in "Prices at N stores" or the median, and never in JSON-LD,
 // meta, OG, the sitemap or the "from" prices elsewhere (server-rendered and cached for a day: an eBay price there would outlive its age
@@ -83,24 +84,6 @@ export function pickListing<T extends { title?: string; price: { value: string; 
   return pick;
 }
 
-/**
- * Where the eBay row goes among the store rows, which come ranked (rankOffers: open first, cheapest first; then not checked recently,
- * then sold out): before the first open row dearer than the listing (a tie stays with the store), else straight after the last open row
- * (the top, when none is open: an eBay listing is one you can buy). `cents` null (no listing yet, or one in another currency than the
- * stores': NZ and SG are served the AU and US sites) is never compared: the row goes after the open rows.
- */
-export function ebayRowIndex(rows: readonly { open: boolean; cents: number }[], cents: number | null): number {
-  let lastOpen = -1;
-  rows.forEach((r, i) => {
-    if (r.open) lastOpen = i;
-  });
-  if (cents != null) {
-    const i = rows.findIndex((r, j) => j <= lastOpen && r.open && r.cents > cents);
-    if (i >= 0) return i;
-  }
-  return lastOpen + 1;
-}
-
 /** NZ and SG are served the AU and US sites' listings: whose they are, and that delivery is not shown. True of a listing and a search alike. */
 export const SHARED_SITE_NOTE: Readonly<Record<string, string>> = {
   nz: " The eBay row uses eBay Australia (the eBay New Zealand buyers use): its prices are in A$, so never compared with the stores', and a listing's delivery to New Zealand is not shown, so check it on eBay.",
@@ -110,7 +93,7 @@ export const SHARED_SITE_NOTE: Readonly<Record<string, string>> = {
 /** The sentence under the table about its eBay row: static (server-rendered), so it reads the same whichever state the row is in. */
 export function ebayRowNote(region: string): string {
   return (
-    " The tinted eBay row is an ad: the lowest-priced eBay listing we have for this product, or an eBay search when there is none" +
+    " The eBay row, first in the table, is an ad: the lowest-priced eBay listing we have for this product, or an eBay search when there is none" +
     // NZ and SG: A$/US$ listings, never compared, never the best price
     (SHARED_SITE_NOTE[region] ? "." : "; when it is a new listing cheaper than every store, it is the best price.") +
     " Listings are imported from eBay on a schedule (how long ago is on the row) and priced before shipping, so a price or its availability may have changed: eBay's page is final." +
@@ -121,7 +104,7 @@ export function ebayRowNote(region: string): string {
 
 // ─── The table's visible rows and its two collapsed groups ─────────────────────
 // A product with 30 offers was a 30-row table (4,700 px on a phone) that buried everything under it. The table now shows the first
-// VISIBLE_ROWS rows of the ranked list (the eBay row included, at its rank) and collapses the rest into two server-rendered <details>:
+// VISIBLE_ROWS rows of the table (the pinned eBay and TCGplayer rows included) and collapses the rest into two server-rendered <details>:
 // the other open rows ("Show 12 more in-stock stores"), then the sold-out and not-checked ones. Every store link stays in the HTML.
 //
 // The split happens AFTER ranking, so the eBay listing keeps its honest place: when it arrives in the browser and ranks into the first
@@ -171,7 +154,9 @@ export function moreClosedLabel(count: number, more: boolean): string {
   return `${count} ${more ? "more " : ""}${count === 1 ? "store" : "stores"} sold out or not checked`;
 }
 
-/** The table's one-line footer, under the rows: how it is ranked, and that the tinted row is an ad. The long version is ebayRowNote. */
+/** The table's one-line footer, under the rows: how it is ranked, and that the eBay row is an ad. The long version is ebayRowNote. */
 export function tableFooter(ebay: boolean): { ranked: string; noPay: string; ad: string } {
-  return { ranked: "In stock first, then cheapest.", noPay: "No store pays to rank.", ad: ebay ? "Tinted eBay row = Ad." : "" };
+  return ebay
+    ? { ranked: "eBay and TCGplayer first, then stores: in stock first, then cheapest.", noPay: "No store pays to rank.", ad: "The eBay row is an ad." }
+    : { ranked: "In stock first, then cheapest.", noPay: "No store pays to rank.", ad: "" };
 }

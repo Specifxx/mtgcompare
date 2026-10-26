@@ -229,3 +229,19 @@ so the bill is one event per page view. The project's Analytics tab must be enab
   regions are computed on the server and the visitor's suggested region is picked with no fetch, at a fixed height. The region
   homes show it where the PreorderBanner was. Because it links the hub, the landing page's hot buttons keep their Commander decks
   button.
+
+## 2026-10-26: eBay and TCGplayer pinned at the top of the price table, as ordinary rows
+
+- The owner: eBay and TCGplayer earn the affiliate money, so their rows should blend in with the store rows ("literally just a button
+  that's a different colour"), eBay at the very top, TCGplayer second, then the stores cheapest first. This reverses 2026-10-24's
+  "marketplaces after the store rows" and 2026-10-11's eBay row ranked by price among the stores.
+- Every row has the store rows' grid (`OfferRows.tsx` ROW_GRID). The eBay row lost its sponsored tint, blue edge and thumbnail; it keeps
+  the small "Ad" label and the affiliate note. Four buttons tell the rows apart: eBay blue (`.btn-ad`), TCGplayer ink (`.btn-tcg`), the
+  cheapest store red (`.btn-primary`), the other stores soft.
+- The cheapest row of the whole table is tinted and says "Best price", whichever it is. eBay qualifies under the old rule (a new listing in
+  the stores' currency, not a pre-order). TCGplayer qualifies only where its price is in the region's currency (the US). When either wins,
+  the cheapest store keeps its red button and reads "Best store price". Under "Price + shipping" only the stores re-rank and only a store
+  can be the best price, because eBay's and TCGplayer's shipping are not measured.
+- Outside the US, TCGplayer's row is its US$ offer (usMarketplace) or a TCGplayer search. It is labelled US$ and never compared.
+- The in-stock page's Marketplaces panel under the table is gone, since it repeated both rows. The sold-out callout stays. The best-price
+  card is unchanged.
