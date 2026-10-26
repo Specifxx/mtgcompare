@@ -126,6 +126,11 @@ body {
   .btn-ad {
     @apply btn border border-transparent bg-[#3665f3] text-white hover:bg-[#2a50c8];
   }
+  /* TCGplayer's button in the price table's pinned TCGplayer row: the site's ink (near-black, white in dark mode), so the table's four
+     kinds of row read apart by their button alone: eBay blue, TCGplayer ink, the cheapest store red (.btn-primary), the others soft. */
+  .btn-tcg {
+    @apply btn border border-transparent bg-ink text-surface hover:bg-ink/85;
+  }
   /* An ad's chips: outlined and cool-toned, so they never pass for the site's internal navigation chips (.chip). */
   .ad-chip {
     @apply inline-flex items-center gap-1.5 rounded-full border border-dashed border-ad-line bg-surface px-3 py-1 text-xs font-medium text-ink transition-colors hover:border-ink;

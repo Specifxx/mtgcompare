@@ -1,7 +1,7 @@
 import Link from "@/components/Link";
 import type { ReactNode } from "react";
 import type { OfferView } from "@/lib/data";
-import { offerLink, offerRetailer, type Placement } from "@/lib/affiliate";
+import { offerLink, offerRetailer, REL_SPONSORED, TCGPLAYER_KEY, TCGPLAYER_RETAILER, tcgplayerSearchUrl, type Placement } from "@/lib/affiliate";
 import { ebayRowNote, moreClosedLabel, moreOpenLabel, splitRows, tableFooter, type PriceFloor } from "@/lib/ebay-offer-row";
 import { money, timeAgo } from "@/lib/format";
 import { DUTIES_NOTE, REGIONS, type Region } from "@/lib/regions";
@@ -9,6 +9,7 @@ import { addressCount, shippingCell } from "@/lib/shipping";
 import { SHIP_UNKNOWN } from "@/lib/shipping-quote";
 import { offerStock } from "@/lib/sealed-offers";
 import { OfferRowsWithEbay } from "./EbayStrip";
+import { usd, type TcgplayerMatch } from "./Marketplaces";
 import { Chevron, ShippingToggle, StoreRows, type StoreRowData } from "./OfferRows";
 
 // The region's offers, ranked (in the US that includes TCGplayer's, badged as a marketplace), and, with `ebay`, ONE eBay row among
@@ -37,6 +38,7 @@ export function OfferTable({
   numbered = false,
   bestLabel,
   ranked,
+  pinned = null,
 }: {
   offers: OfferView[];
   region: Region;
@@ -59,15 +61,24 @@ export function OfferTable({
   bestLabel?: { short: string; full: string };
   /** The footer's ranking sentence, when the page ranks differently from "In stock first, then cheapest." */
   ranked?: string;
+  /**
+   * The product page (with `ebay`): eBay and TCGplayer pinned at the top, eBay first, TCGplayer second, then the stores (owner,
+   * 2026-10-26). TCGplayer's row is its offer among `offers` in the US; elsewhere `tcgplayer`, the US$ offer (usMarketplace), shown in US$
+   * and never the best price; with neither, a TCGplayer search. Null: TCGplayer, if among `offers`, ranks with the stores.
+   */
+  pinned?: { productName: string; tcgplayer: TcgplayerMatch | null } | null;
 }) {
   const r = REGIONS[region];
   const now = Date.now();
-  const cheapestOpen = offers.find((o) => offerStock(o, now) === "open");
+  const pin = ebay ? pinned : null;
+  const tcgOffer = pin ? offers.find((o) => o.marketplace) ?? null : null;
+  const storeOffers = tcgOffer ? offers.filter((o) => o !== tcgOffer) : offers;
+  const cheapestOpen = storeOffers.find((o) => offerStock(o, now) === "open");
   // Each row as data (prices formatted, stock state and links decided here, on the server): the browser's list (OfferRowsWithEbay)
   // renders the rows from it. Passing data, not rendered rows, keeps the page's RSC payload small: a row is ~350 bytes of data where
   // its element tree was ~1.5 KB, on top of the same row in the HTML.
   let rank = 0;
-  const rows: StoreRowData[] = offers.map((o) => {
+  const rows: StoreRowData[] = storeOffers.map((o) => {
     const state = offerStock(o, now);
     const link = offerLink(o.store, o.url, region, placement);
     const open = state === "open";
@@ -97,6 +108,7 @@ export function OfferTable({
       ship: o.marketplace ? null : shippingCell(o.store, r.market, o.priceCents, (c) => money(c, r.market)),
     };
   });
+  const tcg = pin ? tcgRow(tcgOffer, pin, region, placement, now) : null;
   const footer = tableFooter(!!ebay);
   return (
     <>
@@ -108,7 +120,7 @@ export function OfferTable({
       <div className="card overflow-hidden">
         {top}
         {ebay ? (
-          <OfferRowsWithEbay rows={rows} region={region} slug={ebay.slug} query={ebay.query} floor={ebay.floor} packs={ebay.packs} allowBest={!preorder} preorder={preorder} />
+          <OfferRowsWithEbay rows={rows} tcg={tcg} region={region} slug={ebay.slug} query={ebay.query} floor={ebay.floor} packs={ebay.packs} allowBest={!preorder} preorder={preorder} />
         ) : (
           <StoreRows rows={rows} preorder={preorder} />
         )}
@@ -133,12 +145,61 @@ export function OfferTable({
           Prices are each store&rsquo;s own, in {r.currency}, read from their public product listings about twice a day; each row says when.
           &ldquo;Not checked recently&rdquo; means we couldn&rsquo;t read that store for over three days, so its stock is unknown. No store pays
           to be listed or to rank higher: <Link href="/about" prefetch={false} className="underline underline-offset-2 hover:text-ink">how MTG Compare works</Link>.
-          {offers.some((o) => o.marketplace) && " TCGplayer is a marketplace of many sellers; it ranks by price and stock like any store, and its link is an affiliate link."}
+          {tcg && " TCGplayer is a US marketplace of many sellers, pinned under eBay; its link is an affiliate link, and outside the US its price is in US$ and never compared with the stores'."}
+          {storeOffers.some((o) => o.marketplace) && " TCGplayer is a marketplace of many sellers; it ranks by price and stock like any store, and its link is an affiliate link."}
         </p>
         {ebay && <p>{ebayRowNote(region).trim()}</p>}
       </HowPricesWork>
     </>
   );
+}
+
+/**
+ * The pinned TCGplayer row (OfferTable `pinned`), as store-row data: in the US its offer, ranked by nothing but shown second, and the best
+ * price when cheapest; elsewhere its US$ offer, labelled and never compared; with no match, a search. TCGplayer's ink button either way.
+ */
+function tcgRow(offer: OfferView | null, pin: { productName: string; tcgplayer: TcgplayerMatch | null }, region: Region, placement: Placement, now: number): StoreRowData {
+  const r = REGIONS[region];
+  const us = r.market === "US";
+  const base = { key: TCGPLAYER_KEY, name: "TCGplayer", marketplace: true, retailer: TCGPLAYER_RETAILER, placement, kind: "tcgplayer" as const, perPack: null, ship: null };
+  const m: TcgplayerMatch | null = offer ?? (us ? null : pin.tcgplayer);
+  if (!m) {
+    return {
+      ...base,
+      cents: 0,
+      open: true,
+      state: "open",
+      best: false,
+      host: "tcgplayer.com",
+      title: `Search TCGplayer for ${pin.productName}`,
+      href: tcgplayerSearchUrl(pin.productName, region, placement),
+      rel: REL_SPONSORED,
+      sponsored: true,
+      price: "",
+      lastSeen: new Date(now).toISOString(),
+      ago: "",
+      search: true,
+      ...(us ? {} : { note: "US marketplace, prices in US$" }),
+    };
+  }
+  const state = offerStock(m, now);
+  const link = offerLink(TCGPLAYER_KEY, m.url, region, placement);
+  return {
+    ...base,
+    cents: m.priceCents,
+    open: state === "open",
+    state,
+    best: false,
+    host: offer?.storeHost ?? "tcgplayer.com",
+    title: m.title,
+    href: link.href,
+    rel: link.rel,
+    sponsored: link.sponsored,
+    price: us ? money(m.priceCents, "US") : usd(m.priceCents),
+    lastSeen: m.lastSeen,
+    ago: timeAgo(m.lastSeen, now),
+    ...(us ? {} : { comparable: false, note: "US$, ships from the US" }),
+  };
 }
 
 /** The long explanations, collapsed under the table: one tap away, all in the HTML. */

@@ -74,11 +74,11 @@ site (card database, accounts, Premium) is in git history. Deploying: [DEPLOY.md
     "eBay listing strips" below and DEPLOY.md, "eBay listings: the daily import").
   - **TCGplayer via Impact**: every tcgplayer.com link is wrapped in the
     partner deep link at render time; the database only holds plain URLs.
-    TCGplayer is a US marketplace: in the US its offer is compared with the
-    stores and ranked by price and stock like any store (badged
-    "Marketplace", never counted as a store), and set pages, guides and searches carry a labelled TCGplayer search
-    ("affiliate link"); in other regions it appears only in the product page's Marketplaces panel and as the second
-    choice of a sold-out notice, labelled US$, and never in the region's ranking, "from" price or JSON-LD.
+    TCGplayer is a US marketplace: on a product page its row is pinned second in the price table, under eBay's (owner,
+    2026-10-26; badged "Marketplace", never counted as a store). In the US it is its offer, compared with the stores and
+    the best price when cheapest; in other regions its US$ offer (or a TCGplayer search), labelled US$, never the best
+    price and never in the region's ranking, "from" price or JSON-LD. Set pages, guides and searches carry a labelled
+    TCGplayer search ("affiliate link"), and a sold-out notice offers it as the second choice.
 
   Search links and TCGplayer links carry a sub-id, `dex-<region>-<placement>` (EPN `customid`, Impact
   `sharedid`), so the networks' reports say which surface earned; eBay LISTING tiles use eBay's affiliate URL exactly as eBay
@@ -120,9 +120,8 @@ have changed; check eBay."
   * **Product page**: the price table's one eBay row and, when that listing is new and cheaper than every in-stock store, the
     best-price card (both below); the **sold-out box** inside the sold-out notice (an eBay-blue search button in the server
     HTML; in the browser, the product's own new listing with its price, shipping and age when it has one, through the same
-    request the table row makes; never on pre-orders or in NZ/SG); the **Marketplaces panel's eBay row**, an eBay-blue button
-    on every product page that shows the product's own new listing price and age when the best-price card is not already
-    showing eBay; and the **phone buy bar** (below).
+    request the table row makes; never on pre-orders or in NZ/SG); and the **phone buy bar** (below). (The Marketplaces panel
+    under the table is gone since 2026-10-26: eBay and TCGplayer are rows of the table.)
   * **Search buttons**: the header's "eBay" item (xl and up), the "Shop <set> sealed on eBay" button inside the top line of
     the strip on every released set's page (`set-sealed`; hot sets keep "Shop <set> on eBay", `hot-set`), and on a search
     of `/<region>/sealed`, ONE query-matched box ("See "<query>" on eBay — Buy It Now", plus a TCGplayer search in the US,
@@ -131,12 +130,15 @@ have changed; check eBay."
     compact row: wordmark, "Ad" and a "Search Pokémon sealed on eBay" button. There are no text-only banners, chip rows or
     "Still deciding?" rows.
 * **The price table's eBay row** (`listings-offer-row`, the owner's call: MTG Compare compares websites, and eBay is one): a product's
-  cheapest own eBay listing is a row of its store price table, ranked by its price among the in-stock stores, tinted, labelled "Ad",
-  with eBay's blue "View on eBay" button and its age on the row; an eBay search for the product after the in-stock stores when it has
-  none. When it is a new listing cheaper than every in-stock store (not on a pre-order) it is the best price: "Best price" on it, "Best store price" on the cheapest
-  store, and the best-price card at the top of the page shows it (`listings-best-price`, `src/components/BestPriceCard.tsx`). Never
+  cheapest own eBay listing is a row of its price table, PINNED FIRST, TCGplayer's second, then the stores cheapest first (owner,
+  2026-10-26). Every row has the store rows' layout and only the button colour tells them apart: eBay blue (`.btn-ad`), TCGplayer
+  ink (`.btn-tcg`), the cheapest store red (`.btn-primary`), the other stores soft. The eBay row is labelled "Ad", with its age on
+  the row; an eBay search for the product when it has none. The cheapest row of the whole table is tinted and says "Best price":
+  the eBay listing when it is new and cheaper than every in-stock store (not on a pre-order), TCGplayer when its offer is in the
+  region's currency and cheaper, else the cheapest store; when eBay or TCGplayer wins, the cheapest store reads "Best store price",
+  and the best-price card at the top of the page shows it (`listings-best-price`, `src/components/BestPriceCard.tsx`). Never
   counted (store count, median), never in JSON-LD, meta or the "from" prices elsewhere (`src/lib/ebay-offer-row.ts`). The same
-  listing (one request, `useEbayPick`) prices the sold-out box and the Marketplaces panel's eBay row.
+  listing (one request, `useEbayPick`) prices the sold-out box.
 * **The phone buy bar** (`src/components/StickyBuyBar.tsx`, `product-sticky`, below lg only): the only sticky ad unit on
   the site (the header and the browse filters stick too, but they are the site's own controls). At most 64 px plus the safe area, it slides up with a CSS transform (no layout shift) only once the best-price card
   or the sold-out box has scrolled away, hides while the price table, any other ad unit or the footer is in view, can be

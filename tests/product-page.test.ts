@@ -71,7 +71,7 @@ test("the table: every row of the ranked list (eBay's at its rank) in the server
   const rows = [...html.matchAll(/<li data-offer-row=""[^>]*>/g)].map((m) => m[0]);
   assert.equal(rows.length, 24, "every row is visible in the HTML");
   assert.ok(html.slice(0, html.indexOf("<details")).match(/<li data-offer-row=""/g)!.length === 24, "all of them before 'How these prices work'");
-  assert.equal(rows.findIndex((r) => r.includes('data-ad="listings-offer-row"')), 14, "the eBay row ranks straight after the 14 open stores");
+  assert.equal(rows.findIndex((r) => r.includes('data-ad="listings-offer-row"')), 0, "the eBay row is pinned first");
   // one red button, on the cheapest open row; the other open rows btn-soft, the closed ones btn-ghost
   assert.equal([...html.matchAll(/class="btn-primary/g)].length, 1);
   const a = links(html);
@@ -81,9 +81,9 @@ test("the table: every row of the ranked list (eBay's at its rank) in the server
   for (const o of offers) assert.ok(a.some((l) => l.href === o.url), `${o.store}'s link is in the server HTML`);
   for (const l of a.filter((l) => l.href.includes("ebay."))) assert.equal(l.rel, REL_SPONSORED);
   // the footer keeps the short version; the long one is in the details, whole
-  assert.match(html, /In stock first, then cheapest\./);
+  assert.match(html, /eBay and TCGplayer first, then stores: in stock first, then cheapest\./);
   assert.match(html, /No store pays to rank\./);
-  assert.match(html, /Tinted eBay row = Ad\./);
+  assert.match(html, /The eBay row is an ad\./);
   assert.match(html, /<details class="group\/how mt-3 text-xs text-muted">/);
 });
 
@@ -404,7 +404,7 @@ test("the page wires it all: one strip, the anchors the buy bar uses, no compare
   assert.match(src, /<Section id="prices"/);
   assert.doesNotMatch(src, /CompareLink|href="#prices"|Compare all/, "every price is visible: no jump link to the table");
   const prices = src.indexOf('<Section id="prices"');
-  assert.ok(src.indexOf("<MarketplacePanel") > prices, "the marketplaces panel comes after the price table");
+  assert.doesNotMatch(src, /<MarketplacePanel/, "eBay and TCGplayer are rows of the table: no separate panel");
   assert.ok(src.indexOf('<div id="soldout"') > prices && src.indexOf("<SoldOutCallout") > prices, "the sold-out callout too");
   assert.match(src, /fetchPriority="high"/);
   assert.match(src, /hidden aspect-square[^"]*lg:sticky lg:top-\[calc\(var\(--hdr\)\+1\.5rem\)\] lg:flex/);

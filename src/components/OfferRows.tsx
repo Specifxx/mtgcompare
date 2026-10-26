@@ -14,8 +14,8 @@ import { StockPill } from "./StockPill";
 // The price table's rows (OfferTable.tsx decides them on the server, as data): a client module because the visitor's "Price + shipping"
 // choice re-ranks them in the browser. Nothing here may import the stores' data or the shipping snapshot (they would join the bundle).
 
-const ROW_GRID = "grid grid-cols-[1fr_auto] items-center gap-x-3 px-4 py-3 sm:grid-cols-[1fr_auto_10rem_auto] sm:gap-x-4 sm:px-5 sm:py-3.5";
-const ROW_BUTTON = "min-h-11 justify-self-end whitespace-nowrap [grid-area:2/2/4] sm:min-h-10 sm:[grid-area:1/4/3]";
+export const ROW_GRID = "grid grid-cols-[1fr_auto] items-center gap-x-3 px-4 py-3 sm:grid-cols-[1fr_auto_10rem_auto] sm:gap-x-4 sm:px-5 sm:py-3.5";
+export const ROW_BUTTON = "min-h-11 justify-self-end whitespace-nowrap [grid-area:2/2/4] sm:min-h-10 sm:[grid-area:1/4/3]";
 
 
 /**
@@ -102,7 +102,7 @@ export function Chevron({ className = "" }: { className?: string }) {
 /** A store row of the price table, as its data says (OfferTable builds it on the server). */
 export interface StoreRowData {
   key: string;
-  /** The row's price, in the region's currency, cents: the eBay row is ranked against it (lib/ebay-offer-row.ts ebayRowIndex). */
+  /** The row's price, in the region's currency, cents: what the best price is decided on (OfferRowsWithEbay). */
   cents: number;
   /** Buyable now (in stock or pre-order, checked recently). */
   open: boolean;
@@ -131,6 +131,14 @@ export interface StoreRowData {
   ago: string;
   /** The store's measured shipping for one item at this price (lib/shipping.ts); null: "Shipping at checkout". */
   ship: ShipCell | null;
+  /** The TCGplayer row pinned under eBay's (OfferTable `pinned`): TCGplayer's own button colour, never the red one. */
+  kind?: "tcgplayer";
+  /** No matched listing: the row is a search (no price). */
+  search?: boolean;
+  /** False when the price is in another currency than the region's (TCGplayer's US$ outside the US): shown, never the best price. */
+  comparable?: boolean;
+  /** A few words after the host line's "checked …" (TCGplayer outside the US: "US$, ships from the US"). */
+  note?: string;
 }
 
 /**
@@ -139,9 +147,16 @@ export interface StoreRowData {
  * line: the store over the host line, then the pill, the price, the button. The store and host cells take the free cells in order (grid
  * auto-placement) and clip, so `1fr` columns cannot overflow. Rendered on the server (no eBay row) and in the browser (OfferRowsWithEbay).
  */
-export function StoreRow({ d, preorder }: { d: StoreRowData; preorder: boolean }) {
+export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: boolean; top?: boolean }) {
+  // `top` (the pinned table, OfferRowsWithEbay): the cheapest row of the whole table, eBay and TCGplayer included: the tint and "Best
+  // price". The cheapest store (`d.best`) keeps the red button either way, and reads "Best store price" when another row is cheaper.
+  // Without `top` (the store-only table) the cheapest store is the best price, as before.
+  const pinned = top !== undefined;
+  const highlight = pinned ? top : d.best;
+  const tcg = d.kind === "tcgplayer";
+  const badge = "shrink-0 rounded-full bg-open px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-surface";
   return (
-    <li data-offer-row="" className={`${ROW_GRID} ${d.best ? "bg-open-soft/40" : ""}`}>
+    <li data-offer-row="" data-row={tcg ? "tcgplayer" : undefined} className={`${ROW_GRID} ${highlight ? "bg-open-soft/40" : ""}`}>
       <div className="flex h-5 items-center gap-2 overflow-hidden sm:h-6">
         {d.rank != null && (
           <span className="tabular -mr-0.5 shrink-0 text-sm font-bold text-muted" aria-label={`Number ${d.rank} by price`}>
@@ -150,37 +165,69 @@ export function StoreRow({ d, preorder }: { d: StoreRowData; preorder: boolean }
         )}
         <span className="truncate text-[15px] font-semibold sm:text-base">{d.name}</span>
         {d.marketplace && (
-          <span className="shrink-0 rounded-full border border-line bg-raised px-2 py-0.5 text-[10px] font-bold uppercase leading-3 tracking-wide text-muted">Marketplace</span>
+          <span className="hidden shrink-0 rounded-full border border-line bg-raised px-2 py-0.5 sm:inline text-[10px] font-bold uppercase leading-3 tracking-wide text-muted">Marketplace</span>
         )}
-        {d.best &&
+        {pinned ? (
+          top ? (
+            <span className={badge}>Best price</span>
+          ) : (
+            d.best && <span className={badge}>Best store price</span>
+          )
+        ) : (
+          d.best &&
           (d.badge ? (
-            <span className="shrink-0 rounded-full bg-open px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-surface">
+            <span className={badge}>
               <span className="sm:hidden">{d.badge.short}</span>
               <span className="hidden sm:inline">{d.badge.full}</span>
             </span>
           ) : (
-            <span className="shrink-0 rounded-full bg-open px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-surface">
+            <span className={badge}>
               Best <span className="hidden group-data-[ebay=cheaper]/offers:inline">store </span>
               price
             </span>
-          ))}
+          ))
+        )}
       </div>
       <div className="truncate text-[11px] leading-4 text-faint sm:text-xs" title={d.title}>
-        {d.host} · checked <Ago iso={d.lastSeen} initial={d.ago} />
+        {d.host}
+        {!d.search && (
+          <>
+            {" "}
+            · checked <Ago iso={d.lastSeen} initial={d.ago} />
+          </>
+        )}
+        {d.note && ` · ${d.note}`}
         {d.sponsored && <span className="text-muted"> · affiliate link</span>}
       </div>
       <div className="flex h-5 items-center justify-self-end [grid-area:1/2] sm:[grid-area:1/2/3]">
-        <StockPill state={d.state} preorder={preorder}>
-          {offerStockLabel(d.state, preorder)}
-        </StockPill>
+        {d.search ? (
+          <span className="block h-5 rounded-full border border-line bg-surface px-2.5 text-xs font-semibold leading-[18px] text-muted sm:h-6 sm:leading-[22px]">Search</span>
+        ) : (
+          <StockPill state={d.state} preorder={preorder}>
+            {offerStockLabel(d.state, preorder)}
+          </StockPill>
+        )}
       </div>
       <div className="mt-1 flex min-w-0 items-baseline gap-2 [grid-area:2/1] sm:mt-0 sm:block sm:text-right sm:[grid-area:1/3/3]">
-        <span className={`tabular font-display text-lg font-bold leading-6 ${d.open ? "" : "text-faint line-through decoration-1"}`}>{d.price}</span>
-        {d.perPack && <span className="tabular truncate text-[11px] leading-4 text-muted sm:block sm:text-xs">≈ {d.perPack} / pack</span>}
-        <ShipLine ship={d.ship} />
+        {d.search ? (
+          <span className="block truncate text-sm leading-6 text-muted sm:text-xs">TCGplayer sellers&rsquo; prices</span>
+        ) : (
+          <>
+            <span className={`tabular font-display text-lg font-bold leading-6 ${d.open ? "" : "text-faint line-through decoration-1"}`}>{d.price}</span>
+            {d.perPack && <span className="tabular truncate text-[11px] leading-4 text-muted sm:block sm:text-xs">≈ {d.perPack} / pack</span>}
+            <ShipLine ship={d.ship} />
+          </>
+        )}
       </div>
-      <OutboundLink href={d.href} rel={d.rel} retailer={d.retailer} placement={d.placement ?? "product-table"} className={`${d.best ? "btn-primary" : d.open ? "btn-soft" : "btn-ghost"} ${ROW_BUTTON}`}>
-        {d.open ? "View deal" : "View"} <span aria-hidden="true">↗</span>
+      <OutboundLink
+        href={d.href}
+        rel={d.rel}
+        retailer={d.retailer}
+        placement={d.placement ?? "product-table"}
+        className={`${tcg ? "btn-tcg" : d.best ? "btn-primary" : d.open ? "btn-soft" : "btn-ghost"} ${ROW_BUTTON}`}
+      >
+        {d.search ? "Search" : d.open ? "View deal" : "View"} <span aria-hidden="true">↗</span>
+        {tcg && <span className="sr-only"> on TCGplayer</span>}
       </OutboundLink>
     </li>
   );

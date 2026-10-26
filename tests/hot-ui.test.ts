@@ -187,7 +187,6 @@ test("the pages pass the highlight where the owner asked, and add no unit for it
   const product = src("p/[slug]/page.tsx");
   assert.match(product, /const hot = isHotReleased\(p\.setCode\)/);
   assert.doesNotMatch(product, /ebayPrimary/, "the panel's eBay row is a button on every product now");
-  assert.match(product, /popular=\{hot\}/);
   assert.match(product, /highlight=\{hot \? hotProductHighlight\(p\.name, ebayQ\) : undefined\}/);
   assert.equal((product.match(/<EbayStrip/g) ?? []).length, 1, "still one strip on a product page");
   assert.equal((home.match(/<EbayStrip/g) ?? []).length, 2, "still two strips on the home page");

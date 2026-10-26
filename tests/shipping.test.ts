@@ -17,7 +17,7 @@ import {
   type StoreShipping,
 } from "../src/lib/shipping-probe";
 import { quoteAt, shipCell } from "../src/lib/shipping-quote";
-import { ebayIndexTotal, rankRows } from "../src/lib/shipping-rank";
+import { rankRows } from "../src/lib/shipping-rank";
 
 test("parseShippingRates reads Shopify's rates, its empty answer and its validation errors", () => {
   const ok = parseShippingRates(
@@ -109,11 +109,6 @@ test("rankRows: price keeps the server's order; total ranks known shipping by pr
   const rows = [row("a", 5000, 2000), row("b", 5500, 0), row("c", 5600, null), row("d", 6000, 500), row("e", 4000, 0, false)];
   assert.deepEqual(rankRows(rows, "price").map((r) => r.key), ["a", "b", "c", "d", "e"]);
   assert.deepEqual(rankRows(rows, "total").map((r) => r.key), ["b", "d", "a", "c", "e"]);
-  // the eBay row in "total": among the unknown-shipping open rows by price, after every known one
-  const ranked = rankRows(rows, "total");
-  assert.equal(ebayIndexTotal(ranked, 1000), 3);
-  assert.equal(ebayIndexTotal(ranked, 9000), 4);
-  assert.equal(ebayIndexTotal(ranked, null), 4);
 });
 
 test("snapshots: validation drops malformed or rate-less stores; a merge keeps a recent old measurement and drops delisted stores", () => {

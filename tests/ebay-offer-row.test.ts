@@ -9,7 +9,7 @@ import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { EBAY_CAMPAIGN_ID, PLACEMENTS, REL_SPONSORED } from "../src/lib/affiliate";
 import type { OfferView } from "../src/lib/data";
-import { displayPacksFromCards, ebayRowIndex, ebayRowNote, listingCents, pickListing, rowPacks, statedPacks, wrongPackCount } from "../src/lib/ebay-offer-row";
+import { displayPacksFromCards, ebayRowNote, listingCents, pickListing, rowPacks, statedPacks, wrongPackCount } from "../src/lib/ebay-offer-row";
 import { OfferTable } from "../src/components/OfferTable";
 import { BestPriceCard, type BestPriceCardProps } from "../src/components/BestPriceCard";
 
@@ -74,24 +74,6 @@ test("a listing stating another pack count than the product's is not the product
   assert.equal(pickListing(feed, null)?.price.value, "152.11", "without a pack count the check does nothing");
 });
 
-test("where the row goes: before the first in-stock store that costs more (a tie stays with the store), else after the in-stock stores", () => {
-  const rows = [
-    { open: true, cents: 5000 },
-    { open: true, cents: 5500 },
-    { open: true, cents: 6000 },
-    { open: false, cents: 4000 }, // not checked recently
-    { open: false, cents: 3000 }, // sold out
-  ];
-  assert.equal(ebayRowIndex(rows, 4500), 0, "cheaper than every store: the top");
-  assert.equal(ebayRowIndex(rows, 5000), 1, "a tie: after the store");
-  assert.equal(ebayRowIndex(rows, 5800), 2);
-  assert.equal(ebayRowIndex(rows, 9900), 3, "dearer than every in-stock store: after them, before the sold-out rows");
-  assert.equal(ebayRowIndex(rows, 3500), 0, "never ranked against a sold-out store's price");
-  assert.equal(ebayRowIndex(rows, null), 3, "no listing (or another currency): after the in-stock stores");
-  assert.equal(ebayRowIndex([{ open: false, cents: 100 }], 99999), 0, "nothing in stock: the eBay listing is the first row");
-  assert.equal(ebayRowIndex([], 100), 0);
-});
-
 const NOW = Date.now();
 const offer = (store: string, priceCents: number, inStock = true, extra: Partial<OfferView> = {}): OfferView => ({
   store,
@@ -106,14 +88,15 @@ const offer = (store: string, priceCents: number, inStock = true, extra: Partial
   ...extra,
 });
 
-test("the server table: store rows as before, the eBay row as a search after the in-stock stores (labelled Ad, sponsored, eBay's blue), the note under it", () => {
+test("the server table: the eBay row FIRST as a search (labelled Ad, sponsored, eBay's blue, a store row's layout), then the stores cheapest first, the note under it", () => {
   const offers = [offer("alpha", 5000), offer("beta", 6000), offer("gamma", 4000, false)];
   const html = render(React.createElement(OfferTable, { offers, region: "us", preorder: false, ebay: { slug: "x-pbb", query: "Bloomburrow Play Booster Box", floor: null, packs: null } }));
   const rows = [...html.matchAll(/<li data-offer-row=""([^>]*)>/g)].map((m) => m[1]);
   assert.equal(rows.length, 4, "three stores and eBay");
-  assert.match(rows[2], /data-ad="listings-offer-row"/, "after the two in-stock stores, before the sold-out one");
-  assert.match(rows[2], /data-state="search"/);
-  assert.match(rows[2], /bg-ad/, "the sponsored tint");
+  assert.match(rows[0], /data-ad="listings-offer-row"/, "pinned first (owner, 2026-10-26)");
+  assert.match(rows[0], /data-state="search"/);
+  assert.doesNotMatch(rows[0], /bg-ad|shadow-/, "no sponsored tint: it blends in with the store rows");
+  assert.equal(/class="([^"]*)"/.exec(rows[0])![1].trim(), /class="([^"]*)"/.exec(rows[2])![1].trim(), "the same grid as a store row");
   const ebay = html.slice(html.indexOf('data-ad="listings-offer-row"'));
   const a = /<a ([^>]*)>([\s\S]*?)<\/a>/.exec(ebay)!;
   const href = /href="([^"]*)"/.exec(a[1])![1].replace(/&amp;/g, "&");
@@ -123,18 +106,50 @@ test("the server table: store rows as before, the eBay row as a search after the
   assert.equal(u.searchParams.get("customid"), "mtg-us-listings-offer-row");
   assert.equal(u.searchParams.get("_nkw"), "MTG Bloomburrow Play Booster Box sealed");
   assert.equal(/rel="([^"]*)"/.exec(a[1])![1], REL_SPONSORED);
-  assert.match(a[1], /bg-\[#3665f3\]/, "eBay's blue button, unlike the stores'");
+  assert.match(a[1], /class="btn-ad /, "eBay's blue button, unlike the stores'");
   assert.match(ebay, /class="ad-pill">Ad</);
-  assert.match(ebay, /aria-label="eBay"/);
   assert.match(html, /Search Bloomburrow Play Booster Box on ebay\.com/);
-  // the best store keeps its badge; it reads "Best store price" only when the eBay row is cheaper (a data attribute on the list), and the
-  // eBay row then carries "Best price" (client state, checked in a browser: the OfferRowsWithEbay `cheaper` rule is pinned below)
-  assert.match(html, /Best <span class="hidden group-data-\[ebay=cheaper\]\/offers:inline">store <\/span>price/);
-  assert.match(html, /class="group\/offers divide-y divide-line"/);
-  assert.doesNotMatch(html, /data-ebay="cheaper"/, "no listing, nothing to be cheaper");
+  // no listing yet: the cheapest store is the best price (tint, badge, the one red button)
+  assert.match(rows[1], /bg-open-soft\/40/, "alpha, the cheapest open store, second");
+  assert.match(html, />Best price</);
+  assert.doesNotMatch(html, /Best store price/, "nothing cheaper than the store yet");
+  assert.match(html, /data-best="store"/);
   assert.ok(html.replace(/&#x27;/g, "'").includes(ebayRowNote("us").trim()), "the note under the table");
   assert.ok((PLACEMENTS as readonly string[]).includes("listings-offer-row"));
   assert.ok(!(PLACEMENTS as readonly string[]).includes("listings-price-rows"), "the old block above the table is gone");
+});
+
+test("pinned TCGplayer: second under eBay, its own ink button; in the US its offer (the best price when cheapest), elsewhere US$ and never compared, else a search", () => {
+  const tcgOffer = offer("tcgplayer", 4500, true, { storeName: "TCGplayer", storeHost: "tcgplayer.com", url: "https://www.tcgplayer.com/product/1", marketplace: true });
+  const offers = [tcgOffer, offer("alpha", 5000), offer("beta", 6000)];
+  const us = render(React.createElement(OfferTable, { offers, region: "us", preorder: false, ebay: { slug: "x", query: "X", floor: null, packs: null }, pinned: { productName: "X", tcgplayer: null } }));
+  const rows = [...us.matchAll(/<li data-offer-row=""([^>]*)>/g)].map((m) => m[1]);
+  assert.equal(rows.length, 4);
+  assert.match(rows[0], /data-ad="listings-offer-row"/);
+  assert.match(rows[1], /data-row="tcgplayer"/, "TCGplayer second");
+  assert.match(rows[1], /bg-open-soft\/40/, "cheapest of the whole table: highlighted");
+  assert.match(us, /data-best="tcg"/);
+  assert.match(us, />Best store price</, "the cheapest store says so");
+  assert.equal([...us.matchAll(/class="btn-primary/g)].length, 1, "the cheapest store keeps the one red button");
+  assert.equal([...us.matchAll(/class="btn-tcg/g)].length, 1);
+  assert.match(us, /View deal <span aria-hidden="true">↗<\/span><span class="sr-only"> on TCGplayer<\/span>/, "a store row's label; only the colour differs");
+  // the UK: the US$ offer, labelled, never the best price
+  const uk = render(
+    React.createElement(OfferTable, {
+      offers: [offer("alpha", 5000)],
+      region: "uk",
+      preorder: false,
+      ebay: { slug: "x", query: "X", floor: null, packs: null },
+      pinned: { productName: "X", tcgplayer: { title: "X", url: "https://www.tcgplayer.com/product/1", priceCents: 100, inStock: true, lastSeen: new Date(NOW - 3_600_000).toISOString() } },
+    }),
+  );
+  assert.match(uk, /US\$1\.00/);
+  assert.match(uk, /US\$, ships from the US/);
+  assert.match(uk, /data-best="store"/, "a US$ price is never compared with the stores' £");
+  // no match: a TCGplayer search
+  const none = render(React.createElement(OfferTable, { offers: [offer("alpha", 5000)], region: "uk", preorder: false, ebay: { slug: "x", query: "X", floor: null, packs: null }, pinned: { productName: "X", tcgplayer: null } }));
+  assert.match(none, />Search <span aria-hidden="true">↗<\/span><span class="sr-only"> on TCGplayer/);
+  assert.match(none, /tcgplayer\.com%2Fsearch%2Fmagic%2Fproduct/);
 });
 
 test("NZ and SG: the note says whose listings these are; no eBay row without `ebay`", () => {
@@ -153,7 +168,7 @@ test("NZ and SG: the note says whose listings these are; no eBay row without `eb
 
 test("the product page passes the eBay row to its table, and nothing else draws eBay rows; the row reads only the product's own feed", () => {
   const product = readFileSync(new URL("../src/app/[region]/p/[slug]/page.tsx", import.meta.url), "utf8");
-  assert.match(product, /<OfferTable [^>]*ebay=\{\{ slug: p\.slug, query: ebayQ, floor: ebayFloor, packs: rowPacks\(type\?\.key, packs\) \}\}/);
+  assert.match(product, /<OfferTable\s[^>]*ebay=\{\{ slug: p\.slug, query: ebayQ, floor: ebayFloor, packs: rowPacks\(type\?\.key, packs\) \}\}/);
   assert.match(product, /const cheapestCents = best\?\.priceCents \?\?/, "the floor is the cheapest in-stock store's price");
   assert.doesNotMatch(product, /EbayPriceRows/);
   const strip = readFileSync(new URL("../src/components/EbayStrip.tsx", import.meta.url), "utf8");
@@ -215,10 +230,10 @@ test("the product page gives the best-price card the same eBay pick as the table
   assert.match(product, /<BestPriceCard[\s\S]*ebay=\{ebayBest \? \{ slug: p\.slug, floor: ebayFloor, packs: rowPacks\(type\?\.key, packs\) \} : null\}/);
   assert.match(product, /const ebayComparable = marketplaceOf\(r\.region\)\.currency === r\.currency;/);
   assert.match(product, /const ebayBest = ebayComparable && !pre;/, "never on a pre-order");
-  assert.match(product, /tcgplayerIsBest=\{best\.marketplace && !ebayBest/, "TCGplayer keeps its panel row when the card may turn to eBay");
+  assert.match(product, /pinned=\{\{ productName: p\.name, tcgplayer \}\}/, "TCGplayer pinned under eBay in the table");
   const strip = readFileSync(new URL("../src/components/EbayStrip.tsx", import.meta.url), "utf8");
   assert.match(strip, /const bestable = item != null && cents != null && !conditionLabel\(item\.condition\);/, "only a new listing can be the best price");
-  assert.match(strip, /const cheaper = allowBest && bestable && cents != null && best != null && cents < best\.cents;/, "the table's badge: the same rule");
+  assert.match(strip, /if \(byPrice && allowGiven && bestable && cents != null && cents < low\) top = "ebay";/, "the table's badge: the same rule");
   assert.ok((PLACEMENTS as readonly string[]).includes("listings-best-price"));
   const card = readFileSync(new URL("../src/components/BestPriceCard.tsx", import.meta.url), "utf8");
   assert.match(card, /useEbayPick\(/, "the table's pick, not a second rule");
