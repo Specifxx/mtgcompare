@@ -336,11 +336,14 @@ export function parseEbayBanner(env: { image?: string; href?: string; width?: st
  * The creative's link for a region and placement: the pasted tracking link with
  * our customid (mtg-<region>-<placement>) filled in when it has none, so EPN's
  * report can tell the hero from the banner above the footer. Short links
- * (ebay.us) and links that already carry a customid are left as pasted.
+ * (ebay.us) are left as pasted; a customid that is not ours (mtg-…) is replaced.
  */
 export function creativeHref(href: string, region: Region, placement: Placement): string {
   const u = new URL(href);
-  if (!u.searchParams.has("campid") || u.searchParams.get("customid")) return href;
+  if (!u.searchParams.has("campid")) return href;
+  // Our customid always (owner, 2026-10-26: every eBay link's tag starts with "mtg"): a pasted link that carries another site's
+  // ("dex-…") or none gets mtg-<region>-<placement>; one already ours is kept as pasted.
+  if (/^mtg(?:-|$)/.test(u.searchParams.get("customid") ?? "")) return href;
   u.searchParams.set("customid", subId(region, placement));
   return u.toString();
 }

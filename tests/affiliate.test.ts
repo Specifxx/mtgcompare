@@ -405,7 +405,8 @@ test("EPN creative: https image and an eBay tracking link only; garbage is ignor
   const rover = "https://rover.ebay.com/rover/1/705-53470-19255-0/1?campid=5339155912&customid=&toolid=10001";
   assert.equal(new URL(creativeHref(rover, "eu", "listings-footer")).searchParams.get("customid"), "mtg-eu-listings-footer");
   assert.equal(creativeHref("https://ebay.us/abc123", "eu", "listings-footer"), "https://ebay.us/abc123");
-  assert.equal(creativeHref(ok.href, "au", "listings-home"), ok.href);
+  // A customid that is not ours ("x", another site's "dex-…") is replaced (owner, 2026-10-26: every eBay tag starts with mtg).
+  assert.equal(new URL(creativeHref(ok.href, "au", "listings-home")).searchParams.get("customid"), "mtg-au-listings-home");
   assert.equal(creativeRetailer(rover), "eBay (rover.ebay.com)");
   assert.equal(creativeRetailer("https://www.ebay.de/sch/i.html"), "eBay (ebay.de)");
 });
@@ -431,4 +432,19 @@ test("Impact site verification: both tokens are in the root layout's <head> as m
   const layout = readFileSync(new URL("../src/app/layout.tsx", import.meta.url), "utf8");
   assert.match(layout, /IMPACT_SITE_VERIFICATIONS\.map\(\(value\) =>[\s\S]*name: "impact-site-verification", value/);
   assert.ok(layout.indexOf("impact-site-verification") > layout.indexOf("<head>") && layout.indexOf("impact-site-verification") < layout.indexOf("</head>"));
+});
+
+test("every eBay link's customid starts with mtg (owner, 2026-10-26): searches, card searches, banner creatives, stored listings", async () => {
+  const { creativeHref, ebaySearchUrl, ebayCardSearchUrl } = await import("../src/lib/affiliate");
+  const cid = (u: string) => new URL(u).searchParams.get("customid") ?? "";
+  for (const r of ["au", "us", "uk", "ca", "nz", "eu", "sg"] as const) {
+    assert.match(cid(ebaySearchUrl("Bloomburrow Play Booster Box", r, "product-marketplace")), /^mtg-/);
+    assert.match(cid(ebayCardSearchUrl("collector booster box", r, "listings-home")), /^mtg-/);
+  }
+  const pasted = "https://www.ebay.com/sch/i.html?_nkw=x&campid=5339155912&customid=dex-us-hero";
+  assert.match(cid(creativeHref(pasted, "us", "listings-home")), /^mtg-us-/);
+  assert.equal(creativeHref("https://www.ebay.com/sch/i.html?campid=5339155912&customid=mtg-us-hero", "us", "listings-home"), "https://www.ebay.com/sch/i.html?campid=5339155912&customid=mtg-us-hero");
+  const { readFileSync } = await import("node:fs");
+  const rows = JSON.parse(readFileSync("data/public/ebay-listings.json", "utf8")) as { url: string }[];
+  for (const r of rows) assert.match(cid(r.url), /^mtg-/, r.url);
 });
