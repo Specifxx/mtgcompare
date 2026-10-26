@@ -234,7 +234,9 @@ test("landing page: static and short: hero, one fair paragraph, the region's fiv
   assert.match(page, /<div className="mt-6 flex h-12 justify-center sm:mt-8">\s*<RegionSuggest formId="landing-search" \/>/);
   assert.match(page, /<form\s+id="landing-search"\s+action=\{`\/\$\{X_DEFAULT_REGION\}\/sealed`\}\s+method="get"/);
   assert.match(page, /ranked by price and stock only[\s\S]*No store pays to be listed or to rank, and every affiliate link is marked\.[\s\S]*href="\/about"[\s\S]*How it works/);
-  assert.match(page, /<HomeRegionGrid initial=\{initialPicks\} preorder=\{preorder\} \/>/);
+  // The next set's "Coming soon" block between the hero and the region's five (2026-10-26); it carries the pre-order hub link, so the
+  // hot buttons keep their Commander decks button.
+  assert.match(page, /<ComingSoonSwitch byRegion=\{featured\} today=\{today\} \/>[\s\S]*<HomeRegionGrid initial=\{initialPicks\} \/>/);
   // What moved to /about, the guides index and the region homes stays off the landing page.
   assert.doesNotMatch(page, /FAQPage|faqJsonLd|GuideCard|MarketReport|SuggestedTypeLinks|EbayStrip|AdSlot/);
   assert.equal((page.match(/<section/g) ?? []).length, 2, "the hero and the fair paragraph; the grid is its own section");

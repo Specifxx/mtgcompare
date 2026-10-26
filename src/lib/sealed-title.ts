@@ -179,6 +179,8 @@ const FOREIGN = new RegExp(
     // A language code in brackets, or after a dash at the end: "(JP)", "[DE]", "- FR".
     "[(\\[]\\s*(?:jp|jpn|jap|kr|kor|cn|cs|ct|ru|de|ger|fr|fra|it|ita|es|spa|pt|ptbr|nl|pl)\\s*[)\\]]",
     "\\s-\\s*(?:jp|jpn|jap|kr|cn|ru|de|fr|it|es|pt|nl|pl)\\s*$",
+    // A bilingual print: "Commander Decks (DE/EN)" is the German-and-English product, not the English one.
+    "[(\\[]\\s*(?:de|fr|it|es|pt|nl|pl|jp)\\s*/\\s*en\\s*[)\\]]|[(\\[]\\s*en\\s*/\\s*(?:de|fr|it|es|pt|nl|pl|jp)\\s*[)\\]]",
     "\\s(?:jp|jpn|jap|kr|cn|ru|de|fr|pt|nl|pl)\\s*$",
     // Other languages' product words: a German "Spiel-Booster", a French "Booster de jeu", an Italian "busta", a Spanish "sobre".
     "\\b(?:spiel\\s*-?\\s*booster|sammler\\s*-?\\s*booster|sammelkartenspiel|vorpremiere|booster\\s*de\\s*(?:jeu|collection|extension)|boite\\s*de|coffret|busta|buste|bustine|mazzo|sobres?\\s*de|caja\\s*de|mazo|verzamel\\w*)\\b",
@@ -199,7 +201,7 @@ const ACCESSORY =
 // Store-made multiples and lots: priced for several units, so never comparable with one. "Commander Deck - Set of 5" and
 // TCGplayer's "Commander Decks [Set of 5]" are the set's Commander Deck Set, read before this gate.
 const MULTIPLE =
-  /\(\s*pair\s*\)|\bpairs?\b|\bone\s*of\s*each\b|\bdisplay\s*of\s*\d|\b(?:set|bundle|lot)\s*of\s*(?:[2-9]|[1-9]\d|two|three|four|five|six)\b|\blots?\s*of\b|\bbundle\s*deal\b|\bcombo\b|\bmulti\s*-?\s*pack\b|\bbulk\b|\bjob\s*lot\b|\b(?:complete|full)\s*(?:set|collection)\b|^\s*[2-9]\d?\s*x\b|\bx\s*[2-9]\d?\s*\)?\s*$|[([]\s*[2-9]\d?\s*x\s*[)\]]|[([]\s*x\s*[2-9]\d?\s*[)\]]|\b(?:[2-9]|[1-9]\d)\s*x\s*(?:play|collector|set|draft)?\s*(?:booster\s*)?(?:packs?|boxes|bundles?|decks?)\b|\b(?:[2-9]|1\d)\s*(?:booster\s*)?packs?\s*per\s*sleeve\b|\bdeluxe\b|\bbundle\s*(?:&|and|\+)\s*(?:collector|play)\b|\s\+\s/i;
+  /\(\s*pair\s*\)|\bpairs?\b|\bone\s*of\s*each\b|\bset\s*of\s*all\b|\bdisplay\s*of\s*\d|\b(?:set|bundle|lot)\s*of\s*(?:[2-9]|[1-9]\d|two|three|four|five|six)\b|\blots?\s*of\b|\bbundle\s*deal\b|\bcombo\b|\bmulti\s*-?\s*pack\b|\bbulk\b|\bjob\s*lot\b|\b(?:complete|full)\s*(?:set|collection)\b|^\s*[2-9]\d?\s*x\b|\bx\s*[2-9]\d?\s*\)?\s*$|[([]\s*[2-9]\d?\s*x\s*[)\]]|[([]\s*x\s*[2-9]\d?\s*[)\]]|\b(?:[2-9]|[1-9]\d)\s*x\s*(?:play|collector|set|draft)?\s*(?:booster\s*)?(?:packs?|boxes|bundles?|decks?)\b|\b(?:[2-9]|1\d)\s*(?:booster\s*)?packs?\s*per\s*sleeve\b|\bdeluxe\b|\bbundle\s*(?:&|and|\+)\s*(?:collector|play)\b|\s\+\s/i;
 
 // A single card's treatment ("Sheoldred (Borderless)", "Extended Art Foil"): never on a sealed title, except a Secret Lair drop's or a
 // Collector's Edition deck's, which name the foil they are printed in.
@@ -319,8 +321,14 @@ function classifyIn(title: string, set: MtgSet | null): TypeKey | "vague" | null
 
   // Commander: a deck, the set's decks together ("Set of 5", "[Set of 4]", "All 4 Decks"), never a display or case of decks.
   if (/\bcommander\s*decks?\b|\bcommander\s*20\d\d\s*decks?\b|\bcommander\s*(?:-\s*)?(?:precon|pre-?constructed)\b/.test(t)) {
-    if (caseWord || /\bdisplay\b/.test(t)) return null;
-    if (/\bset\s*of\s*(?:[2-9]|two|three|four|five)\b|\ball\s*(?:[2-9]|four|five)\b|\bcomplete\s*set\b|\bdecks\s*bundle\b/.test(t)) {
+    // The set's decks together, however a store says it: "Set of 4", "Display of 4", "(1 of each)", a distributor's "Carton",
+    // "Commander Deck Set" (a bare "Carton" is refused below). Read before the display refusal: a "display of 4" Commander decks is the four decks.
+    const together = /\b(?:display|set)\s*of\s*(?:[2-9]|two|three|four|five)\b|\b(?:1|one)\s*of\s*each\b|\bset\s*of\s*all\b|\bcommander\s*decks?\s*set\b/.test(t);
+    if (caseWord || (/\bdisplay\b/.test(t) && !together)) return null;
+    // A bare "Carton" is not read as the four decks: one store's "Star Trek Commander Deck Carton" is priced as a single deck
+    // ($69.99, 2026-10-26), so it may be one deck picked from a carton. Only "1 of each" / "set of" says it is the set.
+    if (/\bcarton\b/.test(t) && !together) return null;
+    if (together || /\bset\s*of\s*(?:[2-9]|two|three|four|five)\b|\ball\s*(?:[2-9]|four|five)\b|\bcomplete\s*set\b|\bdecks\s*bundle\b/.test(t)) {
       return /\bcollector'?s?\s*edition\b/.test(t) ? null : "commander-deck-set";
     }
     return /\bstarter\s*commander\b/.test(t) ? "deck" : "commander-deck";
@@ -331,7 +339,7 @@ function classifyIn(title: string, set: MtgSet | null): TypeKey | "vague" | null
   if (/\bbundles?\b|\bfat\s*packs?\b/.test(t)) {
     if (caseWord) return /\bgift\b/.test(t) ? null : "bundle-case";
     if (/\bdisplay\b/.test(t)) return null;
-    return /\bgift\s*bundle\b|\bbundle\s*-?\s*gift\s*edition\b/.test(t) ? "gift-bundle" : "bundle";
+    return /\bgift\s*bundle\b|\bbundle\s*[-:–]?\s*gift\s*edition\b/.test(t) ? "gift-bundle" : "bundle";
   }
 
   if (/\bbeginner\s*box\b|\bstarter\s*(?:kit|collection|set)\b|\bwelcome\s*(?:deck|booster)\b/.test(t)) return caseWord ? null : "starter";
@@ -386,20 +394,31 @@ const NOISE = new Set(
     "jan feb mar apr may jun jul aug sep sept oct nov dec play draft set " +
     // Store notes that split one product into two pages (2026-10-26 audit: "Edge of Eternities Bundle - One per customer",
     // "Secret Lair Bundle - delayed until after …", "Beam Me Up Bundle - releases Nov 6th").
-    "delayed delay until after january february march april june july august september october november december"
+    "delayed delay until after january february march april june july august september october november december " +
+    // Release-date notes (2026-10-26 Star Trek cleanup): "(Approx 20th Nov 2026)", "(Delays Expected)"; "Collector's Editions".
+    "editions approx approximately expected delays"
   ).split(" "),
 );
 // Words that describe a KIND of product rather than which one it is: a title left with only these names no particular product.
+// "Commander Deck (Assorted)", "Commander Decks LIMIT 1 ea.", "Scene Box (Random)": a store picks which deck or box, so the title
+// names none. Dropped for the types sold as several named products; a title left with no name is then refused as vague.
+const PICKED_WORDS = new Set(["assorted", "random", "ea"]);
+const PICKED_TYPES = new Set<TypeKey>(["commander-deck", "scene-box"]);
 const DESCRIPTORS = new Set("foil nonfoil regular collector collectors starter beginner collection gift special".split(" "));
 
 // SKU brackets stores append: "[MKM]", "(BLB-PB)". Upper-case codes only, read before the title is lowercased.
 const SKU_BRACKET = /\[\s*[A-Z][A-Z0-9-]{1,7}\s*\]|\(\s*[A-Z][A-Z0-9]{1,4}(?:-[A-Z0-9]{1,4})?\s*\)/g;
 // Unbracketed store notes, removed before tokenising.
 const STORE_NOTE =
-  /\b(?:max(?:imum)?\s*)?\d*\s*(?:x\s*)?per\s*(?:customer|client|household|person|order|account)\b|\blimit(?:ed)?\s*(?:of\s*)?\d+\b|\b(?:local|in[\s-]*store)\s*pick[\s-]*ups?(?:\s*only)?\b|\bpick[\s-]*up\s*only\b|\blive\s*-?\s*stream(?:\s*only)?\b|\b\d{1,2}%\s*vat\b|\b(?:read|see)\s*(?:item\s*)?description\b|\bdate\s*tbd\b|\bmsrp\s*deal\b|\b(?:release|releases|releasing|ships?|shipping|limit|max|eta|due|arriving)\b[^)\]]*[)\]]/g;
+  /\b(?:max(?:imum)?\s*)?\d*\s*(?:x\s*)?per\s*(?:customer|client|household|person|order|account|event)\b|\blimit(?:ed)?\s*(?:of\s*)?\d+\b|\b(?:local|in[\s-]*store)\s*pick[\s-]*ups?(?:\s*only)?\b|\bpick[\s-]*up\s*only\b|\blive\s*-?\s*stream(?:\s*only)?\b|\b\d{1,2}%\s*vat\b|\b(?:read|see)\s*(?:item\s*)?description\b|\bdate\s*tbd\b|\bmsrp\s*deal\b|\b(?:release|releases|releasing|ships?|shipping|limit|max|eta|due|arriving)\b[^)\]]*[)\]]/g;
+
+// Release-date notes, never a product's words: German pre-sale "(VVK - 06.11.2026)", "Vorverkauf", "(Approx 20th Nov 2026)",
+// "(Available November 6th)", "(Delays Expected)", "Release Date: 13th of November 2026", a bare dd.mm.yyyy.
+const DATE_NOTE =
+  /[(\[]\s*(?:vvk|vorverkauf|approx(?:imately)?|est(?:imated)?|expected|available|delays?\s*expected|may\s*be\s*delayed)\b[^)\]]*[)\]]|\bvvk\b|\bvorverkauf\b|\b\d{1,2}\.\d{1,2}\.(?:19|20)\d\d\b|\brelease\s*date\s*:?\s*(?:\d{1,2}(?:st|nd|rd|th)?\s*(?:of\s*)?[a-z]+|[a-z]+\s*\d{1,2}(?:st|nd|rd|th)?)\s*,?\s*(?:(?:19|20)\d\d)?/g;
 
 function signatureTokens(title: string, set: MtgSet | null, type: TypeKey): string[] {
-  let t = normalizeTitle(title).replace(SKU_BRACKET, " ").replace(/\*+[^*]*\*+/g, " ").toLowerCase().replace(STORE_NOTE, " ");
+  let t = normalizeTitle(title).replace(SKU_BRACKET, " ").replace(/\*+[^*]*\*+/g, " ").toLowerCase().replace(STORE_NOTE, " ").replace(DATE_NOTE, " ");
   const markers: string[] = [];
   // A Collector's Edition Commander deck (the same 100 cards in foil) is a different product from the deck.
   if (type === "commander-deck" && /\bcollector'?s?\s*edition\b|\bcollectors?\s*ed\b/.test(t)) markers.push("collector");
@@ -421,7 +440,15 @@ function signatureTokens(title: string, set: MtgSet | null, type: TypeKey): stri
   if (set) {
     const own = matchers().find((x) => x.set.code === set.code);
     if (own) t = t.replace(new RegExp(own.re.source, "gi"), " ");
+    // The set's own code ("Star Trek TRK Commander Deck") names the set, not the product.
+    t = t.replace(new RegExp(`\\b${escapeRe(set.code)}\\b`, "g"), " ");
   }
+  if (type === "special-bundle") {
+    // "Beam Me Up Fat Pack Bundle", "'Beam Me Up' Special Bundle": the Fat Pack is the Bundle's old name, "special" is our type.
+    t = t.replace(/\bfat\s*packs?\b|\bspecial\b/g, " ");
+  }
+  // Store spellings of one name (2026-10-26): "Divergent Timelines" is the Divergent Timeline Scene Box, "We Are The Bog" the Borg deck.
+  t = t.replace(/\bdivergent\s*timelines\b/g, "divergent timeline").replace(/\bwe\s*are\s*the\s*bog\b/g, "we are the borg");
   t = t
     .replace(/\b\d{1,2}(?:st|nd|rd|th)\b/g, " ") // a date's day ("Nov 6th"), never a product's
     // Purchase limits as whole phrases ("Limit One", "One per customer"): "Limit Break VII" is a Final Fantasy deck's own name.
@@ -437,6 +464,7 @@ function signatureTokens(title: string, set: MtgSet | null, type: TypeKey): stri
   const words = new Set<string>();
   for (const w of t.split(" ")) {
     if (!w || NOISE.has(w)) continue;
+    if (PICKED_TYPES.has(type) && PICKED_WORDS.has(w)) continue;
     // Counts are not identity; years are only for the lines that repeat every year (Challenger decks, Secret Lair drops).
     // A Secret Lair drop keeps every number: "Vol. 1" and "Vol. 2", "City Styles 2", "Beyond Vault 33" are different drops.
     if (/^\d+$/.test(w) && type !== "secret-lair" && !(yearly && /^(?:19|20)\d\d$/.test(w))) continue;
@@ -579,6 +607,8 @@ export function cleanName(title: string): string {
   return t.length >= 4 ? t : decodeEntities(title).trim();
 }
 
+const PRERELEASE_EVENT = /(?<!\bper\s)\bevents?\b|\b\d{1,2}(?::\d\d)?\s*(?:am|pm)\b|\b(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i;
+
 /** Multi-kind types that may stand without a set: their own names say which product (a Secret Lair drop, a Duel Deck). */
 const SETLESS_OK = new Set<TypeKey>(["secret-lair", "deck", "collection", "starter"]);
 
@@ -596,6 +626,12 @@ export function identify(title: string, opts: { strict?: boolean } = {}): Sealed
   if (OTHER_GAME.test(t)) return "not-magic";
   if (OTHER_GAME_UB.test(t) && !MAGIC_WORD.test(t) && !MAGIC_PRODUCT.test(t)) return "not-magic";
   if (NOT_SEALED.test(t)) return "not-sealed";
+  // A prerelease EVENT (an entry, sold with a day and a time or a venue) is not the Prerelease Pack: "Pre Release - Friday November
+  // 6th 6:30pm", "Prerelease | Edinburgh | Sunday 8 November 2026, 12:30pm", "Prerelease events". Read on the whole title, since the
+  // venue and time can sit in " | " segments stripFiller drops.
+  if (/\bpre\s*-?\s*release\b/i.test(t) && PRERELEASE_EVENT.test(normalizeTitle(title))) return "not-sealed";
+  // A store's lot of singles sold as a "bundle": "Star Trek - Rare Bundle", "Uncommon Bundle", "Mythic Bundle".
+  if (/\b(?:common|uncommon|rare|mythic)s?\s*bundle\b/i.test(t)) return "not-sealed";
   if (ACCESSORY.test(t)) return "accessory";
   if (SINGLE_TREATMENT.test(t) && !TREATMENT_OK.test(t)) return "not-sealed";
   if (opts.strict && !MAGIC_WORD.test(t) && !MAGIC_PRODUCT.test(t)) return "not-magic";

@@ -208,3 +208,24 @@ so the bill is one event per page view. The project's Analytics tab must be enab
   One" — "Limit Break VII" stays a deck name), dates ("Nov 6th"), "delayed until".
 - The Organization JSON-LD names a mailbox only when NEXT_PUBLIC_CONTACT_EMAIL is set (the fallback is another brand's).
 - Workflows read the canonical origin from the SITE_URL repository variable, so moving to www is configuration, not code.
+
+## 2026-10-26: Star Trek classifier cleanup and the "Coming soon" block
+
+- The Star Trek catalogue had 70 products for about 26 real ones. `identify()` now drops release-date notes before the signature
+  ("(VVK - 06.11.2026)", "Vorverkauf", dd.mm.yyyy, "(Approx …)", "(Available …)", "(Delays Expected)", "Release Date: …"). It also
+  drops a set's own code ("Star Trek TRK Commander Deck", "SOS Commander Deck - …"), "Fat Pack"/"special" in a special bundle's name,
+  and two store spellings ("Divergent Timelines", "We Are The Bog"). A Commander deck or Scene Box sold as "Assorted"/"random"/"ea."
+  names no product, so it is refused. A "(DE/EN)" bilingual print counts as foreign. "1 of each", "set of all", "display of N" and
+  "Commander Deck Set" mean the set's commander-deck-set. A BARE "Carton" is refused: one US store prices its Star Trek "Commander
+  Deck Carton" at $69.99, one deck's price. Prerelease EVENTS (a weekday, a time, "event") are refused, but "1 per event" is a
+  purchase limit. "Rare/Uncommon/Mythic Bundle" are store lots of singles. "Fat Pack Bundle: Gift Edition" is the Gift Bundle.
+- Across all of offers.json this changes 37 Star Trek titles and 168 others. The others are the same rules applied to older sets,
+  mostly set-code merges and assorted, event or carton refusals. No two different products merged in the before/after review.
+- `setOfferGroups`' product cap went from 30 to 60: Star Trek had 36 products in CA, and the cap (with no order) silently dropped some
+  from the pre-order hub.
+- The "Coming soon" block (`lib/coming-soon.ts`, `components/ComingSoon.tsx`) covers the next set by sets.ts dates, not by name. For
+  each headline product it shows the cheapest open STORE pre-order (never TCGplayer) and the number of stores taking pre-orders, with
+  US MSRP only from rrp.ts. It is hidden from release day. On the landing page it sits between the hero and "Most stocked". All seven
+  regions are computed on the server and the visitor's suggested region is picked with no fetch, at a fixed height. The region
+  homes show it where the PreorderBanner was. Because it links the hub, the landing page's hot buttons keep their Commander decks
+  button.

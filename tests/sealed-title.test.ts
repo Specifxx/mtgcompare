@@ -374,3 +374,53 @@ test("store notes never split one product into two (2026-10-26 SEO audit: duplic
   assert.equal(key("Reality Fracture - Secret Lair Bundle - delayed until after release"), key("Reality Fracture - Secret Lair Bundle"));
   assert.equal(key("Tarkir: Dragonstorm Commander Deck - Mardu Surge (Limit One)"), key("Tarkir: Dragonstorm Commander Deck - Mardu Surge"));
 });
+
+test("Star Trek cleanup (2026-10-26): one product per real product; picked, event and lot titles refused", () => {
+  const key = (t: string) => {
+    const r = identify(t);
+    return typeof r === "object" ? r.groupKey : r;
+  };
+  // A store picks the deck: no specific product.
+  assert.equal(key("Star Trek - Commander Deck (Assorted) - PREORDER"), "vague");
+  assert.equal(key("Star Trek - Collector Commander Deck (Assorted) - PREORDER"), "vague");
+  assert.equal(key("Star Trek - Collector's Commander Decks LIMIT 1 ea. per customer (Preorder: Nov 6th)"), "vague");
+  assert.equal(key("Star Trek - Commander Decks LIMIT 1 ea. per customer (Preorder: Nov 6th)"), "vague");
+  assert.equal(key("Star Trek - Scene Box (Assorted) - PREORDER"), "vague");
+  assert.equal(key("Star Trek TRK Commander Deck"), "vague");
+  assert.equal(key("Star Trek TRK Commander Deck - Collector's Editions"), "vague");
+  assert.equal(key("Magic: The Gathering – Star Trek Commander Deck: Collector's Edition (EN) (VVK - 06.11.2026)"), "vague");
+  assert.equal(key("Magic: The Gathering – Star Trek Commander Decks (DE/EN) (VVK - 06.11.2026)"), "foreign");
+  // The four decks together.
+  // A bare Carton is priced as one deck by the store that lists it ($69.99): refused, never the set.
+  assert.equal(key("Magic: The Gathering - Star Trek Commander Deck Carton"), "unclassified");
+  assert.equal(key("Magic the Gathering Star Trek Scene Box - Set of All 2"), "multiple");
+  assert.equal(key("Star Trek Commander Deck Set (1 of each) [PREORDER] (MAY BE DELAYED Available Nov 6, 2026)"), "trk|commander-deck-set");
+  assert.equal(key("Magic: The Gathering - Star Trek - Commander Deck Set - Pre-Order Release Date: 13th of November 2026"), "trk|commander-deck-set");
+  assert.equal(key("MARVEL SUPER HEROES - Commander Decks (1 Carton of 4 Decks, 1 of Each)"), "msh|commander-deck-set");
+  // Release-date notes never split a product.
+  const ff = key("Star Trek Commander Deck - Federation Fleet");
+  assert.equal(ff, "commander-deck|trk|federation-fleet");
+  assert.equal(key("Magic: The Gathering - Star Trek - Commander Deck - Federation Fleet - Pre-Order Release Date: 13th of November 2026"), ff);
+  assert.equal(key("Star Trek Commander Deck - Federation Fleet (Collector's Edition)"), "commander-deck|trk|collector-federation-fleet");
+  assert.equal(key("Magic the Gathering Star Trek Commander Deck - We Are The Bog"), key("Star Trek Commander Deck - We Are the Borg"));
+  const beam = key("Star Trek - Beam Me Up Bundle");
+  assert.equal(key("Magic: The Gathering – Star Trek „Beam Me Up“ Bundle (VVK - 06.11.2026)"), beam);
+  assert.equal(key('Star Trek "Beam Me Up" Fat Pack Bundle'), beam);
+  assert.equal(key("Magic: The Gathering: Star Trek ' BEAM ME UP' Special Bundle"), beam);
+  assert.equal(key("Magic: The Gathering – Star Trek Bundle (VVK - 06.11.2026)"), "trk|bundle");
+  assert.equal(key("Magic Star Trek Bundle (Delays Expected) (Preorder)"), "trk|bundle");
+  assert.equal(key("Magic the Gathering Star Trek Beginner Box (Approx 20th Nov 2026)"), key("Star Trek Beginner Box"));
+  assert.equal(key("(Preorder) Star Trek Scene Box - Divergent Timelines [TRK]"), key("Star Trek Divergent Timeline Scene Box"));
+  // Prerelease events are entries, not the pack; "1 per event" is a purchase limit.
+  assert.equal(key("Magic the Gathering Star Trek Pre Release - Friday November 6th 6:30pm"), "not-sealed");
+  assert.equal(key("Magic: The Gathering - Star Trek Prerelease | Edinburgh | Sunday 8 November 2026, 12:30pm"), "not-sealed");
+  assert.equal(key("Star Trek Magic The Gathering Prerelease events"), "not-sealed");
+  assert.equal(key("MTG Magic The Gathering Star Trek Prerelease Pack"), "prerelease-pack|trk|");
+  assert.equal(key("Secrets of Strixhaven - Lorehold Prerelease Pack (1 per event) Read Description"), "prerelease-pack|sos|lorehold");
+  // Store lots of singles.
+  assert.equal(key("Star Trek - Rare Bundle"), "not-sealed");
+  assert.equal(key("Star Trek - Uncommon Bundle"), "not-sealed");
+  // A set's own code is not a product name; a Fat Pack Bundle: Gift Edition is the Gift Bundle.
+  assert.equal(key("Secrets of Strixhaven SOS Commander Deck - Lorehold Spirit"), key("Secrets of Strixhaven Commander Deck : Lorehold Spirit (SoS)"));
+  assert.equal(key("The Hobbit Fat Pack Bundle: Gift Edition - The Hobbit"), "hob|gift-bundle");
+});

@@ -372,9 +372,9 @@ export interface SetOfferGroup {
   offers: OfferView[];
 }
 
-// Bounds for setOfferGroups: a set has about a dozen sealed products in a
-// market and a new set's product is listed by a few dozen stores at most.
-const SET_GROUPS_TAKE = 30;
+// Bounds for setOfferGroups: a set has a few dozen sealed products in a market (Star Trek: up to 36 before the 2026-10-26 classifier
+// cleanup, which a bound of 30 cut short) and a new set's product is listed by a few dozen stores at most.
+const SET_GROUPS_TAKE = 60;
 const SET_GROUP_OFFERS_TAKE = 40;
 
 /**

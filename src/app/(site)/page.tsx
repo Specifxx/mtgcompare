@@ -4,7 +4,8 @@ import { Icon } from "@/components/Icon";
 import { RegionSuggest } from "@/components/RegionSuggest";
 import { HomeRegionGrid } from "@/components/HomeRegionGrid";
 import { regionPicks } from "@/lib/picks";
-import { openPreorderGuides } from "@/lib/preorder-guides";
+import { ComingSoonSwitch } from "@/components/ComingSoonSwitch";
+import { loadFeaturedAll } from "@/lib/coming-soon-data";
 import { REGION_LIST, X_DEFAULT_REGION } from "@/lib/regions";
 import { DEFAULT_OG_IMAGE, breadcrumbJsonLd, jsonLd } from "@/lib/seo";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
@@ -40,9 +41,10 @@ export const metadata: Metadata = {
 
 export default async function Landing() {
   // The default region's five, from the public data files: the server HTML is already filled.
-  const initialPicks = await regionPicks(X_DEFAULT_REGION).catch(() => []);
-  const open = openPreorderGuides()[0];
-  const preorder = open ? { slug: open.set.slug, name: open.set.name } : null;
+  const today = new Date().toISOString().slice(0, 10);
+  // The next set's block, every region's (seven small lists): the server HTML has the default region's, the browser the visitor's.
+  const [initialPicks, featured] = await Promise.all([regionPicks(X_DEFAULT_REGION).catch(() => []), loadFeaturedAll(today).catch(() => ({}))]);
+  const hasFeatured = Object.keys(featured).length > 0;
   return (
     <div>
       <section className="mc-hero relative">
@@ -99,8 +101,16 @@ export default async function Landing() {
         </div>
       </section>
 
+      {/* The next set (lib/coming-soon.ts, by sets.ts dates): gone on its release day. It carries the pre-order hub link, so the hot
+          buttons below keep their Commander decks button. */}
+      {hasFeatured && (
+        <div className="page mt-10 max-w-3xl">
+          <ComingSoonSwitch byRegion={featured} today={today} />
+        </div>
+      )}
+
       <div className="mb-10 mt-10">
-        <HomeRegionGrid initial={initialPicks} preorder={preorder} />
+        <HomeRegionGrid initial={initialPicks} />
       </div>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbJsonLd([{ href: "/", label: SITE_NAME }])) }} />
     </div>

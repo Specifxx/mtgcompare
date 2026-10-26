@@ -1,6 +1,7 @@
 import Link from "@/components/Link";
 import { inSeason } from "@/lib/black-friday";
-import { PreorderBanner } from "@/components/PreorderBanner";
+import { ComingSoon } from "@/components/ComingSoon";
+import { loadFeatured } from "@/lib/coming-soon-data";
 import { cache } from "react";
 import type { Metadata } from "next";
 import { Ago } from "@/components/Ago";
@@ -65,13 +66,14 @@ const QUICK_TYPES = ["play-booster-boxes", "collector-booster-boxes", "bundles",
 
 export default async function RegionHome({ params }: { params: { region: string } }) {
   const r = regionOrNotFound(params.region);
-  const [{ boxes, etbs, preorders, latestSets: bySet }, overview, deals, report, older] = await Promise.all([
+  const [{ boxes, etbs, preorders, latestSets: bySet }, overview, deals, report, older, featured] = await Promise.all([
     homeRails(r.market),
     getOverview(r.market),
     dealsInMarket(r.market, { take: 8 }),
     // The written market report, moved here from the landing page (2026-10-25): this region's figures, after the rails.
     loadHomeReport(r.region).catch(() => emptyHomeReport(r.region)),
     olderInStockData(r.market).catch(() => []),
+    loadFeatured(r.region).catch(() => null),
   ]);
   // The soonest upcoming set with a pre-order page: the rail's "see all" goes there.
   const preorderGuide = openPreorderGuides()[0] ?? null;
@@ -163,9 +165,9 @@ export default async function RegionHome({ params }: { params: { region: string 
       {/* The page carries two strips of its own (sealed, chase cards): no third one above the footer. */}
       <NoPreFooter />
       <div className="page">
-        {/* The next set on pre-order, when there is one: its hub, the page people compare pre-orders on (components/PreorderBanner). */}
+        {/* The next set, when there is one (lib/coming-soon.ts): its headline pre-orders here and its hub; gone on release day. */}
         <div className="mt-8 grid gap-3">
-          <PreorderBanner region={r.region} />
+          <ComingSoon featured={featured} r={r} today={new Date().toISOString().slice(0, 10)} />
           {inSeason(new Date().toISOString().slice(0, 10)) && (
             <Link
               href={`/${r.region}/black-friday`}
