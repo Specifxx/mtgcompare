@@ -37,6 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     // The season and theme boot scripts below stamp data-season and data-theme on this element before React hydrates; React must not report that.
     <html lang="en" className={`${sans.variable} ${display.variable}`} suppressHydrationWarning>
       <head>
+        <link rel="alternate" type="application/rss+xml" title={`${SITE_NAME} guides`} href="/feed.xml" />
         {/* Seasonal theme (Halloween, 16-31 October): data-season on <html> from the visitor's own date, before first paint, so the
             one CDN copy of every page serves everyone and the theme goes on 1 November with no deploy. lib/season.ts. */}
         <script dangerouslySetInnerHTML={{ __html: SEASON_BOOT_SCRIPT }} />
