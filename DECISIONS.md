@@ -260,3 +260,25 @@ The two-rhombus mark read as nothing in a browser tab and on Vercel's dashboard.
 in colour-pie order on a brass ring, with a spark in the middle, on the same night-purple tile (`LogoMark`, `src/app/icon.svg`,
 `public/logo.svg`, the PNG icons, and a 16/32/48 `src/app/favicon.ico`, which Vercel's dashboard and some crawlers ask for first).
 It stays an original abstract mark: no mana symbol, no Planeswalker symbol, no Wizards of the Coast logo.
+
+## 2026-10-27: every site links the whole family
+
+The owner, once YGO Compare existed: "our website should all have all of our
+compare websites now in the suite of websites … just try to backlink all of
+it." Every site's footer now links the other eight: RiftCompare, OP Compare,
+DexCompare, MTG Compare, Gundam Compare, Lorcana Compare, YGO Compare
+(ygocompare.com), CamCompare (www.camcompare.app) and Compare Empire
+(www.compareempire.com, Australian tech prices), each on the host it already
+uses (no apex or www change). Plain followed links, never sponsored: they are
+our own sites. The link text says what each compares ("Yu-Gi-Oh! card prices",
+"Camera and lens prices"), with the site's name after it, rather than the
+brand alone. MTG Compare is sealed-only since 2026-10-21, so its anchor now
+says "Magic: The Gathering sealed prices" everywhere.
+
+Footer only. In-page blocks ("Compare other TCGs" on card and product pages,
+the article blocks) keep to card games, and the two sites that are not card
+games are labelled as the wider family, so nine look-alike sites linked from
+every page body never read as a link network.
+
+This supersedes "YGO Compare joins once it is public" above. The footer
+heading is now "More price comparison · the Compare Empire family".
