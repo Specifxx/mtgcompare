@@ -253,3 +253,10 @@ them: one family of sites people recognise, without moving any domain. The
 footer's sister-sites block now names the Compare Empire family, and every live
 sister site is in it (Gundam Compare and Lorcana Compare joined MTG Compare's and
 DexCompare's lists the same day). YGO Compare joins once it is public.
+
+## 2026-10-27: a new mark (five colour orbs)
+
+The two-rhombus mark read as nothing in a browser tab and on Vercel's dashboard. The new mark is five orbs in Magic's five colours
+in colour-pie order on a brass ring, with a spark in the middle, on the same night-purple tile (`LogoMark`, `src/app/icon.svg`,
+`public/logo.svg`, the PNG icons, and a 16/32/48 `src/app/favicon.ico`, which Vercel's dashboard and some crawlers ask for first).
+It stays an original abstract mark: no mana symbol, no Planeswalker symbol, no Wizards of the Coast logo.
