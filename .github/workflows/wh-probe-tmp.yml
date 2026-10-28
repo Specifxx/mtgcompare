@@ -17,11 +17,11 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
-      - run: mkdir -p whprobe/out && (python3 whprobe/probe.py candidates & python3 whprobe/probe.py ours & wait)
+      - run: mkdir -p whprobe/out && python3 whprobe/probe.py candidates
       - run: |
           git config user.name "mtgcompare-data[bot]"
           git config user.email "mtgcompare-data@users.noreply.github.com"
-          git add whprobe/out
+          git add whprobe/out/candidates.json
           git commit -m "TEMP Warhammer probe results (run ${GITHUB_RUN_ID})"
           for i in 1 2 3; do git pull --rebase -q origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME" && exit 0; sleep 5; done
           exit 1

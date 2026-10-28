@@ -1,6 +1,6 @@
 """TEMP (2026-10-28): which Warhammer discount stores expose a readable product feed, and do the
 stores MTG Compare already reads also sell Warhammer? Output: whprobe/out/*.json. Removed afterwards."""
-import json, re, sys, urllib.request, urllib.error, ssl, concurrent.futures as cf
+import json, re, sys, time, urllib.request, urllib.error, ssl, concurrent.futures as cf
 
 UA = "Mozilla/5.0 (compatible; CompareEmpireProbe/1.0; store survey)"
 CTX = ssl.create_default_context()
@@ -40,7 +40,8 @@ GW = re.compile(r"warhammer|games workshop|citadel|combat patrol|age of sigmar|k
 def shopify_scan(root):
     """Count Games Workshop products from the public products.json (vendor/title/tags), max 30 pages."""
     gw = total = 0
-    for page in range(1, 31):
+    for page in range(1, 9):
+        time.sleep(1.5)
         s, _, _, body = get(f"{root}/products.json?limit=250&page={page}", limit=20_000_000)
         try: prods = json.loads(body)["products"]
         except Exception: return (gw, total, page > 1)
@@ -99,7 +100,7 @@ def main():
                 tries.append(p)
                 if p.get("feed") or (p["status"] and p["status"] < 400): break
             return {"region": region, "name": name, "tries": tries}
-        with cf.ThreadPoolExecutor(8) as ex: res = list(ex.map(one, rows))
+        with cf.ThreadPoolExecutor(2) as ex: res = list(ex.map(one, rows))
     else:
         stores = json.load(open("src/data/stores.json"))
         def one(s):
