@@ -1,0 +1,261 @@
+[
+{
+"name": "Adventurebox",
+"base": "https://adventurebox.ca",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "All-In Hobby Sports",
+"base": "https://allinhobbysports.com",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Amazing Stories",
+"base": "https://amazingstoriesgames.ca",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Arcardia Collectibles & Exchange",
+"base": "https://arcardia.ca",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Aria Snacks and Hobbies",
+"base": "https://ariasnacks.ca",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Au Royaume des Titans inc.",
+"base": "https://kingdomtitans.ca",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "BD Cosmos",
+"base": "https://bdcosmos.com",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Breakaway Sports Cards",
+"base": "https://breakawaysc.com",
+"market": "CA",
+"country": "CA",
+"platform": "woocommerce"
+},
+{
+"name": "D\u00e9Jouer",
+"base": "https://dejouer.ca",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Downstairs Cellar",
+"base": "https://downstairscellar.ca",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Dragon Pourpre",
+"base": "https://dragonpourpre.com",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Game Point",
+"base": "https://gamepointcentral.com",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Green Steel Games",
+"base": "https://greensteelgames.ca",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Hard Brick Games",
+"base": "https://hardbrickgames.com",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Heroes World",
+"base": "https://heroesworld.ca",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "I Want That Stuff",
+"base": "https://iwantthatstuff.store",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Lazy Trading Cards & Hobby Collectibles",
+"base": "https://lazytradingcards.com",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Le Somerset Boutique et Cafe-Chat",
+"base": "https://lesomerset.com",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Okanagan Sportscards and Comics",
+"base": "https://okanagansportscardsandcomics.com",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "OMG Games",
+"base": "https://omggames.ca",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Pastime Sports & Games",
+"base": "https://pastimesports.ca",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Rain City Games - New West",
+"base": "https://raincity.games",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Soulvaria",
+"base": "https://soulvaria.ca",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Swirl Cafe & Games",
+"base": "https://swirlyeg.com",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Tabletop Renaissance Games & Hobbies",
+"base": "https://tabletoprenaissance.ca",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "TCG Zone Canada",
+"base": "https://tcgzonecanada.com",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "The Dragon",
+"base": "https://dragonguelph.com",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "The Sword & Board",
+"base": "https://theswordandboardtoronto.com",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "The Vault Sports Cards and Collectables",
+"base": "https://thevaultsportscards.com",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Top Deck Trades",
+"base": "https://topdecktrades.com",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Treasures 'N' More",
+"base": "https://treasuresnmore.ca",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "The Outpost Sportscards & Games",
+"base": "https://outposttradingcards.ca",
+"market": "CA",
+"country": "CA",
+"platform": "woocommerce"
+},
+{
+"name": "We Got Gamez Whitby",
+"base": "https://wegotgamezcanada.com",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "WoodForSheep Hobbies",
+"base": "https://woodforsheep.ca",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "West Coast Hobbies",
+"base": "https://westcoast-hobbies.com",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Zeni Trading Company International",
+"base": "https://kevinstcg99.com",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+},
+{
+"name": "Zone 151",
+"base": "https://zone151.ca",
+"market": "CA",
+"country": "CA",
+"platform": "shopify"
+}
+]

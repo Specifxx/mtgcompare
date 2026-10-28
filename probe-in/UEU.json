@@ -1,0 +1,2389 @@
+[
+{
+"name": "1UP",
+"base": "https://1uprm.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "2 de Piques",
+"base": "https://2depiques.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "AdCard Collectibles",
+"base": "https://adcardcollectibles.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "ALCALA COMICS",
+"base": "https://alcalacomics.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Alara Games",
+"base": "https://alaragames.se",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "ALL4PLAY",
+"base": "https://all4play.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "ALIANDY FUMETTI",
+"base": "https://aliandy.it",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "ALERTE HIT BY MIKOPE",
+"base": "https://alertehit.fr",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "All You Can Play",
+"base": "https://allyoucanplay.eu",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Animerch",
+"base": "https://animerch.nl",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Arcane Forge",
+"base": "https://arcaneforge.nl",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Artefacts Bordeaux",
+"base": "https://artefacts.gg",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "ARK-Games",
+"base": "https://ark-games.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "A Turinbag",
+"base": "https://turinbag.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "As2Pik",
+"base": "https://as2pik.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Au Coin Du D\u00e9",
+"base": "https://aucoindude.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "AUTOUR DES JEUX",
+"base": "https://autourdesjeux.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "AZ Card & Games",
+"base": "https://azcardtrading.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Baltzer Games",
+"base": "https://baltzergames.dk",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Baruzcard.it",
+"base": "https://baruzcard.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Back-to-Magic",
+"base": "https://discard-mtg.de",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Battle Bear Trading Cards & Games",
+"base": "https://battle-bear.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "BCN Retroclass",
+"base": "https://bcnretroclass.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Blazes",
+"base": "https://blazes.dk",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Boardgame Fanatic",
+"base": "https://boardgamefanatic.nl",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Booster - Trading Cards & more",
+"base": "https://boostertcg.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "BO JEUX",
+"base": "https://bojeux85.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Boosterland",
+"base": "https://boosterland.pl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "C&A Nerd Corner di cristian leone",
+"base": "https://ceanerdcorner.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "CardaniaCity",
+"base": "https://cardaniacity.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Cardatshop",
+"base": "https://cardatshop.nl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Bonfire Collectibles",
+"base": "https://bonfirecollectibles.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "C\u00e1prica C\u00f3mics y Juegos",
+"base": "https://capricacomicsyjuegos.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Cardbuddys",
+"base": "https://cardbuddys.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Card Collector",
+"base": "https://card-collector.net",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Cardcorner",
+"base": "https://cardcorner.at",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Card Club",
+"base": "https://cardclub.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Card Game Store",
+"base": "https://cardgamestore.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "CardCrack",
+"base": "https://cardcrack.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Card Horizon",
+"base": "https://cardhorizon.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Card-Knights",
+"base": "https://card-knights.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Cardverse",
+"base": "https://cardverse.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "CardyX",
+"base": "https://cardyx.sk",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Cardverse",
+"base": "https://cardverse.hu",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Cartapapa",
+"base": "https://cartapapa.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "&CARDS Aarhus",
+"base": "https://andcards.dk",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Celaeno Comics",
+"base": "https://celaenocomics.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Carta Magica d.o.o.",
+"base": "https://cartamagica.hr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "City Of Cards",
+"base": "https://cityof.cards",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Collectistore",
+"base": "https://collectistore.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "CICADAS GAMING",
+"base": "https://cicadas-gaming.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "CollGamers",
+"base": "https://collgamers.nl",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Comic Attack",
+"base": "https://comic-attack.de",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Comix Cafe'",
+"base": "https://comixcafe.it",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "COMICS' COLLECTION",
+"base": "https://comicscollection.it",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Cristal Oscuro",
+"base": "https://tiendacristaloscuro.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Daans Shop Berkel",
+"base": "https://daansshop.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Dadi e Mattoncini Cesena",
+"base": "https://dadiemattoncini.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "DC-Trading",
+"base": "https://dctrading.at",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Date A Card",
+"base": "https://dateacard.fr",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Daruma Games",
+"base": "https://darumagames.es",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "De Dondersteen",
+"base": "https://de-dondersteen.nl",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "DEFCON 2.0",
+"base": "https://defconduezero.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "De Dobbelsteen",
+"base": "https://dedobbelsteen.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Deichcards",
+"base": "https://deichcards.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "DeouCafe",
+"base": "https://deoucafe.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Derive Geek",
+"base": "https://derivegeek.fr",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Der andere Spieleladen",
+"base": "https://der-andere-spieleladen.eu",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "DiablesTCG",
+"base": "https://diablestcg.pl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Don Mazo",
+"base": "https://donmazo.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Doctor Ocio",
+"base": "https://doctorocio.es",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "DRAGONCT",
+"base": "https://dragonct.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Dragons Lair Stockholm",
+"base": "https://dragonslair.se",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "DrawPhase",
+"base": "https://drawphase.pt",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Dungeon Street",
+"base": "https://dungeonstreet.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Dungeon Freak Minis",
+"base": "https://dungeonfreakminis.nl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Dragon World Store",
+"base": "https://dragon-world.store",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Eclypse",
+"base": "https://eclypsetcg.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "EGD Games Meepledin",
+"base": "https://egdgames.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Eldorado TCG GmbH",
+"base": "https://eldoradotcg.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "ELITESTORETCG",
+"base": "https://elitestoretcg.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "El Encuentro",
+"base": "https://elencuentro.infrecuentes.es",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "EL TURNO EXTRA",
+"base": "https://elturnoextra.es",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Eldar",
+"base": "https://eldartcg.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "E.P.I.di moscatiello gian luca",
+"base": "https://exchangeplayinvest.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Evolution TCG",
+"base": "https://evlutcg.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Factory Cards",
+"base": "https://factorycardstcg.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Face To Face Games Rotterdam",
+"base": "https://facetofacegames.nl",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "FancyTreasure",
+"base": "https://fancytreasure.de",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Empire Games",
+"base": "https://empiregames.es",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "FreakCorp",
+"base": "https://freakcorp.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "FRIKI GALAXY",
+"base": "https://frikigalaxy.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "FREAKSHOW STORE GIRONA, SL",
+"base": "https://freakshowstore.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Fuhrious Tradingcards",
+"base": "https://fuhrious-tc.shop",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Fumetteria Geco",
+"base": "https://fumetteriageco.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Funside Mantova",
+"base": "https://funside.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Funside Ubik Cavallotto",
+"base": "https://cavallotto.it",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "G3Skedio",
+"base": "https://g3tcg.es",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "GameForce",
+"base": "https://gameforce.nl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "GAMELOVER",
+"base": "https://game-lover.it",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Gamers Academy",
+"base": "https://gamers-academy.org",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Games Alley di Andrea Lancioni & Co SNC",
+"base": "https://gamesalley.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "GamerzParadize",
+"base": "https://gamerzparadize.nl",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Games & Greetings",
+"base": "https://games-greetings.nl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "GAMESCAPE",
+"base": "https://gamescape.gr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Games TCG",
+"base": "https://gamestcg.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "GAMES TIME SPOLETO",
+"base": "https://gamestimespoleto.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Games Link",
+"base": "https://gameslink.gr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Garajeux",
+"base": "https://garajeux.shop",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Geeklogia",
+"base": "https://geeklogia.shop",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Gigamesh",
+"base": "https://gigamesh.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "GenexComics",
+"base": "https://genexcomics.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Geek Factory Touques",
+"base": "https://geekfactorydeauville.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Glitchless Game Store",
+"base": "https://glitchless.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Goblin Caf\u00e9",
+"base": "https://goblincafeshop.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Goose Games",
+"base": "https://goose-games.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "GOODIES STORE",
+"base": "https://goodies-store.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "GoRetroGaming",
+"base": "https://goretrogaming.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Graine de Geek",
+"base": "https://grainedegeek.fr",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Grand Line Cards",
+"base": "https://grandlinecards.shop",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Grillecards",
+"base": "https://grillecards.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Go\u00fbt du jeu",
+"base": "https://goutdujeu.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "hallicards",
+"base": "https://hallicards.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "GRALNIA Tomasz Kisiel-Bassendowski",
+"base": "https://gralnia.org",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Hall of Games",
+"base": "https://hallofgamestcg.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Halte 13",
+"base": "https://halte13.nl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Halmes Hule ApS",
+"base": "https://halmeshule.dk",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Hanada Cards",
+"base": "https://hanadacards.dk",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "GroveTCG",
+"base": "https://grovetcg.pl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Heartforcards",
+"base": "https://heartforcards.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Hej Mistrzu",
+"base": "https://hejmistrzu.pl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Hive Games",
+"base": "https://hivegames.at",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Hipsteria",
+"base": "https://hipsteria.es",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "HobbyHub",
+"base": "https://hobbyhub.gr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Hobby Shop Wargames S.L",
+"base": "https://hobbyshopwargames.es",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "HoloPlaza",
+"base": "https://holoplazatcg.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Heroes Stash",
+"base": "https://heroes-stash.de",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Home & Games 2.0",
+"base": "https://shophomegames.it",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "House of Games",
+"base": "https://thehouseofgames.eu",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Homelands",
+"base": "https://homelands.es",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Ikamaan Pelikrypta/Ikamaa Oy",
+"base": "https://pelikrypta.fi",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "ICONIC CARDS",
+"base": "https://iconic-cards.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Ilan TCG Belgium",
+"base": "https://ilantcgbelgium.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "IKIGAI COMICS",
+"base": "https://ikigaicomicstienda.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Il Nerdozio",
+"base": "https://ilnerdozio.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "IL DOJO TCG",
+"base": "https://ildojo.store",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Il Labirinto - Comics, Cards & Games",
+"base": "https://labirintocomics.it",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Isengard Fantasy Shop",
+"base": "https://isengard.com.cy",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Jaku Play Corner",
+"base": "https://jakutoys.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "INGENIO BCN GAMES",
+"base": "https://ingeniobcn.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Jan\u00eemes",
+"base": "https://janimes.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Isola dei Collezionisti",
+"base": "https://isoladeicollezionisti.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "ITEMSTAR",
+"base": "https://play-itemstar.de",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Jay-CS",
+"base": "https://jay-cs.at",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Kai Store",
+"base": "https://kai-store.es",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Kaizen Cards",
+"base": "https://kaizencards.de",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "KARDS Greifswald",
+"base": "https://kardsgreifswald.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Kartenbasis",
+"base": "https://kartenbasis.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Karciarz",
+"base": "https://karciarz.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Kartonada",
+"base": "https://kartonada.pl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Kazuma Ravenna",
+"base": "https://kazuma.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Kingdom Wargames",
+"base": "https://kingdomwargames.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Kingdom Wargames Valencia",
+"base": "https://kingdomwargamesvalencia.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Koffie & Spel",
+"base": "https://koffie-spel.be",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Kofuku Store Berlin",
+"base": "https://kofuku.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "INDUSTRIA 61",
+"base": "https://industria61.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Koning Bordspel BV",
+"base": "https://koningbordspel.nl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Kortarkivet Nordic",
+"base": "https://kortarkivet.se",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Konoba Cards",
+"base": "https://konobacards.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Konan Games",
+"base": "https://konan-games.hr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Kraina Goblin\u00f3w",
+"base": "https://krainagoblinow.pl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "La Contea Cards and Games",
+"base": "https://laconteacardsandgames.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "La Botte Secr\u00e8te",
+"base": "https://labottesecretelarochelle.fr",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "La Escotilla",
+"base": "https://laescotillajuegos.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "La Gilda di Busto",
+"base": "https://lagildastore.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "La Guilde",
+"base": "https://la-guilde.be",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "La Guarida Del Tiempo",
+"base": "https://laguaridadeltiempo.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "L'ALIANE",
+"base": "https://laliane.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "L'Antre de Po",
+"base": "https://lantredepo.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "La Rocca Del Wargaming",
+"base": "https://laroccadelwargaming.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "L'Art du Jeu",
+"base": "https://lartdujeuarras.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "La Peque\u00f1a Victoria",
+"base": "https://lapequenavictoria.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "La regle du jeu",
+"base": "https://laregledujeu.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "La Torre M\u00e1gica",
+"base": "https://latorremagica.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Le Cerf Ludique",
+"base": "https://lecerfludique.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Le Cercle du Jeu",
+"base": "https://lecercledujeu.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Le Bar'Jeu",
+"base": "https://lebarjeu.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Ledecompte",
+"base": "https://ledecompte.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Le D\u00e9LIRE",
+"base": "https://le-delire.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Legacy of Legends",
+"base": "https://legacy-tcg.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "LE POTO RYKO",
+"base": "https://lepotoryko.fr",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Les contr\u00e9es du jeu",
+"base": "https://lescontreesdujeu.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Les D\u00e9s Mask\u00e9s",
+"base": "https://lesdesmaskes.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Le Spatioport",
+"base": "https://lespatioportboutique.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "L'INSTANT LUDIQUE",
+"base": "https://linstantludique.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Loop Games",
+"base": "https://loopgamestcg.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Lootbox",
+"base": "https://lootboxjeux.fr",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "lootstore.de hidden vault",
+"base": "https://lootstore.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Libertalia",
+"base": "https://libertaliajuegos.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Lotus Valley",
+"base": "https://lotusvalley.pt",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Lucky Dice",
+"base": "https://luckydice.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Loufoque",
+"base": "https://shop.loufoque.fr",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Ludik",
+"base": "https://boutique-ludik.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Ludus Belli",
+"base": "https://ludusbelli.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "LUDOTECA MALDITA",
+"base": "https://ludotecamaldita.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "MaBasso",
+"base": "https://mabasso.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "L'Usine \u00e0 Jeux",
+"base": "https://usineajeux.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Mad Bro's",
+"base": "https://madbrosgamingshop.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "MAGIC ALL GOAL",
+"base": "https://magicallgoal.ekarri.es",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Magic Omens",
+"base": "https://magicomens.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Magic Warrior Mestre",
+"base": "https://mwstore.it",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Manaforge 16",
+"base": "https://manaforge.fr",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Mana Mecha",
+"base": "https://manamecha.fr",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Manaquelle",
+"base": "https://manaquelle.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Manatorsk",
+"base": "https://manatorsk.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "ManaTrust",
+"base": "https://manatrust.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "MANA VORTEX SHOP",
+"base": "https://manavortex.es",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "MAGICO SPHERE",
+"base": "https://magicosphere.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Mandrua's",
+"base": "https://mandruas.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "manuelpoke3",
+"base": "https://manuelpoke3.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Metamorfo (Santiago Palacios)",
+"base": "https://metamorfo.es",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "MGS SHOP",
+"base": "https://mgs-shop.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "MIST Cards",
+"base": "https://mistcards.nl",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "MoCards",
+"base": "https://mocards.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Mirai Cards Portugal",
+"base": "https://miraicards.pt",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "MICELION GAMES",
+"base": "https://miceliongames.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Monarka Store",
+"base": "https://monarkatcg.store",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Monster Factory",
+"base": "https://monsterfactory.es",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Moon-Shadow Store",
+"base": "https://moon-shadow.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Mulligan TCG Shop",
+"base": "https://mulligantcg.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Mulligan TCG",
+"base": "https://mulligantcg.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Mulligan",
+"base": "https://shop.tiendamulligan.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Montalfan",
+"base": "https://montalfan.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Moria",
+"base": "https://moria.sk",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Myth Games",
+"base": "https://mythgames.eu",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "mundo magic fantasy",
+"base": "https://mundomagicfantasy.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Mythic, your shop",
+"base": "https://mythicyourshop.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Nerd Pug",
+"base": "https://nerdpug.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Nexus Tabletop Alicante",
+"base": "https://nexustabletop.es",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Nekopon Store di Carolina Filippini",
+"base": "https://nekopon.it",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Nostalgic",
+"base": "https://nostalgiccollectibles.dk",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Oh My Game",
+"base": "https://ohmygame.fi",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "olli-baba sammelkarten",
+"base": "https://olli-baba.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "On vit le jeu",
+"base": "https://guiiguiixshop.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Ohana di Sbrana Sara",
+"base": "https://ohanagiochi.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Mondi Sommersi",
+"base": "https://mondisommersi.biz",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "OZ JUEGOS",
+"base": "https://ozjuegos.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Orks & Dorks",
+"base": "https://orksendorks.nl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Panda Games",
+"base": "https://pandagames.es",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Panterland",
+"base": "https://panterland.be",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Panda Yama",
+"base": "https://pandayama.ee",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Phoboscards",
+"base": "https://phoboscards.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Pinselschwert",
+"base": "https://pinselschwert.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Phoenix Feather",
+"base": "https://phoenix-feather.eu",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Planeswalkers Valencia",
+"base": "https://planeswalkers.shop",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Play Planet Ruhrpottspiele",
+"base": "https://ruhrpottspiele.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Pokecardshop",
+"base": "https://pokecardshop.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Pokeca",
+"base": "https://pokeca.nl",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Playtime Merate",
+"base": "https://playtimemerate.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Pok\u00e9ka",
+"base": "https://pokeka.hu",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Pokeminati",
+"base": "https://pokeminati.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Qubimon",
+"base": "https://qubimon.dk",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Questshop",
+"base": "https://questshop.sk",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Razor Cards",
+"base": "https://razorcards.pl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "RGB Kingz",
+"base": "https://rgbkingz.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Relic",
+"base": "https://relictcg.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Riccio store",
+"base": "https://ricciostore.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Retro empire Gaming",
+"base": "https://retro-empire.nl",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "R\u00f6da Goblinens Spelbutik",
+"base": "https://goblinen.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Rogerz - Fields",
+"base": "https://rogerz.dk",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Purperen Draak",
+"base": "https://purperendraak.nl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Ronin il Covo dei Samurai",
+"base": "https://ronintcg.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "RiPlay",
+"base": "https://ri-play.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "sarl Grimgaard",
+"base": "https://grimgaard.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Saruman Games SC",
+"base": "https://sarumangames.es",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "sharkcards",
+"base": "https://sharkcards.es",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Secret Wonders Collectibles",
+"base": "https://secretwonderscollectibles.be",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Shark games",
+"base": "https://sharkgames.es",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Side7",
+"base": "https://side7.nl",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Sit and Game by My-Tradingcards",
+"base": "https://my-tradingcards.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Sk\u0142ad Gier",
+"base": "https://skladgier.pl",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "s'Kartahus",
+"base": "https://skartahus.at",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Skupi sve",
+"base": "https://skupisve.hr",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Slice N Dice",
+"base": "https://slicendice.one",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Snapkeep Nordic",
+"base": "https://snapkeep.se",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "SoloSealed",
+"base": "https://solosealed.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Snafu Battlegrounds",
+"base": "https://snafustore.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Spelgalaxen",
+"base": "https://spelgalaxen.se",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "ShibeTCG",
+"base": "https://shibetcg.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Speltrollet",
+"base": "https://speltrollet.se",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Spel en Meer",
+"base": "https://spelenmeer.nl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Spielkultur",
+"base": "https://spielkultur-oranienburg.de",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Spielewelt Amberg",
+"base": "https://spielewelt.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Spilforsyningen",
+"base": "https://spilforsyningen.dk",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Superelf Cards",
+"base": "https://superelf-cards.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Tableraze Montpellier",
+"base": "https://tablerazemontpellier.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "TCG Arena",
+"base": "https://tcgarena.ro",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "strefakart.pl",
+"base": "https://strefakart.pl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Taverna del Gargoyle",
+"base": "https://tavernadelgargoyle.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "TCGbolt",
+"base": "https://tcgbolt.hu",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "TCG-Garden",
+"base": "https://tcg-garden.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "TCGFamily",
+"base": "https://tcgfamily.nl",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Stragan Ogra",
+"base": "https://straganogra.pl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "TCG Platform",
+"base": "https://tcgplatform.nl",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "TCG-Siegburg",
+"base": "https://tcg-siegburg.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "TCG STAR",
+"base": "https://tcgstar.eu",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "TCG Shops",
+"base": "https://tcgshops.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "TCG Sphere",
+"base": "https://tcgsphere.fr",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "TCG Tavern",
+"base": "https://tcgtavern.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "TCGStore",
+"base": "https://tradingcardgamestore.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Team Lunti Trading Cards",
+"base": "https://teamlunti.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "The Big Bang Games",
+"base": "https://thebigbanggames.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "TeCeGe Mlad\u00e1 Boleslav",
+"base": "https://tecege.cz",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "The Lab Game Store",
+"base": "https://thelabgamestore.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Tcgwebshop",
+"base": "https://tcgwebshop.hu",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "The Mystical Tavern",
+"base": "https://mysticaltavern.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "The Magic Spot",
+"base": "https://themagicspot.it",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Three Stones Games",
+"base": "https://threestonesgames.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Tierra616",
+"base": "https://tierra616.es",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Tier1MTG Aps",
+"base": "https://tier1mtg.dk",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "TopDeck",
+"base": "https://topdeck.es",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "TJB FOKUS",
+"base": "https://tjbalkan.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "The Wobbly Nerdles",
+"base": "https://thewobblynerdles.dk",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "TreasureHub TCG",
+"base": "https://treasurehubtcg.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Tradingcardsxxx - Games Avenue",
+"base": "https://tradingcardsxxx.fr",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Tsuki Center",
+"base": "https://tsukicenter.com",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "TubaCards",
+"base": "https://tubacards.pl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Ulduar",
+"base": "https://ulduar.es",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Underworld Gaming",
+"base": "https://underworldgaming.ie",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Vault of Delights",
+"base": "https://vaultofdelights.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Ventura Games",
+"base": "https://venturacardgames.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Versus Gamecenter Lisboa",
+"base": "https://versusgamecenter.pt",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Welpie Toys (Corio Center)",
+"base": "https://welpietoys.nl",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Yugi-Oase-Store",
+"base": "https://yugi-oase.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "yvolve Nerd Store (Riftbound)",
+"base": "https://yvolve.shop",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "ZTCards",
+"base": "https://ztcards.de",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "ZukaCards",
+"base": "https://zukacards.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "ZAMTEKSHOP  ( Carugate - Milano )",
+"base": "https://zamtek.it",
+"market": "EU",
+"country": "EU",
+"platform": "woocommerce"
+},
+{
+"name": "Zum Waschbaeren",
+"base": "https://racoon-rises.com",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "ZZ GAMES",
+"base": "https://zzgames.dk",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+},
+{
+"name": "Zillerstore",
+"base": "https://zillerstore.it",
+"market": "EU",
+"country": "EU",
+"platform": "shopify"
+}
+]

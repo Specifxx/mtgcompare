@@ -1,0 +1,121 @@
+[
+{
+"name": "Beskar Forge Gaming",
+"base": "https://beskarforge.com.au",
+"market": "AU",
+"country": "AU",
+"platform": "shopify"
+},
+{
+"name": "Card Konbini",
+"base": "https://cardkonbini.com.au",
+"market": "AU",
+"country": "AU",
+"platform": "shopify"
+},
+{
+"name": "Collectors Galore",
+"base": "https://collectorsgalore.com.au",
+"market": "AU",
+"country": "AU",
+"platform": "shopify"
+},
+{
+"name": "devitt collectables",
+"base": "https://devittcollectables.com",
+"market": "AU",
+"country": "AU",
+"platform": "shopify"
+},
+{
+"name": "Flinch Coffee & Play",
+"base": "https://flinchcollectibles.com.au",
+"market": "AU",
+"country": "AU",
+"platform": "shopify"
+},
+{
+"name": "HobbiShack",
+"base": "https://hobbishack.com.au",
+"market": "AU",
+"country": "AU",
+"platform": "shopify"
+},
+{
+"name": "Irresistible Force",
+"base": "https://irresistibleforce.com.au",
+"market": "AU",
+"country": "AU",
+"platform": "shopify"
+},
+{
+"name": "Hightide Tabletop Gaming",
+"base": "https://hightidetabletop.com.au",
+"market": "AU",
+"country": "AU",
+"platform": "woocommerce"
+},
+{
+"name": "Jolt Games",
+"base": "https://joltgames.com.au",
+"market": "AU",
+"country": "AU",
+"platform": "shopify"
+},
+{
+"name": "MSE TCG",
+"base": "https://msetcg.com.au",
+"market": "AU",
+"country": "AU",
+"platform": "shopify"
+},
+{
+"name": "Nedzvault",
+"base": "https://nedzvault.com",
+"market": "AU",
+"country": "AU",
+"platform": "shopify"
+},
+{
+"name": "Omega Games Busselton",
+"base": "https://omegagames.com.au",
+"market": "AU",
+"country": "AU",
+"platform": "shopify"
+},
+{
+"name": "Only Packs TCG",
+"base": "https://onlypackstcg.com.au",
+"market": "AU",
+"country": "AU",
+"platform": "shopify"
+},
+{
+"name": "Stone Monkey",
+"base": "https://stonemonkey.com.au",
+"market": "AU",
+"country": "AU",
+"platform": "shopify"
+},
+{
+"name": "The Combat Company",
+"base": "https://thecombatcompany.com",
+"market": "AU",
+"country": "AU",
+"platform": "shopify"
+},
+{
+"name": "Ultra Rare",
+"base": "https://ultrarare.com.au",
+"market": "AU",
+"country": "AU",
+"platform": "shopify"
+},
+{
+"name": "Warhold Australia",
+"base": "https://warhold.com.au",
+"market": "AU",
+"country": "AU",
+"platform": "shopify"
+}
+]
