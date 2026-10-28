@@ -1,0 +1,3415 @@
+[
+{
+"base": "https://awgames.com.au",
+"market": "AU",
+"name": "Aether Wyvern Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://collectiblemadness.com.au",
+"market": "AU",
+"name": "Collectible Madness",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"figurines-pokemon",
+"figurines-merchandise-plush-toys-all-products"
+],
+"kitCollections": [],
+"currency": "AUD",
+"fig": {
+"collection": "figurines-merchandise-plush-toys-all-products",
+"n": 11,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "pokemon-select-battle-figure-assortment-silver-25th-anniversary",
+"t": "Pokemon - Select Battle Figure Assortment Silver 25th Anniversary",
+"sku": "CM02482a",
+"jan": false
+},
+{
+"handle": "pokemon-quest-vinyl-figures-4-assortment",
+"t": "Pokemon - Quest Vinyl Figures 4\" Assortment",
+"sku": "CM02383a",
+"jan": false
+},
+{
+"handle": "pokemon-nanoblock-rayquaza-extreme-deluxe-figure",
+"t": "Pokemon - nanoblock - Rayquaza Extreme Deluxe Figure",
+"sku": "CM03526",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": null
+}
+}
+},
+{
+"base": "https://eternalmagic.cc",
+"market": "AU",
+"name": "Eternal Magic",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://frenlybricks.store",
+"market": "AU",
+"name": "FRENLY BRICKS - Open 7 Days",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"anime-figures"
+],
+"kitCollections": [],
+"currency": "AUD",
+"fig": {
+"collection": "anime-figures",
+"n": 0,
+"jan": 0,
+"where": {},
+"samples": []
+}
+},
+{
+"base": "https://gamesportal.com.au",
+"market": "AU",
+"name": "Games Portal",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": [
+"model-kits"
+],
+"currency": "AUD",
+"kit": {
+"collection": "model-kits",
+"n": 292,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "pokemon-model-kit-quick-11-charmander",
+"t": "Pokemon Model Kit Quick!! Charmander",
+"sku": "G5064075",
+"jan": false
+},
+{
+"handle": "pokemon-model-kit-quick-07-eevee-sleeping-pose",
+"t": "Pokemon Model Kit Quick!! Eevee (Sleeping Pose)",
+"sku": "G5061937",
+"jan": false
+},
+{
+"handle": "pokemon-model-kit-quick-06-piplup",
+"t": "Pokemon Model Kit Quick!! Piplup",
+"sku": "G5061573",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102640758"
+}
+}
+},
+{
+"base": "https://goodgames.com.au",
+"market": "AU",
+"name": "Good Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"anime-figure",
+"bandai-figures"
+],
+"kitCollections": [],
+"currency": "AUD",
+"fig": {
+"collection": "anime-figure",
+"n": 442,
+"jan": 347,
+"where": {
+"sku": 347
+},
+"samples": [
+{
+"handle": "good-smile-company-full-metal-daemon-muramasa-moderoid-third-generation-seishuusengou-uemon-no-jou-muramasa-action-figure",
+"t": "Good Smile Company Full Metal Daemon: Muramasa - MODEROID Third Generation Seish",
+"sku": "124879",
+"jan": false
+},
+{
+"handle": "good-smile-company-demon-slayer-kimetsu-no-yaiba-xross-link-anime-figure-genya-shinazugawa-swordsmith-village-arc",
+"t": "Good Smile Company Demon Slayer Kimetsu no Yaiba Xross Link Anime Figure Genya S",
+"sku": "117768",
+"jan": false
+},
+{
+"handle": "spy-family-pm-figure-yor-forger-plain-clothes",
+"t": "Spy Family PM Figure - Yor Forger (Plain Clothes)",
+"sku": "102098",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4580590207769"
+}
+}
+},
+{
+"base": "https://hrgames.au",
+"market": "AU",
+"name": "HR Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://lowpop.com.au",
+"market": "AU",
+"name": "Low Pop Trading Co",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://millenniumcomics.com.au",
+"market": "AU",
+"name": "Millennium Comics",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"neca-figurines",
+"warhammer-figurines"
+],
+"kitCollections": [
+"pokemon-model-kits",
+"dragon-ball-model-kit",
+"gunpla-models",
+"model-kits-accessories",
+"model-kits-italeri",
+"model-kits-other"
+],
+"currency": "AUD",
+"fig": {
+"collection": "neca-figurines",
+"n": 15,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "nec54115",
+"t": "TMNT - Turtles in Time Series 2 - 7\" Figure Assortment",
+"sku": "NEC54115",
+"jan": false
+},
+{
+"handle": "nec54104",
+"t": "TMNT - Turtles in Time Series 1 - 7\" Figure Assortment",
+"sku": "NEC54104",
+"jan": false
+},
+{
+"handle": "neca-tmnt-triceraton-rodney-7-action-figure-3-pack",
+"t": "TMNT - Triceraton & Rodney 7\" Action Figure 3-pack",
+"sku": "NEC54160",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "634482541166"
+}
+},
+"kit": {
+"collection": "pokemon-model-kits",
+"n": 0,
+"jan": 0,
+"where": {},
+"samples": []
+}
+},
+{
+"base": "https://playmantis.com.au",
+"market": "AU",
+"name": "Playmantis",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://rhysticnostalgiagaming.com.au",
+"market": "AU",
+"name": "Rhystic Nostalgia Gaming",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": [
+"all-gunpla",
+"all-model-kit-products-copy",
+"all-model-kit-products",
+"gunpla-bases",
+"gunpla-high-grade",
+"gunpla-master-grade"
+],
+"currency": "AUD",
+"kit": {
+"collection": "all-gunpla",
+"n": 0,
+"jan": 0,
+"where": {},
+"samples": []
+}
+},
+{
+"base": "https://sportscardstore.com.au",
+"market": "AU",
+"name": "Sports Card Store",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://thecardcave.com.au",
+"market": "AU",
+"name": "The Card Cave",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://turnordergames.com.au",
+"market": "AU",
+"name": "Turn Order Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://wonderlandgames.com.au",
+"market": "AU",
+"name": "Wonderland Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"figurines-and-collectables"
+],
+"kitCollections": [],
+"currency": "AUD",
+"fig": {
+"collection": "figurines-and-collectables",
+"n": 6,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "jujutsu-kaisen-pop-up-parade-panda",
+"t": "Jujutsu Kaisen POP UP PARADE Panda",
+"sku": "",
+"jan": false
+},
+{
+"handle": "overlord-iv-nendoroid-albedo-3rd-run",
+"t": "Overlord IV Nendoroid Albedo (3rd-run)",
+"sku": "CE3324",
+"jan": false
+},
+{
+"handle": "pop-up-parade-kaguya-sama-love-is-war-chika-fujiwara",
+"t": "Pop up Parade: Kaguya-Sama: Love is War - Chika Fujiwara",
+"sku": "",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4580416944854"
+}
+}
+},
+{
+"base": "https://alwaysgames.ca",
+"market": "CA",
+"name": "Always games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"action-figures"
+],
+"kitCollections": [
+"model-kits"
+],
+"currency": "CAD",
+"fig": {
+"collection": "action-figures",
+"n": 7,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "marvel-heroes-figure-factory-green-goblin-used",
+"t": "Marvel Heroes Figure Factory - Green Goblin (Used)",
+"sku": null,
+"jan": false
+},
+{
+"handle": "marvel-heroes-figure-factory-dr-doom-used",
+"t": "Marvel Heroes Figure Factory - Dr Doom (Used)",
+"sku": null,
+"jan": false
+},
+{
+"handle": "marvel-heroes-figure-factory-ironman-used",
+"t": "Marvel Heroes Figure Factory - Ironman (Used)",
+"sku": null,
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "16133576"
+}
+},
+"kit": {
+"collection": "model-kits",
+"n": 32,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "hg-1-144-rx-78-02-gundam-gundam-the-origin-ver",
+"t": "HG 1/144 RX-78-02 Gundam (Gundam The Origin Ver.)",
+"sku": null,
+"jan": false
+},
+{
+"handle": "hg-1-144-gundam-lightning-black-warrior",
+"t": "HG 1/144 Gundam Lightning Black Warrior",
+"sku": null,
+"jan": false
+},
+{
+"handle": "rg-41-1-144-orb-01-akatsuki-gundam-oowashi-unit-gundam-seed-destiny",
+"t": "RG #41 1/144 ORB-01 Akatsuki Gundam (Oowashi Unit) \"Gundam SEED Destiny\"",
+"sku": "BNDAI-2700763",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102589293"
+}
+}
+},
+{
+"base": "https://beardycards.com",
+"market": "CA",
+"name": "BeardyCards",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://boutiquelapioche.com",
+"market": "CA",
+"name": "La Pioche",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://cardbrawlers.com",
+"market": "CA",
+"name": "Card Brawlers",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"collectible-figurines"
+],
+"kitCollections": [
+"bandai-hobby",
+"gundam-model-kits",
+"model-kits"
+],
+"currency": "CAD",
+"fig": {
+"collection": "collectible-figurines",
+"n": 9,
+"jan": 1,
+"where": {
+"sku": 1
+},
+"samples": [
+{
+"handle": "yu-gi-oh-monsters-chronicle-jinzo-figure",
+"t": "Yu-Gi-Oh! - Monsters Chronicle - Jinzo Figure",
+"sku": "Product-MGH83625",
+"jan": false
+},
+{
+"handle": "yu-gi-oh-monsters-chronicle-red-eyes-black-dragon-figure",
+"t": "Yu-Gi-Oh! - Monsters Chronicle - Red-Eyes Black Dragon Figure",
+"sku": "Product-MGH83526",
+"jan": false
+},
+{
+"handle": "yu-gi-oh-monsters-chronicle-celtic-guardian-figure",
+"t": "Yu-Gi-Oh! - Monsters Chronicle - Celtic Guardian Figure",
+"sku": "Product-MGH83624",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4535123836251"
+}
+},
+"kit": {
+"collection": "bandai-hobby",
+"n": 11,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "rg-ms-06f-zaku-ii",
+"t": "RG MS-06F Zaku II",
+"sku": "Product-5061596",
+"jan": false
+},
+{
+"handle": "mg-blitz-gundam",
+"t": "MG Blitz Gundam",
+"sku": "Product-5062905",
+"jan": false
+},
+{
+"handle": "mg-unicorn-gundam-special-edition",
+"t": "MG Unicorn Gundam (Special Edition)",
+"sku": "Product-5061608",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102615961"
+}
+}
+},
+{
+"base": "https://cartesleo.ca",
+"market": "CA",
+"name": "Cartes Leo",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"figurines-storage-decors",
+"misc-figures",
+"one-piece-figures"
+],
+"kitCollections": [
+"gundam-models"
+],
+"currency": "CAD",
+"fig": {
+"collection": "one-piece-figures",
+"n": 6,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "one-piece-dracule-mihawk-masterlise-ichibansho-figure",
+"t": "One Piece - Dracule Mihawk - Masterlise Ichibansho Figure",
+"sku": null,
+"jan": false
+},
+{
+"handle": "one-piece-sanji-masterlise-ichibansho-figure",
+"t": "One Piece - Sanji - Masterlise Ichibansho Figure",
+"sku": null,
+"jan": false
+},
+{
+"handle": "one-piece-roronoa-zoro-masterlise-ichibansho-figure",
+"t": "One Piece - Roronoa Zoro - Masterlise Ichibansho Figure",
+"sku": null,
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102684806"
+}
+},
+"kit": {
+"collection": "gundam-models",
+"n": 50,
+"jan": 5,
+"where": {
+"body": 5
+},
+"samples": [
+{
+"handle": "hg-amaim-ghost",
+"t": "HG Amaim Ghost",
+"sku": null,
+"jan": false
+},
+{
+"handle": "hg-black-knight-squad-shi-ve-a",
+"t": "HG Black Knight Squad Shi-ve.A",
+"sku": null,
+"jan": false
+},
+{
+"handle": "hg-dygenguar",
+"t": "HG Dygenguar",
+"sku": null,
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102621573"
+}
+}
+},
+{
+"base": "https://chonkycollectibles.com",
+"market": "CA",
+"name": "Chonky Collectibles",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"anime-figures"
+],
+"kitCollections": [
+"gunpla-gundam-models",
+"model-kits",
+"model-kits-toys",
+"one-piece-model-kits",
+"pokemon-model-kits"
+],
+"currency": "CAD",
+"fig": {
+"collection": "anime-figures",
+"n": 2,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "good-smile-nendoroid-hatsune-miku-100th-adventure-ver-2639",
+"t": "Good Smile : Nendoroid Hatsune Miku: 100th Adventure Ver. No. 2639",
+"sku": null,
+"jan": false
+},
+{
+"handle": "bandai-namco-x-crunchyroll-frieren-beyond-journeys-end-fern-figure",
+"t": "[BANDAI NAMCO x Crunchyroll] Frieren: Beyond Journey's End - FERN Figure",
+"sku": null,
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4580590201507"
+}
+},
+"kit": {
+"collection": "gunpla-gundam-models",
+"n": 19,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "bandai-namco-sd-ex-standard-006-strike-freedom-gundam",
+"t": "[Bandai Namco] SD EX-Standard 006 Strike Freedom Gundam",
+"sku": null,
+"jan": false
+},
+{
+"handle": "sd-gundam-ex-standard-wing-gundam-zero",
+"t": "SD GUNDAM EX-STANDARD WING GUNDAM ZERO",
+"sku": null,
+"jan": false
+},
+{
+"handle": "sd-ex-standard-009-destiny-gundam",
+"t": "SD EX-Standard 009 Destiny Gundam",
+"sku": null,
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102656209"
+}
+}
+},
+{
+"base": "https://danireon.com",
+"market": "CA",
+"name": "Danireon Cards & Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": [
+"pokemon-model-kits"
+],
+"currency": "CAD",
+"kit": {
+"collection": "pokemon-model-kits",
+"n": 23,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "pokemon-model-kit-quick-14-tepig",
+"t": "Pok\u00e9mon Model Kit QUICK!! 14 TEPIG",
+"sku": "P51544S",
+"jan": false
+},
+{
+"handle": "pokemon-model-kit-quick-08-mimikyu",
+"t": "Pok\u00e9mon Model Kit QUICK!! 08 MIMIKYU",
+"sku": "P44521S",
+"jan": false
+},
+{
+"handle": "pokemon-model-kit-quick-10-rowlet",
+"t": "Pokemon Model Kit QUICK!! 10 ROWLET",
+"sku": "P51549S",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102653956"
+}
+}
+},
+{
+"base": "https://diademhobbies.com",
+"market": "CA",
+"name": "Diadem Cards & Hobbies",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://empiretradings.com",
+"market": "CA",
+"name": "Empire Trading",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": [
+"gundam-kits",
+"model-kit-glues",
+"model-kit-paint",
+"model-kit-paint-brushes",
+"model-kit-supplies",
+"model-kits"
+],
+"currency": "CAD",
+"kit": {
+"collection": "gundam-kits",
+"n": 0,
+"jan": 0,
+"where": {},
+"samples": []
+}
+},
+{
+"base": "https://facetofacegames.com",
+"market": "CA",
+"name": "Face to Face Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://freshbrewed.games",
+"market": "CA",
+"name": "Fresh Brewed Games Ltd.",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://gameshack.ca",
+"market": "CA",
+"name": "Game Shack",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"all-products-collectible-figures"
+],
+"kitCollections": [
+"one-piece-model-kits",
+"all-products-model-building-kits-pokemon-model-kits"
+],
+"currency": "CAD",
+"fig": {
+"collection": "all-products-collectible-figures",
+"n": 35,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "5-points-batman-animated-series-batmobile-figure",
+"t": "5-Points Batman Animated Series Batmobile - Figure",
+"sku": "107900",
+"jan": false
+},
+{
+"handle": "fig-mega-cat-project-one-piece-113541",
+"t": "Mega Cat Project: One Piece Nyanto! The Big NYAN PIECE Series - Monkey D. Luffy ",
+"sku": "113541",
+"jan": false
+},
+{
+"handle": "dmg-fig-alien-romulus-ultimat-114129",
+"t": "Alien: Romulus - Ultimate Xenomorph XX121 7\" Scale Action Figure (DAMAGED BOX)",
+"sku": "114129",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "696198181654"
+}
+},
+"kit": {
+"collection": "one-piece-model-kits",
+"n": 15,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "mod-grand-ship-collection-or-113833",
+"t": "Grand Ship Collection - Oro Jackson - One Piece Model Kits",
+"sku": "113833",
+"jan": false
+},
+{
+"handle": "mod-grand-ship-collection-ar-113834",
+"t": "Grand Ship Collection - ARK MAXIM - One Piece Model Kits",
+"sku": "113834",
+"jan": false
+},
+{
+"handle": "mod-grand-ship-collection-bi-113835",
+"t": "Grand Ship Collection - Big Mom's Pirate Ship - One Piece Model Kits",
+"sku": "113835",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102640222"
+}
+}
+},
+{
+"base": "https://gtgames.ca",
+"market": "CA",
+"name": "GT Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": [
+"bandai-spirits-gunpla"
+],
+"currency": "CAD",
+"kit": {
+"collection": "bandai-spirits-gunpla",
+"n": 2,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "gundam-barbatos-mobile-suit-gundam-iron-blooded-orphans-mg-1-100",
+"t": "Gundam Barbatos \"Mobile Suit Gundam: Iron Blooded Orphans\" - MG 1/100",
+"sku": null,
+"jan": false
+},
+{
+"handle": "gundam-epyon-mobile-suit-gundam-wing-endless-waltz-mg-1-100",
+"t": "Gundam Epyon \"Mobile Suit Gundam Wing: Endless Waltz\" - MG 1/100",
+"sku": null,
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102582225"
+}
+}
+},
+{
+"base": "https://hobbysag.com",
+"market": "CA",
+"name": "Hobby Saguenay",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"figurine"
+],
+"kitCollections": [],
+"currency": "CAD",
+"fig": {
+"collection": "figurine",
+"n": 3,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "sleeping-pokemon-figure",
+"t": "Sleeping Pok\u00e9mon Figure",
+"sku": "6972913401295",
+"jan": false
+},
+{
+"handle": "demon-slayer-great-posing-figure-blind-mystery-box",
+"t": "Demon Slayer Great Posing Figure Blind Mystery Box",
+"sku": null,
+"jan": false
+},
+{
+"handle": "super-mario-figure-hangers-s2-in-cdu",
+"t": "SUPER MARIO FIGURE HANGERS S2 IN CDU",
+"sku": null,
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "77315630"
+}
+}
+},
+{
+"base": "https://invasioncnc.ca",
+"market": "CA",
+"name": "Invasion Inc",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://kanzengames.com",
+"market": "CA",
+"name": "KanZenGames",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://lamoodcomics.ca",
+"market": "CA",
+"name": "L.A. Mood Comics and Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"anime-figures-1",
+"anime-figures",
+"funko-pop"
+],
+"kitCollections": [
+"miniatures-and-model-kits-inv"
+],
+"currency": "CAD",
+"fig": {
+"collection": "funko-pop",
+"n": 20,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "aug222733-pop-star-wars-obi-wan-kenobi-reva-third-sister-vin-fig-0",
+"t": "Pop Star Wars Obi-Wan Kenobi Reva Third Sister Vinyl Figure",
+"sku": "AUG222733",
+"jan": false
+},
+{
+"handle": "sep212490-pop-rocks-iron-maiden-seventh-son-of-seventh-son-vin-fig-0",
+"t": "Pop Rocks Iron Maiden Seventh Son Of Seventh Son Vinyl Figure",
+"sku": "SEP212490",
+"jan": false
+},
+{
+"handle": "apr222404",
+"t": "Pop Animation Boruto Inojin Vinyl Figure",
+"sku": "APR222404",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "889698645614"
+}
+},
+"kit": {
+"collection": "miniatures-and-model-kits-inv",
+"n": 6,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "transformers-amk-mini-model-kit",
+"t": "Transformers AMK Mini Model Kit",
+"sku": "",
+"jan": false
+},
+{
+"handle": "apr242359-star-wars-anh-millennium-falcon-mpc-1-72-model-kit",
+"t": "Star Wars Anh Millennium Falcon Mpc 1/72 Model Kit",
+"sku": "APR242359",
+"jan": false
+},
+{
+"handle": "bandai-spirits-hg-1-144-cybaster-super-robot-wars",
+"t": "Bandai Spirits HG 1/144 Cybaster 'Super Robot Wars'",
+"sku": "",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4897131750098"
+}
+}
+},
+{
+"base": "https://luniversdelacarte.ca",
+"market": "CA",
+"name": "L'univers de la carte",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://mechagames.ca",
+"market": "CA",
+"name": "Mecha Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://nabemacollectibles.com",
+"market": "CA",
+"name": "Nabema Collectibles",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"action-figures",
+"minix-collectible-figurines"
+],
+"kitCollections": [],
+"currency": "CAD",
+"fig": {
+"collection": "action-figures",
+"n": 100,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "star-wars-poe-dameron-combine-2015-the-force-awakens-3-75-inch-action-figure",
+"t": "Star Wars Poe Dameron Combine 2015 The Force Awakens 3.75 Inch Action Figure",
+"sku": "630509345403",
+"jan": false
+},
+{
+"handle": "star-wars-c-3po-force-link-figure",
+"t": "Star Wars C-3PO Force Link Figure",
+"sku": "630509519736",
+"jan": false
+},
+{
+"handle": "star-wars-the-force-awakens-3-75-inch-action-figure-poe-dameron",
+"t": "Star Wars The Force Awakens 3.75 Inch Action Figure - Poe Dameron",
+"sku": "630509348213",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "630509345403"
+}
+}
+},
+{
+"base": "https://outpostgaming.ca",
+"market": "CA",
+"name": "Outpost Gaming",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://pokejeux.ca",
+"market": "CA",
+"name": "Pok\\u00e9Jeux",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"tout-nos-figurines"
+],
+"kitCollections": [
+"all-gundams-and-model-kits",
+"tous-les-kit-de-maquettes"
+],
+"currency": "CAD",
+"fig": {
+"collection": "tout-nos-figurines",
+"n": 19,
+"jan": 16,
+"where": {
+"sku": 2,
+"body": 14
+},
+"samples": [
+{
+"handle": "sword-art-online-furyu-bicute-bunnies-figure-asuna-white-pearl-color-ver",
+"t": "Sword Art Online FuRyu BiCute Bunnies Figure  Asuna White Pearl Color ver",
+"sku": "4582655072145",
+"jan": true
+},
+{
+"handle": "sega-the-girl-i-like-forgot-her-glasses-pm-perching-figure-ai-mie",
+"t": "SEGA \"The Girl I Like Forgot Her Glasses\" PM Perching Figure \"Ai Mie\"",
+"sku": "GSC-SE54188",
+"jan": false
+},
+{
+"handle": "pop-up-parade-leorio",
+"t": "POP UP PARADE  Leorio",
+"sku": "GSC-G94826",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4580779541882"
+}
+},
+"kit": {
+"collection": "all-gundams-and-model-kits",
+"n": 3,
+"jan": 2,
+"where": {
+"body": 2
+},
+"samples": [
+{
+"handle": "mg-gundam-00-qant-1-100",
+"t": "MG 1/100 Gundam00 Qan[t]",
+"sku": "5061587",
+"jan": true
+},
+{
+"handle": "pokemon-model-kit-quick-04-lugia",
+"t": "Pokemon Model Kit Quick!! #04 Lugia",
+"sku": null,
+"jan": true
+},
+{
+"handle": "naruto-model-kit-naruto-uzumaki",
+"t": "Naruto: Model Kit: Naruto Uzumaki",
+"sku": null,
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "077764730191"
+}
+}
+},
+{
+"base": "https://remicardtrader.ca",
+"market": "CA",
+"name": "R\u00e9mi Card Trader",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"figurine",
+"figurines-funko-pop",
+"funko"
+],
+"kitCollections": [],
+"currency": "CAD",
+"fig": {
+"collection": "funko",
+"n": 0,
+"jan": 0,
+"where": {},
+"samples": []
+}
+},
+{
+"base": "https://shopmancalamonk.com",
+"market": "CA",
+"name": "Mancala Monk Board Game Cafe",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://tapsgames.com",
+"market": "CA",
+"name": "Taps Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://tistacards.com",
+"market": "CA",
+"name": "TistaCards",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://trinityhobby.com",
+"market": "CA",
+"name": "Trinity Hobby",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"anime-figure",
+"anime-figure-1",
+"new-anime-figures"
+],
+"kitCollections": [
+"gunpla",
+"gunpla-restocked",
+"gunpla-under-100",
+"gunpla-under-50",
+"gunpla-1",
+"model-kit-accessories"
+],
+"currency": "CAD",
+"fig": {
+"collection": "anime-figure-1",
+"n": 333,
+"jan": 1,
+"where": {
+"body": 1
+},
+"samples": [
+{
+"handle": "spy-x-family-series-loid-forger-plain-clothes-pm-figure",
+"t": "Megahouse - [Sale] Spy x Family Series Loid Forger (Plain Clothes) PM Figure",
+"sku": "",
+"jan": false
+},
+{
+"handle": "pre-order-hololive-production-ookami-mio-nendoroid-eta-march-april-2023",
+"t": "HOLOLIVE PRODUCTION OOKAMI MIO NENDOROID",
+"sku": "",
+"jan": false
+},
+{
+"handle": "vegetable-fairy-series-trading-figure-vol-3-1box-random",
+"t": "Vegetable Fairy Series Trading Figure Vol.3: 1Box (Random)",
+"sku": "",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4580779511830"
+}
+},
+"kit": {
+"collection": "gunpla",
+"n": 208,
+"jan": 1,
+"where": {
+"sku": 1
+},
+"samples": [
+{
+"handle": "p-bandai-hguc-1-144-zssa-zz-ver",
+"t": "P-Bandai HGUC 1/144 Zssa (ZZ Ver.) (Limited)",
+"sku": "PB-HGUC-1-144-ZSSA-ZZ-VER",
+"jan": false
+},
+{
+"handle": "p-bandai-mg-1-100-enhanced-zz-gundam-ver-ka",
+"t": "P-Bandai MG 1/100 Enhanced ZZ Gundam Ver.Ka (Limited)",
+"sku": "PB-MG-1-100-ENHANCED-ZZ-GUNDAM-VER-KA",
+"jan": false
+},
+{
+"handle": "p-bandai-mg-1-100-gundam-mk-v",
+"t": "P-Bandai MG 1/100 Gundam Mk-V (Limited)",
+"sku": "PB-MG-1-100-GUNDAM-MK-V",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102638601"
+}
+}
+},
+{
+"base": "https://wanderingadventures.ca",
+"market": "CA",
+"name": "Wandering Adventures",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://biridama.pt",
+"market": "EU",
+"name": "Biridama TCG",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://duelspoint.it",
+"market": "EU",
+"name": "Duels Point - Trading Card Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://lms-handel.de",
+"market": "EU",
+"name": "lms-handel",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://nordic-legends.com",
+"market": "EU",
+"name": "Nordic Legends",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://pokemillon.com",
+"market": "EU",
+"name": "PokeMillon",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://sunnystore.es",
+"market": "EU",
+"name": "Sunnystore",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": [
+"bandai-hobby"
+],
+"currency": "EUR",
+"kit": {
+"collection": "bandai-hobby",
+"n": 24,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "one-piece-grand-ship-collection-going-merry-re-run-model-kit",
+"t": "ONE PIECE GRAND SHIP COLLECTION GOING MERRY RE-RUN MODEL KIT",
+"sku": "PO1867S",
+"jan": false
+},
+{
+"handle": "one-piece-grand-ship-collection-thousand-sunny-re-run-model-kit",
+"t": "ONE PIECE GRAND SHIP COLLECTION THOUSAND SUNNY RE-RUN MODEL KIT",
+"sku": "PO1871S",
+"jan": false
+},
+{
+"handle": "one-piece-chopper-robot-1-tank-re-run-model-kit",
+"t": "ONE PIECE - CHOPPER ROBOT 1 TANK RE-RUN MODEL KIT",
+"sku": "PO1860S",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102574275"
+}
+}
+},
+{
+"base": "https://tradingtoys.de",
+"market": "EU",
+"name": "Trading Toys",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"one-piece-sammelkarten-figuren-merchandise-tcg"
+],
+"kitCollections": [],
+"currency": "EUR",
+"fig": {
+"collection": "one-piece-sammelkarten-figuren-merchandise-tcg",
+"n": 0,
+"jan": 0,
+"where": {},
+"samples": []
+}
+},
+{
+"base": "https://cardmerchanthamilton.co.nz",
+"market": "NZ",
+"name": "Card Merchant Hamilton",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://playx.co.nz",
+"market": "NZ",
+"name": "PlayX",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"action-figures-figurines",
+"anime-tv-film-model-kits-and-action-figures",
+"blind-box-action-figures-figurines",
+"gundam-figurs"
+],
+"kitCollections": [
+"anime-tv-film-model-kits-and-action-figures",
+"anime-model-kits",
+"code-geass-lelouch-of-the-rebellion-r2-model-kits",
+"dc-marvel-model-kits",
+"demon-slayer-model-kits",
+"digimon-model-kits"
+],
+"currency": "NZD",
+"fig": {
+"collection": "gundam-figurs",
+"n": 13,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "gundam-figure-rise-standard-tiffa-adill",
+"t": "GUNDAM - FIGURE-RISE STANDARD TIFFA ADILL",
+"sku": "G5069194",
+"jan": false
+},
+{
+"handle": "gundam-figure-rise-standard-nyaan",
+"t": "GUNDAM - FIGURE-RISE STANDARD NYAAN",
+"sku": "G5068690",
+"jan": false
+},
+{
+"handle": "gundam-bandai-figure-rise-standard-amate-yuzuriha-machu",
+"t": "GUNDAM - BANDAI FIGURE-RISE STANDARD AMATE YUZURIHA (MACHU)",
+"sku": "G5068567",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102691941"
+}
+},
+"kit": {
+"collection": "anime-tv-film-model-kits-and-action-figures",
+"n": 0,
+"jan": 0,
+"where": {},
+"samples": []
+}
+},
+{
+"base": "https://brintsco.com",
+"market": "SG",
+"name": "Brints Collectibles",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"pvc-figurines"
+],
+"kitCollections": [],
+"currency": "SGD",
+"fig": {
+"collection": "pvc-figurines",
+"n": 7,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "aniplex-demon-slayer-kimetsu-no-yaiba-tanjiro-giyuu-non-scale-figure",
+"t": "(Aniplex) Demon Slayer: Kimetsu no Yaiba Tanjiro & Giyuu non-scale figure",
+"sku": null,
+"jan": false
+},
+{
+"handle": "f-furyu-to-love-ru-darkness-trio-try-it-figure-lala-satalin-deviluke",
+"t": "(F-FURYU) To Love Ru Darkness Trio-Try-iT Figure -Lala Satalin Deviluke-",
+"sku": null,
+"jan": false
+},
+{
+"handle": "f-furyu-atelier-ryza-ever-darkness-the-secret-hideout-the-animation-kt-model-noodle-stopper-figure-reisalin-stout",
+"t": "(F-FURYU) Atelier Ryza: Ever Darkness & the Secret Hideout The Animation KT mode",
+"sku": null,
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": null
+}
+}
+},
+{
+"base": "https://greyogregames.com",
+"market": "SG",
+"name": "Grey Ogre Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://badwolfgaming.co.uk",
+"market": "UK",
+"name": "Bad Wolf Gaming",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"figures"
+],
+"kitCollections": [],
+"currency": "GBP",
+"fig": {
+"collection": "figures",
+"n": 0,
+"jan": 0,
+"where": {},
+"samples": []
+}
+},
+{
+"base": "https://cardxchange.uk",
+"market": "UK",
+"name": "CardXchange",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://collectorskingdom.co.uk",
+"market": "UK",
+"name": "Collectors Kingdom",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://doublesleeved.co.uk",
+"market": "UK",
+"name": "Double Sleeved",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://game-hq.co.uk",
+"market": "UK",
+"name": "Game HQ Birmingham",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://grimdice.co.uk",
+"market": "UK",
+"name": "Grim Dice Tabletop Gaming",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"archon-studios"
+],
+"kitCollections": [],
+"currency": "GBP",
+"fig": {
+"collection": "archon-studios",
+"n": 0,
+"jan": 0,
+"where": {},
+"samples": []
+}
+},
+{
+"base": "https://japan2uk.com",
+"market": "UK",
+"name": "Japan2UK",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"banpresto-figures"
+],
+"kitCollections": [
+"aoshima-model-kits",
+"gundam-gunpla",
+"tamiya-model-kits"
+],
+"currency": "GBP",
+"fig": {
+"collection": "banpresto-figures",
+"n": 43,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "banpresto-chainsaw-man-break-time-collection-vol-1-denji-pochita-figure",
+"t": "Banpresto Chainsaw Man Break Time Collection Vol. 1 Denji & Pochita Figure",
+"sku": null,
+"jan": false
+},
+{
+"handle": "banpresto-chainsaw-man-chain-spirits-vol-3-makima-figure",
+"t": "Banpresto Chainsaw Man Chain Spirits Vol. 3 Makima Figure",
+"sku": null,
+"jan": false
+},
+{
+"handle": "banpresto-chainsaw-man-chain-spirits-vol-4-power-figure",
+"t": "Banpresto Chainsaw Man Chain Spirits Vol. 4 Power Figure",
+"sku": null,
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4983164882575"
+}
+},
+"kit": {
+"collection": "aoshima-model-kits",
+"n": 19,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "aoshima-autozam-mazda-pg6sa-az-1-92-06152-1-24-scale-model-kit",
+"t": "Aoshima Autozam Mazda PG6SA AZ-1 \u201992 06152 1/24 Scale Model Kit",
+"sku": null,
+"jan": false
+},
+{
+"handle": "aoshima-decoration-truck-mini-deco-next-no-1-dosukoi-gonta-large-trailer-06328-1-64-scale-model-kit",
+"t": "Aoshima Decoration Truck Mini Deco NEXT No.1 Dosukoi Gonta Large Trailer 06328 1",
+"sku": null,
+"jan": false
+},
+{
+"handle": "aoshima-lamborghini-aventador-s-pearl-red-06347-1-32-scale-snap-model-kit",
+"t": "Aoshima Lamborghini Aventador S Pearl Red 06347 1/32 Scale Snap Model Kit",
+"sku": null,
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4905083061527"
+}
+}
+},
+{
+"base": "https://managaming.shop",
+"market": "UK",
+"name": "Mana Gaming UK",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://obsidia-tcg.store",
+"market": "UK",
+"name": "OBSIDIA TCG",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://retrogamerbros.co.uk",
+"market": "UK",
+"name": "Retro Gamer Bros.",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://spellboundgames.co.uk",
+"market": "UK",
+"name": "Spellbound Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://theboardgamehut.co.uk",
+"market": "UK",
+"name": "The Board Game Hut",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://tierzerogames.com",
+"market": "UK",
+"name": "TierZero Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://ultimatetcg.co.uk",
+"market": "UK",
+"name": "Ultimate TCG Limited",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://accidentallycoolgames.com",
+"market": "US",
+"name": "Accidentally Cool Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://animeislandca.com",
+"market": "US",
+"name": "Anime Island CA",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"figures-bleach",
+"figures-demon-slayer",
+"figures-dragon-ball",
+"figures-figures",
+"figures-hatsune-miku",
+"figures-jujutsu-kaisen"
+],
+"kitCollections": [
+"model-kits"
+],
+"currency": "USD",
+"fig": {
+"collection": "figures-figures",
+"n": 440,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "figure-pokemon-takaratomy-moncolle-monster-collection-see-variants",
+"t": "Figure | Pok\u00e9mon | Takaratomy Moncolle Monster Collection (See Variants)",
+"sku": null,
+"jan": false
+},
+{
+"handle": "jujutsu-kaisen-yuji-itadori-spm-figure",
+"t": "Figure | Jujutsu Kaisen | Yuji Itadori | SEGA SPM blue flames",
+"sku": "SG96044",
+"jan": false
+},
+{
+"handle": "jujutsu-kaisen-megumi-fushigoro-spm-figure",
+"t": "Figure | Jujutsu Kaisen | Megumi Fushigoro | SEGA SPM green flames",
+"sku": "SG96097",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4904810955436"
+}
+},
+"kit": {
+"collection": "model-kits",
+"n": 19,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "model-kit-gundam-hg-1-144-ms-gundam-requiem-for-vengeance-gundam-ex",
+"t": "Model Kit | Gundam | 1/144",
+"sku": "BAS2725232",
+"jan": false
+},
+{
+"handle": "model-kit-bandai-pokemon-greninja",
+"t": "Model Kit | Pok\u00e9mon | Greninja",
+"sku": "DEC237749",
+"jan": false
+},
+{
+"handle": "model-kit-pokemon-eevee-copy",
+"t": "Model Kit | Pok\u00e9mon | Eevee (see variants) | Bandai",
+"sku": "BNTCA2541925",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102667014"
+}
+}
+},
+{
+"base": "https://bentonville.geargamingstore.com",
+"market": "US",
+"name": "Gear Gaming Bentonville",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://brickandboardgames.com",
+"market": "US",
+"name": "Brick & Board Games and Cards",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://cardboardanddie.com",
+"market": "US",
+"name": "Cardboard and Die",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": [
+"gunpla"
+],
+"currency": "USD",
+"kit": {
+"collection": "gunpla",
+"n": 111,
+"jan": 2,
+"where": {
+"body": 2
+},
+"samples": [
+{
+"handle": "hg-1-144-ms-gundam-gquuuuuux-model-kit",
+"t": "HG 1/144: MS Gundam GQuuuuuuX Model Kit",
+"sku": "",
+"jan": false
+},
+{
+"handle": "in-stock-sd-gundam-ex-standard-sinanju",
+"t": "In Stock SD Gundam EX Standard Sinanju",
+"sku": null,
+"jan": false
+},
+{
+"handle": "sd-gundam-ex-standard-unicorn-gundam-2-banshee-norn",
+"t": "SD Gundam EX Standard Unicorn Gundam 2 Banshee Norn",
+"sku": null,
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102683175"
+}
+}
+},
+{
+"base": "https://cardnallgaming.com",
+"market": "US",
+"name": "New Cut - Card N All Gaming",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"figures"
+],
+"kitCollections": [
+"model-kits"
+],
+"currency": "USD",
+"fig": {
+"collection": "figures",
+"n": 122,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "artfxjgiyutomiokademonslayerkotobikuyafigure",
+"t": "ARTFX J Giyu Tomioka Demon Slayer Kotobikuya Figure",
+"sku": null,
+"jan": false
+},
+{
+"handle": "artfxshototodorokimyheroacademiaver-2figure",
+"t": "ARTFX Shoto Todoroki My Hero Academia Ver. 2 Figure",
+"sku": null,
+"jan": false
+},
+{
+"handle": "attack-on-titan-qposket-levi",
+"t": "Attack on Titan Levi Qposket Figure",
+"sku": null,
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "190526019676"
+}
+},
+"kit": {
+"collection": "model-kits",
+"n": 170,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "00gundamsevensword-gmg",
+"t": "00 Gundam Seven Sword/G MG",
+"sku": null,
+"jan": false
+},
+{
+"handle": "00raisercelestialbeingmg",
+"t": "00 Raiser Celestial Being Gundam MG",
+"sku": null,
+"jan": false
+},
+{
+"handle": "2100qantcelestialbeingrg",
+"t": "21 00 QAN(T) Celestial Being RG",
+"sku": null,
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102630834"
+}
+}
+},
+{
+"base": "https://castlegameshoppe.com",
+"market": "US",
+"name": "Castle Game Shoppe",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://common-lands.com",
+"market": "US",
+"name": "Common Lands",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://digitalheroes.com",
+"market": "US",
+"name": "Digital Heroes",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"action-figures",
+"action-figures-1"
+],
+"kitCollections": [],
+"currency": "USD",
+"fig": {
+"collection": "action-figures",
+"n": 158,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "star-wars-potj-ellorrs-madak-action-figure",
+"t": "Star Wars POTJ Ellorrs Madak Action Figure",
+"sku": "0Z-CD68-XR24",
+"jan": false
+},
+{
+"handle": "star-wars-sote-leia-in-boushh-disguise-action-figure",
+"t": "Star Wars SOTE Leia In Boushh Disguise Action Figure",
+"sku": "3N-036P-N68E",
+"jan": false
+},
+{
+"handle": "tmnt-last-ronin-action-figure",
+"t": "TMNT Last Ronin Action Figure",
+"sku": "043377811985",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "076930846476"
+}
+}
+},
+{
+"base": "https://dxgamesllc.com",
+"market": "US",
+"name": "Dx Games & More",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"anime-figurines",
+"bluey-figurines",
+"more-finds",
+"gremlins-figurines",
+"lego-city-minifigures",
+"lego-dc-minifigures"
+],
+"kitCollections": [
+"bandai-model-kits"
+],
+"currency": "USD",
+"fig": {
+"collection": "more-finds",
+"n": 52,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "pokemon-cosplay-figure-pikachu-deadpool-4-5",
+"t": "Pok\u00e9mon Cosplay Figure - Pikachu Deadpool 4.5\"",
+"sku": null,
+"jan": false
+},
+{
+"handle": "pokemon-cosplay-figure-pikachu-gengar-3-5",
+"t": "Pok\u00e9mon Cosplay Figure - Pikachu Gengar 3.5\"",
+"sku": null,
+"jan": false
+},
+{
+"handle": "pokemon-sleeping-figure-sylveon",
+"t": "Pok\u00e9mon Sleeping Figure - Sylveon",
+"sku": null,
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "01112214"
+}
+},
+"kit": {
+"collection": "bandai-model-kits",
+"n": 1,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "bandai-hobby-one-piece-grand-ship-collection-model-kit-oro-jackson",
+"t": "Bandai Hobby One Piece Grand Ship Collection Model Kit - Oro Jackson",
+"sku": "BNT 2651397",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102640222"
+}
+}
+},
+{
+"base": "https://evanstongames.com",
+"market": "US",
+"name": "Evanston Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://flipsidegaming.com",
+"market": "US",
+"name": "Flipside Gaming",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": [
+"bandai-model-kits"
+],
+"currency": "USD",
+"kit": {
+"collection": "bandai-model-kits",
+"n": 215,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "pokemon-model-kit-lugia",
+"t": "Pokemon Model Kit: Lugia",
+"sku": "2524400",
+"jan": false
+},
+{
+"handle": "star-wars-model-kit-a-new-hope-vehicle-005-y-wing-starfighter",
+"t": "Star Wars Model Kit: A New Hope Vehicle - #005 Y-Wing Starfighter",
+"sku": "2344776",
+"jan": false
+},
+{
+"handle": "pokemon-model-kit-rayquaza",
+"t": "Pokemon Model Kit: Rayquaza",
+"sku": "2536561",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102604637"
+}
+}
+},
+{
+"base": "https://galaxygamesllc.com",
+"market": "US",
+"name": "Galaxy Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://gamersgrove.com",
+"market": "US",
+"name": "Gamers Grove",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": [
+"gundam-kits"
+],
+"currency": "USD",
+"kit": {
+"collection": "gundam-kits",
+"n": 11,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "gundam-model-kit-hgce-gundam-seed-192-freedom-gundam",
+"t": "Gundam Model Kit: HGCE Gundam SEED- #192 Freedom Gundam",
+"sku": "BNH2304000",
+"jan": false
+},
+{
+"handle": "gundam-model-kit-mg-1-100-wing-gundam-zero-ew-ver-ka-endless-waltz",
+"t": "Gundam Model Kit:  MG 1/100 Wing Gundam Zero (EW) Ver.Ka 'Endless Waltz'",
+"sku": "BNDAI-2516450",
+"jan": false
+},
+{
+"handle": "gundam-model-kit-hguc-mobile-suit-gundam-1-144-59-dom-rick-dom",
+"t": "Gundam Model  Kit: HGUC Mobile Suit Gundam- 1/144 #59 Dom/Rick-Dom",
+"sku": "BNH1141037",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102574046"
+}
+}
+},
+{
+"base": "https://gaminggiant.com",
+"market": "US",
+"name": "Gaming Giant",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://graygauntletgames.com",
+"market": "US",
+"name": "Gray Gauntlet Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://hoarditall.com",
+"market": "US",
+"name": "Hoard",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://immaculatetcg.com",
+"market": "US",
+"name": "Immaculate Trading Cards ",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"figures"
+],
+"kitCollections": [],
+"currency": "USD",
+"fig": {
+"collection": "figures",
+"n": 4,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "holly-box-pokemon-battle-series-gardevior-figure",
+"t": "Holly Box Pok\u00e9mon Battle Series Gardevior Figure",
+"sku": null,
+"jan": false
+},
+{
+"handle": "holly-box-pokemon-battle-series-charizard-figure",
+"t": "Holly Box Pok\u00e9mon Battle Series  Charizard Figure",
+"sku": null,
+"jan": false
+},
+{
+"handle": "holly-box-pokemon-battle-series-metagross-figure",
+"t": "Holly Box Pok\u00e9mon Battle Series Metagross Figure",
+"sku": null,
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "6923517320505"
+}
+}
+},
+{
+"base": "https://jnstoys.com",
+"market": "US",
+"name": "Jnstoys",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": [
+"plastic-metal-model-kits"
+],
+"currency": "USD",
+"kit": {
+"collection": "plastic-metal-model-kits",
+"n": 0,
+"jan": 0,
+"where": {},
+"samples": []
+}
+},
+{
+"base": "https://kingstablegames.com",
+"market": "US",
+"name": "King's Table Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://larrysgamestore.com",
+"market": "US",
+"name": "Larry's Game Store",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://madtownhobby.com",
+"market": "US",
+"name": "Madtown Hobby",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://manyrealms.com",
+"market": "US",
+"name": "Many Realms",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": [
+"gundam-model-kits"
+],
+"currency": "USD",
+"kit": {
+"collection": "gundam-model-kits",
+"n": 3,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "hg-1-144-red-gundam-mk",
+"t": "HG 1/144 Red Gundam MK",
+"sku": "BAS2762125",
+"jan": false
+},
+{
+"handle": "8-gfred-gundam-gquuuuuux-hg-model-kit",
+"t": "#8 GFreD \"Gundam GQuuuuuuX\" HG Model Kit",
+"sku": "BAS2762140",
+"jan": false
+},
+{
+"handle": "17-gundam-g-self-with-perfect-pack-gundam-reconguista-in-g-bandai-hobby-hg-g-reco-1-144",
+"t": "#17 Gundam G-Self with Perfect Pack \"Gundam Reconguista in G\", Bandai Hobby HG G",
+"sku": "BAS2301231",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102685698"
+}
+}
+},
+{
+"base": "https://moxiecardshop.com",
+"market": "US",
+"name": "Moxie Card Shop",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://n4ytcg.com",
+"market": "US",
+"name": "N4YTCG",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"figures"
+],
+"kitCollections": [],
+"currency": "USD",
+"fig": {
+"collection": "figures",
+"n": 11,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "prisma-wing-re-zero-starting-life-in-another-world-ram-glass-edition-1-7-scale-figure",
+"t": "PRISMA WING Re:Zero Starting Life in Another World: Ram Glass Edition 1/7 Scale ",
+"sku": "FIGURERZRAM1226",
+"jan": false
+},
+{
+"handle": "anigame-x-reverse-studio-azur-lane-richelieu-fleuron-of-the-waves-ver-1-6-figure-po-4-7-25",
+"t": "ANIGAME x REVERSE STUDIO \"AZUR LANE\" RICHELIEU FLEURON OF THE WAVES VER. 1/6 FIG",
+"sku": "FIGUREAZL",
+"jan": false
+},
+{
+"handle": "bocchi-the-rock-kikuri-hiroi-1-7-complete-figure",
+"t": "\"BOCCHI THE ROCK!\" Kikuri Hiroi 1/7 Complete Figure",
+"sku": "FIGBTR-HIROI",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4582647121226"
+}
+}
+},
+{
+"base": "https://oldschoolgamesandcards.com",
+"market": "US",
+"name": "Old School Games and Cards",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://phantasmalv.com",
+"market": "US",
+"name": "Phantasma",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://primecitycomics.com",
+"market": "US",
+"name": "Prime City Comics",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"statues-action-figures"
+],
+"kitCollections": [],
+"currency": "USD",
+"fig": {
+"collection": "statues-action-figures",
+"n": 2,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "rcb-dr-doom-on-throne-statue-figure",
+"t": "NEW RCB Dr. Doom on Throne Statue 1/4 SCALE CUSTOM SIDESHOW XM",
+"sku": null,
+"jan": false
+},
+{
+"handle": "custom-deathstroke-statue",
+"t": "NEW Deathstroke Statue 1/4 SCALE STATUE Custom SIDESHOW",
+"sku": null,
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": null
+}
+}
+},
+{
+"base": "https://punkouter.com",
+"market": "US",
+"name": "PunkOuter Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"lionz-figurines"
+],
+"kitCollections": [],
+"currency": "USD",
+"fig": {
+"collection": "lionz-figurines",
+"n": 0,
+"jan": 0,
+"where": {},
+"samples": []
+}
+},
+{
+"base": "https://riftgate.com",
+"market": "US",
+"name": "Riftgate",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://shallweplaygames.com",
+"market": "US",
+"name": "Shall We Play? The Games and More Store",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": [
+"gunpla"
+],
+"currency": "USD",
+"kit": {
+"collection": "gunpla",
+"n": 32,
+"jan": 32,
+"where": {
+"sku": 32
+},
+"samples": [
+{
+"handle": "bnt2488061",
+"t": "Gunpla Mobile Suit Gundam Master Grade Gundam Sentinel FA-010-A FAZZ Ver Ka",
+"sku": "4573102588807",
+"jan": true
+},
+{
+"handle": "bnh2805079",
+"t": "Gunpla Mobile Suit Gundam Hathaway The Sorcery of Nymph Circe Alyzeus (HG 1/144)",
+"sku": "4573102720306",
+"jan": true
+},
+{
+"handle": "bnt2469607",
+"t": "Gunpla Mobile Suit Gundam High Grade Universal Century Gundam Hathaways Flash Pe",
+"sku": "4573102582041",
+"jan": true
+}
+]
+}
+},
+{
+"base": "https://smokeandmirrorshobby.com",
+"market": "US",
+"name": "Smoke and Mirrors Hobby",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"banpresto-figures",
+"figures"
+],
+"kitCollections": [],
+"currency": "USD",
+"fig": {
+"collection": "figures",
+"n": 0,
+"jan": 0,
+"where": {},
+"samples": []
+}
+},
+{
+"base": "https://store.gglehi.com",
+"market": "US",
+"name": "GG Legends",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://theapollosvault.com",
+"market": "US",
+"name": "Apollo's Vault",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"action-figures"
+],
+"kitCollections": [
+"gunpla",
+"model-kits"
+],
+"currency": "USD",
+"fig": {
+"collection": "action-figures",
+"n": 0,
+"jan": 0,
+"where": {},
+"samples": []
+},
+"kit": {
+"collection": "gunpla",
+"n": 11,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "mobile-suit-gundam-next-future-rx-78f00-e-gundam-ex-001-g-l-r-s-s-feather-unit-1-144-scale-model-kit",
+"t": "Mobile Suit Gundam Next Future RX-78F00/E Gundam (EX-001 G.L.R.S.S. Feather Unit",
+"sku": "GUN-COL-EX01-RX78-SEA",
+"jan": false
+},
+{
+"handle": "gundam-hguc-gundam-f91",
+"t": "Gundam F91 Model Kit (HGUC 1/144)",
+"sku": null,
+"jan": false
+},
+{
+"handle": "gundam-hguc-unicorn-gundam-d",
+"t": "Unicorn Gundam Model Kit (HGUC Destroy Mode)",
+"sku": null,
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": null
+}
+}
+},
+{
+"base": "https://thelostzonellc.myshopify.com",
+"market": "US",
+"name": "The Lost Zone Cards and Collectibles ",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://thewarpgate.net",
+"market": "US",
+"name": "The Warp Gate",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": [
+"bandai-model-kits",
+"gundam-model-kits",
+"gunpla-model-kits"
+],
+"currency": "USD",
+"kit": {
+"collection": "bandai-model-kits",
+"n": 12,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "bandai-spirits-pokemon-model-kit-garchomp",
+"t": "Bandai Spirits Pokemon Model Kit Garchomp",
+"sku": "BNDAI-2579576",
+"jan": false
+},
+{
+"handle": "gundam-model-kit-mg-1-100-gundam-seed-destiny-strike-freedom-gundam",
+"t": "Gundam Model Kit: MG 1/100 Gundam SEED DESTINY- Strike Freedom Gundam",
+"sku": "BNH2000728",
+"jan": false
+},
+{
+"handle": "pokemon-model-kit-quick-27-vaporeon",
+"t": "Pokemon Model Kit: Quick!!- 27 VAPOREON",
+"sku": "BNH2857776",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102621399"
+}
+}
+},
+{
+"base": "https://tothetable.game",
+"market": "US",
+"name": "To The Table Board Game Cafe",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://undiscoveredrealm.com",
+"market": "US",
+"name": "Undiscovered Realm",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"action-figures",
+"action-figures-2",
+"amiibos",
+"funko-figures",
+"mcfarlane-action-figures",
+"mondo-figures"
+],
+"kitCollections": [
+"model-kits"
+],
+"currency": "USD",
+"fig": {
+"collection": "nendoroid",
+"n": 14,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "good-smile-company-harley-quinn-suicide-squad-edition-nendoroid-figure",
+"t": "Good Smile Company Harley Quinn Suicide Squad Edition Nendoroid Figure",
+"sku": "G90217R",
+"jan": false
+},
+{
+"handle": "good-smile-company-iron-man-mark-85-endgame-ver-dx-nendoroid-figure",
+"t": "Good Smile Company Iron Man Mark 85 Endgame Ver DX Nendoroid Figure",
+"sku": "G90967",
+"jan": false
+},
+{
+"handle": "good-smile-company-it-pennywise-nendoroid-figure",
+"t": "Good Smile Company It Pennywise Nendoroid Figure",
+"sku": "G90961",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4580416902175"
+}
+},
+"kit": {
+"collection": "model-kits",
+"n": 14,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "bandai-pg-gundam-seed-1-60-perfect-strike-gundam-gunpla-model-kit",
+"t": "Bandai PG: Gundam Seed: 1/60 Perfect Strike Gundam (Gunpla Model Kit)",
+"sku": "BNTCA2499946",
+"jan": false
+},
+{
+"handle": "bandai-gundam-endless-waltz-altron-xxxg-01s2master-grade-figure-1",
+"t": "Bandai Gundam (Endless Waltz) Altron (XXXG-01S2)(Master Grade) Figure",
+"sku": "",
+"jan": false
+},
+{
+"handle": "hggq-09-gaias-ortegas-rick-dom-gquuuuuux-model-kit",
+"t": "HGGQ #09 Gaia's/Ortega's Rick Dom (GQuuuuuuX) Model Kit",
+"sku": "BNTCA2773826",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102590114"
+}
+}
+},
+{
+"base": "https://waywardcitygames.net",
+"market": "US",
+"name": "Wayward City Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"figures"
+],
+"kitCollections": [],
+"currency": "USD",
+"fig": {
+"collection": "figures",
+"n": 1,
+"jan": 1,
+"where": {
+"body": 1
+},
+"samples": [
+{
+"handle": "final-fantasy-vii-polygon-figure-vol-2",
+"t": "FINAL FANTASY VII Polygon Figure Vol. 2",
+"sku": null,
+"jan": true
+}
+]
+}
+},
+{
+"base": "https://zenithgg.com",
+"market": "US",
+"name": "Zenith GG",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://reefsidegames.com.au",
+"market": "AU",
+"name": "Reefside Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://carderaco.com",
+"market": "CA",
+"name": "Cardera Collectibles",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://realmhoppers.com",
+"market": "CA",
+"name": "Realm Hoppers",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://kaiofcards.com",
+"market": "EU",
+"name": "Kai of Cards",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://jetcards.uk",
+"market": "UK",
+"name": "JET Cards",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://epictradingcollectibles.com",
+"market": "US",
+"name": "Epic Trading Collectibles",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"toys-others"
+],
+"kitCollections": [],
+"currency": "USD",
+"fig": {
+"collection": "toys-others",
+"n": 18,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "pokemon-tomy-clip-n-carry-poke-ball-noibat-poke-ball-1",
+"t": "Pok\u00e9mon: Jazwares Pokemon Clip N Go (Figures Vary)",
+"sku": "SP",
+"jan": false
+},
+{
+"handle": "pokemon-tomy-clip-n-go-pikachu-repeat-ball-figure-set-waving",
+"t": "Pokemon: TOMY - Clip 'N' Go Pikachu & Repeat Ball Figure Set [Waving]",
+"sku": null,
+"jan": false
+},
+{
+"handle": "dragon-ball-goku-black-figure",
+"t": "Dragon Ball: Goku-Black Figure",
+"sku": null,
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "191726482857"
+}
+}
+},
+{
+"base": "https://mightycoolgames.com.au",
+"market": "AU",
+"name": "Mighty Cool Games and Collectables",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://envcollectible.com",
+"market": "CA",
+"name": "ENV Collectible",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"demon-slayer-figurine",
+"figurines",
+"haikyu-figurine",
+"jujutsu-kaisen-figurines",
+"naruto",
+"one-piece-figurine"
+],
+"kitCollections": [
+"pokemon-model",
+"one-piece-model-kits",
+"pokemon-model-kit"
+],
+"currency": "CAD",
+"fig": {
+"collection": "figurines",
+"n": 71,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "sakura-miku-amp-figure-sakura-dress-ver-taito",
+"t": "Sakura Miku AMP+ Figure (Sakura Dress Ver.)(Taito)",
+"sku": null,
+"jan": false
+},
+{
+"handle": "hatsune-mikusweetsweets-series-figure",
+"t": "HATSUNE MikuSweetSweets Series Figure",
+"sku": "HMF3154",
+"jan": false
+},
+{
+"handle": "naruto-shippuden-kakashi-hatake-sfc-figure",
+"t": "Naruto Shippuden: Kakashi Hatake - SFC Figure",
+"sku": "OPF5121",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "840342404575"
+}
+},
+"kit": {
+"collection": "pokemon-model",
+"n": 187,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "hg-1-144-gundam-aerial",
+"t": "HG 1/144 GUNDAM AERIAL",
+"sku": "GHG0308",
+"jan": false
+},
+{
+"handle": "hg-gundam-gquuuuuux",
+"t": "HG - GUNDAM GQUUUUUUX",
+"sku": "GHG3175",
+"jan": false
+},
+{
+"handle": "bandai-hobby-hg-1-144-red-gundam",
+"t": "BANDAI HOBBY HG 1/144 RED GUNDAM",
+"sku": "GHG5698",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4573102630308"
+}
+}
+},
+{
+"base": "https://totalplay.ca",
+"market": "CA",
+"name": "Total Play",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://spellnexus.com",
+"market": "EU",
+"name": "SpellNexus",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://sc-collection.sg",
+"market": "SG",
+"name": "SC Collection",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://jgc-collectables.co.uk",
+"market": "UK",
+"name": "JGC Collectables",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://columbuscardshop.com",
+"market": "US",
+"name": "Columbus Card Shop",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://pegasus-games-wi.myshopify.com",
+"market": "US",
+"name": "Pegasus Games WI",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://wnygaming.com",
+"market": "US",
+"name": "WNY Gaming",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://magicians-circle.com",
+"market": "EU",
+"name": "Magician's Circle Cards",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://cardbot.co.nz",
+"market": "AU",
+"name": "Card Bot",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://gametradersseaford.com.au",
+"market": "AU",
+"name": "Gametraders Seaford",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"figures",
+"anime-figures",
+"anime-figures-in-stock",
+"collectables",
+"transformers-buildable-kits",
+"youtooz-vinyl-figures"
+],
+"kitCollections": [
+"aircraft-plastic-model-kits",
+"military-vehicles-aircraft-ship-plastic-model-kit-37",
+"pokemon-model-kit-2-for-35",
+"star-wars-model-kit-2-for-35",
+"plastic-model-kits"
+],
+"currency": "AUD",
+"fig": {
+"collection": "anime-figures",
+"n": 153,
+"jan": 134,
+"where": {
+"sku": 134
+},
+"samples": [
+{
+"handle": "naruto-shippuden-sasuke-uchiha-pop-up-parade-action-figure",
+"t": "Naruto Shippuden Sasuke Uchiha - Pop Up Parade Good Smile Anime Figure",
+"sku": "4580416946506",
+"jan": true
+},
+{
+"handle": "bravely-default-ringabel-pop-up-parade-action-figure",
+"t": "Bravely Default Ringabel - Pop Up Parade Good Smile Anime Figure",
+"sku": "4988601370424",
+"jan": true
+},
+{
+"handle": "mashle-magic-and-muscles-rayne-ames-luminasta-action-figure",
+"t": "Mashle Magic & Muscles Rayne Ames - Luminasta Anime Figure",
+"sku": "4580779544838",
+"jan": true
+}
+]
+},
+"kit": {
+"collection": "aircraft-plastic-model-kits",
+"n": 36,
+"jan": 4,
+"where": {
+"sku": 3,
+"body": 1
+},
+"samples": [
+{
+"handle": "revell-ah-64a-apache-1-100-scale-plastic-model-kit",
+"t": "Revell AH-64A Apache 1:100 Plastic Model Kit",
+"sku": "4009803049854",
+"jan": false
+},
+{
+"handle": "revell-f-117-stealth-fighter-1-72-scale-plastic-model-kit",
+"t": "Revell F-117 Stealth Fighter 1:72 Plastic Model Kit",
+"sku": "03899",
+"jan": false
+},
+{
+"handle": "revell-fokker-dr-1-triplane-1-72-scale-plastic-model-kit",
+"t": "Revell Fokker Dr.1 Triplane 1:72 Plastic Model Kit",
+"sku": "04116",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4009803049854"
+}
+}
+},
+{
+"base": "https://popincollectables.com.au",
+"market": "AU",
+"name": "POPin Collectables",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"nendoroid"
+],
+"kitCollections": [],
+"currency": "AUD",
+"fig": {
+"collection": "nendoroid",
+"n": 5,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "nendoroid-link-the-wind-waker-version",
+"t": "Nendoroid Link: The Wind Waker Version",
+"sku": "GSC7791",
+"jan": false
+},
+{
+"handle": "nendoroid-link-majoras-mask-3d-version",
+"t": "Nendoroid Link: Majora's Mask 3D Version",
+"sku": "GSC11348",
+"jan": false
+},
+{
+"handle": "naruto-shippuden-nendoroid-hinata-hyuga-figure",
+"t": "Naruto Shippuden - Nendoroid Hinata Hyuga Figure",
+"sku": "G12923",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4571697189058"
+}
+}
+},
+{
+"base": "https://blackknightgames.ca",
+"market": "CA",
+"name": "Black Knight Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://obsidiangames.ca",
+"market": "CA",
+"name": "Obsidian Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://collector-expert.de",
+"market": "EU",
+"name": "Collector Expert",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://tcgviert.com",
+"market": "EU",
+"name": "TCGViert",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://entoyment.co.uk",
+"market": "UK",
+"name": "Entoyment Wargaming and Hobby Centre",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://4horsemencomics.com",
+"market": "US",
+"name": "Four Horsemen Comics and Gaming of Robinson Township",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://coffeecatcomics.com",
+"market": "US",
+"name": "Coffee Cat Comics",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://heroesandgames.com",
+"market": "US",
+"name": "Heroes and Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"action-figures"
+],
+"kitCollections": [],
+"currency": "USD",
+"fig": {
+"collection": "action-figures",
+"n": 41,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "banpresto-one-piece-fluffy-puffy-tony-chopper-figure",
+"t": "Banpresto - One Piece - Fluffy Puffy - Tony Chopper Figure",
+"sku": null,
+"jan": false
+},
+{
+"handle": "one-piece-fluffy-puffy-tony-chopper-jacket-figure",
+"t": "One Piece - Fluffy Puffy - Tony Chopper Jacket Figure",
+"sku": null,
+"jan": false
+},
+{
+"handle": "jan229145-re-zero-starting-life-rem-petanko-sofubi-soft-vinyl-fig-0",
+"t": "Re: Zero Starting Life Rem Petanko Sofubi Soft Vinyl Figure",
+"sku": "JAN229145",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4983164886016"
+}
+}
+},
+{
+"base": "https://lspbstore.com",
+"market": "US",
+"name": "lspbstore",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [
+"figurines-pops",
+"gachapons-small-figures",
+"pokemon-re-ment-figures"
+],
+"kitCollections": [],
+"currency": "USD",
+"fig": {
+"collection": "figurines-pops",
+"n": 47,
+"jan": 0,
+"where": {},
+"samples": [
+{
+"handle": "demon-slayer-bandai-macot-mini-keychain-figures-vol-1",
+"t": "Demon Slayer Bandai Mascot Mini Keychain Figures Vol 1",
+"sku": "SEC6-BANDAI-FIG",
+"jan": false
+},
+{
+"handle": "demon-slayer-bandai-macot-mini-keychain-figures-vol-2",
+"t": "Demon Slayer Bandai Mascot Mini Keychain Figures Vol 2",
+"sku": "SEC6-BANDAI-FIG",
+"jan": false
+},
+{
+"handle": "demon-slayer-bandai-macot-mini-keychain-figures-vol-5",
+"t": "Demon Slayer Bandai Mascot Mini Keychain Figures Vol 5",
+"sku": "SEC6-BANDAI-FIG",
+"jan": false
+}
+],
+"singleEndpoint": {
+"status": 200,
+"hasBarcodeKey": true,
+"barcode": "4549660542582"
+}
+}
+},
+{
+"base": "https://spacecoast.games",
+"market": "US",
+"name": "Space Coast Games",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://wildcardcyclone.com",
+"market": "US",
+"name": "WildCardCyclone",
+"collectionsStatus": 200,
+"readable": true,
+"figCollections": [],
+"kitCollections": []
+},
+{
+"base": "https://kotous.com",
+"market": "US",
+"name": "Kotous",
+"collectionsStatus": 522
+},
+{
+"base": "https://amiami.com",
+"market": "US",
+"name": "AmiAmi",
+"collectionsStatus": 403
+},
+{
+"base": "https://forbiddenplanet.com",
+"market": "UK",
+"name": "Forbidden Planet",
+"collectionsStatus": 403
+},
+{
+"base": "https://animestore.com.au",
+"market": "AU",
+"name": "Anime Store AU",
+"collectionsStatus": null
+},
+{
+"base": "https://animestar.ca",
+"market": "CA",
+"name": "Anime Star Canada",
+"collectionsStatus": null
+}
+]
