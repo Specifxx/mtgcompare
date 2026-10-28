@@ -340,3 +340,25 @@ brought over here:
 
 Left out on purpose: Dex's apex/www host rules (MTG has always been served
 from the apex) and its Japanese section.
+
+## 266 more stores, from the sister sites' registries — 2026-10-28
+
+Every store DexCompare, OP Compare, RiftCompare and the Gundam, Lorcana and YGO
+sites list that MTG Compare didn't (610 of them) went through
+`scripts/probe-stores.ts` in GitHub Actions: right currency, a public feed,
+and three or more products that `identify()` accepts as Magic sealed. 266
+passed, which takes the registry from 383 stores to 649 (AU 88, CA 170, EU 43,
+NZ 13, SG 12, UK 83, US 240).
+
+The probe's fallback collection list was still DexCompare's Pokémon handles
+(`pokemon-sealed`, `pokemon`…), so a store whose sitemap named no Magic
+collection was read for Pokémon and found nothing. It now tries the common
+Magic handles first (`magic-the-gathering`, `mtg-sealed`…). That one change
+found 146 of the 266.
+
+Left out on purpose: five storefronts that are the same shop as one already
+listed (derpycards.ca, the Card Caster and Plenty of Games myshopify hosts,
+board-game.co.uk for Zatu, and nortontcg.co.uk, which carries the same 115
+products as The TCG Group). The same stock under two names would count as two
+stores. The new stores show "Shipping at checkout" until the weekly shipping
+probe measures them.
