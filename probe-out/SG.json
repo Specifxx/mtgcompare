@@ -1,0 +1,1028 @@
+[
+ {
+  "key": "tcgclubhouse",
+  "name": "GOAT TCG",
+  "base": "https://tcgclubhouse.myshopify.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 3746
+ },
+ {
+  "key": "sccollection",
+  "name": "SC Collection",
+  "base": "https://www.sc-collection.sg",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 40,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 22,
+   "not-magic": 18
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4281
+ },
+ {
+  "key": "sgmanapro",
+  "name": "1Collectibles",
+  "base": "https://sg-manapro.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4720
+ },
+ {
+  "key": "apgtcg",
+  "name": "Apex Player's Guild",
+  "base": "https://apgtcg.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed-product",
+    "ok": true,
+    "products": 6,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 6
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4071
+ },
+ {
+  "key": "actionpoint",
+  "name": "Action Point Games",
+  "base": "https://actionpoint.sg",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 3525
+ },
+ {
+  "key": "4elements",
+  "name": "4elements",
+  "base": "https://www.4elements.sg",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-pack",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4695
+ },
+ {
+  "key": "jiggletcg",
+  "name": "Jiggle TCG",
+  "base": "https://jiggletcg.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-box",
+    "ok": true,
+    "products": 20,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 17,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 33,
+   "not-magic": 4
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4612
+ },
+ {
+  "key": "humbletcg",
+  "name": "Humble TCG",
+  "base": "https://humbletcg.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 7,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 6,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 5,
+   "foreign": 8
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4666
+ },
+ {
+  "key": "sawadeekard",
+  "name": "Sawadeekard",
+  "base": "https://sawadeekard.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4180
+ },
+ {
+  "key": "kenkyohobby",
+  "name": "Kenkyo Hobby",
+  "base": "https://kenkyohobby.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 3629
+ },
+ {
+  "key": "sentinelgamessg",
+  "name": "Sentinel Games",
+  "base": "https://sentinelgamessg.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order-sprite",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 4
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5223
+ },
+ {
+  "key": "cardboardcollectible",
+  "name": "Cardboard Collectible",
+  "base": "https://cardboardcollectible.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 290,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-pack",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 199,
+   "not-magic": 72,
+   "accessory": 19
+  },
+  "samples": [],
+  "error": null,
+  "ms": 7599
+ },
+ {
+  "key": "spearingcollectibles",
+  "name": "Spearing Collectibles",
+  "base": "https://www.spearingcollectibles.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 3648
+ },
+ {
+  "key": "theavidcollectors",
+  "name": "The Avid Collectors",
+  "base": "https://theavidcollectors.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [
+   "magic-the-gathering"
+  ],
+  "sealedProducts": 4,
+  "inStock": 3,
+  "allFound": 4,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 4,
+    "accepted": 4
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 85,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order-tcg",
+    "ok": true,
+    "products": 10,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 74,
+   "not-sealed": 15,
+   "foreign": 5,
+   "accessory": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4847
+ },
+ {
+  "key": "thetcgalchemists",
+  "name": "The TCG Alchemists",
+  "base": "https://thetcgalchemists.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 3710
+ },
+ {
+  "key": "toyspace",
+  "name": "Toy Space",
+  "base": "https://toyspace.com.sg",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 37,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 32,
+   "not-sealed": 3,
+   "foreign": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5688
+ }
+]
