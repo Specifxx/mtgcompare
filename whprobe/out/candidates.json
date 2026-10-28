@@ -7,15 +7,20 @@
     "base": "https://www.alchemistsworkshops.com",
     "status": 403,
     "final": "https://www.alchemistsworkshops.com",
+    "feed": false,
     "title": "Just a moment...",
-    "platform": "magento",
+    "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     403,
+     403
+    ]
    },
    {
     "base": "https://alchemistsworkshops.co.uk",
     "status": null,
     "final": "https://alchemistsworkshops.co.uk",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -25,15 +30,13 @@
   "name": "Goblin Gaming",
   "tries": [
    {
-    "base": "https://www.goblingaming.co.uk",
+    "base": "https://goblingaming.co.uk",
     "status": 200,
-    "final": "https://www.goblingaming.co.uk",
-    "title": "Goblin Gaming: UK&#39;s Top Wargaming Retailer &amp; Online Store",
     "platform": "shopify",
-    "blocked": true,
     "feed": true,
-    "wh": 10,
-    "gw": 10
+    "final": "https://goblingaming.co.uk",
+    "gw": 284,
+    "scanned": 1500
    }
   ]
  },
@@ -45,16 +48,21 @@
     "base": "https://4tkgaming.co.uk",
     "status": null,
     "final": "https://4tkgaming.co.uk",
+    "feed": false,
     "error": "URLError"
    },
    {
-    "base": "https://www.4tk.co.uk",
+    "base": "https://4tk.co.uk",
     "status": 200,
-    "final": "https://www.4tk.co.uk",
+    "final": "https://www.4tk.co.uk/",
+    "feed": false,
     "title": "We do discounts on a large range of Wargaming Miniatures, Terrain and Hobby Supplies - 4Tk",
-    "platform": "magento",
+    "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -63,15 +71,13 @@
   "name": "Battleground Gaming",
   "tries": [
    {
-    "base": "https://www.battlegroundgaming.co.uk",
+    "base": "https://battlegroundgaming.co.uk",
     "status": 200,
-    "final": "https://battlegroundgaming.co.uk/",
-    "title": "Battleground Gaming UK | Warhammer | Tabletop Games | Acocks Green",
     "platform": "shopify",
-    "blocked": true,
-    "feed": false,
-    "wh": null,
-    "gw": null
+    "feed": true,
+    "final": "https://battlegroundgaming.co.uk",
+    "gw": 304,
+    "scanned": 500
    }
   ]
  },
@@ -80,15 +86,17 @@
   "name": "Castle Comics",
   "tries": [
    {
-    "base": "https://www.castlecomics.co.uk",
+    "base": "https://castlecomics.co.uk",
     "status": 200,
     "final": "https://firstissuecomics.co.uk/password",
+    "feed": false,
     "title": "First Issue Comics",
     "platform": "shopify",
     "blocked": true,
-    "feed": false,
-    "wh": null,
-    "gw": null
+    "feedStatus": [
+     401,
+     400
+    ]
    }
   ]
  },
@@ -97,13 +105,17 @@
   "name": "Dark Sphere",
   "tries": [
    {
-    "base": "https://www.darksphere.co.uk",
+    "base": "https://darksphere.co.uk",
     "status": 200,
-    "final": "https://www.darksphere.co.uk",
+    "final": "https://darksphere.co.uk",
+    "feed": false,
     "title": "",
     "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -112,13 +124,17 @@
   "name": "Element Games",
   "tries": [
    {
-    "base": "https://www.elementgames.co.uk",
+    "base": "https://elementgames.co.uk",
     "status": 200,
-    "final": "https://www.elementgames.co.uk",
+    "final": "https://elementgames.co.uk",
+    "feed": false,
     "title": "Warhammer 40k and Games Workshop Store | Element Games",
-    "platform": "magento",
+    "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -130,15 +146,20 @@
     "base": "https://www.hobbyworkshop.co.uk",
     "status": 403,
     "final": "https://www.hobbyworkshop.co.uk",
+    "feed": false,
     "title": "Just a moment...",
-    "platform": "magento",
+    "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     403,
+     403
+    ]
    },
    {
     "base": "https://thehobbyworkshop.co.uk",
     "status": null,
     "final": "https://thehobbyworkshop.co.uk",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -148,15 +169,13 @@
   "name": "Lvl Up Gaming",
   "tries": [
    {
-    "base": "https://www.lvlupgaming.co.uk",
+    "base": "https://lvlupgaming.co.uk",
     "status": 200,
-    "final": "https://lvlupgaming.co.uk/",
-    "title": "Lvl Up Gaming - Buy Warhammer, Magic the Gathering, Board Games Online\n &ndash; Lvl Up Gam",
     "platform": "shopify",
-    "blocked": true,
     "feed": true,
-    "wh": null,
-    "gw": null
+    "final": "https://lvlupgaming.co.uk",
+    "gw": 160,
+    "scanned": 250
    }
   ]
  },
@@ -165,13 +184,17 @@
   "name": "Magic Madhouse",
   "tries": [
    {
-    "base": "https://www.magicmadhouse.co.uk",
+    "base": "https://magicmadhouse.co.uk",
     "status": 200,
-    "final": "https://magicmadhouse.co.uk/",
+    "final": "https://magicmadhouse.co.uk",
+    "feed": false,
     "title": "Magic: The Gathering, Pok\u00e9mon Cards &amp; More | Magic Madhouse",
     "platform": "bigcommerce",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -180,14 +203,11 @@
   "name": "Rogue Games",
   "tries": [
    {
-    "base": "https://www.roguegames.co.uk",
+    "base": "https://roguegames.co.uk",
     "status": 200,
-    "final": "https://roguegames.co.uk/",
-    "title": "Rogue Games - Relaunching Soon",
     "platform": "woocommerce",
-    "blocked": false,
     "feed": true,
-    "wh": 0,
+    "final": "https://roguegames.co.uk",
     "gw": 0
    }
   ]
@@ -197,13 +217,17 @@
   "name": "Scale Model Shed",
   "tries": [
    {
-    "base": "https://www.scalemodelshed.co.uk",
+    "base": "https://scalemodelshed.co.uk",
     "status": 200,
     "final": "https://nicsell.com/en",
+    "feed": false,
     "title": "nicsell: RGP domain backorder service for .de & .eu & .at domains",
-    "platform": "magento",
+    "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     200,
+     200
+    ]
    }
   ]
  },
@@ -213,18 +237,16 @@
   "tries": [
    {
     "base": "https://theoutpost.co.uk",
-    "status": null,
-    "final": "https://theoutpost.co.uk",
-    "error": "URLError"
-   },
-   {
-    "base": "https://www.outpostuk.com",
     "status": 200,
-    "final": "https://outpostsocial.ai/",
-    "title": "OutPost - Social media shouldn&#x27;t be another job",
-    "platform": "magento",
+    "final": "https://theoutpost.co.uk",
+    "feed": false,
+    "title": "THEOUTPOST.CO.UK - For Sale",
+    "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     200,
+     200
+    ]
    }
   ]
  },
@@ -236,15 +258,20 @@
     "base": "https://www.thewarp.co.uk",
     "status": 429,
     "final": "https://www.thewarp.co.uk",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    },
    {
     "base": "https://thewarp.uk",
     "status": null,
     "final": "https://thewarp.uk",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -257,10 +284,14 @@
     "base": "https://www.travellingman.com",
     "status": 429,
     "final": "https://www.travellingman.com",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -272,10 +303,14 @@
     "base": "https://www.waylandgames.co.uk",
     "status": 403,
     "final": "https://www.waylandgames.co.uk",
+    "feed": false,
     "title": "Just a moment...",
-    "platform": "magento",
+    "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     403,
+     403
+    ]
    }
   ]
  },
@@ -284,13 +319,17 @@
   "name": "OnTableTop",
   "tries": [
    {
-    "base": "https://www.ontabletop.com",
+    "base": "https://ontabletop.com",
     "status": 200,
-    "final": "https://www.ontabletop.com",
+    "final": "https://www.ontabletop.com/",
+    "feed": false,
     "title": "OnTableTop &#8211; Home of Beasts of War &#8211; A World of Tabletop Wargaming",
     "platform": "wordpress",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     403
+    ]
    }
   ]
  },
@@ -302,10 +341,14 @@
     "base": "https://www.entoyment.co.uk",
     "status": 429,
     "final": "https://www.entoyment.co.uk",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -314,13 +357,17 @@
   "name": "Gaming Figures",
   "tries": [
    {
-    "base": "https://www.gamingfigures.com",
+    "base": "https://gamingfigures.com",
     "status": 200,
-    "final": "https://www.gamingfigures.com",
+    "final": "https://www.gamingfigures.com/",
+    "feed": false,
     "title": "Gaming Figures",
     "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -332,19 +379,27 @@
     "base": "https://www.glasshammergaming.co.uk",
     "status": 403,
     "final": "https://www.glasshammergaming.co.uk",
+    "feed": false,
     "title": "Just a moment...",
-    "platform": "magento",
+    "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     403,
+     403
+    ]
    },
    {
     "base": "https://www.glasshammer.co.uk",
     "status": 503,
     "final": "https://www.glasshammer.co.uk",
-    "title": "Site Currently Unavailable",
+    "feed": false,
+    "title": "",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     503,
+     503
+    ]
    }
   ]
  },
@@ -356,10 +411,14 @@
     "base": "https://www.grimdice.co.uk",
     "status": 429,
     "final": "https://www.grimdice.co.uk",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -368,13 +427,17 @@
   "name": "Imperial Games",
   "tries": [
    {
-    "base": "https://www.imperialgames.co.uk",
+    "base": "https://imperialgames.co.uk",
     "status": 200,
-    "final": "https://www.imperialgames.co.uk",
+    "final": "https://imperialgames.co.uk",
+    "feed": false,
     "title": "Imperial Games | Tabletop \u2022 TCG \u2022 Anime \u2022 Merch",
-    "platform": "magento",
+    "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -386,16 +449,21 @@
     "base": "https://impsgaming.co.uk",
     "status": null,
     "final": "https://impsgaming.co.uk",
+    "feed": false,
     "error": "URLError"
    },
    {
     "base": "https://www.impsgaming.com",
     "status": 403,
     "final": "https://www.impsgaming.com",
+    "feed": false,
     "title": "403 Forbidden",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     403,
+     403
+    ]
    }
   ]
  },
@@ -407,6 +475,7 @@
     "base": "https://marionvillemodels.co.uk",
     "status": null,
     "final": "https://marionvillemodels.co.uk",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -419,10 +488,14 @@
     "base": "https://www.mightylancergames.co.uk",
     "status": 429,
     "final": "https://www.mightylancergames.co.uk",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -434,19 +507,27 @@
     "base": "https://www.narthexwargaming.co.uk",
     "status": 429,
     "final": "https://www.narthexwargaming.co.uk",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    },
    {
     "base": "https://www.narthexwargaming.com",
     "status": 429,
     "final": "https://www.narthexwargaming.com",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -455,13 +536,17 @@
   "name": "The Games Bunker",
   "tries": [
    {
-    "base": "https://www.thegamesbunker.co.uk",
+    "base": "https://thegamesbunker.co.uk",
     "status": 200,
-    "final": "https://www.thegamesbunker.co.uk",
+    "final": "https://www.thegamesbunker.co.uk/",
+    "feed": false,
     "title": "Home | The Games Bunker",
-    "platform": "magento",
+    "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -473,10 +558,14 @@
     "base": "https://www.firestormgames.co.uk",
     "status": 403,
     "final": "https://www.firestormgames.co.uk",
+    "feed": false,
     "title": "Just a moment...",
-    "platform": "magento",
+    "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     403,
+     403
+    ]
    }
   ]
  },
@@ -488,15 +577,20 @@
     "base": "https://www.athenagames.co.uk",
     "status": 429,
     "final": "https://www.athenagames.co.uk",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    },
    {
     "base": "https://athena-games.co.uk",
     "status": null,
     "final": "https://athena-games.co.uk",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -509,10 +603,14 @@
     "base": "https://www.boardsandswords.co.uk",
     "status": 429,
     "final": "https://www.boardsandswords.co.uk",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -524,10 +622,14 @@
     "base": "https://www.bulwarkgames.co.uk",
     "status": 429,
     "final": "https://www.bulwarkgames.co.uk",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -539,19 +641,27 @@
     "base": "https://www.justplaygames.uk",
     "status": 429,
     "final": "https://www.justplaygames.uk",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    },
    {
     "base": "https://www.justplaygames.co.uk",
     "status": 429,
     "final": "https://www.justplaygames.co.uk",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -563,10 +673,14 @@
     "base": "https://www.kirtongames.co.uk",
     "status": 429,
     "final": "https://www.kirtongames.co.uk",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -578,16 +692,21 @@
     "base": "https://tabletoprepublic.co.uk",
     "status": null,
     "final": "https://tabletoprepublic.co.uk",
+    "feed": false,
     "error": "URLError"
    },
    {
-    "base": "https://www.tabletoprepublic.com",
+    "base": "https://tabletoprepublic.com",
     "status": 200,
-    "final": "https://www.tabletoprepublic.com",
+    "final": "https://www.tabletoprepublic.com/",
+    "feed": false,
     "title": "Home | Tabletop Republic | High Wycombe",
-    "platform": "magento",
+    "platform": "wix",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     400,
+     404
+    ]
    }
   ]
  },
@@ -599,12 +718,14 @@
     "base": "https://wargamestore.co.uk",
     "status": null,
     "final": "https://wargamestore.co.uk",
+    "feed": false,
     "error": "URLError"
    },
    {
     "base": "https://thewargamestore.co.uk",
     "status": null,
     "final": "https://thewargamestore.co.uk",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -617,10 +738,14 @@
     "base": "https://www.incomgaming.co.uk",
     "status": 429,
     "final": "https://www.incomgaming.co.uk",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -632,12 +757,14 @@
     "base": "https://arsmanufacturea.com",
     "status": null,
     "final": "https://arsmanufacturea.com",
+    "feed": false,
     "error": "URLError"
    },
    {
     "base": "https://arsmanufacturea.es",
     "status": null,
     "final": "https://arsmanufacturea.es",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -650,13 +777,21 @@
     "base": "https://dominio.es",
     "status": null,
     "final": "https://dominio.es",
+    "feed": false,
     "error": "URLError"
    },
    {
     "base": "https://dominiogames.com",
-    "status": null,
-    "final": "https://dominiogames.com",
-    "error": "URLError"
+    "status": 200,
+    "final": "https://www.hugedomains.com/domain_profile.cfm?d=dominiogames.com",
+    "feed": false,
+    "title": "DominioGames.com is for sale | HugeDomains",
+    "platform": "other",
+    "blocked": true,
+    "feedStatus": [
+     null,
+     200
+    ]
    }
   ]
  },
@@ -668,10 +803,14 @@
     "base": "https://hammerofwar.com",
     "status": 200,
     "final": "https://www.hugedomains.com/domain_profile.cfm?d=hammerofwar.com",
+    "feed": false,
     "title": "HammerOfWar.com is for sale | HugeDomains",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     200,
+     200
+    ]
    }
   ]
  },
@@ -683,12 +822,14 @@
     "base": "https://minyarts.com",
     "status": null,
     "final": "https://minyarts.com",
+    "feed": false,
     "error": "URLError"
    },
    {
     "base": "https://minyarts.es",
     "status": null,
     "final": "https://minyarts.es",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -701,10 +842,14 @@
     "base": "https://www.aussenposten.de",
     "status": 200,
     "final": "https://www.aussenposten.de",
+    "feed": false,
     "title": "Aussenposten \u2013 SaaS-Produkte und Architektur-Beratung",
     "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -713,19 +858,17 @@
   "name": "Bombcat Hobby",
   "tries": [
    {
-    "base": "https://www.bombcathobby.com",
-    "status": 401,
-    "final": "https://www.bombcathobby.com",
-    "title": "",
+    "base": "https://bombcathobby.com",
+    "status": 200,
+    "final": "https://bombcathobby.com",
+    "feed": false,
+    "title": "Loading...",
     "platform": "other",
     "blocked": false,
-    "feed": false
-   },
-   {
-    "base": "https://bombcat.de",
-    "status": null,
-    "final": "https://bombcat.de",
-    "error": "URLError"
+    "feedStatus": [
+     401,
+     200
+    ]
    }
   ]
  },
@@ -734,13 +877,17 @@
   "name": "De Tafelridder",
   "tries": [
    {
-    "base": "https://www.tafelridder.nl",
+    "base": "https://tafelridder.nl",
     "status": 200,
-    "final": "https://www.tafelridder.nl",
+    "final": "https://www.tafelridder.nl/",
+    "feed": false,
     "title": "Spellenwinkel Leiden, De Tafelridder - Warhammer, Bordspellen, Role-Playing Games, Ruilkaa",
-    "platform": "magento",
+    "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -749,13 +896,17 @@
   "name": "Games Island",
   "tries": [
    {
-    "base": "https://www.games-island.eu",
+    "base": "https://games-island.eu",
     "status": 200,
-    "final": "https://games-island.eu/",
+    "final": "https://games-island.eu",
+    "feed": false,
     "title": "Games Island Online Shop f\u00fcr TCGs, Tabletops &amp; Brettspiele",
-    "platform": "magento",
+    "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     200,
+     200
+    ]
    }
   ]
  },
@@ -764,13 +915,17 @@
   "name": "Kelz0r",
   "tries": [
    {
-    "base": "https://www.kelz0r.dk",
+    "base": "https://kelz0r.dk",
     "status": 200,
     "final": "https://www.kelz0r.dk/magic/",
+    "feed": false,
     "title": "Kelz0r.dk - Rollespil til Fantasipriser! | Kelz0r.dk",
-    "platform": "magento",
+    "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -782,15 +937,20 @@
     "base": "https://www.kutami.de",
     "status": 403,
     "final": "https://www.kutami.de",
+    "feed": false,
     "title": "Just a moment...",
-    "platform": "magento",
+    "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     403,
+     403
+    ]
    },
    {
     "base": "https://kutami.com",
     "status": null,
     "final": "https://kutami.com",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -803,12 +963,14 @@
     "base": "https://myhobbyplace.eu",
     "status": null,
     "final": "https://myhobbyplace.eu",
+    "feed": false,
     "error": "URLError"
    },
    {
     "base": "https://myhobbyplace.com",
     "status": null,
     "final": "https://myhobbyplace.com",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -818,13 +980,17 @@
   "name": "Strefa MTG",
   "tries": [
    {
-    "base": "https://www.strefamtg.pl",
+    "base": "https://strefamtg.pl",
     "status": 200,
-    "final": "https://strefamtg.pl/",
+    "final": "https://strefamtg.pl",
+    "feed": false,
     "title": "Strefa MTG - sklep hobbystyczny",
-    "platform": "magento",
+    "platform": "prestashop",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -833,13 +999,17 @@
   "name": "Alphaspel",
   "tries": [
    {
-    "base": "https://www.alphaspel.se",
+    "base": "https://alphaspel.se",
     "status": 200,
-    "final": "https://www.alphaspel.se",
+    "final": "https://alphaspel.se",
+    "feed": false,
     "title": "Alphaspel",
-    "platform": "magento",
+    "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -848,13 +1018,17 @@
   "name": "Goblin Trader",
   "tries": [
    {
-    "base": "https://www.goblintrader.es",
+    "base": "https://goblintrader.es",
     "status": 200,
     "final": "https://www.goblintrader.es/es/",
+    "feed": false,
     "title": "Goblintrader: Tu tienda de Wargames y Juegos de Mesa",
-    "platform": "magento",
+    "platform": "prestashop",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -866,6 +1040,7 @@
     "base": "https://happygolucky.ie",
     "status": null,
     "final": "https://happygolucky.ie",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -878,16 +1053,21 @@
     "base": "https://lantrodellorco.it",
     "status": null,
     "final": "https://lantrodellorco.it",
+    "feed": false,
     "error": "URLError"
    },
    {
-    "base": "https://www.antrodellorco.it",
+    "base": "https://antrodellorco.it",
     "status": 200,
-    "final": "https://www.antrodellorco.it",
+    "final": "https://www.antrodellorco.it/",
+    "feed": false,
     "title": "L'Antro Dell'Orco",
-    "platform": "magento",
+    "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -896,13 +1076,17 @@
   "name": "Miniaturicum",
   "tries": [
    {
-    "base": "https://www.miniaturicum.de",
+    "base": "https://miniaturicum.de",
     "status": 200,
-    "final": "https://www.miniaturicum.de",
+    "final": "https://www.miniaturicum.de/",
+    "feed": false,
     "title": "MiniaturicuM",
-    "platform": "magento",
+    "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -911,13 +1095,17 @@
   "name": "Taschengelddieb",
   "tries": [
    {
-    "base": "https://www.taschengelddieb.de",
+    "base": "https://taschengelddieb.de",
     "status": 200,
-    "final": "https://www.taschengelddieb.de",
+    "final": "https://taschengelddieb.de",
+    "feed": false,
     "title": "taschengelddieb.de",
-    "platform": "magento",
+    "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     200,
+     200
+    ]
    }
   ]
  },
@@ -926,13 +1114,17 @@
   "name": "Vanaheim",
   "tries": [
    {
-    "base": "https://www.vanaheim.nl",
+    "base": "https://vanaheim.nl",
     "status": 200,
-    "final": "https://www.vanaheim.nl",
+    "final": "https://vanaheim.nl",
+    "feed": false,
     "title": "Vanaheim - Official Website",
-    "platform": "magento",
+    "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -944,6 +1136,7 @@
     "base": "https://vlieg-er-uit.nl",
     "status": null,
     "final": "https://vlieg-er-uit.nl",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -956,10 +1149,14 @@
     "base": "https://www.fantasywelt.de",
     "status": 403,
     "final": "https://www.fantasywelt.de",
+    "feed": false,
     "title": "Just a moment...",
-    "platform": "magento",
+    "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     403,
+     403
+    ]
    }
   ]
  },
@@ -971,15 +1168,20 @@
     "base": "https://www.airsofteire.com",
     "status": 429,
     "final": "https://www.airsofteire.com",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    },
    {
     "base": "https://airsofteire.ie",
     "status": null,
     "final": "https://airsofteire.ie",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -992,10 +1194,14 @@
     "base": "https://www.battlefield-berlin.de",
     "status": 403,
     "final": "https://www.battlefield-berlin.de",
+    "feed": false,
     "title": "Just a moment...",
-    "platform": "magento",
+    "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     403,
+     403
+    ]
    }
   ]
  },
@@ -1007,12 +1213,14 @@
     "base": "https://freakatorium.de",
     "status": null,
     "final": "https://freakatorium.de",
+    "feed": false,
     "error": "URLError"
    },
    {
     "base": "https://freakatorium.com",
     "status": null,
     "final": "https://freakatorium.com",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -1025,10 +1233,14 @@
     "base": "https://www.gamersworld.ie",
     "status": 403,
     "final": "https://www.gamersworld.ie",
+    "feed": false,
     "title": "Just a moment...",
-    "platform": "magento",
+    "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     403,
+     403
+    ]
    }
   ]
  },
@@ -1040,12 +1252,14 @@
     "base": "https://hobbymax.de",
     "status": null,
     "final": "https://hobbymax.de",
+    "feed": false,
     "error": "URLError"
    },
    {
     "base": "https://hobbymax.eu",
     "status": null,
     "final": "https://hobbymax.eu",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -1058,12 +1272,14 @@
     "base": "https://midgard-games.de",
     "status": null,
     "final": "https://midgard-games.de",
+    "feed": false,
     "error": "URLError"
    },
    {
     "base": "https://midgardgames.de",
     "status": null,
     "final": "https://midgardgames.de",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -1076,16 +1292,21 @@
     "base": "https://modelbouwbaillien.be",
     "status": null,
     "final": "https://modelbouwbaillien.be",
+    "feed": false,
     "error": "URLError"
    },
    {
-    "base": "https://www.baillien.be",
+    "base": "https://baillien.be",
     "status": 200,
-    "final": "https://www.baillien.be",
+    "final": "https://baillien.be",
+    "feed": false,
     "title": "Baillien - To Be",
     "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -1097,15 +1318,20 @@
     "base": "https://www.underworldgaming.ie",
     "status": 429,
     "final": "https://www.underworldgaming.ie",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    },
    {
     "base": "https://underworldgaming.de",
     "status": null,
     "final": "https://underworldgaming.de",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -1118,15 +1344,20 @@
     "base": "https://www.warhousegames.com",
     "status": 403,
     "final": "https://www.warhousegames.com",
+    "feed": false,
     "title": "Just a moment...",
-    "platform": "magento",
+    "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     403,
+     403
+    ]
    },
    {
     "base": "https://warhousegames.de",
     "status": null,
     "final": "https://warhousegames.de",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -1139,12 +1370,14 @@
     "base": "https://wendys-miniatures.de",
     "status": null,
     "final": "https://wendys-miniatures.de",
+    "feed": false,
     "error": "URLError"
    },
    {
     "base": "https://wendysminiatures.de",
     "status": null,
     "final": "https://wendysminiatures.de",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -1154,13 +1387,17 @@
   "name": "CMO Games",
   "tries": [
    {
-    "base": "https://www.cmogames.com",
+    "base": "https://cmogames.com",
     "status": 200,
-    "final": "https://cmogames.com/",
+    "final": "https://cmogames.com",
+    "feed": false,
     "title": "CMO Games",
-    "platform": "magento",
+    "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -1172,10 +1409,14 @@
     "base": "https://www.armadagames.com",
     "status": 429,
     "final": "https://www.armadagames.com",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1184,13 +1425,17 @@
   "name": "Brookhurst Hobbies",
   "tries": [
    {
-    "base": "https://www.brookhursthobbies.com",
+    "base": "https://brookhursthobbies.com",
     "status": 200,
-    "final": "https://brookhursthobbies.com/",
+    "final": "https://brookhursthobbies.com",
+    "feed": false,
     "title": "Brookhurst Hobbies",
     "platform": "bigcommerce",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -1202,15 +1447,20 @@
     "base": "https://www.chaosorc.com",
     "status": 403,
     "final": "https://www.chaosorc.com",
+    "feed": false,
     "title": "Just a moment...",
-    "platform": "magento",
+    "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     403,
+     403
+    ]
    },
    {
     "base": "https://chaosorcsuperstore.com",
     "status": null,
     "final": "https://chaosorcsuperstore.com",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -1220,13 +1470,17 @@
   "name": "Dicehead Games",
   "tries": [
    {
-    "base": "https://www.diceheadgames.com",
+    "base": "https://diceheadgames.com",
     "status": 200,
     "final": "https://glyphicsmedia.com/",
+    "feed": false,
     "title": "Totogel | Platform Judi Togel Online Terbaik untuk Pemain Baru",
-    "platform": "magento",
+    "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     200,
+     200
+    ]
    }
   ]
  },
@@ -1238,16 +1492,21 @@
     "base": "https://evolutiongamesnj.com",
     "status": null,
     "final": "https://evolutiongamesnj.com",
+    "feed": false,
     "error": "URLError"
    },
    {
-    "base": "https://www.evolutiongames.com",
+    "base": "https://evolutiongames.com",
     "status": 200,
-    "final": "https://evolutiongames.com/",
+    "final": "https://evolutiongames.com",
+    "feed": false,
     "title": "Evolution Games &#8211; Lansing, MI",
     "platform": "wordpress",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -1256,13 +1515,17 @@
   "name": "Frontline Gaming",
   "tries": [
    {
-    "base": "https://www.frontlinegaming.org",
+    "base": "https://frontlinegaming.org",
     "status": 200,
-    "final": "https://frontlinegaming.org/",
+    "final": "https://frontlinegaming.org",
+    "feed": false,
     "title": "Frontline Gaming - Tabletop Tactics, Meta Reports &amp; Premium FLG Hobby Gear",
     "platform": "woocommerce",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -1274,10 +1537,14 @@
     "base": "https://www.herrickgames.com",
     "status": 429,
     "final": "https://www.herrickgames.com",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1286,13 +1553,17 @@
   "name": "Miniature Market",
   "tries": [
    {
-    "base": "https://www.miniaturemarket.com",
+    "base": "https://miniaturemarket.com",
     "status": 200,
-    "final": "https://www.miniaturemarket.com",
+    "final": "https://www.miniaturemarket.com/",
+    "feed": false,
     "title": "Miniature Market - Board Games, Magic The Gathering, Table Top Games, Dungeons &amp; Drago",
-    "platform": "magento",
+    "platform": "shopware",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -1304,10 +1575,14 @@
     "base": "https://www.minmaxgames.com",
     "status": 429,
     "final": "https://www.minmaxgames.com",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1316,13 +1591,17 @@
   "name": "Pangaea Gaming",
   "tries": [
    {
-    "base": "https://www.pangaeagaming.com",
+    "base": "https://pangaeagaming.com",
     "status": 200,
-    "final": "https://www.pangaeagaming.com",
+    "final": "https://www.pangaeagaming.com/",
+    "feed": false,
     "title": "Pangaea Gaming \u2013 Board Games, Minis, RPGs & TCGs in Radcliff, KY | Pangaea Gaming",
-    "platform": "magento",
+    "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -1334,10 +1613,14 @@
     "base": "https://www.tabletopheaven.com",
     "status": 429,
     "final": "https://www.tabletopheaven.com",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1346,13 +1629,17 @@
   "name": "The ART Store",
   "tries": [
    {
-    "base": "https://www.theartstore.com",
+    "base": "https://theartstore.com",
     "status": 200,
-    "final": "https://theartstore.com/",
+    "final": "https://theartstore.com",
+    "feed": false,
     "title": "The Art Store",
     "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     200,
+     200
+    ]
    }
   ]
  },
@@ -1361,13 +1648,17 @@
   "name": "The Rogue Traders",
   "tries": [
    {
-    "base": "https://www.theroguetraders.com",
+    "base": "https://theroguetraders.com",
     "status": 200,
     "final": "https://www.theroguetradersgaming.com/",
+    "feed": false,
     "title": "Rogue Traders Gaming | Largest In stock of Warhammer Miniatures",
-    "platform": "magento",
+    "platform": "wix",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     400,
+     404
+    ]
    }
   ]
  },
@@ -1376,13 +1667,17 @@
   "name": "Trouble's Little Sister",
   "tries": [
    {
-    "base": "https://www.troubleslittlesister.com",
-    "status": 200,
-    "final": "https://troubleslittlesister.com/",
-    "title": "Home - Trouble&#039;s Little Sister",
-    "platform": "woocommerce",
+    "base": "https://troubleslittlesister.com",
+    "status": 202,
+    "final": "https://troubleslittlesister.com",
+    "feed": false,
+    "title": "",
+    "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     202,
+     202
+    ]
    }
   ]
  },
@@ -1391,13 +1686,17 @@
   "name": "Warpfire Minis",
   "tries": [
    {
-    "base": "https://www.warpfireminis.com",
+    "base": "https://warpfireminis.com",
     "status": 200,
-    "final": "https://warpfireminis.com/",
+    "final": "https://warpfireminis.com",
+    "feed": false,
     "title": "Warpfire Minis - The Best Deals on Everything Warhammer, New and Used!",
     "platform": "bigcommerce",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -1409,10 +1708,14 @@
     "base": "https://www.zulusgames.com",
     "status": 429,
     "final": "https://www.zulusgames.com",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1421,13 +1724,17 @@
   "name": "Cape Fear Games",
   "tries": [
    {
-    "base": "https://www.capefeargames.com",
+    "base": "https://capefeargames.com",
     "status": 200,
-    "final": "https://www.capefeargames.com",
+    "final": "https://www.capefeargames.com/",
+    "feed": false,
     "title": "Cape Fear Games",
-    "platform": "magento",
+    "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -1439,12 +1746,14 @@
     "base": "https://gcfarts.com",
     "status": null,
     "final": "https://gcfarts.com",
+    "feed": false,
     "error": "URLError"
    },
    {
     "base": "https://gcfartsandhobbies.com",
     "status": null,
     "final": "https://gcfartsandhobbies.com",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -1457,10 +1766,14 @@
     "base": "https://www.capefearcollectibles.com",
     "status": 429,
     "final": "https://www.capefearcollectibles.com",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1472,10 +1785,14 @@
     "base": "https://www.vortexgames.ca",
     "status": 429,
     "final": "https://www.vortexgames.ca",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1487,10 +1804,14 @@
     "base": "https://store.401games.ca",
     "status": 429,
     "final": "https://store.401games.ca",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1502,16 +1823,21 @@
     "base": "https://doublestargames.com",
     "status": null,
     "final": "https://doublestargames.com",
+    "feed": false,
     "error": "URLError"
    },
    {
     "base": "https://www.doublestar.ca",
     "status": 403,
     "final": "https://www.doublestar.ca",
+    "feed": false,
     "title": "Just a moment...",
-    "platform": "magento",
+    "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -1520,13 +1846,17 @@
   "name": "Eastridge Sports and Games",
   "tries": [
    {
-    "base": "https://www.eastridge.ca",
+    "base": "https://eastridge.ca",
     "status": 200,
-    "final": "https://eastridge.ca/",
+    "final": "https://eastridge.ca",
+    "feed": false,
     "title": "EastRidge Church",
     "platform": "woocommerce",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -1538,6 +1868,7 @@
     "base": "https://gauntletgames.ca",
     "status": null,
     "final": "https://gauntletgames.ca",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -1550,10 +1881,14 @@
     "base": "https://www.hairyt.com",
     "status": 429,
     "final": "https://www.hairyt.com",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1565,12 +1900,14 @@
     "base": "https://illusionary.ca",
     "status": null,
     "final": "https://illusionary.ca",
+    "feed": false,
     "error": "URLError"
    },
    {
     "base": "https://illusionarygames.ca",
     "status": null,
     "final": "https://illusionarygames.ca",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -1583,16 +1920,21 @@
     "base": "https://kingdomofthetitans.com",
     "status": null,
     "final": "https://kingdomofthetitans.com",
+    "feed": false,
     "error": "URLError"
    },
    {
     "base": "https://www.kingdomtitans.cards",
     "status": 429,
     "final": "https://www.kingdomtitans.cards",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1604,19 +1946,27 @@
     "base": "https://www.labyss.com",
     "status": 429,
     "final": "https://www.labyss.com",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    },
    {
     "base": "https://www.abyssgamestore.com",
     "status": 429,
     "final": "https://www.abyssgamestore.com",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1625,13 +1975,17 @@
   "name": "Meeplemart",
   "tries": [
    {
-    "base": "https://www.meeplemart.com",
+    "base": "https://meeplemart.com",
     "status": 200,
-    "final": "https://www.meeplemart.com",
+    "final": "https://www.meeplemart.com/",
+    "feed": false,
     "title": "Meeplemart Incorporated",
     "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -1643,6 +1997,7 @@
     "base": "https://missionfunandgames.com",
     "status": null,
     "final": "https://missionfunandgames.com",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -1655,6 +2010,7 @@
     "base": "https://outoftheboxgames.ca",
     "status": null,
     "final": "https://outoftheboxgames.ca",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -1667,16 +2023,21 @@
     "base": "https://pastimesportsandgames.com",
     "status": null,
     "final": "https://pastimesportsandgames.com",
+    "feed": false,
     "error": "URLError"
    },
    {
     "base": "https://www.pastimesports.ca",
     "status": 429,
     "final": "https://www.pastimesports.ca",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1688,10 +2049,14 @@
     "base": "https://www.trinityhobby.com",
     "status": 429,
     "final": "https://www.trinityhobby.com",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1703,10 +2068,14 @@
     "base": "https://www.topshelfco.ca",
     "status": 429,
     "final": "https://www.topshelfco.ca",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1718,10 +2087,14 @@
     "base": "https://www.torchlightgh.com",
     "status": 429,
     "final": "https://www.torchlightgh.com",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1733,12 +2106,14 @@
     "base": "https://fenrisworkshop.com",
     "status": null,
     "final": "https://fenrisworkshop.com",
+    "feed": false,
     "error": "URLError"
    },
    {
     "base": "https://fenrisworkshop.ca",
     "status": null,
     "final": "https://fenrisworkshop.ca",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -1751,10 +2126,14 @@
     "base": "https://www.gapgames.com.au",
     "status": 429,
     "final": "https://www.gapgames.com.au",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1766,12 +2145,14 @@
     "base": "https://emeraldhobbies.com.au",
     "status": null,
     "final": "https://emeraldhobbies.com.au",
+    "feed": false,
     "error": "URLError"
    },
    {
     "base": "https://emeraldhobbies.com",
     "status": null,
     "final": "https://emeraldhobbies.com",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -1784,19 +2165,27 @@
     "base": "https://www.greenskingames.com.au",
     "status": 429,
     "final": "https://www.greenskingames.com.au",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    },
    {
     "base": "https://www.greenskingames.com",
     "status": 403,
     "final": "https://www.greenskingames.com",
+    "feed": false,
     "title": "",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -1808,10 +2197,14 @@
     "base": "https://www.mperor.cc",
     "status": 429,
     "final": "https://www.mperor.cc",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1820,13 +2213,17 @@
   "name": "Tabletop Empires",
   "tries": [
    {
-    "base": "https://www.tabletopempires.com.au",
+    "base": "https://tabletopempires.com.au",
     "status": 200,
-    "final": "https://www.tabletopempires.com.au",
+    "final": "https://www.tabletopempires.com.au/",
+    "feed": false,
     "title": "Online Tabletop Wargames &amp; Supplies - TableTop Empires",
-    "platform": "magento",
+    "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -1838,10 +2235,14 @@
     "base": "https://www.thecombatcompany.com",
     "status": 429,
     "final": "https://www.thecombatcompany.com",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1853,10 +2254,14 @@
     "base": "https://www.westcoastgames.com.au",
     "status": 429,
     "final": "https://www.westcoastgames.com.au",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1865,13 +2270,17 @@
   "name": "Dice Arcade",
   "tries": [
    {
-    "base": "https://www.dicearcade.com.au",
+    "base": "https://dicearcade.com.au",
     "status": 200,
-    "final": "https://www.dicearcade.com.au",
+    "final": "https://www.dicearcade.com.au/",
+    "feed": false,
     "title": "Dice Arcade",
     "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -1880,13 +2289,17 @@
   "name": "Frontline Hobbies",
   "tries": [
    {
-    "base": "https://www.frontlinehobbies.com.au",
+    "base": "https://frontlinehobbies.com.au",
     "status": 200,
-    "final": "https://www.frontlinehobbies.com.au",
+    "final": "https://www.frontlinehobbies.com.au/",
+    "feed": false,
     "title": "Frontline Hobbies: Radio Control, Models &amp; Hobby Shop",
     "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -1898,10 +2311,14 @@
     "base": "https://www.gamesempire.com.au",
     "status": 429,
     "final": "https://www.gamesempire.com.au",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1913,6 +2330,7 @@
     "base": "https://kapitihobbies.co.nz",
     "status": null,
     "final": "https://kapitihobbies.co.nz",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -1925,6 +2343,7 @@
     "base": "https://waterfrontnews.co.nz",
     "status": null,
     "final": "https://waterfrontnews.co.nz",
+    "feed": false,
     "error": "URLError"
    }
   ]
@@ -1937,10 +2356,14 @@
     "base": "https://www.goodgames.com.au",
     "status": 429,
     "final": "https://www.goodgames.com.au",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1952,10 +2375,14 @@
     "base": "https://www.gumnut.io",
     "status": 429,
     "final": "https://www.gumnut.io",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1964,13 +2391,17 @@
   "name": "Milsims Games",
   "tries": [
    {
-    "base": "https://www.milsims.com.au",
+    "base": "https://milsims.com.au",
     "status": 200,
-    "final": "https://www.milsims.com.au",
+    "final": "https://www.milsims.com.au/",
+    "feed": false,
     "title": "Milsims Games | Australia&#39;s Largest Selection of Games Online",
     "platform": "other",
     "blocked": false,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  },
@@ -1982,10 +2413,14 @@
     "base": "https://www.vaultgames.com.au",
     "status": 429,
     "final": "https://www.vaultgames.com.au",
+    "feed": false,
     "title": "Verifying your connection...",
     "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     429,
+     400
+    ]
    }
   ]
  },
@@ -1997,16 +2432,21 @@
     "base": "https://vagabondgames.com.au",
     "status": null,
     "final": "https://vagabondgames.com.au",
+    "feed": false,
     "error": "URLError"
    },
    {
-    "base": "https://www.vagabond.com.au",
+    "base": "https://vagabond.com.au",
     "status": 200,
-    "final": "https://www.vagabond.com.au",
+    "final": "https://www.vagabond.com.au/",
+    "feed": false,
     "title": "Sydney Harbour Cruises &amp; Boat Hire | Vagabond Cruises",
-    "platform": "magento",
+    "platform": "other",
     "blocked": true,
-    "feed": false
+    "feedStatus": [
+     404,
+     404
+    ]
    }
   ]
  }
