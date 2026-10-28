@@ -520,3 +520,51 @@ export async function cardsBySlugs(market: Market, slugs: readonly string[]): Pr
   const bySlug = new Map(rows.map(toCard).map((c) => [c.slug, c]));
   return some.map((s) => bySlug.get(s)).filter((c): c is ProductCardData => !!c);
 }
+
+/** One tile of the TCGplayer product strip (components/TcgplayerStrip.tsx): a real product with its photo and TCGplayer's price. */
+export interface TcgplayerTile {
+  slug: string;
+  name: string;
+  imageUrl: string;
+  priceCents: number;
+  url: string;
+}
+
+/**
+ * The TCGplayer strip's tiles: in-stock TCGplayer offers for products with a photo, newest sets first (a set's own when `setCode`
+ * is given), headline types (boxes, bundles) before the rest, at most three per set site-wide. One read scoped to TCGplayer and to one set
+ * or the ten newest, capped; the TCGplayer price is US$
+ * and the strip says so outside the US. An ad, never a price claim: nothing ranks or sorts by it.
+ */
+export async function tcgplayerTiles(opts: { setCode?: string; exclude?: string; take?: number } = {}): Promise<TcgplayerTile[]> {
+  const rows = await prisma.offer.findMany({
+    // Site-wide, only the ten newest sets' rows: the strip shows the newest sets anyway, and the read stays small (src/lib/db.ts).
+    where: { store: TCGPLAYER.key, inStock: true, product: { imageUrl: { not: null }, setCode: opts.setCode ?? { in: SETS.slice(0, 10).map((s) => s.code) } } },
+    take: 400,
+    select: { url: true, priceCents: true, product: { select: { slug: true, name: true, imageUrl: true, setCode: true, productType: true } } },
+  });
+  const release = (code: string | null) => (code ? SET_BY_CODE.get(code)?.releaseDate ?? "" : "");
+  const headline = (t: string) => (HEADLINE_TYPES.includes(t) ? HEADLINE_TYPES.indexOf(t) : HEADLINE_TYPES.length);
+  const sorted = rows
+    .filter((r) => r.product.imageUrl && r.product.slug !== opts.exclude && r.priceCents > 0)
+    .sort((a, b) => release(b.product.setCode).localeCompare(release(a.product.setCode)) || headline(a.product.productType) - headline(b.product.productType) || b.priceCents - a.priceCents);
+  // Site-wide, at most three per set, so one big release does not fill the strip.
+  const perSet = new Map<string | null, number>();
+  const picked: typeof sorted = [];
+  for (const r of sorted) {
+    if (picked.length >= (opts.take ?? 10)) break;
+    const n = perSet.get(r.product.setCode) ?? 0;
+    if (!opts.setCode && n >= 3) continue;
+    perSet.set(r.product.setCode, n + 1);
+    picked.push(r);
+  }
+  return picked.map((r) => ({ slug: r.product.slug, name: r.product.name, imageUrl: r.product.imageUrl!, priceCents: r.priceCents, url: r.url }));
+}
+
+/** A set's TCGplayer tiles, topped up with the newest sets' so a small set still gets a full strip (no product twice). */
+export async function setTcgplayerTiles(setCode: string | null, exclude?: string, take = 10): Promise<TcgplayerTile[]> {
+  const own = setCode ? await tcgplayerTiles({ setCode, exclude, take }) : [];
+  if (own.length >= take) return own;
+  const more = await tcgplayerTiles({ exclude, take: take * 2 });
+  return [...own, ...more.filter((t) => !own.some((o) => o.slug === t.slug))].slice(0, take);
+}

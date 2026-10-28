@@ -27,7 +27,8 @@ import { RecentTracker } from "@/components/Recent";
 import { ebaySearchUrl, offerLink, offerRetailer } from "@/lib/affiliate";
 import { productAdPlan, soldOutAdPlan } from "@/lib/ebay-ads";
 import { rowPacks, tableShape } from "@/lib/ebay-offer-row";
-import { productPage, type ProductCardData } from "@/lib/data";
+import { productPage, setTcgplayerTiles, type ProductCardData } from "@/lib/data";
+import { TcgplayerStrip } from "@/components/TcgplayerStrip";
 import { money, plural, timeAgo } from "@/lib/format";
 import { thumb } from "@/lib/images";
 import { packsFor } from "@/lib/packs";
@@ -207,6 +208,8 @@ export default async function ProductPage({ params }: { params: { region: string
   // The same-set read, all of it (take 40): the value check reads every format, the grid shows eight.
   const related = p.setCode ? await getRelated(r.market, p.setCode, p.slug) : [];
   const grid = set ? related.slice(0, 8) : [];
+  // The TCGplayer strip's tiles (2026-10-28): this set's products on TCGplayer, topped up with the newest sets', never this product.
+  const tcgTiles = await setTcgplayerTiles(p.setCode, p.slug).catch(() => []);
   // In-stock products of the type: "In stock instead" on a sold-out page, "More <type> in <region>" on an in-stock one with no set.
   // The page's one new read (LIMIT 4; the headline types' cheapest when the type has none open).
   const alternatives = !best || !p.setCode ? await inStockAlternatives(r.market, p.productType, p.setCode, p.slug) : [];
@@ -682,6 +685,9 @@ export default async function ProductPage({ params }: { params: { region: string
           <ProductGrid products={grid} region={r.region} />
         </Section>
       )}
+
+      {/* Real sealed products on TCGplayer: after the price table, the chart and "More from <set>", never between a buyer and a price. */}
+      <TcgplayerStrip tiles={tcgTiles} region={r.region} placement="tcgplayer-strip-product" title={set ? `More ${set.name} on TCGplayer` : "Magic sealed on TCGplayer"} searchName={set?.name ?? ""} className="mt-14" />
 
       {best && !p.setCode && alternatives.length > 0 && (
         <Section title={`More ${type ? type.plural : "sealed products"} in ${r.inName}`} href={typeLink.href} linkLabel="See all">

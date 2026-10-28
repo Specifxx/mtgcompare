@@ -31,6 +31,11 @@ export const PLACEMENTS = [
   "soldout-ebay", // product page, sold out: the eBay search button in the sold-out callout's own eBay box (the server HTML)
   "set-tcgplayer", // set page, US only: the labelled "Shop <set> on TCGplayer" search link in the hero card
   "guide-tcgplayer", // a guide, US only: the labelled TCGplayer search link in its closing "Where to buy" section
+  // TCGplayer PRODUCT STRIPS (components/TcgplayerStrip.tsx, 2026-10-28): real sealed products with their photo and
+  // TCGplayer's own price, labelled Ad, below each page's comparison. One placement per surface.
+  "tcgplayer-strip-home", // region home: after the Collector Booster Box rail
+  "tcgplayer-strip-set", // set page: after the set's product grid
+  "tcgplayer-strip-product", // product page: after "More from <set>"
   "header", // the "eBay" item in the site header (desktop nav, xl and up only)
   // eBay LISTING STRIPS (components/EbayStrip.tsx): real listings imported once a day (scripts/ebay-import.ts), read
   // from our database through /api/ebay/<region>. One placement per surface, so EPN's customid report and Vercel's
