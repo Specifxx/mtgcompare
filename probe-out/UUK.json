@@ -1,0 +1,2166 @@
+[
+ {
+  "key": "ajtcg",
+  "name": "AJ-TCG LTD",
+  "base": "https://aj-tcg.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 3456
+ },
+ {
+  "key": "boardgamecafe",
+  "name": "Board Game Cafe Hastings - The Smugglers Meeple",
+  "base": "https://boardgamecafe.co.uk",
+  "market": "UK",
+  "platform": "woocommerce",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 3,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 3
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4593
+ },
+ {
+  "key": "binderful",
+  "name": "Binderful",
+  "base": "https://binderful.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "tins",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4674
+ },
+ {
+  "key": "cataclysmgames",
+  "name": "cataclysm games",
+  "base": "https://cataclysmgames.co.uk",
+  "market": "UK",
+  "platform": "woocommerce",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 3,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 3
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5524
+ },
+ {
+  "key": "dicecupcafe",
+  "name": "Dice Cup",
+  "base": "https://dicecupcafe.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "magic-the-gathering"
+  ],
+  "sealedProducts": 27,
+  "inStock": 8,
+  "allFound": 27,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 46,
+    "accepted": 27
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 15,
+    "accepted": 2
+   },
+   {
+    "handle": "new-releases",
+    "ok": true,
+    "products": 19,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-sealed": 1,
+   "vague": 6,
+   "accessory": 27,
+   "not-magic": 17
+  },
+  "samples": [
+   {
+    "reason": "vague",
+    "title": "Magic the Gathering Tarkir: Dragonstorm Commander Deck"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic the Gathering Assassins Creed Booster Box"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic the Gathering Star Trek Commander Deck PRE ORDER"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic the Gathering Star Trek Collector Commander Deck PRE ORDER"
+   }
+  ],
+  "error": null,
+  "ms": 4403
+ },
+ {
+  "key": "d20cafe",
+  "name": "d20 Board Game Cafe Watford",
+  "base": "https://d20cafe.co.uk",
+  "market": "UK",
+  "platform": "woocommerce",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 3,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 3
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5683
+ },
+ {
+  "key": "dnagames",
+  "name": "DNA Games",
+  "base": "https://dna-games.co.uk",
+  "market": "UK",
+  "platform": "woocommerce",
+  "currency": null,
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges ?, market UK is GBP",
+  "ms": 3460
+ },
+ {
+  "key": "excelsiorgamesandcomics",
+  "name": "Excelsior! Bristol",
+  "base": "https://excelsiorgamesandcomics.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 1,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "new-releases",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-sealed": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3725
+ },
+ {
+  "key": "gamecorner",
+  "name": "GameCorner",
+  "base": "https://gamecorner.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "magic-the-gathering-sealed"
+  ],
+  "sealedProducts": 5,
+  "inStock": 3,
+  "allFound": 5,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 5,
+    "accepted": 5
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 5,
+    "accepted": 5
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 3293
+ },
+ {
+  "key": "gameguru",
+  "name": "Game Guru (Touchwood Solihull)",
+  "base": "https://gameguru.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "magic-the-gathering"
+  ],
+  "sealedProducts": 10,
+  "inStock": 5,
+  "allFound": 10,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 10,
+    "accepted": 10
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 3438
+ },
+ {
+  "key": "hexlabsgames",
+  "name": "Hex Labs Games LTD",
+  "base": "https://hexlabsgames.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 3761
+ },
+ {
+  "key": "hullpops",
+  "name": "Hull Pops Gaming Centre",
+  "base": "https://hullpops.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 5,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 5
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4330
+ },
+ {
+  "key": "jestergamesstore",
+  "name": "Jester Games Store",
+  "base": "https://jestergamesstore.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order-featured",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4338
+ },
+ {
+  "key": "gamersathart",
+  "name": "Gamers@Hart",
+  "base": "https://gamersathart.co.uk",
+  "market": "UK",
+  "platform": "woocommerce",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 120,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 120
+  },
+  "samples": [],
+  "error": null,
+  "ms": 12068
+ },
+ {
+  "key": "justplaygames",
+  "name": "JustPlay",
+  "base": "https://justplaygames.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "magic-the-gathering"
+  ],
+  "sealedProducts": 104,
+  "inStock": 64,
+  "allFound": 104,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 137,
+    "accepted": 104
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 171,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 1,
+   "unclassified": 4,
+   "no-set": 21,
+   "vague": 7,
+   "not-magic": 170,
+   "accessory": 1
+  },
+  "samples": [
+   {
+    "reason": "unclassified",
+    "title": "Magic The Gathering Commander: Universes Beyond: Doctor Who - Blast from the Past (Blue/White/Green)"
+   },
+   {
+    "reason": "no-set",
+    "title": "Magic The Gathering Universes Beyond: Middle Earth - Holiday Scene Box - Might of Galadriel"
+   },
+   {
+    "reason": "no-set",
+    "title": "Magic the Gathering: Tales of MIddlle Earth Commander Deck - Food and Fellowship"
+   },
+   {
+    "reason": "no-set",
+    "title": "Magic the Gathering: Tales of MIddlle Earth Commander Deck - Riders of Rohan"
+   },
+   {
+    "reason": "no-set",
+    "title": "Magic the Gathering: Tales of MIddlle Earth Commander Deck - The Hosts of Mordor"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic: The Gathering - Reality Fracture Bundle COLLECTION ONLY"
+   },
+   {
+    "reason": "no-set",
+    "title": "Magic: The Gathering: Marvel Darkhold Destiny Arcanum Bundle (Gift Bundle)"
+   },
+   {
+    "reason": "no-set",
+    "title": "Magic: The Gathering: Marvel Darkhold Destiny Bundle"
+   },
+   {
+    "reason": "no-set",
+    "title": "Magic: The Gathering: Marvel Darkhold Destiny Collector Booster"
+   },
+   {
+    "reason": "no-set",
+    "title": "Magic: The Gathering: Marvel Darkhold Destiny Collector Booster Display"
+   },
+   {
+    "reason": "no-set",
+    "title": "Magic: The Gathering: Marvel Darkhold Destiny Collector's Edition Commander Deck - Gods of Asgard"
+   },
+   {
+    "reason": "no-set",
+    "title": "Magic: The Gathering: Marvel Darkhold Destiny Collector's Edition Commander Deck - Lords of Hel"
+   }
+  ],
+  "error": null,
+  "ms": 5195
+ },
+ {
+  "key": "kingdomgaming",
+  "name": "Kingdom Gaming",
+  "base": "https://kingdomgaming.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 3702
+ },
+ {
+  "key": "langdengames",
+  "name": "Langden Games",
+  "base": "https://langdengames.co.uk",
+  "market": "UK",
+  "platform": "woocommerce",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 24,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 24
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2719
+ },
+ {
+  "key": "leannesanimeandcollectables",
+  "name": "Leanne's Anime and Collectables",
+  "base": "https://leannesanimeandcollectables.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 3438
+ },
+ {
+  "key": "knightlygaming",
+  "name": "Knightly Gaming",
+  "base": "https://knightlygaming.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "magic-the-gathering",
+   "pre-order"
+  ],
+  "sealedProducts": 10,
+  "inStock": 6,
+  "allFound": 10,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 8,
+    "accepted": 7
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 7,
+    "accepted": 3
+   },
+   {
+    "handle": "new-releases",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "vague": 3,
+   "not-magic": 4
+  },
+  "samples": [
+   {
+    "reason": "vague",
+    "title": "Lorwyn Eclipsed Commander Decks"
+   }
+  ],
+  "error": null,
+  "ms": 5046
+ },
+ {
+  "key": "northumbriantinsoldier",
+  "name": "Northumbrian Tin Soldier Limited",
+  "base": "https://northumbriantinsoldier.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "magic-the-gathering"
+  ],
+  "sealedProducts": 349,
+  "inStock": 45,
+  "allFound": 349,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 373,
+    "accepted": 349
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 62,
+    "accepted": 60
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 43,
+    "accepted": 9
+   }
+  ],
+  "rejections": {
+   "unclassified": 11,
+   "accessory": 4,
+   "not-sealed": 2,
+   "vague": 6,
+   "no-set": 6,
+   "not-magic": 31
+  },
+  "samples": [
+   {
+    "reason": "unclassified",
+    "title": "Magic: The Gathering - Magic Presents:  Marvel Double Issue - Friday December 11th"
+   },
+   {
+    "reason": "unclassified",
+    "title": "Magic: The Gathering - CEDH European Championship Qualifier (Sunday 22nd November)"
+   },
+   {
+    "reason": "unclassified",
+    "title": "Magic: The Gathering - Universes Beyond: Marvel Super Heroes - Collector’s Edition - Commander Deck Bundle- Includes All 4 Decks"
+   },
+   {
+    "reason": "unclassified",
+    "title": "Magic: The Gathering - Teenage Mutant Ninja Turtles - Turtle Team-Up"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic: The Gathering - Universes Beyond: Marvel's Spiderman - Gift Edition Bundle"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic: The Gathering - Universes Beyond: Marvel's Spiderman - Scene Box"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic: The Gathering - Edge of Eternities - Commander Deck Bundle - Includes 2 Decks"
+   },
+   {
+    "reason": "unclassified",
+    "title": "Magic: The Gathering - Universes Beyond: Final Fantasy - Collector’s Edition - Commander Deck Bundle- Includes All 4 Decks"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic: The Gathering - Assassin’s Creed - Beyond Booster"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic: The Gathering - Assassin’s Creed - Beyond Booster Box"
+   },
+   {
+    "reason": "unclassified",
+    "title": "Magic: The Gathering - Ikoria: Lair of Behemoths - Commander 2020 - Deck Timeless Wisdom"
+   },
+   {
+    "reason": "unclassified",
+    "title": "Magic: The Gathering - Commander Starter 2022 - First Flight"
+   }
+  ],
+  "error": null,
+  "ms": 5843
+ },
+ {
+  "key": "nostalgiatcg",
+  "name": "Nostalgia TCG Limited",
+  "base": "https://nostalgiatcg.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "magic-the-gathering"
+  ],
+  "sealedProducts": 105,
+  "inStock": 49,
+  "allFound": 105,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 125,
+    "accepted": 105
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 109,
+    "accepted": 0
+   },
+   {
+    "handle": "new-releases",
+    "ok": true,
+    "products": 8,
+    "accepted": 1
+   }
+  ],
+  "rejections": {
+   "vague": 9,
+   "unclassified": 4,
+   "accessory": 7,
+   "no-set": 2,
+   "not-magic": 80,
+   "foreign": 34
+  },
+  "samples": [
+   {
+    "reason": "vague",
+    "title": "Magic: The Gathering: Reality Fracture Commander Deck"
+   },
+   {
+    "reason": "unclassified",
+    "title": "Magic: The Gathering: Marvel Super Heroes Beginners Box"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic: The Gathering: Marvel Super Heroes Scene Box"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic: The Gathering: Marvel Super Heroes Commander Deck"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic: The Gathering: Marvel Super Heroes Collectors Commander Deck"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic: The Gathering: Secrets of Strixhaven Commander Deck"
+   },
+   {
+    "reason": "unclassified",
+    "title": "Magic: The Gathering: Teenage Mutant Ninja Turtles Team Up"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic: The Gathering: Teenage Mutant Ninja Turtles Commander Deck"
+   },
+   {
+    "reason": "unclassified",
+    "title": "Magic: The Gathering: Avatar The Last Airbender Scene - The Black Sun Invasion"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic: The Gathering: Marvel's Spider-Man Scene Box"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic the Gathering: Edge of Eternities - Commander Deck"
+   },
+   {
+    "reason": "unclassified",
+    "title": "Magic: The Gathering: Final Fantasy Garland at the Chaos Shrine"
+   }
+  ],
+  "error": null,
+  "ms": 4429
+ },
+ {
+  "key": "lostarkgames",
+  "name": "LOST ARK GAMES LIMITED",
+  "base": "https://lostarkgames.com",
+  "market": "UK",
+  "platform": "woocommerce",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 1,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 9904
+ },
+ {
+  "key": "phantomcardsuk",
+  "name": "PHANTOMCARDSUK LTD",
+  "base": "https://phantomcardsuk.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-box",
+    "ok": true,
+    "products": 6,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 6
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4161
+ },
+ {
+  "key": "pixelandblock",
+  "name": "Pixel and Block",
+  "base": "https://pixelandblock.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "new-arrivals"
+  ],
+  "sealedProducts": 4,
+  "inStock": 1,
+  "allFound": 4,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "collection-boxes",
+    "ok": true,
+    "products": 31,
+    "accepted": 0
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 70,
+    "accepted": 4
+   }
+  ],
+  "rejections": {
+   "not-magic": 92,
+   "accessory": 2,
+   "vague": 2,
+   "no-set": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4235
+ },
+ {
+  "key": "rollthedicecornwall",
+  "name": "Roll The Dice Cornwall C.I.C.",
+  "base": "https://rollthedicecornwall.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4358
+ },
+ {
+  "key": "onlygraded",
+  "name": "onlygraded",
+  "base": "https://onlygraded.com",
+  "market": "UK",
+  "platform": "woocommerce",
+  "currency": null,
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges ?, market UK is GBP",
+  "ms": 8535
+ },
+ {
+  "key": "rerollcafe",
+  "name": "ReRoll Board Game Cafe",
+  "base": "https://rerollcafe.com",
+  "market": "UK",
+  "platform": "woocommerce",
+  "currency": null,
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges ?, market UK is GBP",
+  "ms": 9057
+ },
+ {
+  "key": "sarahsshinies",
+  "name": "Sarahs Shinies LTD",
+  "base": "https://sarahs-shinies.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "mtg"
+  ],
+  "sealedProducts": 22,
+  "inStock": 5,
+  "allFound": 22,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 26,
+    "accepted": 22
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "bundle",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-box",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 1,
+   "vague": 3
+  },
+  "samples": [
+   {
+    "reason": "vague",
+    "title": "MTG:  Marvel Super Heroes Commander Deck - Collectors Edition"
+   },
+   {
+    "reason": "vague",
+    "title": "MTG:  Marvel Super Heroes Commander Deck"
+   },
+   {
+    "reason": "vague",
+    "title": "MTG:  Marvel Super Heroes Scene Box"
+   }
+  ],
+  "error": null,
+  "ms": 4876
+ },
+ {
+  "key": "snapsgames",
+  "name": "Snaps Games",
+  "base": "https://snapsgames.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 3584
+ },
+ {
+  "key": "redoctobergames",
+  "name": "Red October Games",
+  "base": "https://redoctobergames.com",
+  "market": "UK",
+  "platform": "woocommerce",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 12,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 10,
+   "foreign": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 10130
+ },
+ {
+  "key": "thehivegaming",
+  "name": "TheHiveGaming",
+  "base": "https://thehivegaming.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 3,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 3
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3815
+ },
+ {
+  "key": "thekoboldskettle",
+  "name": "The Kobolds Kettle",
+  "base": "https://thekoboldskettle.co.uk",
+  "market": "UK",
+  "platform": "woocommerce",
+  "currency": null,
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges ?, market UK is GBP",
+  "ms": 4024
+ },
+ {
+  "key": "thenerdhut",
+  "name": "The Nerd Hut",
+  "base": "https://thenerdhut.co.uk",
+  "market": "UK",
+  "platform": "woocommerce",
+  "currency": null,
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges ?, market UK is GBP",
+  "ms": 2772
+ },
+ {
+  "key": "theludoquist",
+  "name": "The Ludoquist",
+  "base": "https://theludoquist.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 11,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 4,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 15
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4965
+ },
+ {
+  "key": "tridentcards",
+  "name": "TridentCards Bulwell",
+  "base": "https://tridentcards.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 3408
+ },
+ {
+  "key": "thespectrumspacecic",
+  "name": "The Spectrum Space CIC",
+  "base": "https://thespectrumspacecic.co.uk",
+  "market": "UK",
+  "platform": "woocommerce",
+  "currency": null,
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges ?, market UK is GBP",
+  "ms": 5702
+ },
+ {
+  "key": "unifiedcards",
+  "name": "Unified Cards",
+  "base": "https://unifiedcards.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 3388
+ },
+ {
+  "key": "willstoyshop",
+  "name": "Will's Toy Shop",
+  "base": "https://willstoyshop.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 3,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 259,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "vague": 2,
+   "no-set": 2,
+   "unclassified": 3,
+   "accessory": 39,
+   "not-magic": 203,
+   "not-sealed": 7,
+   "foreign": 6
+  },
+  "samples": [
+   {
+    "reason": "vague",
+    "title": "MTG Final Fantasy Commander Deck"
+   },
+   {
+    "reason": "no-set",
+    "title": "MTG Commander Deck : Modern Horizons III"
+   },
+   {
+    "reason": "unclassified",
+    "title": "MTG Spider-man Spideys sensational showdown"
+   }
+  ],
+  "error": null,
+  "ms": 6430
+ },
+ {
+  "key": "tmmgames",
+  "name": "The Toy Moon Ltd t/a TMM Games",
+  "base": "https://tmmgames.co.uk",
+  "market": "UK",
+  "platform": "woocommerce",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 5,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 5
+  },
+  "samples": [],
+  "error": null,
+  "ms": 11549
+ }
+]
