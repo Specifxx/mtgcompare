@@ -410,3 +410,24 @@ page listed only regions.
   1200px. The phone menu draws the same groups, then the regions. Static links
   only: no read, no page that doesn't exist. Region pages never run the
   suggestion (it would cost a `/api/geo` call per view).
+
+## Store audit: 165 stores added, 5 dead ones out — 2026-10-28
+
+**Owner:** check every site's store health and make sure the latest stores
+are on it.
+
+* **Health.** The stores that stopped reading were re-probed. Five are gone
+  (no public feed any more, or no Magic sealed left): More Than Meeples, TCG
+  Company, The Haven Tabletop, Celly Sports, Remi Card Trader. Screen Free
+  Games and Nutmeg Games read again from their main Magic collection. Obsession
+  Gaming and Kuma Cards started blocking on 2026-10-27 on every sister site and
+  stay for now, in case it is temporary.
+* **New stores (649 → 809)** come from the official Riftbound store
+  registry's Shopify and WooCommerce game stores, probed from a GitHub runner in
+  each market with the real `identify()`: added only with 3+ Magic sealed
+  products, at least one in stock, prices in the market's currency, and not a
+  second address or name of a store already listed. A store readable only
+  through a "new arrivals" collection is left out: it would drop products as
+  they age off the page.
+* Postage for the new stores comes with the weekly shipping run; until then
+  their rows say "Shipping at checkout".
