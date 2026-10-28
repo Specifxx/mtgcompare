@@ -14,7 +14,8 @@ import { ProductRail } from "@/components/ProductRail";
 import { SearchBox } from "@/components/SearchBox";
 import { Empty, Section } from "@/components/Section";
 import { StockPill } from "@/components/StockPill";
-import { homeRails, regionOverview, type ProductCardData } from "@/lib/data";
+import { homeRails, regionOverview, tcgplayerTiles, type ProductCardData } from "@/lib/data";
+import { TcgplayerStrip } from "@/components/TcgplayerStrip";
 import { dealsCopy, dealsInMarket, nearestRegion, stockLabel } from "@/lib/deals";
 import { cardOpen } from "@/lib/compact";
 import { money, plural, timeAgo } from "@/lib/format";
@@ -68,7 +69,7 @@ const QUICK_TYPES = ["play-booster-boxes", "collector-booster-boxes", "bundles",
 
 export default async function RegionHome({ params }: { params: { region: string } }) {
   const r = regionOrNotFound(params.region);
-  const [{ boxes, etbs, preorders, latestSets: bySet }, overview, deals, report, older, featured, setCounts, listedTypes] = await Promise.all([
+  const [{ boxes, etbs, preorders, latestSets: bySet }, overview, deals, report, older, featured, setCounts, listedTypes, tcgTiles] = await Promise.all([
     homeRails(r.market),
     getOverview(r.market),
     dealsInMarket(r.market, { take: 8 }),
@@ -78,6 +79,7 @@ export default async function RegionHome({ params }: { params: { region: string 
     loadFeatured(r.region).catch(() => null),
     setCountsGrouped(r.market),
     typeLabelsInMarket(r.market),
+    tcgplayerTiles({ take: 12 }).catch(() => []),
   ]);
   // The soonest upcoming set with a pre-order page: the rail's "see all" goes there.
   const preorderGuide = openPreorderGuides()[0] ?? null;
@@ -246,6 +248,9 @@ export default async function RegionHome({ params }: { params: { region: string 
             </Empty>
           )}
         </Section>
+
+        {/* Real sealed products on TCGplayer (2026-10-28), after the Collector rail: well below the comparison above it. */}
+        <TcgplayerStrip tiles={tcgTiles} region={r.region} placement="tcgplayer-strip-home" title="Magic sealed on TCGplayer" className="mt-14" />
 
         {older.length > 0 && (
           <Section title="Older sets still in stock" kicker="Released 18+ months ago" href={`/${r.region}/out-of-print`} linkLabel="All older sets in stock">

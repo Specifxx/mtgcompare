@@ -8,13 +8,14 @@ import { Ago } from "@/components/Ago";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { NoPreFooter, setSealedHighlight } from "@/components/Ebay";
 import { EbayStrip } from "@/components/EbayStrip";
+import { TcgplayerStrip } from "@/components/TcgplayerStrip";
 import { Icon } from "@/components/Icon";
 import { OutboundLink } from "@/components/OutboundLink";
 import { StockFilter } from "@/components/StockFilter";
 import { ProductGrid } from "@/components/ProductGrid";
 import { Empty, Section } from "@/components/Section";
 import { AFFILIATE_NOTE_SHORT, REL_SPONSORED, TCGPLAYER_RETAILER, tcgplayerSearchUrl } from "@/lib/affiliate";
-import { lastCheckedAt, marketsWithSet, productsBySet, type ProductCardData } from "@/lib/data";
+import { lastCheckedAt, marketsWithSet, productsBySet, setTcgplayerTiles, type ProductCardData } from "@/lib/data";
 import { cardOpen } from "@/lib/compact";
 import { gridPageHasRoomForFooter } from "@/lib/ebay-ads";
 import { money, timeAgo } from "@/lib/format";
@@ -71,7 +72,7 @@ export default async function SetPage({ params }: { params: { region: string; se
   const r = regionOrNotFound(params.region);
   const s = SET_BY_SLUG.get(params.set);
   if (!s) notFound();
-  const [products, checked, listedSets] = await Promise.all([getProducts(r.market, s.code), lastCheckedAt(r.market), setCountsGrouped(r.market)]);
+  const [products, checked, listedSets, tcgTiles] = await Promise.all([getProducts(r.market, s.code), lastCheckedAt(r.market), setCountsGrouped(r.market), setTcgplayerTiles(s.code).catch(() => [])]);
   if (!products.length) notFound();
   const pre = isPreorderSet(s.code);
   const open = products.filter(cardOpen);
@@ -231,6 +232,9 @@ export default async function SetPage({ params }: { params: { region: string; se
           </>
         )}
       </Section>
+
+      {/* Real sealed products on TCGplayer (2026-10-28), after this page's own comparison. */}
+      <TcgplayerStrip tiles={tcgTiles} region={r.region} placement="tcgplayer-strip-set" title={`${s.name} & more on TCGplayer`} searchName={s.name} className="mt-14" />
 
       <section aria-labelledby="about-set" className="mt-14 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10">
         <div>
