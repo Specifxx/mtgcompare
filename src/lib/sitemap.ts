@@ -46,7 +46,12 @@ const url = (path: string, lastModified: Date | null | undefined, changeFrequenc
  * not dormant); a store outside it is noindex and gets no URL here. Without it
  * (the build, with no database) every store is listed.
  */
-export function staticSitemap(lastmod: Partial<Record<string, Date | null>>, activeStores?: Iterable<string>, today = new Date().toISOString().slice(0, 10)): MetadataRoute.Sitemap {
+export function staticSitemap(
+  lastmod: Partial<Record<string, Date | null>>,
+  activeStores?: Iterable<string>,
+  today = new Date().toISOString().slice(0, 10),
+  thin: Partial<Record<Region, readonly string[]>> = {},
+): MetadataRoute.Sitemap {
   const active = activeStores ? new Set(activeStores) : null;
   const out: MetadataRoute.Sitemap = [
     url("", null, "daily", 1),
@@ -65,14 +70,16 @@ export function staticSitemap(lastmod: Partial<Record<string, Date | null>>, act
     out.push(url(`/${r.region}/stores`, m, "weekly", 0.5));
     // The pages built from each import's current state (deals, price per pack, the week's digest) change with it. The guides index
     // changes only when a guide is added or edited, so the import time would be a false lastmod there: it has none.
-    out.push(url(`/${r.region}/deals`, m, "daily", 0.7));
+    // `thin` (lib/section-thin.ts): the section pages that are noindex today, left out so the sitemap never lists a noindex URL.
+    const skip = new Set(thin[r.region] ?? []);
+    if (!skip.has("/deals")) out.push(url(`/${r.region}/deals`, m, "daily", 0.7));
     out.push(url(`/${r.region}/black-friday`, m, "daily", 0.7));
-    out.push(url(`/${r.region}/cheapest-packs`, m, "daily", 0.6));
+    if (!skip.has("/cheapest-packs")) out.push(url(`/${r.region}/cheapest-packs`, m, "daily", 0.6));
     out.push(url(`/${r.region}/this-week`, m, "daily", 0.5));
     // The stock pages (lib/stock.ts): back in stock and price moves are built from the daily price history, older sets from today's
     // stock; all change with each import.
     out.push(url(`/${r.region}/back-in-stock`, m, "daily", 0.6));
-    out.push(url(`/${r.region}/price-moves`, m, "daily", 0.5));
+    if (!skip.has("/price-moves")) out.push(url(`/${r.region}/price-moves`, m, "daily", 0.5));
     out.push(url(`/${r.region}/out-of-print`, m, "daily", 0.6));
     out.push(url(`/${r.region}/guides`, null, "weekly", 0.5));
     // Pre-order pages, until release day (they are noindexed from then on: lib/preorder-guides.ts).

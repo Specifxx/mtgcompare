@@ -8,6 +8,7 @@ import { Logo } from "./Logo";
 import { MobileMenu } from "./MobileMenu";
 import { NavLink } from "./NavLink";
 import { RegionSwitcher } from "./RegionSwitcher";
+import { ShopMenuPanel } from "./ShopMenu";
 import { ThemeToggle } from "./ThemeToggle";
 import { SearchBox } from "./SearchBox";
 
@@ -53,16 +54,27 @@ export function Header({ region }: { region: Region | null }) {
         {region ? (
           <>
             <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Main">
-              {headerNav().map((n) => (
-                <NavLink
-                  key={n.key}
-                  href={sectionHref(region, n.key)}
-                  also={n.also?.map((p) => `/${region}${p}`)}
-                  className={`${n.xl ? "hidden xl:inline-flex" : ""} whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors`}
-                >
-                  {n.label}
-                </NavLink>
-              ))}
+              {headerNav().map((n) => {
+                const link = (
+                  <NavLink
+                    key={n.key}
+                    href={sectionHref(region, n.key)}
+                    also={n.also?.map((p) => `/${region}${p}`)}
+                    className={`${n.xl ? "hidden xl:inline-flex" : ""} whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors`}
+                  >
+                    {n.label}
+                  </NavLink>
+                );
+                // The sealed browse item opens the category dropdown (components/ShopMenu.tsx): by product, by set, by value.
+                return n.key === "sealed" ? (
+                  <div key={n.key} className="group relative">
+                    {link}
+                    <ShopMenuPanel region={region} />
+                  </div>
+                ) : (
+                  link
+                );
+              })}
               <NavLink href="/blog" className="whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors">
                 Blog
               </NavLink>

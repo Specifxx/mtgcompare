@@ -22,6 +22,15 @@ export function regionSwitchHref(pathname: string, to: Region, current: Region |
   return current && isRegion(first) ? `/${to}${pathAfterRegion(pathname)}` : `/${to}`;
 }
 
+/**
+ * Follow the switch link only to a page every region has (its home, a section like /deals). A deeper page (a product, a set, a type,
+ * a store) exists only where something is listed: elsewhere it is a 404, and the switcher would hand crawlers six of those per page.
+ * Those links are nofollow; the page's own hreflang set (lib/seo.ts regionAlternates) names the regional copies that do exist.
+ */
+export function regionSwitchFollow(pathname: string, current: Region | null): boolean {
+  return !current || pathAfterRegion(pathname).split("/").filter(Boolean).length < 2;
+}
+
 // Plain links, not a redirect: each region is its own set of pages.
 //
 // `compact`: a flag-only, 44×44 button below lg (the phone header's one row has room for the logo mark, the search box, this and
@@ -86,6 +95,7 @@ export function RegionSwitcher({ region, compact = false }: { region: Region | n
               <Link
                 href={regionSwitchHref(pathname, r.region, region)}
                 prefetch={false}
+                rel={r.region !== region && !regionSwitchFollow(pathname, region) ? "nofollow" : undefined}
                 aria-current={r.region === region ? "true" : undefined}
                 onClick={() => {
                   if (r.region !== region) gaEvent("region_select", { region: r.region, from: region ?? "none", placement: "header" });

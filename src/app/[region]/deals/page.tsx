@@ -1,5 +1,6 @@
 import { AmazonAlso } from "@/components/Amazon";
 import Link from "@/components/Link";
+import { dealsThin } from "@/lib/section-thin";
 import { cache } from "react";
 import type { Metadata } from "next";
 import { Ago } from "@/components/Ago";
@@ -45,7 +46,7 @@ export async function generateMetadata({ params }: { params: { region: string } 
       description: seoCopy.dealsDescription(r, deals.length, best),
       path: `/${r.region}/deals`,
       alternates: regionAlternates(r.region, "/deals"),
-      noindex: deals.length < THIN && leaders.top10.length < THIN,
+      noindex: dealsThin(deals.length, leaders.top10.length),
     }),
     title: seoCopy.dealsTitle(r),
   };

@@ -27,7 +27,7 @@ import { RecentTracker } from "@/components/Recent";
 import { ebaySearchUrl, offerLink, offerRetailer } from "@/lib/affiliate";
 import { productAdPlan, soldOutAdPlan } from "@/lib/ebay-ads";
 import { rowPacks, tableShape } from "@/lib/ebay-offer-row";
-import { comparable, productPage, type ProductCardData } from "@/lib/data";
+import { productPage, type ProductCardData } from "@/lib/data";
 import { money, plural, timeAgo } from "@/lib/format";
 import { thumb } from "@/lib/images";
 import { packsFor } from "@/lib/packs";
@@ -36,8 +36,11 @@ import { openWhere, productDescription, productIntro, quickFacts, releaseChip, v
 import { guidesFor } from "@/content/guides";
 import { toolHref } from "@/content/tools";
 import { prevNextSet } from "@/lib/hub-copy";
+import { setCountsGrouped } from "@/lib/hub-data";
 import { TYPE_ABOUT } from "@/lib/type-about";
 import { inStockAlternatives, relatedWithFormats } from "@/lib/product-data";
+import { productNoindex } from "@/lib/index-tiers";
+import { productFaq } from "@/lib/product-faq";
 import { isPreorderSet } from "@/lib/release";
 import { regionOrNotFound, REGION_LIST, type Market, type RegionInfo } from "@/lib/regions";
 import { RRP_NOTE, usMsrpCents } from "@/lib/rrp";
@@ -126,15 +129,14 @@ export async function generateMetadata({ params }: { params: { region: string; s
     preorder: isPreorderSet(p.setCode),
     value,
   });
-  // Thin pages stay reachable but out of the index: nothing to compare (one
-  // store, sold out). A noindex page carries no hreflang set either, and the
-  // set only names the regional copies that are themselves indexable.
-  const noindex = open.length === 0 && p.offers.length < 2;
+  // Thin pages stay reachable but out of the index: fewer than two listings to compare (lib/index-tiers.ts, the rule the sitemap
+  // follows too, so the two agree). A noindex page carries no hreflang set either, and the set only names the regional copies that
+  // are themselves indexable.
+  const noindex = productNoindex(loaded.here, p.productType);
   const path = `/${r.region}/p/${p.slug}`;
   const indexable = REGION_LIST.filter((x) => {
     if (x.region === r.region) return !noindex;
-    const s = p.stats.find((st) => st.market === x.market);
-    return !!s && comparable(s);
+    return !productNoindex(p.stats.find((st) => st.market === x.market), p.productType);
   });
   const image = thumb(p.imageUrl, 1200);
   const title = seoCopy.productTitle({ name: p.name, market: r.market, inName: r.inName, cheapestCents: cheapest?.priceCents ?? null, productType: p.productType, setCode: p.setCode });
@@ -319,6 +321,19 @@ export default async function ProductPage({ params }: { params: { region: string
   // The daily price history (lib/price-history.ts): a chart once the product has MIN_DAYS of snapshots here, nothing before.
   const history = readPriceHistory();
   const historyDays = history && daysOfHistory(history, r.market, p.slug) >= MIN_DAYS ? dailySeries(history, r.market, p.slug, 90) : [];
+  // Questions answered from the page's own data (lib/product-faq.ts): stock here, per pack, the last 30 days of snapshots, the other regions.
+  const faq = productFaq({
+    heading,
+    market: r.market,
+    inName: r.inName,
+    adjective: r.adjective,
+    preorder: pre,
+    here: loaded.here,
+    cheapest: best ? { cents: best.priceCents, storeName: best.storeName, marketplace: best.marketplace } : null,
+    packs,
+    history: historyDays,
+    elsewhere: elsewhere.map(({ x, s }) => ({ name: x.name, market: x.market, inStockStores: s!.inStockStores, marketplaceOpen: s!.marketplaceOpen, lowestPriceCents: s!.lowestPriceCents })),
+  });
   const riftHref = riftHistoryHref({ imageUrl: p.imageUrl, setReleaseDate: set?.releaseDate, productType: p.productType, name: p.name });
   const typeLink = type ? { href: `/${r.region}/type/${type.slug}`, label: `See ${type.plural} in stock in ${r.inName}` } : { href: `/${r.region}/sealed`, label: `See sealed products in stock in ${r.inName}` };
   const chip = "rounded-full bg-raised px-2.5 py-1 text-xs font-semibold leading-4 text-muted";
@@ -341,7 +356,8 @@ export default async function ProductPage({ params }: { params: { region: string
     storeCount: stores.length,
     elsewhere: elsewhere.length,
   });
-  const { prev: prevSet, next: nextSet } = set ? prevNextSet(set.code) : { prev: null, next: null };
+  const listedSets = set ? await setCountsGrouped(r.market) : null;
+  const { prev: prevSet, next: nextSet } = set ? prevNextSet(set.code, (c) => (listedSets?.get(c)?.products ?? 0) > 0) : { prev: null, next: null };
   const aboutGuides = guidesFor(r.region)
     .filter((g) => type && g.topic.types?.includes(type.key))
     .slice(0, 3);
@@ -644,6 +660,22 @@ export default async function ProductPage({ params }: { params: { region: string
           </ul>
         </nav>
       </section>
+
+      {faq.length > 0 && (
+        <section aria-labelledby="faq-h" className="mt-14 max-w-3xl">
+          <h2 id="faq-h" className="font-display text-2xl font-bold tracking-tight">
+            Questions about {heading}
+          </h2>
+          <dl className="mt-4 space-y-5">
+            {faq.map((f) => (
+              <div key={f.q}>
+                <dt className="font-semibold">{f.q}</dt>
+                <dd className="mt-1 leading-7 text-muted">{f.a}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
 
       {grid.length > 0 && set && (
         <Section title={`More from ${set.name}`} href={`/${r.region}/sets/${set.slug}`} linkLabel="Whole set">

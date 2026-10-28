@@ -1,4 +1,5 @@
 import Link from "@/components/Link";
+import { packsThin } from "@/lib/section-thin";
 import { cache } from "react";
 import type { Metadata } from "next";
 import { Ago } from "@/components/Ago";
@@ -42,7 +43,7 @@ export async function generateMetadata({ params }: { params: { region: string } 
       description: seoCopy.packsDescription(r, leaders.top10[0] ? { name: leaders.top10[0].p.name, perPack: leaders.top10[0].perPack } : null),
       path: `/${r.region}/cheapest-packs`,
       alternates: regionAlternates(r.region, "/cheapest-packs"),
-      noindex: leaders.top10.length < 3,
+      noindex: packsThin(leaders.top10.length),
     }),
     title: seoCopy.packsTitle(r),
   };

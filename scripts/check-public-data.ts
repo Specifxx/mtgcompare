@@ -77,6 +77,7 @@ async function main() {
     await same(`${m} storeStats`, () => data.storeStats(m), true);
     await same(`${m} setCounts`, () => data.setCounts(m));
     await same(`${m} setCountsGrouped`, () => hub.setCountsGrouped(m));
+    await same(`${m} typeLabelsInMarket`, async () => [...(await hub.typeLabelsInMarket(m))].sort());
     await same(`${m} marketPage 1`, () => browse.marketPage(m, 1));
     await same(`${m} marketPage 3`, () => browse.marketPage(m, 3));
     await same(`${m} marketIndexCards`, () => browse.marketIndexCards(m));
@@ -87,6 +88,7 @@ async function main() {
     for (const t of ["Play Booster Box", "Collector Booster Box", "Bundle", "Commander Deck"]) {
       await same(`${m} productsByType ${t}`, () => data.productsByType(m, t), true);
       await same(`${m} typePageData ${t}`, () => hub.typePageData(m, t));
+      await same(`${m} typeIndexRows ${t}`, () => hub.typeIndexRows(m, t));
       await same(`${m} cheapestInStock ${t}`, () => data.cheapestInStock(m, [t], 12));
     }
     for (const set of ["eoe", "tdm", "fin", "dft"]) {

@@ -9,7 +9,7 @@ import { sectionHref, type SectionKey } from "@/lib/site";
 import { Icon, type IconName } from "./Icon";
 import { LogoMark } from "./Logo";
 import { isActivePath } from "./NavLink";
-import { regionSwitchHref } from "./RegionSwitcher";
+import { regionSwitchFollow, regionSwitchHref } from "./RegionSwitcher";
 
 // The menu's own few shapes, drawn like Icon.tsx's (24×24, 2px round strokes, currentColor) for the rows Icon has no shape for.
 // Functions, like Icon's, so no JSX runs when the module loads.
@@ -226,6 +226,7 @@ export function MenuSheet({ region, pathname, onClose: close }: { region: Region
                 <Link
                   href={regionSwitchHref(pathname, r.region, region)}
                   prefetch={false}
+                  rel={!on && !regionSwitchFollow(pathname, region) ? "nofollow" : undefined}
                   onClick={close}
                   aria-current={on ? "true" : undefined}
                   aria-label={current ? `${r.name} (${r.currency})` : undefined}

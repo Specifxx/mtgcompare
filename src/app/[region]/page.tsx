@@ -35,6 +35,8 @@ import { StockRow } from "@/components/StockRow";
 import { storesInMarket } from "@/lib/stores";
 import { emptyHomeReport, loadHomeReport } from "@/lib/home-report";
 import { MarketReport } from "@/components/home/MarketReport";
+import { SetIndex } from "@/components/SetIndex";
+import { setCountsGrouped, typeLabelsInMarket } from "@/lib/hub-data";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js, CDN_PAGES), never ISR: an ISR write
 // costs about twenty renders, and the data only changes with a release, which empties the CDN anyway.
@@ -66,7 +68,7 @@ const QUICK_TYPES = ["play-booster-boxes", "collector-booster-boxes", "bundles",
 
 export default async function RegionHome({ params }: { params: { region: string } }) {
   const r = regionOrNotFound(params.region);
-  const [{ boxes, etbs, preorders, latestSets: bySet }, overview, deals, report, older, featured] = await Promise.all([
+  const [{ boxes, etbs, preorders, latestSets: bySet }, overview, deals, report, older, featured, setCounts, listedTypes] = await Promise.all([
     homeRails(r.market),
     getOverview(r.market),
     dealsInMarket(r.market, { take: 8 }),
@@ -74,6 +76,8 @@ export default async function RegionHome({ params }: { params: { region: string 
     loadHomeReport(r.region).catch(() => emptyHomeReport(r.region)),
     olderInStockData(r.market).catch(() => []),
     loadFeatured(r.region).catch(() => null),
+    setCountsGrouped(r.market),
+    typeLabelsInMarket(r.market),
   ]);
   // The soonest upcoming set with a pre-order page: the rail's "see all" goes there.
   const preorderGuide = openPreorderGuides()[0] ?? null;
@@ -258,6 +262,8 @@ export default async function RegionHome({ params }: { params: { region: string 
           </Section>
         )}
 
+        {/* Every set listed here, so every set page is two clicks from the landing page and its products three (2026-10-25). */}
+        <SetIndex r={r} counts={setCounts} types={listedTypes} />
         <HowItWorks r={r} stores={storeCount} />
         {/* The visitor's own recently viewed products, from this browser's storage: rendered at the end, so nothing above moves. */}
         <RecentlyViewed region={r.region} />

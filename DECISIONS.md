@@ -307,3 +307,36 @@ What shipped instead, at no cost:
   and is linked from RiftCompare's "Compare other TCGs" footer heading. One page
   on the strongest domain, never a copy per site, so the family never competes
   with itself for the generic query.
+
+## DexCompare's indexing round and "All sealed" menu, ported — 2026-10-28
+
+The owner wants MTG Compare to earn like DexCompare. The two run the same code
+(MTG was ported from Dex on 2026-10-21), and MTG's catalogue is no smaller where
+it counts: 383 stores to Dex's 390, and more in-stock US and Canadian offers.
+What MTG missed is the work Dex got after the port. Two pieces of it are
+brought over here:
+
+- **Index tiers** (`src/lib/index-tiers.ts`). The sitemap listed every
+  comparable product, 5,616 regional product pages, most of them one store's
+  listing inside our template. On Dex that same shape got 5,332 URLs "Crawled,
+  currently not indexed" and 194 indexed. Now one rule decides both the
+  sitemap and the robots tag: *strong* pages (two or more stores in stock, one
+  in stock of three listing, or a headline format that three list) are in the
+  sitemap; *thin* pages (fewer than two listings) are noindex; the rest are
+  indexable but left out of the sitemap. On today's data that's 2,738 strong,
+  1,143 middle, 3,390 thin. The headline formats are `MOVE_TYPES` (play,
+  collector, draft and set booster boxes, bundles, Commander decks). Set and
+  type pages are listed from three comparable products, and an empty one is
+  now a real 404 instead of an empty 200. Deals, cheapest per pack and price
+  moves are noindex and out of the sitemap when thin (`lib/section-thin.ts`).
+  The region switcher's links to another region's deep pages are nofollow.
+  Product pages get "Questions about …", answered only from the page's own
+  data (`lib/product-faq.ts`), and the region home lists every set and type it
+  carries, so every set page is two clicks from it.
+- **The desktop "All sealed" dropdown** (`components/ShopMenu.tsx`, Dex
+  CompareEmpire #68): by product, by set (newest released first, a pre-order
+  labelled), by value. It's CSS only, made of plain links, with no new page
+  and no extra read.
+
+Left out on purpose: Dex's apex/www host rules (MTG has always been served
+from the apex) and its Japanese section.

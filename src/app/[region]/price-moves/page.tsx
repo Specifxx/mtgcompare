@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { cache } from "react";
+import { movesThin } from "@/lib/section-thin";
 import Link from "@/components/Link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Empty, Section } from "@/components/Section";
@@ -7,7 +9,7 @@ import type { ProductCardData } from "@/lib/data";
 import { money } from "@/lib/format";
 import { isoOfDay } from "@/lib/price-history";
 import { formatRelease } from "@/lib/release";
-import { regionOrNotFound, type RegionInfo } from "@/lib/regions";
+import { regionOrNotFound, type Market, type RegionInfo } from "@/lib/regions";
 import { itemListJsonLd, jsonLd, pageMeta, regionAlternates } from "@/lib/seo";
 import { seoCopy, seoTitleText } from "@/lib/seo-titles";
 import { SET_BY_CODE } from "@/lib/sets";
@@ -20,18 +22,28 @@ import { priceMovesData } from "@/lib/stock-data";
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js CDN_PAGES), never ISR; reads no cookie.
 export const dynamic = "force-dynamic";
 
-export function generateMetadata({ params }: { params: { region: string } }): Metadata {
+// Shared by generateMetadata (the noindex rule, lib/section-thin.ts) and the page: one read per render.
+const getMoves = cache((market: Market) => priceMovesData(market));
+
+export async function generateMetadata({ params }: { params: { region: string } }): Promise<Metadata> {
   const r = regionOrNotFound(params.region);
   const title = seoCopy.movesTitle(r);
+  const data = await getMoves(r.market);
   return {
-    ...pageMeta({ title: seoTitleText(title), description: seoCopy.movesDescription(r), path: `/${r.region}/price-moves`, alternates: regionAlternates(r.region, "/price-moves") }),
+    ...pageMeta({
+      title: seoTitleText(title),
+      description: seoCopy.movesDescription(r),
+      path: `/${r.region}/price-moves`,
+      alternates: regionAlternates(r.region, "/price-moves"),
+      noindex: movesThin(data.up.length + data.down.length),
+    }),
     title,
   };
 }
 
 export default async function PriceMovesPage({ params }: { params: { region: string } }) {
   const r = regionOrNotFound(params.region);
-  const data = await priceMovesData(r.market);
+  const data = await getMoves(r.market);
   const path = `/${r.region}/price-moves`;
   const all = [...data.up, ...data.down];
   const ld = all.length ? itemListJsonLd({ name: `Magic sealed price moves in ${r.inName}`, path, items: all.map(({ card }) => ({ path: `/${r.region}/p/${card.slug}`, name: card.name, image: card.imageUrl })) }) : null;

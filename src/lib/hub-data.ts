@@ -8,6 +8,7 @@ import type { Market } from "./regions";
 import { isOpen, statsInMarket } from "./public-data/joins";
 import { routeRaw } from "./public-data/route";
 import { publicRows } from "./public-data/store";
+import { productInSitemap } from "./index-tiers";
 
 export interface SetCount {
   products: number;
@@ -41,6 +42,57 @@ export async function setCountsGrouped(market: Market): Promise<Map<string, SetC
     GROUP BY p."setCode"
     LIMIT 150`);
   return new Map(rows.map((r) => [r.setCode, { products: Number(r.products), inStock: Number(r.inStock) }]));
+}
+
+/** The product types the market lists anything of (one row per type): a type page with nothing here is a 404, so nothing links one. */
+export async function typeLabelsInMarket(market: Market): Promise<Set<string>> {
+  const fromFiles = () => [...new Set(statsInMarket(market).map(({ p }) => String(p.productType)))].map((productType) => ({ productType }));
+  const rows = await routeRaw(fromFiles, () => prisma.$queryRaw<{ productType: string }[]>`
+    SELECT p."productType" FROM "ProductStat" s JOIN "Product" p ON p."id" = s."productId"
+    WHERE s."market" = ${market}
+    GROUP BY 1`);
+  return new Set(rows.map((r) => r.productType));
+}
+
+/** One row of a type page's index: a strong product of the type with no set (lib/index-tiers.ts). */
+export interface TypeIndexRow {
+  slug: string;
+  name: string;
+  inStockStores: number;
+  lowestPriceCents: number | null;
+}
+
+/** The index's cap: the largest today is ~140 (Canadian collections). */
+export const TYPE_INDEX_TAKE = 400;
+
+/**
+ * The strong products of a type in the market that belong to no set, by name: the type page lists them under its grids, so a product
+ * no set page links is still two clicks from the region home (the indexing round, 2026-10-25). Products in a set are reached from their
+ * set page. One scoped read, capped.
+ */
+export async function typeIndexRows(market: Market, label: string): Promise<TypeIndexRow[]> {
+  const fromFiles = () =>
+    statsInMarket(market)
+      .filter(({ p }) => p.productType === label && p.setCode == null)
+      .map(({ s, p }) => ({
+        slug: String(p.slug),
+        name: String(p.name),
+        inStockStores: Number(s.inStockStores),
+        listedStores: Number(s.listedStores),
+        marketplaceOpen: Boolean(s.marketplaceOpen),
+        lowestPriceCents: s.lowestPriceCents == null ? null : Number(s.lowestPriceCents),
+      }));
+  const rows = await routeRaw(fromFiles, () => prisma.$queryRaw<{ slug: string; name: string; inStockStores: number; listedStores: number; marketplaceOpen: boolean; lowestPriceCents: number | null }[]>`
+    SELECT p."slug", p."name", s."inStockStores", s."listedStores", s."marketplaceOpen", s."lowestPriceCents"
+    FROM "ProductStat" s JOIN "Product" p ON p."id" = s."productId"
+    WHERE s."market" = ${market} AND p."productType" = ${label} AND p."setCode" IS NULL
+      AND (s."inStockStores" > 0 OR s."marketplaceOpen" OR s."listedStores" >= 2)
+    LIMIT 2000`);
+  return rows
+    .filter((r) => productInSitemap(r, label))
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .slice(0, TYPE_INDEX_TAKE)
+    .map(({ slug, name, inStockStores, lowestPriceCents }) => ({ slug, name, inStockStores, lowestPriceCents }));
 }
 
 /** The type page's grids: the 48 cheapest open products, then the 24 sold-out ones most stores list. */
