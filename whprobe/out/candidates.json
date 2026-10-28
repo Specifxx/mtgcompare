@@ -35,8 +35,8 @@
     "platform": "shopify",
     "feed": true,
     "final": "https://goblingaming.co.uk",
-    "gw": 284,
-    "scanned": 1500
+    "gw": 406,
+    "scanned": 2000
    }
   ]
  },
@@ -76,8 +76,8 @@
     "platform": "shopify",
     "feed": true,
     "final": "https://battlegroundgaming.co.uk",
-    "gw": 304,
-    "scanned": 500
+    "gw": 1514,
+    "scanned": 2000
    }
   ]
  },
@@ -174,8 +174,8 @@
     "platform": "shopify",
     "feed": true,
     "final": "https://lvlupgaming.co.uk",
-    "gw": 160,
-    "scanned": 250
+    "gw": 240,
+    "scanned": 2000
    }
   ]
  },
@@ -256,23 +256,12 @@
   "tries": [
    {
     "base": "https://www.thewarp.co.uk",
-    "status": 429,
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
     "final": "https://www.thewarp.co.uk",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
-   },
-   {
-    "base": "https://thewarp.uk",
-    "status": null,
-    "final": "https://thewarp.uk",
-    "feed": false,
-    "error": "URLError"
+    "gw": 1201,
+    "scanned": 2000
    }
   ]
  },
@@ -281,17 +270,13 @@
   "name": "Travelling Man",
   "tries": [
    {
-    "base": "https://www.travellingman.com",
-    "status": 429,
-    "final": "https://www.travellingman.com",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://travellingman.com",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://travellingman.com",
+    "gw": 355,
+    "scanned": 2000
    }
   ]
  },
@@ -338,17 +323,13 @@
   "name": "Entoyment",
   "tries": [
    {
-    "base": "https://www.entoyment.co.uk",
-    "status": 429,
-    "final": "https://www.entoyment.co.uk",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://entoyment.co.uk",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://entoyment.co.uk",
+    "gw": 185,
+    "scanned": 2000
    }
   ]
  },
@@ -393,7 +374,7 @@
     "status": 503,
     "final": "https://www.glasshammer.co.uk",
     "feed": false,
-    "title": "",
+    "title": "Site Currently Unavailable",
     "platform": "other",
     "blocked": true,
     "feedStatus": [
@@ -408,17 +389,13 @@
   "name": "Grim Dice",
   "tries": [
    {
-    "base": "https://www.grimdice.co.uk",
-    "status": 429,
-    "final": "https://www.grimdice.co.uk",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://grimdice.co.uk",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://grimdice.co.uk",
+    "gw": 884,
+    "scanned": 2000
    }
   ]
  },
@@ -485,17 +462,13 @@
   "name": "Mighty Lancer Games",
   "tries": [
    {
-    "base": "https://www.mightylancergames.co.uk",
-    "status": 429,
-    "final": "https://www.mightylancergames.co.uk",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://mightylancergames.co.uk",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://mightylancergames.co.uk",
+    "gw": 298,
+    "scanned": 2000
    }
   ]
  },
@@ -504,30 +477,13 @@
   "name": "Narthex Wargaming",
   "tries": [
    {
-    "base": "https://www.narthexwargaming.co.uk",
-    "status": 429,
-    "final": "https://www.narthexwargaming.co.uk",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
-   },
-   {
-    "base": "https://www.narthexwargaming.com",
-    "status": 429,
-    "final": "https://www.narthexwargaming.com",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://narthexwargaming.co.uk",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://narthexwargaming.co.uk",
+    "gw": 357,
+    "scanned": 2000
    }
   ]
  },
@@ -574,24 +530,17 @@
   "name": "Athena Games",
   "tries": [
    {
-    "base": "https://www.athenagames.co.uk",
-    "status": 429,
-    "final": "https://www.athenagames.co.uk",
+    "base": "https://athenagames.co.uk",
+    "status": 200,
+    "final": "https://athenagames.com/",
     "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
+    "title": "Norwich&#39;s leading community gaming store | Athena Games \u2014 Athena Games Ltd",
+    "platform": "shopify",
     "blocked": true,
     "feedStatus": [
      404,
      404
     ]
-   },
-   {
-    "base": "https://athena-games.co.uk",
-    "status": null,
-    "final": "https://athena-games.co.uk",
-    "feed": false,
-    "error": "URLError"
    }
   ]
  },
@@ -600,17 +549,13 @@
   "name": "Boards and Swords",
   "tries": [
    {
-    "base": "https://www.boardsandswords.co.uk",
-    "status": 429,
-    "final": "https://www.boardsandswords.co.uk",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://boardsandswords.co.uk",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://boardsandswords.co.uk",
+    "gw": 137,
+    "scanned": 2000
    }
   ]
  },
@@ -619,17 +564,13 @@
   "name": "Bulwark Games",
   "tries": [
    {
-    "base": "https://www.bulwarkgames.co.uk",
-    "status": 429,
-    "final": "https://www.bulwarkgames.co.uk",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://bulwarkgames.co.uk",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://bulwarkgames.co.uk",
+    "gw": 316,
+    "scanned": 2000
    }
   ]
  },
@@ -638,30 +579,13 @@
   "name": "JustPlayGames",
   "tries": [
    {
-    "base": "https://www.justplaygames.uk",
-    "status": 429,
-    "final": "https://www.justplaygames.uk",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
-   },
-   {
-    "base": "https://www.justplaygames.co.uk",
-    "status": 429,
-    "final": "https://www.justplaygames.co.uk",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://justplaygames.uk",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://justplaygames.uk",
+    "gw": 628,
+    "scanned": 2000
    }
   ]
  },
@@ -670,17 +594,13 @@
   "name": "Kirton Games",
   "tries": [
    {
-    "base": "https://www.kirtongames.co.uk",
-    "status": 429,
-    "final": "https://www.kirtongames.co.uk",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://kirtongames.co.uk",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://kirtongames.co.uk",
+    "gw": 291,
+    "scanned": 2000
    }
   ]
  },
@@ -735,17 +655,13 @@
   "name": "Incom Gaming",
   "tries": [
    {
-    "base": "https://www.incomgaming.co.uk",
-    "status": 429,
-    "final": "https://www.incomgaming.co.uk",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://incomgaming.co.uk",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://incomgaming.co.uk",
+    "gw": 268,
+    "scanned": 1990
    }
   ]
  },
@@ -808,7 +724,7 @@
     "platform": "other",
     "blocked": true,
     "feedStatus": [
-     200,
+     null,
      200
     ]
    }
@@ -858,9 +774,9 @@
   "name": "Bombcat Hobby",
   "tries": [
    {
-    "base": "https://bombcathobby.com",
+    "base": "https://www.bombcathobby.com",
     "status": 200,
-    "final": "https://bombcathobby.com",
+    "final": "https://www.bombcathobby.com",
     "feed": false,
     "title": "Loading...",
     "platform": "other",
@@ -1165,24 +1081,13 @@
   "name": "AirsoftEire",
   "tries": [
    {
-    "base": "https://www.airsofteire.com",
-    "status": 429,
-    "final": "https://www.airsofteire.com",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
-   },
-   {
-    "base": "https://airsofteire.ie",
-    "status": null,
-    "final": "https://airsofteire.ie",
-    "feed": false,
-    "error": "URLError"
+    "base": "https://airsofteire.com",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://airsofteire.com",
+    "gw": 4,
+    "scanned": 2000
    }
   ]
  },
@@ -1315,24 +1220,13 @@
   "name": "Underworld Gaming",
   "tries": [
    {
-    "base": "https://www.underworldgaming.ie",
-    "status": 429,
-    "final": "https://www.underworldgaming.ie",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
-   },
-   {
-    "base": "https://underworldgaming.de",
-    "status": null,
-    "final": "https://underworldgaming.de",
-    "feed": false,
-    "error": "URLError"
+    "base": "https://underworldgaming.ie",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://underworldgaming.ie",
+    "gw": 1168,
+    "scanned": 2000
    }
   ]
  },
@@ -1406,17 +1300,13 @@
   "name": "Armada Games",
   "tries": [
    {
-    "base": "https://www.armadagames.com",
-    "status": 429,
-    "final": "https://www.armadagames.com",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://armadagames.com",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://shoparmada.com",
+    "gw": 1213,
+    "scanned": 2000
    }
   ]
  },
@@ -1534,17 +1424,13 @@
   "name": "Herrick Games",
   "tries": [
    {
-    "base": "https://www.herrickgames.com",
-    "status": 429,
-    "final": "https://www.herrickgames.com",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://herrickgames.com",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://herrickgames.com",
+    "gw": 808,
+    "scanned": 2000
    }
   ]
  },
@@ -1572,17 +1458,13 @@
   "name": "MinMax Games",
   "tries": [
    {
-    "base": "https://www.minmaxgames.com",
-    "status": 429,
-    "final": "https://www.minmaxgames.com",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://minmaxgames.com",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://minmaxgames.com",
+    "gw": 109,
+    "scanned": 513
    }
   ]
  },
@@ -1610,17 +1492,13 @@
   "name": "Tabletop Heaven",
   "tries": [
    {
-    "base": "https://www.tabletopheaven.com",
-    "status": 429,
-    "final": "https://www.tabletopheaven.com",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://tabletopheaven.com",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://tabletopheaven.com",
+    "gw": 619,
+    "scanned": 2000
    }
   ]
  },
@@ -1668,15 +1546,15 @@
   "tries": [
    {
     "base": "https://troubleslittlesister.com",
-    "status": 202,
+    "status": 200,
     "final": "https://troubleslittlesister.com",
     "feed": false,
-    "title": "",
-    "platform": "other",
+    "title": "Home - Trouble&#039;s Little Sister",
+    "platform": "woocommerce",
     "blocked": true,
     "feedStatus": [
-     202,
-     202
+     404,
+     404
     ]
    }
   ]
@@ -1705,17 +1583,13 @@
   "name": "Zulu's Board Game Cafe",
   "tries": [
    {
-    "base": "https://www.zulusgames.com",
-    "status": 429,
-    "final": "https://www.zulusgames.com",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://zulusgames.com",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://zulusgames.com",
+    "gw": 35,
+    "scanned": 2000
    }
   ]
  },
@@ -1763,17 +1637,13 @@
   "name": "Cape Fear Collectibles",
   "tries": [
    {
-    "base": "https://www.capefearcollectibles.com",
-    "status": 429,
-    "final": "https://www.capefearcollectibles.com",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://capefearcollectibles.com",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://capefearcollectibles.com",
+    "gw": 169,
+    "scanned": 2000
    }
   ]
  },
@@ -1782,17 +1652,13 @@
   "name": "Vortex Games",
   "tries": [
    {
-    "base": "https://www.vortexgames.ca",
-    "status": 429,
-    "final": "https://www.vortexgames.ca",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://vortexgames.ca",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://vortexgames.ca",
+    "gw": 154,
+    "scanned": 2000
    }
   ]
  },
@@ -1802,16 +1668,12 @@
   "tries": [
    {
     "base": "https://store.401games.ca",
-    "status": 429,
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
     "final": "https://store.401games.ca",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "gw": 183,
+    "scanned": 2000
    }
   ]
  },
@@ -1878,17 +1740,13 @@
   "name": "Hairy Tarantula",
   "tries": [
    {
-    "base": "https://www.hairyt.com",
-    "status": 429,
-    "final": "https://www.hairyt.com",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://hairyt.com",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://hairyt.com",
+    "gw": 180,
+    "scanned": 2000
    }
   ]
  },
@@ -1924,17 +1782,13 @@
     "error": "URLError"
    },
    {
-    "base": "https://www.kingdomtitans.cards",
-    "status": 429,
-    "final": "https://www.kingdomtitans.cards",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://kingdomtitans.cards",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://kingdomtitans.cards",
+    "gw": 4,
+    "scanned": 2000
    }
   ]
  },
@@ -1943,30 +1797,13 @@
   "name": "L'Abyss",
   "tries": [
    {
-    "base": "https://www.labyss.com",
-    "status": 429,
-    "final": "https://www.labyss.com",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
-   },
-   {
-    "base": "https://www.abyssgamestore.com",
-    "status": 429,
-    "final": "https://www.abyssgamestore.com",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://labyss.com",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://labyss.com",
+    "gw": 648,
+    "scanned": 2000
    }
   ]
  },
@@ -2027,17 +1864,13 @@
     "error": "URLError"
    },
    {
-    "base": "https://www.pastimesports.ca",
-    "status": 429,
-    "final": "https://www.pastimesports.ca",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://pastimesports.ca",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://pastimesports.ca",
+    "gw": 238,
+    "scanned": 2000
    }
   ]
  },
@@ -2046,17 +1879,13 @@
   "name": "Trinity Hobby",
   "tries": [
    {
-    "base": "https://www.trinityhobby.com",
-    "status": 429,
-    "final": "https://www.trinityhobby.com",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://trinityhobby.com",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://trinityhobby.com",
+    "gw": 152,
+    "scanned": 2000
    }
   ]
  },
@@ -2065,17 +1894,13 @@
   "name": "Top Shelf Co",
   "tries": [
    {
-    "base": "https://www.topshelfco.ca",
-    "status": 429,
-    "final": "https://www.topshelfco.ca",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://topshelfco.ca",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://topshelfco.ca",
+    "gw": 229,
+    "scanned": 2000
    }
   ]
  },
@@ -2084,17 +1909,13 @@
   "name": "Torchlight Games and Hobbies",
   "tries": [
    {
-    "base": "https://www.torchlightgh.com",
-    "status": 429,
-    "final": "https://www.torchlightgh.com",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://torchlightgh.com",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://torchlightgh.com",
+    "gw": 167,
+    "scanned": 2000
    }
   ]
  },
@@ -2123,17 +1944,13 @@
   "name": "Gap Games",
   "tries": [
    {
-    "base": "https://www.gapgames.com.au",
-    "status": 429,
-    "final": "https://www.gapgames.com.au",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://gapgames.com.au",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://gapgames.com.au",
+    "gw": 347,
+    "scanned": 2000
    }
   ]
  },
@@ -2162,30 +1979,13 @@
   "name": "Greenskin Games",
   "tries": [
    {
-    "base": "https://www.greenskingames.com.au",
-    "status": 429,
-    "final": "https://www.greenskingames.com.au",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
-   },
-   {
-    "base": "https://www.greenskingames.com",
-    "status": 403,
-    "final": "https://www.greenskingames.com",
-    "feed": false,
-    "title": "",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     404,
-     404
-    ]
+    "base": "https://greenskingames.com.au",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://greenskingames.com.au",
+    "gw": 1,
+    "scanned": 1181
    }
   ]
  },
@@ -2194,17 +1994,13 @@
   "name": "Mperor.cc",
   "tries": [
    {
-    "base": "https://www.mperor.cc",
-    "status": 429,
-    "final": "https://www.mperor.cc",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://mperor.cc",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://mperor.cc",
+    "gw": 130,
+    "scanned": 2000
    }
   ]
  },
@@ -2232,17 +2028,13 @@
   "name": "The Combat Company",
   "tries": [
    {
-    "base": "https://www.thecombatcompany.com",
-    "status": 429,
-    "final": "https://www.thecombatcompany.com",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://thecombatcompany.com",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://thecombatcompany.com",
+    "gw": 465,
+    "scanned": 2000
    }
   ]
  },
@@ -2251,17 +2043,13 @@
   "name": "West Coast Games",
   "tries": [
    {
-    "base": "https://www.westcoastgames.com.au",
-    "status": 429,
-    "final": "https://www.westcoastgames.com.au",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://westcoastgames.com.au",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://westcoastgames.com.au",
+    "gw": 958,
+    "scanned": 994
    }
   ]
  },
@@ -2308,17 +2096,13 @@
   "name": "Games Empire",
   "tries": [
    {
-    "base": "https://www.gamesempire.com.au",
-    "status": 429,
-    "final": "https://www.gamesempire.com.au",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://gamesempire.com.au",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://gamesempire.com.au",
+    "gw": 410,
+    "scanned": 2000
    }
   ]
  },
@@ -2353,17 +2137,13 @@
   "name": "Good Games",
   "tries": [
    {
-    "base": "https://www.goodgames.com.au",
-    "status": 429,
-    "final": "https://www.goodgames.com.au",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://goodgames.com.au",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://goodgames.com.au",
+    "gw": 229,
+    "scanned": 2000
    }
   ]
  },
@@ -2372,17 +2152,13 @@
   "name": "Gumnut.io",
   "tries": [
    {
-    "base": "https://www.gumnut.io",
-    "status": 429,
-    "final": "https://www.gumnut.io",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://gumnut.io",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://gumnut.io",
+    "gw": 559,
+    "scanned": 2000
    }
   ]
  },
@@ -2410,17 +2186,13 @@
   "name": "Vault Games",
   "tries": [
    {
-    "base": "https://www.vaultgames.com.au",
-    "status": 429,
-    "final": "https://www.vaultgames.com.au",
-    "feed": false,
-    "title": "Verifying your connection...",
-    "platform": "other",
-    "blocked": true,
-    "feedStatus": [
-     429,
-     400
-    ]
+    "base": "https://vaultgames.com.au",
+    "status": 200,
+    "platform": "shopify",
+    "feed": true,
+    "final": "https://vaultgames.com.au",
+    "gw": 569,
+    "scanned": 2000
    }
   ]
  },
