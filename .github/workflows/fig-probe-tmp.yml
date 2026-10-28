@@ -15,13 +15,35 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v4
-      - run: python3 figprobe/probe.py
+      - run: python3 figprobe/probe.py ${{ matrix.shard }} 6
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fig-${{ matrix.shard }}
+          path: figprobe/out-${{ matrix.shard }}.json
+          if-no-files-found: ignore
+
+  commit:
+    needs: probe
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: figprobe
+          pattern: fig-*
+          merge-multiple: true
       - run: |
           git config user.name "mtgcompare-data[bot]"
           git config user.email "mtgcompare-data@users.noreply.github.com"
-          git add figprobe/out.json
+          git add figprobe/out-*.json
           git commit -m "TEMP figure probe results (run ${GITHUB_RUN_ID})"
           for i in 1 2 3; do git pull --rebase -q origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME" && exit 0; sleep 5; done
           exit 1
