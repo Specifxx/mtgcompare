@@ -1,0 +1,79 @@
+[
+ {
+  "key": "kumacards",
+  "name": "Kuma Cards",
+  "base": "https://kumacards.com",
+  "market": "UK",
+  "country": "UK"
+ },
+ {
+  "key": "morethanmeeples",
+  "name": "More Than Meeples",
+  "base": "https://morethanmeeples.com.au",
+  "market": "AU",
+  "country": "AU"
+ },
+ {
+  "key": "obsessiongaming",
+  "name": "Obsession Gaming",
+  "base": "https://obsessiongaming.com.au",
+  "market": "AU",
+  "country": "AU"
+ },
+ {
+  "key": "tcgcompany",
+  "name": "TCG Company",
+  "base": "https://tcgcompany.nl",
+  "market": "EU",
+  "country": "EU"
+ },
+ {
+  "key": "thehaventabletop",
+  "name": "The Haven Games",
+  "base": "https://thehaventabletop.com",
+  "market": "US",
+  "country": "US"
+ },
+ {
+  "key": "screenfreegames",
+  "name": "Screen Free Games",
+  "base": "https://screenfreegames.com",
+  "market": "CA",
+  "country": "CA"
+ },
+ {
+  "key": "cardscitadel",
+  "name": "Cards Citadel",
+  "base": "https://cardscitadel.com",
+  "market": "SG",
+  "country": "SG"
+ },
+ {
+  "key": "cellysports",
+  "name": "Celly Sports & Games",
+  "base": "https://www.cellysports.com",
+  "market": "CA",
+  "country": "CA"
+ },
+ {
+  "key": "nutmeggames",
+  "name": "Nutmeg Games",
+  "base": "https://nutmeggames.com",
+  "market": "US",
+  "country": "US"
+ },
+ {
+  "key": "remicardtrader",
+  "name": "R\u00e9mi Card Trader",
+  "base": "https://remicardtrader.ca",
+  "market": "CA",
+  "country": "CA"
+ },
+ {
+  "key": "thegamecornergames",
+  "name": "The Game Corner",
+  "base": "https://www.thegamecornergames.com",
+  "market": "US",
+  "country": "US"
+ }
+]
