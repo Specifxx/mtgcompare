@@ -385,7 +385,7 @@ on every site but RiftCompare. The eBay side already has its image strips
   TCGplayer Direct reached Australia on 2026-10-07 for singles only, so nothing
   claims sealed ships there.
 
-## Navigation from the first page: no region step, a sidebar, a full phone menu (2026-10-28)
+## Navigation from the first page: no region step, a sidebar, a full phone menu — 2026-10-28
 
 **Owner:** the "Continue to Australia" button before any navigation was a
 barrier; the wide desktop's left side was empty; the phone menu on the landing
