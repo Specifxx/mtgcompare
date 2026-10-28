@@ -14,7 +14,7 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - run: mkdir -p whprobe/out && (python3 whprobe/probe.py candidates & python3 whprobe/probe.py ours & wait)
