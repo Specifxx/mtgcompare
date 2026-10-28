@@ -22,6 +22,17 @@
     ]
   },
   {
+    "key": "aussiehobbies",
+    "name": "Aussie Hobbies",
+    "base": "https://www.aussiehobbies.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "new-arrivals"
+    ]
+  },
+  {
     "key": "awgames",
     "name": "Aether Wyvern Games",
     "base": "https://awgames.com.au",
@@ -33,6 +44,28 @@
     ]
   },
   {
+    "key": "beachestcg",
+    "name": "Beaches TCG",
+    "base": "https://beachestcg.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "blacklistcards",
+    "name": "Blacklist Cards",
+    "base": "https://blacklistcards.com",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "new-arrivals"
+    ]
+  },
+  {
     "key": "cardbot",
     "name": "Cardbot",
     "base": "https://cardbot.com.au",
@@ -41,6 +74,28 @@
     "country": "AU",
     "collections": [
       "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "cardhouseau",
+    "name": "The Card House",
+    "base": "https://www.cardhouse.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "mtg-sealed"
+    ]
+  },
+  {
+    "key": "cherrycollectables",
+    "name": "Cherry Collectables",
+    "base": "https://www.cherrycollectables.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "pre-order"
     ]
   },
   {
@@ -74,6 +129,17 @@
     "country": "AU",
     "collections": [
       "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "crystalcollectablestcg",
+    "name": "Crystal Collectables TCG",
+    "base": "https://crystalcollectablestcg.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "mtg-sealed"
     ]
   },
   {
@@ -121,6 +187,17 @@
     ]
   },
   {
+    "key": "fastbreakcollectables",
+    "name": "FastBreak Cards & Collectables",
+    "base": "https://fastbreakcollectables.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "finalboss",
     "name": "The Final Boss Collectables",
     "base": "https://thefinalbosscollectables.com.au",
@@ -132,9 +209,31 @@
     ]
   },
   {
+    "key": "firstgames",
+    "name": "First Games",
+    "base": "https://firstgames.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "flukeandbox",
     "name": "Fluke & Box",
     "base": "https://www.flukeandbox.com",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "frenlybricks",
+    "name": "FRENLY BRICKS - Open 7 Days",
+    "base": "https://frenlybricks.store",
     "market": "AU",
     "platform": "shopify",
     "country": "AU",
@@ -167,6 +266,17 @@
     ]
   },
   {
+    "key": "gamersvillage",
+    "name": "Gamers Village",
+    "base": "https://gamers-village.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "pre-orders"
+    ]
+  },
+  {
     "key": "gamescapital",
     "name": "The Games Capital",
     "base": "https://www.thegamescapital.com.au",
@@ -177,6 +287,17 @@
       "older-magic-products",
       "magic-the-gathering-commander-masters",
       "magic-the-gathering-mystery-boosters"
+    ]
+  },
+  {
+    "key": "gamesempire",
+    "name": "Games Empire",
+    "base": "https://www.gamesempire.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "pre-order"
     ]
   },
   {
@@ -193,6 +314,17 @@
     ]
   },
   {
+    "key": "gaminggrounds",
+    "name": "Gaming Grounds",
+    "base": "https://gaminggrounds.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "gapgames",
     "name": "GAP Games",
     "base": "https://www.gapgames.com.au",
@@ -204,6 +336,17 @@
     ]
   },
   {
+    "key": "gatekeeperstcg",
+    "name": "Gate Keepers TCG & Collectables",
+    "base": "https://www.gatekeeperstcg.com",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "magic-sealed"
+    ]
+  },
+  {
     "key": "generalgames",
     "name": "General Games",
     "base": "https://generalgames.com.au",
@@ -212,6 +355,17 @@
     "country": "AU",
     "collections": [
       "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "gggreensborough",
+    "name": "Good Games Greensborough",
+    "base": "https://gggreensborough.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "mtg"
     ]
   },
   {
@@ -240,6 +394,17 @@
     ]
   },
   {
+    "key": "hbtcollectables",
+    "name": "HBT Collectables",
+    "base": "https://www.hbtcollectables.com",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "hobbycollectorsaustralia",
     "name": "Hobby Collectors Australia",
     "base": "https://hobbycollectorsaustralia.com.au",
@@ -248,6 +413,39 @@
     "country": "AU",
     "collections": [
       "all-magic-the-gathering-products"
+    ]
+  },
+  {
+    "key": "hobbykitz",
+    "name": " Hobby Kitz",
+    "base": "https://hobbykitz.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "horizontradingcards",
+    "name": "Horizon Trading Cards",
+    "base": "https://horizontradingcards.com",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "mtg-sealed"
+    ]
+  },
+  {
+    "key": "hrgames",
+    "name": "HR Games",
+    "base": "https://hrgames.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "magic-the-gathering-sealed"
     ]
   },
   {
@@ -287,9 +485,43 @@
     ]
   },
   {
+    "key": "legendsandcollectables",
+    "name": "legendsandcollectables",
+    "base": "https://legendsandcollectables.com",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "new-arrivals"
+    ]
+  },
+  {
     "key": "lotsmoore",
     "name": "Lots Moore",
     "base": "https://online.lotsmoore.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "mtg-sealed"
+    ]
+  },
+  {
+    "key": "lowpop",
+    "name": "Low Pop Trading Co",
+    "base": "https://www.lowpop.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "preorder",
+      "sealed"
+    ]
+  },
+  {
+    "key": "lunacards",
+    "name": "Luna Cards",
+    "base": "https://www.lunacards.com.au",
     "market": "AU",
     "platform": "shopify",
     "country": "AU",
@@ -311,9 +543,31 @@
     ]
   },
   {
+    "key": "megagames",
+    "name": "Mega Games Penrith",
+    "base": "https://megagames.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "melbemon",
     "name": "Melbemon Trading Cards",
     "base": "https://www.melbemon.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "metrohobbies",
+    "name": "Metro Hobbies",
+    "base": "https://www.metrohobbies.com.au",
     "market": "AU",
     "platform": "shopify",
     "country": "AU",
@@ -330,6 +584,17 @@
     "country": "AU",
     "collections": [
       "magic-sealed"
+    ]
+  },
+  {
+    "key": "mintcollectables",
+    "name": "Mint Collectables",
+    "base": "https://mintcollectables.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "preorder"
     ]
   },
   {
@@ -411,6 +676,18 @@
       "magic-the-gathering-play-boosters",
       "magic-the-gathering-set-boosters",
       "magic-the-gathering-draft-boosters"
+    ]
+  },
+  {
+    "key": "pokemonworldaustralia",
+    "name": "Pokemon World Australia",
+    "base": "https://www.pokemonworldaustralia.com",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "booster-boxes",
+      "tcg-preorders"
     ]
   },
   {
@@ -541,6 +818,39 @@
     ]
   },
   {
+    "key": "tcgroupau",
+    "name": "TCGroup Australia",
+    "base": "https://www.tcgroupau.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "bundles"
+    ]
+  },
+  {
+    "key": "teamcardtitan",
+    "name": "Team Card Titan",
+    "base": "https://teamcardtitan.com",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "preorder"
+    ]
+  },
+  {
+    "key": "theadventurersguild",
+    "name": "The Adventurers Guild",
+    "base": "https://www.theadventurersguild.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "thecardcave",
     "name": "The Card Cave",
     "base": "https://thecardcave.com.au",
@@ -609,6 +919,39 @@
     ]
   },
   {
+    "key": "turnordergames",
+    "name": "Turn Order Games",
+    "base": "https://turnordergames.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "turtletcg",
+    "name": "Turtle TCG",
+    "base": "https://turtletcg.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "unpluggedgames",
+    "name": "Unplugged Games",
+    "base": "https://unpluggedgames.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "pre-order"
+    ]
+  },
+  {
     "key": "urbanempirecollectables",
     "name": "Urban Empire Collectables",
     "base": "https://urbanempirecollectables.com",
@@ -617,6 +960,51 @@
     "country": "AU",
     "collections": [
       "mtg"
+    ]
+  },
+  {
+    "key": "vaultcollectables",
+    "name": "Filmsmen",
+    "base": "https://vault-collectables.com",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "mtg"
+    ]
+  },
+  {
+    "key": "vaultgames",
+    "name": "Vault Games",
+    "base": "https://vaultgames.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "preorder-pricing"
+    ]
+  },
+  {
+    "key": "wonderlandgames",
+    "name": "Wonderland Games",
+    "base": "https://www.wonderlandgames.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "magic-the-gathering-sealed"
+    ]
+  },
+  {
+    "key": "3dragons",
+    "name": "Jeux 3 Dragons",
+    "base": "https://3dragons.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "all-sealed",
+      "preorders"
     ]
   },
   {
@@ -630,6 +1018,17 @@
       "a-great-place-to-begin-magic-the-gathering",
       "fall-sale-2021-magic-the-gathering",
       "collectors-corner-magic-the-gathering"
+    ]
+  },
+  {
+    "key": "abyssgamestore",
+    "name": "Abyss Game Store",
+    "base": "https://abyssgamestore.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "pre-orders"
     ]
   },
   {
@@ -710,6 +1109,28 @@
     ]
   },
   {
+    "key": "battlegroundgames",
+    "name": "Battleground Games",
+    "base": "https://battlegroundgames.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "mtg-sealed"
+    ]
+  },
+  {
+    "key": "beardycards",
+    "name": "BeardyCards",
+    "base": "https://www.beardycards.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "bentogaming",
     "name": "Bento Gaming",
     "base": "https://bentogaming.com",
@@ -746,6 +1167,29 @@
     ]
   },
   {
+    "key": "boutiqueawesome",
+    "name": "Boutique Awesome",
+    "base": "https://boutiqueawesome.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "sealed",
+      "new-releases"
+    ]
+  },
+  {
+    "key": "boutiquefdb",
+    "name": "Boutique FDB",
+    "base": "https://boutiquefdb.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "new-arrivals"
+    ]
+  },
+  {
     "key": "boutiquelapioche",
     "name": "La Pioche",
     "base": "https://boutiquelapioche.com",
@@ -765,6 +1209,17 @@
     "country": "CA",
     "collections": [
       "mtg-marvel-super-heroes"
+    ]
+  },
+  {
+    "key": "brimstonegames",
+    "name": "Brimstone Games ",
+    "base": "https://brimstonegames.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "new-releases"
     ]
   },
   {
@@ -788,6 +1243,17 @@
     "collections": [
       "mtg-sealed",
       "mtg-decks"
+    ]
+  },
+  {
+    "key": "cardboardmemories",
+    "name": "Cardboard Memories Inc.",
+    "base": "https://cardboardmemories.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "pre-order"
     ]
   },
   {
@@ -822,6 +1288,17 @@
     "collections": [
       "magic-the-gathering",
       "magic-the-gathering-sealed"
+    ]
+  },
+  {
+    "key": "cards",
+    "name": "Collect-Edition",
+    "base": "https://cards.collect-edition.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -928,6 +1405,50 @@
     ]
   },
   {
+    "key": "clawmebaby",
+    "name": "Claw Me Baby",
+    "base": "https://clawmebaby.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "pre-order"
+    ]
+  },
+  {
+    "key": "collectorsavenue",
+    "name": "Collector's Avenue",
+    "base": "https://collectorsavenue.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "new-arrivals"
+    ]
+  },
+  {
+    "key": "comfyhobbies",
+    "name": "Comfy Hobbies",
+    "base": "https://comfyhobbies.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "mtg-sealed"
+    ]
+  },
+  {
+    "key": "criticalhitgaminglounge",
+    "name": "Critical Hit Gaming Lounge",
+    "base": "https://criticalhitgaminglounge.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "mtg-sealed"
+    ]
+  },
+  {
     "key": "cryptmtg",
     "name": "La Crypte",
     "base": "https://cryptmtg.com",
@@ -1007,6 +1528,17 @@
     "country": "CA",
     "collections": [
       "mtg-sealed-product"
+    ]
+  },
+  {
+    "key": "diademhobbies",
+    "name": "Diadem Cards & Hobbies",
+    "base": "https://diademhobbies.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -1142,6 +1674,17 @@
     ]
   },
   {
+    "key": "facetofacegames",
+    "name": "Face to Face Games",
+    "base": "https://facetofacegames.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "sealed"
+    ]
+  },
+  {
     "key": "fafnirshoard",
     "name": "Fafnir's Hoard",
     "base": "https://fafnirshoard.ca",
@@ -1269,6 +1812,18 @@
     ]
   },
   {
+    "key": "gameshack",
+    "name": "Game Shack",
+    "base": "https://gameshack.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "new-release",
+      "pre-order"
+    ]
+  },
+  {
     "key": "gamesland",
     "name": "GamesLand Canada",
     "base": "https://gamesland.ca",
@@ -1291,6 +1846,62 @@
     "collections": [
       "mtg-boosters",
       "mtg-commander-decks"
+    ]
+  },
+  {
+    "key": "geekandco",
+    "name": "Geek & Co.",
+    "base": "https://geekandco.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "gothamcentralcomics",
+    "name": "Gotham Central",
+    "base": "https://gothamcentralcomics.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "gotitemgames",
+    "name": "Got Item! Games",
+    "base": "https://gotitemgames.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "pre-orders"
+    ]
+  },
+  {
+    "key": "gtgames",
+    "name": "GT Games",
+    "base": "https://gtgames.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "preorder",
+      "new-arrivals"
+    ]
+  },
+  {
+    "key": "hairyt",
+    "name": "Hairy Tarantula",
+    "base": "https://www.hairyt.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "new-arrivals"
     ]
   },
   {
@@ -1351,6 +1962,42 @@
     ]
   },
   {
+    "key": "hopeclubshop",
+    "name": "Hope Club Collectibles",
+    "base": "https://hopeclubshop.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "pre-orders"
+    ]
+  },
+  {
+    "key": "houseofcards",
+    "name": "House of Cards",
+    "base": "https://www.houseofcards.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "booster-packs",
+      "booster-boxes",
+      "bundles",
+      "new-arrivals"
+    ]
+  },
+  {
+    "key": "hpwcards",
+    "name": "HPW CARDS INC.",
+    "base": "https://hpwcards.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "mtg-sealed"
+    ]
+  },
+  {
     "key": "impulsegames",
     "name": "Impulse Games and Hobbies",
     "base": "https://impulsegames.ca",
@@ -1375,6 +2022,17 @@
     ]
   },
   {
+    "key": "invasioncnc",
+    "name": "Invasion Inc",
+    "base": "https://invasioncnc.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "tcg-sealed"
+    ]
+  },
+  {
     "key": "itsgametime",
     "name": "Game Time Collectibles",
     "base": "https://itsgametime.ca",
@@ -1396,6 +2054,17 @@
       "mtg-sealed",
       "mtg-reality-fracture-sealed",
       "lord-of-the-rings-mtg-sealed-1"
+    ]
+  },
+  {
+    "key": "jeuxaz",
+    "name": "Jeux AZ Games",
+    "base": "https://jeuxaz.games",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -1517,6 +2186,28 @@
     ]
   },
   {
+    "key": "legendarycollectables",
+    "name": "Legendary Collectables",
+    "base": "https://legendarycollectables.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "pre-order-products"
+    ]
+  },
+  {
+    "key": "leroidescartes",
+    "name": "Le Roi Des Cartes",
+    "base": "https://leroidescartes.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "pre-order"
+    ]
+  },
+  {
     "key": "levelupgames",
     "name": "Level Up Games Canada",
     "base": "https://levelupgames.ca",
@@ -1537,6 +2228,28 @@
     "country": "CA",
     "collections": [
       "mtg-sealed-product"
+    ]
+  },
+  {
+    "key": "luniversdelacarte",
+    "name": "L'univers de la carte",
+    "base": "https://luniversdelacarte.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "magic-the-gathering-sealed"
+    ]
+  },
+  {
+    "key": "lvlupgames",
+    "name": "LVLUP GAMES",
+    "base": "https://lvlupgames.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -1574,6 +2287,17 @@
     ]
   },
   {
+    "key": "manalounge",
+    "name": "The Mana Lounge",
+    "base": "https://manalounge.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "mtg-sealed"
+    ]
+  },
+  {
     "key": "mechagames",
     "name": "Mecha Games",
     "base": "https://mechagames.ca",
@@ -1582,6 +2306,18 @@
     "country": "CA",
     "collections": [
       "magic-the-gathering-sealed"
+    ]
+  },
+  {
+    "key": "morrisontradingpost",
+    "name": "Morrison Trading Post",
+    "base": "https://morrisontradingpost.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "new-arrivals",
+      "sealed"
     ]
   },
   {
@@ -1598,6 +2334,28 @@
     ]
   },
   {
+    "key": "mypops",
+    "name": "MyPops.ca",
+    "base": "https://mypops.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "preorders"
+    ]
+  },
+  {
+    "key": "mysticdragon",
+    "name": "Mystic Dragon",
+    "base": "https://mystic-dragon.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "mythicstore",
     "name": "The Mythic Store",
     "base": "https://themythicstore.com",
@@ -1608,6 +2366,17 @@
       "magic-the-gathering-sealed-products-1",
       "magic-the-gathering-booster-boxes",
       "magic-the-gathering-sealed-products"
+    ]
+  },
+  {
+    "key": "nabemacollectibles",
+    "name": "Nabema Collectibles",
+    "base": "https://nabemacollectibles.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "pre-orders"
     ]
   },
   {
@@ -1624,6 +2393,17 @@
     ]
   },
   {
+    "key": "newrealmgames",
+    "name": "New Realm Games",
+    "base": "https://newrealmgames.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "pre-orders"
+    ]
+  },
+  {
     "key": "northernwartable",
     "name": "Northern War Table",
     "base": "https://northernwartable.com",
@@ -1632,6 +2412,50 @@
     "country": "CA",
     "collections": [
       "mtg-sealed-store"
+    ]
+  },
+  {
+    "key": "npcollectibles",
+    "name": "NexPack Collectibles",
+    "base": "https://npcollectibles.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "pre-order-items"
+    ]
+  },
+  {
+    "key": "npcollectiblesca",
+    "name": "NP Collectibles",
+    "base": "https://npcollectibles.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "pre-order-items"
+    ]
+  },
+  {
+    "key": "outpostgaming",
+    "name": "Outpost Gaming",
+    "base": "https://outpostgaming.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "overtimesportscards",
+    "name": "Overtime Sportscards",
+    "base": "https://overtimesportscards.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "new-arrivals"
     ]
   },
   {
@@ -1679,6 +2503,50 @@
     ]
   },
   {
+    "key": "pokejeux",
+    "name": "Pok\\u00e9Jeux",
+    "base": "https://pokejeux.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "pre-order"
+    ]
+  },
+  {
+    "key": "prestigegames",
+    "name": "Prestige Games",
+    "base": "https://prestigegames.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "mtg"
+    ]
+  },
+  {
+    "key": "pvpshoppe",
+    "name": "PvP Shoppe",
+    "base": "https://pvpshoppe.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "new-arrivals"
+    ]
+  },
+  {
+    "key": "radgameshop",
+    "name": "RAD GameShop",
+    "base": "https://www.radgameshop.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "reddragon",
     "name": "Red-DragonCA",
     "base": "https://red-dragon.ca",
@@ -1690,6 +2558,17 @@
     ]
   },
   {
+    "key": "redriotgames",
+    "name": "Red Riot Games",
+    "base": "https://redriotgames.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "sealed-product"
+    ]
+  },
+  {
     "key": "remicardtrader",
     "name": "Rémi Card Trader",
     "base": "https://remicardtrader.ca",
@@ -1698,6 +2577,17 @@
     "country": "CA",
     "collections": [
       "remis-magic-custom-commander-deck"
+    ]
+  },
+  {
+    "key": "rivalcards",
+    "name": "Rival Cards",
+    "base": "https://rivalcards.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "magic-the-gathering-sealed"
     ]
   },
   {
@@ -1797,6 +2687,17 @@
     ]
   },
   {
+    "key": "springerhobbies",
+    "name": "Springer Hobbies",
+    "base": "https://springerhobbies.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "tabletopgiant",
     "name": "Tabletop Giant",
     "base": "https://tabletopgiant.ca",
@@ -1868,6 +2769,28 @@
     ]
   },
   {
+    "key": "threekingdomsgames",
+    "name": "Three Kingdoms Games",
+    "base": "https://threekingdomsgames.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "booster-box"
+    ]
+  },
+  {
+    "key": "tistacards",
+    "name": "TistaCards",
+    "base": "https://tistacards.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "new-arrivals"
+    ]
+  },
+  {
     "key": "tistaminis",
     "name": "Tistaminis",
     "base": "https://tistaminis.com",
@@ -1906,6 +2829,17 @@
     ]
   },
   {
+    "key": "torchlightgh",
+    "name": "Torchlight Games and Hobbies",
+    "base": "https://torchlightgh.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "toysnowman",
     "name": "Toy Snowman",
     "base": "https://toysnowman.com",
@@ -1925,6 +2859,17 @@
     "country": "CA",
     "collections": [
       "mtg-sealed"
+    ]
+  },
+  {
+    "key": "twinmoonstcg",
+    "name": "Twin Moons Cards & Games",
+    "base": "https://twinmoonstcg.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -1970,6 +2915,18 @@
     "collections": [
       "magic-the-gathering",
       "mtg"
+    ]
+  },
+  {
+    "key": "wanderingadventures",
+    "name": "Wandering Adventures",
+    "base": "https://wanderingadventures.ca",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "new-releases",
+      "magic-the-gathering"
     ]
   },
   {
@@ -2100,6 +3057,17 @@
     ]
   },
   {
+    "key": "duelspoint",
+    "name": "Duels Point - Trading Card Games",
+    "base": "https://duelspoint.it",
+    "market": "EU",
+    "platform": "shopify",
+    "country": "IT",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "endturn",
     "name": "End Turn",
     "base": "https://endturn.pt",
@@ -2124,6 +3092,17 @@
     ]
   },
   {
+    "key": "jjcollection",
+    "name": "JJ Collection",
+    "base": "https://www.jjcollection.es",
+    "market": "EU",
+    "platform": "shopify",
+    "country": "ES",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "lakecards",
     "name": "Lake Cards",
     "base": "https://lakecards.de",
@@ -2145,6 +3124,17 @@
     "country": "NL",
     "collections": [
       "commander-magic-the-gathering-final-fantasy"
+    ]
+  },
+  {
+    "key": "lmshandel",
+    "name": "lms-handel",
+    "base": "https://lms-handel.de",
+    "market": "EU",
+    "platform": "shopify",
+    "country": "DE",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -2181,6 +3171,28 @@
     ]
   },
   {
+    "key": "mojocards",
+    "name": "Mojo Cards",
+    "base": "https://mojocards.nl",
+    "market": "EU",
+    "platform": "shopify",
+    "country": "NL",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "mrcollect",
+    "name": "Poke Planet (Mr Collect)",
+    "base": "https://mr-collect.de",
+    "market": "EU",
+    "platform": "shopify",
+    "country": "DE",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "nordiclegends",
     "name": "Nordic Legends",
     "base": "https://nordic-legends.com",
@@ -2193,6 +3205,17 @@
     ]
   },
   {
+    "key": "otakura",
+    "name": "Otakura",
+    "base": "https://otakura.com",
+    "market": "EU",
+    "platform": "shopify",
+    "country": "IT",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "outpostbrussels",
     "name": "Outpost Brussels",
     "base": "https://outpostbrussels.be",
@@ -2202,6 +3225,17 @@
     "collections": [
       "magic-the-gathering",
       "mtg-precommande"
+    ]
+  },
+  {
+    "key": "peeronline",
+    "name": "Peer Online Shop",
+    "base": "https://www.peer-online.de",
+    "market": "EU",
+    "platform": "shopify",
+    "country": "DE",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -2283,6 +3317,17 @@
     "market": "EU",
     "platform": "shopify",
     "country": "DE",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "rarecards",
+    "name": "RareCards",
+    "base": "https://rarecards.nl",
+    "market": "EU",
+    "platform": "shopify",
+    "country": "NL",
     "collections": [
       "magic-the-gathering"
     ]
@@ -2471,6 +3516,18 @@
     ]
   },
   {
+    "key": "ocare",
+    "name": "OCARE",
+    "base": "https://ocare.co.nz",
+    "market": "NZ",
+    "platform": "shopify",
+    "country": "NZ",
+    "collections": [
+      "new-arrivals",
+      "booster-bundles"
+    ]
+  },
+  {
     "key": "otakumart",
     "name": "Otaku Mart",
     "base": "https://otakumart.co.nz",
@@ -2492,6 +3549,17 @@
     "country": "NZ",
     "collections": [
       "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "popstop",
+    "name": "Pop Stop",
+    "base": "https://popstop.co.nz",
+    "market": "NZ",
+    "platform": "shopify",
+    "country": "NZ",
+    "collections": [
+      "pre-orders"
     ]
   },
   {
@@ -2652,6 +3720,17 @@
     ]
   },
   {
+    "key": "theavidcollectors",
+    "name": "The Avid Collectors",
+    "base": "https://theavidcollectors.com",
+    "market": "SG",
+    "platform": "shopify",
+    "country": "SG",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "axionnow",
     "name": "Axion Now",
     "base": "https://axionnow.com",
@@ -2672,6 +3751,17 @@
     "country": "GB",
     "collections": [
       "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "battlegroundgaming",
+    "name": "Battleground Gaming UK",
+    "base": "https://battlegroundgaming.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "new-releases"
     ]
   },
   {
@@ -2717,6 +3807,39 @@
     "collections": [
       "magic-the-gathering-sealed-product",
       "magic-the-gathering-foundations-beginner-box"
+    ]
+  },
+  {
+    "key": "cardxchange",
+    "name": "CardXchange",
+    "base": "https://cardxchange.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "cgcemporium",
+    "name": "Comics Games And Coffee",
+    "base": "https://cgc-emporium.com",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "chesterlegeek",
+    "name": "Chester Le Geek",
+    "base": "https://chesterlegeek.com",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -2768,6 +3891,51 @@
     ]
   },
   {
+    "key": "comicsandbeyond",
+    "name": "comicsandbeyond",
+    "base": "https://www.comicsandbeyond.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "mtg-sealed-products",
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "cosmiccollectables",
+    "name": "Cosmic Collectables UK",
+    "base": "https://www.cosmiccollectables.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "crypticcabin",
+    "name": "Cryptic Cabin",
+    "base": "https://crypticcabin.com",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "diceanddumplings",
+    "name": "Dice and Dumplings",
+    "base": "https://diceanddumplings.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "new-arrivals"
+    ]
+  },
+  {
     "key": "dicesaloon",
     "name": "Dice Saloon",
     "base": "https://dicesaloonsingles.co.uk",
@@ -2815,9 +3983,131 @@
     ]
   },
   {
+    "key": "etoysworld",
+    "name": "eTOYSWORLD",
+    "base": "https://www.etoysworld.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-sealed",
+      "pre-orders"
+    ]
+  },
+  {
+    "key": "evolutiontradingcards",
+    "name": "Evolution Trading Cards",
+    "base": "https://evolutiontradingcards.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "booster-packs"
+    ]
+  },
+  {
+    "key": "galleongames",
+    "name": "Galleon Games",
+    "base": "https://galleongames.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "gamehq",
+    "name": "Game HQ Birmingham",
+    "base": "https://game-hq.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "mtg-sealed"
+    ]
+  },
+  {
     "key": "gameon",
     "name": "GameOn.games",
     "base": "https://www.gameon.games",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "gatheringgames",
+    "name": "Gathering Games",
+    "base": "https://gatheringgames.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "gatheringpointgames",
+    "name": "Gathering Point Games",
+    "base": "https://gatheringpointgames.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "new-arrivals"
+    ]
+  },
+  {
+    "key": "goblingaming",
+    "name": "Goblin Gaming",
+    "base": "https://www.goblingaming.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "new-releases"
+    ]
+  },
+  {
+    "key": "gogetcollectables",
+    "name": "Go Get Collectables",
+    "base": "https://gogetcollectables.com",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "grimdice",
+    "name": "Grim Dice Tabletop Gaming",
+    "base": "https://grimdice.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "harlequinsgames",
+    "name": "Harlequins Games",
+    "base": "https://harlequinsgames.com",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "new-arrivals"
+    ]
+  },
+  {
+    "key": "hiddengemcards",
+    "name": "Hidden Gem Trading Cards",
+    "base": "https://hiddengemcards.co.uk",
     "market": "UK",
     "platform": "shopify",
     "country": "GB",
@@ -2848,6 +4138,17 @@
     ]
   },
   {
+    "key": "incomgaming",
+    "name": "Incom Gaming",
+    "base": "https://incomgaming.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "pre-order"
+    ]
+  },
+  {
     "key": "japan2uk",
     "name": "Japan2UK",
     "base": "https://www.japan2uk.com",
@@ -2858,6 +4159,17 @@
       "magic-the-gathering-english-decks",
       "magic-the-gathering-english-booster-boxes",
       "magic-the-gathering-english-booster-packs"
+    ]
+  },
+  {
+    "key": "koolthings",
+    "name": "Koolthings",
+    "base": "https://www.koolthings.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -2872,6 +4184,17 @@
     ]
   },
   {
+    "key": "livingrealms",
+    "name": "Living Realms",
+    "base": "https://livingrealms.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "new-releases"
+    ]
+  },
+  {
     "key": "londonmagictraders",
     "name": "London Magic Traders",
     "base": "https://londonmagictraders.com",
@@ -2883,6 +4206,18 @@
     ]
   },
   {
+    "key": "lvlupgaming",
+    "name": "Lvl Up Gaming UK",
+    "base": "https://lvlupgaming.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "pre-order",
+      "new-arrivals"
+    ]
+  },
+  {
     "key": "managaming",
     "name": "Mana Gaming UK",
     "base": "https://managaming.shop",
@@ -2891,6 +4226,17 @@
     "country": "GB",
     "collections": [
       "mtg-sealed-in-stock"
+    ]
+  },
+  {
+    "key": "megacards",
+    "name": "Mega Cards",
+    "base": "https://megacards.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -2951,9 +4297,76 @@
     ]
   },
   {
+    "key": "onyxdawngames",
+    "name": "Onyx Dawn Games",
+    "base": "https://onyxdawngames.com",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "new-releases",
+      "pre-orders"
+    ]
+  },
+  {
+    "key": "pendulumgaming",
+    "name": "Pendulum Gaming",
+    "base": "https://pendulumgaming.com",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "preorder"
+    ]
+  },
+  {
     "key": "pixelhub",
     "name": "Pixel Hub",
     "base": "https://pixel-hub.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "pucapucagames",
+    "name": "Puca Puca Games",
+    "base": "https://www.pucapucagames.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "redsuncollectables",
+    "name": "Red Sun Collectables",
+    "base": "https://redsuncollectables.com",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "retrogamerbros",
+    "name": "Retro Gamer Bros.",
+    "base": "https://retrogamerbros.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "rollnplay",
+    "name": "Roll N Play",
+    "base": "https://rollnplay.co.uk",
     "market": "UK",
     "platform": "shopify",
     "country": "GB",
@@ -2973,6 +4386,28 @@
     ]
   },
   {
+    "key": "shop",
+    "name": "Forbidden Planet",
+    "base": "https://shop.forbiddenplanet.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-sealed"
+    ]
+  },
+  {
+    "key": "shopmysterytavern",
+    "name": "Mystery Tavern ",
+    "base": "https://www.shopmysterytavern.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "sidequestgames",
     "name": "Side Quest Games",
     "base": "https://www.sidequestgames.uk",
@@ -2981,6 +4416,39 @@
     "country": "GB",
     "collections": [
       "magic-sealed"
+    ]
+  },
+  {
+    "key": "spellboundgames",
+    "name": "Spellbound Games",
+    "base": "https://spellboundgames.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "sportscardsdirect",
+    "name": "Sports Cards Direct",
+    "base": "https://www.sportscardsdirect.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "pre-order"
+    ]
+  },
+  {
+    "key": "stylecreep",
+    "name": "stylecreep.com",
+    "base": "https://www.stylecreep.com",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "booster-packs"
     ]
   },
   {
@@ -3017,6 +4485,17 @@
     ]
   },
   {
+    "key": "theboardgamehut",
+    "name": "The Board Game Hut",
+    "base": "https://theboardgamehut.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "preorders"
+    ]
+  },
+  {
     "key": "thecardvault",
     "name": "The Card Vault",
     "base": "https://thecardvault.co.uk",
@@ -3027,6 +4506,40 @@
       "magic-the-gathering-modern-horizons-3-sealed-products",
       "magic-the-gathering-foundations-sealed-products",
       "magic-the-gathering-duskmourn-house-of-horrors-sealed-products"
+    ]
+  },
+  {
+    "key": "thegrumpygoblin",
+    "name": "The Grumpy Goblin",
+    "base": "https://thegrumpygoblin.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "booster-packs"
+    ]
+  },
+  {
+    "key": "thetcggroup",
+    "name": "The TCG Group",
+    "base": "https://thetcggroup.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "sealed-products",
+      "new-arrivals"
+    ]
+  },
+  {
+    "key": "thirstymeeples",
+    "name": "Thirsty Meeples",
+    "base": "https://www.thirstymeeples.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "new-releases"
     ]
   },
   {
@@ -3055,6 +4568,17 @@
     "key": "titancards",
     "name": "Titan Cards",
     "base": "https://titancards.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "tokyotoys",
+    "name": "TokyoToys",
+    "base": "https://tokyotoys.com",
     "market": "UK",
     "platform": "shopify",
     "country": "GB",
@@ -3098,6 +4622,39 @@
     ]
   },
   {
+    "key": "ultimatetcg",
+    "name": "Ultimate TCG Limited",
+    "base": "https://ultimatetcg.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "booster-boxes"
+    ]
+  },
+  {
+    "key": "ultrararecards",
+    "name": "Ultra Rare Cards",
+    "base": "https://ultrararecards.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "viridianvault",
+    "name": "The Viridian Vault",
+    "base": "https://viridianvault.co.uk",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "zatu",
     "name": "Zatu Games",
     "base": "https://zatu.com",
@@ -3119,6 +4676,17 @@
     "country": "US",
     "collections": [
       "mtg-sealed"
+    ]
+  },
+  {
+    "key": "1stcapitalgaming",
+    "name": "1st Capital Gaming",
+    "base": "https://1stcapitalgaming.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "pre-orders"
     ]
   },
   {
@@ -3169,6 +4737,17 @@
     ]
   },
   {
+    "key": "alphaomegahobby",
+    "name": "Alpha Omega Hobby",
+    "base": "https://alphaomegahobby.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "animeimports",
     "name": "Anime Imports",
     "base": "https://animeimports.net",
@@ -3177,6 +4756,17 @@
     "country": "US",
     "collections": [
       "mtg-sealed-all"
+    ]
+  },
+  {
+    "key": "animeislandca",
+    "name": "Anime Island CA",
+    "base": "https://animeislandca.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -3191,6 +4781,17 @@
     ]
   },
   {
+    "key": "atlasgames",
+    "name": "Atlas Games",
+    "base": "https://atlasgames.store",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "mtg"
+    ]
+  },
+  {
     "key": "balancegamingfl",
     "name": "Balance Martial Arts and Gaming",
     "base": "https://balancegamingfl.com",
@@ -3199,6 +4800,17 @@
     "country": "US",
     "collections": [
       "mtg-sealed-product"
+    ]
+  },
+  {
+    "key": "bamcards",
+    "name": "BAM Cards",
+    "base": "https://bamcards.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -3225,6 +4837,17 @@
     ]
   },
   {
+    "key": "blackswampgames",
+    "name": "Black Swamp Games",
+    "base": "https://blackswampgames.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "new-arrivals"
+    ]
+  },
+  {
     "key": "blackvaultgaming",
     "name": "Black Vault Gaming",
     "base": "https://blackvaultgaming.com",
@@ -3247,6 +4870,28 @@
     ]
   },
   {
+    "key": "bluemistcollectibles",
+    "name": "Blue Mist",
+    "base": "https://bluemistcollectibles.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "booster-box"
+    ]
+  },
+  {
+    "key": "boardgamesdallas",
+    "name": "Common Ground Games",
+    "base": "https://boardgamesdallas.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "preorders"
+    ]
+  },
+  {
     "key": "brickandboardgames",
     "name": "Brick & Board Games and Cards",
     "base": "https://brickandboardgames.com",
@@ -3255,6 +4900,17 @@
     "country": "US",
     "collections": [
       "magic-the-gathering-sealed"
+    ]
+  },
+  {
+    "key": "bricksandheroes",
+    "name": "Bricks And Heroes",
+    "base": "https://bricksandheroes.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "new-arrivals"
     ]
   },
   {
@@ -3270,6 +4926,39 @@
     ]
   },
   {
+    "key": "bytheboardgames",
+    "name": "By The Board Games & Entertainment",
+    "base": "https://bytheboardgames.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "booster-packs"
+    ]
+  },
+  {
+    "key": "capefearcollectibles",
+    "name": "Cape Fear Collectibles",
+    "base": "https://www.capefearcollectibles.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "cardandcollectibleguys",
+    "name": "Card and Collectible Guys",
+    "base": "https://cardandcollectibleguys.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "cardboardanddie",
     "name": "Cardboard and Die",
     "base": "https://cardboardanddie.com",
@@ -3278,6 +4967,28 @@
     "country": "US",
     "collections": [
       "mtg-sealed"
+    ]
+  },
+  {
+    "key": "cardboyz",
+    "name": "Card Boyz",
+    "base": "https://cardboyz.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "new-release"
+    ]
+  },
+  {
+    "key": "cardcooptcg",
+    "name": "The Card Coop",
+    "base": "https://cardcooptcg.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "new-releases"
     ]
   },
   {
@@ -3314,6 +5025,62 @@
     ]
   },
   {
+    "key": "cardnallgaming",
+    "name": "New Cut - Card N All Gaming",
+    "base": "https://cardnallgaming.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "preorders"
+    ]
+  },
+  {
+    "key": "cardpopusa",
+    "name": "CARDPOPUSA",
+    "base": "https://cardpopusa.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "booster-bundle",
+      "booster-box"
+    ]
+  },
+  {
+    "key": "cardsafari",
+    "name": "Card Safari",
+    "base": "https://cardsafari.us",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "cardsnmo",
+    "name": "Cards N MO",
+    "base": "https://cardsnmo.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "sealed"
+    ]
+  },
+  {
+    "key": "cardxcards",
+    "name": "Card x Cards",
+    "base": "https://cardxcards.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "pre-order-save"
+    ]
+  },
+  {
     "key": "cashcardsunlimited",
     "name": "Cash Cards Unlimited",
     "base": "https://cashcardsunlimited.com",
@@ -3337,6 +5104,50 @@
       "mtg-sealed",
       "mtg-booster-boxes",
       "mtg-prerelease-kits"
+    ]
+  },
+  {
+    "key": "championcardcollector",
+    "name": "Champion Card Collector",
+    "base": "https://championcardcollector.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "championtcg",
+    "name": "ChampionTCG",
+    "base": "https://championtcg.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "collectivecubed",
+    "name": "Collective Cubed",
+    "base": "https://collectivecubed.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "mtg-sealed"
+    ]
+  },
+  {
+    "key": "collectorsemporium",
+    "name": "Collectors Emporium NY",
+    "base": "https://collectorsemporium.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -3375,6 +5186,28 @@
     ]
   },
   {
+    "key": "cosmicbham",
+    "name": "Cosmic Games Birmingham",
+    "base": "https://cosmicbham.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "new-arrivals"
+    ]
+  },
+  {
+    "key": "cosmicdestroyers",
+    "name": "Cosmic Destroyer’s Collectibles ",
+    "base": "https://cosmicdestroyers.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "cosmicgames",
     "name": "Cosmic Games",
     "base": "https://cosmicgames.com",
@@ -3383,6 +5216,17 @@
     "country": "US",
     "collections": [
       "magic-the-gathering-sealed-product"
+    ]
+  },
+  {
+    "key": "darkholdgames",
+    "name": "Darkhold Games",
+    "base": "https://darkholdgames.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "new-arrivals"
     ]
   },
   {
@@ -3408,6 +5252,17 @@
     ]
   },
   {
+    "key": "doubleinfinitygaming",
+    "name": "Double Infinity Gaming",
+    "base": "https://doubleinfinitygaming.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "dragonegggames",
     "name": "Dragon Egg Games",
     "base": "https://dragon-egg-games.com",
@@ -3427,6 +5282,28 @@
     "country": "US",
     "collections": [
       "mtg-sealed-all"
+    ]
+  },
+  {
+    "key": "dvgtcg",
+    "name": "Dark Vassal Gaming",
+    "base": "https://dvgtcg.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "dxgamesllc",
+    "name": "Dx Games & More",
+    "base": "https://dxgamesllc.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -3508,6 +5385,17 @@
     ]
   },
   {
+    "key": "expresstcg",
+    "name": "EXPRESS TCG",
+    "base": "https://expresstcg.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "fabricatorsforge",
     "name": "Fabricator's Forge",
     "base": "https://shop.fabricatorsforge.com",
@@ -3554,6 +5442,17 @@
     ]
   },
   {
+    "key": "forgottenpathgames",
+    "name": "Forgotten Path Games",
+    "base": "https://forgottenpathgames.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "new-arrivals"
+    ]
+  },
+  {
     "key": "foxandfablegames",
     "name": "Fox and Fable Games",
     "base": "https://foxandfablegames.com",
@@ -3562,6 +5461,17 @@
     "country": "US",
     "collections": [
       "magic-the-gathering-sealed"
+    ]
+  },
+  {
+    "key": "funtimetoysandgifts",
+    "name": "Funtime Toys and Gifts",
+    "base": "https://funtimetoysandgifts.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -3576,6 +5486,19 @@
     ]
   },
   {
+    "key": "galactictoys",
+    "name": "Galactic Toys & Collectibles",
+    "base": "https://galactictoys.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "booster-boxes",
+      "pre-orders",
+      "new-arrivals"
+    ]
+  },
+  {
     "key": "galaxygamesllc",
     "name": "Galaxy Games",
     "base": "https://galaxygamesllc.com",
@@ -3584,6 +5507,29 @@
     "country": "US",
     "collections": [
       "mtg-sealed"
+    ]
+  },
+  {
+    "key": "gamecraftgamestore",
+    "name": "GameCraft",
+    "base": "https://gamecraftgamestore.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "tcg-sealed-products",
+      "new-arrivals"
+    ]
+  },
+  {
+    "key": "gamelandia",
+    "name": "Gamelandia",
+    "base": "https://gamelandia.fun",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -3621,6 +5567,41 @@
     ]
   },
   {
+    "key": "gamersgrove",
+    "name": "Gamers Grove",
+    "base": "https://gamersgrove.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "tcg-sealed"
+    ]
+  },
+  {
+    "key": "gamersguildaz",
+    "name": "Gamers Guild AZ",
+    "base": "https://gamersguildaz.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "booster-box",
+      "new-releases",
+      "tcg-pre-orders"
+    ]
+  },
+  {
+    "key": "gamersngeeks",
+    "name": "Gamers N Geeks",
+    "base": "https://gamersngeeks.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "gamersparadisela",
     "name": "Gamers Paradise",
     "base": "https://gamersparadisela.com",
@@ -3629,6 +5610,17 @@
     "country": "US",
     "collections": [
       "mtg-sealed"
+    ]
+  },
+  {
+    "key": "gamescape",
+    "name": "Gamescape",
+    "base": "https://gamescape.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -3690,6 +5682,30 @@
     ]
   },
   {
+    "key": "ginzamkt",
+    "name": "GinzaTCG",
+    "base": "https://ginzamkt.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "grailandgrade",
+    "name": "Grail and Grade",
+    "base": "https://grailandgrade.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "booster-boxes",
+      "booster-pack",
+      "new-releases"
+    ]
+  },
+  {
     "key": "graygauntletgames",
     "name": "Gray Gauntlet Games",
     "base": "https://graygauntletgames.com",
@@ -3701,6 +5717,17 @@
     ]
   },
   {
+    "key": "greendoorcollectibles",
+    "name": "Green Door Collectibles",
+    "base": "https://greendoorcollectibles.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "tcg-sealed"
+    ]
+  },
+  {
     "key": "grognardgames",
     "name": "Grognard Games",
     "base": "https://grognardgames.com",
@@ -3709,6 +5736,39 @@
     "country": "US",
     "collections": [
       "mtg-sealed"
+    ]
+  },
+  {
+    "key": "guubuu",
+    "name": "GuuBuu Hobby",
+    "base": "https://guubuu.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering-sealed"
+    ]
+  },
+  {
+    "key": "hastygoblingames",
+    "name": "Hasty Goblin Games",
+    "base": "https://hastygoblingames.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "sealed-product"
+    ]
+  },
+  {
+    "key": "hauntedgamecafe",
+    "name": "The Haunted Game Cafe",
+    "base": "https://www.hauntedgamecafe.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "preorder"
     ]
   },
   {
@@ -3759,6 +5819,39 @@
     ]
   },
   {
+    "key": "holohorsegames",
+    "name": "Holo Horse Games LLC",
+    "base": "https://holohorsegames.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "new-arrivals"
+    ]
+  },
+  {
+    "key": "hypercollectiblestcg",
+    "name": "Hyper Collectibles",
+    "base": "https://hypercollectiblestcg.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "preorders"
+    ]
+  },
+  {
+    "key": "immaculatetcg",
+    "name": "Immaculate Trading Cards ",
+    "base": "https://immaculatetcg.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "impactgamingcenter",
     "name": "Impact Gaming Center",
     "base": "https://impactgamingcenter.gg",
@@ -3793,6 +5886,105 @@
     ]
   },
   {
+    "key": "j2games",
+    "name": "J2Games",
+    "base": "https://j2games.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "jerseyscc",
+    "name": "Jersey's Cards & Comics",
+    "base": "https://jerseyscc.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "new-releases"
+    ]
+  },
+  {
+    "key": "jnstoys",
+    "name": "Jnstoys",
+    "base": "https://jnstoys.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "joshscards",
+    "name": "Josh's Cards",
+    "base": "https://joshscards.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "journeysendgames",
+    "name": "Journey’s End Games",
+    "base": "https://journeysendgames.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering-sealed"
+    ]
+  },
+  {
+    "key": "jwwcards",
+    "name": "JWW Sports Cards & Gaming",
+    "base": "https://jwwcards.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "keystonecardsandgames",
+    "name": "Keystone Cards and Games",
+    "base": "https://keystonecardsandgames.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "keystonegames",
+    "name": "Keystone Games LLC",
+    "base": "https://keystonegames.net",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "pre-orders"
+    ]
+  },
+  {
+    "key": "kingstablegames",
+    "name": "King's Table Games",
+    "base": "https://kingstablegames.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "pre-orders"
+    ]
+  },
+  {
     "key": "knightanddaygames",
     "name": "Knight & Day Games",
     "base": "https://knightanddaygames.com",
@@ -3804,9 +5996,42 @@
     ]
   },
   {
+    "key": "kollectiblekings",
+    "name": "Kollectible Kings",
+    "base": "https://kollectiblekings.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "mtg"
+    ]
+  },
+  {
     "key": "kollectkorner",
     "name": "Kollect Korner",
     "base": "https://www.kollectkorner.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "kryptonitekollectibles",
+    "name": "Kryptonite Kollectibles",
+    "base": "https://kryptonitekollectibles.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "lakehartwellcollectibles",
+    "name": "Lake Hartwell Collectibles",
+    "base": "https://lakehartwellcollectibles.com",
     "market": "US",
     "platform": "shopify",
     "country": "US",
@@ -3823,6 +6048,39 @@
     "country": "US",
     "collections": [
       "mtg-sealed"
+    ]
+  },
+  {
+    "key": "lasportscards",
+    "name": "LA Sports Cards",
+    "base": "https://lasportscards.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "lazarusgames",
+    "name": "Lazarus Games",
+    "base": "https://lazarus-games.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "levelonegameshop",
+    "name": "Level One Game Shop",
+    "base": "https://levelonegameshop.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -3860,6 +6118,28 @@
     ]
   },
   {
+    "key": "magessanctum",
+    "name": "Mage's Sanctum",
+    "base": "https://magessanctum.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "magicandmonsters",
+    "name": "Magic and Monsters",
+    "base": "https://magicandmonsters.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "preorder-sealed"
+    ]
+  },
+  {
     "key": "mainephasehobbies",
     "name": "Maine Phase Hobbies & Games",
     "base": "https://mainephasehobbies.com",
@@ -3868,6 +6148,18 @@
     "country": "US",
     "collections": [
       "mtg-precons"
+    ]
+  },
+  {
+    "key": "manathril",
+    "name": "Manathril Cards and Collectibles",
+    "base": "https://manathril.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "sealed-product",
+      "booster-packs"
     ]
   },
   {
@@ -3897,6 +6189,18 @@
     ]
   },
   {
+    "key": "metagames",
+    "name": "MetaGames.toys",
+    "base": "https://metagames.toys",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "all-booster-packs",
+      "new-arrivals"
+    ]
+  },
+  {
     "key": "mindgamesandmagic",
     "name": "Mindgames and Magic",
     "base": "https://mindgamesandmagic.com",
@@ -3906,6 +6210,17 @@
     "collections": [
       "mtg-sealed",
       "magic-the-gathering-sealed-product"
+    ]
+  },
+  {
+    "key": "mintedtcg",
+    "name": "Minted TCG",
+    "base": "https://mintedtcg.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "pre-orders-frontpage"
     ]
   },
   {
@@ -3932,6 +6247,28 @@
     ]
   },
   {
+    "key": "moxiecardshop",
+    "name": "Moxie Card Shop",
+    "base": "https://moxiecardshop.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "mymintcards",
+    "name": "Mint Cards & Collectibles",
+    "base": "https://mymintcards.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "sealed-products"
+    ]
+  },
+  {
     "key": "mysterymtg",
     "name": "Mystery MTG",
     "base": "https://mysterymtg.com",
@@ -3943,6 +6280,18 @@
     ]
   },
   {
+    "key": "mystictcg",
+    "name": "Mystic TCG",
+    "base": "https://mystictcg.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "booster-boxes",
+      "new-releases"
+    ]
+  },
+  {
     "key": "mythicforgegames",
     "name": "Mythic Forge Gaming",
     "base": "https://mythicforgegames.com",
@@ -3951,6 +6300,17 @@
     "country": "US",
     "collections": [
       "magic-the-gathering-commander-precons"
+    ]
+  },
+  {
+    "key": "mythichobbies",
+    "name": "Mythic Hobbies",
+    "base": "https://mythic-hobbies.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -3976,6 +6336,17 @@
     ]
   },
   {
+    "key": "nexuslgs",
+    "name": "NEXUS Games & Collectibles",
+    "base": "https://nexuslgs.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "nexustabletopgames",
     "name": "Nexus Tabletop Games",
     "base": "https://nexustabletopgames.com",
@@ -3995,6 +6366,18 @@
     "country": "US",
     "collections": [
       "magic-events"
+    ]
+  },
+  {
+    "key": "nxtlegacigaming",
+    "name": "Nxt Legaci Gaming",
+    "base": "https://nxtlegacigaming.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "booster-packs",
+      "booster-box"
     ]
   },
   {
@@ -4020,9 +6403,64 @@
     ]
   },
   {
+    "key": "overthebrick",
+    "name": "Over the Brick",
+    "base": "https://overthebrick.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "new-arrivals"
+    ]
+  },
+  {
+    "key": "papajoeys",
+    "name": "Papa Joey's Collectibles",
+    "base": "https://papajoeys.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "all-sealed-product"
+    ]
+  },
+  {
+    "key": "paragoncity",
+    "name": "Paragon City Games",
+    "base": "https://paragoncity.shop",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "preorders"
+    ]
+  },
+  {
+    "key": "pcatoys",
+    "name": "PCA Designer Toys",
+    "base": "https://pcatoys.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "booster-packs"
+    ]
+  },
+  {
     "key": "phantasmalv",
     "name": "Phantasma",
     "base": "https://phantasmalv.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "phantomich",
+    "name": "Phantomich",
+    "base": "https://phantomich.com",
     "market": "US",
     "platform": "shopify",
     "country": "US",
@@ -4100,6 +6538,17 @@
     ]
   },
   {
+    "key": "progressccg",
+    "name": "Progress CCG",
+    "base": "https://progressccg.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering-sealed"
+    ]
+  },
+  {
     "key": "prosoulgames",
     "name": "ProSoul Games",
     "base": "https://prosoulgames.com",
@@ -4108,6 +6557,28 @@
     "country": "US",
     "collections": [
       "sealed-magic-the-gathering"
+    ]
+  },
+  {
+    "key": "psychoturtlegames",
+    "name": "Psycho Turtle Collectibles",
+    "base": "https://psychoturtlegames.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "pullbighits",
+    "name": "Do Big Things Collectibles",
+    "base": "https://www.pullbighits.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -4122,6 +6593,39 @@
     ]
   },
   {
+    "key": "quicktcg",
+    "name": "QuickTCG LLC",
+    "base": "https://quicktcg.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "booster-pack"
+    ]
+  },
+  {
+    "key": "realgoodeal",
+    "name": "Realgoodeal",
+    "base": "https://realgoodeal.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "mtg"
+    ]
+  },
+  {
+    "key": "redemptioncards",
+    "name": "Redemption Cards",
+    "base": "https://redemptioncards.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "redfoxgamingonline",
     "name": "Red Fox Gaming",
     "base": "https://redfoxgamingonline.com",
@@ -4130,6 +6634,39 @@
     "country": "US",
     "collections": [
       "mtg-sealed"
+    ]
+  },
+  {
+    "key": "retrofixgames",
+    "name": "Retrofix Games",
+    "base": "https://retrofixgames.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "riftgate",
+    "name": "Riftgate",
+    "base": "https://riftgate.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "robohunters",
+    "name": "Robo Hunters",
+    "base": "https://robohunters.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "new-arrivals"
     ]
   },
   {
@@ -4144,9 +6681,67 @@
     ]
   },
   {
+    "key": "rocketcitytoys",
+    "name": "Rocket City Toys",
+    "base": "https://rocketcitytoys.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "preorders",
+      "new-arrivals"
+    ]
+  },
+  {
+    "key": "sagaconcepts",
+    "name": "Saga Concepts",
+    "base": "https://sagaconcepts.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "booster-box",
+      "tcg-pre-orders",
+      "bundle"
+    ]
+  },
+  {
+    "key": "saltcitygames",
+    "name": "Salt City Games",
+    "base": "https://saltcitygames.shop",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "shallweplaygames",
+    "name": "Shall We Play? The Games and More Store",
+    "base": "https://shallweplaygames.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "pre-orders"
+    ]
+  },
+  {
     "key": "shippintexas",
     "name": "Shippin Texas",
     "base": "https://shippintexas.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "shop2",
+    "name": "Four Horsemen Comics and Gaming of Morgantown",
+    "base": "https://shop.fourhorsemencomics.com",
     "market": "US",
     "platform": "shopify",
     "country": "US",
@@ -4179,6 +6774,18 @@
     ]
   },
   {
+    "key": "sleevedupcollectibles",
+    "name": "Sleeved Up Collectibles",
+    "base": "https://sleevedupcollectibles.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "pre-orders",
+      "new-releases"
+    ]
+  },
+  {
     "key": "smokeandmirrorshobby",
     "name": "Smoke and Mirrors Hobby",
     "base": "https://smokeandmirrorshobby.com",
@@ -4192,6 +6799,17 @@
     ]
   },
   {
+    "key": "solacido",
+    "name": "Solacido",
+    "base": "https://solacido.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "sealed"
+    ]
+  },
+  {
     "key": "spankyscardshop",
     "name": "Spanky's Card Shop",
     "base": "https://spankyscardshop.com",
@@ -4202,6 +6820,62 @@
       "mtg-booster-box",
       "final-fantasy-mtg-sealed",
       "mtg-sealed-product"
+    ]
+  },
+  {
+    "key": "spankyslootstash",
+    "name": "Spanky's Loot Stash",
+    "base": "https://www.spankyslootstash.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "mtg-sealed-products"
+    ]
+  },
+  {
+    "key": "sparkstradingcards",
+    "name": "Sparks Trading Cards",
+    "base": "https://sparkstradingcards.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "stevensongames",
+    "name": "Stevenson Games",
+    "base": "https://stevensongames.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "store",
+    "name": "GG Legends",
+    "base": "https://store.gglehi.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-sealed"
+    ]
+  },
+  {
+    "key": "storeus",
+    "name": "Mothership Books and Games - Austin",
+    "base": "https://store.mothershipatx.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "preorders",
+      "new-arrivals"
     ]
   },
   {
@@ -4240,6 +6914,39 @@
     ]
   },
   {
+    "key": "tabletopgamingcenter",
+    "name": "Tabletop Gaming Center",
+    "base": "https://www.tabletopgamingcenter.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "new-arrivals"
+    ]
+  },
+  {
+    "key": "theapollosvault",
+    "name": "Apollo's Vault",
+    "base": "https://theapollosvault.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "new-arrivals"
+    ]
+  },
+  {
+    "key": "theclubhousecards",
+    "name": "ClubhouseCards",
+    "base": "https://theclubhousecards.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "sealed"
+    ]
+  },
+  {
     "key": "thegamecornergames",
     "name": "The Game Corner",
     "base": "https://www.thegamecornergames.com",
@@ -4248,6 +6955,17 @@
     "country": "US",
     "collections": [
       "mtg-sealed"
+    ]
+  },
+  {
+    "key": "thegamestore",
+    "name": "The Game Store",
+    "base": "https://thegamestore.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "new-releases"
     ]
   },
   {
@@ -4273,6 +6991,17 @@
     ]
   },
   {
+    "key": "thelostzonellc",
+    "name": "The Lost Zone Cards and Collectibles ",
+    "base": "https://thelostzonellc.myshopify.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "thenerdmerchant",
     "name": "The Nerd Merchant",
     "base": "https://thenerdmerchant.com",
@@ -4281,6 +7010,17 @@
     "country": "US",
     "collections": [
       "magic-the-gathering-sealed"
+    ]
+  },
+  {
+    "key": "theperkcards",
+    "name": "The Perk",
+    "base": "https://theperkcards.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -4297,6 +7037,29 @@
     ]
   },
   {
+    "key": "theshopcollectibles",
+    "name": "The Shop Collectibles LLC",
+    "base": "https://theshopcollectibles.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering-sealed"
+    ]
+  },
+  {
+    "key": "thetoytemple",
+    "name": "Toy Temple",
+    "base": "https://thetoytemple.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "pre-orders",
+      "bundles"
+    ]
+  },
+  {
     "key": "thewarpgate",
     "name": "The Warp Gate",
     "base": "https://thewarpgate.net",
@@ -4305,6 +7068,83 @@
     "country": "US",
     "collections": [
       "mtg-sealed-1"
+    ]
+  },
+  {
+    "key": "tier1games",
+    "name": "Tier 1 Games",
+    "base": "https://tier1games.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "new-arrivals"
+    ]
+  },
+  {
+    "key": "timetravelersonline",
+    "name": "Time Travelers Online",
+    "base": "https://timetravelersonline.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "tofustrading",
+    "name": "Tofu's Trading",
+    "base": "https://tofustrading.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "tokenmtg",
+    "name": "TokenMTG",
+    "base": "https://tokenmtg.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "new-arrivals"
+    ]
+  },
+  {
+    "key": "topcutcomics",
+    "name": "Top Cut Comics",
+    "base": "https://topcutcomics.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "tothetable",
+    "name": "To The Table Board Game Cafe",
+    "base": "https://tothetable.game",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "sealed"
+    ]
+  },
+  {
+    "key": "tradeshop",
+    "name": "Trade Shop",
+    "base": "https://tradeshop.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -4331,6 +7171,17 @@
     ]
   },
   {
+    "key": "ultimasupply",
+    "name": "Ultima Supply",
+    "base": "https://ultimasupply.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "mtg"
+    ]
+  },
+  {
     "key": "underhillgaming",
     "name": "Underhill Gaming",
     "base": "https://underhillgaming.myshopify.com",
@@ -4339,6 +7190,41 @@
     "country": "US",
     "collections": [
       "mtg-sealed"
+    ]
+  },
+  {
+    "key": "undiscoveredrealm",
+    "name": "Undiscovered Realm",
+    "base": "https://undiscoveredrealm.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "preorders",
+      "booster-boxes"
+    ]
+  },
+  {
+    "key": "untappedmarket",
+    "name": "Untapped Market",
+    "base": "https://untappedmarket.games",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering",
+      "preorder"
+    ]
+  },
+  {
+    "key": "uppercrust",
+    "name": "Upper Crust Games",
+    "base": "https://uppercrust.games",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {
@@ -4364,6 +7250,39 @@
     ]
   },
   {
+    "key": "videogametrader",
+    "name": "Video Game Trader LLC",
+    "base": "https://videogametrader.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "waywardcitygames",
+    "name": "Wayward City Games",
+    "base": "https://waywardcitygames.net",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "wilsontradingcardco",
+    "name": "Wilson Trading Card Co.",
+    "base": "https://wilsontradingcardco.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "wolfdentcg",
     "name": "Wolf Den Gaming",
     "base": "https://wolfdentcg.com",
@@ -4372,6 +7291,18 @@
     "country": "US",
     "collections": [
       "tcg-magic"
+    ]
+  },
+  {
+    "key": "wulfgaming",
+    "name": "Wulf Gaming",
+    "base": "https://wulfgaming.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering",
+      "magic-the-gathering-sealed"
     ]
   },
   {
@@ -4394,6 +7325,39 @@
     "country": "US",
     "collections": [
       "magic-the-gathering-sealed-product-all"
+    ]
+  },
+  {
+    "key": "zenithgg",
+    "name": "Zenith GG",
+    "base": "https://zenithgg.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "zenithtcg",
+    "name": "Zenith TCG",
+    "base": "https://zenithtcg.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "sealed"
+    ]
+  },
+  {
+    "key": "zeroedingames",
+    "name": "Zeroed In Games",
+    "base": "https://zeroedingames.com",
+    "market": "US",
+    "platform": "shopify",
+    "country": "US",
+    "collections": [
+      "magic-the-gathering"
     ]
   },
   {

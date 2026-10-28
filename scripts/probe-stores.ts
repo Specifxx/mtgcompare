@@ -77,7 +77,9 @@ const CONCURRENCY = Number(opt("concurrency", "3"));
 const MAX_CANDIDATES = 8; // collections read per Shopify store
 const PROBE_PAGES = 3; // pages per collection (1,000 products)
 
-const CONVENTIONAL = ["pokemon-sealed", "pokemon-sealed-products", "pokemon", "pokemon-tcg", "sealed", "pre-orders", "preorders", "booster-boxes"];
+// Common Magic collection handles, tried when the sitemap names no Magic collection (many stores leave collections out of it). It was
+// DexCompare's Pokémon list until 2026-10-28, so a store whose sitemap named no Magic collection was read for Pokémon and found nothing.
+const CONVENTIONAL = ["magic-the-gathering-sealed", "mtg-sealed", "magic-the-gathering", "mtg", "magic-sealed", "mtg-sealed-products", "sealed", "pre-orders"];
 
 function normBase(u: string): string {
   const url = new URL(u.trim().startsWith("http") ? u.trim() : `https://${u.trim()}`);
@@ -145,7 +147,7 @@ async function probe(c: Candidate & { key: string; base: string; market: Market 
       }
       const handles = await sitemapCollections(c.base);
       let ranked = rankCollections(handles);
-      if (!ranked.length) ranked = CONVENTIONAL;
+      if (!ranked.some(isMagicCollection)) ranked = [...new Set([...CONVENTIONAL.slice(0, 6), ...ranked])];
       const country = res.country;
       for (const h of ranked.slice(0, MAX_CANDIDATES)) {
         await sleep(REQUEST_DELAY_MS);

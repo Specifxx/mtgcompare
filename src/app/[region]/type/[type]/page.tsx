@@ -15,7 +15,7 @@ import { lastCheckedAt, marketsWithType } from "@/lib/data";
 import { gridPageHasRoomForFooter } from "@/lib/ebay-ads";
 import { money, plural, timeAgo } from "@/lib/format";
 import { dealsAnchor, shortDate, titleText, typeMsrpFact, typeName, typePacksFact, typePerPackRows } from "@/lib/hub-copy";
-import { typePageData } from "@/lib/hub-data";
+import { typeIndexRows, typePageData, typeLabelsInMarket } from "@/lib/hub-data";
 import { regionOfMarket, regionOrNotFound, type Market, type RegionInfo } from "@/lib/regions";
 import { RRP_NOTE } from "@/lib/rrp";
 import { PRODUCT_TYPES, TYPE_BY_SLUG } from "@/lib/sealed-title";
@@ -42,17 +42,17 @@ export async function generateMetadata({ params }: { params: { region: string; t
   const d = await getData(r.market, t.label);
   const total = d.openCount + d.soldCount;
   const from = d.open[0]?.lowestPriceCents ?? null;
-  // Empty here: noindex, and no hreflang set. Otherwise advertise only the
-  // regions that list the type (their copies are the indexable ones).
-  const regions = total ? (await marketsWithType(t.label)).map(regionOfMarket).filter((x): x is RegionInfo => !!x) : [];
+  // Nothing of the type here: a real 404 (it was an empty 200 with noindex, a soft 404 to Search Console). Otherwise advertise only
+  // the regions that list the type (their copies are the indexable ones).
+  if (!total) notFound();
+  const regions = (await marketsWithType(t.label)).map(regionOfMarket).filter((x): x is RegionInfo => !!x);
   const title = seoCopy.typeTitle(t, r, d.openCount, from);
   return {
     ...pageMeta({
       title: titleText(title),
       description: seoCopy.typeDescription(t, r, { open: d.openCount, total }, from),
       path: `/${r.region}/type/${t.slug}`,
-      alternates: total ? regionAlternates(r.region, `/type/${t.slug}`, regions) : undefined,
-      noindex: total === 0,
+      alternates: regionAlternates(r.region, `/type/${t.slug}`, regions),
     }),
     title,
   };
@@ -64,6 +64,7 @@ export default async function TypePage({ params }: { params: { region: string; t
   if (!t) notFound();
   const [{ open, sold, openCount, soldCount, tcgOnly: noStore }, checked] = await Promise.all([getData(r.market, t.label), lastCheckedAt(r.market)]);
   const total = openCount + soldCount;
+  if (!total) notFound();
   // Store counts never include TCGplayer: in the US it is named separately.
   // Outside the US nothing is TCGplayer-only: listedStores is 0 there only when
   // no store but a dormant one lists the product (importer.ts, dormantStores).
@@ -79,7 +80,12 @@ export default async function TypePage({ params }: { params: { region: string; t
   const msrp = typeMsrpFact(t.key, r.market);
   // The other types; the three case types only from a case page (they are niche, and the row is long enough without them).
   const isCase = (x: { slug: string }) => x.slug.endsWith("-cases");
-  const siblings = PRODUCT_TYPES.filter((x) => x.slug !== t.slug && (!isCase(x) || isCase(t)));
+  const [listedTypes, indexAll] = await Promise.all([typeLabelsInMarket(r.market), typeIndexRows(r.market, t.label)]);
+  // The type's strong products with no set (lib/hub-data.ts typeIndexRows) that the grids above do not show: no set page links
+  // them, so this list keeps each within two clicks of the region home (the indexing round, 2026-10-25).
+  const shown = new Set([...open, ...sold].map((p) => p.slug));
+  const index = indexAll.filter((x) => !shown.has(x.slug));
+  const siblings = PRODUCT_TYPES.filter((x) => x.slug !== t.slug && (!isCase(x) || isCase(t)) && listedTypes.has(x.label));
   // The type's own listings (cascade: generic sealed Pokémon) as an image strip; with none to list, the compact CTA row. It sits on a row of
   // its own after the first products (ProductGrid `strip`), so the products come first.
   const strip = (
@@ -259,6 +265,24 @@ export default async function TypePage({ params }: { params: { region: string; t
         </Section>
       )}
 
+      {index.length > 0 && (
+        <section aria-labelledby="type-index-h" className="mt-14">
+          <h2 id="type-index-h" className="font-display text-2xl font-bold tracking-tight">
+            More {t.plural.toLowerCase()} in {r.inName}, A to Z
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm text-muted">Not part of a numbered set, so not on any set page: each with its cheapest in-stock price today.</p>
+          <ul className="mt-4 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2 lg:grid-cols-3">
+            {index.map((x) => (
+              <li key={x.slug} className="flex min-h-8 items-baseline justify-between gap-3 border-b border-line/60 py-1">
+                <Link href={`/${r.region}/p/${x.slug}`} prefetch={false} className="min-w-0 truncate font-semibold hover:text-brand hover:underline">
+                  {x.name}
+                </Link>
+                <span className="tabular shrink-0 text-muted">{x.inStockStores > 0 && x.lowestPriceCents != null ? money(x.lowestPriceCents, r.market) : "sold out"}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />
     </div>
   );
