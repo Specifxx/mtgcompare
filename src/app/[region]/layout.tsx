@@ -1,6 +1,8 @@
 import { PreFooterStrip } from "@/components/EbayStrip";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { SideNav } from "@/components/SideNav";
+import { navGroups } from "@/lib/nav";
 import { regionOrNotFound } from "@/lib/regions";
 
 // Nothing here is prerendered at build: every region page is force-dynamic and kept by Vercel's CDN
@@ -15,7 +17,10 @@ export default function RegionLayout({ children, params }: { children: React.Rea
   return (
     <>
       <Header region={r.region} />
-      <main id="main" className="flex-1">
+      {/* From xl, the sidebar (components/SideNav.tsx) fills the wide screen's left side; the page keeps its own width beside it. */}
+      <div className="mx-auto flex w-full max-w-shell flex-1">
+        <SideNav region={r.region} groups={navGroups(r.region)} />
+        <main id="main" className="min-w-0 flex-1">
         {children}
         {/* Every region page ends with a slim eBay listing strip (four tiles), directly above the site
             footer (inside <main>: it is page content, not a landmark of its own). With nothing to list it
@@ -24,7 +29,8 @@ export default function RegionLayout({ children, params }: { children: React.Rea
         <div className="page mt-16" data-ebay-prefooter>
           <PreFooterStrip region={r.region} />
         </div>
-      </main>
+        </main>
+      </div>
       <Footer region={r.region} />
     </>
   );
