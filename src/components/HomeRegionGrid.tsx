@@ -15,7 +15,7 @@ import { REGION_LIST, REGIONS, X_DEFAULT_REGION, type Region } from "@/lib/regio
 import { sectionHref, type SectionKey } from "@/lib/site";
 import type { Pick } from "@/lib/picks";
 import { Icon, type IconName } from "./Icon";
-import { useSuggestedRegion, type RegionSource } from "./RegionSuggest";
+import { pickRegion, useSuggestedRegion, type RegionSource } from "./RegionSuggest";
 
 const SLOTS = 5;
 
@@ -52,11 +52,11 @@ const HOT: { key: SectionKey; label: string; icon?: IconName }[] = [
 ];
 
 export function HomeRegionGrid({ initial, preorder = null }: { initial: Pick[]; preorder?: HotPreorder | null }) {
+  // The default region until the suggestion is known (the server HTML's), so the first paint is a full grid, never skeletons. A pick
+  // here, in the header or in the phone menu is the same one (RegionSuggest.tsx pickRegion): the whole page moves together.
   const suggested = useSuggestedRegion();
-  const [picked, setPicked] = useState<Region | null>(null);
-  // The default region until the suggestion is known (the server HTML's), so the first paint is a full grid, never skeletons.
-  const region: Region = picked ?? (suggested.known ? suggested.region ?? X_DEFAULT_REGION : X_DEFAULT_REGION);
-  const source: RegionSource | null = picked ? "picked" : suggested.source;
+  const region: Region = suggested.region ?? X_DEFAULT_REGION;
+  const source: RegionSource | null = suggested.source;
   const [picks, setPicks] = useState<{ region: Region; list: Pick[] }>({ region: X_DEFAULT_REGION, list: initial.slice(0, SLOTS) });
 
   useEffect(() => {
@@ -96,13 +96,8 @@ export function HomeRegionGrid({ initial, preorder = null }: { initial: Pick[]; 
               onClick={(e) => {
                 if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
                 e.preventDefault();
-                setPicked(x.region);
                 gaEvent("region_select", { region: x.region, from: region, placement: "landing-grid" });
-                try {
-                  localStorage.setItem("mtg-region", x.region);
-                } catch {
-                  /* storage blocked */
-                }
+                pickRegion(x.region);
               }}
               className={`chip min-h-11 ${x.region === region ? "chip-on" : ""}`}
             >
