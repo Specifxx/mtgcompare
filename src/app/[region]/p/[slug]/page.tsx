@@ -523,7 +523,7 @@ export default async function ProductPage({ params }: { params: { region: string
                   tcgOpen={tcgOpen}
                   openCount={open.length}
                   highestOpenCents={open[open.length - 1].priceCents}
-                  ebay={ebayBest ? { slug: p.slug, floor: ebayFloor, packs: rowPacks(type?.key, packs) } : null}
+                  ebay={ebayBest ? { slug: p.slug, floor: ebayFloor, packs: rowPacks(type?.key, packs), query: ebayQ } : null}
                   total={
                     totalBest && totalLink
                       ? {

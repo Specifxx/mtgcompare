@@ -55,6 +55,8 @@ export const PLACEMENTS = [
   "listings-marketplace", // product page: the Marketplaces panel's eBay row when it shows the product's own new listing (its price and age)
   "listings-offer-row", // product page: the eBay row of the price table (the product's cheapest own listing, ranked among the stores; an eBay search when it has none)
   "listings-best-price", // product page: the best-price card's eBay button, when the product's eBay listing is cheaper than every store
+  "listings-best-price-alt", // product page: the best-price card's "Also on eBay" line, when a store is cheaper: the product's own new listing, its real price
+  "best-price-ebay-search", // product page: the same line as an eBay search, when the product has no listing to show (the server HTML)
   "listings-store", // store directory and store page
   "listings-releases", // release calendar: the closing strip
   "listings-footer", // every content page: the slim four-tile strip above the footer
