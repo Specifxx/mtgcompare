@@ -1,0 +1,2781 @@
+[
+ {
+  "key": "kaiofcards",
+  "name": "BSA Carte Collezionabili",
+  "base": "https://kaiofcards.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "NL",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "preorder",
+    "ok": true,
+    "products": 11,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 11
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1570
+ },
+ {
+  "key": "lmshandel",
+  "name": "Games Time Aversa",
+  "base": "https://lms-handel.de",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 657,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 8,
+   "not-magic": 649
+  },
+  "samples": [],
+  "error": null,
+  "ms": 7731
+ },
+ {
+  "key": "archerongames",
+  "name": "lms-handel",
+  "base": "https://archerongames.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges GBP, market EU is EUR",
+  "ms": 458
+ },
+ {
+  "key": "bulwarkgames",
+  "name": "Timetwister Games",
+  "base": "https://bulwarkgames.co.uk",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges GBP, market EU is EUR",
+  "ms": 419
+ },
+ {
+  "key": "shopponistore",
+  "name": "GS-GameOn",
+  "base": "https://shopponistore.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "IT",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 750,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 23,
+   "not-magic": 726,
+   "not-sealed": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 7396
+ },
+ {
+  "key": "duelspoint",
+  "name": "Battle Bear Saarbr\\\\u00fccken",
+  "base": "https://duelspoint.it",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "IT",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 1273
+ },
+ {
+  "key": "gamesavenue",
+  "name": "Duels Point - Trading Card Games",
+  "base": "https://gamesavenue.fr",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "FR",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "elite-trainer-box",
+    "ok": true,
+    "products": 13,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 12,
+   "not-magic": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4097
+ },
+ {
+  "key": "elduelista",
+  "name": "El Duelista",
+  "base": "https://www.elduelista.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "ES",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 250,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": false,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": false,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 4,
+   "not-magic": 243,
+   "accessory": 2,
+   "not-sealed": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 12170
+ },
+ {
+  "key": "hitechgames",
+  "name": "Fire and Dice",
+  "base": "https://www.hitechgames.it",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "IT",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 68,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 35,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 69,
+   "foreign": 34
+  },
+  "samples": [],
+  "error": null,
+  "ms": 8667
+ },
+ {
+  "key": "rarecards",
+  "name": "Kai of Cards",
+  "base": "https://rarecards.nl",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "NL",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-order-pokemon",
+    "ok": true,
+    "products": 6,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 3,
+   "foreign": 3
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4062
+ },
+ {
+  "key": "spellnexus",
+  "name": "Nordic Legends",
+  "base": "https://spellnexus.com",
+  "market": "EU",
+  "platform": null,
+  "currency": null,
+  "currencyOk": false,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "no public Shopify or WooCommerce feed",
+  "ms": 516
+ },
+ {
+  "key": "gsgameon",
+  "name": "GS-GameOn",
+  "base": "https://www.gs-gameon.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "IT",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": false,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": false,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 27882
+ },
+ {
+  "key": "1collectiblestcg",
+  "name": "TCGKing.nl",
+  "base": "https://1collectiblestcg.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": false,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges SGD, market EU is EUR",
+  "ms": 608
+ },
+ {
+  "key": "goattcg",
+  "name": "Trinket Mage",
+  "base": "https://www.goattcg.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": false,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges SGD, market EU is EUR",
+  "ms": 343
+ },
+ {
+  "key": "hideoutcg",
+  "name": "Universe TCG",
+  "base": "https://hideoutcg.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": false,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges SGD, market EU is EUR",
+  "ms": 1343
+ },
+ {
+  "key": "tcgking",
+  "name": "RareCards",
+  "base": "https://tcgking.nl",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "NL",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 1,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 60,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 38,
+   "foreign": 23
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4508
+ },
+ {
+  "key": "recollectibles",
+  "name": "Lichcards",
+  "base": "https://recollectibles.de",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 9737
+ },
+ {
+  "key": "opssmarket",
+  "name": "lms-handel",
+  "base": "https://opssmarket.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "IT",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "etb",
+    "ok": true,
+    "products": 1,
+    "accepted": 0
+   },
+   {
+    "handle": "bundle",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 1,
+   "foreign": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1936
+ },
+ {
+  "key": "cardempire",
+  "name": "RareCards",
+  "base": "https://cardempire.co.uk",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges GBP, market EU is EUR",
+  "ms": 500
+ },
+ {
+  "key": "cardworld",
+  "name": "Cardworld",
+  "base": "https://cardworld.be",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "BE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 2903
+ },
+ {
+  "key": "cardhome",
+  "name": "Cardhome",
+  "base": "https://cardhome.at",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "AT",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 145,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 131,
+   "not-magic": 13,
+   "accessory": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 8312
+ },
+ {
+  "key": "magicianscircle",
+  "name": "GS-Gameon",
+  "base": "https://magicians-circle.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "IT",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 750,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 748,
+   "accessory": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 9524
+ },
+ {
+  "key": "collectorexpert",
+  "name": "Collector Expert",
+  "base": "https://collector-expert.de",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 7044
+ },
+ {
+  "key": "crispycards",
+  "name": "Crispy Cards",
+  "base": "https://crispycards.de",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 8066
+ },
+ {
+  "key": "cartespokemon",
+  "name": "Cartes Pokémon",
+  "base": "https://cartespokemon.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "BE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 10992
+ },
+ {
+  "key": "discarded",
+  "name": "Discarded",
+  "base": "https://discarded.ie",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "IE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 107,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 4,
+   "not-magic": 60,
+   "accessory": 43
+  },
+  "samples": [],
+  "error": null,
+  "ms": 7593
+ },
+ {
+  "key": "fantasiacards",
+  "name": "FantasiaCards",
+  "base": "https://fantasiacards.de",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "bundles",
+    "ok": true,
+    "products": 31,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 14,
+   "not-magic": 17
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5215
+ },
+ {
+  "key": "emeraldcardcave",
+  "name": "EmeraldCardCave",
+  "base": "https://emeraldcardcave.de",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 6533
+ },
+ {
+  "key": "peeronline",
+  "name": "Peer Online Shop",
+  "base": "https://www.peer-online.de",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "tins",
+    "ok": true,
+    "products": 41,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 20,
+   "not-magic": 21
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3958
+ },
+ {
+  "key": "hikarudistribution",
+  "name": "Hikaru Distribution",
+  "base": "https://hikarudistribution.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "FR",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "bundles",
+    "ok": false,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 5373
+ },
+ {
+  "key": "tcgviert",
+  "name": "TCGViert",
+  "base": "https://tcgviert.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 92,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 77,
+   "not-magic": 15
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4846
+ },
+ {
+  "key": "accentgamingdunfermline",
+  "name": "www.Tradingtoys.de",
+  "base": "https://accentgamingdunfermline.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges GBP, market EU is EUR",
+  "ms": 446
+ },
+ {
+  "key": "athenagames",
+  "name": "Yonko TCG",
+  "base": "https://athenagames.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges GBP, market EU is EUR",
+  "ms": 325
+ },
+ {
+  "key": "yonkotcg",
+  "name": "Yonko TCG",
+  "base": "https://yonko-tcg.de",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "preorder",
+    "ok": true,
+    "products": 24,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 20,
+   "not-magic": 4
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2162
+ },
+ {
+  "key": "lotusgamesltd",
+  "name": "SpellNexus",
+  "base": "https://lotusgamesltd.com",
+  "market": "EU",
+  "platform": null,
+  "currency": null,
+  "currencyOk": false,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "no public Shopify or WooCommerce feed",
+  "ms": 841
+ },
+ {
+  "key": "cardsbeyond",
+  "name": "Cards Beyond",
+  "base": "https://cardsbeyond.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "CZK",
+  "currencyOk": false,
+  "country": "CZ",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges CZK, market EU is EUR",
+  "ms": 840
+ },
+ {
+  "key": "tkcollectibles",
+  "name": "TKCollectibles",
+  "base": "https://www.tkcollectibles.it",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "IT",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 5448
+ },
+ {
+  "key": "collectionmania",
+  "name": "Collection Mania",
+  "base": "https://www.collectionmania.ie",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "IE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "sealed-products",
+    "ok": true,
+    "products": 8,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 8
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2943
+ },
+ {
+  "key": "davidptcg",
+  "name": "DavidPTCG",
+  "base": "https://davidptcg.nl",
+  "market": "EU",
+  "platform": "woocommerce",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 300,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 297,
+   "foreign": 3
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4563
+ },
+ {
+  "key": "cardbinder",
+  "name": "Card-Binder",
+  "base": "https://card-binder.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "NL",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 242,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 179,
+   "foreign": 35,
+   "accessory": 28
+  },
+  "samples": [],
+  "error": null,
+  "ms": 9531
+ },
+ {
+  "key": "debroergrot",
+  "name": "De Broergrot",
+  "base": "https://www.debroergrot.nl",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "NL",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "tins",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-box",
+    "ok": true,
+    "products": 9,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 16,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-box",
+    "ok": true,
+    "products": 6,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 33
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3365
+ },
+ {
+  "key": "completecollections",
+  "name": "Complete Collections",
+  "base": "https://www.completecollections.ie",
+  "market": "EU",
+  "platform": "woocommerce",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 172,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 139,
+   "foreign": 33
+  },
+  "samples": [],
+  "error": null,
+  "ms": 9258
+ },
+ {
+  "key": "dennistheripper",
+  "name": "Dennis The Ripper",
+  "base": "https://www.dennistheripper.de",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 5606
+ },
+ {
+  "key": "escamon",
+  "name": "Escamon",
+  "base": "https://www.escamon.de",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 5422
+ },
+ {
+  "key": "godofcards",
+  "name": "God Of Cards",
+  "base": "https://godofcards.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 6200
+ },
+ {
+  "key": "irishpokefinds",
+  "name": "Irish Poké Finds",
+  "base": "https://irishpokefinds.ie",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "IE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "sealed-products",
+    "ok": true,
+    "products": 4,
+    "accepted": 0
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 83,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 84,
+   "accessory": 1,
+   "foreign": 1,
+   "not-sealed": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3354
+ },
+ {
+  "key": "iberiancollect",
+  "name": "Iberian Collect",
+  "base": "https://iberiancollect.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "ES",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 21,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-sealed": 1,
+   "foreign": 12,
+   "not-magic": 7,
+   "accessory": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5328
+ },
+ {
+  "key": "kartenmeier",
+  "name": "Kartenmeier",
+  "base": "https://kartenmeier.de",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "DE",
+  "collections": [
+   "bundles"
+  ],
+  "sealedProducts": 2,
+  "inStock": 0,
+  "allFound": 2,
+  "read": [
+   {
+    "handle": "bundles",
+    "ok": true,
+    "products": 33,
+    "accepted": 2
+   }
+  ],
+  "rejections": {
+   "foreign": 17,
+   "not-magic": 14
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2313
+ },
+ {
+  "key": "kardz",
+  "name": "Kardz.eu",
+  "base": "https://kardz.eu",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "NL",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 24,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 6,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-boxes",
+    "ok": true,
+    "products": 6,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 35,
+   "foreign": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3288
+ },
+ {
+  "key": "jjcollection",
+  "name": "JJ Collection",
+  "base": "https://www.jjcollection.es",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "ES",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 7543
+ },
+ {
+  "key": "lachsnackenshop",
+  "name": "Lachsnackenshop",
+  "base": "https://lachsnackenshop.de",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 5407
+ },
+ {
+  "key": "mojocards",
+  "name": "Mojo Cards",
+  "base": "https://mojocards.nl",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "NL",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "tins",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 3,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": false,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 3
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3862
+ },
+ {
+  "key": "luxcards",
+  "name": "LuxCards",
+  "base": "https://luxcards.lu",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "LU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 6988
+ },
+ {
+  "key": "mrcollect",
+  "name": "Poke Planet (Mr Collect)",
+  "base": "https://mr-collect.de",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": false,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 107,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 40,
+   "foreign": 67
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4431
+ },
+ {
+  "key": "otakura",
+  "name": "Otakura",
+  "base": "https://otakura.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "IT",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": false,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 5808
+ },
+ {
+  "key": "pikamon",
+  "name": "Pikamon",
+  "base": "https://pikamon.eu",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "NL",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "tins",
+    "ok": true,
+    "products": 5,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 89,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 6,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-box",
+    "ok": true,
+    "products": 19,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 42,
+   "foreign": 77
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5030
+ },
+ {
+  "key": "pokefamily",
+  "name": "PokeFamily",
+  "base": "https://pokefamily.nl",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "NL",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-pack",
+    "ok": true,
+    "products": 31,
+    "accepted": 0
+   },
+   {
+    "handle": "collection-box",
+    "ok": true,
+    "products": 36,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-box",
+    "ok": true,
+    "products": 15,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 3,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 69,
+   "foreign": 16
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3418
+ },
+ {
+  "key": "pokestock",
+  "name": "Pokestock",
+  "base": "https://pokestock.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "NL",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 6074
+ },
+ {
+  "key": "todohits",
+  "name": "TodoHits",
+  "base": "https://todohits.com",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "ES",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 625,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 387,
+   "not-magic": 205,
+   "accessory": 33
+  },
+  "samples": [],
+  "error": null,
+  "ms": 6704
+ },
+ {
+  "key": "swagykarp",
+  "name": "Swagykarp",
+  "base": "https://swagykarp.fi",
+  "market": "EU",
+  "platform": "woocommerce",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 178,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 165,
+   "foreign": 13
+  },
+  "samples": [],
+  "error": null,
+  "ms": 9088
+ }
+]

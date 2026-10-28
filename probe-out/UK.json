@@ -1,0 +1,3834 @@
+[
+ {
+  "key": "comicsandbeyond",
+  "name": "Archeron Games",
+  "base": "https://www.comicsandbeyond.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 1737
+ },
+ {
+  "key": "gundamlab",
+  "name": "comicsandbeyond",
+  "base": "https://gundamlab.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 4,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 6,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order-tcg",
+    "ok": true,
+    "products": 4,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 10,
+   "not-sealed": 4
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2248
+ },
+ {
+  "key": "goblingaming",
+  "name": "Collector Clash",
+  "base": "https://www.goblingaming.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "new-releases"
+  ],
+  "sealedProducts": 4,
+  "inStock": 3,
+  "allFound": 4,
+  "read": [
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 151,
+    "accepted": 0
+   },
+   {
+    "handle": "new-releases",
+    "ok": true,
+    "products": 732,
+    "accepted": 4
+   }
+  ],
+  "rejections": {
+   "not-magic": 789,
+   "accessory": 67,
+   "foreign": 19,
+   "unclassified": 2,
+   "not-sealed": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3979
+ },
+ {
+  "key": "jetcards",
+  "name": "Goblin Gaming",
+  "base": "https://www.jetcards.uk",
+  "market": "UK",
+  "platform": null,
+  "currency": null,
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "no public Shopify or WooCommerce feed",
+  "ms": 545
+ },
+ {
+  "key": "shop",
+  "name": "Bulwark Games",
+  "base": "https://shop.forbiddenplanet.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 740,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 688,
+   "not-sealed": 52
+  },
+  "samples": [],
+  "error": null,
+  "ms": 8275
+ },
+ {
+  "key": "livingrealms",
+  "name": "GundamLAB",
+  "base": "https://livingrealms.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "new-releases"
+  ],
+  "sealedProducts": 3,
+  "inStock": 3,
+  "allFound": 3,
+  "read": [
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 3,
+    "accepted": 0
+   },
+   {
+    "handle": "new-releases",
+    "ok": true,
+    "products": 89,
+    "accepted": 3
+   }
+  ],
+  "rejections": {
+   "not-magic": 55,
+   "accessory": 34
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3793
+ },
+ {
+  "key": "hodgestradingcards",
+  "name": "Eterna Cards",
+  "base": "https://hodgestradingcards.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 5158
+ },
+ {
+  "key": "pucapucagames",
+  "name": "JET Cards",
+  "base": "https://www.pucapucagames.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 7,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 7
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4786
+ },
+ {
+  "key": "redsuncollectables",
+  "name": "Living Realms",
+  "base": "https://redsuncollectables.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 6,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 6
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4797
+ },
+ {
+  "key": "lvlupgaming",
+  "name": "Lvl Up Gaming UK",
+  "base": "https://lvlupgaming.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "pre-order",
+   "new-arrivals"
+  ],
+  "sealedProducts": 7,
+  "inStock": 1,
+  "allFound": 7,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 86,
+    "accepted": 6
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 750,
+    "accepted": 1
+   }
+  ],
+  "rejections": {
+   "not-magic": 720,
+   "accessory": 65,
+   "no-set": 17,
+   "vague": 1,
+   "unclassified": 1,
+   "not-sealed": 21,
+   "foreign": 4
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5996
+ },
+ {
+  "key": "stylecreep",
+  "name": "Mox in the Hole",
+  "base": "https://www.stylecreep.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "booster-packs"
+  ],
+  "sealedProducts": 3,
+  "inStock": 0,
+  "allFound": 3,
+  "read": [
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 9,
+    "accepted": 3
+   }
+  ],
+  "rejections": {
+   "not-magic": 4,
+   "foreign": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1649
+ },
+ {
+  "key": "thirstymeeples",
+  "name": "Red Sun Collectables",
+  "base": "https://www.thirstymeeples.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "new-releases"
+  ],
+  "sealedProducts": 4,
+  "inStock": 1,
+  "allFound": 4,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 599,
+    "accepted": 0
+   },
+   {
+    "handle": "new-releases",
+    "ok": true,
+    "products": 241,
+    "accepted": 4
+   }
+  ],
+  "rejections": {
+   "not-magic": 757,
+   "accessory": 65,
+   "not-sealed": 12,
+   "no-set": 1,
+   "unclassified": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5441
+ },
+ {
+  "key": "thetcggroup",
+  "name": "Puca Puca Games",
+  "base": "https://thetcggroup.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "sealed-products",
+   "new-arrivals"
+  ],
+  "sealedProducts": 115,
+  "inStock": 78,
+  "allFound": 115,
+  "read": [
+   {
+    "handle": "sealed-products",
+    "ok": true,
+    "products": 453,
+    "accepted": 105
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 750,
+    "accepted": 10
+   }
+  ],
+  "rejections": {
+   "not-magic": 984,
+   "foreign": 67,
+   "vague": 22,
+   "not-sealed": 8,
+   "unclassified": 5,
+   "accessory": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 6754
+ },
+ {
+  "key": "spellboundgames",
+  "name": "Spellbound Games",
+  "base": "https://spellboundgames.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 750,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 14,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 750,
+   "not-sealed": 14
+  },
+  "samples": [],
+  "error": null,
+  "ms": 8088
+ },
+ {
+  "key": "allaccesscardshop",
+  "name": "Thirsty Meeples",
+  "base": "https://allaccesscardshop.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "USD",
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges USD, market UK is GBP",
+  "ms": 433
+ },
+ {
+  "key": "atlantiscomics",
+  "name": "Thistle Tavern",
+  "base": "https://atlantis-comics.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "USD",
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges USD, market UK is GBP",
+  "ms": 448
+ },
+ {
+  "key": "atomilicollectables",
+  "name": "Total Cards",
+  "base": "https://atomilicollectables.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "USD",
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges USD, market UK is GBP",
+  "ms": 404
+ },
+ {
+  "key": "singles",
+  "name": "Ultra Rare Cards",
+  "base": "https://singles.bardsandcards.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "USD",
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges USD, market UK is GBP",
+  "ms": 487
+ },
+ {
+  "key": "ultrararecards",
+  "name": "The TCG Group",
+  "base": "https://ultrararecards.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "preorder",
+    "ok": true,
+    "products": 16,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 16
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1662
+ },
+ {
+  "key": "collectbydesign",
+  "name": "Collect by Design",
+  "base": "https://www.collectbydesign.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 1246
+ },
+ {
+  "key": "collecteebles",
+  "name": "Collecteebles",
+  "base": "https://collecteebles.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "preorder",
+    "ok": true,
+    "products": 26,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 26
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1648
+ },
+ {
+  "key": "cardrush",
+  "name": "Axion Now",
+  "base": "https://cardrush.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 5487
+ },
+ {
+  "key": "cosmiccollectables",
+  "name": "CardRush",
+  "base": "https://www.cosmiccollectables.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 32,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 32
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1881
+ },
+ {
+  "key": "diceanddestiny",
+  "name": "CardXchange",
+  "base": "https://www.diceanddestiny.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 1639
+ },
+ {
+  "key": "etoysworld",
+  "name": "Dice Saloon Singles",
+  "base": "https://www.etoysworld.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "pre-orders"
+  ],
+  "sealedProducts": 2,
+  "inStock": 2,
+  "allFound": 2,
+  "read": [
+   {
+    "handle": "bundles",
+    "ok": true,
+    "products": 34,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 199,
+    "accepted": 2
+   },
+   {
+    "handle": "new-release",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 228,
+   "accessory": 3
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3019
+ },
+ {
+  "key": "cardxchange",
+  "name": "Boards & Swords",
+  "base": "https://cardxchange.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 111,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 750,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 129,
+   "not-magic": 726,
+   "not-sealed": 6
+  },
+  "samples": [],
+  "error": null,
+  "ms": 8421
+ },
+ {
+  "key": "evolutiontradingcards",
+  "name": "Evolution Trading Cards",
+  "base": "https://evolutiontradingcards.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "booster-packs"
+  ],
+  "sealedProducts": 6,
+  "inStock": 5,
+  "allFound": 6,
+  "read": [
+   {
+    "handle": "tins",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 33,
+    "accepted": 6
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 27,
+   "no-set": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2679
+ },
+ {
+  "key": "hiddengemcards",
+  "name": "Eterna Cards",
+  "base": "https://hiddengemcards.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "tins",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "collection-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-boxes",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2730
+ },
+ {
+  "key": "thegrumpygoblin",
+  "name": "Puca Puca Games",
+  "base": "https://thegrumpygoblin.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "booster-packs"
+  ],
+  "sealedProducts": 6,
+  "inStock": 6,
+  "allFound": 6,
+  "read": [
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 12,
+    "accepted": 6
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 6
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2518
+ },
+ {
+  "key": "shopmysterytavern",
+  "name": "Living Realms",
+  "base": "https://www.shopmysterytavern.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4804
+ },
+ {
+  "key": "jgccollectables",
+  "name": "Hidden Gem Trading Cards",
+  "base": "https://jgc-collectables.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 750,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 131,
+   "not-sealed": 619
+  },
+  "samples": [],
+  "error": null,
+  "ms": 6757
+ },
+ {
+  "key": "unioncountygames",
+  "name": "Thirsty Meeples",
+  "base": "https://unioncountygames.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "preorder-products",
+    "ok": true,
+    "products": 1,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1826
+ },
+ {
+  "key": "ajtradingbros",
+  "name": "Trainer Legacy",
+  "base": "https://ajtradingbros.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "USD",
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges USD, market UK is GBP",
+  "ms": 628
+ },
+ {
+  "key": "trainerlegacy",
+  "name": "The TCG Group",
+  "base": "https://www.trainerlegacy.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "sealed-products"
+  ],
+  "sealedProducts": 1,
+  "inStock": 1,
+  "allFound": 1,
+  "read": [
+   {
+    "handle": "sealed-products",
+    "ok": true,
+    "products": 99,
+    "accepted": 1
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 750,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 424,
+   "accessory": 152,
+   "foreign": 5,
+   "not-sealed": 267
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4112
+ },
+ {
+  "key": "1moregogaming",
+  "name": "1 More Go Gaming",
+  "base": "https://1moregogaming.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "elite-trainer-boxes",
+    "ok": true,
+    "products": 28,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 28
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1503
+ },
+ {
+  "key": "yardsgames",
+  "name": "Yard's Games",
+  "base": "https://yardsgames.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 750,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 362,
+   "not-sealed": 387,
+   "accessory": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4804
+ },
+ {
+  "key": "rollnplay",
+  "name": "Lvl Up Gaming UK",
+  "base": "https://rollnplay.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4641
+ },
+ {
+  "key": "cgcemporium",
+  "name": "Accent Gaming",
+  "base": "https://cgc-emporium.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 47,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-sealed": 4,
+   "not-magic": 39,
+   "accessory": 4
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1881
+ },
+ {
+  "key": "battlegroundgaming",
+  "name": "1 More Go Gaming",
+  "base": "https://battlegroundgaming.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "new-releases"
+  ],
+  "sealedProducts": 4,
+  "inStock": 3,
+  "allFound": 4,
+  "read": [
+   {
+    "handle": "new-releases",
+    "ok": true,
+    "products": 750,
+    "accepted": 4
+   }
+  ],
+  "rejections": {
+   "not-magic": 721,
+   "accessory": 23,
+   "unclassified": 1,
+   "foreign": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4943
+ },
+ {
+  "key": "diceanddumplings",
+  "name": "TGC Collectables",
+  "base": "https://diceanddumplings.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "new-arrivals"
+  ],
+  "sealedProducts": 27,
+  "inStock": 22,
+  "allFound": 27,
+  "read": [
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 61,
+    "accepted": 27
+   }
+  ],
+  "rejections": {
+   "no-set": 7,
+   "not-magic": 9,
+   "not-sealed": 16,
+   "accessory": 1,
+   "unclassified": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1468
+ },
+ {
+  "key": "chesterlegeek",
+  "name": "Athena Games Ltd",
+  "base": "https://chesterlegeek.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 7,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 7
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5086
+ },
+ {
+  "key": "entoyment",
+  "name": "Collectors Kingdom",
+  "base": "https://entoyment.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "tcg-pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 1897
+ },
+ {
+  "key": "crypticcabin",
+  "name": "Chester Le Geek",
+  "base": "https://crypticcabin.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 169,
+    "accepted": 0
+   },
+   {
+    "handle": "new-releases",
+    "ok": true,
+    "products": 750,
+    "accepted": 0
+   },
+   {
+    "handle": "all-pre-orders",
+    "ok": true,
+    "products": 175,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 1080,
+   "accessory": 14
+  },
+  "samples": [],
+  "error": null,
+  "ms": 6286
+ },
+ {
+  "key": "gamehq",
+  "name": "Elemental Cards",
+  "base": "https://game-hq.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 1770
+ },
+ {
+  "key": "fanboy3",
+  "name": "Cryptic Cabin",
+  "base": "https://fanboy3.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4826
+ },
+ {
+  "key": "gatheringgames",
+  "name": "Entoyment Wargaming and Hobby Centre",
+  "base": "https://gatheringgames.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "new-releases"
+  ],
+  "sealedProducts": 1,
+  "inStock": 1,
+  "allFound": 1,
+  "read": [
+   {
+    "handle": "new-releases",
+    "ok": true,
+    "products": 55,
+    "accepted": 1
+   }
+  ],
+  "rejections": {
+   "not-magic": 41,
+   "accessory": 13
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1627
+ },
+ {
+  "key": "galleongames",
+  "name": "Dice and Dumplings",
+  "base": "https://galleongames.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4672
+ },
+ {
+  "key": "grimdice",
+  "name": "Fan Boy Three",
+  "base": "https://grimdice.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 43,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 37,
+   "accessory": 6
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1611
+ },
+ {
+  "key": "incomgaming",
+  "name": "Gathering Games",
+  "base": "https://incomgaming.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "pre-order"
+  ],
+  "sealedProducts": 3,
+  "inStock": 1,
+  "allFound": 3,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 53,
+    "accepted": 3
+   }
+  ],
+  "rejections": {
+   "not-magic": 47,
+   "accessory": 2,
+   "vague": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2073
+ },
+ {
+  "key": "harlequinsgames",
+  "name": "Galleon Games",
+  "base": "https://harlequinsgames.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "new-arrivals"
+  ],
+  "sealedProducts": 15,
+  "inStock": 14,
+  "allFound": 15,
+  "read": [
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 249,
+    "accepted": 15
+   }
+  ],
+  "rejections": {
+   "not-magic": 214,
+   "unclassified": 2,
+   "not-sealed": 2,
+   "vague": 6,
+   "foreign": 1,
+   "accessory": 9
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2949
+ },
+ {
+  "key": "onyxdawngames",
+  "name": "Kuma Cards",
+  "base": "https://onyxdawngames.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "new-releases",
+   "pre-orders"
+  ],
+  "sealedProducts": 28,
+  "inStock": 4,
+  "allFound": 28,
+  "read": [
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 8,
+    "accepted": 3
+   },
+   {
+    "handle": "new-releases",
+    "ok": true,
+    "products": 94,
+    "accepted": 25
+   }
+  ],
+  "rejections": {
+   "not-magic": 73,
+   "not-sealed": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2141
+ },
+ {
+  "key": "megacards",
+  "name": "Mega Cards",
+  "base": "https://megacards.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "tins",
+    "ok": true,
+    "products": 65,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 35,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 19,
+    "accepted": 0
+   },
+   {
+    "handle": "collection-boxes",
+    "ok": true,
+    "products": 37,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-boxes",
+    "ok": true,
+    "products": 28,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 183,
+   "not-sealed": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4162
+ },
+ {
+  "key": "pendulumgaming",
+  "name": "Mega Cards",
+  "base": "https://pendulumgaming.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "preorder"
+  ],
+  "sealedProducts": 3,
+  "inStock": 3,
+  "allFound": 3,
+  "read": [
+   {
+    "handle": "preorder",
+    "ok": true,
+    "products": 35,
+    "accepted": 3
+   }
+  ],
+  "rejections": {
+   "not-magic": 30,
+   "multiple": 1,
+   "accessory": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1645
+ },
+ {
+  "key": "nortontcg",
+  "name": "Incom Gaming",
+  "base": "https://nortontcg.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "sealed-products",
+   "new-arrivals"
+  ],
+  "sealedProducts": 115,
+  "inStock": 78,
+  "allFound": 115,
+  "read": [
+   {
+    "handle": "sealed-products",
+    "ok": true,
+    "products": 453,
+    "accepted": 105
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 750,
+    "accepted": 10
+   }
+  ],
+  "rejections": {
+   "not-magic": 984,
+   "foreign": 67,
+   "vague": 22,
+   "not-sealed": 8,
+   "unclassified": 5,
+   "accessory": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4593
+ },
+ {
+  "key": "pokephd",
+  "name": "PokePhD",
+  "base": "https://pokephd.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 43,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 3,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-boxes",
+    "ok": true,
+    "products": 14,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 59,
+   "foreign": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2324
+ },
+ {
+  "key": "sportscardsdirect",
+  "name": "Sports Cards Direct",
+  "base": "https://www.sportscardsdirect.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "pre-order"
+  ],
+  "sealedProducts": 10,
+  "inStock": 10,
+  "allFound": 10,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 22,
+    "accepted": 10
+   }
+  ],
+  "rejections": {
+   "not-magic": 12
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1486
+ },
+ {
+  "key": "theboardgamehut",
+  "name": "Sin City Comics & Gaming",
+  "base": "https://theboardgamehut.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "preorders"
+  ],
+  "sealedProducts": 5,
+  "inStock": 2,
+  "allFound": 5,
+  "read": [
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 66,
+    "accepted": 5
+   }
+  ],
+  "rejections": {
+   "accessory": 2,
+   "not-magic": 55,
+   "no-set": 2,
+   "vague": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1518
+ },
+ {
+  "key": "retrogamerbros",
+  "name": "TCG Group",
+  "base": "https://retrogamerbros.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 103,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 79,
+   "accessory": 2,
+   "foreign": 22
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5516
+ },
+ {
+  "key": "tokyotoys",
+  "name": "The Board Game Hut",
+  "base": "https://tokyotoys.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 4,
+    "accepted": 0
+   },
+   {
+    "handle": "tcg-pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 4
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1915
+ },
+ {
+  "key": "sccg",
+  "name": "Onyx Dawn Games",
+  "base": "https://sccg.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 6888
+ },
+ {
+  "key": "thegamingvault",
+  "name": "The Gaming Vault",
+  "base": "https://thegamingvault.net",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4644
+ },
+ {
+  "key": "4horsemencomics",
+  "name": "Ultimate TCG Limited",
+  "base": "https://4horsemencomics.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "USD",
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges USD, market UK is GBP",
+  "ms": 403
+ },
+ {
+  "key": "ultimatetcg",
+  "name": "The Card Vault",
+  "base": "https://ultimatetcg.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "booster-boxes"
+  ],
+  "sealedProducts": 12,
+  "inStock": 5,
+  "allFound": 12,
+  "read": [
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 134,
+    "accepted": 12
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 21,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 143
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2728
+ },
+ {
+  "key": "viridianvault",
+  "name": "The Gaming Vault",
+  "base": "https://viridianvault.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-boxes",
+    "ok": true,
+    "products": 23,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 8,
+    "accepted": 0
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 32,
+   "not-sealed": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3376
+ },
+ {
+  "key": "boardgamebliss",
+  "name": "Stylecreep",
+  "base": "https://www.boardgamebliss.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "CAD",
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges CAD, market UK is GBP",
+  "ms": 511
+ },
+ {
+  "key": "gatheringpointgames",
+  "name": "CardXchange",
+  "base": "https://gatheringpointgames.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "new-arrivals"
+  ],
+  "sealedProducts": 33,
+  "inStock": 0,
+  "allFound": 33,
+  "read": [
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 750,
+    "accepted": 33
+   }
+  ],
+  "rejections": {
+   "not-magic": 552,
+   "not-sealed": 165
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3587
+ },
+ {
+  "key": "unioncountygamesuk",
+  "name": "Mystery Tavern",
+  "base": "https://www.unioncountygames.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "preorder-products",
+    "ok": true,
+    "products": 1,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1147
+ },
+ {
+  "key": "onepiecesingles",
+  "name": "JET Cards",
+  "base": "https://onepiecesingles.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4590
+ },
+ {
+  "key": "aftermkt",
+  "name": "After Market",
+  "base": "https://aftermkt.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "tins",
+    "ok": true,
+    "products": 4,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 12,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-boxes",
+    "ok": true,
+    "products": 29,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 45
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2391
+ },
+ {
+  "key": "tengentreasures",
+  "name": "Collect by Design",
+  "base": "https://tengentreasures.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 17,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 13,
+   "not-sealed": 4
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5277
+ },
+ {
+  "key": "buyanycards",
+  "name": "Buy Any Cards",
+  "base": "https://buyanycards.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 21,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-bundles",
+    "ok": true,
+    "products": 12,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 33
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1976
+ },
+ {
+  "key": "cardandink",
+  "name": "Card & Ink",
+  "base": "https://www.cardandink.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "bundles",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 1916
+ },
+ {
+  "key": "crackthepack",
+  "name": "Crack The Pack",
+  "base": "https://crackthepack.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 5,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-bundles",
+    "ok": true,
+    "products": 5,
+    "accepted": 0
+   },
+   {
+    "handle": "collection-boxes",
+    "ok": true,
+    "products": 8,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-boxes",
+    "ok": true,
+    "products": 13,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 31
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3453
+ },
+ {
+  "key": "evocards",
+  "name": "EVO Cards",
+  "base": "https://www.evocards.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 19,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-boxes",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 21
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1878
+ },
+ {
+  "key": "gogetcollectables",
+  "name": "Go Get Collectables",
+  "base": "https://gogetcollectables.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 1,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "accessory": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1419
+ },
+ {
+  "key": "dungeonsandjoypads",
+  "name": "Dungeons and Joypads",
+  "base": "https://dungeonsandjoypads.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 128,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 5,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 76,
+   "not-magic": 57
+  },
+  "samples": [],
+  "error": null,
+  "ms": 6116
+ },
+ {
+  "key": "hoctcg",
+  "name": "HOC TCG (Hauss of Cards)",
+  "base": "https://hoctcg.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1360
+ },
+ {
+  "key": "gocardsuk",
+  "name": "Go Cards UK",
+  "base": "https://gocardsuk.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 11,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 14,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed-product",
+    "ok": true,
+    "products": 51,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-boxes",
+    "ok": true,
+    "products": 9,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 1,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 79,
+   "no-set": 4,
+   "accessory": 3
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3580
+ },
+ {
+  "key": "jarvvos",
+  "name": "Jarvvos",
+  "base": "https://www.jarvvos.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "etbs",
+    "ok": true,
+    "products": 3,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 3,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 5,
+   "not-sealed": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2510
+ },
+ {
+  "key": "hokeypokegames",
+  "name": "Hokey Poke Games",
+  "base": "https://hokeypokegames.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4881
+ },
+ {
+  "key": "koolthings",
+  "name": "Koolthings",
+  "base": "https://www.koolthings.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 50,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 32,
+   "foreign": 3,
+   "accessory": 15
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5528
+ },
+ {
+  "key": "meeplescorner",
+  "name": "Meeples Corner",
+  "base": "https://meeplescorner.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 1,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3850
+ },
+ {
+  "key": "rarepokemoncards",
+  "name": "Rare Pokémon Cards UK",
+  "base": "https://rarepokemoncards.co.uk",
+  "market": "UK",
+  "platform": "woocommerce",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 13,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 13
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2668
+ },
+ {
+  "key": "pokestadiumcards",
+  "name": "PokeStadium Cards",
+  "base": "https://pokestadiumcards.co.uk",
+  "market": "UK",
+  "platform": "woocommerce",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 124,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 83,
+   "not-magic": 41
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4579
+ },
+ {
+  "key": "pokevend",
+  "name": "Pokevend",
+  "base": "https://pokevend.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4727
+ },
+ {
+  "key": "terrorstcg",
+  "name": "Terrors TCG",
+  "base": "https://www.terrorstcg.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "tins",
+    "ok": true,
+    "products": 1,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-pack",
+    "ok": true,
+    "products": 11,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 6,
+    "accepted": 0
+   },
+   {
+    "handle": "collection-box",
+    "ok": true,
+    "products": 8,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-box",
+    "ok": true,
+    "products": 1,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 16,
+   "foreign": 11
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3578
+ },
+ {
+  "key": "thecardclubuk",
+  "name": "The Card Club UK",
+  "base": "https://thecardclubuk.shop",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4825
+ },
+ {
+  "key": "trainershaven",
+  "name": "Trainer's Haven",
+  "base": "https://trainershaven.co.uk",
+  "market": "UK",
+  "platform": "woocommerce",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 112,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 83,
+   "foreign": 29
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4709
+ },
+ {
+  "key": "boardgame",
+  "name": "Zatu Games",
+  "base": "https://www.board-game.co.uk",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [
+   "bundle",
+   "booster-packs",
+   "booster-boxes"
+  ],
+  "sealedProducts": 7,
+  "inStock": 1,
+  "allFound": 7,
+  "read": [
+   {
+    "handle": "tins",
+    "ok": true,
+    "products": 30,
+    "accepted": 0
+   },
+   {
+    "handle": "bundle",
+    "ok": true,
+    "products": 30,
+    "accepted": 3
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 30,
+    "accepted": 1
+   },
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 30,
+    "accepted": 3
+   },
+   {
+    "handle": "collection-boxes",
+    "ok": true,
+    "products": 30,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 30,
+    "accepted": 0
+   },
+   {
+    "handle": "new-releases",
+    "ok": true,
+    "products": 30,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders-pokemon",
+    "ok": true,
+    "products": 30,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 211,
+   "accessory": 10,
+   "foreign": 12
+  },
+  "samples": [],
+  "error": null,
+  "ms": 8283
+ }
+]

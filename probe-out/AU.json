@@ -1,0 +1,3639 @@
+[
+ {
+  "key": "blacklistcards",
+  "name": "88 Games Arena",
+  "base": "https://blacklistcards.com",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "new-arrivals"
+  ],
+  "sealedProducts": 9,
+  "inStock": 9,
+  "allFound": 9,
+  "read": [
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 14,
+    "accepted": 9
+   }
+  ],
+  "rejections": {
+   "not-magic": 4,
+   "vague": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1375
+ },
+ {
+  "key": "hbtcollectables",
+  "name": "Gap Games",
+  "base": "https://www.hbtcollectables.com",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "preorders"
+  ],
+  "sealedProducts": 1,
+  "inStock": 1,
+  "allFound": 1,
+  "read": [
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 17,
+    "accepted": 1
+   }
+  ],
+  "rejections": {
+   "not-magic": 16
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1539
+ },
+ {
+  "key": "frenlybricks",
+  "name": "Collectible Madness",
+  "base": "https://frenlybricks.store",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "preorder",
+    "ok": true,
+    "products": 9,
+    "accepted": 0
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 750,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 205,
+   "not-sealed": 538,
+   "accessory": 15,
+   "foreign": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4022
+ },
+ {
+  "key": "gamesempire",
+  "name": "Eternal Magic",
+  "base": "https://www.gamesempire.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "pre-order"
+  ],
+  "sealedProducts": 16,
+  "inStock": 13,
+  "allFound": 17,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 45,
+    "accepted": 16
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 750,
+    "accepted": 1
+   }
+  ],
+  "rejections": {
+   "not-magic": 741,
+   "multiple": 1,
+   "accessory": 25,
+   "not-sealed": 5,
+   "no-set": 3,
+   "foreign": 2,
+   "unclassified": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 7234
+ },
+ {
+  "key": "tcg",
+  "name": "Irresistible Force TCG",
+  "base": "https://tcg.irresistibleforce.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4776
+ },
+ {
+  "key": "spindown",
+  "name": "Raptor Games",
+  "base": "https://spindown.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 1361
+ },
+ {
+  "key": "steelcitygames",
+  "name": "Reefside Games",
+  "base": "https://www.steelcitygames.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4976
+ },
+ {
+  "key": "plentyofgamesau",
+  "name": "Plenty of Games",
+  "base": "https://plenty-of-games-au.myshopify.com",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "tcg-sealed",
+   "pre-orders"
+  ],
+  "sealedProducts": 307,
+  "inStock": 54,
+  "allFound": 307,
+  "read": [
+   {
+    "handle": "tcg-sealed",
+    "ok": true,
+    "products": 750,
+    "accepted": 294
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 17,
+    "accepted": 13
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 750,
+    "accepted": 13
+   },
+   {
+    "handle": "tcg-pre-orders",
+    "ok": true,
+    "products": 16,
+    "accepted": 13
+   }
+  ],
+  "rejections": {
+   "foreign": 43,
+   "not-magic": 1126,
+   "accessory": 15,
+   "vague": 4,
+   "unclassified": 6,
+   "not-sealed": 6
+  },
+  "samples": [],
+  "error": null,
+  "ms": 10047
+ },
+ {
+  "key": "reefsidegames",
+  "name": "Reefside Games",
+  "base": "https://reefsidegames.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 750,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 380,
+   "not-sealed": 364,
+   "foreign": 3,
+   "accessory": 3
+  },
+  "samples": [],
+  "error": null,
+  "ms": 8245
+ },
+ {
+  "key": "teamcardtitan",
+  "name": "Spellroo Gaming",
+  "base": "https://teamcardtitan.com",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "preorder"
+  ],
+  "sealedProducts": 4,
+  "inStock": 4,
+  "allFound": 4,
+  "read": [
+   {
+    "handle": "preorder",
+    "ok": true,
+    "products": 12,
+    "accepted": 4
+   }
+  ],
+  "rejections": {
+   "not-magic": 5,
+   "unclassified": 3
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1486
+ },
+ {
+  "key": "turtletcg",
+  "name": "T One Australia",
+  "base": "https://turtletcg.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 88,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 86,
+   "foreign": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1506
+ },
+ {
+  "key": "203collectibles",
+  "name": "Team Card Titan",
+  "base": "https://203collectibles.com",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "CAD",
+  "currencyOk": false,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges CAD, market AU is AUD",
+  "ms": 413
+ },
+ {
+  "key": "turnordergames",
+  "name": "Steel City Games",
+  "base": "https://turnordergames.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 2052
+ },
+ {
+  "key": "3mana",
+  "name": "The Final Boss Collectables",
+  "base": "https://3mana.ca",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "CAD",
+  "currencyOk": false,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges CAD, market AU is AUD",
+  "ms": 418
+ },
+ {
+  "key": "toneaus",
+  "name": "Shuffled Local Game Store",
+  "base": "https://www.toneaus.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 137,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-sealed": 131,
+   "not-magic": 6
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5930
+ },
+ {
+  "key": "ggadelaide",
+  "name": "Games Portal",
+  "base": "https://ggadelaide.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "new-arrivals"
+  ],
+  "sealedProducts": 1,
+  "inStock": 1,
+  "allFound": 1,
+  "read": [
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 429,
+    "accepted": 1
+   }
+  ],
+  "rejections": {
+   "not-sealed": 428
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3311
+ },
+ {
+  "key": "grailborne",
+  "name": "Grailborne",
+  "base": "https://grailborne.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "booster-box"
+  ],
+  "sealedProducts": 1,
+  "inStock": 0,
+  "allFound": 1,
+  "read": [
+   {
+    "handle": "tins",
+    "ok": true,
+    "products": 20,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-box",
+    "ok": true,
+    "products": 54,
+    "accepted": 1
+   },
+   {
+    "handle": "booster-bundle",
+    "ok": true,
+    "products": 18,
+    "accepted": 0
+   },
+   {
+    "handle": "collection-box",
+    "ok": true,
+    "products": 85,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-box",
+    "ok": true,
+    "products": 30,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 43,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 239,
+   "foreign": 10
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4158
+ },
+ {
+  "key": "mayhemcollectables",
+  "name": "HR Games",
+  "base": "https://mayhemcollectables.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 1,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3163
+ },
+ {
+  "key": "hrgames",
+  "name": "Grailborne",
+  "base": "https://hrgames.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4820
+ },
+ {
+  "key": "cardhouseau",
+  "name": "Spellroo Gaming",
+  "base": "https://www.cardhouse.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-order-now",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 1632
+ },
+ {
+  "key": "mintcollectables",
+  "name": "Mana Market",
+  "base": "https://mintcollectables.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "preorder"
+  ],
+  "sealedProducts": 6,
+  "inStock": 5,
+  "allFound": 6,
+  "read": [
+   {
+    "handle": "preorder",
+    "ok": true,
+    "products": 15,
+    "accepted": 6
+   }
+  ],
+  "rejections": {
+   "not-magic": 6,
+   "vague": 1,
+   "unclassified": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2378
+ },
+ {
+  "key": "mightycoolgames",
+  "name": "Just Card Stuff",
+  "base": "https://mightycoolgames.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4619
+ },
+ {
+  "key": "abbyboardwalk",
+  "name": "Turtle TCG",
+  "base": "https://abbyboardwalk.com",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "CAD",
+  "currencyOk": false,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges CAD, market AU is AUD",
+  "ms": 378
+ },
+ {
+  "key": "abyssgamestore",
+  "name": "Vault Games",
+  "base": "https://abyssgamestore.ca",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "CAD",
+  "currencyOk": false,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges CAD, market AU is AUD",
+  "ms": 2000
+ },
+ {
+  "key": "vaultgames",
+  "name": "The Final Boss Collectables",
+  "base": "https://vaultgames.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "preorder-pricing"
+  ],
+  "sealedProducts": 4,
+  "inStock": 4,
+  "allFound": 4,
+  "read": [
+   {
+    "handle": "preorder-pricing",
+    "ok": true,
+    "products": 33,
+    "accepted": 4
+   }
+  ],
+  "rejections": {
+   "not-magic": 23,
+   "accessory": 4,
+   "vague": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3316
+ },
+ {
+  "key": "collectorscompany",
+  "name": "Card Bot",
+  "base": "https://collectorscompany.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1528
+ },
+ {
+  "key": "thecollectorsmith",
+  "name": "Team Card Titan",
+  "base": "https://www.thecollectorsmith.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 36,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 22,
+   "not-sealed": 13,
+   "accessory": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4932
+ },
+ {
+  "key": "crystalcollectablestcg",
+  "name": "Cherry Collectables",
+  "base": "https://crystalcollectablestcg.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 33,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 28,
+   "foreign": 1,
+   "accessory": 3,
+   "not-sealed": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1487
+ },
+ {
+  "key": "groovycollectables",
+  "name": "Gameology",
+  "base": "https://groovycollectables.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "elite-trainer-box",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   },
+   {
+    "handle": "preorder-pokemon",
+    "ok": true,
+    "products": 23,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 25
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2402
+ },
+ {
+  "key": "cherrycollectables",
+  "name": "Cherry Collectables",
+  "base": "https://www.cherrycollectables.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "pre-order"
+  ],
+  "sealedProducts": 4,
+  "inStock": 3,
+  "allFound": 4,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 55,
+    "accepted": 4
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "tcg-pre-order",
+    "ok": true,
+    "products": 1,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order-save",
+    "ok": true,
+    "products": 32,
+    "accepted": 3
+   }
+  ],
+  "rejections": {
+   "not-magic": 79,
+   "foreign": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4852
+ },
+ {
+  "key": "6ixtcgsmarkham",
+  "name": "Pro Gamers and Collectables",
+  "base": "https://6ixtcgsmarkham.ca",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "CAD",
+  "currencyOk": false,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges CAD, market AU is AUD",
+  "ms": 518
+ },
+ {
+  "key": "dropstore",
+  "name": "Drop Store",
+  "base": "https://dropstore.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 11,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 8,
+   "accessory": 3
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1344
+ },
+ {
+  "key": "diablosvault",
+  "name": "Aether Wyvern Games",
+  "base": "https://diablosvault.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 13,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-bundles",
+    "ok": true,
+    "products": 11,
+    "accepted": 0
+   },
+   {
+    "handle": "collection-boxes",
+    "ok": true,
+    "products": 15,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-boxes",
+    "ok": true,
+    "products": 10,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 48,
+   "accessory": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3248
+ },
+ {
+  "key": "legendsandcollectables",
+  "name": "Hobby Collectors Australia",
+  "base": "https://legendsandcollectables.com",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "new-arrivals"
+  ],
+  "sealedProducts": 18,
+  "inStock": 0,
+  "allFound": 18,
+  "read": [
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 750,
+    "accepted": 18
+   }
+  ],
+  "rejections": {
+   "not-magic": 526,
+   "not-sealed": 204,
+   "accessory": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4929
+ },
+ {
+  "key": "fastbreakcollectables",
+  "name": "Card Bot",
+  "base": "https://fastbreakcollectables.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 1,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5393
+ },
+ {
+  "key": "gamerholic",
+  "name": "Gamerholic",
+  "base": "https://gamerholic.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 750,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 665,
+   "not-sealed": 12,
+   "accessory": 61,
+   "foreign": 3,
+   "unclassified": 9
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3606
+ },
+ {
+  "key": "gamersvillage",
+  "name": "FastBreak Cards & Collectables",
+  "base": "https://gamers-village.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "pre-orders"
+  ],
+  "sealedProducts": 3,
+  "inStock": 2,
+  "allFound": 3,
+  "read": [
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 60,
+    "accepted": 3
+   }
+  ],
+  "rejections": {
+   "not-magic": 55,
+   "accessory": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1652
+ },
+ {
+  "key": "firstgames",
+  "name": "Collectors Space",
+  "base": "https://firstgames.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 74,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 60,
+   "foreign": 14
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5489
+ },
+ {
+  "key": "gaminggrounds",
+  "name": "Gamerholic",
+  "base": "https://gaminggrounds.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "tcg-pre-orders",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1833
+ },
+ {
+  "key": "gametradersseaford",
+  "name": "From The Deep Games",
+  "base": "https://gametradersseaford.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "pre-order"
+  ],
+  "sealedProducts": 2,
+  "inStock": 1,
+  "allFound": 2,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 85,
+    "accepted": 2
+   },
+   {
+    "handle": "pre-order-tcg",
+    "ok": true,
+    "products": 35,
+    "accepted": 1
+   }
+  ],
+  "rejections": {
+   "not-magic": 62,
+   "no-set": 16,
+   "accessory": 39
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2304
+ },
+ {
+  "key": "gametraderschermside",
+  "name": "First Games",
+  "base": "https://gametraderschermside.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "pre-order-june"
+  ],
+  "sealedProducts": 1,
+  "inStock": 1,
+  "allFound": 1,
+  "read": [
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order-june",
+    "ok": true,
+    "products": 115,
+    "accepted": 1
+   }
+  ],
+  "rejections": {
+   "not-magic": 113,
+   "accessory": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3737
+ },
+ {
+  "key": "gdgames",
+  "name": "GD Games",
+  "base": "https://www.gdgames.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "preorder",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 1529
+ },
+ {
+  "key": "jamiestradingcards",
+  "name": "Jamie's Trading Cards",
+  "base": "https://jamiestradingcards.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 13,
+    "accepted": 0
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 9,
+   "not-magic": 4
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2187
+ },
+ {
+  "key": "hobbykitz",
+  "name": "Gametraders Chermside",
+  "base": "https://hobbykitz.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 261,
+    "accepted": 0
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 105,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order-final",
+    "ok": true,
+    "products": 175,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order-december",
+    "ok": true,
+    "products": 8,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 400,
+   "accessory": 10,
+   "not-sealed": 137,
+   "no-set": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4931
+ },
+ {
+  "key": "lightofcards",
+  "name": "Light of Cards",
+  "base": "https://lightofcards.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "pre-order"
+  ],
+  "sealedProducts": 2,
+  "inStock": 2,
+  "allFound": 2,
+  "read": [
+   {
+    "handle": "booster-bundle",
+    "ok": true,
+    "products": 23,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 11,
+    "accepted": 2
+   }
+  ],
+  "rejections": {
+   "not-magic": 32
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3360
+ },
+ {
+  "key": "kawaiicollector",
+  "name": "Kawaii Collector",
+  "base": "https://kawaiicollector.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 125,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 123,
+   "accessory": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5059
+ },
+ {
+  "key": "lowpop",
+  "name": "Low Pop Trading Co",
+  "base": "https://www.lowpop.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "preorder",
+   "sealed"
+  ],
+  "sealedProducts": 7,
+  "inStock": 6,
+  "allFound": 7,
+  "read": [
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 96,
+    "accepted": 1
+   },
+   {
+    "handle": "preorder",
+    "ok": true,
+    "products": 31,
+    "accepted": 6
+   }
+  ],
+  "rejections": {
+   "not-magic": 95,
+   "foreign": 12,
+   "no-set": 10,
+   "vague": 2,
+   "unclassified": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2184
+ },
+ {
+  "key": "lootgoblincollectables",
+  "name": " Hobby Kitz",
+  "base": "https://lootgoblincollectables.com",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 9,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 9
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5055
+ },
+ {
+  "key": "pokemonworldaustralia",
+  "name": "Pokemon World Australia",
+  "base": "https://www.pokemonworldaustralia.com",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "booster-boxes",
+   "tcg-preorders"
+  ],
+  "sealedProducts": 3,
+  "inStock": 1,
+  "allFound": 3,
+  "read": [
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 11,
+    "accepted": 2
+   },
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 1,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-boxes",
+    "ok": true,
+    "products": 14,
+    "accepted": 0
+   },
+   {
+    "handle": "tcg-preorders",
+    "ok": true,
+    "products": 1,
+    "accepted": 1
+   }
+  ],
+  "rejections": {
+   "not-magic": 24
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3568
+ },
+ {
+  "key": "popincollectables",
+  "name": "Low Pop Trading Co PTY LTD",
+  "base": "https://popincollectables.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 140,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 49,
+   "accessory": 90,
+   "not-sealed": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1906
+ },
+ {
+  "key": "prohobbies",
+  "name": "Mega Games Penrith",
+  "base": "https://prohobbies.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "elite-trainer-box",
+    "ok": true,
+    "products": 14,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 14
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1826
+ },
+ {
+  "key": "megagames",
+  "name": "Kawaii Collector",
+  "base": "https://megagames.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 29,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 29
+  },
+  "samples": [],
+  "error": null,
+  "ms": 7679
+ },
+ {
+  "key": "tcgroupau",
+  "name": "TCGroup Australia",
+  "base": "https://www.tcgroupau.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "bundles"
+  ],
+  "sealedProducts": 19,
+  "inStock": 4,
+  "allFound": 19,
+  "read": [
+   {
+    "handle": "bundles",
+    "ok": true,
+    "products": 28,
+    "accepted": 19
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 9,
+    "accepted": 0
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 16,
+   "vague": 1,
+   "foreign": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2428
+ },
+ {
+  "key": "thewanderingcollector",
+  "name": "The Wandering Collector",
+  "base": "https://thewanderingcollector.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 27,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 21,
+   "accessory": 6
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1388
+ },
+ {
+  "key": "topdeckgaming",
+  "name": "Ronin Games",
+  "base": "https://topdeckgaming.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 1451
+ },
+ {
+  "key": "animeotakuhobby",
+  "name": "Unplugged Games",
+  "base": "https://animeotakuhobby.com",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "CAD",
+  "currencyOk": false,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges CAD, market AU is AUD",
+  "ms": 346
+ },
+ {
+  "key": "unpluggedgames",
+  "name": "Sports Card Store",
+  "base": "https://unpluggedgames.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "pre-order"
+  ],
+  "sealedProducts": 11,
+  "inStock": 11,
+  "allFound": 11,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 15,
+    "accepted": 11
+   }
+  ],
+  "rejections": {
+   "accessory": 3,
+   "multiple": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1324
+ },
+ {
+  "key": "vaultcollectables",
+  "name": "The Wandering Collector",
+  "base": "https://vault-collectables.com",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "new-release",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 1335
+ },
+ {
+  "key": "arcticriftcards",
+  "name": "Urban Empire Collectables",
+  "base": "https://arcticriftcards.ca",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "CAD",
+  "currencyOk": false,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges CAD, market AU is AUD",
+  "ms": 431
+ },
+ {
+  "key": "blackknightgames",
+  "name": "Filmsmen",
+  "base": "https://blackknightgames.ca",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "CAD",
+  "currencyOk": false,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges CAD, market AU is AUD",
+  "ms": 464
+ },
+ {
+  "key": "dongames",
+  "name": "Crystal Collectables TCG",
+  "base": "https://dongames.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "sealed-product",
+    "ok": true,
+    "products": 47,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 23,
+   "not-magic": 24
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1189
+ },
+ {
+  "key": "acecollectibles",
+  "name": "Ace Collectibles",
+  "base": "https://acecollectibles.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-box",
+    "ok": true,
+    "products": 11,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 13
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2110
+ },
+ {
+  "key": "trollaustralia",
+  "name": "Troll Australia",
+  "base": "https://www.trollaustralia.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 15,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-boxes",
+    "ok": true,
+    "products": 13,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 3,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 25,
+   "not-sealed": 1,
+   "accessory": 5
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2587
+ },
+ {
+  "key": "tcgau",
+  "name": "Frenly Bricks",
+  "base": "https://tcg.goodgames.com.au",
+  "market": "AU",
+  "platform": null,
+  "currency": null,
+  "currencyOk": false,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "no public Shopify or WooCommerce feed",
+  "ms": 1144
+ },
+ {
+  "key": "gatekeeperstcg",
+  "name": "Eternal Magic",
+  "base": "https://www.gatekeeperstcg.com",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 9,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 9
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1937
+ },
+ {
+  "key": "horizontradingcards",
+  "name": "Good Games Morley",
+  "base": "https://horizontradingcards.com",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "sealed-products"
+  ],
+  "sealedProducts": 2,
+  "inStock": 2,
+  "allFound": 2,
+  "read": [
+   {
+    "handle": "sealed-products",
+    "ok": true,
+    "products": 2,
+    "accepted": 2
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 1453
+ },
+ {
+  "key": "goodgamesmorley",
+  "name": "Games Portal",
+  "base": "https://www.goodgamesmorley.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 1666
+ },
+ {
+  "key": "lunacards",
+  "name": "GUF",
+  "base": "https://www.lunacards.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 3,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 1,
+    "accepted": 0
+   },
+   {
+    "handle": "all-pre-orders",
+    "ok": true,
+    "products": 5,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 9
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3577
+ },
+ {
+  "key": "gggreensborough",
+  "name": "Gameology",
+  "base": "https://gggreensborough.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 234,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-sealed": 183,
+   "not-magic": 51
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5706
+ },
+ {
+  "key": "thatgamestore",
+  "name": "Millennium Comics",
+  "base": "https://thatgamestore.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 750,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-sealed": 597,
+   "not-magic": 152,
+   "unclassified": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4237
+ },
+ {
+  "key": "thecardspot",
+  "name": "The Card Spot",
+  "base": "https://thecardspot.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-box",
+    "ok": true,
+    "products": 58,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 49,
+   "foreign": 9
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1550
+ },
+ {
+  "key": "toysucker",
+  "name": "The Card House",
+  "base": "https://www.toysucker.com.au",
+  "market": "AU",
+  "platform": null,
+  "currency": null,
+  "currencyOk": false,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "no public Shopify or WooCommerce feed",
+  "ms": 1034
+ },
+ {
+  "key": "cardboardgamer",
+  "name": "Team Card Titan",
+  "base": "https://cardboardgamer.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 6,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 6
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2069
+ },
+ {
+  "key": "tradingcardmasters",
+  "name": "The Card Spot",
+  "base": "https://www.tradingcardmasters.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 5007
+ },
+ {
+  "key": "thedragonsbeard",
+  "name": "Legends and Collectables",
+  "base": "https://thedragonsbeard.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4736
+ },
+ {
+  "key": "wonderlandgames",
+  "name": "The CollectorSmith",
+  "base": "https://www.wonderlandgames.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 6340
+ },
+ {
+  "key": "theadventurersguild",
+  "name": "The Adventurers Guild",
+  "base": "https://www.theadventurersguild.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "preorder-section",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 1390
+ },
+ {
+  "key": "beachestcg",
+  "name": "Beaches TCG",
+  "base": "https://beachestcg.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 54,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "accessory": 2,
+   "not-magic": 39,
+   "foreign": 13
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5658
+ },
+ {
+  "key": "aussiehobbies",
+  "name": "Aussie Hobbies",
+  "base": "https://www.aussiehobbies.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "new-arrivals"
+  ],
+  "sealedProducts": 7,
+  "inStock": 7,
+  "allFound": 7,
+  "read": [
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 559,
+    "accepted": 7
+   }
+  ],
+  "rejections": {
+   "not-magic": 394,
+   "not-sealed": 95,
+   "foreign": 6,
+   "accessory": 57
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4047
+ },
+ {
+  "key": "dragonloot",
+  "name": "Dragon Loot",
+  "base": "https://dragonloot.au",
+  "market": "AU",
+  "platform": "woocommerce",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 8,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 1,
+   "foreign": 7
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4832
+ },
+ {
+  "key": "onestoppokeshop",
+  "name": "One Stop Poke Shop",
+  "base": "https://onestoppokeshop.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 287,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 135,
+   "foreign": 77,
+   "accessory": 50,
+   "not-sealed": 25,
+   "no-set": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2275
+ },
+ {
+  "key": "metrohobbies",
+  "name": "Metro Hobbies",
+  "base": "https://www.metrohobbies.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 174,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 174
+  },
+  "samples": [],
+  "error": null,
+  "ms": 6716
+ },
+ {
+  "key": "lilleysarena",
+  "name": "Lilley's Arena",
+  "base": "https://lilleysarena.com.au",
+  "market": "AU",
+  "platform": "woocommerce",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 28,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 28
+  },
+  "samples": [],
+  "error": null,
+  "ms": 8865
+ },
+ {
+  "key": "pokesource",
+  "name": "PokeSource",
+  "base": "https://pokesource.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "booster-bundles"
+  ],
+  "sealedProducts": 1,
+  "inStock": 1,
+  "allFound": 1,
+  "read": [
+   {
+    "handle": "booster-bundles",
+    "ok": true,
+    "products": 38,
+    "accepted": 1
+   },
+   {
+    "handle": "elite-trainer-boxes",
+    "ok": true,
+    "products": 41,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 10,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 88
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2557
+ },
+ {
+  "key": "poketrader",
+  "name": "PokeTrader",
+  "base": "https://www.poketrader.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 19,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-boxes",
+    "ok": true,
+    "products": 6,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 25
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2273
+ },
+ {
+  "key": "purplishtcg",
+  "name": "Purplish TCG",
+  "base": "https://purplishtcg.com",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4786
+ },
+ {
+  "key": "quackopens",
+  "name": "Quack Opens",
+  "base": "https://www.quackopens.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 9,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 750,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 44,
+   "foreign": 2,
+   "not-sealed": 713
+  },
+  "samples": [],
+  "error": null,
+  "ms": 6865
+ },
+ {
+  "key": "thevaultau",
+  "name": "The Vault",
+  "base": "https://the-vault-au.com",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 378,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 352,
+   "accessory": 24,
+   "foreign": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4495
+ },
+ {
+  "key": "treasurevaultau",
+  "name": "Treasure Vault",
+  "base": "https://treasurevaultau.com",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "tins",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-bundles",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-boxes",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 3,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 9
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2868
+ },
+ {
+  "key": "overhauledgames",
+  "name": "Overhauled Games",
+  "base": "https://overhauledgames.com.au",
+  "market": "AU",
+  "platform": "woocommerce",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 296,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 166,
+   "foreign": 130
+  },
+  "samples": [],
+  "error": null,
+  "ms": 20125
+ }
+]

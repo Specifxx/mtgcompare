@@ -1,0 +1,757 @@
+[
+ {
+  "key": "sccollection",
+  "name": "SC Collection",
+  "base": "https://www.sc-collection.sg",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 40,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 22,
+   "not-magic": 18
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1613
+ },
+ {
+  "key": "sgmanapro",
+  "name": "1Collectibles",
+  "base": "https://sg-manapro.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 750,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 326,
+   "not-sealed": 412,
+   "unclassified": 12
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4588
+ },
+ {
+  "key": "tcgclubhouse",
+  "name": "GOAT TCG",
+  "base": "https://tcgclubhouse.myshopify.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4949
+ },
+ {
+  "key": "apgtcg",
+  "name": "Apex Player's Guild",
+  "base": "https://apgtcg.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "sealed-product",
+    "ok": true,
+    "products": 6,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 6
+  },
+  "samples": [],
+  "error": null,
+  "ms": 1342
+ },
+ {
+  "key": "4elements",
+  "name": "4elements",
+  "base": "https://www.4elements.sg",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-pack",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 1801
+ },
+ {
+  "key": "actionpoint",
+  "name": "Action Point Games",
+  "base": "https://actionpoint.sg",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4790
+ },
+ {
+  "key": "jiggletcg",
+  "name": "Jiggle TCG",
+  "base": "https://jiggletcg.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-box",
+    "ok": true,
+    "products": 20,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 17,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-bundle",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 33,
+   "not-magic": 6
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2395
+ },
+ {
+  "key": "humbletcg",
+  "name": "Humble TCG",
+  "base": "https://humbletcg.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 7,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 6,
+    "accepted": 0
+   },
+   {
+    "handle": "collection-boxes",
+    "ok": true,
+    "products": 1,
+    "accepted": 0
+   },
+   {
+    "handle": "elite-trainer-boxes",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 8,
+   "foreign": 8
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2886
+ },
+ {
+  "key": "sawadeekard",
+  "name": "Sawadeekard",
+  "base": "https://sawadeekard.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 1281
+ },
+ {
+  "key": "cardboardcollectible",
+  "name": "Cardboard Collectible",
+  "base": "https://cardboardcollectible.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 290,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-pack",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 36,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 229,
+   "not-magic": 78,
+   "accessory": 19
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5446
+ },
+ {
+  "key": "kenkyohobby",
+  "name": "Kenkyo Hobby",
+  "base": "https://kenkyohobby.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 32,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 32
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4668
+ },
+ {
+  "key": "sentinelgamessg",
+  "name": "Sentinel Games",
+  "base": "https://sentinelgamessg.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order-sprite",
+    "ok": true,
+    "products": 2,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order-aquaplus",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 4
+  },
+  "samples": [],
+  "error": null,
+  "ms": 3071
+ },
+ {
+  "key": "spearingcollectibles",
+  "name": "Spearing Collectibles",
+  "base": "https://www.spearingcollectibles.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 266,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 55,
+   "foreign": 170,
+   "accessory": 2,
+   "not-sealed": 39
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5441
+ },
+ {
+  "key": "theavidcollectors",
+  "name": "The Avid Collectors",
+  "base": "https://theavidcollectors.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 85,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order-tcg",
+    "ok": true,
+    "products": 10,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order-gsc",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order-beyblade",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 74,
+   "not-sealed": 15,
+   "foreign": 5,
+   "accessory": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4068
+ },
+ {
+  "key": "thetcgalchemists",
+  "name": "The TCG Alchemists",
+  "base": "https://thetcgalchemists.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "pokemon-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon",
+    "ok": true,
+    "products": 7,
+    "accepted": 0
+   },
+   {
+    "handle": "pokemon-tcg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "preorders",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 7
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4696
+ },
+ {
+  "key": "toyspace",
+  "name": "Toy Space",
+  "base": "https://toyspace.com.sg",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 37,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 32,
+   "not-sealed": 3,
+   "foreign": 2
+  },
+  "samples": [],
+  "error": null,
+  "ms": 2204
+ }
+]
