@@ -35,17 +35,27 @@ def jan_of(p):
 def probe(store):
     root = store["base"].rstrip("/")
     out = dict(store)
-    time.sleep(0.5)
-    n = suggest(root, "nendoroid"); f = suggest(root, "figma"); g = suggest(root, "gunpla")
-    out.update(nendoroid=n, figma=f, gunpla=g)
-    if not any(x for x in (n, f, g)):
-        return out
+    # suggest.json came back unreadable from runners for ~95% of stores, so scan products.json directly.
     stats = {"fig": 0, "figJan": 0, "kit": 0, "kitJan": 0, "barcodeKey": False, "where": {}, "samples": []}
     for page in range(1, 9):
         time.sleep(1.0)
         s, _, body = get(f"{root}/products.json?limit=250&page={page}")
         try: prods = json.loads(body)["products"]
-        except Exception: stats["readError"] = s; break
+        except Exception:
+            stats["readError"] = s
+            if page == 1 and s != 429:
+                hs, hf, hb = get(root, limit=300000)
+                b = hb.lower() if isinstance(hb, str) else ""
+                stats["home"] = hs
+                stats["platform"] = "shopify" if "cdn.shopify.com" in b else "woocommerce" if "woocommerce" in b else "magento" if "mage-init" in b else "bigcommerce" if "bigcommerce" in b else ("challenge" if ("verifying your connection" in b or "just a moment" in b) else "other")
+                if stats["platform"] in ("woocommerce", "other"):
+                    ws, _, wb = get(f"{root}/wp-json/wc/store/v1/products?search=nendoroid&per_page=100")
+                    try:
+                        items = json.loads(wb); stats["platform"] = "woocommerce"; stats["wooFig"] = len(items)
+                        stats["wooFigJan"] = sum(1 for it in items if JAN.search(str(it.get("sku") or "") + " " + str(it.get("description") or "")))
+                    except Exception: pass
+            break
+        stats["scanned"] = stats.get("scanned", 0) + len(prods)
         if not prods: break
         for p in prods:
             vs = p.get("variants") or []
@@ -64,5 +74,5 @@ def probe(store):
     return out
 
 stores = json.load(open("figprobe/stores.json"))
-with cf.ThreadPoolExecutor(2) as ex: res = list(ex.map(probe, stores))
+with cf.ThreadPoolExecutor(3) as ex: res = list(ex.map(probe, stores))
 json.dump(res, open("figprobe/out.json", "w"), indent=0)
