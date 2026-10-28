@@ -1,0 +1,98 @@
+[
+ {
+  "name": "1Collectibles",
+  "base": "https://sg-manapro.com",
+  "country": "SG",
+  "market": "SG"
+ },
+ {
+  "name": "SC Collection",
+  "base": "https://www.sc-collection.sg",
+  "country": "SG",
+  "market": "SG"
+ },
+ {
+  "name": "GOAT TCG",
+  "base": "https://tcgclubhouse.myshopify.com",
+  "country": "SG",
+  "market": "SG"
+ },
+ {
+  "name": "Action Point Games",
+  "base": "https://actionpoint.sg",
+  "country": "SG",
+  "market": "SG"
+ },
+ {
+  "name": "4elements",
+  "base": "https://www.4elements.sg",
+  "country": "SG",
+  "market": "SG"
+ },
+ {
+  "name": "Apex Player's Guild",
+  "base": "https://apgtcg.com",
+  "country": "SG",
+  "market": "SG"
+ },
+ {
+  "name": "Cardboard Collectible",
+  "base": "https://cardboardcollectible.com",
+  "country": "SG",
+  "market": "SG"
+ },
+ {
+  "name": "Humble TCG",
+  "base": "https://humbletcg.com",
+  "country": "SG",
+  "market": "SG"
+ },
+ {
+  "name": "Jiggle TCG",
+  "base": "https://jiggletcg.com",
+  "country": "SG",
+  "market": "SG"
+ },
+ {
+  "name": "Kenkyo Hobby",
+  "base": "https://kenkyohobby.com",
+  "country": "SG",
+  "market": "SG"
+ },
+ {
+  "name": "Sawadeekard",
+  "base": "https://sawadeekard.com",
+  "country": "SG",
+  "market": "SG"
+ },
+ {
+  "name": "Sentinel Games",
+  "base": "https://sentinelgamessg.com",
+  "country": "SG",
+  "market": "SG"
+ },
+ {
+  "name": "Spearing Collectibles",
+  "base": "https://www.spearingcollectibles.com",
+  "country": "SG",
+  "market": "SG"
+ },
+ {
+  "name": "The TCG Alchemists",
+  "base": "https://thetcgalchemists.com",
+  "country": "SG",
+  "market": "SG"
+ },
+ {
+  "name": "The Avid Collectors",
+  "base": "https://theavidcollectors.com",
+  "country": "SG",
+  "market": "SG"
+ },
+ {
+  "name": "Toy Space",
+  "base": "https://toyspace.com.sg",
+  "country": "SG",
+  "market": "SG"
+ }
+]

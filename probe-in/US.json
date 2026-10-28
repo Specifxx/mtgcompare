@@ -1,0 +1,1454 @@
+[
+ {
+  "name": "Bards & Cards",
+  "base": "https://www.capefearcollectibles.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Black Vault Gaming",
+  "base": "https://cardboyz.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Card Boyz",
+  "base": "https://www.darkstonecomics.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Card Father TCG",
+  "base": "https://doubleinfinitygaming.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Cardboard and Die",
+  "base": "https://www.epictradingcollectibles.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Double Infinity Gaming",
+  "base": "https://gachaboba.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Fabricator's Forge",
+  "base": "https://gamersguildaz.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Gacha Boba",
+  "base": "https://greendoorcollectibles.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Green Door Collectibles",
+  "base": "https://joshscards.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Many Realms",
+  "base": "https://papajoeys.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Mystery MTG",
+  "base": "https://pcatoys.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Retro Gaming of Denver",
+  "base": "https://retrogamingofdenver.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Super Anime Store",
+  "base": "https://www.hauntedgamecafe.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Sweets and Geeks",
+  "base": "https://thelostzonellc.myshopify.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "The Gaming Guild",
+  "base": "https://tier1games.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Aloha Card Shop",
+  "base": "https://blackswampgames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "ATOMILI COLLECTABLES",
+  "base": "https://boardwipe.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Cape Fear Collectibles",
+  "base": "https://columbuscardshop.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Columbus Card Shop",
+  "base": "https://deep-dive-games.myshopify.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Constellation Collective",
+  "base": "https://www.pullbighits.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Dragon Egg Games",
+  "base": "https://www.epikcg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Fabricator's Forge",
+  "base": "https://gamegridif.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "FIVE6 Gaming",
+  "base": "https://gamecraftgamestore.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Galactic Gamez",
+  "base": "https://gamelandia.fun",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Gamers Grove",
+  "base": "https://gamersgrove.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "GG Legends",
+  "base": "https://store.gglehi.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Knight and Day Games",
+  "base": "https://magicandmonsters.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Littleroot Games",
+  "base": "https://mightymeeple.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Magic and Monsters",
+  "base": "https://store.mothershipatx.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Many Realms",
+  "base": "https://nolatcg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Nutmeg Games",
+  "base": "https://pegasus-games-wi.myshopify.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "On-Board Gaming",
+  "base": "https://pfcomics.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Pegasus Games WI",
+  "base": "https://progressccg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "PunkOuter Games",
+  "base": "https://solacido.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Retro Gaming of Denver",
+  "base": "https://singles.stompinggroundstcg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Smoke and Mirrors Hobby",
+  "base": "https://us.storedevastation.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Stomping Grounds TCG",
+  "base": "https://www.tabletopgamingcenter.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "The Haven Games",
+  "base": "https://unsettledgeeks.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Tier 1 Games",
+  "base": "https://waywardcitygames.net",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Triad Group",
+  "base": "https://pro.wildthingsgames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Trove of Collectibles",
+  "base": "https://wnygaming.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Wulf Gaming",
+  "base": "https://wulfgaming.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Atomili Collectables",
+  "base": "https://bunkscardcorner.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Constellation Collective",
+  "base": "https://dragonsdenshop.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Hobby Addicts",
+  "base": "https://keyitemscollect.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Wild Things Games",
+  "base": "https://quicktcg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Red Fox Gaming",
+  "base": "https://cardbot.co.nz",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Retro Gaming of Denver",
+  "base": "https://collectors-space.shop",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "1st Capital Gaming",
+  "base": "https://1stcapitalgaming.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "1st Capital Gaming",
+  "base": "https://alphaomegahobby.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Accidentally Cool Games",
+  "base": "https://animeislandca.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "AllPokeTCG",
+  "base": "https://artemistavern.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Anime Imports LLC",
+  "base": "https://atlasgames.store",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Anime Island CA",
+  "base": "https://bamcards.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Black Wolf Collectibles",
+  "base": "https://blackwolfcollectibles.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "BAM Cards",
+  "base": "https://bluemistcollectibles.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Baxter's Game Store",
+  "base": "https://boardgamesdallas.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Black Wolf Collectibles LLC",
+  "base": "https://brainwashcards.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Blue Jay's Cauldron",
+  "base": "https://bricksandheroes.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Blue Mist",
+  "base": "https://bytheboardgames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Common Ground Games",
+  "base": "https://cardandcollectibleguys.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Brainwash Cards",
+  "base": "https://cardcooptcg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Bricks And Heroes",
+  "base": "https://cardgodshop.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Card and Collectible Guys",
+  "base": "https://cardnallgaming.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "The Card Coop",
+  "base": "https://cardpopusa.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Card God Shop",
+  "base": "https://cardsafari.us",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Card Monster Games",
+  "base": "https://cardshq.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "New Cut - Card N All Gaming",
+  "base": "https://cardsnmo.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Card Safari",
+  "base": "https://championcardcollector.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "CardsHQ",
+  "base": "https://championtcg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Cards N MO",
+  "base": "https://coffeecatcomics.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Cash Cards Unlimited",
+  "base": "https://collectorsemporium.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "ChampionTCG",
+  "base": "https://cosmicbham.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Coffee Cat Comics",
+  "base": "https://cosmicdestroyers.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Collectors Emporium NY",
+  "base": "https://darkholdgames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Cosmic Destroyer\u2019s Collectibles ",
+  "base": "https://diostreasures.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Darkhold Games",
+  "base": "https://dockingbay93.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Digital Heroes",
+  "base": "https://dvgtcg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Dino's Cards & Collectibles",
+  "base": "https://dxgamesllc.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Docking Bay 93",
+  "base": "https://expresstcg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Dark Vassal Gaming",
+  "base": "https://finalcuttcg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Dx Games & More",
+  "base": "https://shop.fourhorsemencomics.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Envy Card Store",
+  "base": "https://foxfablehaven.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "EXPRESS TCG",
+  "base": "https://funtimetoysandgifts.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "FinalCutTCG",
+  "base": "https://galactictoys.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Fox Fable Haven",
+  "base": "https://gamersngeeks.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Galactic Toys & Collectibles",
+  "base": "https://gamescape.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Gamers Paradise",
+  "base": "https://ginzamkt.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Gamescape",
+  "base": "https://gnomegames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Games King Store",
+  "base": "https://grailandgrade.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "GinzaTCG",
+  "base": "https://guubuu.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Gnome Games",
+  "base": "https://hastygoblingames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Grail and Grade",
+  "base": "https://heroesandgames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Gray Gauntlet Games",
+  "base": "https://holohorsegames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "GuuBuu Hobby",
+  "base": "https://hypercollectiblestcg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Hasty Goblin Games",
+  "base": "https://ihc.cards",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Heroes and Games",
+  "base": "https://immaculatetcg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Holo Horse Games LLC",
+  "base": "https://itstimecards.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Hyper Collectibles",
+  "base": "https://j2games.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "IHC Cards",
+  "base": "https://jawbreakers.cards",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Immaculate Trading Cards ",
+  "base": "https://jerseyscc.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "IT'S TIME! Sports Cards, TCG and eSports",
+  "base": "https://jnstoys.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "J2Games",
+  "base": "https://journeysendgames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "jawbreakers",
+  "base": "https://jwwcards.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Jersey's Cards & Comics",
+  "base": "https://keystonecardsandgames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Jnstoys",
+  "base": "https://keystonegames.net",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Journey\u2019s End Games",
+  "base": "https://kingstablegames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "JWW Sports Cards & Gaming",
+  "base": "https://kollectiblekings.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Keystone Cards and Games",
+  "base": "https://kryptonitekollectibles.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Keystone Games LLC",
+  "base": "https://lakehartwellcollectibles.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "King's Table Games",
+  "base": "https://lasportscards.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Kollectible Kings",
+  "base": "https://lazarus-games.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Kryptonite Kollectibles",
+  "base": "https://legendsfanshop.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Lake Hartwell Collectibles",
+  "base": "https://levelonegameshop.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "LA Sports Cards",
+  "base": "https://liquidgames.co",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Lazarus Games",
+  "base": "https://lspbstore.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "LegendsSportsGames",
+  "base": "https://magessanctum.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Level One Game Shop",
+  "base": "https://manathril.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "lspbstore",
+  "base": "https://metagames.toys",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Mage's Sanctum",
+  "base": "https://shop.millenniumgames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "MantisGamingStudios",
+  "base": "https://mintedtcg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "MetaGames.toys",
+  "base": "https://moxiecardshop.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Millennium Games",
+  "base": "https://mymintcards.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Mindgames and Magic",
+  "base": "https://mystictcg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Minted TCG",
+  "base": "https://mythic-hobbies.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Moxie Card Shop",
+  "base": "https://nexuslgs.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Mint Cards & Collectibles",
+  "base": "https://nxtlegacigaming.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Mystic TCG",
+  "base": "https://overthebrick.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Mythic Hobbies",
+  "base": "https://paragoncity.shop",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "NEXUS Games & Collectibles",
+  "base": "https://phantomich.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Over the Brick",
+  "base": "https://projectccg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Phantomich",
+  "base": "https://psychoturtlegames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Phat Catz Gaming",
+  "base": "https://realgoodeal.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "ProjectCCG",
+  "base": "https://redemptioncards.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "ProSoul Games",
+  "base": "https://retrofixgames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Psycho Turtle Collectibles",
+  "base": "https://revcollectibles.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Realgoodeal",
+  "base": "https://riftgate.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Redemption Cards",
+  "base": "https://robohunters.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Retrofix Games",
+  "base": "https://rocketcitytoys.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "R.E.V. Collectibles",
+  "base": "https://safari-zone.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Riftgate",
+  "base": "https://sagaconcepts.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Robo Hunters",
+  "base": "https://saltcitygames.shop",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Rocket City Toys",
+  "base": "https://scrubtiergaming.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Safari Zone Collectibles",
+  "base": "https://shallweplaygames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Salt City Games",
+  "base": "https://sleevedupcollectibles.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Scrub Tier Gaming",
+  "base": "https://spacecoast.games",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Shall We Play? The Games and More Store",
+  "base": "https://sparkstradingcards.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Skybox Collectibles",
+  "base": "https://spiedagames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Sleeved Up Collectibles",
+  "base": "https://stevensongames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Sparks Trading Cards",
+  "base": "https://theapollosvault.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Spieda Games",
+  "base": "https://thegamersden.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Stevenson Games",
+  "base": "https://thegamestore.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Swords and Spoons",
+  "base": "https://theperkcards.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Apollo's Vault",
+  "base": "https://theshopcollectibles.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "The Gamers Den MN",
+  "base": "https://thetoytemple.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "The Game Store",
+  "base": "https://timetravelersonline.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "The Perk",
+  "base": "https://tofustrading.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "The Shop Collectibles LLC",
+  "base": "https://tokenmtg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Toy Temple",
+  "base": "https://topcutcomics.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Time Travelers Online",
+  "base": "https://tradeshop.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Tofu's Trading",
+  "base": "https://treasuredcollectibles.shop",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Ultima Supply",
+  "base": "https://ultimasupply.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Top Cut Comics",
+  "base": "https://undiscoveredrealm.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Trade Shop",
+  "base": "https://unpluggedgamestore.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "TreasuredCollectibles",
+  "base": "https://untappedmarket.games",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Ultima Supply",
+  "base": "https://uppercrust.games",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Undiscovered Realm",
+  "base": "https://videogametrader.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Unplugged Gaming",
+  "base": "https://villainstcg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Untapped Market",
+  "base": "https://wildcardcyclone.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Upper Crust Games",
+  "base": "https://wilsontradingcardco.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Villains TCG",
+  "base": "https://zenithgg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "WildCardCyclone",
+  "base": "https://zenithtcg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Wilson Trading Card Co.",
+  "base": "https://zeroedingames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Card Cavern Trading Cards",
+  "base": "https://www.cardcaverntradingcards.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Burbank Sportscards",
+  "base": "https://cardxcards.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Eclipse Cards and Hobby",
+  "base": "https://forgottenpathgames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Epik Cards & Games",
+  "base": "https://frankscardshopnj.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Galactic Gamez",
+  "base": "https://guardian-games-llc.myshopify.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "The Trainer Court",
+  "base": "https://www.thetrainercourt.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "The Hub TCG",
+  "base": "https://tradingcardworld.store",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Board Wipe",
+  "base": "https://theclubhousecards.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Brick & Board Games and Cards",
+  "base": "https://collectionhousecafe.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Bunks Card Corner",
+  "base": "https://collectivecubed.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Cosmic Games",
+  "base": "https://www.finalformcards.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Darkstone Comics",
+  "base": "https://www.glamorousgamers.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Key Items Collectibles",
+  "base": "https://onendunncards.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "OneNDunn Cards",
+  "base": "https://www.spankyslootstash.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Papa Joey's Collectibles",
+  "base": "https://svsportscards.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Tabletop Gaming Center",
+  "base": "https://thenexusgnv.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "The Nexus Collector Market",
+  "base": "https://cardoni.com.au",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Lotus Games (Colchester)",
+  "base": "https://haikugaming.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Lotus Games (Colchester)",
+  "base": "https://evolutiontcg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Lotus Games (Colchester)",
+  "base": "https://secondhandsoldiers.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Lotus Games (Colchester)",
+  "base": "https://jjaspertcg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Haiku Gaming",
+  "base": "https://thecleverkobold.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Evolution Games",
+  "base": "https://darksidegames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Secondhand Soldiers",
+  "base": "https://littlespectacles.shop",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Jumping Jasper",
+  "base": "https://millersccct.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "The Clever Kobold",
+  "base": "https://theorcslair.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Darkside Games",
+  "base": "https://spellboundtx.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Little Spectacles",
+  "base": "https://feisgames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Miller's Comics, Cards, Collectibles",
+  "base": "https://metatcg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "The Orc's Lair",
+  "base": "https://gameandcompany.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Spellbound Cards & Games",
+  "base": "https://paradisehobbiesllc.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Fei's Games",
+  "base": "https://animalhousecards.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Meta TCG",
+  "base": "https://primalcards.net",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Game & Company",
+  "base": "https://showdownvaluecardsandgames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Paradise Hobbies",
+  "base": "https://divinegamez.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Animal House Cards",
+  "base": "https://cardquestlgs.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Primal Cards & Collectables",
+  "base": "https://ruston.ah.games",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Showdown Value Cards & Games",
+  "base": "https://collect-em.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Divine Gamez",
+  "base": "https://gamefellastcgandgames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Card Quest",
+  "base": "https://summitgames.gg",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "A&H Ruston",
+  "base": "https://sealedrelics.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Collect'eM Card & Hobby",
+  "base": "https://koboldskeep.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Gamefellas",
+  "base": "https://reddhill.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Super Heroes Comics Cards and Games",
+  "base": "https://vossmediastore.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Sealed Relics",
+  "base": "https://lotusgames.shop",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Kobold's Keep",
+  "base": "https://blackmanamarket.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Lotus Games (Kalispell)",
+  "base": "https://mightytoys.com.au",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Black Mana Market",
+  "base": "https://grandjgames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Misty Mountain Games",
+  "base": "https://www.mistymountaingames.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "OneStopTCG",
+  "base": "https://onestoptcg.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "To The Table Board Game Cafe",
+  "base": "https://tothetable.game",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "La Pine Tabletop Gaming",
+  "base": "https://lapinetabletopgaming.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "DK's Cards",
+  "base": "https://dkscards.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Aurora Sparks",
+  "base": "https://aurorasparks.myshopify.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Cardtopia Collectibles",
+  "base": "https://cardtopiacollectibles.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Decal Depo TF",
+  "base": "https://decaldepotf.myshopify.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "GG Hobby Card",
+  "base": "https://gghobbycard.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Hobby Card Shop",
+  "base": "https://hobbycardshop.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Jaro Cards",
+  "base": "https://jarocards.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Jeffthrowcards",
+  "base": "https://jeffthrowcards.myshopify.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Loose Packs Trading Co.",
+  "base": "https://loosepacks.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "MH Deals Plus",
+  "base": "https://mhdealsplus.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "JD Collectibles",
+  "base": "https://www.shopjdc.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Stonebrook Collectibles",
+  "base": "https://stonebrookcollectibles.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "PrCards",
+  "base": "https://storeprcards.myshopify.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "Sunny's Card Shop",
+  "base": "https://sunnyscardshop.myshopify.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "TCG Card Depot",
+  "base": "https://tcgcarddepot.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "TCG Hobby",
+  "base": "https://www.tcghobby.com",
+  "country": "US",
+  "market": "US"
+ },
+ {
+  "name": "TCGORA",
+  "base": "https://tcgora.com",
+  "country": "US",
+  "market": "US"
+ }
+]

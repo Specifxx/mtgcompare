@@ -1,0 +1,74 @@
+[
+ {
+  "name": "Animal Kingdoms",
+  "base": "https://animalkingdoms.co.nz",
+  "country": "NZ",
+  "market": "NZ"
+ },
+ {
+  "name": "Booster Games",
+  "base": "https://www.boostergames.co.nz",
+  "country": "NZ",
+  "market": "NZ"
+ },
+ {
+  "name": "Card Collective NZ",
+  "base": "https://cardcollective.co.nz",
+  "country": "NZ",
+  "market": "NZ"
+ },
+ {
+  "name": "Cardtopia NZ",
+  "base": "https://www.cardtopia.co.nz",
+  "country": "NZ",
+  "market": "NZ"
+ },
+ {
+  "name": "Im Your Wardrobe",
+  "base": "https://imyourwardrobe.com",
+  "country": "NZ",
+  "market": "NZ"
+ },
+ {
+  "name": "OCARE",
+  "base": "https://ocare.co.nz",
+  "country": "NZ",
+  "market": "NZ"
+ },
+ {
+  "name": "Poke Stash",
+  "base": "https://pokestash.co.nz",
+  "country": "NZ",
+  "market": "NZ"
+ },
+ {
+  "name": "Pop Stop",
+  "base": "https://popstop.co.nz",
+  "country": "NZ",
+  "market": "NZ"
+ },
+ {
+  "name": "PROSPER Boutique",
+  "base": "https://prospernz.com",
+  "country": "NZ",
+  "market": "NZ"
+ },
+ {
+  "name": "The Game Tree NZ",
+  "base": "https://thegametree.co.nz",
+  "country": "NZ",
+  "market": "NZ"
+ },
+ {
+  "name": "Toy Time",
+  "base": "https://toytime.co.nz",
+  "country": "NZ",
+  "market": "NZ"
+ },
+ {
+  "name": "WP Games",
+  "base": "https://wpgames.co.nz",
+  "country": "NZ",
+  "market": "NZ"
+ }
+]

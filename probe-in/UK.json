@@ -1,0 +1,536 @@
+[
+ {
+  "name": "Archeron Games",
+  "base": "https://www.comicsandbeyond.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Bulwark Games",
+  "base": "https://shop.forbiddenplanet.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Collector Clash",
+  "base": "https://www.goblingaming.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "comicsandbeyond",
+  "base": "https://gundamlab.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Eterna Cards",
+  "base": "https://hodgestradingcards.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Goblin Gaming",
+  "base": "https://www.jetcards.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "GundamLAB",
+  "base": "https://livingrealms.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Lvl Up Gaming UK",
+  "base": "https://lvlupgaming.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "JET Cards",
+  "base": "https://www.pucapucagames.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Living Realms",
+  "base": "https://redsuncollectables.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Spellbound Games",
+  "base": "https://spellboundgames.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Mox in the Hole",
+  "base": "https://www.stylecreep.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Puca Puca Games",
+  "base": "https://thetcggroup.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Red Sun Collectables",
+  "base": "https://www.thirstymeeples.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "The TCG Group",
+  "base": "https://ultrararecards.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Thirsty Meeples",
+  "base": "https://allaccesscardshop.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Thistle Tavern",
+  "base": "https://atlantis-comics.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Total Cards",
+  "base": "https://atomilicollectables.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Ultra Rare Cards",
+  "base": "https://singles.bardsandcards.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Axion Now",
+  "base": "https://cardrush.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Boards & Swords",
+  "base": "https://cardxchange.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Collect by Design",
+  "base": "https://www.collectbydesign.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Collecteebles",
+  "base": "https://collecteebles.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "CardRush",
+  "base": "https://www.cosmiccollectables.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "CardXchange",
+  "base": "https://www.diceanddestiny.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Dice Saloon Singles",
+  "base": "https://www.etoysworld.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Evolution Trading Cards",
+  "base": "https://evolutiontradingcards.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Eterna Cards",
+  "base": "https://hiddengemcards.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Hidden Gem Trading Cards",
+  "base": "https://jgc-collectables.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Living Realms",
+  "base": "https://www.shopmysterytavern.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Puca Puca Games",
+  "base": "https://thegrumpygoblin.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "The TCG Group",
+  "base": "https://www.trainerlegacy.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Thirsty Meeples",
+  "base": "https://unioncountygames.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Yard's Games",
+  "base": "https://yardsgames.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Trainer Legacy",
+  "base": "https://ajtradingbros.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Lvl Up Gaming UK",
+  "base": "https://rollnplay.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "1 More Go Gaming",
+  "base": "https://1moregogaming.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "1 More Go Gaming",
+  "base": "https://battlegroundgaming.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Accent Gaming",
+  "base": "https://cgc-emporium.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Athena Games Ltd",
+  "base": "https://chesterlegeek.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Chester Le Geek",
+  "base": "https://crypticcabin.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "TGC Collectables",
+  "base": "https://diceanddumplings.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Collectors Kingdom",
+  "base": "https://entoyment.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Cryptic Cabin",
+  "base": "https://fanboy3.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Dice and Dumplings",
+  "base": "https://galleongames.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Elemental Cards",
+  "base": "https://game-hq.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Entoyment Wargaming and Hobby Centre",
+  "base": "https://gatheringgames.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Fan Boy Three",
+  "base": "https://grimdice.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Galleon Games",
+  "base": "https://harlequinsgames.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Gathering Games",
+  "base": "https://incomgaming.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Mega Cards",
+  "base": "https://megacards.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Incom Gaming",
+  "base": "https://nortontcg.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Kuma Cards",
+  "base": "https://onyxdawngames.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Mega Cards",
+  "base": "https://pendulumgaming.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "PokePhD",
+  "base": "https://pokephd.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "TCG Group",
+  "base": "https://retrogamerbros.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Onyx Dawn Games",
+  "base": "https://sccg.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Sports Cards Direct",
+  "base": "https://www.sportscardsdirect.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Sin City Comics & Gaming",
+  "base": "https://theboardgamehut.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "The Gaming Vault",
+  "base": "https://thegamingvault.net",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "The Board Game Hut",
+  "base": "https://tokyotoys.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "The Card Vault",
+  "base": "https://ultimatetcg.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "The Gaming Vault",
+  "base": "https://viridianvault.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Ultimate TCG Limited",
+  "base": "https://4horsemencomics.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "CardXchange",
+  "base": "https://gatheringpointgames.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "JET Cards",
+  "base": "https://onepiecesingles.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Stylecreep",
+  "base": "https://www.boardgamebliss.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Collect by Design",
+  "base": "https://tengentreasures.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Mystery Tavern",
+  "base": "https://www.unioncountygames.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "After Market",
+  "base": "https://aftermkt.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Buy Any Cards",
+  "base": "https://buyanycards.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Card & Ink",
+  "base": "https://www.cardandink.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Crack The Pack",
+  "base": "https://crackthepack.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Dungeons and Joypads",
+  "base": "https://dungeonsandjoypads.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "EVO Cards",
+  "base": "https://www.evocards.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Go Cards UK",
+  "base": "https://gocardsuk.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Go Get Collectables",
+  "base": "https://gogetcollectables.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "HOC TCG (Hauss of Cards)",
+  "base": "https://hoctcg.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Hokey Poke Games",
+  "base": "https://hokeypokegames.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Jarvvos",
+  "base": "https://www.jarvvos.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Koolthings",
+  "base": "https://www.koolthings.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Meeples Corner",
+  "base": "https://meeplescorner.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "PokeStadium Cards",
+  "base": "https://pokestadiumcards.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Pokevend",
+  "base": "https://pokevend.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Rare Pok\u00e9mon Cards UK",
+  "base": "https://rarepokemoncards.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Terrors TCG",
+  "base": "https://www.terrorstcg.com",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "The Card Club UK",
+  "base": "https://thecardclubuk.shop",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Trainer's Haven",
+  "base": "https://trainershaven.co.uk",
+  "country": "GB",
+  "market": "UK"
+ },
+ {
+  "name": "Zatu Games",
+  "base": "https://www.board-game.co.uk",
+  "country": "GB",
+  "market": "UK"
+ }
+]
