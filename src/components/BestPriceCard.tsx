@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ebayRetailerForHref, REL_SPONSORED, type Placement } from "@/lib/affiliate";
+import { ebayRetailerForHref, ebaySearchUrl, REL_SPONSORED, type Placement } from "@/lib/affiliate";
 import { shipLabel } from "@/lib/ebay-context";
 import type { PriceFloor } from "@/lib/ebay-offer-row";
 import { medianSaving, money, msrpBadge, pctOf, plural, timeAgo, type MsrpBadge } from "@/lib/format";
@@ -64,7 +64,7 @@ export interface BestPriceCardProps {
   openCount: number;
   highestOpenCents: number;
   /** The product's eBay listing, in the stores' currency only (not NZ or SG), never for a pre-order. Null = the stores' card only. */
-  ebay: { slug: string; floor: PriceFloor | null; packs: number | null } | null;
+  ebay: { slug: string; floor: PriceFloor | null; packs: number | null; query?: string } | null;
   /** The best price + cheapest measured shipping (the price table's "Price + shipping" ranking, lib/shipping-rank.ts): shown when the
    *  visitor picks that ranking. Null when no in-stock store has measured shipping. */
   total?: { store: BestStore; shipCents: number; shipText: string; shipTitle: string } | null;
@@ -128,6 +128,12 @@ function WithEbay(props: BestPriceCardProps & { ebay: NonNullable<BestPriceCardP
   const { region, ebay, store } = props;
   const { ref, item, cents, bestable, age } = useEbayPick({ region, slug: ebay.slug, floor: ebay.floor, packs: ebay.packs, placement });
   const cheaper = bestable && item != null && cents != null && cents < store.cents;
+  // eBay gets one more line under the headline (the owner, 2026-10-28: "promote eBay more"). When a store is the best price, the
+  // listing's REAL price ("Also on eBay"); with no listing, or when the listing is already the headline, a labelled search. Never an
+  // estimate, never presented as the best. Always one line once the server sent one, so nothing moves when the listing arrives.
+  const search: EbayAlt | null = ebay.query ? { kind: "search", href: ebaySearchUrl(ebay.query, region, "best-price-ebay-search") } : null;
+  const alt: EbayAlt | null =
+    !cheaper && bestable && item != null && cents != null && search ? { kind: "listing", href: item.href, cents, title: item.title } : search;
   return (
     <div ref={ref} className="grid grid-cols-[minmax(0,1fr)]">
       <div className={`col-start-1 row-start-1 ${cheaper ? "invisible" : ""}`} aria-hidden={cheaper || undefined}>
@@ -143,6 +149,38 @@ function WithEbay(props: BestPriceCardProps & { ebay: NonNullable<BestPriceCardP
           ship={cheaper ? shipLabel(item.ship).text : ""}
         />
       </div>
+      {/* one nowrap line in its own row: the server's search and the listing that replaces it are the same height (nothing moves) */}
+      {alt && <EbayAltLine alt={alt} market={props.market} region={region} />}
+    </div>
+  );
+}
+
+export type EbayAlt = { kind: "listing"; href: string; cents: number; title: string } | { kind: "search"; href: string };
+
+/** "Also on eBay: A$X  View ↗" (the listing's own price, no comparison computed from it: eBay's terms 8.1(d)) under a store's best price, or "Compare listings on eBay". Labelled Ad; the link is eBay's, tagged. */
+export function EbayAltLine({ alt, market, region }: { alt: EbayAlt; market: string; region: Region }) {
+  return (
+    <div className="col-start-1 mt-3 min-w-0" data-ebay-alt={alt.kind}>
+      <OutboundLink
+        href={alt.href}
+        rel={REL_SPONSORED}
+        retailer={ebayRetailerForHref(alt.href, region)}
+        placement={alt.kind === "listing" ? "listings-best-price-alt" : "best-price-ebay-search"}
+        className="flex min-w-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-line px-3 py-2 text-sm hover:bg-raised"
+      >
+        <EbayMark className="shrink-0 text-base" />
+        <span className="ad-pill shrink-0">Ad</span>
+        {alt.kind === "listing" ? (
+          <span className="min-w-0 truncate text-muted" title={alt.title}>
+            Also on eBay: <span className="tabular font-semibold text-ink">{money(alt.cents, market)}</span>
+          </span>
+        ) : (
+          <span className="min-w-0 truncate text-muted">Compare listings on eBay</span>
+        )}
+        <span className="ml-auto shrink-0 font-semibold text-[#3665f3] dark:text-[#7c9cff]">
+          {alt.kind === "listing" ? "View" : "Search"} <span aria-hidden="true">↗</span>
+        </span>
+      </OutboundLink>
     </div>
   );
 }

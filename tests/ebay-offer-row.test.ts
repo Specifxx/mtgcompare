@@ -227,7 +227,7 @@ test("the best-price card's server HTML is the store's: eBay's top only an invis
 
 test("the product page gives the best-price card the same eBay pick as the table (same floor and pack count), and none where prices are not comparable", () => {
   const product = readFileSync(new URL("../src/app/[region]/p/[slug]/page.tsx", import.meta.url), "utf8");
-  assert.match(product, /<BestPriceCard[\s\S]*ebay=\{ebayBest \? \{ slug: p\.slug, floor: ebayFloor, packs: rowPacks\(type\?\.key, packs\) \} : null\}/);
+  assert.match(product, /<BestPriceCard[\s\S]*ebay=\{ebayBest \? \{ slug: p\.slug, floor: ebayFloor, packs: rowPacks\(type\?\.key, packs\), query: ebayQ \} : null\}/);
   assert.match(product, /const ebayComparable = marketplaceOf\(r\.region\)\.currency === r\.currency;/);
   assert.match(product, /const ebayBest = ebayComparable && !pre;/, "never on a pre-order");
   assert.match(product, /pinned=\{\{ productName: p\.name, tcgplayer \}\}/, "TCGplayer pinned under eBay in the table");
