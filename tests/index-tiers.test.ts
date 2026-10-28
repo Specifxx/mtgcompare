@@ -98,8 +98,9 @@ test("the region switcher follows links to pages every region has, nofollow to t
   assert.equal(regionSwitchFollow("/au/p/some-box", "au"), false);
   assert.equal(regionSwitchFollow("/au/sets/pitch-black", "au"), false);
   assert.equal(regionSwitchFollow("/about", null), true, "no region: the links go to region homes");
-  assert.match(src("components/RegionSwitcher.tsx"), /rel=\{r\.region !== region && !regionSwitchFollow\(pathname, region\) \? "nofollow" : undefined\}/);
-  assert.match(src("components/MobileMenu.tsx"), /rel=\{!on && !regionSwitchFollow\(pathname, region\) \? "nofollow" : undefined\}/);
+  // A soft page (no region of its own, showing the visitor's) judges its links as a page with no region.
+  assert.match(src("components/RegionSwitcher.tsx"), /rel=\{r\.region !== region && !regionSwitchFollow\(pathname, soft \? null : region\) \? "nofollow" : undefined\}/);
+  assert.match(src("components/MobileMenu.tsx"), /const from = soft \? null : region;[\s\S]*rel=\{!on && !regionSwitchFollow\(pathname, from\) \? "nofollow" : undefined\}/);
 });
 
 const base: FaqInput = {

@@ -4,11 +4,13 @@ import Link from "@/components/Link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
+import { retargetGroups, type NavGroup } from "@/lib/nav";
 import { REGION_LIST, REGIONS, type Region } from "@/lib/regions";
-import { sectionHref, type SectionKey } from "@/lib/site";
+import type { SectionKey } from "@/lib/site";
 import { Icon, type IconName } from "./Icon";
 import { LogoMark } from "./Logo";
 import { isActivePath } from "./NavLink";
+import { pickRegion, useSoftRegion } from "./RegionSuggest";
 import { regionSwitchFollow, regionSwitchHref } from "./RegionSwitcher";
 
 // The menu's own few shapes, drawn like Icon.tsx's (24×24, 2px round strokes, currentColor) for the rows Icon has no shape for.
@@ -71,7 +73,7 @@ export function Glyph({ name }: { name: IconName | GlyphName }) {
   );
 }
 
-/** The phone menu's rows, in order (all under /<region>). */
+/** The site's main sections with their glyphs, in order (all under /<region>): the 404's "Where to next" tiles. */
 export const MENU_ROWS: { key: SectionKey; label: string; glyph: IconName | GlyphName }[] = [
   { key: "deals", label: "Deals", glyph: "tag" },
   { key: "blackFriday", label: "Black Friday", glyph: "tag" },
@@ -95,9 +97,12 @@ export const MENU_ROWS: { key: SectionKey; label: string; glyph: IconName | Glyp
  * The menu button and its sheet: a native modal <dialog> (showModal: the page behind is inert, focus stays inside, Escape closes
  * it, and focus returns to the button), drawn as a full-width sheet from the top of the screen. It closes on any link (the
  * pathname effect catches back/forward too). The sheet's contents are rendered on the first open, not in the server's HTML:
- * every link in it is in the footer already, and leaving it out keeps about 14 KB of markup off every page.
+ * every link in it is in the footer or the header already, and leaving it out keeps the markup off every page.
+ *
+ * `groups`: lib/nav.ts navGroups, built on the server for `built` (the page's region, or the default on a page with none, where
+ * the sheet follows the visitor's region instead: RegionSuggest.tsx useSoftRegion, asked only once the menu opens).
  */
-export function MobileMenu({ region, className = "" }: { region: Region | null; className?: string }) {
+export function MobileMenu({ region, groups, built, className = "" }: { region: Region | null; groups: NavGroup[]; built: Region; className?: string }) {
   const ref = useRef<HTMLDialogElement>(null);
   const pathname = usePathname() || "/";
   const [open, setOpen] = useState(false);
@@ -136,30 +141,49 @@ export function MobileMenu({ region, className = "" }: { region: Region | null; 
         onClick={(e) => e.target === ref.current && close()}
         className="menu-sheet fixed inset-x-0 bottom-auto top-0 m-0 h-auto max-h-[100dvh] w-full max-w-none overflow-y-auto overscroll-contain rounded-b-2xl border-0 bg-surface p-0 text-ink shadow-lift"
       >
-        {ready && <MenuSheet region={region} pathname={pathname} onClose={close} />}
+        {ready &&
+          (region ? (
+            <MenuSheet region={region} groups={groups} pathname={pathname} onClose={close} />
+          ) : (
+            <SoftMenuSheet groups={groups} built={built} pathname={pathname} onClose={close} />
+          ))}
       </dialog>
     </>
   );
 }
 
+/** The sheet on a page with no region of its own: the visitor's region's links, and a region tile switches the page in place. */
+function SoftMenuSheet({ groups, built, pathname, onClose }: { groups: NavGroup[]; built: Region; pathname: string; onClose: () => void }) {
+  const region = useSoftRegion();
+  return <MenuSheet region={region} groups={region === built ? groups : retargetGroups(groups, region)} pathname={pathname} onClose={onClose} soft />;
+}
+
 /**
- * The sheet: on a region page, the sections, then the seven regions (the same page in each); on a page with no region, the regions
- * first, as the thing to choose. Then About and Contact.
+ * The sheet: everything the site has, grouped as the desktop sidebar is (lib/nav.ts: product types, sets, deals and stock, the rest),
+ * then the seven regions (the same page in each; on a `soft` page, a pick that switches the page in place), then About and Contact.
  */
-export function MenuSheet({ region, pathname, onClose: close }: { region: Region | null; pathname: string; onClose: () => void }) {
-  const current = region ? REGIONS[region] : null;
+export function MenuSheet({
+  region,
+  groups,
+  pathname,
+  onClose: close,
+  soft = false,
+}: {
+  region: Region;
+  groups: NavGroup[];
+  pathname: string;
+  onClose: () => void;
+  soft?: boolean;
+}) {
+  const current = REGIONS[region];
+  // On a soft page the region tiles are judged as on a page with no region: each goes to its home.
+  const from = soft ? null : region;
   return (
     <div className="page pb-5">
       <div className="flex h-[var(--hdr)] items-center gap-3 border-b border-line">
         <LogoMark className="h-8 w-8 shrink-0" />
         <span className="min-w-0 flex-1 truncate font-display text-lg font-bold tracking-tight">
-          {current ? (
-            <>
-              <span aria-hidden="true">{current.flag}</span> MTG Compare {current.name}
-            </>
-          ) : (
-            "MTG Compare"
-          )}
+          <span aria-hidden="true">{current.flag}</span> MTG Compare {current.name}
         </span>
         <button
           type="button"
@@ -171,80 +195,58 @@ export function MenuSheet({ region, pathname, onClose: close }: { region: Region
         </button>
       </div>
 
-      {current && (
-        <nav aria-label="Sections" className="mt-3">
-          <ul className="grid gap-0.5 sm:grid-cols-2 sm:gap-x-4">
-            {MENU_ROWS.map((row) => {
-              const href = sectionHref(current.region, row.key);
-              const active = isActivePath(pathname, href);
-              return (
-                <li key={row.key}>
-                  <Link
-                    href={href}
-                    prefetch={false}
-                    onClick={close}
-                    aria-current={active ? "page" : undefined}
-                    className={`group flex min-h-11 items-center gap-3 rounded-xl px-2 text-[15px] font-medium transition-colors hover:bg-raised ${active ? "bg-raised" : ""}`}
-                  >
-                    <span
-                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${active ? "bg-brand-soft text-brand-strong" : "bg-raised text-muted group-hover:text-ink"}`}
+      <nav aria-label="Sections" className="mt-1">
+        {groups.map((g) => (
+          <section key={g.title} className="border-b border-line py-3">
+            <h2 className="eyebrow mb-1.5 px-2">{g.title}</h2>
+            <ul className="grid grid-cols-2 gap-x-2 sm:grid-cols-3">
+              {g.links.map((l) => {
+                const active = isActivePath(pathname, l.href);
+                return (
+                  <li key={l.href}>
+                    <Link
+                      href={l.href}
+                      prefetch={false}
+                      onClick={close}
+                      aria-current={active ? "page" : undefined}
+                      className={`flex min-h-11 items-center rounded-xl px-2 py-1.5 text-[15px] font-medium leading-5 transition-colors hover:bg-raised ${active ? "bg-raised text-brand-strong" : ""}`}
                     >
-                      <Glyph name={row.glyph} />
-                    </span>
-                    <span className="flex-1">{row.label}</span>
-                    <Icon name="arrow-right" size={16} className="text-faint" />
-                  </Link>
-                </li>
-              );
-            })}
-            <li>
-              <Link
-                href="/blog"
-                prefetch={false}
-                onClick={close}
-                aria-current={isActivePath(pathname, "/blog") ? "page" : undefined}
-                className="group flex min-h-11 items-center gap-3 rounded-xl px-2 text-[15px] font-medium transition-colors hover:bg-raised"
-              >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-raised text-muted group-hover:text-ink">
-                  <Glyph name="book" />
-                </span>
-                <span className="flex-1">Blog</span>
-                <Icon name="arrow-right" size={16} className="text-faint" />
-              </Link>
-            </li>
-          </ul>
-        </nav>
-      )}
+                      {l.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ))}
+      </nav>
 
-      <div className={current ? "mt-5 border-t border-line pt-4" : "mt-4"}>
-        <h2 className="eyebrow mb-2.5">{current ? "Region" : "Choose your region"}</h2>
-        <ul className={`grid gap-2 ${current ? "grid-cols-4 sm:grid-cols-7" : "grid-cols-2 sm:grid-cols-4"}`}>
+      <div className="mt-4">
+        <h2 className="eyebrow mb-2.5 px-2">Region</h2>
+        <ul className="grid grid-cols-4 gap-2 sm:grid-cols-7">
           {REGION_LIST.map((r) => {
             const on = r.region === region;
             return (
               <li key={r.region}>
                 <Link
-                  href={regionSwitchHref(pathname, r.region, region)}
+                  href={regionSwitchHref(pathname, r.region, from)}
                   prefetch={false}
-                  rel={!on && !regionSwitchFollow(pathname, region) ? "nofollow" : undefined}
-                  onClick={close}
+                  rel={!on && !regionSwitchFollow(pathname, from) ? "nofollow" : undefined}
+                  onClick={(e) => {
+                    if (soft && !(e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0)) {
+                      e.preventDefault();
+                      pickRegion(r.region);
+                    }
+                    close();
+                  }}
                   aria-current={on ? "true" : undefined}
-                  aria-label={current ? `${r.name} (${r.currency})` : undefined}
-                  className={`flex min-h-14 items-center rounded-xl border transition-colors ${
-                    current ? "flex-col justify-center gap-0.5 py-1.5" : "gap-2.5 px-3 py-2"
-                  } ${on ? "border-ink bg-raised" : "border-line hover:border-ink/30"}`}
+                  aria-label={`${r.name} (${r.currency})`}
+                  className={`flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl border py-1.5 transition-colors ${on ? "border-ink bg-raised" : "border-line hover:border-ink/30"}`}
                 >
                   <span className="text-2xl leading-none" aria-hidden="true">
                     {r.flag}
                   </span>
-                  {current ? (
-                    <span className="text-xs font-semibold text-muted">{r.short}</span>
-                  ) : (
-                    <span className="min-w-0">
-                      <span className="block text-sm font-semibold leading-tight">{r.name}</span>
-                      <span className="block text-xs text-muted">{r.currency}</span>
-                    </span>
-                  )}
+                  <span className="text-xs font-semibold text-muted">{r.short}</span>
                 </Link>
               </li>
             );
@@ -252,7 +254,7 @@ export function MenuSheet({ region, pathname, onClose: close }: { region: Region
         </ul>
       </div>
 
-      <p className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm">
+      <p className="mt-4 flex flex-wrap gap-x-5 gap-y-1 px-2 text-sm">
         <Link href="/about" prefetch={false} onClick={close} className="inline-flex min-h-10 items-center text-muted hover:text-ink">
           About &amp; how it works
         </Link>

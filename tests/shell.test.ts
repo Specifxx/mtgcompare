@@ -18,6 +18,8 @@ import { Breadcrumbs, parentCrumb } from "../src/components/Breadcrumbs";
 import { Footer, footerColumns } from "../src/components/Footer";
 import { Header, HEADER_NAV } from "../src/components/Header";
 import { MENU_ROWS, MenuSheet } from "../src/components/MobileMenu";
+import { SideNav } from "../src/components/SideNav";
+import { navGroups, retargetGroups, retargetHref } from "../src/lib/nav";
 import { isActivePath } from "../src/components/NavLink";
 import { cardCompareLabel, cardStockLabel, ProductCard, shortTypeLabel } from "../src/components/ProductCard";
 import { pathAfterRegion, regionSwitchHref } from "../src/components/RegionSwitcher";
@@ -111,8 +113,8 @@ test("Footer with no region: Regions and MTG Compare columns only, and no region
 });
 
 test("the footer is drawn by each layout after its <main> (and by the 404 and error pages), not by the root layout", () => {
-  assert.match(src("app/[region]/layout.tsx"), /<\/main>\s*<Footer region=\{r\.region\} \/>/);
-  assert.match(src("app/(site)/layout.tsx"), /<\/main>\s*<Footer region=\{null\} \/>/);
+  assert.match(src("app/[region]/layout.tsx"), /<\/main>\s*<\/div>\s*<Footer region=\{r\.region\} \/>/);
+  assert.match(src("app/(site)/layout.tsx"), /<\/main>\s*<\/div>\s*<Footer region=\{null\} \/>/);
   assert.match(src("app/not-found.tsx"), /<\/main>\s*<Footer region=\{null\} \/>/);
   assert.match(src("app/error.tsx"), /<\/main>\s*<Footer region=\{region\?\.region \?\? null\} \/>/);
   assert.doesNotMatch(src("app/layout.tsx"), /<Footer|components\/Footer/);
@@ -157,12 +159,36 @@ test("Header nav (lg and up): Deals · All sealed · Sets · Releases · Guides 
   assert.match(nav, /data-ad="header"/, "eBay's labelled link stays (xl)");
 });
 
-test("Header with no region: logo, 'Choose region' and the menu; no search, no section nav", () => {
+test("Header with no region: the whole header, built for the default region (the browser moves it to the visitor's)", () => {
   const html = render(React.createElement(Header, { region: null }));
-  assert.match(html, /Choose region/);
+  assert.match(html, /role="search"/, "search from the first page");
+  const nav = /<nav class="hidden items-center gap-0\.5 lg:flex" aria-label="Main">([\s\S]*?)<\/nav>/.exec(html)?.[1] ?? "";
+  for (const h of ["/us/deals", "/us/sealed", "/us/sets", "/us/releases", "/us/guides", "/us/stores", "/blog"]) assert.match(nav, new RegExp(`href="${h}"`), h);
+  assert.doesNotMatch(nav, /data-ad="header"/, "eBay's link is a region page's only");
   assert.match(html, /aria-label="Menu"/);
-  assert.doesNotMatch(html, /role="search"/);
-  assert.doesNotMatch(html, /aria-label="Main"/);
+  assert.match(html, /aria-label="Region: United States\. Change region"/);
+  assert.doesNotMatch(html, /Continue to|Choose your region/);
+});
+
+test("the sidebar (xl): product types, sets, deals and the rest, under each layout, every link a real region path", () => {
+  const groups = navGroups("au", "2026-10-28");
+  assert.deepEqual(groups.map((g) => g.title), ["Shop by product", "Sets", "Deals & stock", "More"]);
+  for (const l of groups.flatMap((g) => g.links)) assert.match(l.href, /^\/au\/|^\/blog$/, l.href);
+  assert.equal(groups[1].links[0].label, "Reality Fracture", "the newest released set first");
+  assert.equal(groups[1].links.at(-1)!.href, "/au/sets");
+  assert.ok(navGroups("us", "2026-11-25")[2].links.some((l) => l.label === "Black Friday"), "Black Friday in season");
+  assert.ok(!groups[2].links.some((l) => l.label === "Black Friday"));
+  const html = render(React.createElement(SideNav, { region: "au", groups }));
+  assert.match(html, /^<aside class="hidden w-60 shrink-0 xl:block" data-sidenav="">/);
+  assert.match(html, /href="\/au\/type\/commander-decks"/);
+  assert.match(src("app/[region]/layout.tsx"), /<SideNav region=\{r\.region\} groups=\{navGroups\(r\.region\)\} \/>/);
+  assert.match(src("app/(site)/layout.tsx"), /<SoftSideNav built=\{X_DEFAULT_REGION\} groups=\{navGroups\(X_DEFAULT_REGION\)\} \/>/);
+  // the same links in another region; a link outside a region stays put
+  assert.equal(retargetHref("/us/type/bundles", "nz"), "/nz/type/bundles");
+  assert.equal(retargetHref("/us", "nz"), "/nz");
+  assert.equal(retargetHref("/blog", "nz"), "/blog");
+  assert.equal(retargetHref("/usx/a", "nz"), "/usx/a");
+  assert.deepEqual(retargetGroups(navGroups("us", "2026-10-28"), "au"), groups);
 });
 
 test("NavLink's current-section logic (aria-current='page'): whole segments, and the paths a section also covers", () => {
@@ -178,18 +204,22 @@ test("NavLink's current-section logic (aria-current='page'): whole segments, and
   assert.equal(isActivePath("/au/sets", "/us/sets"), false);
 });
 
-test("the phone menu: the sixteen sections in order, under the region; the regions switch to the same page", () => {
-  assert.deepEqual(
-    MENU_ROWS.map((r) => r.label),
-    ["Deals", "Black Friday", "This week", "Back in stock", "Price moves", "Older sets in stock", "All sealed", "Play Booster Boxes", "Collector boxes", "Bundles", "Cheapest per pack", "Sets", "Releases", "Guides", "Tools", "Where to buy"],
-  );
+test("the phone menu: every group of the sidebar under the region, then the regions, which switch to the same page", () => {
+  assert.ok(MENU_ROWS.length >= 10, "the 404's tiles");
   // The sheet's contents render on the first open: the header's server HTML has the empty <dialog> only.
   assert.match(render(React.createElement(Header, { region: "ca" })), /<dialog id="site-menu" data-menu="" aria-label="Menu" class="menu-sheet [^"]*"><\/dialog>/);
-  const sheet = render(React.createElement(MenuSheet, { region: "ca", pathname: "/ca/stores", onClose() {} }));
+  const groups = navGroups("ca", "2026-10-28");
+  const sheet = render(React.createElement(MenuSheet, { region: "ca", groups, pathname: "/ca/stores", onClose() {} }));
   assert.match(sheet, /aria-current="page"[^>]*href="\/ca\/stores"|href="\/ca\/stores"[^>]*aria-current="page"/, "the current section is marked");
-  for (const p of ["/deals", "/black-friday", "/this-week", "/back-in-stock", "/price-moves", "/out-of-print", "/sealed", "/type/play-booster-boxes", "/type/collector-booster-boxes", "/type/bundles", "/cheapest-packs", "/sets", "/releases", "/guides", "/tools", "/stores"])
+  for (const t of ["Shop by product", "Sets", "Deals &amp; stock", "More"]) assert.match(sheet, new RegExp(`>${t}</h2>`), t);
+  for (const l of groups.flatMap((g) => g.links)) assert.ok(hrefs(sheet).includes(l.href), l.href);
+  for (const p of ["/deals", "/this-week", "/back-in-stock", "/price-moves", "/out-of-print", "/sealed", "/type/play-booster-boxes", "/type/collector-booster-boxes", "/type/bundles", "/type/commander-decks", "/cheapest-packs", "/sets", "/releases", "/guides", "/tools", "/stores"])
     assert.ok(hrefs(sheet).includes(`/ca${p}`), p);
   assert.equal(sheet.match(/class="text-2xl leading-none" aria-hidden="true">/g)?.length, 7, "seven flag tiles");
+  assert.ok(hrefs(sheet).includes("/uk/stores"), "a region tile goes to the same page there");
+  // a soft sheet (a page with no region): every tile to the region's home
+  const soft = render(React.createElement(MenuSheet, { region: "au", groups: navGroups("au", "2026-10-28"), pathname: "/about", onClose() {}, soft: true }));
+  for (const r of REGION_LIST) assert.ok(hrefs(soft).includes(`/${r.region}`), r.region);
   assert.equal(pathAfterRegion("/au/sets/bloomburrow"), "/sets/bloomburrow");
   assert.equal(regionSwitchHref("/au/sets/bloomburrow", "uk", "au"), "/uk/sets/bloomburrow");
   assert.equal(regionSwitchHref("/about", "uk", null), "/uk", "a page with no region goes to the region's home, not /uk/about");
@@ -231,8 +261,9 @@ test("landing page: static and short: hero, one fair paragraph, the region's fiv
   assert.doesNotMatch(page, /prisma|@\/lib\/db|@\/lib\/data"/, "no database");
   assert.match(page, /text-4xl[^"]*sm:text-6xl/);
   assert.match(page, /MTG booster box, bundle &amp; Commander deck prices, <span className="text-brand">cheapest first\.<\/span>/);
-  assert.match(page, /<div className="mt-6 flex h-12 justify-center sm:mt-8">\s*<RegionSuggest formId="landing-search" \/>/);
+  // No "Continue to <region>" step (owner, 2026-10-28): the search, then the shortcuts in the visitor's region.
   assert.match(page, /<form\s+id="landing-search"\s+action=\{`\/\$\{X_DEFAULT_REGION\}\/sealed`\}\s+method="get"/);
+  assert.match(page, /<\/form>[\s\S]*<RegionSuggest formId="landing-search" links=\{HERO_LINKS\} \/>/);
   assert.match(page, /ranked by price and stock only[\s\S]*No store pays to be listed or to rank, and every affiliate link is marked\.[\s\S]*href="\/about"[\s\S]*How it works/);
   // The next set's "Coming soon" block between the hero and the region's five (2026-10-26); it carries the pre-order hub link, so the
   // hot buttons keep their Commander decks button.
@@ -241,10 +272,9 @@ test("landing page: static and short: hero, one fair paragraph, the region's fiv
   assert.doesNotMatch(page, /FAQPage|faqJsonLd|GuideCard|MarketReport|SuggestedTypeLinks|EbayStrip|AdSlot/);
   assert.equal((page.match(/<section/g) ?? []).length, 2, "the hero and the fair paragraph; the grid is its own section");
   const suggest = src("components/RegionSuggest.tsx");
-  assert.match(suggest, /Choose your region <span aria-hidden="true">↓<\/span>/);
-  assert.match(suggest, /href="#regions"/);
-  assert.match(src("components/HomeRegionGrid.tsx"), /<section id="regions"/, "the CTA's fallback jump lands on the region switcher");
-  assert.match(suggest, /setAttribute\("action", `\/\$\{region \?\? X_DEFAULT_REGION\}\/sealed`\)/);
+  assert.doesNotMatch(suggest, /> Continue to \{|Choose your region <span/);
+  assert.match(suggest, /setAttribute\("action", `\/\$\{region\}\/sealed`\)/);
+  assert.match(suggest, /retargetHref\(l\.href, region\)/);
   assert.match(suggest, /href=\{`\/\$\{to\}\/type\/\$\{t\.slug\}`\}/);
 });
 

@@ -385,6 +385,32 @@ on every site but RiftCompare. The eBay side already has its image strips
   TCGplayer Direct reached Australia on 2026-10-07 for singles only, so nothing
   claims sealed ships there.
 
+## Navigation from the first page: no region step, a sidebar, a full phone menu — 2026-10-28
+
+**Owner:** the "Continue to Australia" button before any navigation was a
+barrier; the wide desktop's left side was empty; the phone menu on the landing
+page listed only regions.
+
+* The pages with no region of their own (`/`, About, the blog, the legal pages,
+  404s) draw the whole header now: sections, the "All sealed" dropdown, search
+  and the region button. The server's HTML is built for the default region (the
+  US, one CDN copy, no cookie or header read); the browser moves every link to
+  the visitor's region (`useSoftRegion`: saved, language, time zone, then
+  `/api/geo`, as before). Never a redirect: `/` stays the x-default landing page
+  with its own canonical and hreflang.
+* A region picked on such a page (header, phone menu, the landing grid's chips)
+  switches the whole page in place (`pickRegion`) and is remembered; the links
+  still go to each region's home without script.
+* The hero's "Continue to <region>" button became five shortcuts (Play booster
+  boxes, Collector boxes, Commander decks, Bundles, Deals) in the visitor's
+  region.
+* From xl (1280px) a sticky sidebar (`components/SideNav.tsx`) lists every
+  product type, the eight newest sets, the deal pages and the rest
+  (`lib/nav.ts navGroups`); the shell widens to 1480px so the page keeps its
+  1200px. The phone menu draws the same groups, then the regions. Static links
+  only: no read, no page that doesn't exist. Region pages never run the
+  suggestion (it would cost a `/api/geo` call per view).
+
 ## Store audit: 165 stores added, 5 dead ones out — 2026-10-28
 
 **Owner:** check every site's store health and make sure the latest stores

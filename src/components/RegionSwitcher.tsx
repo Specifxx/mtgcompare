@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { REGION_LIST, isRegion, type Region } from "@/lib/regions";
 import { gaEvent } from "@/lib/gtag";
+import { pickRegion } from "./RegionSuggest";
 
 /** The path after the region segment: "/au/sets/pitch-black" → "/sets/pitch-black", "/au" → "", "/about" → "/about". */
 export function pathAfterRegion(pathname: string): string {
@@ -35,20 +36,22 @@ export function regionSwitchFollow(pathname: string, current: Region | null): bo
 //
 // `compact`: a flag-only, 44×44 button below lg (the phone header's one row has room for the logo mark, the search box, this and
 // the menu button), the flag-and-code chip from lg up. Without it, the chip at every width; with no region, "Choose region".
-export function RegionSwitcher({ region, compact = false }: { region: Region | null; compact?: boolean }) {
+// `soft`: a page with no region of its own showing the visitor's (HeaderNav.tsx SoftRegionSwitcher): a pick switches the page's
+// links in place (RegionSuggest.tsx pickRegion) instead of leaving it; the links still go to each region's home without script.
+export function RegionSwitcher({ region, compact = false, soft = false }: { region: Region | null; compact?: boolean; soft?: boolean }) {
   const pathname = usePathname() || "/";
   const ref = useRef<HTMLDetailsElement>(null);
   const current = region ? REGION_LIST.find((r) => r.region === region) : null;
 
   useEffect(() => {
-    if (region) {
+    if (region && !soft) {
       try {
         localStorage.setItem("mtg-region", region);
       } catch {
         /* storage blocked — fine */
       }
     }
-  }, [region]);
+  }, [region, soft]);
 
   useEffect(() => {
     const close = (e: MouseEvent) => {
@@ -93,12 +96,16 @@ export function RegionSwitcher({ region, compact = false }: { region: Region | n
           {REGION_LIST.map((r) => (
             <li key={r.region}>
               <Link
-                href={regionSwitchHref(pathname, r.region, region)}
+                href={regionSwitchHref(pathname, r.region, soft ? null : region)}
                 prefetch={false}
-                rel={r.region !== region && !regionSwitchFollow(pathname, region) ? "nofollow" : undefined}
+                rel={r.region !== region && !regionSwitchFollow(pathname, soft ? null : region) ? "nofollow" : undefined}
                 aria-current={r.region === region ? "true" : undefined}
-                onClick={() => {
-                  if (r.region !== region) gaEvent("region_select", { region: r.region, from: region ?? "none", placement: "header" });
+                onClick={(e) => {
+                  if (r.region !== region) gaEvent("region_select", { region: r.region, from: region ?? "none", placement: soft ? "header-soft" : "header" });
+                  if (soft && !(e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0)) {
+                    e.preventDefault();
+                    pickRegion(r.region);
+                  }
                   if (ref.current) ref.current.open = false;
                 }}
                 className={`flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-raised ${r.region === region ? "bg-raised font-semibold" : ""}`}
