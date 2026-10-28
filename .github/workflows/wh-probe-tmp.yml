@@ -1,0 +1,27 @@
+name: TEMP Warhammer store probe
+
+# Temporary (2026-10-28): research only. Probes Warhammer discount stores and MTG Compare's own stores for readable
+# product feeds and Warhammer stock, and commits the results to this branch. Never merged.
+
+on:
+  push:
+    branches: [claude/project-thread-q8nkuu]
+    paths: [whprobe/probe.py, whprobe/candidates.tsv, .github/workflows/wh-probe-tmp.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - run: mkdir -p whprobe/out && (python3 whprobe/probe.py candidates & python3 whprobe/probe.py ours & wait)
+      - run: |
+          git config user.name "mtgcompare-data[bot]"
+          git config user.email "mtgcompare-data@users.noreply.github.com"
+          git add whprobe/out
+          git commit -m "TEMP Warhammer probe results (run ${GITHUB_RUN_ID})"
+          for i in 1 2 3; do git pull --rebase -q origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME" && exit 0; sleep 5; done
+          exit 1
