@@ -17,6 +17,7 @@ import { MarketplaceSearch } from "./Marketplaces";
 import { pageHref, Pagination } from "./Pagination";
 import { ProductGrid } from "./ProductGrid";
 import { QueryEbayBox } from "./QueryEbayBox";
+import { FamilySearch } from "./FamilySearch";
 
 type Sort = "relevance" | "price-asc" | "price-desc" | "per-pack" | "saving" | "newest" | "stores";
 const SORTS: { value: Sort; label: string }[] = [
@@ -488,6 +489,8 @@ export function BrowseGrid({ rows, total, region, base, page = 1, strip }: { row
         ) : (
           <Pagination base={base} page={page} pages={pages} />
         )}
+        {/* The same words on the other card-game sites (2026-10-28). */}
+        {qOn && <FamilySearch q={q} className="mt-6" />}
       </div>
     </div>
   );
