@@ -1,362 +1,296 @@
 [
  {
-  "name": "GS-GameOn",
-  "base": "https://www.gs-gameon.com",
-  "country": "IT",
-  "market": "EU"
- },
- {
   "name": "BSA Carte Collezionabili",
   "base": "https://kaiofcards.com",
-  "country": "EU",
-  "market": "EU"
+  "market": "EU",
+  "country": "NL"
  },
  {
   "name": "Games Time Aversa",
   "base": "https://lms-handel.de",
-  "country": "EU",
-  "market": "EU"
+  "market": "EU",
+  "country": "DE"
  },
  {
   "name": "GS-GameOn",
   "base": "https://shopponistore.com",
-  "country": "EU",
-  "market": "EU"
- },
- {
-  "name": "lms-handel",
-  "base": "https://archerongames.com",
-  "country": "EU",
-  "market": "EU"
- },
- {
-  "name": "Timetwister Games",
-  "base": "https://bulwarkgames.co.uk",
-  "country": "EU",
-  "market": "EU"
+  "market": "EU",
+  "country": "IT"
  },
  {
   "name": "Battle Bear Saarbr\\\\u00fccken",
   "base": "https://duelspoint.it",
-  "country": "EU",
-  "market": "EU"
- },
- {
-  "name": "El Duelista",
-  "base": "https://www.elduelista.com",
-  "country": "ES",
-  "market": "EU"
+  "market": "EU",
+  "country": "IT"
  },
  {
   "name": "Duels Point - Trading Card Games",
   "base": "https://gamesavenue.fr",
-  "country": "EU",
-  "market": "EU"
+  "market": "EU",
+  "country": "FR"
+ },
+ {
+  "name": "El Duelista",
+  "base": "https://www.elduelista.com",
+  "market": "EU",
+  "country": "ES"
  },
  {
   "name": "Fire and Dice",
   "base": "https://www.hitechgames.it",
-  "country": "EU",
-  "market": "EU"
+  "market": "EU",
+  "country": "IT"
  },
  {
   "name": "Kai of Cards",
   "base": "https://rarecards.nl",
-  "country": "EU",
-  "market": "EU"
+  "market": "EU",
+  "country": "NL"
  },
  {
-  "name": "Lichcards",
-  "base": "https://recollectibles.de",
-  "country": "EU",
-  "market": "EU"
- },
- {
-  "name": "Nordic Legends",
-  "base": "https://spellnexus.com",
-  "country": "EU",
-  "market": "EU"
+  "name": "GS-GameOn",
+  "base": "https://www.gs-gameon.com",
+  "market": "EU",
+  "country": "IT"
  },
  {
   "name": "RareCards",
   "base": "https://tcgking.nl",
-  "country": "EU",
-  "market": "EU"
+  "market": "EU",
+  "country": "NL"
  },
  {
-  "name": "TCGKing.nl",
-  "base": "https://1collectiblestcg.com",
-  "country": "EU",
-  "market": "EU"
- },
- {
-  "name": "Trinket Mage",
-  "base": "https://www.goattcg.com",
-  "country": "EU",
-  "market": "EU"
- },
- {
-  "name": "Universe TCG",
-  "base": "https://hideoutcg.com",
-  "country": "EU",
-  "market": "EU"
- },
- {
-  "name": "Cardhome",
-  "base": "https://cardhome.at",
-  "country": "AT",
-  "market": "EU"
- },
- {
-  "name": "GS-Gameon",
-  "base": "https://magicians-circle.com",
-  "country": "EU",
-  "market": "EU"
+  "name": "Lichcards",
+  "base": "https://recollectibles.de",
+  "market": "EU",
+  "country": "DE"
  },
  {
   "name": "lms-handel",
   "base": "https://opssmarket.com",
-  "country": "EU",
-  "market": "EU"
- },
- {
-  "name": "RareCards",
-  "base": "https://cardempire.co.uk",
-  "country": "EU",
-  "market": "EU"
+  "market": "EU",
+  "country": "IT"
  },
  {
   "name": "Cardworld",
   "base": "https://cardworld.be",
-  "country": "BE",
-  "market": "EU"
+  "market": "EU",
+  "country": "BE"
  },
  {
-  "name": "Cartes Pok\u00e9mon",
-  "base": "https://cartespokemon.com",
-  "country": "BE",
-  "market": "EU"
+  "name": "Cardhome",
+  "base": "https://cardhome.at",
+  "market": "EU",
+  "country": "AT"
+ },
+ {
+  "name": "GS-Gameon",
+  "base": "https://magicians-circle.com",
+  "market": "EU",
+  "country": "IT"
  },
  {
   "name": "Collector Expert",
   "base": "https://collector-expert.de",
-  "country": "DE",
-  "market": "EU"
+  "market": "EU",
+  "country": "DE"
  },
  {
   "name": "Crispy Cards",
   "base": "https://crispycards.de",
-  "country": "DE",
-  "market": "EU"
+  "market": "EU",
+  "country": "DE"
+ },
+ {
+  "name": "Cartes Pok\u00e9mon",
+  "base": "https://cartespokemon.com",
+  "market": "EU",
+  "country": "BE"
  },
  {
   "name": "Discarded",
   "base": "https://discarded.ie",
-  "country": "IE",
-  "market": "EU"
- },
- {
-  "name": "EmeraldCardCave",
-  "base": "https://emeraldcardcave.de",
-  "country": "DE",
-  "market": "EU"
+  "market": "EU",
+  "country": "IE"
  },
  {
   "name": "FantasiaCards",
   "base": "https://fantasiacards.de",
-  "country": "DE",
-  "market": "EU"
+  "market": "EU",
+  "country": "DE"
  },
  {
-  "name": "Hikaru Distribution",
-  "base": "https://hikarudistribution.com",
-  "country": "FR",
-  "market": "EU"
+  "name": "EmeraldCardCave",
+  "base": "https://emeraldcardcave.de",
+  "market": "EU",
+  "country": "DE"
  },
  {
   "name": "Peer Online Shop",
   "base": "https://www.peer-online.de",
-  "country": "DE",
-  "market": "EU"
+  "market": "EU",
+  "country": "DE"
+ },
+ {
+  "name": "Hikaru Distribution",
+  "base": "https://hikarudistribution.com",
+  "market": "EU",
+  "country": "FR"
  },
  {
   "name": "TCGViert",
   "base": "https://tcgviert.com",
-  "country": "DE",
-  "market": "EU"
- },
- {
-  "name": "TKCollectibles",
-  "base": "https://www.tkcollectibles.it",
-  "country": "IT",
-  "market": "EU"
+  "market": "EU",
+  "country": "DE"
  },
  {
   "name": "Yonko TCG",
   "base": "https://yonko-tcg.de",
-  "country": "DE",
-  "market": "EU"
+  "market": "EU",
+  "country": "DE"
  },
  {
-  "name": "www.Tradingtoys.de",
-  "base": "https://accentgamingdunfermline.com",
-  "country": "EU",
-  "market": "EU"
- },
- {
-  "name": "Yonko TCG",
-  "base": "https://athenagames.com",
-  "country": "EU",
-  "market": "EU"
- },
- {
-  "name": "SpellNexus",
-  "base": "https://lotusgamesltd.com",
-  "country": "EU",
-  "market": "EU"
- },
- {
-  "name": "Cards Beyond",
-  "base": "https://cardsbeyond.com",
-  "country": "EU",
-  "market": "EU"
- },
- {
-  "name": "Card-Binder",
-  "base": "https://card-binder.com",
-  "country": "NL",
-  "market": "EU"
+  "name": "TKCollectibles",
+  "base": "https://www.tkcollectibles.it",
+  "market": "EU",
+  "country": "IT"
  },
  {
   "name": "Collection Mania",
   "base": "https://www.collectionmania.ie",
-  "country": "IE",
-  "market": "EU"
- },
- {
-  "name": "Complete Collections",
-  "base": "https://www.completecollections.ie",
-  "country": "DE",
-  "market": "EU"
+  "market": "EU",
+  "country": "IE"
  },
  {
   "name": "DavidPTCG",
   "base": "https://davidptcg.nl",
-  "country": "DE",
-  "market": "EU"
+  "market": "EU",
+  "country": "DE"
+ },
+ {
+  "name": "Card-Binder",
+  "base": "https://card-binder.com",
+  "market": "EU",
+  "country": "NL"
  },
  {
   "name": "De Broergrot",
   "base": "https://www.debroergrot.nl",
-  "country": "NL",
-  "market": "EU"
+  "market": "EU",
+  "country": "NL"
+ },
+ {
+  "name": "Complete Collections",
+  "base": "https://www.completecollections.ie",
+  "market": "EU",
+  "country": "DE"
  },
  {
   "name": "Dennis The Ripper",
   "base": "https://www.dennistheripper.de",
-  "country": "DE",
-  "market": "EU"
+  "market": "EU",
+  "country": "DE"
  },
  {
   "name": "Escamon",
   "base": "https://www.escamon.de",
-  "country": "DE",
-  "market": "EU"
+  "market": "EU",
+  "country": "DE"
  },
  {
   "name": "God Of Cards",
   "base": "https://godofcards.com",
-  "country": "DE",
-  "market": "EU"
- },
- {
-  "name": "Iberian Collect",
-  "base": "https://iberiancollect.com",
-  "country": "ES",
-  "market": "EU"
+  "market": "EU",
+  "country": "DE"
  },
  {
   "name": "Irish Pok\u00e9 Finds",
   "base": "https://irishpokefinds.ie",
-  "country": "IE",
-  "market": "EU"
+  "market": "EU",
+  "country": "IE"
  },
  {
-  "name": "JJ Collection",
-  "base": "https://www.jjcollection.es",
-  "country": "ES",
-  "market": "EU"
- },
- {
-  "name": "Kardz.eu",
-  "base": "https://kardz.eu",
-  "country": "NL",
-  "market": "EU"
+  "name": "Iberian Collect",
+  "base": "https://iberiancollect.com",
+  "market": "EU",
+  "country": "ES"
  },
  {
   "name": "Kartenmeier",
   "base": "https://kartenmeier.de",
-  "country": "DE",
-  "market": "EU"
+  "market": "EU",
+  "country": "DE"
+ },
+ {
+  "name": "Kardz.eu",
+  "base": "https://kardz.eu",
+  "market": "EU",
+  "country": "NL"
+ },
+ {
+  "name": "JJ Collection",
+  "base": "https://www.jjcollection.es",
+  "market": "EU",
+  "country": "ES"
  },
  {
   "name": "Lachsnackenshop",
   "base": "https://lachsnackenshop.de",
-  "country": "DE",
-  "market": "EU"
- },
- {
-  "name": "LuxCards",
-  "base": "https://luxcards.lu",
-  "country": "LU",
-  "market": "EU"
+  "market": "EU",
+  "country": "DE"
  },
  {
   "name": "Mojo Cards",
   "base": "https://mojocards.nl",
-  "country": "NL",
-  "market": "EU"
+  "market": "EU",
+  "country": "NL"
+ },
+ {
+  "name": "LuxCards",
+  "base": "https://luxcards.lu",
+  "market": "EU",
+  "country": "LU"
  },
  {
   "name": "Poke Planet (Mr Collect)",
   "base": "https://mr-collect.de",
-  "country": "DE",
-  "market": "EU"
+  "market": "EU",
+  "country": "DE"
  },
  {
   "name": "Otakura",
   "base": "https://otakura.com",
-  "country": "IT",
-  "market": "EU"
+  "market": "EU",
+  "country": "IT"
  },
  {
   "name": "Pikamon",
   "base": "https://pikamon.eu",
-  "country": "NL",
-  "market": "EU"
+  "market": "EU",
+  "country": "NL"
  },
  {
   "name": "PokeFamily",
   "base": "https://pokefamily.nl",
-  "country": "NL",
-  "market": "EU"
+  "market": "EU",
+  "country": "NL"
  },
  {
   "name": "Pokestock",
   "base": "https://pokestock.com",
-  "country": "NL",
-  "market": "EU"
- },
- {
-  "name": "Swagykarp",
-  "base": "https://swagykarp.fi",
-  "country": "DE",
-  "market": "EU"
+  "market": "EU",
+  "country": "NL"
  },
  {
   "name": "TodoHits",
   "base": "https://todohits.com",
-  "country": "ES",
-  "market": "EU"
+  "market": "EU",
+  "country": "ES"
+ },
+ {
+  "name": "Swagykarp",
+  "base": "https://swagykarp.fi",
+  "market": "EU",
+  "country": "DE"
  }
 ]
