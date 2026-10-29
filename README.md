@@ -336,6 +336,15 @@ to `https://mtgcompare.app`; set `NEXT_PUBLIC_SITE_URL` to override it.
 Keep the probe at its default concurrency (3). Shopify rate-limits by IP across
 every storefront it hosts.
 
+A store that serves Shopify's feed format from its own platform, without
+Shopify's collections (L'Atelier TCG), is added by hand with the collection
+`"*"`: the importer reads its whole `/products.json` strictly (a title must say
+Magic or MTG), and links the feed's own `url` when it is on the store's origin.
+The probe can't find such a store. List one business once: L'Atelier TCG's
+second storefront, ccctcg.ca (same company, its whole catalogue a copy of
+L'Atelier's at the same prices), is left out so one stock doesn't count as two
+stores.
+
 ## Adding a set
 
 Add an entry at the top of `SETS` in `src/lib/sets.ts`: code, name, slug, series and the **English** release date

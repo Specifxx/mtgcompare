@@ -439,3 +439,13 @@ Owner: the eBay and TCGplayer image strips should also show "near the top, but m
 - `PreFooterTcgplayer`, the TCGplayer strip beside the eBay pre-footer strip on every region page without one of its own (the home, product and set pages have one). It reads `tcgplayerTiles()` in the region layout at request time (files mode, never at build). Placement `tcgplayer-strip-footer`.
 
 The eBay pre-footer strip already covered every page.
+
+## L'Atelier TCG listed in Canada, its second storefront left out (2026-10-29)
+
+L'Atelier TCG (Laval, QC) asked by email to be listed on MTG Compare. It runs its own platform but serves Shopify's
+feed format for its whole catalogue at `/products.json` (1,716 products on 2026-10-29, every game, CAD, 356 of them
+Magic sealed), so the collection handle `"*"` now means that whole feed, read strictly like any non-Magic collection,
+and a feed `url` on the store's origin replaces Shopify's `/products/<handle>` (ported from DexCompare, where the same
+store has been listed since 2026-10-26). It also asked for its second storefront, CCC (ccctcg.ca, Dorval): every one
+of its 284 products is one of L'Atelier's, at the same price and availability, so it stays out. One stock shown as two
+stores would mislead buyers and inflate the store count.

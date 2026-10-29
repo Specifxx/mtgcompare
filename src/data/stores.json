@@ -22,6 +22,17 @@
     ]
   },
   {
+    "key": "ateliertcg",
+    "name": "L'Atelier TCG",
+    "base": "https://ateliertcg.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "*"
+    ]
+  },
+  {
     "key": "aussiehobbies",
     "name": "Aussie Hobbies",
     "base": "https://www.aussiehobbies.com.au",
