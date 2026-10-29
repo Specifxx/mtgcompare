@@ -2,6 +2,7 @@ import Link from "@/components/Link";
 
 import { inSeason } from "@/lib/black-friday";
 import { navGroups } from "@/lib/nav";
+import { openPreorderGuides } from "@/lib/preorder-guides";
 import { REGIONS, X_DEFAULT_REGION, type Region } from "@/lib/regions";
 import { sectionHref, SECTION_PATHS, type SectionKey } from "@/lib/site";
 import { EbayNavLink } from "./Ebay";
@@ -34,12 +35,17 @@ export function headerNav(today = new Date().toISOString().slice(0, 10)): typeof
   return [HEADER_NAV[0], { key: "blackFriday", label: "Black Friday", xl: true }, ...HEADER_NAV.slice(1)];
 }
 
-/** The desktop nav's items for a region, links and all (the "All sealed" dropdown's included). */
+/**
+ * The desktop nav's items for a region, links and all (the "All sealed" dropdown's included). While a set is on pre-order, "Releases"
+ * becomes that set's pre-order hub ("Star Trek pre-orders", lib/preorder-guides.ts): Rift Compare's and this site's pre-order pages
+ * are their most visited, and the release calendar stays one click away in the sidebar and phone menu. It retires itself on release day.
+ */
 export function headerNavItems(region: Region, today = new Date().toISOString().slice(0, 10)): HeaderNavItem[] {
+  const pre = openPreorderGuides(today)[0];
   return headerNav(today).map((n) => ({
-    href: sectionHref(region, n.key),
-    label: n.label,
-    also: n.also?.map((p) => `/${region}${p}`),
+    href: n.key === "releases" && pre ? `/${region}/preorders/${pre.set.slug}` : sectionHref(region, n.key),
+    label: n.key === "releases" && pre ? `${pre.set.name} pre-orders` : n.label,
+    also: n.key === "releases" && pre ? [`/${region}${SECTION_PATHS.releases}`] : n.also?.map((p) => `/${region}${p}`),
     xl: n.xl,
     // The sealed browse item opens the category dropdown (components/ShopMenu.tsx): by product, by set, by value.
     menu: n.key === "sealed" ? shopMenuColumns(region, today) : undefined,

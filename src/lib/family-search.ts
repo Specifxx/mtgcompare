@@ -6,7 +6,7 @@
 export const FAMILY_SEARCH = [
   { key: "rift", name: "RiftCompare", game: "Riftbound", search: "https://riftcompare.com/browse?q={q}" },
   { key: "op", name: "OP Compare", game: "One Piece", search: "https://opcompare.app/browse?q={q}" },
-  { key: "dex", name: "DexCompare", game: "Pokémon sealed", search: "https://www.dexcompare.app/us/sealed?q={q}" },
+  { key: "dex", name: "DexCompare", game: "Pokémon sealed", search: "https://dexcompare.app/us/sealed?q={q}" },
   { key: "gundam", name: "Gundam Compare", game: "Gundam", search: "https://gundamcompare.com/cards?q={q}" },
   { key: "lorcana", name: "Lorcana Compare", game: "Lorcana", search: "https://lorcanacompare.com/cards?q={q}" },
   { key: "ygo", name: "YGO Compare", game: "Yu-Gi-Oh!", search: "https://ygocompare.com/cards?q={q}" },

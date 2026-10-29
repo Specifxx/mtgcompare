@@ -17,6 +17,7 @@ import { findBannedCopy } from "../src/lib/copy-rules";
 import { Breadcrumbs, parentCrumb } from "../src/components/Breadcrumbs";
 import { Footer, footerColumns } from "../src/components/Footer";
 import { Header, HEADER_NAV } from "../src/components/Header";
+import { openPreorderGuides } from "../src/lib/preorder-guides";
 import { MENU_ROWS, MenuSheet } from "../src/components/MobileMenu";
 import { SideNav } from "../src/components/SideNav";
 import { navGroups, retargetGroups, retargetHref } from "../src/lib/nav";
@@ -147,11 +148,13 @@ test("Header nav (lg and up): Deals · All sealed · Sets · Releases · Guides 
   );
   const html = render(React.createElement(Header, { region: "uk" }));
   const nav = /<nav class="hidden items-center gap-0\.5 lg:flex" aria-label="Main">([\s\S]*?)<\/nav>/.exec(html)?.[1] ?? "";
+  // While a set is on pre-order, "Releases" is its pre-order hub.
+  const pre = openPreorderGuides()[0];
   for (const [href, label] of [
     ["/uk/deals", "Deals"],
     ["/uk/sealed", "All sealed"],
     ["/uk/sets", "Sets"],
-    ["/uk/releases", "Releases"],
+    pre ? [`/uk/preorders/${pre.set.slug}`, `${pre.set.name} pre-orders`] : ["/uk/releases", "Releases"],
     ["/uk/guides", "Guides"],
     ["/uk/stores", "Stores"],
   ])
@@ -163,7 +166,8 @@ test("Header with no region: the whole header, built for the default region (the
   const html = render(React.createElement(Header, { region: null }));
   assert.match(html, /role="search"/, "search from the first page");
   const nav = /<nav class="hidden items-center gap-0\.5 lg:flex" aria-label="Main">([\s\S]*?)<\/nav>/.exec(html)?.[1] ?? "";
-  for (const h of ["/us/deals", "/us/sealed", "/us/sets", "/us/releases", "/us/guides", "/us/stores", "/blog"]) assert.match(nav, new RegExp(`href="${h}"`), h);
+  const pre = openPreorderGuides()[0];
+  for (const h of ["/us/deals", "/us/sealed", "/us/sets", pre ? `/us/preorders/${pre.set.slug}` : "/us/releases", "/us/guides", "/us/stores", "/blog"]) assert.match(nav, new RegExp(`href="${h}"`), h);
   assert.doesNotMatch(nav, /data-ad="header"/, "eBay's link is a region page's only");
   assert.match(html, /aria-label="Menu"/);
   assert.match(html, /aria-label="Region: United States\. Change region"/);
@@ -174,7 +178,9 @@ test("the sidebar (xl): product types, sets, deals and the rest, under each layo
   const groups = navGroups("au", "2026-10-28");
   assert.deepEqual(groups.map((g) => g.title), ["Shop by product", "Sets", "Deals & stock", "More"]);
   for (const l of groups.flatMap((g) => g.links)) assert.match(l.href, /^\/au\/|^\/blog$/, l.href);
-  assert.equal(groups[1].links[0].label, "Reality Fracture", "the newest released set first");
+  assert.deepEqual(groups[1].links[0], { href: "/au/preorders/star-trek", label: "Star Trek pre-orders" }, "an open pre-order hub leads the sets");
+  assert.equal(groups[1].links[1].label, "Reality Fracture", "then the newest released set");
+  assert.equal(navGroups("au", "2026-11-13")[1].links[0].label, "Star Trek", "the hub is gone on release day; the set leads as the newest released");
   assert.equal(groups[1].links.at(-1)!.href, "/au/sets");
   assert.ok(navGroups("us", "2026-11-25")[2].links.some((l) => l.label === "Black Friday"), "Black Friday in season");
   assert.ok(!groups[2].links.some((l) => l.label === "Black Friday"));
