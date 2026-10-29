@@ -79,7 +79,8 @@ export const PLACEMENTS = [
   // setSealedHighlight) in its strip's top line, under its own placement so it can be told apart from the hot sets'.
   "set-sealed",
   // Amazon Australia (lib/amazon.ts): AU, NZ and SG only, a marketplace link, never a store row. Its buy_click carries one of these.
-  "amazon-product", // product page: the Amazon row under the Marketplaces panel (or the sold-out callout)
+  "amazon-table", // product page, in stock: the Amazon search row pinned in the price table under eBay and TCGplayer (2026-10-29)
+  "amazon-product", // product page, sold out: the Amazon row under the sold-out callout
   "amazon-type", // type page: the one "Also check Amazon AU" line under the hero
   "amazon-set", // set page: the same line
   "amazon-deals", // /[region]/deals: the same line

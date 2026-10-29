@@ -4,6 +4,7 @@ import type { OfferView } from "@/lib/data";
 import { offerLink, offerRetailer, REL_SPONSORED, TCGPLAYER_KEY, TCGPLAYER_RETAILER, tcgplayerSearchUrl, type Placement } from "@/lib/affiliate";
 import { ebayRowNote, moreClosedLabel, moreOpenLabel, splitRows, tableFooter, type PriceFloor } from "@/lib/ebay-offer-row";
 import { money, timeAgo } from "@/lib/format";
+import { AMAZON_DISCLOSURE, amazonFor, amazonLabel, amazonUrl, REL_AMAZON } from "@/lib/amazon";
 import { DUTIES_NOTE, REGIONS, type Region } from "@/lib/regions";
 import { addressCount, shippingCell } from "@/lib/shipping";
 import { SHIP_UNKNOWN } from "@/lib/shipping-quote";
@@ -109,6 +110,7 @@ export function OfferTable({
     };
   });
   const tcg = pin ? tcgRow(tcgOffer, pin, region, placement, now) : null;
+  const amazon = pin ? amazonRow(pin.productName, region, now) : null;
   const footer = tableFooter(!!ebay);
   return (
     <>
@@ -120,7 +122,7 @@ export function OfferTable({
       <div className="card overflow-hidden">
         {top}
         {ebay ? (
-          <OfferRowsWithEbay rows={rows} tcg={tcg} region={region} slug={ebay.slug} query={ebay.query} floor={ebay.floor} packs={ebay.packs} allowBest={!preorder} preorder={preorder} />
+          <OfferRowsWithEbay rows={rows} tcg={tcg} amazon={amazon} region={region} slug={ebay.slug} query={ebay.query} floor={ebay.floor} packs={ebay.packs} allowBest={!preorder} preorder={preorder} />
         ) : (
           <StoreRows rows={rows} preorder={preorder} />
         )}
@@ -146,6 +148,7 @@ export function OfferTable({
           &ldquo;Not checked recently&rdquo; means we couldn&rsquo;t read that store for over three days, so its stock is unknown. No store pays
           to be listed or to rank higher: <Link href="/about" prefetch={false} className="underline underline-offset-2 hover:text-ink">how MTG Compare works</Link>.
           {tcg && " TCGplayer is a US marketplace of many sellers, pinned under eBay; its link is an affiliate link, and outside the US its price is in US$ and never compared with the stores'."}
+          {amazon && ` ${amazon.name} is pinned under TCGplayer as a search: we don't read Amazon's prices, so it is never ranked or the best price, and its link is an affiliate link. ${AMAZON_DISCLOSURE}`}
           {storeOffers.some((o) => o.marketplace) && " TCGplayer is a marketplace of many sellers; it ranks by price and stock like any store, and its link is an affiliate link."}
         </p>
         {ebay && <p>{ebayRowNote(region).trim()}</p>}
@@ -199,6 +202,42 @@ function tcgRow(offer: OfferView | null, pin: { productName: string; tcgplayer: 
     lastSeen: m.lastSeen,
     ago: timeAgo(m.lastSeen, now),
     ...(us ? {} : { comparable: false, note: "US$, ships from the US" }),
+  };
+}
+
+/**
+ * The pinned Amazon row (owner, 2026-10-29: Amazon on every site, like the eBay and TCGplayer rows), where the region has an Amazon tag
+ * (lib/amazon.ts): a search for the product on the region's Amazon, no price, never ranked or the best price.
+ */
+function amazonRow(productName: string, region: Region, now: number): StoreRowData | null {
+  const a = amazonFor(region);
+  if (!a) return null;
+  const l = amazonLabel(region);
+  return {
+    key: "amazon",
+    kind: "amazon",
+    name: l.name,
+    marketplace: true,
+    retailer: a.retailer,
+    placement: "amazon-table",
+    amazon: { product: productName, region, page: "product" },
+    perPack: null,
+    ship: null,
+    cents: 0,
+    open: true,
+    state: "open",
+    best: false,
+    host: a.host.replace(/^www\./, ""),
+    title: `Search ${a.retailer} for ${productName}`,
+    href: amazonUrl(productName, { region, placement: "amazon-table" }),
+    rel: REL_AMAZON,
+    sponsored: true,
+    price: "",
+    lastSeen: new Date(now).toISOString(),
+    ago: "",
+    search: true,
+    searchText: "Amazon’s own price",
+    ...(region === "nz" || region === "sg" ? { note: "check delivery" } : {}),
   };
 }
 

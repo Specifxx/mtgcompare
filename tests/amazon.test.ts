@@ -8,7 +8,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import type { ProductCardData } from "../src/lib/data";
 import { PLACEMENTS } from "../src/lib/affiliate";
-import { AMAZON_DEFAULT_TAG, AMAZON_DISCLOSURE, AMAZON_REGIONS, amazonRegion, amazonTag, amazonUrl, asinFor, REL_AMAZON } from "../src/lib/amazon";
+import { AMAZON_DEFAULT_TAG, AMAZON_DISCLOSURE, amazonFor, amazonRegion, amazonRegions, amazonTag, amazonUrl, asinFor, REL_AMAZON } from "../src/lib/amazon";
 import { REGION_LIST, REGIONS, type Region } from "../src/lib/regions";
 import { AmazonAlso, AmazonLink, AmazonProductRow } from "../src/components/Amazon";
 import { Footer } from "../src/components/Footer";
@@ -31,7 +31,7 @@ function render(el: React.ReactElement): string {
     console.error = err;
   }
 }
-const amazonAnchors = (html: string) => [...html.matchAll(/<a [^>]*href="https:\/\/www\.amazon\.com\.au[^"]*"[^>]*>/g)].map((m) => m[0]);
+const amazonAnchors = (html: string) => [...html.matchAll(/<a [^>]*href="https:\/\/www\.amazon\.[a-z.]+\/[^"]*"[^>]*>/g)].map((m) => m[0]);
 
 test("amazonUrl: /dp/<ASIN> when the ASIN is known, else a search; the tag on both", () => {
   assert.equal(amazonUrl("Anything", { slug: "x", asins: { x: "B0ABCDEFGH" }, tag: "t-22" }), "https://www.amazon.com.au/dp/B0ABCDEFGH?tag=t-22");
@@ -70,17 +70,27 @@ test("the ASIN map is a JSON object of slug → 10-character ASIN (never guessed
   for (const [k, v] of Object.entries(map)) assert.match(v, /^[A-Z0-9]{10}$/, k);
 });
 
-test("region gating: AU, NZ and SG show Amazon; US, UK, CA and EU never do", () => {
-  assert.deepEqual([...AMAZON_REGIONS].sort(), ["au", "nz", "sg"]);
+test("region gating: Amazon AU in AU, NZ and SG; Amazon US in the US; UK, CA and EU only with their own tag", () => {
+  const shown = ["au", "nz", "sg", "us"];
+  assert.deepEqual(amazonRegions({}).sort(), [...shown].sort());
+  assert.equal(amazonFor("us", {})!.tag, "riftcompare-20");
+  assert.equal(amazonFor("us", { AMAZON_US_TAG: "mtgcompare-20" })!.tag, "mtgcompare-20");
+  assert.equal(amazonFor("uk", {}), null);
+  assert.equal(amazonFor("uk", { AMAZON_UK_TAG: "mtgcompare-21" })!.host, "www.amazon.co.uk");
+  assert.equal(amazonFor("eu", { AMAZON_DE_TAG: "mtgcompare-21" })!.host, "www.amazon.de");
+  const us = new URL(amazonUrl("Reality Fracture Bundle", { region: "us", placement: "amazon-table" }));
+  assert.equal(us.origin + us.pathname, "https://www.amazon.com/s");
+  assert.equal(us.searchParams.get("tag"), process.env.AMAZON_US_TAG || "riftcompare-20");
+  assert.equal(us.searchParams.get("ascsubtag"), "mtg-us-amazon-table");
   for (const r of REGION_LIST) {
-    const yes = ["au", "nz", "sg"].includes(r.region);
+    const yes = shown.includes(r.region);
     assert.equal(amazonRegion(r.region), yes, r.region);
     const row = render(React.createElement(AmazonProductRow, { region: r.region, name: "Reality Fracture Bundle", slug: "reality-fracture-bundle" }));
     const also = render(React.createElement(AmazonAlso, { region: r.region, name: "Magic The Gathering Bundle", placement: "amazon-type", page: `/${r.region}/type/bundles` }));
     assert.equal(amazonAnchors(row).length, yes ? 1 : 0, r.region);
     assert.equal(amazonAnchors(also).length, yes ? 1 : 0, r.region);
     if (yes) {
-      assert.match(row, /Check price on Amazon AU/);
+      assert.match(row, r.region === "us" ? /Check price on Amazon US/ : /Check price on Amazon AU/);
       assert.match(row, new RegExp(AMAZON_DISCLOSURE.replace(/\./g, "\\.")));
       assert.doesNotMatch(row.replace(/<[^>]+>/g, " "), /\$\d/, "no Amazon price");
     }
@@ -95,7 +105,7 @@ test("Amazon links: target=_blank, rel exactly 'sponsored nofollow noopener', pl
   const [a] = amazonAnchors(html);
   assert.match(a, /target="_blank"/);
   assert.match(a, /rel="sponsored nofollow noopener"/);
-  for (const p of ["amazon-product", "amazon-type", "amazon-set", "amazon-deals", "amazon-guide"]) assert.ok((PLACEMENTS as readonly string[]).includes(p), p);
+  for (const p of ["amazon-table", "amazon-product", "amazon-type", "amazon-set", "amazon-deals", "amazon-guide"]) assert.ok((PLACEMENTS as readonly string[]).includes(p), p);
 });
 
 test("amazon_click: OutboundLink sends GA4 amazon_click {product, region, page} and still only buy_click to Vercel", () => {
@@ -103,7 +113,7 @@ test("amazon_click: OutboundLink sends GA4 amazon_click {product, region, page} 
   assert.match(src, /gaEvent\("amazon_click", \{ product: [^}]*region: amazon\.region, page: [^}]*\}\)/);
   assert.match(src, /track\("buy_click"/);
   const comp = readFileSync(new URL("../src/components/Amazon.tsx", import.meta.url), "utf8");
-  assert.match(comp, /<OutboundLink [^>]*retailer=\{AMAZON_RETAILER\}[^>]*amazon=\{\{ product: [^}]*region, page \}\}/);
+  assert.match(comp, /<OutboundLink [^>]*retailer=\{amazonRetailer\(region\)\}[^>]*amazon=\{\{ product: [^}]*region, page \}\}/);
   const track = readFileSync(new URL("../src/lib/track.ts", import.meta.url), "utf8");
   assert.match(track, /new Set\(\["buy_click"\]\)/, "no new Vercel event names");
 });

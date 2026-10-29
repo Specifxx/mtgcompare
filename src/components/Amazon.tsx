@@ -1,11 +1,12 @@
 import Link from "@/components/Link";
-import { AMAZON_CTA, AMAZON_DISCLOSURE, AMAZON_RETAILER, amazonLabel, amazonRegion, amazonUrl, REL_AMAZON } from "@/lib/amazon";
+import { AMAZON_DISCLOSURE, amazonCta, amazonLabel, amazonRegion, amazonRetailer, amazonUrl, REL_AMAZON } from "@/lib/amazon";
 import type { Placement } from "@/lib/affiliate";
 import type { Region } from "@/lib/regions";
 import { OutboundLink } from "./OutboundLink";
 
-// Amazon Australia links (lib/amazon.ts). Server components: the tag is read here, and OutboundLink gets the built URL. A marketplace
-// link only: no price, rating or stock, never a store row, never "best price". Nothing renders outside AU, NZ and SG.
+// Amazon links (lib/amazon.ts: Amazon AU in AU, NZ and SG; Amazon US in the US; UK, CA and EU once their tag is set). Server
+// components: the tag is read here, and OutboundLink gets the built URL. A marketplace link only: no price, rating or stock, never
+// ranked with the stores, never "best price". Nothing renders in a region without an Amazon tag.
 
 const NOTE = "text-xs leading-5 text-muted";
 
@@ -21,7 +22,7 @@ export function AmazonNote({ className = "" }: { className?: string }) {
   );
 }
 
-/** One "Check price on Amazon AU" link. `page` is the GA4 amazon_click page (a path). */
+/** One "Check price on Amazon AU / US" link. `page` is the GA4 amazon_click page (a path). */
 export function AmazonLink({
   region,
   name,
@@ -41,17 +42,17 @@ export function AmazonLink({
 }) {
   if (!amazonRegion(region)) return null;
   return (
-    <OutboundLink href={amazonUrl(name, { slug })} rel={REL_AMAZON} retailer={AMAZON_RETAILER} placement={placement} className={className} amazon={{ product: slug || name, region, page }}>
+    <OutboundLink href={amazonUrl(name, { slug, region, placement })} rel={REL_AMAZON} retailer={amazonRetailer(region)} placement={placement} className={className} amazon={{ product: slug || name, region, page }}>
       {children ?? (
         <>
-          {AMAZON_CTA} <span aria-hidden="true">↗</span>
+          {amazonCta(region)} <span aria-hidden="true">↗</span>
         </>
       )}
     </OutboundLink>
   );
 }
 
-/** Product page: the Amazon AU row, its own card under the marketplaces, with its disclosure. */
+/** Product page, sold out: the Amazon row, its own card under the sold-out callout, with its disclosure (in stock, it is a row of the table). */
 export function AmazonProductRow({ region, name, slug }: { region: Region; name: string; slug: string }) {
   if (!amazonRegion(region)) return null;
   const l = amazonLabel(region);
@@ -72,7 +73,7 @@ export function AmazonProductRow({ region, name, slug }: { region: Region; name:
   );
 }
 
-/** Listing pages (type, set, deals): ONE light line per page, "Also check Amazon AU" for the page's subject. */
+/** Listing pages (type, set, deals): ONE light line per page, "Also check Amazon AU / US" for the page's subject. */
 export function AmazonAlso({ region, name, placement, page }: { region: Region; name: string; placement: Placement; page: string }) {
   if (!amazonRegion(region)) return null;
   const l = amazonLabel(region);
@@ -82,7 +83,7 @@ export function AmazonAlso({ region, name, placement, page }: { region: Region; 
         Also check {l.name} <span aria-hidden="true">↗</span>
       </AmazonLink>
       <span className={NOTE}>
-        {region !== "au" ? `${l.note} ` : ""}
+        {region === "nz" || region === "sg" ? `${l.note} ` : ""}
         {AMAZON_DISCLOSURE}
       </span>
     </div>

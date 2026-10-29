@@ -621,8 +621,8 @@ export default async function ProductPage({ params }: { params: { region: string
           />
         </div>
       )}
-      {/* Amazon Australia (AU, NZ, SG only): a marketplace link with no price, after the paid rows and never in the table. */}
-      <AmazonProductRow region={r.region} name={p.name} slug={p.slug} />
+      {/* Sold out: the Amazon row (lib/amazon.ts), a marketplace link with no price. In stock it is a search row pinned in the table. */}
+      {!best && <AmazonProductRow region={r.region} name={p.name} slug={p.slug} />}
 
       {!best && alternatives.length > 0 && (
         <Section id="instead" title="In stock instead" href={typeLink.href} linkLabel="See all">
