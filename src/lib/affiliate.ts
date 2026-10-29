@@ -36,6 +36,8 @@ export const PLACEMENTS = [
   "tcgplayer-strip-home", // region home: after the Collector Booster Box rail
   "tcgplayer-strip-set", // set page: after the set's product grid
   "tcgplayer-strip-product", // product page: after "More from <set>"
+  "tcgplayer-strip-mini", // product page: the small eBay + TCGplayer pair's TCGplayer row, under the best price (owner, 2026-10-29)
+  "tcgplayer-strip-footer", // every other region page: the TCGplayer strip above the footer (owner, 2026-10-29)
   "header", // the "eBay" item in the site header (desktop nav, xl and up only)
   // eBay LISTING STRIPS (components/EbayStrip.tsx): real listings imported once a day (scripts/ebay-import.ts), read
   // from our database through /api/ebay/<region>. One placement per surface, so EPN's customid report and Vercel's
@@ -65,6 +67,7 @@ export const PLACEMENTS = [
   "listings-store", // store directory and store page
   "listings-releases", // release calendar: the closing strip
   "listings-footer", // every content page: the slim four-tile strip above the footer
+  "listings-product-mini", // product page: the small eBay + TCGplayer pair's eBay row, under the best price (owner, 2026-10-29)
   "listings-notfound", // the 404 page
   // The highlighted eBay button of a POPULAR product or set (lib/popular.ts HOT_SETS: 30th Celebration first): eBay's blue
   // search button inside a strip's own top line (EbayStrip `highlight`), and the compact CTA that strip becomes. One placement

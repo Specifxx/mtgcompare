@@ -869,3 +869,126 @@ function EbayOfferRow({ region, placement, query, item, cents, age, best }: { re
     </li>
   );
 }
+
+// ─── The small pair near the top of a product page ────────────────────────────
+
+/** A TCGplayer tile for MiniSealedAds: the same rows as TcgplayerStrip (lib/data.ts tcgplayerTiles). */
+export interface MiniTcgTile {
+  slug: string;
+  name: string;
+  imageUrl: string;
+  priceCents: number;
+  /** Already affiliate-tagged (tcgplayerAffiliateUrl), on the server. */
+  href: string;
+}
+
+const MINI_TILE = "flex w-[56px] shrink-0 snap-start flex-col overflow-hidden rounded-md border border-line bg-surface transition-colors hover:border-ink/40";
+
+function MiniRow({ brand, all, children }: { brand: ReactNode; all: ReactNode; children: ReactNode }) {
+  return (
+    <div className="flex h-[78px] items-stretch gap-2">
+      <div className="flex w-12 shrink-0 flex-col items-center justify-center gap-1 text-center">
+        {brand}
+        {all}
+      </div>
+      <ul role="list" className="flex min-w-0 flex-1 snap-x gap-2 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:thin]">
+        {children}
+      </ul>
+    </div>
+  );
+}
+
+/**
+ * The small eBay + TCGplayer pair (owner, 2026-10-29: "much smaller … near the top … not intrusive"): one slim box under a product
+ * page's best price, an eBay row (the product's own listings, cascading like its strip: the same request, so no extra fetch) and a
+ * TCGplayer row (the set's products, the tiles TcgplayerStrip shows further down), 56px tiles with the price under each. Every height
+ * is fixed (CLS 0): an eBay row with nothing to list keeps its height as a search link. Labelled "Ad", the affiliate note inside.
+ */
+export function MiniSealedAds({
+  region,
+  context,
+  tcg,
+  ebayPlacement,
+  tcgPlacement,
+  ebayQuery,
+  tcgSearchHref,
+  className = "",
+}: {
+  region: Region;
+  context: string;
+  tcg: MiniTcgTile[];
+  ebayPlacement: Placement;
+  tcgPlacement: Placement;
+  ebayQuery: string;
+  tcgSearchHref: string;
+  className?: string;
+}) {
+  const { ref, state } = useListings({ region, context, placement: ebayPlacement, min: 1 });
+  const items = state.status === "ready" ? state.a.items.slice(0, 10) : null;
+  const usd = (cents: number) => (region === "us" ? money(cents, "US") : `US${money(cents, "US")}`);
+  const searchAll = ebaySearchUrl(ebayQuery, region, ebayPlacement);
+  return (
+    <div ref={ref} data-ad={ebayPlacement} role="group" aria-label="Sponsored: eBay and TCGplayer" className={`ad-box grid gap-2 p-2 lg:grid-cols-2 ${className}`}>
+      <MiniRow
+        brand={<EbayMark className="text-base" />}
+        all={
+          <OutboundLink href={searchAll} rel={REL_SPONSORED} retailer={ebayRetailer(region)} placement={ebayPlacement} className="text-[10px] font-bold text-brand">
+            All →
+          </OutboundLink>
+        }
+      >
+        {items && items.length
+          ? items.map((i) => (
+              <li key={i.id}>
+                <OutboundLink href={i.href} rel={REL_SPONSORED} retailer={ebayRetailerForHref(i.href, region)} placement={ebayPlacement} className={MINI_TILE} title={`${i.title} · ${formatPrice(i.price)}`}>
+                  <span className="relative block h-[56px] w-full overflow-hidden bg-raised">
+                    <img src={i.imageUrl} alt="" width={56} height={56} loading="lazy" decoding="async" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-contain" />
+                  </span>
+                  <span className="tabular block truncate bg-[#0064d2] px-0.5 text-center text-[10px] font-black leading-4 text-white">{formatPrice(i.price)}</span>
+                  <span className="sr-only">{i.title}, on eBay</span>
+                </OutboundLink>
+              </li>
+            ))
+          : state.status === "idle"
+            ? Array.from({ length: 6 }, (_, n) => <li key={n} aria-hidden="true" className="h-[74px] w-[56px] shrink-0 rounded-md bg-raised" />)
+            : (
+                <li className="flex items-center">
+                  <OutboundLink href={searchAll} rel={REL_SPONSORED} retailer={ebayRetailer(region)} placement={ebayPlacement} className="btn-ad px-3 py-1.5 text-xs">
+                    Search this on {ebayLabel(region)} <Arrow />
+                  </OutboundLink>
+                </li>
+              )}
+      </MiniRow>
+      {tcg.length >= 3 && (
+        <MiniRow
+          brand={
+            <span className="text-[11px] font-black tracking-tight" aria-label="TCGplayer">
+              TCG<span className="text-[#1f6fe5]">player</span>
+            </span>
+          }
+          all={
+            <OutboundLink href={tcgSearchHref} rel={REL_SPONSORED} retailer="TCGplayer" placement={tcgPlacement} className="text-[10px] font-bold text-[#1f6fe5]">
+              All →
+            </OutboundLink>
+          }
+        >
+          {tcg.slice(0, 10).map((t) => (
+            <li key={t.slug}>
+              <OutboundLink href={t.href} rel={REL_SPONSORED} retailer="TCGplayer" placement={tcgPlacement} className={MINI_TILE} title={`${t.name} · ${usd(t.priceCents)}`}>
+                <span className="plate relative block h-[56px] w-full overflow-hidden">
+                  <img src={t.imageUrl} alt="" width={56} height={56} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-contain p-0.5 mix-blend-multiply" />
+                </span>
+                <span className="tabular block truncate bg-[#1f6fe5] px-0.5 text-center text-[10px] font-black leading-4 text-white">{usd(t.priceCents)}</span>
+                <span className="sr-only">{t.name}, on TCGplayer</span>
+              </OutboundLink>
+            </li>
+          ))}
+        </MiniRow>
+      )}
+      <p className="flex items-center gap-2 text-[10px] leading-tight text-muted lg:col-span-2">
+        <span className="rounded bg-raised px-1.5 py-0.5 font-semibold uppercase tracking-wide">Ad</span>
+        <span>{AFFILIATE_NOTE_SHORT}{region !== "us" && tcg.length >= 3 ? " TCGplayer prices are in US$." : ""}</span>
+      </p>
+    </div>
+  );
+}

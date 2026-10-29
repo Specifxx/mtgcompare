@@ -10,7 +10,7 @@ import { Ago } from "@/components/Ago";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Icon } from "@/components/Icon";
 import { hotProductHighlight, isHotReleased, NoPreFooter } from "@/components/Ebay";
-import { EbayStrip } from "@/components/EbayStrip";
+import { EbayStrip, MiniSealedAds } from "@/components/EbayStrip";
 import { marketplaceOf } from "@/lib/ebay-context";
 import { ebayQuery, SoldOutCallout } from "@/components/Marketplaces";
 import { AmazonProductRow } from "@/components/Amazon";
@@ -24,7 +24,7 @@ import { stockHeadline } from "@/lib/stock";
 import { ShareButton } from "@/components/ShareButton";
 import { StickyBuyBar } from "@/components/StickyBuyBar";
 import { RecentTracker } from "@/components/Recent";
-import { ebaySearchUrl, offerLink, offerRetailer } from "@/lib/affiliate";
+import { ebaySearchUrl, offerLink, offerRetailer, tcgplayerAffiliateUrl, tcgplayerSearchUrl } from "@/lib/affiliate";
 import { productAdPlan, soldOutAdPlan } from "@/lib/ebay-ads";
 import { rowPacks, tableShape } from "@/lib/ebay-offer-row";
 import { productPage, setTcgplayerTiles, type ProductCardData } from "@/lib/data";
@@ -560,6 +560,18 @@ export default async function ProductPage({ params }: { params: { region: string
               </p>
             </div>
           )}
+          {/* The small eBay + TCGplayer pair under the best price (owner, 2026-10-29: "much smaller … near the top … not
+              intrusive"): the product's own eBay listings (the strip's request) and the set's TCGplayer products. */}
+          <MiniSealedAds
+            region={r.region}
+            context={stripContext}
+            tcg={tcgTiles.map((t) => ({ slug: t.slug, name: t.name, imageUrl: thumb(t.imageUrl, 120) ?? t.imageUrl, priceCents: t.priceCents, href: tcgplayerAffiliateUrl(t.url, r.region, "tcgplayer-strip-mini") }))}
+            ebayPlacement="listings-product-mini"
+            tcgPlacement="tcgplayer-strip-mini"
+            ebayQuery={ebayQ}
+            tcgSearchHref={tcgplayerSearchUrl(set?.name ?? "", r.region, "tcgplayer-strip-mini")}
+            className="mt-4"
+          />
         </div>
       </div>
 
