@@ -1,4 +1,6 @@
 import { PreFooterStrip } from "@/components/EbayStrip";
+import { PreFooterTcgplayer } from "@/components/PreFooterTcgplayer";
+import { tcgplayerTiles, type TcgplayerTile } from "@/lib/data";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { SideNav } from "@/components/SideNav";
@@ -12,8 +14,10 @@ import { regionOrNotFound } from "@/lib/regions";
 // The 404 here is not enough on its own: a page's generateMetadata and body run
 // alongside the layout, so every page under [region] resolves its region the
 // same way before touching anything else (/terms, /foo and /AU used to 500).
-export default function RegionLayout({ children, params }: { children: React.ReactNode; params: { region: string } }) {
+export default async function RegionLayout({ children, params }: { children: React.ReactNode; params: { region: string } }) {
   const r = regionOrNotFound(params.region);
+  // The pre-footer TCGplayer strip's products: read at request time (pages are force-dynamic), never at build; a failure shows none.
+  const tcg: TcgplayerTile[] = await tcgplayerTiles().catch(() => []);
   return (
     <>
       <Header region={r.region} />
@@ -28,6 +32,7 @@ export default function RegionLayout({ children, params }: { children: React.Rea
             and globals.css hides this wrapper. The legal pages are not under [region], so they never get one. */}
         <div className="page mt-16" data-ebay-prefooter>
           <PreFooterStrip region={r.region} />
+          <PreFooterTcgplayer region={r.region} tiles={tcg} />
         </div>
         </main>
       </div>

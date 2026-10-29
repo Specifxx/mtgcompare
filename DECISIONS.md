@@ -431,3 +431,11 @@ are on it.
   they age off the page.
 * Postage for the new stores comes with the weekly shipping run; until then
   their rows say "Shipping at checkout".
+
+## Small eBay + TCGplayer pair on product pages, TCGplayer on every page (2026-10-29)
+
+Owner: the eBay and TCGplayer image strips should also show "near the top, but much smaller so it's not intrusive" on product pages, and on every other page (pre-orders, lists…). Two additions:
+- `MiniSealedAds` (EbayStrip.tsx), under a product page's best price: one slim box with 56px tiles in two rows. The eBay row is the product's own listings through the same `useListings` request its strip makes, so no extra fetch. The TCGplayer row is the set's products, the same tiles as the strip further down. Every height is fixed (CLS 0), and an eBay row with nothing to list keeps its height as a search link. Placements `listings-product-mini` and `tcgplayer-strip-mini`.
+- `PreFooterTcgplayer`, the TCGplayer strip beside the eBay pre-footer strip on every region page without one of its own (the home, product and set pages have one). It reads `tcgplayerTiles()` in the region layout at request time (files mode, never at build). Placement `tcgplayer-strip-footer`.
+
+The eBay pre-footer strip already covered every page.
