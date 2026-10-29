@@ -29,9 +29,10 @@ export default function AffiliateDisclosure() {
 
         <h2 id="amazon">Amazon Associates</h2>
         <p>
-          <b>{AMAZON_DISCLOSURE}</b> In Australia, New Zealand and Singapore some pages link to Amazon Australia (amazon.com.au) with our Associates tag. Amazon is a
+          <b>{AMAZON_DISCLOSURE}</b> In Australia, New Zealand and Singapore some pages link to Amazon Australia (amazon.com.au), and in the US to Amazon US (amazon.com),
+          with our Associates tag. Amazon is a
           marketplace, not one of the stores we compare: it is never counted as a store, never ranked with the stores and never shown as a best price. We do not read
-          Amazon, so we show no Amazon price, rating or stock; each link says &ldquo;Check price on Amazon AU&rdquo;, and Amazon&rsquo;s own page is what counts. Outside
+          Amazon, so we show no Amazon price, rating or stock; each link says &ldquo;Check price on Amazon AU&rdquo; or &ldquo;Amazon US&rdquo;, and Amazon&rsquo;s own page is what counts. Outside
           Australia, Amazon Australia may or may not ship to you: check delivery before you buy.
         </p>
 

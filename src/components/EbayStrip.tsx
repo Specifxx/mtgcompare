@@ -744,6 +744,7 @@ import { ROW_BUTTON, ROW_GRID, StoreRow, useRankedRows, type StoreRowData } from
 export function OfferRowsWithEbay({
   rows: given,
   tcg = null,
+  amazon = null,
   region,
   slug,
   query,
@@ -755,6 +756,8 @@ export function OfferRowsWithEbay({
   rows: StoreRowData[];
   /** The TCGplayer row, pinned second (OfferTable builds it); null = none. */
   tcg?: StoreRowData | null;
+  /** The Amazon search row, pinned third (OfferTable builds it where the region has an Amazon tag); null = none. Never the best price. */
+  amazon?: StoreRowData | null;
   region: Region;
   slug: string;
   query: string;
@@ -782,6 +785,7 @@ export function OfferRowsWithEbay({
   const slots: Slot[] = [
     { key: EBAY_ROW_KEY, open: true, node: ebayRow },
     ...(tcg ? [{ key: tcg.key, open: tcg.open, node: <StoreRow key={tcg.key} d={tcg} preorder={preorder} top={top === "tcg"} /> }] : []),
+    ...(amazon ? [{ key: amazon.key, open: true, node: <StoreRow key={amazon.key} d={amazon} preorder={preorder} top={false} /> }] : []),
     ...rows.map((d) => ({ key: d.key, open: d.open, node: <StoreRow key={d.key} d={d} preorder={preorder} top={top === "store" && d === store} /> })),
   ];
   const { shown, moreOpen, moreClosed } = splitRows(slots);
