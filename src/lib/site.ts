@@ -28,7 +28,7 @@ export const OPERATOR = process.env.NEXT_PUBLIC_OPERATOR?.trim() || SITE_NAME;
 export const SISTER_SITES = [
   { name: "RiftCompare", url: "https://riftcompare.com", game: "Riftbound", anchor: "Riftbound card prices", what: "RiftCompare" },
   { name: "OP Compare", url: "https://opcompare.app", game: "One Piece", anchor: "One Piece Card Game prices", what: "OP Compare" },
-  { name: "DexCompare", url: "https://www.dexcompare.app", game: "Pokémon", anchor: "Pokémon TCG sealed prices", what: "DexCompare" },
+  { name: "DexCompare", url: "https://dexcompare.app", game: "Pokémon", anchor: "Pokémon TCG sealed prices", what: "DexCompare" },
   // The whole Compare Empire family (2026-10-26, DECISIONS.md "One family of sites").
   { name: "Gundam Compare", url: "https://gundamcompare.com", game: "Gundam", anchor: "Gundam Card Game prices", what: "Gundam Compare" },
   { name: "Lorcana Compare", url: "https://lorcanacompare.com", game: "Lorcana", anchor: "Lorcana card prices", what: "Lorcana Compare" },
@@ -37,7 +37,7 @@ export const SISTER_SITES = [
   { name: "WargameCompare", url: "https://wargamecompare.com", game: "Miniature wargame", anchor: "Miniature wargame prices", what: "WargameCompare" },
   { name: "FigureCompare", url: "https://figurecompare.com", game: "Anime figure", anchor: "Anime figure prices", what: "FigureCompare" },
   { name: "CamCompare", url: "https://www.camcompare.app", game: "Camera", anchor: "Camera and lens prices", what: "CamCompare" },
-  { name: "Compare Empire", url: "https://www.compareempire.com", game: "Australian", anchor: "Australian tech prices", what: "Compare Empire" },
+  { name: "Compare Empire", url: "https://compareempire.com", game: "Australian", anchor: "Australian tech prices", what: "Compare Empire" },
 ] as const;
 
 // Public profiles for Organization.sameAs (an X account, a Bluesky handle…).

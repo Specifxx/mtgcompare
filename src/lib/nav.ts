@@ -1,4 +1,5 @@
 import { inSeason } from "./black-friday";
+import { openPreorderGuides } from "./preorder-guides";
 import { featureOrder } from "./release";
 import { isRegion, type Region } from "./regions";
 import { SET_BY_CODE, SETS } from "./sets";
@@ -35,7 +36,8 @@ export function navGroups(region: Region, today: string = new Date().toISOString
         s("sealed", "All sealed"),
       ],
     },
-    { title: "Sets", links: [...sets, s("sets", "Every set")] },
+    // An open pre-order hub leads the sets (lib/preorder-guides.ts; gone on release day).
+    { title: "Sets", links: [...openPreorderGuides(today).map(({ set }) => ({ href: `/${region}/preorders/${set.slug}`, label: `${set.name} pre-orders` })), ...sets, s("sets", "Every set")] },
     {
       title: "Deals & stock",
       links: [

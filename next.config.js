@@ -68,7 +68,7 @@ const nextConfig = {
       { source: "/stores", destination: "/us/stores", permanent: true },
       { source: "/stores/:path*", destination: "/us/stores", permanent: true },
       { source: "/release-dates", destination: "/us/releases", permanent: true },
-      { source: "/star-trek-preorders", destination: "/us/releases", permanent: true },
+      { source: "/star-trek-preorders", destination: "/us/preorders/star-trek", permanent: true },
       { source: "/:path(card|cards|singles|browse|search|price-guide|movers|rising|market|commanders|decks|deck|tools|colors|keywords|gallery|trade|embed|c)", destination: "/us/sealed", permanent: true },
       { source: "/:path(card|cards|singles|browse|search|price-guide|movers|rising|market|commanders|decks|deck|tools|colors|keywords|gallery|trade|embed|c)/:rest*", destination: "/us/sealed", permanent: true },
       { source: "/:region(au|uk|ca|eu|sg)/:path(card|cards|singles|browse|search|price-guide|movers|rising|market|commanders|decks|tools)/:rest*", destination: "/:region/sealed", permanent: true },
