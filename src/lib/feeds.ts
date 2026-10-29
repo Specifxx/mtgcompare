@@ -46,18 +46,36 @@ interface ShopifyVariantRaw {
 interface ShopifyProductRaw {
   handle: string;
   title: string;
+  url?: string; // not Shopify's: a non-Shopify store serving the same format links its own product page
   variants?: ShopifyVariantRaw[];
   images?: { src?: string; width?: number; height?: number }[];
 }
 
 const SHOPIFY_PAGE = 250;
 
+// The collection handle that means "the store's whole catalogue": /products.json
+// rather than /collections/<handle>/products.json. For a store that serves
+// Shopify's feed format without Shopify's collections (L'Atelier TCG's own
+// platform). Read strictly, like any non-Magic collection: a title must say
+// Magic (or MTG) outright, so the store's other games never reach identify().
+export const WHOLE_CATALOGUE = "*";
+
+/** The feed's own product link, if it is on the store's origin; else Shopify's /products/<handle>. */
+function productUrl(base: string, p: ShopifyProductRaw): string {
+  try {
+    if (p.url && new URL(p.url).origin === new URL(base).origin) return p.url;
+  } catch {
+    // an unparsable url falls back to the Shopify path
+  }
+  return `${base}/products/${p.handle}`;
+}
+
 export async function readShopifyCollection(
   base: string,
   handle: string,
   opts: { country?: string | null; maxPages?: number } = {},
 ): Promise<CollectionRead> {
-  const path = `/collections/${handle}/products.json`;
+  const path = handle === WHOLE_CATALOGUE ? "/products.json" : `/collections/${handle}/products.json`;
   const allowed = await robotsAllows(base);
   if (!allowed(path)) return { handle, ok: false, products: [] };
   const products: FeedProduct[] = [];
@@ -75,7 +93,7 @@ export async function readShopifyCollection(
       products.push({
         id: p.handle,
         title: decodeEntities(p.title ?? ""),
-        url: `${base}/products/${p.handle}`,
+        url: productUrl(base, p),
         imageUrl: p.images?.[0]?.src ?? null,
         imageWidth: p.images?.[0]?.width,
         imageHeight: p.images?.[0]?.height,

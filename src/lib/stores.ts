@@ -19,6 +19,7 @@ export interface StoreConfig {
   // from /meta.json; for EU stores it is the store's own eurozone country.
   country: string;
   // Shopify collection handles / WooCommerce category slugs to read, best first.
+  // "*" (WHOLE_CATALOGUE in feeds.ts) reads the store's whole /products.json.
   // Non-Pokémon collections (e.g. "pre-orders") are read strictly: a title
   // there must say "Pokémon" outright.
   collections: string[];

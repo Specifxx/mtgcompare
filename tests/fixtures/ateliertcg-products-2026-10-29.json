@@ -1,0 +1,556 @@
+{
+ "products": [
+  {
+   "handle": "mtg-2015-core-set-two-player-clash-pack-2x60-5-6",
+   "title": "MTG 2015 Core Set Two-Player Clash Pack (2X60/5/6)",
+   "url": "https://ateliertcg.com/en/product/mtg-2015-core-set-two-player-clash-pack-2x60-5-6/",
+   "product_type": "Booster Pack",
+   "variants": [
+    {
+     "price": "104.50",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-7th-theme-deck",
+   "title": "MTG 7TH Theme Deck",
+   "url": "https://ateliertcg.com/en/product/mtg-7th-theme-deck/",
+   "product_type": "Starter Deck",
+   "variants": [
+    {
+     "price": "440.00",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-adv-forgotten-realms-prerelease-pack",
+   "title": "MTG Adv Forgotten Realms Prerelease Pack (display of 15)",
+   "url": "https://ateliertcg.com/en/product/mtg-adv-forgotten-realms-prerelease-pack/",
+   "product_type": "Prerelease Kit",
+   "variants": [
+    {
+     "price": "979.00",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-aetherdrift-commander",
+   "title": "MTG Aetherdrift Commander (Set of 4)",
+   "url": "https://ateliertcg.com/en/product/mtg-aetherdrift-commander/",
+   "product_type": "Commander Deck",
+   "variants": [
+    {
+     "price": "169.40",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-aetherdrift-play-booster-box",
+   "title": "MTG Aetherdrift Play Booster Box",
+   "url": "https://ateliertcg.com/en/product/mtg-aetherdrift-play-booster-box/",
+   "product_type": "Booster Box",
+   "variants": [
+    {
+     "price": "191.40",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-aetherdrift-prerelease-pack",
+   "title": "MTG Aetherdrift Prerelease Pack (display of 15)",
+   "url": "https://ateliertcg.com/en/product/mtg-aetherdrift-prerelease-pack/",
+   "product_type": "Prerelease Kit",
+   "variants": [
+    {
+     "price": "530.14",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-amonkhet-bundle-10-6",
+   "title": "MTG Amonkhet Bundle (10+/6)",
+   "url": "https://ateliertcg.com/en/product/mtg-amonkhet-bundle-10-6/",
+   "product_type": "Bundle",
+   "variants": [
+    {
+     "price": "199.77",
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "mtg-archenemy-nicol-bolas-60x4-4",
+   "title": "MTG Archenemy: Nicol Bolas (60X4/4)",
+   "url": "https://ateliertcg.com/en/product/mtg-archenemy-nicol-bolas-60x4-4/",
+   "product_type": "Product",
+   "variants": [
+    {
+     "price": "194.51",
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "mtg-assassin-s-creed-beyond-play-booster-box",
+   "title": "MTG Assassin's Creed Beyond Play Booster Box",
+   "url": "https://ateliertcg.com/en/product/mtg-assassin-s-creed-beyond-play-booster-box/",
+   "product_type": "Booster Box",
+   "variants": [
+    {
+     "price": "200.35",
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "mtg-avatar-the-last-airbender-beginner-box",
+   "title": "MTG Avatar the Last Airbender Beginner Box",
+   "url": "https://ateliertcg.com/en/product/mtg-avatar-the-last-airbender-beginner-box/",
+   "product_type": "Bundle",
+   "variants": [
+    {
+     "price": "37.42",
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "mtg-avatar-the-last-airbender-collector-booster-box",
+   "title": "MTG Avatar the Last Airbender Collector Booster Box",
+   "url": "https://ateliertcg.com/en/product/mtg-avatar-the-last-airbender-collector-booster-box/",
+   "product_type": "Collector Booster Box",
+   "variants": [
+    {
+     "price": "646.70",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-avatar-the-last-airbender-jumpstart-booster-box",
+   "title": "MTG Avatar the Last Airbender Jumpstart Booster Box",
+   "url": "https://ateliertcg.com/en/product/mtg-avatar-the-last-airbender-jumpstart-booster-box/",
+   "product_type": "Booster Box",
+   "variants": [
+    {
+     "price": "159.50",
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "mtg-avatar-the-last-airbender-play-booster-box",
+   "title": "MTG Avatar the Last Airbender Play Booster Box",
+   "url": "https://ateliertcg.com/en/product/mtg-avatar-the-last-airbender-play-booster-box/",
+   "product_type": "Booster Box",
+   "variants": [
+    {
+     "price": "186.00",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-avatar-the-last-airbender-scene-box",
+   "title": "MTG Avatar the Last Airbender Scene Box (Set of 4)",
+   "url": "https://ateliertcg.com/en/product/mtg-avatar-the-last-airbender-scene-box/",
+   "product_type": "Bundle",
+   "variants": [
+    {
+     "price": "236.50",
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "mtg-bloomburrow-commander",
+   "title": "MTG Bloomburrow Commander (Set of 4)",
+   "url": "https://ateliertcg.com/en/product/mtg-bloomburrow-commander/",
+   "product_type": "Commander Deck",
+   "variants": [
+    {
+     "price": "439.51",
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "mtg-bloomburrow-play-booster-box",
+   "title": "MTG Bloomburrow Play Booster Box",
+   "url": "https://ateliertcg.com/en/product/mtg-bloomburrow-play-booster-box/",
+   "product_type": "Booster Box",
+   "variants": [
+    {
+     "price": "281.57",
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "mtg-born-of-the-gods-intro-pack-60-10-3",
+   "title": "MTG Born of the Gods Intro Pack (60+/10/3)",
+   "url": "https://ateliertcg.com/en/product/mtg-born-of-the-gods-intro-pack-60-10-3/",
+   "product_type": "Booster Pack",
+   "variants": [
+    {
+     "price": "110.00",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-challenger-decks-2018",
+   "title": "MTG Challenger Decks 2018",
+   "url": "https://ateliertcg.com/en/product/mtg-challenger-decks-2018/",
+   "product_type": "Product",
+   "variants": [
+    {
+     "price": "240.90",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-challenger-decks-2019",
+   "title": "MTG Challenger Decks 2019",
+   "url": "https://ateliertcg.com/en/product/mtg-challenger-decks-2019/",
+   "product_type": "Product",
+   "variants": [
+    {
+     "price": "196.90",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-challenger-decks-2020",
+   "title": "MTG Challenger Decks 2020",
+   "url": "https://ateliertcg.com/en/product/mtg-challenger-decks-2020/",
+   "product_type": "Product",
+   "variants": [
+    {
+     "price": "213.40",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-challenger-decks-2021",
+   "title": "MTG Challenger Decks 2021",
+   "url": "https://ateliertcg.com/en/product/mtg-challenger-decks-2021/",
+   "product_type": "Product",
+   "variants": [
+    {
+     "price": "240.90",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-challenger-decks-2022",
+   "title": "MTG Challenger Decks 2022",
+   "url": "https://ateliertcg.com/en/product/mtg-challenger-decks-2022/",
+   "product_type": "Product",
+   "variants": [
+    {
+     "price": "207.48",
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "mtg-challenger-pioneer-decks-2022",
+   "title": "MTG Challenger Pioneer Decks 2022",
+   "url": "https://ateliertcg.com/en/product/mtg-challenger-pioneer-decks-2022/",
+   "product_type": "Product",
+   "variants": [
+    {
+     "price": "357.50",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-commander-2019",
+   "title": "MTG Commander 2019",
+   "url": "https://ateliertcg.com/en/product/mtg-commander-2019/",
+   "product_type": "Commander Deck",
+   "variants": [
+    {
+     "price": "225.84",
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "mtg-commander-collection-black",
+   "title": "MTG Commander Collection: Black",
+   "url": "https://ateliertcg.com/en/product/mtg-commander-collection-black/",
+   "product_type": "Commander Deck",
+   "variants": [
+    {
+     "price": "60.50",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-commander-collection-black-premium-ed",
+   "title": "MTG Commander Collection: Black Premium Ed.",
+   "url": "https://ateliertcg.com/en/product/mtg-commander-collection-black-premium-ed/",
+   "product_type": "Commander Deck",
+   "variants": [
+    {
+     "price": "97.90",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-commander-collection-green",
+   "title": "MTG Commander Collection: Green",
+   "url": "https://ateliertcg.com/en/product/mtg-commander-collection-green/",
+   "product_type": "Commander Deck",
+   "variants": [
+    {
+     "price": "1065.90",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-commander-legends-baldurs-gate-pre-release",
+   "title": "MTG Commander Legends Baldurs Gate Pre-Release",
+   "url": "https://ateliertcg.com/en/product/mtg-commander-legends-baldurs-gate-pre-release/",
+   "product_type": "Prerelease Kit",
+   "variants": [
+    {
+     "price": "1421.84",
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "mtg-commander-legends-draft-booster-box",
+   "title": "MTG Commander Legends Draft Booster Box",
+   "url": "https://ateliertcg.com/en/product/mtg-commander-legends-draft-booster-box/",
+   "product_type": "Commander Deck",
+   "variants": [
+    {
+     "price": "382.41",
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "mtg-core-2020-booster-box",
+   "title": "MTG Core 2020 Booster Box",
+   "url": "https://ateliertcg.com/en/product/mtg-core-2020-booster-box/",
+   "product_type": "Booster Box",
+   "variants": [
+    {
+     "price": "235.75",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-core-2020-prerelease-pack",
+   "title": "MTG Core 2020 Prerelease Pack (display of 15)",
+   "url": "https://ateliertcg.com/en/product/mtg-core-2020-prerelease-pack/",
+   "product_type": "Prerelease Kit",
+   "variants": [
+    {
+     "price": "592.90",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-core-2021-prerelease-pack",
+   "title": "MTG Core 2021 Prerelease Pack (display of 15)",
+   "url": "https://ateliertcg.com/en/product/mtg-core-2021-prerelease-pack/",
+   "product_type": "Prerelease Kit",
+   "variants": [
+    {
+     "price": "655.60",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-dominaria-remastered-draft-booster-box",
+   "title": "MTG Dominaria Remastered Draft Booster Box",
+   "url": "https://ateliertcg.com/en/product/mtg-dominaria-remastered-draft-booster-box/",
+   "product_type": "Booster Box",
+   "variants": [
+    {
+     "price": "357.00",
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "mtg-dominaria-united-bundle",
+   "title": "MTG Dominaria United Bundle",
+   "url": "https://ateliertcg.com/en/product/mtg-dominaria-united-bundle/",
+   "product_type": "Bundle",
+   "variants": [
+    {
+     "price": "138.15",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-dominaria-united-jumpstart-booster-box",
+   "title": "MTG Dominaria United Jumpstart Booster Box",
+   "url": "https://ateliertcg.com/en/product/mtg-dominaria-united-jumpstart-booster-box/",
+   "product_type": "Booster Box",
+   "variants": [
+    {
+     "price": "124.81",
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "mtg-dominaria-united-prerelease-pack",
+   "title": "MTG Dominaria United Prerelease Pack (display of 15)",
+   "url": "https://ateliertcg.com/en/product/mtg-dominaria-united-prerelease-pack/",
+   "product_type": "Prerelease Kit",
+   "variants": [
+    {
+     "price": "632.50",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "mtg-double-masters-2022-collector-booster-box",
+   "title": "MTG Double Masters 2022 Collector Booster Box",
+   "url": "https://ateliertcg.com/en/product/mtg-double-masters-2022-collector-booster-box/",
+   "product_type": "Collector Booster Box",
+   "variants": [
+    {
+     "price": "624.84",
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "mtg-double-masters-vip-edition",
+   "title": "MTG Double Masters Vip Edition",
+   "url": "https://ateliertcg.com/en/product/mtg-double-masters-vip-edition/",
+   "product_type": "Product",
+   "variants": [
+    {
+     "price": "1274.73",
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "mtg-dr-who-collector-booster-box",
+   "title": "MTG Dr Who Collector Booster Box",
+   "url": "https://ateliertcg.com/en/product/mtg-dr-who-collector-booster-box/",
+   "product_type": "Collector Booster Box",
+   "variants": [
+    {
+     "price": "944.44",
+     "available": false
+    }
+   ]
+  },
+  {
+   "handle": "mtg-dragons-of-tarkir-event-deck-60-6",
+   "title": "MTG Dragons of Tarkir Event Deck (60+/6)",
+   "url": "https://ateliertcg.com/en/product/mtg-dragons-of-tarkir-event-deck-60-6/",
+   "product_type": "Starter Deck",
+   "variants": [
+    {
+     "price": "119.63",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "one-piece-card-game-9pkt-binder-set-seven-warlords-of-the-sea",
+   "title": "One Piece Card Game 9PKT Binder Set Seven Warlords of the Sea",
+   "url": "https://ateliertcg.com/en/product/one-piece-card-game-9pkt-binder-set-seven-warlords-of-the-sea/",
+   "product_type": "Collection Box",
+   "variants": [
+    {
+     "price": "490.33",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "one-piece-card-game-dp03-double-pack-set-vol-3",
+   "title": "One Piece Card Game DP03 Double Pack Set Vol 3 (display of 6)",
+   "url": "https://ateliertcg.com/en/product/one-piece-card-game-dp03-double-pack-set-vol-3/",
+   "product_type": "Booster Pack",
+   "variants": [
+    {
+     "price": "760.52",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "one-piece-card-game-dp04-double-pack-set-vol-4",
+   "title": "One Piece Card Game DP04 Double Pack Set Vol 4 (display of 6)",
+   "url": "https://ateliertcg.com/en/product/one-piece-card-game-dp04-double-pack-set-vol-4/",
+   "product_type": "Booster Pack",
+   "variants": [
+    {
+     "price": "750.51",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "riftbound-league-of-legends-tcg-vendetta-art-sleeves-1-100-count",
+   "title": "Riftbound League of Legends TCG Vendetta Art Sleeves #1 100-Count",
+   "url": "https://ateliertcg.com/en/product/riftbound-league-of-legends-tcg-vendetta-art-sleeves-1-100-count/",
+   "product_type": "Accessory",
+   "variants": [
+    {
+     "price": "15.04",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "riftbound-league-of-legends-tcg-vendetta-art-sleeves-2-100-count",
+   "title": "Riftbound League of Legends TCG Vendetta Art Sleeves #2 100-Count",
+   "url": "https://ateliertcg.com/en/product/riftbound-league-of-legends-tcg-vendetta-art-sleeves-2-100-count/",
+   "product_type": "Accessory",
+   "variants": [
+    {
+     "price": "15.04",
+     "available": true
+    }
+   ]
+  },
+  {
+   "handle": "riftbound-league-of-legends-tcg-vendetta-art-sleeves-3-100-count",
+   "title": "Riftbound League of Legends TCG Vendetta Art Sleeves #3 100-Count",
+   "url": "https://ateliertcg.com/en/product/riftbound-league-of-legends-tcg-vendetta-art-sleeves-3-100-count/",
+   "product_type": "Accessory",
+   "variants": [
+    {
+     "price": "15.04",
+     "available": true
+    }
+   ]
+  }
+ ]
+}
