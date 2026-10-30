@@ -250,7 +250,7 @@ test("the importer's secrets reach only the import step of the workflow", () => 
     assert.ok(run - Date.parse(`${date}T${startsAtUtc}:00Z`) <= 97 * 60_000, `${season}: within ~97 minutes of the reset (GitHub's delay still lands in the same day)`);
   }
   assert.ok(/--only "\$ONLY"|args\+=\(--only "\$ONLY"\)/.test(wf) && /"\$\{args\[@\]\}"/.test(wf), "dispatch inputs are passed quoted");
-  assert.ok(/force:/.test(wf) && /NEXT_PUBLIC_EBAY_CAMPAIGN_ID/.test(wf));
+  assert.ok(/force:/.test(wf) && !/NEXT_PUBLIC_EBAY_CAMPAIGN_ID/.test(wf), "the campaign is hard-coded, never a variable");
   assert.ok(/workflow_dispatch/.test(wf) && /dry_run/.test(wf) && /only:/.test(wf));
   assert.ok(/prisma db push --skip-generate && npx prisma generate/.test(wf) && !/accept-data-loss/.test(wf.replace(/#.*$/gm, "")));
 });

@@ -140,9 +140,10 @@ export function searchTerms(name: string): string {
 
 // ─── eBay (EPN search links) ───────────────────────────────────────────────────
 
-// EPN campaign id (public — it appears in every tagged URL). `||` so an empty
-// env var still falls back to the real id rather than silently un-tagging links.
-export const EBAY_CAMPAIGN_ID = process.env.NEXT_PUBLIC_EBAY_CAMPAIGN_ID || "5339155912";
+// EPN campaign id (public — it appears in every tagged URL). One campaign for every
+// Compare site, hard-coded (owner, 2026-10-30): no variable overrides it; the
+// customid prefix tells the sites apart in EPN's reports.
+export const EBAY_CAMPAIGN_ID = "5339155912";
 
 // EPN rotation ids per eBay site (mkrid) and the site id. SG and NZ have no EPN
 // program of their own: NZ buyers use eBay Australia, SG buyers eBay US.

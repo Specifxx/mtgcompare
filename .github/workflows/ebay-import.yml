@@ -55,7 +55,6 @@ name: MTG Compare eBay import
 #   EBAY_RUN_CAP (2500)              most Browse searches in one run, retries included (a strict ceiling); set it lower than the daily cap
 #                                    to keep room for a manual re-run on the same Pacific day
 #   EBAY_LISTING_MAX_AGE_HOURS (26)  how old a listing may be before the site stops showing it (set the same value in Vercel; the store import reads it too)
-#   NEXT_PUBLIC_EBAY_CAMPAIGN_ID     only to use a different EPN campaign id from the default; the importer enforces it on every stored URL (the website no longer compares it)
 #   EBAY_SWEEP_CALLS (2100)          how many of a run's calls the catalogue sweep may spend (the per-product searches get the rest).
 #
 # Inputs (Run workflow): only (buckets: chase, sealed, types, sets, sweep, items; a list without "sweep" skips the sweep), force,
@@ -181,8 +180,6 @@ jobs:
           EBAY_RUN_CAP: ${{ vars.EBAY_RUN_CAP || '1500' }}
           EBAY_SWEEP_CALLS: ${{ vars.EBAY_SWEEP_CALLS || '1200' }}
           EBAY_LISTING_MAX_AGE_HOURS: ${{ vars.EBAY_LISTING_MAX_AGE_HOURS }}
-          # The affiliate links the importer stores carry this campaign id; it must equal the website's (Vercel) value.
-          NEXT_PUBLIC_EBAY_CAMPAIGN_ID: ${{ vars.NEXT_PUBLIC_EBAY_CAMPAIGN_ID }}
           ONLY: ${{ inputs.only }}
           DRY: ${{ inputs.dry_run }}
           FORCE: ${{ inputs.force }}
