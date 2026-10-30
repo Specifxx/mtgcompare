@@ -72,8 +72,10 @@ const nextConfig = {
       { source: "/:path(card|cards|singles|browse|search|price-guide|movers|rising|market|commanders|decks|deck|tools|colors|keywords|gallery|trade|embed|c)", destination: "/us/sealed", permanent: true },
       { source: "/:path(card|cards|singles|browse|search|price-guide|movers|rising|market|commanders|decks|deck|tools|colors|keywords|gallery|trade|embed|c)/:rest*", destination: "/us/sealed", permanent: true },
       { source: "/:region(au|uk|ca|eu|sg)/:path(card|cards|singles|browse|search|price-guide|movers|rising|market|commanders|decks|tools)/:rest*", destination: "/:region/sealed", permanent: true },
-      { source: "/:path(premium|login|account|profile|dashboard|portfolio|watching|watchlist|alerts|newsletter|unsubscribe|support|feedback|learn|methodology|editorial-policy|creators|authors|admin)", destination: "/about", permanent: true },
-      { source: "/:path(premium|login|account|profile|dashboard|portfolio|watching|watchlist|alerts|newsletter|unsubscribe|support|feedback|learn|methodology|editorial-policy|creators|authors|admin)/:rest*", destination: "/about", permanent: true },
+      { source: "/:path(premium|login|account|profile|dashboard|portfolio|watching|watchlist|alerts|newsletter|unsubscribe|support|feedback|learn|methodology|editorial-policy|authors|admin)", destination: "/about", permanent: true },
+      { source: "/:path(premium|login|account|profile|dashboard|portfolio|watching|watchlist|alerts|newsletter|unsubscribe|support|feedback|learn|methodology|editorial-policy|authors|admin)/:rest*", destination: "/about", permanent: true },
+      // The old singles site's creator pages: /creators is the creators hub again (2026-10-30); anything under it goes there.
+      { source: "/creators/:rest+", destination: "/creators", permanent: true },
       // Blog and guide redirects (old slugs that no longer exist) go below this line.
       // The old site's singles-only posts (src/lib/blog/index.ts DROPPED_POSTS) go to the blog; its /guides/<slug> posts to their
       // /blog/<slug>, or the blog when dropped (OLD_GUIDE_POSTS). tests/guides.test.ts checks both lists against these rules. The

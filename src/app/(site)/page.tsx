@@ -12,6 +12,7 @@ import { SITE_NAME, SITE_URL, sectionHref } from "@/lib/site";
 import { STORES } from "@/lib/stores";
 import { HalloweenDecor } from "@/components/home/HalloweenDecor";
 import { InnistradComing } from "@/components/home/InnistradComing";
+import { CreatorsTeaser } from "@/components/home/CreatorsTeaser";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js CDN_PAGES, "/"), like the region pages, never ISR and never
 // prerendered at build (a build reads no data: tests/vercel-ignore-build.test.ts). The region block's default (US) picks come from the
@@ -111,6 +112,12 @@ export default async function Landing() {
           </p>
         </div>
       </section>
+
+      {/* The creators we feature (owner, 2026-10-30: "feature him"), as on RiftCompare's homepage: one compact strip into /creators,
+          under the hero's paragraph and above the prices. */}
+      <div className="page mt-8 max-w-3xl">
+        <CreatorsTeaser />
+      </div>
 
       {/* The next set (lib/coming-soon.ts, by sets.ts dates): gone on its release day. It carries the pre-order hub link, so the hot
           buttons below keep their Commander decks button. */}

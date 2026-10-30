@@ -177,7 +177,7 @@ test("Header with no region: the whole header, built for the default region (the
 test("the sidebar (xl): product types, sets, deals and the rest, under each layout, every link a real region path", () => {
   const groups = navGroups("au", "2026-10-28");
   assert.deepEqual(groups.map((g) => g.title), ["Shop by product", "Sets", "Deals & stock", "More"]);
-  for (const l of groups.flatMap((g) => g.links)) assert.match(l.href, /^\/au\/|^\/blog$/, l.href);
+  for (const l of groups.flatMap((g) => g.links)) assert.match(l.href, /^\/au\/|^\/blog$|^\/creators$/, l.href);
   assert.deepEqual(groups[1].links[0], { href: "/au/preorders/star-trek", label: "Star Trek pre-orders" }, "an open pre-order hub leads the sets");
   assert.equal(groups[1].links[1].label, "Reality Fracture", "then the newest released set");
   assert.equal(navGroups("au", "2026-11-13")[1].links[0].label, "Star Trek", "the hub is gone on release day; the set leads as the newest released");
