@@ -459,3 +459,15 @@ in every tag; this site's is `mtg-<region>`. The importer enforces the same id o
 Replaced: 5339155911 (WargameCompare, FigureCompare, Compare Empire, K Young), 5339231473 (Lorcana),
 5339231474 (Gundam), 5339234013 (YGO). Old secrets/variables (`EBAY_AFFILIATE_CAMPAIGN`,
 `NEXT_PUBLIC_EBAY_CAMPAIGN_ID`, `EBAY_CAMPAIGN_ID`) are no longer read and can be deleted.
+
+## A creators page, starting with Kevin Lepage — 2026-10-30
+
+The owner asked for a creators section like RiftCompare's, with Kevin Lepage (@kevin_altered_mtg, altered-card illustrator) as
+the first. `/creators` lists the creators in `src/lib/creators.ts` (a hand-edited array: no database, no form, no account, since this
+site has none), the newest as a big spotlight, and the homepage carries one compact strip into it under the hero's paragraph
+(`components/home/CreatorsTeaser.tsx`), as RiftCompare's homepage does. The page reads no data, so it is prerendered at build like
+`/about`; it is in the sitemap, the footer and the sidebar's "More". `/creators` used to 301 to `/about` (an old singles-site page);
+that rule is gone and `/creators/<anything>` now goes to the hub, which is why photos live in `public/img/creators/`, not
+`public/creators/` (the redirect would catch them). Creator links are followed and keep the referrer (`rel="noopener"`): showing a
+creator that we send them visitors is the deal. Only links the creator shows publicly: his Facebook ("Kevin Altered") is left out
+until we have its URL. Unlike RiftCompare there is no tip button or creator code (no Pro here); "get featured" is an email.

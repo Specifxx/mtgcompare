@@ -109,3 +109,16 @@ test("static sitemap: every guide in each region it is offered in, and nowhere e
   for (const r of REGION_LIST) for (const p of ["/deals", "/cheapest-packs", "/black-friday", "/tools"]) assert.ok(urls.has(`${SITE_URL}/${r.region}${p}`), `${r.region}${p}`);
   assert.equal(urls.size, entries.length, "no duplicate URLs");
 });
+
+test("the creators hub is in the sitemap, linked from the footer, and no longer redirected to /about", async () => {
+  const { staticSitemap } = await import("../src/lib/sitemap");
+  const { footerColumns } = await import("../src/components/Footer");
+  const { SITE_URL } = await import("../src/lib/site");
+  assert.ok(staticSitemap({}).some((u) => u.url === `${SITE_URL}/creators`));
+  assert.ok(footerColumns(null).flatMap((c) => c.links).some((l) => l.href === "/creators"));
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const cfg = require("../next.config.js") as { redirects: () => Promise<{ source: string; destination: string }[]> };
+  const rules = await cfg.redirects();
+  assert.ok(!rules.some((r) => r.destination === "/about" && /creators/.test(r.source)), "/creators is a page, not a redirect");
+  assert.ok(rules.some((r) => r.source === "/creators/:rest+" && r.destination === "/creators"));
+});

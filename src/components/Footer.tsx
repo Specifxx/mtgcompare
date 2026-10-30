@@ -15,6 +15,7 @@ export function footerColumns(region: Region | null): { title: string; links: Fo
   const site: FooterLink[] = [
     { href: "/about", label: "About & how it works" },
     { href: "/blog", label: "Blog" },
+    { href: "/creators", label: "Creators" },
     { href: "/about#stores", label: "For stores" },
     { href: "/contact", label: "Contact" },
     { href: "/affiliate-disclosure", label: "Affiliate disclosure" },
