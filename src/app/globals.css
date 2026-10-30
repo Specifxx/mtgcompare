@@ -429,3 +429,18 @@ body:has([data-ebay-no-prefooter]) [data-ebay-prefooter] {
 .theme-icon-dark { display: none; }
 :root[data-theme="light"] .theme-icon-dark { display: block; }
 :root[data-theme="light"] .theme-icon-light { display: none; }
+
+/* Quick view (src/components/QuickView.tsx): opens at once, prices shimmer in. */
+.qv-shimmer {
+  background: linear-gradient(90deg, rgb(var(--raised)) 0%, rgb(var(--line)) 50%, rgb(var(--raised)) 100%);
+  background-size: 200% 100%;
+  animation: qv-shimmer 1.1s linear infinite;
+}
+@keyframes qv-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.qv-panel { animation: qv-in 0.18s ease-out; }
+.qv-backdrop { animation: qv-fade 0.18s ease-out; }
+@keyframes qv-in { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes qv-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .qv-shimmer, .qv-panel, .qv-backdrop { animation: none; }
+}

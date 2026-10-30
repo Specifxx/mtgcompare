@@ -70,47 +70,7 @@ export function OfferTable({
   pinned?: { productName: string; tcgplayer: TcgplayerMatch | null } | null;
 }) {
   const r = REGIONS[region];
-  const now = Date.now();
-  const pin = ebay ? pinned : null;
-  const tcgOffer = pin ? offers.find((o) => o.marketplace) ?? null : null;
-  const storeOffers = tcgOffer ? offers.filter((o) => o !== tcgOffer) : offers;
-  const cheapestOpen = storeOffers.find((o) => offerStock(o, now) === "open");
-  // Each row as data (prices formatted, stock state and links decided here, on the server): the browser's list (OfferRowsWithEbay)
-  // renders the rows from it. Passing data, not rendered rows, keeps the page's RSC payload small: a row is ~350 bytes of data where
-  // its element tree was ~1.5 KB, on top of the same row in the HTML.
-  let rank = 0;
-  const rows: StoreRowData[] = storeOffers.map((o) => {
-    const state = offerStock(o, now);
-    const link = offerLink(o.store, o.url, region, placement);
-    const open = state === "open";
-    return {
-      ...(numbered && open ? { rank: ++rank } : {}),
-      ...(bestLabel && o === cheapestOpen ? { badge: bestLabel } : {}),
-      key: o.store,
-      cents: o.priceCents,
-      open,
-      state,
-      best: o === cheapestOpen,
-      name: o.storeName,
-      host: o.storeHost,
-      title: o.title,
-      marketplace: o.marketplace,
-      href: link.href,
-      rel: link.rel,
-      sponsored: link.sponsored,
-      retailer: offerRetailer(o.store, o.storeName, r.market),
-      placement,
-      price: money(o.priceCents, r.market),
-      // packs.ts perPackCents, inlined: this module is also in the browser's bundle (StoreRow), and packs.ts brings sets.ts and the
-      // title classifier with it
-      perPack: packs && open && o.priceCents > 0 ? money(Math.round(o.priceCents / packs), r.market) : null,
-      lastSeen: o.lastSeen,
-      ago: timeAgo(o.lastSeen, now),
-      ship: o.marketplace ? null : shippingCell(o.store, r.market, o.priceCents, (c) => money(c, r.market)),
-    };
-  });
-  const tcg = pin ? tcgRow(tcgOffer, pin, region, placement, now) : null;
-  const amazon = pin ? amazonRow(pin.productName, region, now) : null;
+  const { rows, tcg, amazon, storeOffers } = offerRowsData({ offers, region, packs, placement, numbered, bestLabel, pinned: ebay ? pinned : null });
   const footer = tableFooter(!!ebay);
   return (
     <>
@@ -155,6 +115,73 @@ export function OfferTable({
       </HowPricesWork>
     </>
   );
+}
+
+/**
+ * The table's rows as data, decided on the server (StoreRowData): the stores, and with `pinned` the TCGplayer and Amazon rows. Shared by
+ * OfferTable and the tile quick view (/api/quick/<region>/<slug>, components/QuickView.tsx), so both draw the same rows in the same order.
+ */
+export function offerRowsData({
+  offers,
+  region,
+  packs = null,
+  placement = "product-table",
+  numbered = false,
+  bestLabel,
+  pinned = null,
+}: {
+  offers: OfferView[];
+  region: Region;
+  packs?: number | null;
+  placement?: Placement;
+  numbered?: boolean;
+  bestLabel?: { short: string; full: string };
+  /** OfferTable passes it only with an eBay row (the product page). */
+  pinned?: { productName: string; tcgplayer: TcgplayerMatch | null } | null;
+}) {
+  const r = REGIONS[region];
+  const now = Date.now();
+  const pin = pinned;
+  const tcgOffer = pin ? offers.find((o) => o.marketplace) ?? null : null;
+  const storeOffers = tcgOffer ? offers.filter((o) => o !== tcgOffer) : offers;
+  const cheapestOpen = storeOffers.find((o) => offerStock(o, now) === "open");
+  // Each row as data (prices formatted, stock state and links decided here, on the server): the browser's list (OfferRowsWithEbay)
+  // renders the rows from it. Passing data, not rendered rows, keeps the page's RSC payload small: a row is ~350 bytes of data where
+  // its element tree was ~1.5 KB, on top of the same row in the HTML.
+  let rank = 0;
+  const rows: StoreRowData[] = storeOffers.map((o) => {
+    const state = offerStock(o, now);
+    const link = offerLink(o.store, o.url, region, placement);
+    const open = state === "open";
+    return {
+      ...(numbered && open ? { rank: ++rank } : {}),
+      ...(bestLabel && o === cheapestOpen ? { badge: bestLabel } : {}),
+      key: o.store,
+      cents: o.priceCents,
+      open,
+      state,
+      best: o === cheapestOpen,
+      name: o.storeName,
+      host: o.storeHost,
+      title: o.title,
+      marketplace: o.marketplace,
+      href: link.href,
+      rel: link.rel,
+      sponsored: link.sponsored,
+      retailer: offerRetailer(o.store, o.storeName, r.market),
+      placement,
+      price: money(o.priceCents, r.market),
+      // packs.ts perPackCents, inlined: this module is also in the browser's bundle (StoreRow), and packs.ts brings sets.ts and the
+      // title classifier with it
+      perPack: packs && open && o.priceCents > 0 ? money(Math.round(o.priceCents / packs), r.market) : null,
+      lastSeen: o.lastSeen,
+      ago: timeAgo(o.lastSeen, now),
+      ship: o.marketplace ? null : shippingCell(o.store, r.market, o.priceCents, (c) => money(c, r.market)),
+    };
+  });
+  const tcg = pin ? tcgRow(tcgOffer, pin, region, placement, now) : null;
+  const amazon = pin ? amazonRow(pin.productName, region, now) : null;
+  return { rows, tcg, amazon, storeOffers };
 }
 
 /**
