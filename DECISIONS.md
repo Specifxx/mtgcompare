@@ -471,3 +471,15 @@ that rule is gone and `/creators/<anything>` now goes to the hub, which is why p
 `public/creators/` (the redirect would catch them). Creator links are followed and keep the referrer (`rel="noopener"`): showing a
 creator that we send them visitors is the deal. Only links the creator shows publicly: his Facebook ("Kevin Altered") is left out
 until we have its URL. Unlike RiftCompare there is no tip button or creator code (no Pro here); "get featured" is an email.
+
+## 2026-10-30: quick view on every product card (from K Young)
+
+Owner: "I really like the kaeyoung quick view pop ups, can we do that for dexcompare, mtgcompare and all the other sites".
+A plain click on a product card now opens K Young's quick view at once with what the card shows (photo, type, name),
+then the product page's own price rows load from `/api/quick/<region>/<slug>`: a function response Vercel's CDN keeps
+for a day like every page (the data only changes with a release), fetched ahead when a mouse rests on a card. The rows
+come from `offerRowsData()`, the function `OfferTable` itself now uses, and are drawn by the table's own
+`OfferRowsWithEbay`, so the quick view cannot disagree with the page: eBay first, then TCGplayer and Amazon, then the
+stores, the eBay row fetched exactly as on the page. Store buttons carry the new `quickview-table` placement. The card
+is still a real link, so crawlers, new tabs and modified clicks reach the product page, whose server HTML keeps every
+price.

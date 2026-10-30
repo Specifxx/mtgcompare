@@ -21,6 +21,7 @@ export const PLACEMENTS = [
   "product-marketplace", // product page: the Marketplaces panel under it
   "product-soldout", // product page: the sold-out callout
   "product-table", // product page: the offer table, stores and marketplaces
+  "quickview-table", // a product card's quick view (components/QuickView.tsx): the same rows as the product page's table
   "preorders", // pre-order page (/[region]/preorders/[set]): each product's store price list (the stores only, numbered by price)
   "preorders-ebay", // pre-order page: the pinned eBay row at the top of each product's price list (a search: pre-sale listings are refused)
   "preorders-tcgplayer", // pre-order page: the pinned TCGplayer row under it (US: its offer; elsewhere its US$ offer or a search)

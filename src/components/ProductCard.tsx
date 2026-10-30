@@ -73,6 +73,12 @@ export function ProductCard({ p, region, priority = false }: { p: ProductCardDat
       <Link
         href={`/${region}/p/${p.slug}`}
         prefetch={false}
+        // A plain click opens the quick view (QuickView.tsx); the link itself stays for crawlers and new tabs.
+        data-qv={p.slug}
+        data-qv-region={region}
+        data-qv-name={p.name}
+        data-qv-sub={p.productType}
+        data-qv-img={img ?? undefined}
         className="group card flex flex-1 flex-col overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lift"
       >
         {/* The photo on its plate (globals.css .plate): white in light mode, where multiply melts a photo's own white into it; a
