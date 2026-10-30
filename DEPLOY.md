@@ -60,7 +60,6 @@ Environment variables the site reads (all optional):
 | Name | What |
 | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | the canonical origin, default `https://mtgcompare.app` (no trailing slash) |
-| `NEXT_PUBLIC_EBAY_CAMPAIGN_ID` | the eBay Partner Network campaign id |
 | `NEXT_PUBLIC_TCGPLAYER_IMPACT_LINK` | the TCGplayer Impact deep link |
 | `NEXT_PUBLIC_ADSENSE_CLIENT` | AdSense publisher id, or `off` |
 | `NEXT_PUBLIC_CONTACT_EMAIL`, `NEXT_PUBLIC_OPERATOR` | the contact address and who runs the site |
@@ -308,8 +307,8 @@ placement). There are no text-only banners, chip rows or "Still deciding?" rows 
   `dex-<region>-<placement>`; eBay listing tiles carry `dex-<market>-<feed kind>` (see above).
 
 No environment variables are needed. Optional overrides:
-`NEXT_PUBLIC_EBAY_CAMPAIGN_ID` and `NEXT_PUBLIC_TCGPLAYER_IMPACT_LINK` (the
-built-in defaults are the live campaign and deep link).
+`NEXT_PUBLIC_TCGPLAYER_IMPACT_LINK` (the built-in default is the live deep link). The
+EPN campaign, 5339155912, is hard-coded and has no variable.
 
 ## Monthly money check (10 minutes)
 
@@ -453,11 +452,8 @@ also cover every product.
    `MTGCOMPARE_EBAY_CLIENT_SECRET` are accepted too and win when set (to give this site a different keyset from a shared
    one without renaming anything). The secrets are passed to the **import step only**.
 3. **Optional repository variables** (Variables tab): `EBAY_DAILY_CAP` (default 2500, also the maximum: this site's share of the keyset,
-   see the box above), `EBAY_RUN_CAP` (2500), `EBAY_LISTING_MAX_AGE_HOURS` (26), and `NEXT_PUBLIC_EBAY_CAMPAIGN_ID` **only if** you override the
-   EPN campaign id: the importer enforces
-   its own value (default `5339155912`) on every URL it stores and asks eBay to tag the URLs with it. The website no longer compares a listing's
-   campaign id with its own build's (it checks only that an eBay item URL carries a numeric `campid`), so an override in Vercel alone can no longer
-   blank the strips; it changes only the site's own search links. The simplest course is to override neither.
+   see the box above), `EBAY_RUN_CAP` (2500), `EBAY_LISTING_MAX_AGE_HOURS` (26). The EPN campaign (`5339155912`, one campaign for every
+   Compare site; owner, 2026-10-30) is hard-coded: the importer enforces it on every URL it stores, and no variable overrides it.
    `EBAY_SWEEP_CALLS` (default 2100, clamped to 0..2500) is how many of a run's calls the catalogue sweep may spend (the per-product searches
    get what it leaves); the workflow passes the repository variable of that name to the importer. With the run cap equal to the daily cap, the scheduled run may spend the whole day: to keep room for a manual re-run on the
    same Pacific day, set `EBAY_RUN_CAP` lower (2,200 leaves 300).
