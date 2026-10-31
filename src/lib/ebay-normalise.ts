@@ -11,7 +11,7 @@
 //   • adult-only items dropped; shipping captured so a tile can call it out separately;
 //   • no derived statistics: nothing here computes an average, median or "% below" of eBay prices.
 import { epnTagUrl, EBAY_CAMPAIGN_ID, isItemListingUrl } from "./affiliate";
-import { cleanImageUrl, cleanPrice, cleanText, cleanTitle, feedReference, MARKETPLACES, type FeedItem, type FeedKind, type MarketplaceId } from "./ebay-context";
+import { cleanImageUrl, cleanPrice, cleanText, cleanTitle, feedReference, localSeller, MARKETPLACES, type FeedItem, type FeedKind, type MarketplaceId } from "./ebay-context";
 import { floorCents, fromRoughUsdCents, identify, isIdentity, TYPE_BY_KEY, type TypeKey } from "./sealed-title";
 import { refusedForType, refusedListing } from "./ebay-rules";
 export { refusedForType, refusedListing } from "./ebay-rules";
@@ -149,8 +149,12 @@ export function baseItem(raw: unknown, marketplace: MarketplaceId, now: number, 
   const url = itemUrl(raw, marketplace, kind);
   if (!url) return null;
 
-  const condition = cleanText(raw.condition, 24);
+  // A seller in the buyer's own country (the EU, for eBay Germany), with postage eBay states: an overseas seller's postage, or a
+  // "calculated" one, made the row a wasted click (visitor feedback 2026-10-31).
+  if (!localSeller(marketplace, isRecord(raw.itemLocation) ? raw.itemLocation.country : undefined)) return null;
   const ship = shippingFrom(raw);
+  if (!ship || (ship.currency && ship.currency !== m.currency)) return null;
+  const condition = cleanText(raw.condition, 24);
   return { id, title, imageUrl, price, url, ...(ship ? { ship } : {}), ...(condition ? { condition } : {}) };
 }
 
