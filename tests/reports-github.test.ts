@@ -55,8 +55,8 @@ test("each report is a new file under inbox/<site>/<day>/", () => {
   assert.equal(reportPath(c.report, "abc123"), "inbox/mysite/2026-10-31/030405-suggest-store-abc123.json");
 });
 
-test("saveReport creates the file with the token and never throws", async () => {
-  const c = cleanReport({ kind: "suggest-store", store: "S" }, "t", now);
+test("saveReport creates the file on the site's own reports branch and never throws", async () => {
+  const c = cleanReport({ kind: "suggest-store", store: "S" }, "riftcompare", now);
   assert.ok(c.ok);
   delete process.env.REPORTS_GITHUB_TOKEN;
   assert.equal(await saveReport(c.report, (async () => { throw new Error("no call"); }) as typeof fetch), "off");
@@ -64,12 +64,16 @@ test("saveReport creates the file with the token and never throws", async () => 
   let seen: { url: string; init: RequestInit } | null = null;
   const ok = (async (url: string, init: RequestInit) => { seen = { url, init }; return new Response("{}", { status: 201 }); }) as unknown as typeof fetch;
   assert.equal(await saveReport(c.report, ok), "saved");
-  assert.match(seen!.url, /^https:\/\/api\.github\.com\/repos\/Specifxx\/compare-reports\/contents\/inbox\/t\/2026-10-31\//);
+  assert.match(seen!.url, /^https:\/\/api\.github\.com\/repos\/Specifxx\/TCGEmpire\/contents\/inbox\/riftcompare\/2026-10-31\//);
   assert.equal(seen!.init.method, "PUT");
   const body = JSON.parse(String(seen!.init.body));
+  assert.equal(body.branch, "reports", "never main: the branch that deploys");
   assert.ok(!/\[deploy\]|\[preview\]/i.test(body.message));
   assert.equal(await saveReport(c.report, (async () => new Response("", { status: 403 })) as unknown as typeof fetch), "failed");
   assert.equal(await saveReport(c.report, (async () => { throw new Error("down"); }) as unknown as typeof fetch), "failed");
+  const unknown = cleanReport({ kind: "suggest-store", store: "S" }, "nosuchsite", now);
+  assert.ok(unknown.ok);
+  assert.equal(await saveReport(unknown.report, ok), "off");
   delete process.env.REPORTS_GITHUB_TOKEN;
 });
 
@@ -102,4 +106,10 @@ test("the report route exists and the forms never ask for an email", { skip: !sh
   const forms = readFileSync("src/components/ReportForms.tsx", "utf8");
   assert.ok(!/type="email"|name="email"/.test(forms));
   assert.ok(!/position:\s*"fixed"|<dialog/i.test(forms), "inline, never a pop-up");
+});
+
+test("the reports branch never deploys from this repo's own config", () => {
+  const v = JSON.parse(readFileSync("vercel.json", "utf8")) as { git?: { deploymentEnabled?: Record<string, boolean> | boolean } };
+  const d = v.git?.deploymentEnabled;
+  assert.ok(d === false || (typeof d === "object" && d.reports === false), "vercel.json: git.deploymentEnabled.reports = false");
 });
