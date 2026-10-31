@@ -2890,17 +2890,6 @@
     ]
   },
   {
-    "key": "tcgsynergy",
-    "name": "TCG Synergy",
-    "base": "https://tcgsynergy.myshopify.com",
-    "market": "CA",
-    "platform": "shopify",
-    "country": "CA",
-    "collections": [
-      "magic-the-gathering"
-    ]
-  },
-  {
     "key": "thesidedeck",
     "name": "The Side Deck",
     "base": "https://thesidedeck.ca",

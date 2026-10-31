@@ -34,6 +34,7 @@ import { get, RateLimitedError, sleep, REQUEST_DELAY_MS } from "../src/lib/scrap
 import { identify, isIdentity, type Rejection } from "../src/lib/sealed-title";
 import { REGIONS, isRegion, type Market } from "../src/lib/regions";
 import type { StoreConfig } from "../src/lib/stores";
+import { isBlockedStore } from "../src/lib/blocked-stores";
 
 interface Candidate {
   key?: string;
@@ -258,6 +259,10 @@ async function main() {
         continue;
       }
       if (seen.has(base)) continue;
+      if (isBlockedStore(c.key, c.name, base)) {
+        console.warn(`skip: ${c.name} is a banned store (lib/blocked-stores.ts)`);
+        continue;
+      }
       seen.add(base);
       let key = byBase.get(base)?.key ?? c.key ?? keyFromBase(base);
       if (!byBase.has(base)) {

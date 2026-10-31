@@ -7,6 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { modelInfo, PUBLIC_MODELS, type ModelName } from "./models";
 import type { Row, RowSource } from "./engine";
+import { isBlockedStore } from "../blocked-stores";
 import { DERIVED_ID, FILES, META_FILE, PUBLIC_DATA_FORMAT, publicDataDir, stableId, type PublicDataMeta } from "./format";
 
 /** The files are missing, unreadable or in a format this code does not know. */
@@ -55,7 +56,8 @@ class FileSource implements RowSource {
     let rows = this.rows.get(model);
     if (!rows) {
       const raw = readJson<Record<string, unknown>[]>(path.join(this.dir, FILES[model]));
-      rows = raw.map((r) => revive(model, r, this.meta));
+      // A banned store's rows (offers, store stats) never reach a page, even from a data export made before the ban.
+      rows = raw.filter((r) => !isBlockedStore(r.store as string | undefined)).map((r) => revive(model, r, this.meta));
       this.rows.set(model, rows);
     }
     return rows;

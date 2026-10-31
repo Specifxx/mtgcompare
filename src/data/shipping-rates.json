@@ -12969,58 +12969,6 @@
     }
    ]
   },
-  "tcgsynergy": {
-   "market": "CA",
-   "currency": "CAD",
-   "measuredAt": "2026-10-26T09:29:21.004Z",
-   "points": [
-    {
-     "subtotalCents": 399,
-     "rates": {
-      "tor": 0,
-      "van": 0,
-      "mtl": 0,
-      "cgy": 0
-     }
-    },
-    {
-     "subtotalCents": 4195,
-     "rates": {
-      "tor": 0,
-      "van": 0,
-      "mtl": 0,
-      "cgy": 0
-     }
-    },
-    {
-     "subtotalCents": 8495,
-     "rates": {
-      "tor": 0,
-      "van": 0,
-      "mtl": 0,
-      "cgy": 0
-     }
-    },
-    {
-     "subtotalCents": 15495,
-     "rates": {
-      "tor": 0,
-      "van": 0,
-      "mtl": 0,
-      "cgy": 0
-     }
-    },
-    {
-     "subtotalCents": 31995,
-     "rates": {
-      "tor": 0,
-      "van": 0,
-      "mtl": 0,
-      "cgy": 0
-     }
-    }
-   ]
-  },
   "teamcardgame": {
    "market": "SG",
    "currency": "SGD",

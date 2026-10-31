@@ -8,6 +8,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { StoreConfig } from "../src/lib/stores";
+import { isBlockedStore } from "../src/lib/blocked-stores";
 
 const args = process.argv.slice(2);
 const minIdx = args.indexOf("--min");
@@ -36,6 +37,7 @@ const keys = new Set(registry.map((s) => s.key));
 let added = 0;
 let updated = 0;
 for (const r of latest.values()) {
+  if (isBlockedStore(r.key, r.name, r.base)) continue;
   if (r.error || !r.platform || r.sealedProducts < MIN || !r.collections.length) continue;
   const prev = byBase.get(r.base);
   let key = prev?.key ?? r.key;
