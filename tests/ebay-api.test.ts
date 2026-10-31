@@ -107,9 +107,9 @@ test("token: no secret, id or credential in any thrown error; a token failure re
 });
 
 test("search request: filter, marketplace and affiliate headers per marketplace; price floor syntax; q cut at 100", () => {
-  assert.equal(searchFilter("EBAY_AU", 75), "buyingOptions:{FIXED_PRICE},price:[75..],priceCurrency:AUD,deliveryCountry:AU");
-  assert.equal(searchFilter("EBAY_DE", 45.7), "buyingOptions:{FIXED_PRICE},price:[45..],priceCurrency:EUR,deliveryCountry:DE");
-  assert.equal(searchFilter("EBAY_GB", null), "buyingOptions:{FIXED_PRICE},deliveryCountry:GB", "no price filter: no priceCurrency either");
+  assert.equal(searchFilter("EBAY_AU", 75), "buyingOptions:{FIXED_PRICE},price:[75..],priceCurrency:AUD,deliveryCountry:AU,itemLocationCountry:AU");
+  assert.equal(searchFilter("EBAY_DE", 45.7), "buyingOptions:{FIXED_PRICE},price:[45..],priceCurrency:EUR,deliveryCountry:DE", "eBay Germany stands for the EU: EU sellers are kept after the search");
+  assert.equal(searchFilter("EBAY_GB", null), "buyingOptions:{FIXED_PRICE},deliveryCountry:GB,itemLocationCountry:GB", "no price filter: no priceCurrency either");
   const u = new URL(buildSearchUrl({ q: "x".repeat(150), marketplace: "EBAY_US", limit: 999, minPrice: 25 }));
   assert.equal(u.origin + u.pathname, "https://api.ebay.com/buy/browse/v1/item_summary/search");
   assert.equal(u.searchParams.get("q")!.length, 100);
@@ -118,12 +118,13 @@ test("search request: filter, marketplace and affiliate headers per marketplace;
   const hd = searchHeaders("tok", "EBAY_CA");
   assert.equal(hd["X-EBAY-C-MARKETPLACE-ID"], "EBAY_CA");
   assert.equal(hd["Accept-Language"], "en-CA");
-  assert.match(hd["X-EBAY-C-ENDUSERCTX"], /affiliateCampaignId=5339155912,affiliateReferenceId=mtg-check$/, "a search with no feed says so");
+  assert.match(hd["X-EBAY-C-ENDUSERCTX"], /affiliateCampaignId=5339155912,affiliateReferenceId=mtg-check,/, "a search with no feed says so");
+  assert.match(hd["X-EBAY-C-ENDUSERCTX"], /,contextualLocation=country%3DCA%2Czip%3DM5V%202T6$/, "the buyer is in Canada, so eBay quotes postage there");
   // the importer asks eBay for a per-feed sub-id: eBay copies it into the URL's customid, EPN reports by it
-  assert.match(searchHeaders("tok", "EBAY_AU", "mtg-au-item")["X-EBAY-C-ENDUSERCTX"], /affiliateReferenceId=mtg-au-item$/);
-  assert.match(searchHeaders("tok", "EBAY_US", "mtg-us-chase")["X-EBAY-C-ENDUSERCTX"], /affiliateReferenceId=mtg-us-chase$/);
+  assert.match(searchHeaders("tok", "EBAY_AU", "mtg-au-item")["X-EBAY-C-ENDUSERCTX"], /affiliateReferenceId=mtg-au-item,/);
+  assert.match(searchHeaders("tok", "EBAY_US", "mtg-us-chase")["X-EBAY-C-ENDUSERCTX"], /affiliateReferenceId=mtg-us-chase,/);
   for (const bad of ["", "MTG-US", "dex us", "mtg-us,campid=1", "x".repeat(61), "a=b", "mtg-us-chase\r\nX-Evil: 1"])
-    assert.match(searchHeaders("tok", "EBAY_US", bad)["X-EBAY-C-ENDUSERCTX"], /affiliateReferenceId=mtg-check$/, `unsafe reference ${JSON.stringify(bad)} is not sent`);
+    assert.match(searchHeaders("tok", "EBAY_US", bad)["X-EBAY-C-ENDUSERCTX"], /affiliateReferenceId=mtg-check,/, `unsafe reference ${JSON.stringify(bad)} is not sent`);
   assert.ok(isReference("mtg-us-chase") && isReference("mtg-eu-sealed") && !isReference("Mtg-US"));
   assert.equal(hd.Authorization, "Bearer tok");
   assert.equal(searchHeaders("t", "EBAY_US")["Accept-Language"], "en-US");

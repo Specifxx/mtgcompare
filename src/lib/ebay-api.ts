@@ -24,7 +24,8 @@
 //     "affiliateCampaignId=<EPN campaign>,affiliateReferenceId=<ref>" so each item carries
 //     itemAffiliateWebUrl. <ref> is set PER FEED (mtg-us-chase, mtg-au-item: ebay-context.ts feedReference): eBay copies it into
 //     the URL's customid, EPN reports by it, and the URL is then used exactly as returned (the spec says to).
-//   • Filter: buyingOptions:{FIXED_PRICE}, price:[<min>..] with priceCurrency:<ISO>, deliveryCountry:<ISO-2>.
+//   • Filter: buyingOptions:{FIXED_PRICE}, price:[<min>..] with priceCurrency:<ISO>, deliveryCountry:<ISO-2>, and (not on eBay Germany,
+//     which stands for the EU) itemLocationCountry:<ISO-2>: local sellers only (2026-10-31).
 //     The open-ended range "[N..]" is the documented syntax for a lower bound; it could not be exercised
 //     without a keyset, so a 400 on a search that carries a price filter makes the importer retry that
 //     search once WITHOUT it (the title/price checks after the search do the same work). See ebay-import.ts.
@@ -228,6 +229,9 @@ export function searchFilter(marketplace: MarketplaceId, minPrice: number | null
     "buyingOptions:{FIXED_PRICE}",
     ...(minPrice != null ? [`price:[${Math.max(1, Math.floor(minPrice))}..]`, `priceCurrency:${m.currency}`] : []),
     `deliveryCountry:${m.country}`,
+    // Local sellers only (visitor feedback 2026-10-31): eBay Germany stands for the whole EU, so its search keeps every EU seller
+    // and the importer drops the rest (ebay-context.ts localSeller).
+    ...(marketplace === "EBAY_DE" ? [] : [`itemLocationCountry:${m.country}`]),
   ].join(",");
 }
 
@@ -254,7 +258,8 @@ export function searchHeaders(token: string, marketplace: MarketplaceId, ref: st
     Accept: "application/json",
     "Accept-Language": MARKETPLACES[marketplace].lang,
     "X-EBAY-C-MARKETPLACE-ID": marketplace,
-    "X-EBAY-C-ENDUSERCTX": `affiliateCampaignId=${EBAY_CAMPAIGN_ID},affiliateReferenceId=${reference}`,
+    // contextualLocation: the buyer is in the marketplace's country, so a listing's shippingOptions carry the real postage there.
+    "X-EBAY-C-ENDUSERCTX": `affiliateCampaignId=${EBAY_CAMPAIGN_ID},affiliateReferenceId=${reference},contextualLocation=${encodeURIComponent(`country=${MARKETPLACES[marketplace].country},zip=${MARKETPLACES[marketplace].zip}`)}`,
   };
 }
 

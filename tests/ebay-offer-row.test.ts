@@ -246,3 +246,10 @@ test("the product page gives the best-price card the same eBay pick as the table
   assert.doesNotMatch(ebayRowNote("nz"), /best price/);
   assert.match(ebayRowNote("sg"), /never compared with the stores'/);
 });
+
+test("the listing shown is the cheapest delivered: item plus the postage eBay states (visitor feedback 2026-10-31)", () => {
+  const cheapItemDearPost = { id: "a", price: { value: "100.00", currency: "AUD" }, ship: { value: "30.00", currency: "AUD" } };
+  const dearerFreePost = { id: "b", price: { value: "110.00", currency: "AUD" }, ship: { free: true } };
+  assert.equal(pickListing([cheapItemDearPost, dearerFreePost], null)?.id, "b");
+  assert.equal(pickListing([cheapItemDearPost, { ...dearerFreePost, price: { value: "131.00", currency: "AUD" } }], null)?.id, "a");
+});

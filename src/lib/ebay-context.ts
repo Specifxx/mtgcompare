@@ -27,15 +27,28 @@ export interface Marketplace {
   /** ISO country the search delivers to (the Browse API's deliveryCountry filter). */
   country: string;
   lang: string;
+  /** A central postcode in `country`: sent as the buyer's location (contextualLocation) so eBay quotes real postage there. */
+  zip: string;
 }
 
 export const MARKETPLACES: Record<MarketplaceId, Marketplace> = {
-  EBAY_US: { id: "EBAY_US", currency: "USD", country: "US", lang: "en-US" },
-  EBAY_AU: { id: "EBAY_AU", currency: "AUD", country: "AU", lang: "en-AU" },
-  EBAY_GB: { id: "EBAY_GB", currency: "GBP", country: "GB", lang: "en-GB" },
-  EBAY_CA: { id: "EBAY_CA", currency: "CAD", country: "CA", lang: "en-CA" }, // EBAY_CA also serves French: ask for English
-  EBAY_DE: { id: "EBAY_DE", currency: "EUR", country: "DE", lang: "de-DE" },
+  EBAY_US: { id: "EBAY_US", currency: "USD", country: "US", lang: "en-US", zip: "64101" },
+  EBAY_AU: { id: "EBAY_AU", currency: "AUD", country: "AU", lang: "en-AU", zip: "2000" },
+  EBAY_GB: { id: "EBAY_GB", currency: "GBP", country: "GB", lang: "en-GB", zip: "B1 1AA" },
+  EBAY_CA: { id: "EBAY_CA", currency: "CAD", country: "CA", lang: "en-CA", zip: "M5V 2T6" }, // EBAY_CA also serves French: ask for English
+  EBAY_DE: { id: "EBAY_DE", currency: "EUR", country: "DE", lang: "de-DE", zip: "60311" },
 };
+/**
+ * Where a seller may be for a marketplace's listings to be kept (visitor feedback, 2026-10-31, from WargameCompare: overseas sellers'
+ * postage made "a lot of wasted clicks"): the marketplace's own country, and for eBay Germany (the EU region's site) any EU country,
+ * which ships to an EU buyer without customs.
+ */
+export const EU_COUNTRIES: ReadonlySet<string> = new Set(["AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE"]);
+export function localSeller(marketplace: MarketplaceId, country: unknown): boolean {
+  if (typeof country !== "string" || !country) return true; // eBay omits it rarely; the search's own location filter already ran
+  return marketplace === "EBAY_DE" ? EU_COUNTRIES.has(country) : country === MARKETPLACES[marketplace].country;
+}
+
 export const MARKETPLACE_IDS = Object.keys(MARKETPLACES) as MarketplaceId[];
 
 /** NZ buyers use eBay Australia and SG buyers eBay US (neither has an EPN programme of its own; EBAY_SG has no affiliate URLs). */

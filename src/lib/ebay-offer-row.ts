@@ -68,7 +68,7 @@ export function rowPacks(type: TypeKey | null | undefined, packs: number | null)
  * product or a single card, not the product) and one whose title states another pack count than the product's `packs`. Ties keep the
  * feed's order (lowest price first, as stored).
  */
-export function pickListing<T extends { title?: string; price: { value: string; currency: string } }>(items: readonly T[], floor: PriceFloor | null, packs: number | null = null): T | null {
+export function pickListing<T extends { title?: string; price: { value: string; currency: string }; ship?: { free?: boolean; value?: string; currency?: string } }>(items: readonly T[], floor: PriceFloor | null, packs: number | null = null): T | null {
   let pick: T | null = null;
   let low = Infinity;
   for (const it of items) {
@@ -76,9 +76,13 @@ export function pickListing<T extends { title?: string; price: { value: string; 
     if (!Number.isFinite(n) || n <= 0) continue;
     if (floor && it.price.currency === floor.currency && n < floor.value) continue;
     if (wrongPackCount(it.title ?? "", packs)) continue;
-    if (n < low) {
+    // The cheapest DELIVERED (item + postage, when eBay states it in the same currency): a cheap item with A$30 postage is not the
+    // cheapest listing to buy (visitor feedback 2026-10-31).
+    const sh = it.ship && !it.ship.free && it.ship.value && it.ship.currency === it.price.currency ? Number(it.ship.value) : 0;
+    const total = n + (Number.isFinite(sh) ? sh : 0);
+    if (total < low) {
       pick = it;
-      low = n;
+      low = total;
     }
   }
   return pick;

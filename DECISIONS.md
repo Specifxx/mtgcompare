@@ -546,3 +546,13 @@ it reappears in the registry, `scripts/probe-stores.ts` and `scripts/registry-fr
 with the next release rather than waiting for an import to delete the rows. Matching is on the key, name or any part of
 the host with punctuation removed, so a custom domain in front of the same shop is caught too
 (`tests/blocked-stores.test.ts`). To ban another store, add its key to `BLOCKED_STORES`.
+
+## eBay: local sellers and stated postage only (2026-10-31)
+
+A WargameCompare visitor's feedback (the owner passed it on for every sister site): eBay rows from overseas sellers carried postage
+that made "a lot of wasted clicks". The Browse search now asks for items located in the marketplace's own country
+(`itemLocationCountry`; eBay Germany, which stands for the EU, keeps every EU seller and the importer drops the rest,
+`localSeller`), sends the buyer's country and a central postcode as `contextualLocation` so eBay quotes real postage, and
+`baseItem` keeps no listing whose postage eBay does not state. The product's eBay row is the cheapest listing delivered (item +
+postage, `pickListing`), still shown at its item price with the postage beside it, as before. NZ and SG keep the AU and US feeds.
+Rows stored before this age out with the next import.
