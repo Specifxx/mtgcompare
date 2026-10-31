@@ -45,6 +45,10 @@ export async function GET(_req: Request, { params }: { params: { region: string;
       amazon,
       ebay: { slug: p.slug, query: ebayQuery(p.name, tcgplayer), floor, packs: rowPacks(type?.key, packs) },
       preorder: pre,
+      // For a quick view opened from a plain link, which knows only the slug.
+      name: p.name,
+      sub: p.productType,
+      img: p.imageUrl ?? null,
     },
     { headers },
   );
