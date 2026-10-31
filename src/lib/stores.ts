@@ -7,6 +7,7 @@
 // store".
 import raw from "@/data/stores.json";
 import { regionOfMarket, type Market } from "./regions";
+import { isBlockedStore } from "./blocked-stores";
 
 export interface StoreConfig {
   key: string; // stable URL key: /<region>/stores/<key>
@@ -27,7 +28,8 @@ export interface StoreConfig {
 
 // The independent stores: what every "N stores" claim, the store directory and
 // the sitemap count. Marketplaces are not stores and are never in this list.
-export const STORES: StoreConfig[] = (raw as StoreConfig[]).slice().sort((a, b) => a.name.localeCompare(b.name));
+// A banned store (lib/blocked-stores.ts) is dropped even if it reappears in stores.json.
+export const STORES: StoreConfig[] = (raw as StoreConfig[]).filter((s) => !isBlockedStore(s.key, s.name, s.base)).sort((a, b) => a.name.localeCompare(b.name));
 
 // TCGplayer: a US marketplace read through its public search API
 // (src/lib/tcgplayer.ts). Its offers live in the US market alongside the

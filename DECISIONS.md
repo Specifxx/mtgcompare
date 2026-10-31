@@ -534,3 +534,15 @@ the 104 product links on `/us`). `QuickView.tsx` now opens for any plain click o
 card's `data-qv` attributes when present, else the region and slug read from the href, with the link's own photo and
 text until `/api/quick` answers (it now also returns `name`, `sub` and `img`). Links inside the quick view and on the
 product's own page navigate as before; modified, middle and new-tab clicks follow the link, so the pages stay crawlable.
+
+
+## 2026-10-31 — TCG Synergy is banned, and banned stores stay out
+
+The owner reported TCG Synergy (tcgsynergy.myshopify.com, a CA Shopify store first added by the 2026-10-28 store audit)
+as a scam site. It is removed from `src/data/stores.json` and `src/data/shipping-rates.json`, and named in
+`src/lib/blocked-stores.ts`, which every path that could bring it back now checks: `STORES` drops a banned entry even if
+it reappears in the registry, `scripts/probe-stores.ts` and `scripts/registry-from-probe.ts` skip it, and the file store
+(`lib/public-data/store.ts`) drops its offers and store stats from a data export made before the ban, so it disappears
+with the next release rather than waiting for an import to delete the rows. Matching is on the key, name or any part of
+the host with punctuation removed, so a custom domain in front of the same shop is caught too
+(`tests/blocked-stores.test.ts`). To ban another store, add its key to `BLOCKED_STORES`.
