@@ -15,6 +15,7 @@ import { marketplaceOf } from "@/lib/ebay-context";
 import { ebayQuery, SoldOutCallout } from "@/components/Marketplaces";
 import { AmazonProductRow } from "@/components/Amazon";
 import { OfferTable } from "@/components/OfferTable";
+import { ReportPrice } from "@/components/ReportForms";
 import { ProductGrid } from "@/components/ProductGrid";
 import { ProductRail } from "@/components/ProductRail";
 import { Section } from "@/components/Section";
@@ -593,6 +594,12 @@ export default async function ProductPage({ params }: { params: { region: string
             None of the {r.adjective} stores we track list {p.name} right now.
           </div>
         )}
+        <ReportPrice
+          product={p.name}
+          region={r.short}
+          buttonClassName="btn-ghost"
+          stores={p.offers.filter((o) => !o.marketplace).map((o) => ({ name: o.storeName, price: money(o.priceCents, r.market) }))}
+        />
         {riftHref && (
           // The owner's other Pokémon site keeps what this one does not: TCGplayer's market price over time (lib/riftcompare.ts).
           <p className="mt-4 text-sm text-muted">

@@ -483,3 +483,24 @@ come from `offerRowsData()`, the function `OfferTable` itself now uses, and are 
 stores, the eBay row fetched exactly as on the page. Store buttons carry the new `quickview-table` placement. The card
 is still a real link, so crawlers, new tabs and modified clicks reach the product page, whose server HTML keeps every
 price.
+
+## 2026-10-31: wrong-price reports and store suggestions go to a private GitHub repo
+
+**Owner:** "for all of these websites … we must have the ability to report any prices that are wrong, for users to
+suggest a store … it's just stored within the GitHub … a daily job that checks for that."
+
+* Every Compare Empire site now has the same two forms: **Report a wrong price** (a quiet link under the price table
+  that opens in place, never a pop-up) and **Suggest a store**. Both POST to `/api/report`
+  (`src/lib/reports-github.ts`, `src/components/ReportForms.tsx`: the same two files in every site repo).
+* They are filed in ONE **private** repository, `Specifxx/compare-reports`: one new JSON file per report at
+  `inbox/<site>/<day>/…json`, created through GitHub's contents API with `REPORTS_GITHUB_TOKEN` (a fine-grained token
+  with Contents read/write on that repo only, Vercel only). Private because the site repos are public and a note is a
+  stranger's free text; the K Young reviews branch is public because reviews are meant to be read.
+* Nothing about the visitor is stored: no email field, no IP, no hash of one (the per-visitor limit, 6 an hour, lives
+  in the function's memory), and email addresses, IP addresses and phone-like numbers in a note are blanked before
+  the write. A honeypot field swallows bots.
+* Each write creates a new file (no read, no sha), so reports never race, and the commit subject never carries
+  `[deploy]`/`[preview]`. The route is POST only: no page view or crawler runs it, so it costs nothing at rest.
+* A daily job in that repo (`triage.yml`) keeps one issue per site listing what is still open, flags repeat
+  reports of the same product and store, and warns before the token expires. A handled report is moved to
+  `done/<site>/`. Until the token is set the route answers 503 and the form says to email the site's address.

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import Link from "@/components/Link";
 import { CONTACT_EMAIL, SITE_NAME, SITE_URL } from "@/lib/site";
+import { SuggestStore } from "@/components/ReportForms";
+import { REGION_LIST } from "@/lib/regions";
 
 export const metadata: Metadata = {
   title: "Contact & report a listing",
@@ -19,8 +21,8 @@ export default function Contact() {
       <div className="prose-dex mt-6">
         <p>
           One address for everything: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. It is read by a person, usually within two
-          working days; a wrong listing or a removal request is dealt with within a day. There is no phone line and no form — email keeps a
-          record for both of us.
+          working days; a wrong listing or a removal request is dealt with within a day. There is no phone line. Quicker still, and with no
+          email needed: <b>Report a wrong price</b> under any product&rsquo;s prices, and the <a href="#suggest">Suggest a store</a> form below.
         </p>
 
         <h2 id="report">Report a listing</h2>
@@ -60,6 +62,13 @@ export default function Contact() {
           </a>
         </p>
 
+        <h2 id="suggest">Suggest a store</h2>
+        <p>Know a store we don&rsquo;t compare yet, or run one? Tell us here; we check every suggestion.</p>
+      </div>
+      <div className="mt-3">
+        <SuggestStore regions={REGION_LIST.map((x) => [x.short, x.name])} what="Magic sealed product" buttonClassName="btn-primary" />
+      </div>
+      <div className="prose-dex mt-8">
         <h2 id="press">Press and data questions</h2>
         <p>
           Happy to explain how the counts on the site are produced, or what a region&rsquo;s stores are asking for a product today. We keep no
