@@ -525,3 +525,12 @@ POST only, 503 until the token is set) still holds.
   comment. Those issues are public, so they link to each report's file and never quote a note. It fails (and
   GitHub emails the owner) when a site has no `reports` branch, or the token stops working or expires within 14
   days (checked only when the token is also a TCGEmpire Actions secret). The ops monitor's job list watches it.
+
+## 2026-10-31 — Every product link opens the quick view
+
+Owner, 2026-10-31: "Whenever I click on any item … I want a quick view open like K Young." Only `ProductCard` carried
+`data-qv`, so the home page's lists, tables, set pages, deals rows and guides went straight to the product page (72 of
+the 104 product links on `/us`). `QuickView.tsx` now opens for any plain click on a link to `/<region>/p/<slug>`: a
+card's `data-qv` attributes when present, else the region and slug read from the href, with the link's own photo and
+text until `/api/quick` answers (it now also returns `name`, `sub` and `img`). Links inside the quick view and on the
+product's own page navigate as before; modified, middle and new-tab clicks follow the link, so the pages stay crawlable.
