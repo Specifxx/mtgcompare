@@ -1,27 +1,29 @@
 // Visitor reports in GitHub: "this price is wrong" and "please add this store".
 //
-// Every Compare Empire site files them in ONE PRIVATE repository,
-// Specifxx/compare-reports, one JSON file per report at
-// inbox/<site>/<YYYY-MM-DD>/<time>-<random>.json on its main branch. A daily job
-// in that repo (.github/workflows/triage.yml) keeps one GitHub issue per site
-// listing what is still open and flags what needs a look; a report that has been
-// dealt with is moved to done/<site>/. This file is the same in every site repo.
+// Each site files them in ITS OWN public repo, on a `reports` branch that never
+// deploys and is never merged (owner, 2026-10-31: "build it into each site ...
+// inside the public GitHub is fine, as long as it's not reflected on the front
+// end"): one JSON file per report at inbox/<site>/<YYYY-MM-DD>/<time>-<kind>-<random>.json.
+// Nothing on the site reads the branch. A daily job (RiftCompare's
+// reports-triage.yml) reads every site's branch and keeps one GitHub issue per
+// site listing what is open and what needs a look; a report that has been dealt
+// with is moved to done/<site>/ on the same branch. This file is the same in
+// every site repo.
 //
-// Private on purpose: the site repos are public, and a note is a stranger's free
-// text. Even so nothing about the visitor is kept: no email, no IP, no hash of
-// one (the per-visitor limit below lives only in the function's memory), and
-// anything in a note that looks like an email address or a phone number is
-// blanked before it is written.
+// The branch is public, so nothing about the visitor is kept: no email, no IP,
+// no hash of one (the per-visitor limit below lives only in the function's
+// memory), and anything in a note that looks like an email address, an IP or a
+// phone number is blanked before it is written.
 //
 // The token (REPORTS_GITHUB_TOKEN) is a fine-grained one with Contents
-// read/write on that one repo only, set in Vercel and never sent to the browser.
-// Without it the route answers 503 and the form says to email instead; a site
-// that already stores or emails reports keeps doing that.
+// read/write on the site repos only, set in Vercel and never sent to the
+// browser. Without it the route answers 503 and the form says to email instead;
+// a site that already stores or emails reports keeps doing that.
 //
 // Writes only create new files (no read, no sha), so two reports in the same
 // second can never race. The commit subject never carries [deploy] or
-// [preview], and the repo deploys nothing anyway. (A PUT is never cached by
-// Next, so no cache option is needed.)
+// [preview], and the branch's own vercel.json turns deploys off. (A PUT is
+// never cached by Next, so no cache option is needed.)
 
 export type ReportKind = "wrong-price" | "suggest-store" | "other";
 export const REPORT_KINDS: readonly ReportKind[] = ["wrong-price", "suggest-store", "other"];
@@ -55,8 +57,23 @@ export interface Report {
 export const LIMITS = { note: 1000, field: 160, page: 300 } as const;
 
 export const reportsToken = () => (process.env.REPORTS_GITHUB_TOKEN || "").trim();
-export const reportsRepo = () => (process.env.REPORTS_REPO || "Specifxx/compare-reports").trim();
-export const reportsBranch = () => (process.env.REPORTS_BRANCH || "main").trim();
+/** Each site's own repo; its reports go on that repo's `reports` branch. */
+export const SITE_REPOS: Record<string, string> = {
+  riftcompare: "Specifxx/TCGEmpire",
+  opcompare: "Specifxx/OpCompare",
+  mtgcompare: "Specifxx/mtgcompare",
+  dexcompare: "Specifxx/CompareEmpire",
+  gundamcompare: "Specifxx/GundamCompare",
+  lorcanacompare: "Specifxx/lorcanacompare",
+  ygocompare: "Specifxx/ygocompare",
+  compareempire: "Specifxx/compareempiretake2",
+  camcompare: "Specifxx/Camcompare",
+  wargamecompare: "Specifxx/wargamecompare",
+  figurecompare: "Specifxx/figurecompare",
+  kaeyoung: "Specifxx/Kaeyoung",
+};
+export const reportsRepo = (site: string) => (process.env.REPORTS_REPO || SITE_REPOS[site] || "").trim();
+export const reportsBranch = () => (process.env.REPORTS_BRANCH || "reports").trim();
 export const reportsConfigured = () => Boolean(reportsToken());
 
 /** Blank what could identify a person: email addresses and IP addresses; in free
@@ -148,10 +165,10 @@ export type SaveResult = "saved" | "off" | "failed";
 
 /** Create the report's file in the reports repo. Never throws. */
 export async function saveReport(r: Report, f: typeof fetch = fetch): Promise<SaveResult> {
-  if (!reportsConfigured()) return "off";
+  if (!reportsConfigured() || !reportsRepo(r.site)) return "off";
   const path = reportPath(r);
   try {
-    const res = await f(`https://api.github.com/repos/${reportsRepo()}/contents/${path}`, {
+    const res = await f(`https://api.github.com/repos/${reportsRepo(r.site)}/contents/${path}`, {
       method: "PUT",
       signal: AbortSignal.timeout(10_000),
       headers: {

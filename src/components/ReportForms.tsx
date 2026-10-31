@@ -4,7 +4,7 @@
 // Compare Empire site shares. Both POST to /api/report, which files them in the
 // private reports repo (src/lib/reports-github.ts). Inline only: the price form
 // opens in place under a quiet link, never as a pop-up (owner, 2026-10-27).
-// Nothing asks for an email address. Styling is inherited (currentColor and
+// Nothing asks for an email address, and the hint says reports are public. Styling is inherited (currentColor and
 // translucent borders) so the same file sits on light and dark sites; a site
 // passes its own button class.
 import { useState, type CSSProperties, type FormEvent } from "react";
@@ -130,7 +130,7 @@ export function ReportPrice({
             {state.status === "sending" ? "Sending…" : "Send report"}
           </button>
           <Result state={state} sentText="" />
-          <p style={hint}>No sign-up and no email needed. Please don&apos;t include personal details.</p>
+          <p style={hint}>No sign-up and no email needed. Reports are kept in our public records, so please don&apos;t include personal details.</p>
         </form>
       )}
     </details>
@@ -190,7 +190,7 @@ export function SuggestStore({
         {state.status === "sending" ? "Sending…" : "Suggest this store"}
       </button>
       <Result state={state} sentText="" />
-      <p style={hint}>No sign-up and no email needed. Store owners are welcome too: listing is free.</p>
+      <p style={hint}>No sign-up and no email needed. Store owners are welcome too: listing is free. Suggestions are kept in our public records.</p>
     </form>
   );
 }

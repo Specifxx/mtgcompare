@@ -504,3 +504,24 @@ suggest a store … it's just stored within the GitHub … a daily job that chec
 * A daily job in that repo (`triage.yml`) keeps one issue per site listing what is still open, flags repeat
   reports of the same product and store, and warns before the token expires. A handled report is moved to
   `done/<site>/`. Until the token is set the route answers 503 and the form says to email the site's address.
+
+## Visitor reports live on each site's own `reports` branch, not a private repo — 2026-10-31
+
+**Owner:** "we don't need a private repo for this … just build it into each site … inside the public GitHub, it's
+fine. As long as it's not reflected on the front end." This replaces the private `Specifxx/compare-reports` repo
+of the entry before it; everything else in that entry (the forms, no email/IP, redaction, new file per report,
+POST only, 503 until the token is set) still holds.
+
+* Each site writes its reports to **its own repo**, on an orphan branch named `reports` (`SITE_REPOS` in
+  `src/lib/reports-github.ts`): `inbox/<site>/<day>/…json`, moved to `done/<site>/…` once handled. The branch is
+  never merged into `main` and never deploys: `git.deploymentEnabled.reports = false` in `main`'s `vercel.json`
+  (pinned by `tests/reports-github.test.ts`) and the branch's own `vercel.json` turns deploys off as well.
+* Nothing on any site reads the branch, so no report ever shows on a page. The branch is public with the source,
+  which is why nothing about the visitor is stored and notes are redacted before the write.
+* One token, `REPORTS_GITHUB_TOKEN` (fine-grained, Contents read/write on the twelve site repos only), set in each
+  Vercel project for Production.
+* The daily triage moved to RiftCompare (`Specifxx/TCGEmpire`): `.github/workflows/reports-triage.yml` reads all
+  twelve `reports` branches through the API and keeps one issue per site there, plus a once-a-day "Reports digest"
+  comment. Those issues are public, so they link to each report's file and never quote a note. It fails (and
+  GitHub emails the owner) when a site has no `reports` branch, or the token stops working or expires within 14
+  days (checked only when the token is also a TCGEmpire Actions secret). The ops monitor's job list watches it.
