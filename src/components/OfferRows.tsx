@@ -131,7 +131,7 @@ export interface StoreRowData {
   ago: string;
   /** The store's measured shipping for one item at this price (lib/shipping.ts); null: "Shipping at checkout". */
   ship: ShipCell | null;
-  /** The TCGplayer row pinned under eBay's (OfferTable `pinned`): TCGplayer's own button colour, never the red one. */
+  /** The TCGplayer row pinned under eBay's (OfferTable `pinned`): the stores' own button (owner, 2026-11-01: "blend in"), never the red one. */
   kind?: "tcgplayer" | "amazon";
   /** No matched listing: the row is a search (no price). */
   search?: boolean;
@@ -229,7 +229,7 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
         retailer={d.retailer}
         placement={d.placement ?? "product-table"}
         amazon={d.amazon}
-        className={`${tcg ? "btn-tcg" : d.best ? "btn-primary" : d.open ? "btn-soft" : "btn-ghost"} ${ROW_BUTTON}`}
+        className={`${d.best ? "btn-primary" : d.open ? "btn-soft" : "btn-ghost"} ${ROW_BUTTON}`}
       >
         {d.kind === "amazon" ? "Check price" : d.search ? "Search" : d.open ? "View deal" : "View"} <span aria-hidden="true">↗</span>
         {tcg && <span className="sr-only"> on TCGplayer</span>}

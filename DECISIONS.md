@@ -651,3 +651,11 @@ The owner: "the sites that they don't [have their own email], just use compareem
 riftcompare@gmail.com (another brand's), and the footer now shows it as a mailto beside the Contact link on every
 page (this reverses "no mailto in the footer", which existed only to keep the other brand's address out of the chrome).
 `NEXT_PUBLIC_CONTACT_EMAIL` still overrides it. No form and no mail service.
+## 2026-11-01: eBay and Amazon rows look like the other price rows
+
+The owner: "the ebay and amazon links should blend in and look exactly the same as the other price rows … reflect that
+change on the other sites that require it." Paid marketplace rows (eBay, Amazon, and TCGplayer where it is pinned) keep
+their place and their "Ad"/paid-link label, but lose their brand tints and brand-coloured buttons: they use the same row
+and the same button as a store. They are still never counted as a store and never re-ranked by commission. This
+reverses the 2026-10-30 "bright, catchy colour" pinned rows; eBay ad strips and panels outside the price rows keep
+their own look.

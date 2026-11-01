@@ -814,11 +814,12 @@ export function OfferRowsWithEbay({
   );
 }
 
-const EBAY_BUTTON = "btn-ad";
+// The stores' own button (owner, 2026-11-01: eBay and Amazon rows "blend in and look exactly the same as the other price rows").
+const EBAY_BUTTON = "btn-soft";
 
 /**
  * Shaped exactly like a store row (OfferRows.tsx StoreRow: the same grid, cells and line heights, 88 px on a phone), so it reads as one
- * more price row; only its blue button and the small "Ad" label set it apart. The name cell says "eBay" (and the listing's condition when
+ * more price row; only the small "Ad" label sets it apart. The name cell says "eBay" (and the listing's condition when
  * it is not new); the stock-pill cell, the listing's shipping (or "Marketplace" before there is a listing); the price cell, the listing's
  * price; the host line, how old the listing is and its title.
  */
