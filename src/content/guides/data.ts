@@ -84,6 +84,7 @@ const READS: Record<GuideSlug, readonly [FamilyKey, number][]> = {
   "mtg-bundle-prices": [],
   "best-commander-precons-australia": [],
   "where-to-buy-mtg-booster-boxes-australia": [],
+  "best-magic-product-for-beginners": [],
 };
 
 const UB_CODES = SETS.filter((x) => x.series === "Universes Beyond").map((x) => x.code);
@@ -130,6 +131,8 @@ async function extraFor(slug: GuideSlug, market: RegionInfo["market"], today: st
       return { byType: await types(["Bundle", "Play Booster Box"], 80), openByType: await counts(["Bundle"]) };
     case "best-commander-precons-australia":
       return { byType: await types(["Commander Deck", "Commander Deck Set"], 15), openByType: await counts(["Commander Deck", "Commander Deck Set"]) };
+    case "best-magic-product-for-beginners":
+      return { byType: await types(["Starter Kit", "Commander Deck", "Play Booster Pack"], 6), openByType: await counts(["Starter Kit", "Commander Deck"]) };
     case "where-to-buy-mtg-booster-boxes-australia":
       return { byType: await types(["Play Booster Box", "Collector Booster Box"], 120), openByType: await counts(["Play Booster Box", "Collector Booster Box"]) };
     default:
