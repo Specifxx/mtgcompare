@@ -13,6 +13,9 @@ import type { RegionInfo } from "./regions";
 import { withMtg } from "./seo";
 import { SITE_NAME } from "./site";
 
+/** How people name a region after "mtg" in a search ("mtg nz", "mtg uk", "mtg australia"). */
+const SEARCH_PLACE: Partial<Record<string, string>> = { NZ: "NZ", UK: "UK", AU: "Australia", CA: "Canada", EU: "Europe", SG: "Singapore" };
+
 export const SEO_TITLE_SUFFIX = ` | ${SITE_NAME}`;
 export const SEO_TITLE_MAX = 60;
 export const SEO_DESCRIPTION_MAX = 160;
@@ -108,8 +111,14 @@ const fromText = (cents: number | null, market: string) => (cents != null ? mone
 
 export const seoCopy = {
   /** /<region>: "MTG booster box prices in Australia: 60 stores compared". */
+  // Outside the US the region's short name leads (Search Console 2026-11-01: "mtg nz" and "magic the gathering nz" reach
+  // /nz at positions 36-57 under "MTG booster box prices in New Zealand").
   homeTitle: (r: R, stores: number) =>
-    fitFirst(`MTG booster box prices in ${r.inName}: ${stores} stores compared`, `Magic sealed prices in ${r.inName}: ${stores} stores`, `Magic sealed prices in ${r.inName}`),
+    fitFirst(
+      ...(SEARCH_PLACE[r.market]
+        ? [`MTG ${SEARCH_PLACE[r.market]}: Magic booster box & sealed prices, ${stores} stores`, `MTG ${SEARCH_PLACE[r.market]}: Magic sealed prices at ${stores} stores`]
+        : []),
+      `MTG booster box prices in ${r.inName}: ${stores} stores compared`, `Magic sealed prices in ${r.inName}: ${stores} stores`, `Magic sealed prices in ${r.inName}`),
   homeDescription: (r: R, stores: number, inStock: number) =>
     fitDescription(
       `Compare Magic booster boxes, Collector Boosters, bundles and Commander decks across ${plural(stores, `${r.adjective} store`)}${r.market === "US" ? " and TCGplayer" : ""}: ${inStock.toLocaleString("en")} in stock today, in ${r.currency}.`,

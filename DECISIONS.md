@@ -570,3 +570,11 @@ adds no request, no script beyond the boot line and no database or data read. Th
 `xmas-common:start` and `xmas-common:end` in `globals.css` (identical on every sister site); this site's colours sit in
 the `xmas-site` block after it. Art is eight small SVGs in `public/xmas/`. To end it early, move the `to` date; after
 Boxing Day it switches itself off.
+
+## 2026-11-01 — Regional homepages lead with "MTG <region>"; no singles page for "shock lands price"
+
+Search Console (90 days to 29 Oct): "mtg nz" and "magic the gathering nz" reach `/nz` and `/nz/releases` at positions
+36–67 under "MTG booster box prices in New Zealand". Region homepages outside the US now lead with the words people type
+("MTG NZ: Magic booster box & sealed prices, N stores"; Australia, Canada, Europe and Singapore spelled out, as searched).
+The US title is unchanged. "shock lands mtg price" still shows the old singles URL `/cards/name/shock` (301'd) at position
+80+; it is a singles query and this site is sealed-only since 2026-10-21, so no page is built for it.
