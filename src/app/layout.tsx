@@ -8,6 +8,7 @@ import { SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/site";
 import { jsonLd, siteJsonLd } from "@/lib/seo";
 import { SEASON_BOOT_SCRIPT } from "@/lib/season";
 import { THEME_BOOT_SCRIPT } from "@/lib/theme";
+import { REGION_BOOT_SCRIPT } from "@/lib/regions";
 import "./globals.css";
 
 // Font display is optional, not swap: both faces are preloaded, so a warm visit renders in them from the first paint, and a slow
@@ -44,6 +45,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: SEASON_BOOT_SCRIPT }} />
         {/* Theme (lib/theme.ts): data-theme on <html> from the visitor's saved choice, dark when none, before first paint. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+        {/* The visitor's own region (owner, 2026-11-01): a person, never a crawler, on another region's page goes to theirs. lib/region-boot.ts. */}
+        <script dangerouslySetInnerHTML={{ __html: REGION_BOOT_SCRIPT }} />
         {/* Product photos: 96% are on Shopify's CDN, most of the rest on TCGplayer's.
             Warming those two connections is the cheapest LCP win there is. */}
         <link rel="preconnect" href="https://cdn.shopify.com" />
