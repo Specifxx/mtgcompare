@@ -1,0 +1,16 @@
+name: Cyberpunk TCG store probe (temporary research)
+on:
+  push:
+    branches: [claude/project-thread-bfffut]
+    paths: ["research/cyberpunk/**", ".github/workflows/cyberpunk-probe.yml"]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      matrix: { shard: [0, 1, 2, 3] }
+    steps:
+      - uses: actions/checkout@v4
+      - run: awk 'NR % 4 == ${{ matrix.shard }}' research/cyberpunk/stores.txt > shard.txt && python3 research/cyberpunk/probe.py shard.txt
+      - uses: actions/upload-artifact@v4
+        with: { name: "probe-${{ matrix.shard }}", path: probe-result.json }
