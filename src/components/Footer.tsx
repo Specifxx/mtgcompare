@@ -3,7 +3,7 @@ import { COUNTRY_GUIDE } from "@/content/guides/country-prices";
 import { REGION_LIST, REGIONS, type Region } from "@/lib/regions";
 import { featureOrder } from "@/lib/release";
 import { SET_BY_CODE, SETS } from "@/lib/sets";
-import { CONTACT_EMAIL_SET, FAN_CONTENT_DISCLAIMER, OPERATOR, SISTER_SITES, SITE_NAME, sectionHref, type SectionKey } from "@/lib/site";
+import { CONTACT_EMAIL, FAN_CONTENT_DISCLAIMER, OPERATOR, SISTER_SITES, SITE_NAME, sectionHref, type SectionKey } from "@/lib/site";
 import { AMAZON_DISCLOSURE } from "@/lib/amazon";
 import { LogoMark } from "./Logo";
 import { footerSeoSections } from "./seo/HubLinks";
@@ -53,8 +53,8 @@ export function footerColumns(region: Region | null): { title: string; links: Fo
  * Static: no database read, so it costs nothing on the pages it closes. Rendered by the [region] and (site) layouts, the 404 and
  * the error page (each after its <main>).
  *
- * No mailto here: "Contact" goes to /contact, which has the address. A branded address (NEXT_PUBLIC_CONTACT_EMAIL) is shown as text
- * when one is set; the legacy fallback never is.
+ * The address (CONTACT_EMAIL, compareempire@gmail.com) is shown on every page beside a link to /contact (owner, 2026-10-30 and
+ * 2026-11-01: contact information "really clear", the sites without their own inbox on compareempire@gmail.com).
  */
 export function Footer({ region }: { region: Region | null }) {
   const r = region ? REGIONS[region] : null;
@@ -92,7 +92,12 @@ export function Footer({ region }: { region: Region | null }) {
               Affiliate disclosure
             </Link>
           </p>
-          {CONTACT_EMAIL_SET && <p className="mt-3 select-all text-xs text-muted">{CONTACT_EMAIL_SET}</p>}
+          <p className="mt-3 text-xs text-muted">
+            <Link href="/contact" prefetch={false} className="font-semibold text-ink underline decoration-line underline-offset-2 hover:decoration-ink">
+              Contact us
+            </Link>
+            : <a href={`mailto:${CONTACT_EMAIL}`} className="underline decoration-line underline-offset-2 hover:decoration-ink">{CONTACT_EMAIL}</a>
+          </p>
         </div>
 
         <div className={`grid grid-cols-2 gap-x-6 gap-y-8 ${r ? "sm:grid-cols-4" : ""}`}>
