@@ -266,6 +266,7 @@ const NEW_GUIDES: GuideSlug[] = [
   "mtg-booster-box-prices",
   "collector-booster-box-prices",
   "mtg-bundle-prices",
+  "best-magic-product-for-beginners",
 ];
 
 const typed = (name: string, productType: string, cents: number, setCode: string | null): ProductCardData => ({ ...card(name, cents, 4, false, setCode), productType });

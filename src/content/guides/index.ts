@@ -37,7 +37,8 @@ export type GuideSlug =
   | "collector-booster-box-prices"
   | "mtg-bundle-prices"
   | "best-commander-precons-australia"
-  | "where-to-buy-mtg-booster-boxes-australia";
+  | "where-to-buy-mtg-booster-boxes-australia"
+  | "best-magic-product-for-beginners";
 
 export interface Guide {
   slug: GuideSlug;
@@ -74,6 +75,17 @@ const D4 = "2026-10-25";
 const SEALED_EBAY = { heading: "Sealed Magic on eBay", query: "Magic the Gathering sealed" };
 
 export const GUIDES: readonly Guide[] = [
+  {
+    slug: "best-magic-product-for-beginners",
+    title: "Best Magic: The Gathering product for beginners",
+    description: "The best first Magic product to buy: Starter Kits, Commander decks or a few packs, what each is for, and what they cost in your region today.",
+    kicker: "Getting started",
+    published: "2026-11-01",
+    updated: "2026-11-01",
+    regions: "all",
+    topic: { types: ["starter", "commander-deck", "play-booster"] },
+    ebay: { heading: "Magic Starter Kits on eBay", query: "MTG starter kit" },
+  },
   {
     slug: "play-booster-vs-collector-booster-vs-bundle",
     title: "Play Booster vs Collector Booster vs Bundle: which to buy",

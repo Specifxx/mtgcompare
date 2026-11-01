@@ -632,3 +632,13 @@ link preview or audit tool, from a regional page of another region to the same p
 hreflang alternate (a page with no copy there stays). Their region is the one they last browsed (`mtg-region`, kept by
 RegionSwitcher), else their time zone's, else the US. `<main>` is hidden for at most 1.5 s while it decides. No request,
 no cookie: still one CDN copy per page, and every regional page stays indexable as itself.
+
+## 2026-11-01 — A beginners guide, not another gifts or product-types page
+
+Bill asked for one or two new guides per site. MTG's guides already own gifts
+(`magic-sealed-gifts-under-50`), product types and per-set prices, so the new
+one answers a query none of them targets: "best Magic product for beginners"
+(`best-magic-product-for-beginners`): which first product suits which new
+player, with the region's cheapest open Starter Kits, Commander decks and Play
+Booster packs today. It links the type hubs and the existing guides instead of
+repeating them, and makes no contents claim beyond the ones already used.
