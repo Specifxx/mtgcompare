@@ -15,7 +15,7 @@ test("Halloween runs 16-31 October, and is gone on 1 November", () => {
   assert.equal(seasonAt(at(2026, 10, 15)), null);
   assert.equal(seasonAt(at(2026, 10, 16)), "halloween");
   assert.equal(seasonAt(at(2026, 10, 31)), "halloween");
-  assert.equal(seasonAt(at(2026, 11, 1)), null);
+  assert.equal(seasonAt(at(2026, 11, 1)), "christmas", "Christmas takes over");
   assert.equal(seasonAt(at(2026, 3, 3)), null);
   assert.equal(seasonAt(at(2027, 10, 20)), "halloween", "it comes back every year");
   assert.equal(seasonMarkupLive("halloween", at(2026, 10, 15)), true);

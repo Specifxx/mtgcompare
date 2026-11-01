@@ -12,31 +12,35 @@ const ORBS: { cx: number; cy: number; from: string; to: string }[] = [
 const SPARK = "M32 25.5Q33 31.6 39.5 33Q33 34.4 32 40.5Q31 34.4 24.5 33Q31 31.6 32 25.5Z";
 
 export function LogoMark({ className = "h-8 w-8" }: { className?: string }) {
+  // In a host span so the Christmas Santa hat (globals.css .xmas-logo-hat, hidden outside the season) can sit on the mark.
   return (
-    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
-      <defs>
-        <radialGradient id="mcm-bg" cx="0.5" cy="0.3" r="0.85">
-          <stop offset="0" stopColor="#2b1d55" />
-          <stop offset="1" stopColor="#0b0914" />
-        </radialGradient>
-        <linearGradient id="mcm-gd" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#f7e3a3" />
-          <stop offset="1" stopColor="#c39434" />
-        </linearGradient>
-        {ORBS.map((o, i) => (
-          <radialGradient key={i} id={`mcm-o${i}`} cx="0.35" cy="0.3" r="0.8">
-            <stop offset="0" stopColor={o.from} />
-            <stop offset="1" stopColor={o.to} />
+    <span className="xmas-hat-host">
+      <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
+        <defs>
+          <radialGradient id="mcm-bg" cx="0.5" cy="0.3" r="0.85">
+            <stop offset="0" stopColor="#2b1d55" />
+            <stop offset="1" stopColor="#0b0914" />
           </radialGradient>
+          <linearGradient id="mcm-gd" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#f7e3a3" />
+            <stop offset="1" stopColor="#c39434" />
+          </linearGradient>
+          {ORBS.map((o, i) => (
+            <radialGradient key={i} id={`mcm-o${i}`} cx="0.35" cy="0.3" r="0.8">
+              <stop offset="0" stopColor={o.from} />
+              <stop offset="1" stopColor={o.to} />
+            </radialGradient>
+          ))}
+        </defs>
+        <rect width="64" height="64" rx="14" fill="url(#mcm-bg)" />
+        <circle cx="32" cy="33" r="17.5" fill="none" stroke="url(#mcm-gd)" strokeWidth="2.6" />
+        <path d={SPARK} fill="url(#mcm-gd)" />
+        {ORBS.map((o, i) => (
+          <circle key={i} cx={o.cx} cy={o.cy} r="7.6" fill={`url(#mcm-o${i})`} stroke="#120c1f" strokeWidth="1.3" />
         ))}
-      </defs>
-      <rect width="64" height="64" rx="14" fill="url(#mcm-bg)" />
-      <circle cx="32" cy="33" r="17.5" fill="none" stroke="url(#mcm-gd)" strokeWidth="2.6" />
-      <path d={SPARK} fill="url(#mcm-gd)" />
-      {ORBS.map((o, i) => (
-        <circle key={i} cx={o.cx} cy={o.cy} r="7.6" fill={`url(#mcm-o${i})`} stroke="#120c1f" strokeWidth="1.3" />
-      ))}
-    </svg>
+      </svg>
+      <span aria-hidden="true" className="xmas-logo-hat" />
+    </span>
   );
 }
 
