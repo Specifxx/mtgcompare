@@ -578,3 +578,31 @@ Search Console (90 days to 29 Oct): "mtg nz" and "magic the gathering nz" reach 
 ("MTG NZ: Magic booster box & sealed prices, N stores"; Australia, Canada, Europe and Singapore spelled out, as searched).
 The US title is unchanged. "shock lands mtg price" still shows the old singles URL `/cards/name/shock` (301'd) at position
 80+; it is a singles query and this site is sealed-only since 2026-10-21, so no page is built for it.
+
+## 2026-11-01: A beta community forum, no accounts, posts in this repo
+
+The owner asked for "user forums ... you don't need to be able to sign in ...
+put your name down ... it'll save your name ... all of this is public data ...
+keep it within each website's repository", on every site, to give the sites a
+reason to come back that search rankings alone don't. `/forum` (docs/forum.md):
+
+- **Storage:** `forum.json` on this repo's public orphan branch `forum`
+  (never deployed: its own vercel.json, plus `deploymentEnabled.forum: false`
+  here). Written only by `POST /api/forum` with the visitor-reports token;
+  a write reads the file's sha and retries when two posts race.
+- **Cost:** pages read the file from raw.githubusercontent.com inside their
+  normal cache life, never per visit; the browser fetches the newest copy from
+  GitHub directly, so a new post shows in minutes with no deploy, no function
+  and no database. Rebuilding pages for posts would have meant a build per post.
+- **Spam:** honeypot, a 2.5 s minimum on the form, per-visitor limits (4 per
+  10 min, 20 a day, 4 threads a day) and a per-instance cap, all in memory; no
+  IP, email or hash is stored, and emails/IPs/phone numbers in posts are
+  blanked. Links to other sites and slurs or strong profanity are HELD (filed
+  under `held/` and flagged in the daily reports triage), never published.
+- **Not dead when empty:** the site's topics with a line and a few prompts;
+  never an invented post.
+- **SEO:** threads are in the server HTML; a thread is noindex until it has a
+  reply, the forum page until any thread has one; indexed threads carry
+  DiscussionForumPosting JSON-LD.
+- **Moderation:** the owner asks Claude; a post is removed by an edit to
+  `forum.json` (`removeFromForum` in `src/lib/forum/core.ts`).

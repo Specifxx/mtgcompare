@@ -17,6 +17,7 @@ export function footerColumns(region: Region | null): { title: string; links: Fo
     { href: "/blog", label: "Blog" },
     { href: "/creators", label: "Creators" },
     { href: "/about#stores", label: "For stores" },
+    { href: "/forum", label: "Community forum (beta)" },
     { href: "/contact", label: "Contact" },
     { href: "/contact#suggest", label: "Suggest a store" },
     { href: "/affiliate-disclosure", label: "Affiliate disclosure" },

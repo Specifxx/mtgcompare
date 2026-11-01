@@ -735,3 +735,17 @@ body:has([data-ebay-no-prefooter]) [data-ebay-prefooter] {
   --xmas-pill-border: rgb(185 28 28 / 0.4);
 }
 /* xmas-site:end */
+
+/* The beta forum (src/components/forum/forum.css) in this site's colours. */
+.fm {
+  --fm-card: rgb(var(--surface));
+  --fm-sunk: rgb(var(--raised));
+  --fm-line: rgb(var(--line));
+  --fm-ink: rgb(var(--ink));
+  --fm-muted: rgb(var(--muted));
+  --fm-accent: rgb(var(--brand));
+  --fm-on-accent: rgb(var(--brand-ink));
+  --fm-accent-soft: rgb(var(--brand-soft));
+  --fm-radius: 14px;
+  --fm-head: var(--font-display), var(--font-sans), system-ui, sans-serif;
+}
