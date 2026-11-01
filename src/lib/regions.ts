@@ -1,3 +1,4 @@
+import { regionBootScript } from "./region-boot";
 // The markets MTG Compare compares within. A market is a region whose stores
 // all charge in ONE currency, so "cheapest" is always a like-for-like number a
 // buyer there is actually offered. Pure module: safe in client components
@@ -138,3 +139,23 @@ export function regionFromAcceptLanguage(header: string | null | undefined): Reg
   }
   return null;
 }
+
+/**
+ * The visitor's own region on every regional page (owner, 2026-11-01; lib/region-boot.ts): the region they last browsed
+ * (`mtg-region`, RegionSwitcher), else their time zone's, else the US. Crawlers are never moved.
+ */
+export const REGION_BOOT_SCRIPT = regionBootScript({
+  key: "mtg-region",
+  hreflang: Object.fromEntries(REGION_LIST.map((r) => [r.region, r.hreflang])),
+  zones: [
+    ["au", "^Australia/"],
+    ["nz", "^Pacific/(Auckland|Chatham)$"],
+    ["uk", "^Europe/(London|Belfast)$"],
+    ["sg", "^Asia/Singapore$"],
+    ["ca", "^America/(Toronto|Vancouver|Edmonton|Winnipeg|Halifax|St_Johns|Regina|Montreal|Moncton|Whitehorse|Yellowknife)$"],
+    ["us", "^(America/|US/|Pacific/Honolulu$)"],
+    ["eu", "^Europe/"],
+  ],
+  fallback: "us",
+  pageRegion: `C.indexOf(s)>=0?s:null`,
+});

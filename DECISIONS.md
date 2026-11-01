@@ -620,3 +620,15 @@ walkthrough/review of the site. They call us their **partner**, never
 section asks them to say it's a partnership (FTC/ASA), lightly. The
 owner's ready-to-send replies live in the project's creators playbook, not
 in the repo.
+
+## 2026-11-01 — Visitors land on their own region's pages
+
+Owner, 2026-11-01: "the default region is the region that the visitor is located in. And if they can't determine it,
+then the default should be the US." The region-less pages already followed the visitor (RegionSuggest, US in the
+server HTML), but a regional page kept whoever arrived on it: an American who clicked an /au result stayed on AUD.
+
+`REGION_BOOT_SCRIPT` (`lib/region-boot.ts`, inline in the root layout, before paint) now moves a person, never a crawler,
+link preview or audit tool, from a regional page of another region to the same page in theirs, through the page's own
+hreflang alternate (a page with no copy there stays). Their region is the one they last browsed (`mtg-region`, kept by
+RegionSwitcher), else their time zone's, else the US. `<main>` is hidden for at most 1.5 s while it decides. No request,
+no cookie: still one CDN copy per page, and every regional page stays indexable as itself.

@@ -749,3 +749,6 @@ body:has([data-ebay-no-prefooter]) [data-ebay-prefooter] {
   --fm-radius: 14px;
   --fm-head: var(--font-display), var(--font-sans), system-ui, sans-serif;
 }
+
+/* lib/region-boot.ts: while a visitor is moved to their own region's copy of the page, at most 1.5 s. */
+html[data-geo="pending"] main { visibility: hidden; }
