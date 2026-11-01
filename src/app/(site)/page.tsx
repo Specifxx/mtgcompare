@@ -12,6 +12,8 @@ import { SITE_NAME, SITE_URL, sectionHref } from "@/lib/site";
 import { STORES } from "@/lib/stores";
 import { HalloweenDecor } from "@/components/home/HalloweenDecor";
 import { InnistradComing } from "@/components/home/InnistradComing";
+import { ChristmasDecor } from "@/components/home/ChristmasDecor";
+import { ChristmasGifts } from "@/components/home/ChristmasGifts";
 import { CreatorsTeaser } from "@/components/home/CreatorsTeaser";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js CDN_PAGES, "/"), like the region pages, never ISR and never
@@ -59,8 +61,10 @@ export default async function Landing() {
     <div>
       <section className="mc-hero relative">
         <HalloweenDecor />
+        <ChristmasDecor />
         <div className="page mc-hero-content pb-10 pt-10 text-center sm:pb-14 sm:pt-16">
           <InnistradComing />
+          <ChristmasGifts />
           <h1 className="mx-auto max-w-3xl font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
             MTG booster box, bundle &amp; Commander deck prices, <span className="text-brand">cheapest first.</span>
           </h1>

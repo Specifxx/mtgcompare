@@ -444,3 +444,294 @@ body:has([data-ebay-no-prefooter]) [data-ebay-prefooter] {
 @media (prefers-reduced-motion: reduce) {
   .qv-shimmer, .qv-panel, .qv-backdrop { animation: none; }
 }
+
+/* xmas-common:start (the same block on every Compare site) */
+/* ---------------------------------------------------------------------------
+   Christmas (data-season="christmas", lib/season.ts; 1 November to 26 December).
+   Owner, 2026-11-01: "make all of the sites Christmas themed". Pure decoration:
+   every piece is aria-hidden, pointer-events:none, sits under the content and
+   is hidden unless <html> carries the attribute, so on 27 December the site is
+   its usual self again with no deploy. The art is small cached SVGs in
+   public/xmas/. Snow is two tiled CSS layers moved by transform only (the
+   compositor's job, no script), and stops for prefers-reduced-motion.
+   --------------------------------------------------------------------------- */
+.xmas-only {
+  display: none !important;
+}
+:root[data-season="christmas"] .xmas-only {
+  display: block !important;
+}
+.xmas-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+/* A strand of lights along the top edge, its bulbs twinkling in turn. */
+.xmas-lights {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  pointer-events: none;
+  background: url(/xmas/lights.svg) 0 0 / 160px 36px repeat-x;
+}
+.xmas-lights::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18px 19px, rgb(255 59 78 / 0.55), transparent 11px) 0 0 / 160px 36px repeat-x,
+    radial-gradient(circle at 101px 25px, rgb(46 224 122 / 0.5), transparent 11px) 0 0 / 160px 36px repeat-x;
+  animation: xmas-twinkle 2.4s ease-in-out infinite;
+}
+.xmas-lights::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 59px 25px, rgb(255 204 51 / 0.55), transparent 11px) 0 0 / 160px 36px repeat-x,
+    radial-gradient(circle at 142px 19px, rgb(79 184 255 / 0.5), transparent 11px) 0 0 / 160px 36px repeat-x;
+  animation: xmas-twinkle 2.4s ease-in-out -1.2s infinite;
+}
+@keyframes xmas-twinkle {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+/* Falling snow: two tiled layers of flakes, each one tile taller than its box
+   and slid down by exactly one tile, so the loop has no seam. */
+.xmas-snow {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.xmas-snow::before,
+.xmas-snow::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -380px;
+  bottom: 0;
+  --flake: rgb(255 255 255 / 0.85);
+  background-image:
+    radial-gradient(circle at 170px 82px, var(--flake) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 29px 42px, var(--flake) 2.0px, transparent 3.0px),
+    radial-gradient(circle at 53px 192px, var(--flake) 1.7px, transparent 2.7px),
+    radial-gradient(circle at 264px 114px, var(--flake) 1.0px, transparent 2.0px),
+    radial-gradient(circle at 227px 219px, var(--flake) 1.0px, transparent 2.0px),
+    radial-gradient(circle at 51px 287px, var(--flake) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 294px 68px, var(--flake) 2.2px, transparent 3.2px),
+    radial-gradient(circle at 327px 326px, var(--flake) 1.7px, transparent 2.7px),
+    radial-gradient(circle at 36px 300px, var(--flake) 1.7px, transparent 2.7px),
+    radial-gradient(circle at 30px 118px, var(--flake) 1.0px, transparent 2.0px),
+    radial-gradient(circle at 73px 153px, var(--flake) 1.5px, transparent 2.5px);
+  background-size: 380px 380px;
+  animation: xmas-fall 20s linear infinite;
+  will-change: transform;
+}
+.xmas-snow::after {
+  top: -290px;
+  background-image:
+    radial-gradient(circle at 281px 65px, var(--flake) 1.7px, transparent 2.7px),
+    radial-gradient(circle at 97px 57px, var(--flake) 1.7px, transparent 2.7px),
+    radial-gradient(circle at 101px 195px, var(--flake) 1.0px, transparent 2.0px),
+    radial-gradient(circle at 37px 35px, var(--flake) 1.8px, transparent 2.8px),
+    radial-gradient(circle at 259px 277px, var(--flake) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 165px 243px, var(--flake) 1.7px, transparent 2.7px),
+    radial-gradient(circle at 237px 190px, var(--flake) 1.3px, transparent 2.3px),
+    radial-gradient(circle at 97px 129px, var(--flake) 1.0px, transparent 2.0px),
+    radial-gradient(circle at 158px 273px, var(--flake) 1.6px, transparent 2.6px);
+  background-size: 290px 290px;
+  opacity: 0.55;
+  animation: xmas-fall-sm 12s linear infinite;
+}
+@keyframes xmas-fall {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-38px, 380px, 0); }
+}
+@keyframes xmas-fall-sm {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(22px, 290px, 0); }
+}
+/* Light pages: flakes need an edge to show on white. */
+.xmas-snow-light::before,
+.xmas-snow-light::after {
+  --flake: rgb(148 178 210 / 0.75);
+}
+/* The art. */
+.xmas-art {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  background: center / contain no-repeat;
+}
+.xmas-tree { aspect-ratio: 100 / 130; background-image: url(/xmas/xmas-tree.svg); }
+.xmas-gift { aspect-ratio: 100 / 90; background-image: url(/xmas/gift.svg); }
+.xmas-cane { aspect-ratio: 60 / 120; background-image: url(/xmas/candy-cane.svg); }
+.xmas-stocking { aspect-ratio: 70 / 100; background-image: url(/xmas/stocking.svg); }
+.xmas-holly { aspect-ratio: 100 / 60; background-image: url(/xmas/holly.svg); }
+.xmas-hat { aspect-ratio: 100 / 80; background-image: url(/xmas/santa-hat.svg); }
+.xmas-flake {
+  aspect-ratio: 1;
+  background-color: currentColor;
+  -webkit-mask: url(/xmas/snowflake.svg) center / contain no-repeat;
+  mask: url(/xmas/snowflake.svg) center / contain no-repeat;
+}
+@media (prefers-reduced-motion: reduce) {
+  .xmas-snow::before,
+  .xmas-snow::after,
+  .xmas-lights::before,
+  .xmas-lights::after {
+    animation: none;
+  }
+}
+/* The hero set: snow, lights along the top (from where a side rail ends,
+   --xmas-left), a tree and a present in the bottom-left corner, a candy cane
+   and a small tree in the bottom-right. Under the hero's content. */
+.xmas-hero {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.xmas-hero .xmas-lights {
+  left: var(--xmas-left, 0px);
+}
+.xmas-corner {
+  position: absolute;
+  bottom: 4px;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  pointer-events: none;
+}
+.xmas-corner .xmas-art {
+  position: relative;
+}
+.xmas-corner-l {
+  left: calc(var(--xmas-left, 0px) + 14px);
+}
+.xmas-corner-r {
+  right: 14px;
+}
+.xmas-corner .xmas-tree {
+  width: clamp(40px, 5vw, 84px);
+  filter: drop-shadow(0 0 12px rgb(255 214 102 / 0.3));
+}
+.xmas-corner .xmas-tree-sm {
+  width: clamp(30px, 3.8vw, 62px);
+}
+.xmas-corner .xmas-gift {
+  width: clamp(28px, 3.3vw, 52px);
+}
+.xmas-corner .xmas-cane {
+  width: clamp(15px, 1.8vw, 28px);
+  margin-right: 4px;
+}
+@media (max-width: 639.98px) {
+  /* Phones: small and tucked into the corners, clear of the hero's text. */
+  .xmas-corner .xmas-tree-sm,
+  .xmas-corner .xmas-gift { display: none; }
+  .xmas-corner .xmas-tree { width: 26px; }
+  .xmas-corner .xmas-cane { width: 11px; }
+  .xmas-corner { bottom: 2px; }
+  .xmas-corner-l { left: 4px; }
+  .xmas-corner-r { right: 4px; }
+  .xmas-lights { transform: scale(0.8); transform-origin: 0 0; right: -25%; }
+}
+/* Santa's hat on the logo mark, everywhere the logo is. The mark is a mask
+   on most sites, so the hat is a sibling in a host span, not a child. */
+.xmas-hat-host {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.xmas-logo-hat {
+  display: none;
+}
+:root[data-season="christmas"] .xmas-logo-hat {
+  display: block;
+  position: absolute;
+  top: -34%;
+  left: -16%;
+  width: 72%;
+  aspect-ratio: 100 / 80;
+  background: url(/xmas/santa-hat.svg) center / contain no-repeat;
+  transform: rotate(-20deg);
+  pointer-events: none;
+}
+/* The festive line in the hero (ChristmasGifts): a pill to the site's gift
+   shopping page, shown only in the season. */
+.xmas-pill-row {
+  display: none;
+}
+:root[data-season="christmas"] .xmas-pill-row {
+  display: flex;
+}
+.xmas-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  border-radius: 9999px;
+  border: 1px solid var(--xmas-pill-border, rgb(248 113 113 / 0.45));
+  background: var(--xmas-pill-bg, rgb(12 24 48 / 0.6));
+  padding: 0.4rem 0.9rem 0.4rem 0.7rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--xmas-pill-fg, #e0f2fe);
+  box-shadow: 0 0 22px rgb(220 38 38 / 0.18);
+  transition: box-shadow 200ms ease, border-color 200ms ease, transform 200ms ease;
+}
+.xmas-pill:hover,
+.xmas-pill:focus-visible {
+  box-shadow: 0 0 30px rgb(220 38 38 / 0.32);
+  transform: translateY(-1px);
+}
+.xmas-pill b {
+  font-weight: 800;
+  color: var(--xmas-pill-strong, #fff);
+}
+.xmas-pill .xmas-pill-more {
+  color: var(--xmas-pill-soft, #bae6fd);
+  font-weight: 500;
+}
+.xmas-pill-icon {
+  display: block;
+  width: 18px;
+  aspect-ratio: 100 / 90;
+  background: url(/xmas/gift.svg) center / contain no-repeat;
+}
+/* xmas-common:end */
+
+/* xmas-site:start — MTG Compare's Christmas: the landing hero turns into a
+   snowy winter night (dark) or a frosted morning (light), with snow, lights,
+   trees and a candy cane (ChristmasDecor), a gifts line to the sealed list
+   (ChristmasGifts) and Santa's hat on the five-orb mark. Brand, buy and stock
+   colours are untouched; the hero content stays above it (.mc-hero-content). */
+:root[data-season="christmas"] .mc-hero {
+  background-image:
+    radial-gradient(ellipse 45% 60% at 8% 100%, rgb(22 163 74 / 0.1), transparent 70%),
+    radial-gradient(ellipse 45% 60% at 92% 100%, rgb(220 38 38 / 0.09), transparent 70%),
+    linear-gradient(180deg, rgb(207 228 247 / 0.75), rgb(236 244 251 / 0.4) 60%, transparent);
+}
+:root[data-season="christmas"]:not([data-theme="light"]) .mc-hero {
+  background-image:
+    radial-gradient(ellipse 45% 60% at 8% 100%, rgb(22 163 74 / 0.14), transparent 70%),
+    radial-gradient(ellipse 45% 60% at 92% 100%, rgb(220 38 38 / 0.14), transparent 70%),
+    radial-gradient(ellipse 80% 70% at 50% 0%, #16305a 0%, rgb(22 48 90 / 0.4) 45%, transparent 80%);
+}
+:root[data-season="christmas"][data-theme="light"] .xmas-snow::before,
+:root[data-season="christmas"][data-theme="light"] .xmas-snow::after {
+  --flake: rgb(120 160 205 / 0.75);
+}
+:root[data-theme="light"] .xmas-pill {
+  --xmas-pill-bg: rgb(255 255 255 / 0.92);
+  --xmas-pill-fg: #7f1d1d;
+  --xmas-pill-strong: #7f1d1d;
+  --xmas-pill-soft: #1e3a5f;
+  --xmas-pill-border: rgb(185 28 28 / 0.4);
+}
+/* xmas-site:end */
