@@ -642,3 +642,12 @@ one answers a query none of them targets: "best Magic product for beginners"
 player, with the region's cheapest open Starter Kits, Commander decks and Play
 Booster packs today. It links the type hubs and the existing guides instead of
 repeating them, and makes no contents claim beyond the ones already used.
+
+
+## Contact address: compareempire@gmail.com, in the footer — 2026-11-01
+
+The owner: "the sites that they don't [have their own email], just use compareempire@gmail.com", and contact info
+"really clear on all of our websites". `CONTACT_EMAIL` falls back to the Compare Empire family inbox instead of
+riftcompare@gmail.com (another brand's), and the footer now shows it as a mailto beside the Contact link on every
+page (this reverses "no mailto in the footer", which existed only to keep the other brand's address out of the chrome).
+`NEXT_PUBLIC_CONTACT_EMAIL` still overrides it. No form and no mail service.

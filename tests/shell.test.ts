@@ -81,14 +81,15 @@ test("Footer on a region page: Shop, Latest sets, Explore and MTG Compare, then 
   assert.match(html, /aria-current="true" class="chip min-h-10 chip-on" href="\/au">/);
   // every link is internal but the owner's sister sites ("Also from us", tests/footer.test.ts)
   const sisters = new Set<string>(SISTER_SITES.map((s) => s.url));
-  for (const h of links) if (!sisters.has(h)) assert.match(h, /^\//, `${h} is internal`);
+  for (const h of links) if (!sisters.has(h) && h !== "mailto:compareempire@gmail.com") assert.match(h, /^\//, `${h} is internal`);
   assert.equal(footerColumns("au").length, 5); // Shop, Latest sets, Explore, Guides (every guide: no orphans), MTG Compare
 });
 
-test("Footer: no mailto (Contact goes to /contact), the two-line disclosure, and no 'operated by MTG Compare'", () => {
+test("Footer: the family inbox beside /contact (owner, 2026-11-01), the two-line disclosure, and no 'operated by MTG Compare'", () => {
   for (const region of ["us", null] as const) {
     const html = render(React.createElement(Footer, { region }));
-    assert.doesNotMatch(html, /mailto:/i);
+    assert.match(html, /href="mailto:compareempire@gmail\.com"/);
+    assert.match(html, /href="\/contact"/);
     assert.doesNotMatch(html, /@[a-z0-9.-]*riftcompare|riftcompare[a-z0-9.-]*@/i, "another brand's email address never shows in the chrome (the RiftCompare sister-site link may)");
     assert.match(html, /eBay and TCGplayer links are affiliate links and are marked where they appear\.<br\/>No store pays to be listed or to rank\./);
     assert.match(html, /How we make money/);
