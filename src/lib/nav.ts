@@ -52,7 +52,7 @@ export function navGroups(region: Region, today: string = new Date().toISOString
     },
     {
       title: "More",
-      links: [s("releases", "Release calendar"), s("guides", "Buying guides"), s("tools", "Tools"), s("stores", "Where to buy"), { href: "/blog", label: "Blog" }, { href: "/creators", label: "Creators" }],
+      links: [s("releases", "Release calendar"), s("guides", "Buying guides"), s("tools", "Tools"), s("stores", "Where to buy"), { href: "/forum", label: "Community forum" }, { href: "/blog", label: "Blog" }, { href: "/creators", label: "Creators" }],
     },
   ];
 }

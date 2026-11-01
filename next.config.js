@@ -12,7 +12,7 @@ const CSP_REPORT_ONLY = [
   "script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.google.com https://*.gstatic.com https://*.adtrafficquality.google https://www.googletagmanager.com",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self'",
-  "connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://vitals.vercel-insights.com https://*.googlesyndication.com https://*.google.com https://*.doubleclick.net https://*.adtrafficquality.google",
+  "connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://vitals.vercel-insights.com https://*.googlesyndication.com https://*.google.com https://*.doubleclick.net https://*.adtrafficquality.google",
   "frame-src https://*.googlesyndication.com https://*.doubleclick.net https://*.google.com",
   "frame-ancestors 'self'",
   "base-uri 'self'",
@@ -35,7 +35,7 @@ const securityHeaders = [
 // browser. The data only changes with a release, and a release empties the CDN. Safe because no page reads a cookie, a header or
 // the session: one copy is right for every visitor (tests/cache-ttl.test.ts walks them).
 const CDN_CACHE = "public, s-maxage=86400, stale-while-revalidate=86400";
-const CDN_PAGES = ["/", "/:region(au|us|uk|ca|nz|eu|sg)", "/:region(au|us|uk|ca|nz|eu|sg)/:path*", "/guides/:slug", "/blog", "/blog/:slug"];
+const CDN_PAGES = ["/", "/:region(au|us|uk|ca|nz|eu|sg)", "/:region(au|us|uk|ca|nz|eu|sg)/:path*", "/guides/:slug", "/blog", "/blog/:slug", "/forum", "/forum/:path*"];
 
 const nextConfig = {
   reactStrictMode: true,
