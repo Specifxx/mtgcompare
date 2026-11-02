@@ -33,10 +33,11 @@ export const SISTER_SITES = [
   { name: "Lorcana Compare", url: "https://lorcanacompare.com", game: "Lorcana", anchor: "Lorcana card prices", what: "Lorcana Compare" },
   // Every site links the whole family (2026-10-27, DECISIONS.md "Every site links the whole family").
   { name: "YGO Compare", url: "https://ygocompare.com", game: "Yu-Gi-Oh", anchor: "Yu-Gi-Oh! card prices", what: "YGO Compare" },
+  { name: "Cyberpunk Compare", url: "https://cyberpunkcompare.com", game: "Cyberpunk TCG", anchor: "Cyberpunk TCG prices", what: "Cyberpunk Compare" },
   { name: "WargameCompare", url: "https://wargamecompare.com", game: "Miniature wargame", anchor: "Miniature wargame prices", what: "WargameCompare" },
   { name: "FigureCompare", url: "https://figurecompare.com", game: "Anime figure", anchor: "Anime figure prices", what: "FigureCompare" },
   { name: "CamCompare", url: "https://www.camcompare.app", game: "Camera", anchor: "Camera and lens prices", what: "CamCompare" },
-  { name: "Compare Empire", url: "https://compareempire.com", game: "Australian", anchor: "Australian tech prices", what: "Compare Empire" },
+  { name: "Compare Empire", url: "https://compareempire.com", game: "Tech", anchor: "Tech and appliance prices", what: "Compare Empire" },
 ] as const;
 
 // Public profiles for Organization.sameAs (an X account, a Bluesky handle…).
