@@ -3,6 +3,7 @@
 import { track } from "@/lib/track";
 import { useEffect, useRef, useState } from "react";
 import { SITE_URL } from "@/lib/site";
+import { shareUrl } from "@/lib/share-link";
 import { Icon } from "./Icon";
 
 // Share this page: the phone's own share sheet (navigator.share) where there is one, else the link copied to the clipboard with a short
@@ -11,9 +12,9 @@ import { Icon } from "./Icon";
 // A 44 px round button; the note appears beside it, absolutely placed (nothing moves), and is read out by an aria-live region.
 // Exported for the set page too (the integrator's wiring commit): <ShareButton title=… path={`/${region}/sets/${slug}`} kind="set" />.
 
-export type ShareKind = "product" | "set";
+export type ShareKind = "product" | "set" | "list";
 
-export function ShareButton({ title, path, kind, className = "" }: { title: string; path: string; kind: ShareKind; className?: string }) {
+export function ShareButton({ title, path, kind, text, className = "" }: { title: string; path: string; kind: ShareKind; /** the message, e.g. the real price gap (lib/share-link.ts) */ text?: string; className?: string }) {
   const [note, setNote] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => () => clearTimeout(timer.current), []);
@@ -25,7 +26,8 @@ export function ShareButton({ title, path, kind, className = "" }: { title: stri
   }
 
   async function share() {
-    const url = `${SITE_URL}${path}`;
+    // utm_source=share (lib/share-link.ts, 2026-11-02): the growth report counts the visits a shared link brings.
+    const url = shareUrl(SITE_URL, path, kind);
     try {
       track("share", { kind });
     } catch {
@@ -33,7 +35,7 @@ export function ShareButton({ title, path, kind, className = "" }: { title: stri
     }
     if (typeof navigator.share === "function") {
       try {
-        await navigator.share({ title, url });
+        await navigator.share(text ? { title, text, url } : { title, url });
         return;
       } catch (e) {
         if ((e as Error)?.name === "AbortError") return; // the visitor closed the sheet
@@ -41,7 +43,7 @@ export function ShareButton({ title, path, kind, className = "" }: { title: stri
       }
     }
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(text ? `${text} ${url}` : url);
       say("Link copied");
     } catch {
       say("Couldn’t copy the link");
@@ -54,7 +56,7 @@ export function ShareButton({ title, path, kind, className = "" }: { title: stri
         type="button"
         onClick={share}
         className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface text-muted transition-colors hover:border-ink/30 hover:text-ink"
-        aria-label={`Share ${kind === "set" ? "this set" : "this product"}`}
+        aria-label={`Share ${kind === "set" ? "this set" : kind === "list" ? "this list" : "this product"}`}
         title="Share"
       >
         <Icon name="share" size={18} />

@@ -24,6 +24,7 @@ import { Section } from "@/components/Section";
 import { BestPriceCard } from "@/components/BestPriceCard";
 import { StockPill } from "@/components/StockPill";
 import { stockHeadline } from "@/lib/stock";
+import { priceGap, shareText } from "@/lib/share-link";
 import { ShareButton } from "@/components/ShareButton";
 import { StickyBuyBar } from "@/components/StickyBuyBar";
 import { RecentTracker } from "@/components/Recent";
@@ -159,14 +160,21 @@ export async function generateMetadata({ params }: { params: { region: string; s
   // stays as well. Shopify's CDN scales to the width asked for and keeps the
   // aspect ratio, so only the width is known; TCGplayer's renditions are square.
   const square = image?.includes("tcgplayer-cdn.tcgplayer.com");
+  const gap = priceGap(open.filter((o) => !o.marketplace).map((o) => ({ priceCents: o.priceCents, storeName: o.storeName })));
   return {
     ...meta,
     // " | MTG Compare" only where the whole title still fits in 65 characters (title.absolute otherwise)
     title,
+    // With a real price gap here, the share card draws it (app/og/p/[region]/[slug], lib/share-link.ts); else the photo.
     openGraph: {
       ...meta.openGraph,
-      ...(image ? { images: [{ url: image, width: 1200, ...(square ? { height: 1200 } : {}), alt: p.name }] } : {}),
+      ...(gap
+        ? { images: [{ url: `/og/p/${r.region}/${p.slug}`, width: 1200, height: 630, alt: `${p.name}: ${shareText(p.name, gap, (c) => money(c, r.market))}` }] }
+        : image
+          ? { images: [{ url: image, width: 1200, ...(square ? { height: 1200 } : {}), alt: p.name }] }
+          : {}),
     },
+    ...(gap ? { twitter: { card: "summary_large_image", images: [`/og/p/${r.region}/${p.slug}`] } } : {}),
     other: {
       "og:type": "product",
       ...(cheapest ? { "product:price:amount": (cheapest.priceCents / 100).toFixed(2), "product:price:currency": r.currency } : {}),
@@ -494,7 +502,7 @@ export default async function ProductPage({ params }: { params: { region: string
                 {packs != null && <span className={`${chip} hidden sm:inline`}>{plural(packs, "booster pack")}</span>}
               </div>
               <div className="mt-2">
-                <ShareButton title={heading} path={`/${r.region}/p/${p.slug}`} kind="product" className="float-right -mt-1 ml-2" />
+                <ShareButton title={heading} path={`/${r.region}/p/${p.slug}`} kind="product" text={shareText(heading, priceGap(open.filter((o) => !o.marketplace).map((o) => ({ priceCents: o.priceCents, storeName: o.storeName }))), (c) => money(c, r.market))} className="float-right -mt-1 ml-2" />
                 <h1 className="font-display text-2xl font-bold leading-tight sm:text-3xl">{heading}</h1>
               </div>
             </div>

@@ -18,7 +18,8 @@ const BLOCKED_BOTS = [
 // fetched again. The Allows keep what a crawler needs that does carry a query:
 // Next's assets (?dpl=; without them Google cannot render a page), the share
 // images and the icon. The longest matching rule wins, so each beats "/*?".
-const QUERY_ALLOWS = ["/_next/", "/og/", "/*opengraph-image", "/icon"];
+// A shared link (utm_source=share, lib/share-link.ts) too: X and Reddit fetch its preview and obey robots.txt.
+const QUERY_ALLOWS = ["/_next/", "/og/", "/*opengraph-image", "/icon", "/*utm_source=share"];
 
 // /sitemap.xml is the index Next writes for generateSitemaps (src/app/sitemap.ts).
 export default function robots(): MetadataRoute.Robots {

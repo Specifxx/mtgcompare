@@ -7,6 +7,8 @@ import { packsFor } from "@/lib/packs";
 import { REGIONS, isRegion } from "@/lib/regions";
 import { isPreorderSet } from "@/lib/release";
 import { offerStock } from "@/lib/sealed-offers";
+import { priceGap, shareText } from "@/lib/share-link";
+import { money } from "@/lib/format";
 import { TYPE_BY_LABEL } from "@/lib/sealed-title";
 
 // GET /api/quick/<region>/<slug>: a product card's quick view (components/QuickView.tsx), the product page's price table as data: the same
@@ -48,6 +50,8 @@ export async function GET(_req: Request, { params }: { params: { region: string;
       // For a quick view opened from a plain link, which knows only the slug.
       name: p.name,
       sub: p.productType,
+      // The share message (lib/share-link.ts): the real gap between this region's cheapest and dearest in-stock store.
+      share: shareText(p.name, priceGap(stores.filter((o) => offerStock(o) === "open").map((o) => ({ priceCents: o.priceCents, storeName: o.storeName }))), (c) => money(c, r.market)),
       img: p.imageUrl ?? null,
     },
     { headers },
