@@ -669,6 +669,30 @@ Only `/widgets/:path+` may be framed. `/widgets` shows the snippet (iframe plus 
 engines credit) with a real in-stock box, and a plain-HTML store badge. The daily outreach offers the widget instead
 of asking for a link (owner, 2026-11-02: growth must be passive). RiftCompare and the engine sites have the same at `/embed`; here `/embed` is taken by the retired singles site's redirect (old embeds on other sites still land on `/us/sealed`), so the widgets live at `/widgets`.
 
+
+## 2026-11-02 — Every set in the set list gets a pre-order page, guide or not
+
+Pre-order landings were the family's top pages in October, but here a set had one only when a session had written its
+`PreorderGuide` (sourced facts) in `src/lib/preorder-guides.ts`. Now a set in `src/lib/sets.ts` without a guide gets
+`/<region>/preorders/<slug>` from `blankGuide`: the set's name and dates, every store's price list and the generic FAQ,
+and nothing a source would have to back (no contents, prerelease, card count or sources line; those sections hide).
+Adding the next set to `sets.ts`, which the importer needs anyway, is the whole job; a guide written later fills the
+same page. `openPreorderGuides` (nav, header banner, homepage, sitemap) lists every unreleased set. A guide-less page
+stays up for 45 days after release (noindexed, saying the set is out, as before) and then 308s to the set page.
+
+## 2026-11-02 — Seasonal sale pages
+
+`/<region>/boxing-day`, `/<region>/january-sales` and `/<region>/lunar-new-year` (owner-approved growth plan,
+2026-11-02): one URL per region, kept every year like `/<region>/black-friday`, built weeks ahead so they are
+indexed before the day. One component (`src/components/SaleSeasonPage.tsx`) with exactly the Black Friday
+page's rows: furthest under the median of the region's stores, under their own 30-day typical price, and in
+the US under MSRP. Every region has its own copy, so nothing is region-locked; the intro states where the day
+is a sale day (Boxing Day: Australia, New Zealand, the UK and Canada) as a fact, not as the page's market.
+Dates, the year a page is about (it rolls over a week after the event) and the copy are pure in
+`src/lib/sale-seasons.ts`, checked against BANNED_COPY in `tests/sale-seasons.test.ts`; Lunar New Year is a
+published-date table to 2040 (6 February 2027). Footer and sitemap always; the region home shows a card from
+a few weeks before each event. Never a "was" price, a countdown or an invented sale.
+
 ## 2026-11-02 — Price alerts through RiftCompare's shared service
 
 The owner chose "Yes, one shared service" for email price alerts on the sister sites. The site still has no accounts,
