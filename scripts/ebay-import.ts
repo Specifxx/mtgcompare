@@ -31,13 +31,14 @@
 // optional EBAY_DAILY_CAP (2500, max 2500: this site's share of a 5,000 keyset shared with the owner's other site; set it on
 // BOTH sites), EBAY_RUN_CAP (2500), EBAY_SWEEP_CALLS (2100), EBAY_LISTING_MAX_AGE_HOURS (26).
 // Exit 1: token failure (only eBay's OAuth error category is printed), a search refusal or the circuit breaker, or fewer than
-// half of the planned feeds refreshed (the fixed feeds and the per-product searches; the sweep is reported on its own).
+// half of the planned feeds finished (the fixed feeds and the per-product searches; a per-product search that completed with no
+// listing counts as finished, an empty fixed feed does not; the sweep is reported on its own; feedsShortfall).
 process.env.MTGCOMPARE_SCRIPT = "1";
 
 import { appendFileSync } from "node:fs";
 import { prisma } from "../src/lib/db";
 import { keysPresent, realDeps, type EbayEnv } from "../src/lib/ebay-api";
-import { BREAKER_EMPTY, BREAKER_FAILURES, BUCKETS, runImport, type Bucket, type CapEnv } from "../src/lib/ebay-import";
+import { BREAKER_EMPTY, BREAKER_FAILURES, BUCKETS, feedsShortfall, runImport, type Bucket, type CapEnv } from "../src/lib/ebay-import";
 import { capacityReport, runReport } from "../src/lib/ebay-report";
 import { prismaImportDb } from "../src/lib/ebay-store";
 
@@ -86,8 +87,8 @@ async function main() {
   else if (summary.stopped === "forbidden") problems.push(`eBay refused the search (${summary.tokenError ?? "http 401/403"}). The keyset needs Buy API (Browse) access in the production environment; see DEPLOY.md, Troubleshooting. The run stopped after the first refusal.`);
   else if (summary.stopped === "failing") problems.push(`${BREAKER_FAILURES} searches in a row failed (last: ${summary.tokenError ?? "error"}); the run stopped to protect the daily call budget.`);
   else if (summary.stopped === "empty") problems.push(`${BREAKER_EMPTY} searches in a row returned no listings at all; the run stopped to protect the daily call budget. Check the filter syntax and the keyset (DEPLOY.md, Troubleshooting).`);
-  else if (summary.feedsPlanned > 0 && summary.feedsRefreshed < summary.feedsPlanned * 0.5) {
-    problems.push(`Only ${summary.feedsRefreshed} of ${summary.feedsPlanned} planned feeds refreshed${summary.stopped ? ` (run stopped: ${summary.stopped})` : ""}.`);
+  else if (feedsShortfall(summary)) {
+    problems.push(`Only ${summary.feedsRefreshed + summary.feedsEmpty} of ${summary.feedsPlanned} planned feeds finished (${summary.feedsRefreshed} refreshed, ${summary.feedsEmpty} per-product searches found nothing)${summary.stopped ? ` (run stopped: ${summary.stopped})` : ""}.`);
   }
   if (summary.stopped === "rate-limited") console.log("::warning::eBay answered 429 (rate limited): the run stopped; the previous rows were kept.");
   if (problems.length) {

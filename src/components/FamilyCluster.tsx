@@ -1,4 +1,4 @@
-// "Other card games on sale" (DECISIONS.md "Sites that grow each other", 2026-11-02): one tile per sister
+// "Deals on other card games" (DECISIONS.md "Sites that grow each other", 2026-11-02): one tile per sister
 // card site, each with its best real store deal or pre-order today in this region (else the US), read from
 // the committed data/public/family/family-cluster.json (lib/family.ts). One block per page; nothing when no
 // sister has anything. Plain followed links: our own sites, one cluster, no commission.

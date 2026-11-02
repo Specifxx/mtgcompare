@@ -644,6 +644,11 @@ export interface RunSummary {
    * (a pack, a cheap product) is best effort like the sweep: it is in `hotItems`, not here or in `feedsRefreshed` (the job's exit check)
    */
   feedsPlanned: number;
+  /**
+   * per-product searches (counted ones) that completed and found no listing: a product nobody sells on eBay right now. A finished search,
+   * not a failure, so the job's exit check counts it as done (feedsShortfall); a fixed feed that comes back empty still counts against it.
+   */
+  feedsEmpty: number;
   sweep: SweepReport[];
   /** per hot set (HOT_SETS order) × priority marketplace: products with an item feed after the run / products listed */
   hot: HotCoverage[];
@@ -651,6 +656,16 @@ export interface RunSummary {
   itemFeedsInDb: number;
   rowsInDb: number;
   oldestRowAgeMs: number | null;
+}
+
+/**
+ * The job's exit check: true when fewer than half of the planned feeds finished. A per-product search that completed and found nothing
+ * finished (most of them are hot-set products the sweep already looked for and did not find, and since eBay results are limited to local
+ * sellers with stated postage that is most of them: 2026-11-01/02 failed with 18 of 270 found, every search answered). Failed, skipped
+ * and unfinished feeds, and an empty FIXED feed, do not. A broken filter that empties everything still trips BREAKER_EMPTY.
+ */
+export function feedsShortfall(s: Pick<RunSummary, "feedsPlanned" | "feedsRefreshed" | "feedsEmpty">): boolean {
+  return s.feedsPlanned > 0 && s.feedsRefreshed + s.feedsEmpty < s.feedsPlanned * 0.5;
 }
 
 /** Does a feed count in feedsPlanned / feedsRefreshed? All but a hot-set product's search that is not an eligible key (see RunSummary). */
@@ -756,6 +771,7 @@ export async function runImport(deps: ImportDeps, opts: RunOptions = {}): Promis
     tokenError: null,
     feedsRefreshed: 0,
     feedsPlanned: plan.feeds.filter((f) => f.bucket !== "items").length,
+    feedsEmpty: 0,
     sweep: [],
     hot: [],
     hotItems: { keys: 0, fresh: 0, covered: 0, searched: 0, refreshed: 0 },
@@ -908,6 +924,7 @@ export async function runImport(deps: ImportDeps, opts: RunOptions = {}): Promis
     const items = selectFeedItems(f, raw, at);
     if (!items.length) {
       b.emptied++; // an empty result keeps the old rows until the bound
+      if (f.kind === "item" && counted(f)) summary.feedsEmpty++;
       return;
     }
     await db.replaceFeed(f.feed, items, new Date(at)); // one transaction: the feed's rows are REPLACED, never appended

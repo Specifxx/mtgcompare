@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   BREAKER_EMPTY,
   BREAKER_FAILURES,
+  feedsShortfall,
   DEFAULT_DAILY_CAP,
   DEFAULT_RUN_CAP,
   DEFAULT_SWEEP_CALLS,
@@ -1159,4 +1160,12 @@ test("DEPLOY.md says what the owner must know: both prongs of 8.1(c), the whole 
   // the numbers the code enforces appear in the doc as they are
   assert.ok(doc.includes(`**${BREAKER_FAILURES} searches in a row that fail**`) && doc.includes(`${BREAKER_EMPTY} in a row that come back with no listings`));
   assert.ok(doc.includes("less than 2 hours old") && doc.includes("strict upper bound"));
+});
+
+test("exit check: a per-product search that completed with no listing is finished work, not a shortfall (2026-11-01/02)", () => {
+  // The 2026-11-02 run: 454 planned, 270 of them per-product searches; 18 of those found listings and 252 answered with none.
+  assert.equal(feedsShortfall({ feedsPlanned: 454, feedsRefreshed: 208, feedsEmpty: 252 }), false);
+  // Failed or unfinished searches still fail the job, and so does a run whose fixed feeds came back empty (feedsEmpty counts items only).
+  assert.equal(feedsShortfall({ feedsPlanned: 454, feedsRefreshed: 208, feedsEmpty: 0 }), true);
+  assert.equal(feedsShortfall({ feedsPlanned: 0, feedsRefreshed: 0, feedsEmpty: 0 }), false);
 });
