@@ -359,7 +359,7 @@ export function familyMoney(cents: number, currency: string): string {
 export function blockHeading(cluster: ClusterId, kind: "deal" | "preorder"): string {
   const what = { cards: "card games", hobby: "hobby", tech: "tech" }[cluster];
   if (kind === "preorder") return cluster === "cards" ? "Pre-orders for other card games" : `More ${what} pre-orders from our sister sites`;
-  return cluster === "cards" ? "Other card games on sale" : `More ${what} deals from our sister sites`;
+  return cluster === "cards" ? "Deals on other card games" : `More ${what} deals from our sister sites`;
 }
 
 /** The line under a tile's price: "18% under the median store price" or "Out 14 Nov". */

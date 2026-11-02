@@ -830,3 +830,20 @@ every three-hourly price commit, because neither had the gate.
   (Vercel: when a branch matches several rules, any `true` wins). No preview is built for any branch or pull
   request, `[preview]` included; the older per-branch `false` entries stay for orphan commits' own copies.
 - So "push to prod" means land on the production branch; the release reaches visitors within a day.
+
+## 2026-11-02: an empty per-product eBay search is finished work, not a failed run
+
+**Why.** The eBay import failed on 1 and 2 November ("Only 208 of 454 planned feeds refreshed") although every search
+was answered: of 270 per-product searches, 18 found listings and 252 came back empty. Since eBay results are limited
+to local sellers with stated postage (#38, 31 October) the sweep ends sooner, so the rest of the day's calls go to
+hot-set products the sweep already looked for and did not find, and most of those are empty. The exit check counted
+only feeds that wrote rows, so a run that did its job failed and the health monitor emailed the owner.
+
+**What.** `feedsShortfall` (`src/lib/ebay-import.ts`) counts a counted per-product search that completed with no
+listing (`feedsEmpty`) as finished. Failed, skipped and unfinished searches still count against the run, an empty
+FIXED feed (set, type, chase, sealed) still does, and `BREAKER_EMPTY` still stops a run whose filter empties
+everything. Not touched today's other changes (build gate, Amazon tags, region prompt, store vetting): none of them
+reaches the eBay job.
+
+The same day's tests also caught the family block's heading "Other card games on sale" (#53) on the Black Friday
+page, where the copy rules ban "on sale"; it is now "Deals on other card games".
