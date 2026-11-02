@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-02T03:13:45.155Z",
+ "generatedAt": "2026-11-02T19:05:26.115Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -198,15 +198,15 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "Edge of Eternities Commander Deck - World Shaper",
-   "url": "https://mtgcompare.app/us/p/edge-of-eternities-commander-deck-world-shaper",
-   "cents": 2699,
+   "title": "Marvel Super Heroes Bundle",
+   "url": "https://mtgcompare.app/us/p/marvel-super-heroes-bundle",
+   "cents": 3550,
    "currency": "USD",
-   "store": "Video Game Trader LLC",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/619676_in_1000x1000.jpg",
-   "refCents": 5161,
+   "store": "MinMaxGames",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675615_in_1000x1000.jpg",
+   "refCents": 6999,
    "refLabel": "median store price",
-   "savingPct": 48
+   "savingPct": 49
   },
   {
    "kind": "deal",
@@ -242,27 +242,13 @@
    "region": "US",
    "title": "FINAL FANTASY Commander Deck - FINAL FANTASY VII Limit Break (Game Edition)",
    "url": "https://mtgcompare.app/us/p/final-fantasy-commander-deck-final-fantasy-vii-limit-break-game-edition",
-   "cents": 4761,
+   "cents": 4763,
    "currency": "USD",
    "store": "Cards N MO",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/656732_in_1000x1000.jpg",
    "refCents": 9000,
    "refLabel": "median store price",
    "savingPct": 47
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "US",
-   "title": "Lorwyn Eclipsed 60-Card Theme Deck - Pirates",
-   "url": "https://mtgcompare.app/us/p/lorwyn-eclipsed-60-card-theme-deck-pirates",
-   "cents": 1299,
-   "currency": "USD",
-   "store": "Mox Boarding House",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/656330_in_1000x1000.jpg",
-   "refCents": 2399,
-   "refLabel": "median store price",
-   "savingPct": 46
   },
   {
    "kind": "deal",
@@ -275,6 +261,20 @@
    "store": "Mox Boarding House",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/648682_in_1000x1000.jpg",
    "refCents": 3496,
+   "refLabel": "median store price",
+   "savingPct": 46
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "US",
+   "title": "Edge of Eternities Commander Deck - World Shaper",
+   "url": "https://mtgcompare.app/us/p/edge-of-eternities-commander-deck-world-shaper",
+   "cents": 2699,
+   "currency": "USD",
+   "store": "Video Game Trader LLC",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/619676_in_1000x1000.jpg",
+   "refCents": 5002,
    "refLabel": "median store price",
    "savingPct": 46
   },
@@ -456,7 +456,7 @@
    "currency": "EUR",
    "store": "Fire & Dice",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/648682_in_1000x1000.jpg",
-   "refCents": 2747,
+   "refCents": 2772,
    "refLabel": "median store price",
    "savingPct": 46
   },
@@ -478,27 +478,27 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "EU",
-   "title": "Marvel Super Heroes Commander Deck - The Fantastic Four",
-   "url": "https://mtgcompare.app/eu/p/marvel-super-heroes-commander-deck-the-fantastic-four",
-   "cents": 3867,
-   "currency": "EUR",
-   "store": "Mana Market EU",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675632_in_1000x1000.jpg",
-   "refCents": 6995,
-   "refLabel": "median store price",
-   "savingPct": 45
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "EU",
    "title": "Marvel Super Heroes Play Booster Box",
    "url": "https://mtgcompare.app/eu/p/marvel-super-heroes-play-booster-box",
    "cents": 8999,
    "currency": "EUR",
    "store": "TCG Tavern",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/675603_in_1000x1000.jpg",
-   "refCents": 16500,
+   "refCents": 16625,
+   "refLabel": "median store price",
+   "savingPct": 46
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "EU",
+   "title": "Marvel Super Heroes Commander Deck - The Fantastic Four",
+   "url": "https://mtgcompare.app/eu/p/marvel-super-heroes-commander-deck-the-fantastic-four",
+   "cents": 3867,
+   "currency": "EUR",
+   "store": "Mana Market EU",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675632_in_1000x1000.jpg",
+   "refCents": 6990,
    "refLabel": "median store price",
    "savingPct": 45
   },
