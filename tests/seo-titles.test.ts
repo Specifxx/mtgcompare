@@ -40,7 +40,7 @@ test("region pages: home, deals, cheapest packs, this week, guides, stores, sets
     ])
       assert.ok(d.length <= 160, `${r.region}: ${d.length} "${d}"`);
   }
-  assert.equal(shownTitle(seoCopy.homeTitle(REGIONS.us, 114)), "MTG booster box prices in the US: 114 stores compared");
+  assert.equal(shownTitle(seoCopy.homeTitle(REGIONS.us, 114)), "MTG sealed prices in the US: 114 stores compared");
   assert.equal(shownTitle(seoCopy.storesTitle(REGIONS.au, 60)), "Where to buy Magic sealed product in Australia: 60 stores");
 });
 

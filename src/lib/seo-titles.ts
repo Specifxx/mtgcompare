@@ -118,7 +118,9 @@ export const seoCopy = {
       ...(SEARCH_PLACE[r.market]
         ? [`MTG ${SEARCH_PLACE[r.market]}: Magic booster box & sealed prices, ${stores} stores`, `MTG ${SEARCH_PLACE[r.market]}: Magic sealed prices at ${stores} stores`]
         : []),
-      `MTG booster box prices in ${r.inName}: ${stores} stores compared`, `Magic sealed prices in ${r.inName}: ${stores} stores`, `Magic sealed prices in ${r.inName}`),
+      // Not "MTG booster box prices": that is the booster box guide's title (/<region>/guides/mtg-booster-box-prices), and the two
+      // split the query (Search Console 2026-10-31: "mtg booster box" at position 32). The home is the sealed price comparison.
+      `MTG sealed prices in ${r.inName}: ${stores} stores compared`, `Magic sealed prices in ${r.inName}: ${stores} stores`, `Magic sealed prices in ${r.inName}`),
   homeDescription: (r: R, stores: number, inStock: number) =>
     fitDescription(
       `Compare Magic booster boxes, Collector Boosters, bundles and Commander decks across ${plural(stores, `${r.adjective} store`)}${r.market === "US" ? " and TCGplayer" : ""}: ${inStock.toLocaleString("en")} in stock today, in ${r.currency}.`,
