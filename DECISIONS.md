@@ -798,3 +798,14 @@ and the Play Booster Box type page. Google splits a query between a site's own p
   "Shop by product" in every region's menu ("Booster box prices").
 - The home's title leads with "MTG sealed prices in <region>" instead. The region titles that lead with the place ("MTG NZ: …")
   are unchanged. The Play Booster Box type page keeps "MTG Play Booster Box prices".
+
+
+## 2026-11-02: Nobody is moved to another region on a guess
+
+Since 2026-11-01 `lib/region-boot.ts` moved every visitor on another region's page to their time zone's copy in the
+browser. Crawlers were excluded, but Search Console then read regional copies as duplicates on Compare Empire, which has
+the same script, and Google's guidance is not to redirect automatically on a guessed location. Now only a visitor who
+PICKED a region (any `[data-region-pick]` link, kept in localStorage) is moved; everyone else stays on the URL they opened
+and gets one line at the top, "This page shows <X> prices. Switch to <Y> prices · Stay", linking the page's own hreflang
+alternate ("Stay" remembers the page's region). Crawlers never see the line. The script is byte-identical on MTG Compare,
+DexCompare, WargameCompare and CamCompare.
