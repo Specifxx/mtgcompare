@@ -1,7 +1,7 @@
 // The site's shell: the header (one 60px row, search at every width), the phone menu, the region footer, the root layout's
 // fonts, the landing page's metadata, breadcrumbs, the product card and the empty state. Rendered on the server as a crawler sees them.
 import { test } from "node:test";
-import { SISTER_SITES } from "../src/lib/site";
+import { NETWORK_PAGE, footerSisters } from "../src/lib/family-network";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import * as React from "react";
@@ -80,7 +80,7 @@ test("Footer on a region page: Shop, Latest sets, Explore and MTG Compare, then 
   for (const r of REGION_LIST) assert.ok(links.includes(`/${r.region}`), r.region);
   assert.match(html, /aria-current="true" class="chip min-h-10 chip-on" href="\/au">/);
   // every link is internal but the owner's sister sites ("Also from us", tests/footer.test.ts)
-  const sisters = new Set<string>(SISTER_SITES.map((s) => s.url));
+  const sisters = new Set<string>([...footerSisters("mtg").map((s) => s.url), NETWORK_PAGE]);
   for (const h of links) if (!sisters.has(h) && h !== "mailto:compareempire@gmail.com") assert.match(h, /^\//, `${h} is internal`);
   assert.equal(footerColumns("au").length, 5); // Shop, Latest sets, Explore, Guides (every guide: no orphans), MTG Compare
 });

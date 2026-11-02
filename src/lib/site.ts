@@ -19,26 +19,7 @@ export const FAN_CONTENT_DISCLAIMER = `${SITE_NAME} is unofficial Fan Content pe
 
 export const OPERATOR = process.env.NEXT_PUBLIC_OPERATOR?.trim() || SITE_NAME;
 
-// The owner's other price-comparison sites, linked from the footer (owner's
-// call, 2026-10-14: the four sites cross-link in every footer). Plain followed
-// links — our own sites, not affiliates — so no nofollow or sponsored. The other
-// three games only (2026-10-23): the old list linked this site to itself and had
-// no Pokémon site. `anchor` is the link text, the words each site is found by.
-export const SISTER_SITES = [
-  { name: "RiftCompare", url: "https://riftcompare.com", game: "Riftbound", anchor: "Riftbound card prices", what: "RiftCompare" },
-  { name: "OP Compare", url: "https://opcompare.app", game: "One Piece", anchor: "One Piece Card Game prices", what: "OP Compare" },
-  { name: "DexCompare", url: "https://dexcompare.app", game: "Pokémon", anchor: "Pokémon TCG sealed prices", what: "DexCompare" },
-  // The whole Compare Empire family (2026-10-26, DECISIONS.md "One family of sites").
-  { name: "Gundam Compare", url: "https://gundamcompare.com", game: "Gundam", anchor: "Gundam Card Game prices", what: "Gundam Compare" },
-  { name: "Lorcana Compare", url: "https://lorcanacompare.com", game: "Lorcana", anchor: "Lorcana card prices", what: "Lorcana Compare" },
-  // Every site links the whole family (2026-10-27, DECISIONS.md "Every site links the whole family").
-  { name: "YGO Compare", url: "https://ygocompare.com", game: "Yu-Gi-Oh", anchor: "Yu-Gi-Oh! card prices", what: "YGO Compare" },
-  { name: "Cyberpunk Compare", url: "https://cyberpunkcompare.com", game: "Cyberpunk TCG", anchor: "Cyberpunk TCG prices", what: "Cyberpunk Compare" },
-  { name: "WargameCompare", url: "https://wargamecompare.com", game: "Miniature wargame", anchor: "Miniature wargame prices", what: "WargameCompare" },
-  { name: "FigureCompare", url: "https://figurecompare.com", game: "Anime figure", anchor: "Anime figure prices", what: "FigureCompare" },
-  { name: "CamCompare", url: "https://www.camcompare.app", game: "Camera", anchor: "Camera and lens prices", what: "CamCompare" },
-  { name: "Compare Empire", url: "https://compareempire.com", game: "Tech", anchor: "Tech and appliance prices", what: "Compare Empire" },
-] as const;
+// The owner's other sites: lib/family-network.ts (FAMILY_SITES), shared by every Compare Empire site.
 
 // Public profiles for Organization.sameAs (an X account, a Bluesky handle…).
 // Empty until there are any: an empty list is left out of the JSON-LD.

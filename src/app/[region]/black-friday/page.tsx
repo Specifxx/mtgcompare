@@ -10,6 +10,7 @@ import { Icon } from "@/components/Icon";
 import { PreorderBanner } from "@/components/PreorderBanner";
 import { ProductGrid } from "@/components/ProductGrid";
 import { Empty, Section } from "@/components/Section";
+import { FamilyCluster } from "@/components/FamilyCluster";
 import { bfCopy, blackFriday, cyberMonday, seasonYear } from "@/lib/black-friday";
 import { cardsBySlugs, lastCheckedAt, type ProductCardData } from "@/lib/data";
 import { belowMsrpUS, dealPct, dealsInMarket, fitTitle } from "@/lib/deals";
@@ -139,6 +140,8 @@ export default async function BlackFridayPage({ params }: { params: { region: st
           <p className="mt-3 text-xs text-muted">{RRP_NOTE}</p>
         </Section>
       )}
+
+      <FamilyCluster kind="deal" region={r.region} />
 
       <section aria-labelledby="season-more" className="mt-14 max-w-3xl">
         <h2 id="season-more" className="font-display text-2xl font-bold tracking-tight">

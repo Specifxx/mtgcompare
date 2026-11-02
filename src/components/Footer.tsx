@@ -3,8 +3,9 @@ import { COUNTRY_GUIDE } from "@/content/guides/country-prices";
 import { REGION_LIST, REGIONS, type Region } from "@/lib/regions";
 import { featureOrder } from "@/lib/release";
 import { SET_BY_CODE, SETS } from "@/lib/sets";
-import { CONTACT_EMAIL, FAN_CONTENT_DISCLAIMER, OPERATOR, SISTER_SITES, SITE_NAME, sectionHref, type SectionKey } from "@/lib/site";
+import { CONTACT_EMAIL, FAN_CONTENT_DISCLAIMER, OPERATOR, SITE_NAME, sectionHref, type SectionKey } from "@/lib/site";
 import { AMAZON_DISCLOSURE } from "@/lib/amazon";
+import { NETWORK_PAGE, footerSisters } from "@/lib/family-network";
 import { LogoMark } from "./Logo";
 import { footerSeoSections } from "./seo/HubLinks";
 
@@ -117,19 +118,25 @@ export function Footer({ region }: { region: Region | null }) {
             </nav>
           ))}
         </div>
-        {/* The owner's sister sites, one row across the footer: the anchor says what each compares, the site's name after it. */}
-        <nav aria-label="The Compare Empire family" className={r ? "lg:col-span-2" : "md:col-span-2"}>
-          <h2 className="eyebrow mb-2">More price comparison · the Compare Empire family</h2>
-          <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-            {SISTER_SITES.map((s) => (
-              <li key={s.url}>
-                <a href={s.url} target="_blank" rel="noopener" className="font-semibold text-muted hover:text-ink">
-                  {s.anchor}
+        {/* One short line (owner, 2026-11-02: the old list of every site was "convoluted"): the other card-game sites, then one
+            link to the network page that lists every site (lib/family-network.ts, DECISIONS.md "Sites that grow each other"). */}
+        <nav aria-label="Sister sites" className={r ? "lg:col-span-2" : "md:col-span-2"}>
+          <h2 className="eyebrow mb-2">Other card games</h2>
+          <p className="text-sm text-muted">
+            {footerSisters("mtg").map((s, i) => (
+              <span key={s.id}>
+                {i ? " · " : ""}
+                <a href={s.url} rel="noopener" title={s.label} className="font-semibold hover:text-ink">
+                  {s.name}
                 </a>
-                <span className="text-xs text-faint"> at {s.what}</span>
-              </li>
+              </span>
             ))}
-          </ul>
+          </p>
+          <p className="mt-2 text-sm text-muted">
+            <a href={NETWORK_PAGE} rel="noopener" className="hover:text-ink">
+              A Compare Empire site →
+            </a>
+          </p>
         </nav>
       </div>
 

@@ -124,6 +124,12 @@ jobs:
         if: steps.db.outputs.found == 'true'
         run: npx tsx scripts/export-public-data.ts
 
+      # The Compare Empire network (DECISIONS.md "Sites that grow each other"): this site's best deals for the sister
+      # sites, and their feeds for the "Other card games on sale" block. Read from the files just exported; never fails the run.
+      - name: Family feed
+        if: steps.db.outputs.found == 'true'
+        run: PUBLIC_DATA_MODE=files npx tsx scripts/family-sync.ts
+
       - name: Publish it to main
         if: steps.db.outputs.found == 'true'
         # ONE RELEASE A DAY (owner, 2026-10-17: "reduce the cost"). The 20:47 UTC run (early morning in Australia,
