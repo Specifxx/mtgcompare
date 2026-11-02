@@ -659,3 +659,12 @@ their place and their "Ad"/paid-link label, but lose their brand tints and brand
 and the same button as a store. They are still never counted as a store and never re-ranked by commission. This
 reverses the 2026-10-30 "bright, catchy colour" pinned rows; eBay ad strips and panels outside the price rows keep
 their own look.
+
+## 2026-11-02 — Free price widgets
+
+`/widgets/p/<slug>?region=` is a live sealed price badge any blog, newsletter or store can put in an `<iframe>`: the
+cheapest in-stock independent store price in the region (never a marketplace) and how many stores have it. It reads
+only the public data files through `productPage`, is noindex, and is kept a day by the CDN like every data page.
+Only `/widgets/:path+` may be framed. `/widgets` shows the snippet (iframe plus one plain text link, the part search
+engines credit) with a real in-stock box, and a plain-HTML store badge. The daily outreach offers the widget instead
+of asking for a link (owner, 2026-11-02: growth must be passive). RiftCompare and the engine sites have the same at `/embed`; here `/embed` is taken by the retired singles site's redirect (old embeds on other sites still land on `/us/sealed`), so the widgets live at `/widgets`.
