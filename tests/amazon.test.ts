@@ -47,21 +47,11 @@ test("amazonUrl: /dp/<ASIN> when the ASIN is known, else a search; the tag on bo
   assert.equal(asinFor(null), null);
 });
 
-test("amazonTag: AMAZON_AU_TAG, else compareempire-22 (empty or malformed falls back)", () => {
+test("amazonTag: compareempire-22, hard-coded (owner, 2026-11-02: no Vercel variable decides a tag)", () => {
   assert.equal(AMAZON_DEFAULT_TAG, "compareempire-22");
-  assert.equal(amazonTag(undefined), "compareempire-22");
-  assert.equal(amazonTag(""), "compareempire-22");
-  assert.equal(amazonTag("bad tag&x=1"), "compareempire-22");
-  assert.equal(amazonTag(" mine-22 "), "mine-22");
-  const before = process.env.AMAZON_AU_TAG;
-  process.env.AMAZON_AU_TAG = "envtag-22";
-  try {
-    assert.match(amazonUrl("Bundle", { asins: {} }), /&tag=envtag-22$/);
-  } finally {
-    if (before === undefined) delete process.env.AMAZON_AU_TAG;
-    else process.env.AMAZON_AU_TAG = before;
-  }
-  assert.match(amazonUrl("Bundle", { asins: {} }), new RegExp(`&tag=${process.env.AMAZON_AU_TAG ?? "compareempire-22"}$`));
+  assert.equal(amazonTag(), "compareempire-22");
+  assert.match(amazonUrl("Bundle", { asins: {} }), /&tag=compareempire-22$/);
+  assert.doesNotMatch(readFileSync(new URL("../src/lib/amazon.ts", import.meta.url), "utf8"), /process\.env/);
 });
 
 test("the ASIN map is a JSON object of slug → 10-character ASIN (never guessed; empty is fine)", () => {
@@ -70,17 +60,18 @@ test("the ASIN map is a JSON object of slug → 10-character ASIN (never guessed
   for (const [k, v] of Object.entries(map)) assert.match(v, /^[A-Z0-9]{10}$/, k);
 });
 
-test("region gating: Amazon AU in AU, NZ and SG; Amazon US in the US; UK, CA and EU only with their own tag", () => {
-  const shown = ["au", "nz", "sg", "us"];
-  assert.deepEqual(amazonRegions({}).sort(), [...shown].sort());
-  assert.equal(amazonFor("us", {})!.tag, "riftcompare-20");
-  assert.equal(amazonFor("us", { AMAZON_US_TAG: "mtgcompare-20" })!.tag, "mtgcompare-20");
-  assert.equal(amazonFor("uk", {}), null);
-  assert.equal(amazonFor("uk", { AMAZON_UK_TAG: "mtgcompare-21" })!.host, "www.amazon.co.uk");
-  assert.equal(amazonFor("eu", { AMAZON_DE_TAG: "mtgcompare-21" })!.host, "www.amazon.de");
+test("region gating: Amazon AU in AU, NZ and SG; Amazon US, UK, CA and DE in their regions with the owner's tags", () => {
+  const shown = ["au", "ca", "eu", "nz", "sg", "uk", "us"];
+  assert.deepEqual(amazonRegions().sort(), [...shown].sort());
+  assert.equal(amazonFor("us")!.tag, "riftcompare-20");
+  assert.equal(amazonFor("uk")!.tag, "compareempi03-21", "the owner's UK account (2026-11-02)");
+  assert.equal(amazonFor("ca")!.tag, "compareempire-20");
+  assert.equal(amazonFor("eu")!.tag, "compareempire-21");
+  assert.equal(amazonFor("uk")!.host, "www.amazon.co.uk");
+  assert.equal(amazonFor("eu")!.host, "www.amazon.de");
   const us = new URL(amazonUrl("Reality Fracture Bundle", { region: "us", placement: "amazon-table" }));
   assert.equal(us.origin + us.pathname, "https://www.amazon.com/s");
-  assert.equal(us.searchParams.get("tag"), process.env.AMAZON_US_TAG || "riftcompare-20");
+  assert.equal(us.searchParams.get("tag"), "riftcompare-20");
   assert.equal(us.searchParams.get("ascsubtag"), "mtg-us-amazon-table");
   for (const r of REGION_LIST) {
     const yes = shown.includes(r.region);
@@ -88,7 +79,8 @@ test("region gating: Amazon AU in AU, NZ and SG; Amazon US in the US; UK, CA and
     const row = render(React.createElement(AmazonProductRow, { region: r.region, name: "Reality Fracture Bundle", slug: "reality-fracture-bundle" }));
     assert.equal(amazonAnchors(row).length, yes ? 1 : 0, r.region);
     if (yes) {
-      assert.match(row, r.region === "us" ? /Check price on Amazon US/ : /Check price on Amazon AU/);
+      const label = { us: "US", uk: "UK", ca: "CA", eu: "DE" }[r.region as string] ?? "AU";
+      assert.match(row, new RegExp(`Check price on Amazon ${label}`));
       assert.match(row, new RegExp(AMAZON_DISCLOSURE.replace(/\./g, "\\.")));
       assert.doesNotMatch(row.replace(/<[^>]+>/g, " "), /\$\d/, "no Amazon price");
     }
