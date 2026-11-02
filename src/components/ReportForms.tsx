@@ -1,6 +1,6 @@
 "use client";
 
-// "Report a wrong price" and "Suggest a store": the two visitor forms every
+// "Report a wrong price", "Suggest a store" and "Report a store": the visitor forms every
 // Compare Empire site shares. Both POST to /api/report, which files them in the
 // private reports repo (src/lib/reports-github.ts). Inline only: the price form
 // opens in place under a quiet link, never as a pop-up (owner, 2026-10-27).
@@ -28,6 +28,7 @@ const ISSUES: [string, string][] = [
   ["out-of-stock", "It's out of stock"],
   ["wrong-product", "It's a different product"],
   ["broken-link", "The link doesn't work"],
+  ["store-problem", "I don't trust this store / had a problem ordering"],
   ["other", "Something else"],
 ];
 
@@ -191,6 +192,55 @@ export function SuggestStore({
       </button>
       <Result state={state} sentText="" />
       <p style={hint}>No sign-up and no email needed. Store owners are welcome too: listing is free. Suggestions are kept in our public records.</p>
+    </form>
+  );
+}
+
+/**
+ * "Report a store": a shop that looks fake, never shipped, or treated a buyer
+ * badly. Filed as kind "other" with issue "store-problem", which the daily triage
+ * puts first (docs/store-vetting.md in RiftCompare's repo).
+ */
+export function ReportStore({ stores = [], buttonClassName }: { stores?: string[]; buttonClassName?: string }) {
+  const [state, setState] = useState<State>({ status: "idle" });
+  const names = [...new Set(stores.filter(Boolean))].sort((a, b) => a.localeCompare(b)).slice(0, 2000);
+
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    setState({ status: "sending" });
+    setState(await send({ kind: "other", issue: "store-problem", store: fd.get("store"), storeUrl: fd.get("storeUrl"), note: fd.get("note"), website: fd.get("website") }));
+  }
+
+  if (state.status === "sent")
+    return (
+      <div style={box} data-report-store>
+        <Result state={state} sentText="Thanks. We look at every store report first, and take a store off straight away if it isn't safe." />
+      </div>
+    );
+  return (
+    <form onSubmit={submit} style={{ ...box, maxWidth: 560 }} data-report-store>
+      <label style={{ ...label, marginTop: 0 }} htmlFor="rs-store">Which store?</label>
+      <input id="rs-store" name="store" style={field} maxLength={160} required list={names.length ? "rs-stores" : undefined} autoComplete="off" />
+      {names.length ? (
+        <datalist id="rs-stores">
+          {names.map((n) => (
+            <option key={n} value={n} />
+          ))}
+        </datalist>
+      ) : null}
+      <label style={label} htmlFor="rs-url">Its website (optional)</label>
+      <input id="rs-url" name="storeUrl" style={field} maxLength={300} placeholder="example.com" inputMode="url" autoCapitalize="none" />
+      <label style={label} htmlFor="rs-note">What happened?</label>
+      <textarea id="rs-note" name="note" style={{ ...field, minHeight: 80 }} maxLength={1000} required placeholder="e.g. never shipped, no reply, the site looks fake" />
+      <div style={hidden} aria-hidden="true">
+        <label>Leave empty<input name="website" tabIndex={-1} autoComplete="off" /></label>
+      </div>
+      <button type="submit" className={buttonClassName} style={buttonClassName ? { marginTop: 12 } : defaultButton} disabled={state.status === "sending"}>
+        {state.status === "sending" ? "Sending…" : "Report this store"}
+      </button>
+      <Result state={state} sentText="" />
+      <p style={hint}>No sign-up and no email needed. Reports are kept in our public records, so please leave out order numbers and personal details.</p>
     </form>
   );
 }
