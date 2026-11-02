@@ -299,19 +299,6 @@
     ]
   },
   {
-    "key": "gamescapital",
-    "name": "The Games Capital",
-    "base": "https://www.thegamescapital.com.au",
-    "market": "AU",
-    "platform": "shopify",
-    "country": "AU",
-    "collections": [
-      "older-magic-products",
-      "magic-the-gathering-commander-masters",
-      "magic-the-gathering-mystery-boosters"
-    ]
-  },
-  {
     "key": "gamesempire",
     "name": "Games Empire",
     "base": "https://www.gamesempire.com.au",
@@ -3901,17 +3888,6 @@
     ]
   },
   {
-    "key": "pokemonwinkel",
-    "name": "Pokemon Winkel",
-    "base": "https://pokemonwinkel.nl",
-    "market": "EU",
-    "platform": "shopify",
-    "country": "NL",
-    "collections": [
-      "magic-the-gathering"
-    ]
-  },
-  {
     "key": "pokepower",
     "name": "PokePower",
     "base": "https://poke-power.eu",
@@ -4860,18 +4836,6 @@
       "magic-the-gathering-commander-decks",
       "magic-the-gathering-collector-booster-boxes",
       "magic-the-gathering-play-booster-boxes"
-    ]
-  },
-  {
-    "key": "etoysworld",
-    "name": "eTOYSWORLD",
-    "base": "https://www.etoysworld.co.uk",
-    "market": "UK",
-    "platform": "shopify",
-    "country": "GB",
-    "collections": [
-      "magic-sealed",
-      "pre-orders"
     ]
   },
   {
@@ -6332,17 +6296,6 @@
     ]
   },
   {
-    "key": "cosmicbham",
-    "name": "Cosmic Games Birmingham",
-    "base": "https://cosmicbham.com",
-    "market": "US",
-    "platform": "shopify",
-    "country": "US",
-    "collections": [
-      "new-arrivals"
-    ]
-  },
-  {
     "key": "cosmicdestroyers",
     "name": "Cosmic Destroyer’s Collectibles ",
     "base": "https://cosmicdestroyers.com",
@@ -6662,17 +6615,6 @@
     "country": "US",
     "collections": [
       "new-arrivals"
-    ]
-  },
-  {
-    "key": "foxandfablegames",
-    "name": "Fox and Fable Games",
-    "base": "https://foxandfablegames.com",
-    "market": "US",
-    "platform": "shopify",
-    "country": "US",
-    "collections": [
-      "magic-the-gathering-sealed"
     ]
   },
   {
@@ -8997,17 +8939,6 @@
     "key": "videogametrader",
     "name": "Video Game Trader LLC",
     "base": "https://videogametrader.com",
-    "market": "US",
-    "platform": "shopify",
-    "country": "US",
-    "collections": [
-      "magic-the-gathering"
-    ]
-  },
-  {
-    "key": "waywardcitygames",
-    "name": "Wayward City Games",
-    "base": "https://waywardcitygames.net",
     "market": "US",
     "platform": "shopify",
     "country": "US",
