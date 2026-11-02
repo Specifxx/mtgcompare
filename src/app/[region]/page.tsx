@@ -1,5 +1,6 @@
 import Link from "@/components/Link";
 import { inSeason } from "@/lib/black-friday";
+import { CORE_SALES, salesInSeason } from "@/lib/sale-seasons";
 import { ComingSoon } from "@/components/ComingSoon";
 import { loadFeatured } from "@/lib/coming-soon-data";
 import { cache } from "react";
@@ -187,6 +188,20 @@ export default async function RegionHome({ params }: { params: { region: string 
               <span className="shrink-0 text-sm font-semibold text-brand-strong">See the deals →</span>
             </Link>
           )}
+          {salesInSeason(CORE_SALES, new Date().toISOString().slice(0, 10)).map((sale) => (
+            <Link
+              key={sale.slug}
+              href={`/${r.region}/${sale.slug}`}
+              prefetch={false}
+              className="card flex flex-wrap items-center justify-between gap-3 px-5 py-4 transition-shadow hover:shadow-lift"
+            >
+              <span>
+                <span className="font-display text-lg font-bold">{sale.linkLabel} in {r.inName}</span>
+                <span className="block text-sm text-muted">Every product furthest under the median store price today, biggest gap first.</span>
+              </span>
+              <span className="shrink-0 text-sm font-semibold text-brand-strong">See the deals →</span>
+            </Link>
+          ))}
         </div>
         {deals.length > 0 && (
           <Section title={dealsCopy.rail} kicker={dealsCopy.railKicker} href={`/${r.region}/deals`} linkLabel="All deals">
