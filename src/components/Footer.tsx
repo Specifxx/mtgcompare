@@ -4,7 +4,7 @@ import { REGION_LIST, REGIONS, type Region } from "@/lib/regions";
 import { featureOrder } from "@/lib/release";
 import { SET_BY_CODE, SETS } from "@/lib/sets";
 import { CONTACT_EMAIL, FAN_CONTENT_DISCLAIMER, OPERATOR, SITE_NAME, sectionHref, type SectionKey } from "@/lib/site";
-import { AMAZON_DISCLOSURE } from "@/lib/amazon";
+import { AMAZON_DISCLOSURE, AMAZON_TRADEMARK } from "@/lib/amazon";
 import { NETWORK_PAGE, footerSisters } from "@/lib/family-network";
 import { LogoMark } from "./Logo";
 import { footerSeoSections } from "./seo/HubLinks";
@@ -89,7 +89,7 @@ export function Footer({ region }: { region: Region | null }) {
             </Link>
           </p>
           <p className="mt-2 text-xs leading-5 text-muted" data-amazon-disclosure="">
-            {AMAZON_DISCLOSURE}{" "}
+            {AMAZON_DISCLOSURE} {AMAZON_TRADEMARK}{" "}
             <Link href="/affiliate-disclosure" prefetch={false} className="whitespace-nowrap font-semibold text-ink underline decoration-line underline-offset-2 hover:decoration-ink">
               Affiliate disclosure
             </Link>
