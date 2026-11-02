@@ -668,3 +668,16 @@ only the public data files through `productPage`, is noindex, and is kept a day 
 Only `/widgets/:path+` may be framed. `/widgets` shows the snippet (iframe plus one plain text link, the part search
 engines credit) with a real in-stock box, and a plain-HTML store badge. The daily outreach offers the widget instead
 of asking for a link (owner, 2026-11-02: growth must be passive). RiftCompare and the engine sites have the same at `/embed`; here `/embed` is taken by the retired singles site's redirect (old embeds on other sites still land on `/us/sealed`), so the widgets live at `/widgets`.
+
+## 2026-11-02 — Share buttons
+
+The owner wants word of mouth to be a big growth driver on every site (RiftCompare's DECISIONS has the twelve-site
+entry). The product page's Share button (already the phone's share sheet, else a copied link) now sends a message
+with the real price gap in that region (`lib/share-link.ts` `priceGap`: cheapest and dearest in-stock store, never
+converted, TCGplayer left out), and the quick view has the same button (`/api/quick` returns the message). When a
+region shows a gap, the product's og:image is `/og/p/<region>/<slug>`, a share card drawing it; it is a plain
+function kept by Vercel's CDN for a day, never ISR, nothing prerendered, so only shared links cost a render. Every
+shared link carries `utm_source=share&utm_medium=<product|set>`. `share` and `share_visit` join `buy_click` as the
+only Vercel events (`lib/track.ts`): the button sends one, `ShareArrival` one per tab when a shared link brings
+someone, and RiftCompare's weekly growth report counts both. robots.txt allows `/*utm_source=share` because X's and
+Reddit's preview fetchers obey it. No shared-list page: the site has no list to share yet.
