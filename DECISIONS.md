@@ -668,3 +668,21 @@ only the public data files through `productPage`, is noindex, and is kept a day 
 Only `/widgets/:path+` may be framed. `/widgets` shows the snippet (iframe plus one plain text link, the part search
 engines credit) with a real in-stock box, and a plain-HTML store badge. The daily outreach offers the widget instead
 of asking for a link (owner, 2026-11-02: growth must be passive). RiftCompare and the engine sites have the same at `/embed`; here `/embed` is taken by the retired singles site's redirect (old embeds on other sites still land on `/us/sealed`), so the widgets live at `/widgets`.
+
+## 2026-11-02 — Price alerts through RiftCompare's shared service
+
+The owner chose "Yes, one shared service" for email price alerts on the sister sites. The site still has no accounts,
+no database read from a page and no mail key; the product page gains an "Email me when the price drops" form.
+
+- **The form** (`components/PriceAlertForm.tsx`, the same file on every sister site) posts
+  `{site, productId, region, email, targetCents}` straight to `https://riftcompare.com/api/sister-alerts`.
+  RiftCompare keeps the address (its own Neon project, private tables), sends one confirmation email (double opt-in)
+  and checks daily. This site stores nothing and holds no key.
+- **The prices** come from this site's own static `/alert-feed.json` (`lib/alert-feed.ts`, `force-static`, built with
+  each release from `data/public/products.json` and `product-stats.json`): each product's `lowestPriceCents` per
+  market (the cheapest open offer, TCGplayer included in the US, never eBay, never converted), with `u` =
+  `/{r}/p/<slug>` (the service fills in the region), plus up to three of the site's own deals per market (the
+  `isDeal` bar, re-stated in `feedIsDeal` because `deals.ts` reaches the database layer and this file is prerendered;
+  a test pins them equal). Another site's alert email of the same group may end with one of them.
+- The privacy page says what the form sends and links to RiftCompare's. RiftCompare's `sister-alerts.yml` fails (and
+  its ops monitor reports it) when a site with alerts serves no fresh feed.
