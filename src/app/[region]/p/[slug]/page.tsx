@@ -16,6 +16,8 @@ import { ebayQuery, SoldOutCallout } from "@/components/Marketplaces";
 import { AmazonProductRow } from "@/components/Amazon";
 import { OfferTable } from "@/components/OfferTable";
 import { ReportPrice } from "@/components/ReportForms";
+import { PriceAlertForm } from "@/components/PriceAlertForm";
+import { ALERT_SITE_KEY } from "@/lib/alert-feed";
 import { ProductGrid } from "@/components/ProductGrid";
 import { ProductRail } from "@/components/ProductRail";
 import { Section } from "@/components/Section";
@@ -608,6 +610,8 @@ export default async function ProductPage({ params }: { params: { region: string
           buttonClassName="btn-ghost"
           stores={p.offers.filter((o) => !o.marketplace).map((o) => ({ name: o.storeName, price: money(o.priceCents, r.market) }))}
         />
+        {/* RiftCompare's shared alert service emails when it drops (lib/alert-feed.ts, DECISIONS.md 2026-11-02). */}
+        <PriceAlertForm site={ALERT_SITE_KEY} productId={p.id} region={r.market} priceCents={here?.lowestPriceCents ?? null} className="mt-3" buttonClassName="btn-ghost" />
         {riftHref && (
           // The owner's other Pokémon site keeps what this one does not: TCGplayer's market price over time (lib/riftcompare.ts).
           <p className="mt-4 text-sm text-muted">

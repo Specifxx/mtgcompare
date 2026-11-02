@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 // Bump when what is collected changes, not for wording.
-const LAST_UPDATED = ADSENSE_CLIENT ? "15 October 2026" : "14 October 2026";
+const LAST_UPDATED = "2 November 2026";
 
 export default function Privacy() {
   return (
@@ -21,8 +21,15 @@ export default function Privacy() {
       <p className="mt-2 text-sm text-faint">Last updated {LAST_UPDATED}</p>
       <div className="prose-dex mt-6">
         <p>
-          MTG Compare has no accounts and doesn&rsquo;t ask for your email.{" "}
+          MTG Compare has no accounts and asks for your email only if you set a price alert (below).{" "}
           {ADSENSE_CLIENT ? "We show ads from Google AdSense, which uses cookies (below)." : "It sets no advertising cookies."} Here is everything we collect.
+        </p>
+        <h2>Price alerts</h2>
+        <p>
+          If you ask to be emailed when a price drops, the form sends your email address, the product, your region and your price to our
+          sister site RiftCompare&rsquo;s alert service. It keeps them only for that alert, emails you once to confirm, and deletes them when
+          you stop the alert (every email has a link) or after six months. MTG Compare itself never stores them. Details are in{" "}
+          <a href="https://riftcompare.com/privacy#sister-alerts">RiftCompare&rsquo;s privacy policy</a>.
         </p>
         <h2>Analytics</h2>
         <p>

@@ -1,5 +1,5 @@
 import Link from "@/components/Link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { cache } from "react";
 import type { Metadata } from "next";
 import { Ago } from "@/components/Ago";
@@ -37,7 +37,7 @@ import { offerStock } from "@/lib/sealed-offers";
 import { storesInMarket } from "@/lib/stores";
 import { jsonLd, pageMeta, regionAlternates } from "@/lib/seo";
 import { TYPE_BY_KEY, TYPE_BY_LABEL } from "@/lib/sealed-title";
-import { type MtgSet } from "@/lib/sets";
+import { SET_BY_SLUG, type MtgSet } from "@/lib/sets";
 import { SITE_URL } from "@/lib/site";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -92,7 +92,11 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function PreorderPage({ params }: Params) {
   const r = regionOrNotFound(params.region);
   const found = preorderGuideBySlug(params.set);
-  if (!found) notFound();
+  // A set past its page's life (no written guide, released over AUTO_DAYS_AFTER days ago) goes to its set page.
+  if (!found) {
+    if (SET_BY_SLUG.has(params.set)) permanentRedirect(`/${r.region}/sets/${params.set}`);
+    notFound();
+  }
   const { guide, set } = found;
   const pre = isPreorderSet(set.code);
   const us = r.market === "US";
@@ -221,6 +225,8 @@ export default async function PreorderPage({ params }: Params) {
           </Section>
         ))}
 
+      {/* A blank guide (an automatic page, lib/preorder-guides.ts) has no announced contents: no section. */}
+      {guide.products.length > 0 && (
       <Section title={`What each ${set.name} product is`} kicker={guide.cardCount ? `${guide.cardCount}${guide.headliners[0] ? ` · headlined by ${guide.headliners[0]}` : ""}` : undefined}>
         <p className="max-w-3xl text-sm text-muted">
           Stores list the same product under different names, so here is what is in each box. Contents are from Wizards of the Coast&rsquo;s
@@ -248,6 +254,7 @@ export default async function PreorderPage({ params }: Params) {
         {msrpValueSentence(msrpRows) && <p className="mt-4 max-w-3xl text-sm leading-6 text-muted">{msrpValueSentence(msrpRows)}</p>}
         {r.market === "US" && <p className="mt-3 text-xs text-muted">{RRP_NOTE}</p>}
       </Section>
+      )}
 
       {guide.makeup.length > 0 && (
         <Section title={`What’s in ${set.name}`} kicker={`The set · ${guide.cardCount}`}>
@@ -348,6 +355,7 @@ export default async function PreorderPage({ params }: Params) {
         </div>
       </section>
 
+      {guide.sources.length > 0 && (
       <p className="mt-8 max-w-3xl text-xs text-faint">
         Sources, checked {formatRelease(guide.checked)}:{" "}
         {guide.sources.map((s, i) => (
@@ -360,6 +368,7 @@ export default async function PreorderPage({ params }: Params) {
         ))}
         .
       </p>
+      )}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />
     </div>
   );

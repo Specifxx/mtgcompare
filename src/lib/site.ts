@@ -49,6 +49,9 @@ export const SOCIAL_LINKS: string[] = [];
 export const SECTION_PATHS = {
   deals: "/deals",
   blackFriday: "/black-friday",
+  boxingDay: "/boxing-day",
+  januarySales: "/january-sales",
+  lunarNewYear: "/lunar-new-year",
   thisWeek: "/this-week",
   backInStock: "/back-in-stock",
   priceMoves: "/price-moves",
