@@ -21,6 +21,7 @@ import { isPreorderSet } from "@/lib/release";
 import { pageMeta } from "@/lib/seo";
 import { fitDescription, seoCopy } from "@/lib/seo-titles";
 import { isMarketplace, STORE_BY_KEY, storeHost, storesInMarket, type StoreConfig } from "@/lib/stores";
+import { Flag } from "@/components/Flag";
 
 // Shared by /[region]/stores/[store] (page 1) and …/page/[n]: a big store has
 // 1,400 listings, so each page of 48 is its own cached render reading only its
@@ -92,7 +93,7 @@ export async function StorePage({ r, s, page }: { r: RegionInfo; s: StoreConfig;
       <div className="card flex flex-col justify-between gap-4 p-6 sm:flex-row sm:items-center">
         <div>
           <div className="eyebrow">
-            {r.flag} {r.name} · prices in {r.currency}
+            <Flag code={r.short} /> {r.name} · prices in {r.currency}
           </div>
           <h1 className="mt-1 font-display text-3xl font-extrabold tracking-tight">{s.name}</h1>
           <p className="mt-1 text-sm text-muted">

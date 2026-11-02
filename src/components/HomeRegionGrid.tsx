@@ -16,6 +16,7 @@ import { sectionHref, type SectionKey } from "@/lib/site";
 import type { Pick } from "@/lib/picks";
 import { Icon, type IconName } from "./Icon";
 import { pickRegion, useSuggestedRegion, type RegionSource } from "./RegionSuggest";
+import { Flag } from "@/components/Flag";
 
 const SLOTS = 5;
 
@@ -101,7 +102,7 @@ export function HomeRegionGrid({ initial, preorder = null }: { initial: Pick[]; 
               }}
               className={`chip min-h-11 ${x.region === region ? "chip-on" : ""}`}
             >
-              <span aria-hidden="true">{x.flag}</span> {x.short}
+              <Flag code={x.short} /> {x.short}
             </a>
           </li>
         ))}

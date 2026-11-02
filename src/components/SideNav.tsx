@@ -6,6 +6,7 @@ import { retargetGroups, type NavGroup } from "@/lib/nav";
 import { REGIONS, type Region } from "@/lib/regions";
 import { isActivePath } from "./NavLink";
 import { useSoftRegion } from "./RegionSuggest";
+import { Flag } from "@/components/Flag";
 
 /**
  * The desktop sidebar (xl and up; owner, 2026-10-28: the empty left side of a wide screen becomes navigation): every product type,
@@ -19,7 +20,7 @@ export function SideNav({ region, groups }: { region: Region; groups: NavGroup[]
     <aside className="hidden w-60 shrink-0 xl:block" data-sidenav="">
       <nav aria-label="Browse" className="sticky top-[var(--hdr)] max-h-[calc(100dvh-var(--hdr))] overflow-y-auto overscroll-contain py-6 pl-6 pr-3">
         <p className="mb-4 px-2 text-xs font-semibold text-muted">
-          <span aria-hidden="true">{r.flag}</span> Prices in {r.name} · {r.currency}
+          <Flag code={r.short} /> Prices in {r.name} · {r.currency}
         </p>
         {groups.map((g) => (
           <div key={g.title} className="mb-5">
