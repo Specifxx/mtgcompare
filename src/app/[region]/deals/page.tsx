@@ -10,6 +10,7 @@ import { EbayStrip } from "@/components/EbayStrip";
 import { Icon } from "@/components/Icon";
 import { ProductGrid } from "@/components/ProductGrid";
 import { Empty, Section } from "@/components/Section";
+import { FamilyCluster } from "@/components/FamilyCluster";
 import { lastCheckedAt, type ProductCardData } from "@/lib/data";
 import { belowMsrpUS, dealPct, dealsBySection, dealsCopy, nearestRegion, perPackLeaders, stockLabel, type PerPackRow } from "@/lib/deals";
 import { money, plural, timeAgo } from "@/lib/format";
@@ -206,6 +207,8 @@ export default async function DealsPage({ params }: { params: { region: string }
           <p className="mt-3 text-xs text-muted">{RRP_NOTE}</p>
         </Section>
       )}
+
+      <FamilyCluster kind="deal" region={r.region} />
 
       <aside className="mt-14 rounded-xl border border-line bg-raised p-5 text-sm leading-6 text-muted sm:p-6" aria-labelledby="how-deals">
         <h2 id="how-deals" className="flex items-center gap-2 font-display text-base font-bold text-ink">
