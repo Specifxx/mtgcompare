@@ -2,14 +2,11 @@
 // rows, never "best price", and we show no Amazon price, rating or stock: we do not read Amazon, so the link only says "Check price on
 // Amazon AU / US" (owner, 2026-10-25).
 //
-// Server-side only: each tag is read from its variable at request time (all the pages that render these links are server
-// components). A client component that needs a link gets the built URL as a prop, so no NEXT_PUBLIC variable is required.
-//
-// Where (owner, 2026-10-29: "we are now earning money through our Amazon affiliates … we got to implement it" on every site):
-// - Amazon Australia (AMAZON_AU_TAG, default compareempire-22) in AU, and in NZ and SG (it may ship there; the copy says to check).
-// - Amazon US (amazon.com, AMAZON_US_TAG, default riftcompare-20: the owner's US Associates account) in the US.
-// - Amazon UK / CA / DE in the UK, Canada and the eurozone only once AMAZON_UK_TAG / AMAZON_CA_TAG / AMAZON_DE_TAG is set: there is
-//   no account there yet, and an untagged link earns nothing, so without a tag those regions show no Amazon at all.
+// Tags are hard-coded (owner, 2026-11-02: no Vercel variable decides a tag), one per Amazon store, because a tag earns only on the
+// store whose Associates account issued it:
+// - Amazon Australia (compareempire-22) in AU, and in NZ and SG (it may ship there; the copy says to check).
+// - Amazon US (riftcompare-20) in the US; Amazon UK (compareempi03-21), Canada (compareempire-20) and Germany (compareempire-21, for
+//   the eurozone) in theirs.
 // A link that knows where it sits carries ascsubtag=mtg-<region>-<placement> (Associates' tracking report splits by it).
 
 import ASINS from "@/data/amazon-asins.json";
@@ -28,39 +25,32 @@ export const AMAZON_DISCLOSURE = "As an Amazon Associate I earn from qualifying 
 export const AMAZON_TRADEMARK = "Amazon and the Amazon logo are trademarks of Amazon.com, Inc. or its affiliates.";
 export const AMAZON_CTA = "Check price on Amazon AU";
 
-type Env = Record<string, string | undefined>;
 interface Store {
   host: string;
   retailer: string;
-  tagEnv: string;
-  defaultTag: string | null;
+  tag: string;
 }
-const AU: Store = { host: "www.amazon.com.au", retailer: AMAZON_RETAILER, tagEnv: "AMAZON_AU_TAG", defaultTag: AMAZON_DEFAULT_TAG };
+const AU: Store = { host: "www.amazon.com.au", retailer: AMAZON_RETAILER, tag: AMAZON_DEFAULT_TAG };
 const STORES: Record<Region, Store | null> = {
   au: AU,
   nz: AU,
   sg: AU,
-  us: { host: "www.amazon.com", retailer: "Amazon US", tagEnv: "AMAZON_US_TAG", defaultTag: AMAZON_US_DEFAULT_TAG },
-  uk: { host: "www.amazon.co.uk", retailer: "Amazon UK", tagEnv: "AMAZON_UK_TAG", defaultTag: null },
-  ca: { host: "www.amazon.ca", retailer: "Amazon CA", tagEnv: "AMAZON_CA_TAG", defaultTag: null },
-  eu: { host: "www.amazon.de", retailer: "Amazon DE", tagEnv: "AMAZON_DE_TAG", defaultTag: null },
+  us: { host: "www.amazon.com", retailer: "Amazon US", tag: AMAZON_US_DEFAULT_TAG },
+  uk: { host: "www.amazon.co.uk", retailer: "Amazon UK", tag: "compareempi03-21" },
+  ca: { host: "www.amazon.ca", retailer: "Amazon CA", tag: "compareempire-20" },
+  eu: { host: "www.amazon.de", retailer: "Amazon DE", tag: "compareempire-21" },
 };
 
-const TAG_RE = /^[A-Za-z0-9-]{1,64}$/;
-
-/** The region's Amazon (host, buy_click retailer, tag), or null where it shows none (no store, or no tag set). */
-export function amazonFor(region: Region, env: Env = process.env): { host: string; retailer: string; tag: string } | null {
+/** The region's Amazon (host, buy_click retailer, tag), or null where it shows none. */
+export function amazonFor(region: Region): { host: string; retailer: string; tag: string } | null {
   const s = STORES[region];
-  if (!s) return null;
-  const v = (env[s.tagEnv] ?? "").trim();
-  const tag = TAG_RE.test(v) ? v : s.defaultTag;
-  return tag ? { host: s.host, retailer: s.retailer, tag } : null;
+  return s ? { host: s.host, retailer: s.retailer, tag: s.tag } : null;
 }
 
 /** The regions Amazon links appear in today. */
-export const amazonRegions = (env: Env = process.env): Region[] => (Object.keys(STORES) as Region[]).filter((r) => amazonFor(r, env));
-export function amazonRegion(region: Region, env: Env = process.env): boolean {
-  return amazonFor(region, env) != null;
+export const amazonRegions = (): Region[] => (Object.keys(STORES) as Region[]).filter((r) => amazonFor(r));
+export function amazonRegion(region: Region): boolean {
+  return amazonFor(region) != null;
 }
 export const amazonRetailer = (region: Region): string => STORES[region]?.retailer ?? "Amazon";
 export const amazonCta = (region: Region): string => `Check price on ${amazonRetailer(region)}`;
@@ -72,10 +62,9 @@ export function amazonLabel(region: Region): { name: string; note: string } {
   return { name: amazonRetailer(region), note: "Price and stock are Amazon's own; we do not check them." };
 }
 
-/** Amazon Australia's tag: AMAZON_AU_TAG, or the default. A tag is letters, digits and dashes; anything else falls back. */
-export function amazonTag(env: string | undefined = process.env.AMAZON_AU_TAG): string {
-  const v = (env ?? "").trim();
-  return TAG_RE.test(v) ? v : AMAZON_DEFAULT_TAG;
+/** Amazon Australia's tag. */
+export function amazonTag(): string {
+  return AMAZON_DEFAULT_TAG;
 }
 
 const ASIN_MAP = ASINS as Record<string, string>;
