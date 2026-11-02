@@ -24,6 +24,8 @@ export function navGroups(region: Region, today: string = new Date().toISOString
     {
       title: "Shop by product",
       links: [
+        // The booster box guide is the one page for "mtg booster box" (every box type, set by set); linked site-wide.
+        { href: `/${region}/guides/mtg-booster-box-prices`, label: "Booster box prices" },
         s("boosterBoxes", "Play booster boxes"),
         s("collectorBoxes", "Collector booster boxes"),
         s("bundles", "Bundles"),

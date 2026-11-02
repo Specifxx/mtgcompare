@@ -787,3 +787,14 @@ landing page has the same row above its search, picking in place like the header
   Empire repo that has a region switcher; keep the copies identical.
 - Chips show the code, not the name: seven full names wrap even at 1280px. The name is the title and the
   screen-reader text.
+
+## 2026-11-02 — One page per head term: "mtg booster box" is the booster box guide
+
+Search Console (25–31 Oct): "mtg booster box" at position 32. Three of our pages answered it: the region home ("MTG booster box
+prices in the US: N stores compared"), the guide `/<region>/guides/mtg-booster-box-prices` ("MTG booster box prices in the US")
+and the Play Booster Box type page. Google splits a query between a site's own pages (RiftCompare, 2026-10-27).
+
+- The guide is the landing page: it covers every box type, set by set, with the price per pack. It is now the first link under
+  "Shop by product" in every region's menu ("Booster box prices").
+- The home's title leads with "MTG sealed prices in <region>" instead. The region titles that lead with the place ("MTG NZ: …")
+  are unchanged. The Play Booster Box type page keeps "MTG Play Booster Box prices".
