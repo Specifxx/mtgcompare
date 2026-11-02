@@ -56,7 +56,7 @@ const RAW = "https://raw.githubusercontent.com/Specifxx";
 export const FAMILY_SITES: readonly FamilySite[] = [
   { id: "rift", name: "RiftCompare", url: "https://riftcompare.com", label: "Riftbound card prices", topic: "Riftbound", clusters: ["cards"], feed: `${RAW}/TCGEmpire/main/data/public/family/family-feed.json`, report: "/market/report" },
   { id: "op", name: "OP Compare", url: "https://opcompare.app", label: "One Piece card prices", topic: "One Piece", clusters: ["cards"], feed: `${RAW}/OpCompare/snapshot/family-feed.json`, report: "/market" },
-  { id: "dex", name: "DexCompare", url: "https://dexcompare.app", label: "Pokémon TCG sealed prices", topic: "Pokémon", clusters: ["cards"], feed: `${RAW}/CompareEmpire/main/apps/dexcompare-sealed/data/family/family-feed.json` },
+  { id: "dex", name: "DexCompare", url: "https://dexcompare.app", label: "Pokémon TCG sealed prices", topic: "Pokémon", clusters: ["cards"], feed: `${RAW}/CompareEmpire/main/apps/dexcompare-sealed/data/public/family/family-feed.json` },
   { id: "mtg", name: "MTG Compare", url: "https://mtgcompare.app", label: "Magic: The Gathering sealed prices", topic: "Magic", clusters: ["cards"], feed: `${RAW}/mtgcompare/main/data/public/family/family-feed.json` },
   { id: "gundam", name: "Gundam Compare", url: "https://gundamcompare.com", label: "Gundam card and Gunpla prices", topic: "Gundam", clusters: ["cards", "hobby"], feed: `${RAW}/GundamCompare/main/data/public/family/family-feed.json`, report: "/price-report" },
   { id: "lorcana", name: "Lorcana Compare", url: "https://lorcanacompare.com", label: "Disney Lorcana card prices", topic: "Lorcana", clusters: ["cards"], feed: `${RAW}/lorcanacompare/main/data/public/family/family-feed.json`, report: "/price-report" },
