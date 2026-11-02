@@ -668,3 +668,14 @@ only the public data files through `productPage`, is noindex, and is kept a day 
 Only `/widgets/:path+` may be framed. `/widgets` shows the snippet (iframe plus one plain text link, the part search
 engines credit) with a real in-stock box, and a plain-HTML store badge. The daily outreach offers the widget instead
 of asking for a link (owner, 2026-11-02: growth must be passive). RiftCompare and the engine sites have the same at `/embed`; here `/embed` is taken by the retired singles site's redirect (old embeds on other sites still land on `/us/sealed`), so the widgets live at `/widgets`.
+
+
+## 2026-11-02 — Every set in the set list gets a pre-order page, guide or not
+
+Pre-order landings were the family's top pages in October, but here a set had one only when a session had written its
+`PreorderGuide` (sourced facts) in `src/lib/preorder-guides.ts`. Now a set in `src/lib/sets.ts` without a guide gets
+`/<region>/preorders/<slug>` from `blankGuide`: the set's name and dates, every store's price list and the generic FAQ,
+and nothing a source would have to back (no contents, prerelease, card count or sources line; those sections hide).
+Adding the next set to `sets.ts`, which the importer needs anyway, is the whole job; a guide written later fills the
+same page. `openPreorderGuides` (nav, header banner, homepage, sitemap) lists every unreleased set. A guide-less page
+stays up for 45 days after release (noindexed, saying the set is out, as before) and then 308s to the set page.

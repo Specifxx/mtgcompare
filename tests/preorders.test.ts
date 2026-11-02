@@ -29,12 +29,12 @@ import {
   reachLine,
   storeOffers,
 } from "../src/lib/preorder-copy";
-import { guideShowsMsrp, openPreorderGuides, preorderGuide, preorderGuideBySlug, preorderPath, PREORDER_GUIDES } from "../src/lib/preorder-guides";
+import { AUTO_DAYS_AFTER, blankGuide, guideShowsMsrp, openPreorderGuides, preorderGuide, preorderGuideBySlug, preorderPath, PREORDER_GUIDES } from "../src/lib/preorder-guides";
 import { formatRelease, isPreorderSet } from "../src/lib/release";
 import { REGION_LIST, REGIONS } from "../src/lib/regions";
 import { usMsrpCents } from "../src/lib/rrp";
 import { TYPE_BY_KEY } from "../src/lib/sealed-title";
-import { SET_BY_CODE } from "../src/lib/sets";
+import { SETS, SET_BY_CODE } from "../src/lib/sets";
 import { SITE_URL } from "../src/lib/site";
 import { staticSitemap } from "../src/lib/sitemap";
 
@@ -60,10 +60,11 @@ test("Star Trek: the dates Wizards of the Coast announced", () => {
   assert.equal(g.prereleaseFrom, "2026-11-06");
   assert.equal(g.liveDate, "2026-11-10");
   assert.deepEqual(preorderGuideBySlug("star-trek")?.set.code, "trk");
-  assert.equal(preorderGuideBySlug("reality-fracture"), null, "no guide, no page");
+  // A set without a guide still has an automatic page while it is upcoming or recently out (2026-11-02), and none long after.
+  assert.equal(preorderGuideBySlug("reality-fracture", "2030-01-01"), null, "no guide, long released: no page");
   assert.equal(preorderGuideBySlug("no-such-set"), null);
   assert.equal(preorderPath("au", "trk"), "/au/preorders/star-trek");
-  assert.equal(preorderPath("au", "fra"), null);
+  assert.equal(preorderPath("au", "fra", "2030-01-01"), null);
   // Wizards publishes no MSRP for the Prerelease Pack: never printed.
   assert.equal(guideShowsMsrp(g, "prerelease-pack"), false);
   assert.equal(guideShowsMsrp(g, "play-booster"), true);
@@ -410,4 +411,31 @@ test("the new reads run on the public data files alone: the set's TCGplayer offe
     }
     resetPublicData();
   }
+});
+
+test("automatic pages (2026-11-02): every set in sets.ts gets one, from a blank guide when none is written", () => {
+  const set = SET_BY_CODE.get("fra")!;
+  const fake = { ...set, code: "zzz", name: "Future Set", slug: "future-set", releaseDate: "2031-03-01" };
+  SETS.push(fake);
+  (SET_BY_CODE as Map<string, typeof fake>).set("zzz", fake);
+  const bySlug = new Map(SETS.map((s) => [s.slug, s]));
+  try {
+    assert.ok(!bySlug.has("nope"));
+    const open = openPreorderGuides("2031-01-01");
+    assert.ok(open.some((g) => g.set.code === "zzz"), "an upcoming set with no guide is open");
+    assert.deepEqual(open.find((g) => g.set.code === "zzz")?.guide, blankGuide(fake));
+    assert.equal(preorderPath("au", "zzz", "2031-01-01"), "/au/preorders/future-set");
+    assert.equal(preorderPath("au", "zzz", "2031-04-15"), "/au/preorders/future-set", `still up within ${AUTO_DAYS_AFTER} days of release`);
+    assert.equal(preorderPath("au", "zzz", "2031-04-16"), null, "then retired");
+    assert.equal(openPreorderGuides("2031-03-01").some((g) => g.set.code === "zzz"), false, "release day closes it");
+    const b = blankGuide(fake);
+    assert.deepEqual([b.products, b.sources, b.makeup, b.notes], [[], [], [], []], "nothing invented");
+  } finally {
+    SETS.pop();
+    SET_BY_CODE.delete("zzz");
+  }
+  const page = readFileSync("src/app/[region]/preorders/[set]/page.tsx", "utf8");
+  assert.match(page, /guide\.products\.length > 0 &&/, "no contents section without announced contents");
+  assert.match(page, /guide\.sources\.length > 0 &&/, "no sources line without sources");
+  assert.match(page, /permanentRedirect\(`\/\$\{r\.region\}\/sets\/\$\{params\.set\}`\)/);
 });
