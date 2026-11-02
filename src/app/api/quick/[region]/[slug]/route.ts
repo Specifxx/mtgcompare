@@ -35,7 +35,7 @@ export async function GET(_req: Request, { params }: { params: { region: string;
   const cheapestCents = best?.priceCents ?? p.offers.reduce<number | null>((m, o) => (m == null || o.priceCents < m ? o.priceCents : m), null);
   const ebayComparable = marketplaceOf(region).currency === r.currency;
   const floor = cheapestCents != null && ebayComparable ? { value: (cheapestCents * 0.4) / 100, currency: r.currency } : null;
-  const { rows, tcg, amazon, storeOffers } = offerRowsData({ offers: p.offers, region, packs, placement: "quickview-table", pinned: { productName: p.name, tcgplayer } });
+  const { rows, tcg, storeOffers } = offerRowsData({ offers: p.offers, region, packs, placement: "quickview-table", pinned: { productName: p.name, tcgplayer } });
   const stores = storeOffers.filter((o) => !o.marketplace);
   return Response.json(
     {
@@ -44,7 +44,8 @@ export async function GET(_req: Request, { params }: { params: { region: string;
       inStock: stores.filter((o) => offerStock(o) === "open").length,
       rows,
       tcg,
-      amazon,
+      // No Amazon link in a pop-up window (Associates Operating Agreement, 2026-11-02): the product page carries it.
+      amazon: null,
       ebay: { slug: p.slug, query: ebayQuery(p.name, tcgplayer), floor, packs: rowPacks(type?.key, packs) },
       preorder: pre,
       // For a quick view opened from a plain link, which knows only the slug.

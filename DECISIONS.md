@@ -749,3 +749,24 @@ footer family lists were "a bit convoluted … I'm wondering if it actually help
   read as a link scheme). Cross-traffic should come from the price blocks, which people have a
   reason to click.
 - Here: `src/lib/family.ts` (deals per region from `dealsInMarket`, the cheapest independent store named), `scripts/family-sync.ts` in `sealed-import.yml` before the publish, the block on `/[region]/deals`, `/[region]/black-friday` and `/[region]/releases` (pre-orders), and the footer's "Other card games" line. `SISTER_SITES` is gone.
+
+## 2026-11-02 — Amazon Associates: following the Operating Agreement's Dos and Don'ts
+
+The owner sent Amazon's own "Operating Agreement: Top Dos and Don'ts" page (2026-11-02: "make sure you
+are following these instructions for all amazon affiliates"), and every site was audited against it.
+The rules we keep, on every Compare Empire site:
+
+- **Disclosure beside every Amazon link** ("Ad" / "Paid link"), and Amazon's statement "As an Amazon
+  Associate I (we) earn from qualifying purchases." in the footer of every page.
+- **Amazon's trademark notice** in the footer of every page: "Amazon and the Amazon logo are trademarks
+  of Amazon.com, Inc. or its affiliates." No Amazon logo, screenshot, review or Amazon's own colours
+  (its orange): the page "Don't use style or color of Amazon site which may cause confusion".
+- **Links lead to a specific product** (an ASIN, or a search for that exact product's name), never a
+  category or generic search: "All the links or buttons on your site should take customers to specific
+  products on Amazon."
+- **No Amazon link in a pop-up or layer**: the quick views show none; product pages carry the row.
+- **Never Amazon prices in price tracking or alerts** ("Don't track prices or set price alerts"), and no
+  Amazon link or trademark in any email, SMS or printed material.
+- Every link tagged, rel="sponsored nofollow"; no incentive (cashback, discount) for buying through it.
+- Here: the "Also check Amazon" line on set, type and deals pages is gone (a category search); the quick
+  view sends no Amazon row; the footer carries the trademark line. Product pages and guide rows keep theirs.

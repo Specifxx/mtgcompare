@@ -24,6 +24,8 @@ export const REL_AMAZON = "sponsored nofollow noopener";
 export const AMAZON_RETAILER = "Amazon AU";
 /** The FTC / Amazon Associates disclosure, word for word: the footer of every page and beside the Amazon links. */
 export const AMAZON_DISCLOSURE = "As an Amazon Associate I earn from qualifying purchases.";
+/** Amazon's trademark notice (Operating Agreement Dos and Don'ts, 2026-11-02), in the footer of every page. */
+export const AMAZON_TRADEMARK = "Amazon and the Amazon logo are trademarks of Amazon.com, Inc. or its affiliates.";
 export const AMAZON_CTA = "Check price on Amazon AU";
 
 type Env = Record<string, string | undefined>;

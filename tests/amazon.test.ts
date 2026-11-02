@@ -10,7 +10,7 @@ import type { ProductCardData } from "../src/lib/data";
 import { PLACEMENTS } from "../src/lib/affiliate";
 import { AMAZON_DEFAULT_TAG, AMAZON_DISCLOSURE, amazonFor, amazonRegion, amazonRegions, amazonTag, amazonUrl, asinFor, REL_AMAZON } from "../src/lib/amazon";
 import { REGION_LIST, REGIONS, type Region } from "../src/lib/regions";
-import { AmazonAlso, AmazonLink, AmazonProductRow } from "../src/components/Amazon";
+import { AmazonLink, AmazonProductRow } from "../src/components/Amazon";
 import { Footer } from "../src/components/Footer";
 import AffiliateDisclosure, { metadata as disclosureMeta } from "../src/app/(site)/affiliate-disclosure/page";
 import { GUIDE_BY_SLUG, guidesFor, type GuideSlug } from "../src/content/guides";
@@ -86,9 +86,7 @@ test("region gating: Amazon AU in AU, NZ and SG; Amazon US in the US; UK, CA and
     const yes = shown.includes(r.region);
     assert.equal(amazonRegion(r.region), yes, r.region);
     const row = render(React.createElement(AmazonProductRow, { region: r.region, name: "Reality Fracture Bundle", slug: "reality-fracture-bundle" }));
-    const also = render(React.createElement(AmazonAlso, { region: r.region, name: "Magic The Gathering Bundle", placement: "amazon-type", page: `/${r.region}/type/bundles` }));
     assert.equal(amazonAnchors(row).length, yes ? 1 : 0, r.region);
-    assert.equal(amazonAnchors(also).length, yes ? 1 : 0, r.region);
     if (yes) {
       assert.match(row, r.region === "us" ? /Check price on Amazon US/ : /Check price on Amazon AU/);
       assert.match(row, new RegExp(AMAZON_DISCLOSURE.replace(/\./g, "\\.")));

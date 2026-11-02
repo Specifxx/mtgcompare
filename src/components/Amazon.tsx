@@ -73,19 +73,5 @@ export function AmazonProductRow({ region, name, slug }: { region: Region; name:
   );
 }
 
-/** Listing pages (type, set, deals): ONE light line per page, "Also check Amazon AU / US" for the page's subject. */
-export function AmazonAlso({ region, name, placement, page }: { region: Region; name: string; placement: Placement; page: string }) {
-  if (!amazonRegion(region)) return null;
-  const l = amazonLabel(region);
-  return (
-    <div data-ad={placement} className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-      <AmazonLink region={region} name={name} placement={placement} page={page}>
-        Also check {l.name} <span aria-hidden="true">↗</span>
-      </AmazonLink>
-      <span className={NOTE}>
-        {region === "nz" || region === "sg" ? `${l.note} ` : ""}
-        {AMAZON_DISCLOSURE}
-      </span>
-    </div>
-  );
-}
+// No "Also check Amazon" line on listing pages any more (2026-11-02): Amazon's Operating Agreement wants every link to lead to
+// a specific product, and a set, type or deals page links only a category search.
