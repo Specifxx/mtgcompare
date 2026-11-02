@@ -13,6 +13,8 @@ import { Icon, type IconName } from "@/components/Icon";
 import { ProductGrid } from "@/components/ProductGrid";
 import { ProductRail } from "@/components/ProductRail";
 import { SearchBox } from "@/components/SearchBox";
+import { Flag } from "@/components/Flag";
+import { RegionChips } from "@/components/RegionChips";
 import { Empty, Section } from "@/components/Section";
 import { StockPill } from "@/components/StockPill";
 import { homeRails, regionOverview, tcgplayerTiles, type ProductCardData } from "@/lib/data";
@@ -101,7 +103,7 @@ export default async function RegionHome({ params }: { params: { region: string 
           <div className="min-w-0">
             <Breadcrumbs items={[{ href: "/", label: "MTG Compare" }, { label: r.name }]} />
             <div className="eyebrow">
-              <span aria-hidden="true">{r.flag}</span> {r.name} · prices in {r.currency}
+              <Flag code={r.short} /> {r.name} · prices in {r.currency}
             </div>
             <h1 className="mt-3 max-w-3xl font-display text-3xl font-bold leading-[1.1] tracking-tight sm:text-5xl">
               Compare MTG booster box, bundle &amp; Commander deck prices in <span className="text-brand">{r.inName}</span>
@@ -113,6 +115,7 @@ export default async function RegionHome({ params }: { params: { region: string 
             <div className="mt-6 max-w-2xl">
               <SearchBox region={r.region} size="lg" />
             </div>
+            <RegionChips region={r.region} className="mt-4" />
             <nav
               aria-label="Shop by type"
               className="mt-4 flex flex-wrap gap-2"

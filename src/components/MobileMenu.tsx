@@ -12,6 +12,7 @@ import { LogoMark } from "./Logo";
 import { isActivePath } from "./NavLink";
 import { pickRegion, useSoftRegion } from "./RegionSuggest";
 import { regionSwitchFollow, regionSwitchHref } from "./RegionSwitcher";
+import { Flag } from "@/components/Flag";
 
 // The menu's own few shapes, drawn like Icon.tsx's (24×24, 2px round strokes, currentColor) for the rows Icon has no shape for.
 // Functions, like Icon's, so no JSX runs when the module loads.
@@ -183,7 +184,7 @@ export function MenuSheet({
       <div className="flex h-[var(--hdr)] items-center gap-3 border-b border-line">
         <LogoMark className="h-8 w-8 shrink-0" />
         <span className="min-w-0 flex-1 truncate font-display text-lg font-bold tracking-tight">
-          <span aria-hidden="true">{current.flag}</span> MTG Compare {current.name}
+          <Flag code={current.short} /> MTG Compare {current.name}
         </span>
         <button
           type="button"
@@ -243,9 +244,7 @@ export function MenuSheet({
                   aria-label={`${r.name} (${r.currency})`}
                   className={`flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-xl border py-1.5 transition-colors ${on ? "border-ink bg-raised" : "border-line hover:border-ink/30"}`}
                 >
-                  <span className="text-2xl leading-none" aria-hidden="true">
-                    {r.flag}
-                  </span>
+                  <Flag code={r.short} className="text-2xl" />
                   <span className="text-xs font-semibold text-muted">{r.short}</span>
                 </Link>
               </li>

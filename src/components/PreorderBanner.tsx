@@ -4,6 +4,7 @@ import { relativeDay } from "@/lib/format";
 import { formatRelease } from "@/lib/release";
 import { REGION_LIST, type Region } from "@/lib/regions";
 import { withMtg } from "@/lib/seo";
+import { Flag } from "@/components/Flag";
 
 // The way into a pre-order hub (/<region>/preorders/<set>, lib/preorder-guides.ts) from the pages people arrive on: one banner per
 // set still on pre-order, soonest release first, with its release date and how far off it is. Generic: a set gets a banner when its
@@ -54,7 +55,7 @@ export function PreorderRegionLinks({ today = new Date().toISOString().slice(0, 
         {REGION_LIST.map((r) => (
           <li key={r.region}>
             <Link href={`/${r.region}/preorders/${set.slug}`} prefetch={false} className="chip min-h-11">
-              <span aria-hidden="true">{r.flag}</span> {r.name}
+              <Flag code={r.short} /> {r.name}
             </Link>
           </li>
         ))}

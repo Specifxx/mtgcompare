@@ -8,6 +8,7 @@ import { sectionHref } from "@/lib/site";
 import { EbayStrip } from "./EbayStrip";
 import { Icon } from "./Icon";
 import { Glyph, MENU_ROWS } from "./MobileMenu";
+import { Flag } from "@/components/Flag";
 
 /** "2026-11-06" → "6 Nov 2026": the set's release date as sets.ts records it (no "out" or "released": the page is built once). */
 function shortDate(iso: string): string {
@@ -55,7 +56,7 @@ export function NotFoundSearch() {
         </button>
       </form>
       <p className="mt-2 text-xs text-muted">
-        <span aria-hidden="true">{r.flag}</span> Searches stores in {r.inName}
+        <Flag code={r.short} /> Searches stores in {r.inName}
       </p>
       <h2 className="eyebrow mt-10">Where to next</h2>
       <ul className="mx-auto mt-3 grid max-w-3xl grid-cols-2 gap-2 text-left sm:grid-cols-3">
@@ -90,7 +91,7 @@ export function NotFoundSearch() {
         {REGION_LIST.map((x) => (
           <li key={x.region}>
             <Link href={`/${x.region}`} aria-current={x.region === inPath ? "true" : undefined} className={`chip min-h-10 ${x.region === inPath ? "chip-on" : ""}`}>
-              <span aria-hidden="true">{x.flag}</span> {x.name}
+              <Flag code={x.short} /> {x.name}
             </Link>
           </li>
         ))}

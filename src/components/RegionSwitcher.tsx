@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 import { REGION_LIST, isRegion, type Region } from "@/lib/regions";
 import { gaEvent } from "@/lib/gtag";
 import { pickRegion } from "./RegionSuggest";
+import { Flag } from "./Flag";
 
 /** The path after the region segment: "/au/sets/pitch-black" → "/sets/pitch-black", "/au" → "", "/about" → "/about". */
 export function pathAfterRegion(pathname: string): string {
@@ -82,9 +83,13 @@ export function RegionSwitcher({ region, compact = false, soft = false }: { regi
           compact ? "h-11 w-11 justify-center px-0 text-xl lg:h-9 lg:w-auto lg:px-3 lg:text-sm" : "h-11 lg:h-9"
         }`}
       >
-        <span aria-hidden="true" className={compact ? "leading-none lg:text-base" : ""}>
-          {current?.flag ?? "🌏"}
-        </span>
+        {current ? (
+          <Flag code={current.short} className={compact ? "lg:text-base" : ""} />
+        ) : (
+          <span aria-hidden="true" className={compact ? "leading-none lg:text-base" : ""}>
+            🌏
+          </span>
+        )}
         <span className={compact ? "hidden lg:inline" : ""}>{current?.short ?? "Choose region"}</span>
         <svg viewBox="0 0 20 20" className={`h-3.5 w-3.5 text-faint ${compact ? "hidden lg:block" : ""}`} aria-hidden="true">
           <path d="M5 7.5 10 12.5 15 7.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -110,9 +115,7 @@ export function RegionSwitcher({ region, compact = false, soft = false }: { regi
                 }}
                 className={`flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-raised ${r.region === region ? "bg-raised font-semibold" : ""}`}
               >
-                <span className="text-lg" aria-hidden="true">
-                  {r.flag}
-                </span>
+                <Flag code={r.short} className="text-lg" />
                 <span className="flex-1">{r.name}</span>
                 <span className="text-xs text-muted">{r.currency}</span>
               </Link>

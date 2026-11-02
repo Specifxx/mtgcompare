@@ -222,7 +222,7 @@ test("the phone menu: every group of the sidebar under the region, then the regi
   for (const l of groups.flatMap((g) => g.links)) assert.ok(hrefs(sheet).includes(l.href), l.href);
   for (const p of ["/deals", "/this-week", "/back-in-stock", "/price-moves", "/out-of-print", "/sealed", "/type/play-booster-boxes", "/type/collector-booster-boxes", "/type/bundles", "/type/commander-decks", "/cheapest-packs", "/sets", "/releases", "/guides", "/tools", "/stores"])
     assert.ok(hrefs(sheet).includes(`/ca${p}`), p);
-  assert.equal(sheet.match(/class="text-2xl leading-none" aria-hidden="true">/g)?.length, 7, "seven flag tiles");
+  assert.equal(sheet.match(/aria-hidden="true" focusable="false" class="text-2xl"/g)?.length, 7, "seven flag tiles");
   assert.ok(hrefs(sheet).includes("/uk/stores"), "a region tile goes to the same page there");
   // a soft sheet (a page with no region): every tile to the region's home
   const soft = render(React.createElement(MenuSheet, { region: "au", groups: navGroups("au", "2026-10-28"), pathname: "/about", onClose() {}, soft: true }));

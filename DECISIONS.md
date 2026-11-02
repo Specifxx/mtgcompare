@@ -770,3 +770,20 @@ The rules we keep, on every Compare Empire site:
 - Every link tagged, rel="sponsored nofollow"; no incentive (cashback, discount) for buying through it.
 - Here: the "Also check Amazon" line on set, type and deals pages is gone (a category search); the quick
   view sends no Amazon row; the footer carries the trademark line. Product pages and guide rows keep theirs.
+
+## 2026-11-02 — The region chooser in the hero, with drawn flags
+
+Owner: "the region switcher must be more prevalent on all sites, on the main home page hero etc … and have
+the flags as well". Every region home has a "Prices for" row of flag + code chips under its search
+(`RegionChips`: plain links to each region home, which every region has, so they are followed), and the
+landing page has the same row above its search, picking in place like the header's soft switcher
+(`pickRegion`; without script the links go to each region home). The header switcher stays.
+
+- **Flags are inline SVG (`src/components/Flag.tsx`), not the `REGIONS[].flag` emoji and not image files.**
+  Windows draws a flag emoji as two letters ("AU"); image files would be new requests and hosting. No ids or
+  clip paths, so a flag works inside the closed `<details>` menu and many times on a page. Every place that
+  drew the emoji (header switcher and its list, phone menu tiles, sidebar, footer, region grid, store and
+  product pages) now draws it; `REGIONS[].flag` stays for plain-text uses. The same file is in every Compare
+  Empire repo that has a region switcher; keep the copies identical.
+- Chips show the code, not the name: seven full names wrap even at 1280px. The name is the title and the
+  screen-reader text.
