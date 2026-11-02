@@ -24,6 +24,12 @@ Keep the feed's price `lowestPriceCents` (never eBay, never converted) and the r
 
 ## Deploys
 
+**One production build per 12 hours, and production only (owner, 2026-11-02: Vercel spend capped at $5–6 a
+day).** `scripts/vercel-ignore-build.sh` skips a `[deploy]` commit within 12 hours of the last production
+deployment (it rides the next release); `[urgent]` in the subject overrides that, only when the owner says
+so. `vercel.json` disables every branch except production (`"**": false`), so no preview is ever built.
+Never dispatch a manual release just to ship a merge. DECISIONS.md, 2026-11-02.
+
 Production builds only a commit whose SUBJECT carries `[deploy]` (`scripts/vercel-ignore-build.sh`,
 `tests/vercel-ignore-build.test.ts`). The evening sealed import's data commit carries it: one release a day. **Never put `[deploy]`
 in a code commit's subject on your own initiative**; code rides the next data release. "Ship it" means land on `main`. Use
