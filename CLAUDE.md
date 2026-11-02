@@ -3,7 +3,7 @@
 MTG Compare is a **sealed-only** Magic: The Gathering price comparison site: booster boxes, bundles, Commander decks and other
 sealed product, compared across independent stores in AU, US, UK, CA, NZ, EU and SG, with eBay and TCGplayer affiliate links. Since
 2026-10-21 it is a port of DexCompare's sealed app (`Specifxx/CompareEmpire`, `apps/dexcompare-sealed`), not the old singles site:
-no card database, no accounts, no Premium, no price history. Read `README.md`, then `DEPLOY.md`, then `DECISIONS.md`. The old
+no card database, no accounts, no Premium, no price history (price alerts run on RiftCompare's shared service). Read `README.md`, then `DEPLOY.md`, then `DECISIONS.md`. The old
 singles site is in git history before 2026-10-21; nothing of it is on `main`.
 
 ## Data: on GitHub, never a database read from a page
@@ -14,6 +14,13 @@ singles site is in git history before 2026-10-21; nothing of it is on `main`.
 - Neon is `DATABASE_URL` in its own schema, `sealed` (`src/lib/db.ts` `withSchema`, and the workflows): never write the default
   schema, which holds the old singles site's tables.
 - Never edit `data/public/` by hand: it belongs to the workflows.
+
+## Price alerts: RiftCompare's shared service (owner, 2026-11-02)
+
+The product page's "Email me when the price drops" form (`src/components/PriceAlertForm.tsx`) posts to
+`https://riftcompare.com/api/sister-alerts`; RiftCompare keeps the address, confirms it and emails. It reads this site's
+static `/alert-feed.json` (`src/lib/alert-feed.ts`) once a day. This site never stores an address or holds a mail key.
+Keep the feed's price `lowestPriceCents` (never eBay, never converted) and the route `force-static`.
 
 ## Deploys
 

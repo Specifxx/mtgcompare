@@ -115,7 +115,7 @@ test("amazon_click: OutboundLink sends GA4 amazon_click {product, region, page} 
   const comp = readFileSync(new URL("../src/components/Amazon.tsx", import.meta.url), "utf8");
   assert.match(comp, /<OutboundLink [^>]*retailer=\{amazonRetailer\(region\)\}[^>]*amazon=\{\{ product: [^}]*region, page \}\}/);
   const track = readFileSync(new URL("../src/lib/track.ts", import.meta.url), "utf8");
-  assert.match(track, /new Set\(\["buy_click"\]\)/, "no new Vercel event names");
+  assert.match(track, /new Set\(\["buy_click", "share", "share_visit"\]\)/, "no new Vercel event names beyond the share pair (2026-11-02)");
 });
 
 test("footer: the exact Amazon Associates line and the disclosure link, on every layout's footer", () => {

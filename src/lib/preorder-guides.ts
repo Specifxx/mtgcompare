@@ -12,7 +12,7 @@
 // lib/sets.ts (isPreorderSet). From release day the page says it is out, points
 // at the set page, drops out of the sitemap and is noindexed. A guide can then
 // be deleted at leisure; nothing else depends on it.
-import { SET_BY_CODE, SET_BY_SLUG, type MtgSet } from "./sets";
+import { SETS, SET_BY_CODE, SET_BY_SLUG, type MtgSet } from "./sets";
 import type { TypeKey } from "./sealed-title";
 
 export interface PreorderProduct {
@@ -128,22 +128,58 @@ export function preorderGuide(setCode: string | null | undefined): PreorderGuide
   return setCode ? BY_CODE.get(setCode) ?? null : null;
 }
 
-/** The guide and its set for a URL slug, or null (the page 404s). */
-export function preorderGuideBySlug(slug: string): { guide: PreorderGuide; set: MtgSet } | null {
+// AUTOMATIC PAGES (2026-11-02). A set in lib/sets.ts with no written guide still gets its pre-order page, from a blank guide
+// (blankGuide): the set's name and dates, the stores' price lists and the generic FAQ, and none of the sourced facts a written guide
+// adds (contents, prerelease, card count, sources). So adding the next set to sets.ts, which the importer needs anyway, is the whole
+// job; a guide written later fills the same page. A guide-less page lives while the set is upcoming and for AUTO_DAYS_AFTER days after
+// release (noindexed, saying the set is out), then the URL redirects to the set page.
+export const AUTO_DAYS_AFTER = 45;
+
+/** A guide with no facts beyond the set itself (see above). */
+export function blankGuide(set: Pick<MtgSet, "code" | "name">): PreorderGuide {
+  return {
+    setCode: set.code,
+    fullName: set.name,
+    prereleaseFrom: null,
+    liveDate: null,
+    cardCount: "",
+    headliners: [],
+    makeup: [],
+    makeupSource: "",
+    newFeature: null,
+    prerelease: null,
+    notes: [],
+    products: [],
+    sources: [],
+    checked: "",
+  };
+}
+
+const todayIso = () => new Date().toISOString().slice(0, 10);
+
+/** A set's page is live: it has a written guide, or it is upcoming or released within AUTO_DAYS_AFTER days. */
+function pageLive(set: Pick<MtgSet, "code" | "releaseDate">, today: string): boolean {
+  if (BY_CODE.has(set.code)) return true;
+  const age = (Date.parse(`${today}T00:00:00Z`) - Date.parse(`${set.releaseDate}T00:00:00Z`)) / 86_400_000;
+  return Number.isFinite(age) && age <= AUTO_DAYS_AFTER;
+}
+
+/** The guide (written, else blank) and its set for a URL slug, or null (the page 404s, or redirects to the set page). */
+export function preorderGuideBySlug(slug: string, today = todayIso()): { guide: PreorderGuide; set: MtgSet } | null {
   const set = SET_BY_SLUG.get(slug);
-  const guide = set ? BY_CODE.get(set.code) : undefined;
-  return set && guide ? { guide, set } : null;
+  if (!set || !pageLive(set, today)) return null;
+  return { guide: BY_CODE.get(set.code) ?? blankGuide(set), set };
 }
 
-/** The path under a region: /<region>/preorders/<set slug>. */
-export function preorderPath(region: string, setCode: string): string | null {
-  const set = BY_CODE.has(setCode) ? SET_BY_CODE.get(setCode) : undefined;
-  return set ? `/${region}/preorders/${set.slug}` : null;
+/** The path under a region: /<region>/preorders/<set slug>, for a set whose page is live. */
+export function preorderPath(region: string, setCode: string, today = todayIso()): string | null {
+  const set = SET_BY_CODE.get(setCode);
+  return set && pageLive(set, today) ? `/${region}/preorders/${set.slug}` : null;
 }
 
-/** Guides whose set has not released yet (by lib/sets.ts), soonest release first. */
-export function openPreorderGuides(today = new Date().toISOString().slice(0, 10)): { guide: PreorderGuide; set: MtgSet }[] {
-  return PREORDER_GUIDES.map((guide) => ({ guide, set: SET_BY_CODE.get(guide.setCode) }))
-    .filter((x): x is { guide: PreorderGuide; set: MtgSet } => !!x.set && x.set.releaseDate > today)
+/** Every set that has not released yet (by lib/sets.ts), with its guide (written, else blank), soonest release first. */
+export function openPreorderGuides(today = todayIso()): { guide: PreorderGuide; set: MtgSet }[] {
+  return SETS.filter((set) => set.releaseDate > today)
+    .map((set) => ({ guide: BY_CODE.get(set.code) ?? blankGuide(set), set }))
     .sort((a, b) => a.set.releaseDate.localeCompare(b.set.releaseDate));
 }

@@ -221,7 +221,7 @@ test("the share button: a 44 px button, the canonical URL, one analytics propert
   assert.match(html, /aria-live="polite"/);
   const src = readFileSync(new URL("../src/components/ShareButton.tsx", import.meta.url), "utf8");
   assert.match(src, /track\("share", \{ kind \}\)/, "one property");
-  assert.match(src, /\$\{SITE_URL\}\$\{path\}/, "the canonical URL, never location.href");
+  assert.match(src, /shareUrl\(SITE_URL, path, kind\)/, "the canonical URL plus utm_source=share, never location.href");
 });
 
 // ─── Ad plans ─────────────────────────────────────────────────────────────────
