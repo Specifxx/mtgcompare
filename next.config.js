@@ -35,7 +35,7 @@ const securityHeaders = [
 // browser. The data only changes with a release, and a release empties the CDN. Safe because no page reads a cookie, a header or
 // the session: one copy is right for every visitor (tests/cache-ttl.test.ts walks them).
 const CDN_CACHE = "public, s-maxage=86400, stale-while-revalidate=86400";
-const CDN_PAGES = ["/", "/:region(au|us|uk|ca|nz|eu|sg)", "/:region(au|us|uk|ca|nz|eu|sg)/:path*", "/guides/:slug", "/blog", "/blog/:slug", "/forum", "/forum/:path*"];
+const CDN_PAGES = ["/", "/:region(au|us|uk|ca|nz|eu|sg)", "/:region(au|us|uk|ca|nz|eu|sg)/:path*", "/guides/:slug", "/blog", "/blog/:slug", "/forum", "/forum/:path*", "/widgets", "/widgets/:path*"];
 
 const nextConfig = {
   reactStrictMode: true,
@@ -90,6 +90,9 @@ const nextConfig = {
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
+      // The embeddable widgets (DECISIONS.md, "Free price widgets", 2026-11-02) are framed on other sites: these two
+      // override the SAMEORIGIN and report-only frame-ancestors above, for /widgets/:path+ only (never /widgets itself).
+      { source: "/widgets/:path+", headers: [{ key: "X-Frame-Options", value: "ALLOWALL" }, { key: "Content-Security-Policy", value: "frame-ancestors *" }] },
       ...CDN_PAGES.map((source) => ({ source, headers: [{ key: "Vercel-CDN-Cache-Control", value: CDN_CACHE }] })),
     ];
   },
