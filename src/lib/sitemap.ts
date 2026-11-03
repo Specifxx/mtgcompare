@@ -86,6 +86,8 @@ export function staticSitemap(
     out.push(url(`/${r.region}/back-in-stock`, m, "daily", 0.6));
     if (!skip.has("/price-moves")) out.push(url(`/${r.region}/price-moves`, m, "daily", 0.5));
     out.push(url(`/${r.region}/out-of-print`, m, "daily", 0.6));
+    // The Price Duel (lib/daily.ts): a new puzzle a day.
+    out.push(url(`/${r.region}/daily`, m, "daily", 0.5));
     out.push(url(`/${r.region}/guides`, null, "weekly", 0.5));
     // Pre-order pages, until release day (they are noindexed from then on: lib/preorder-guides.ts).
     for (const { set } of openPreorderGuides(today)) out.push(url(`/${r.region}/preorders/${set.slug}`, m, "daily", 0.8));
