@@ -356,6 +356,11 @@ export async function setCounts(market: Market): Promise<Map<string, { products:
   return out;
 }
 
+/** The codes of every set with at least one product in this market (what the menus may link; lib/release.ts menuSets). */
+export async function listedSetCodes(market: Market): Promise<Set<string>> {
+  return new Set([...(await setCounts(market))].filter(([, c]) => c.products > 0).map(([code]) => code));
+}
+
 /** Other products from the same set in this market (product page, "more from"). */
 export async function relatedProducts(market: Market, setCode: string, excludeSlug: string, take = 8): Promise<ProductCardData[]> {
   const rows = await prisma.productStat.findMany({

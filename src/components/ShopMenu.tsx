@@ -1,6 +1,6 @@
-import { featureOrder } from "@/lib/release";
+import { menuSets } from "@/lib/release";
 import type { Region } from "@/lib/regions";
-import { SET_BY_CODE, SETS } from "@/lib/sets";
+import { SET_BY_CODE } from "@/lib/sets";
 import { sectionHref, type SectionKey } from "@/lib/site";
 
 export type MenuLink = { href: string; label: string };
@@ -12,10 +12,10 @@ export type MenuColumn = { title: string; links: MenuLink[] };
  * and no read: a static list (sets from lib/sets.ts, in release.ts featureOrder: the newest released set first, never a pre-order).
  * Ported from DexCompare (CompareEmpire #68, 2026-10-28). Pure, so the tests pin it.
  */
-export function shopMenuColumns(region: Region, today: string = new Date().toISOString().slice(0, 10)): MenuColumn[] {
+export function shopMenuColumns(region: Region, today: string = new Date().toISOString().slice(0, 10), listed?: ReadonlySet<string> | null): MenuColumn[] {
   const s = (key: SectionKey, label: string): MenuLink => ({ href: sectionHref(region, key), label });
   const type = (slug: string, label: string): MenuLink => ({ href: `/${region}/type/${slug}`, label });
-  const sets = featureOrder(SETS.slice(0, 7).map((x) => x.code), today)
+  const sets = menuSets(7, today, listed)
     .map((c) => SET_BY_CODE.get(c)!)
     .map((set) => ({ href: `/${region}/sets/${set.slug}`, label: set.releaseDate > today ? `${set.name} (pre-order)` : set.name }));
   return [
