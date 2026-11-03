@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-02T19:05:26.115Z",
+ "generatedAt": "2026-11-03T02:54:05.429Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -212,20 +212,6 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "Kaldheim Draft Booster Pack",
-   "url": "https://mtgcompare.app/us/p/kaldheim-draft-booster-pack",
-   "cents": 399,
-   "currency": "USD",
-   "store": "Accidentally Cool Games",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/228246_in_1000x1000.jpg",
-   "refCents": 748,
-   "refLabel": "median store price",
-   "savingPct": 47
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "US",
    "title": "Marvel Super Heroes - Beginner Box",
    "url": "https://mtgcompare.app/us/p/marvel-super-heroes-beginner-box",
    "cents": 1595,
@@ -242,11 +228,11 @@
    "region": "US",
    "title": "FINAL FANTASY Commander Deck - FINAL FANTASY VII Limit Break (Game Edition)",
    "url": "https://mtgcompare.app/us/p/final-fantasy-commander-deck-final-fantasy-vii-limit-break-game-edition",
-   "cents": 4763,
+   "cents": 4762,
    "currency": "USD",
    "store": "Cards N MO",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/656732_in_1000x1000.jpg",
-   "refCents": 9000,
+   "refCents": 8999,
    "refLabel": "median store price",
    "savingPct": 47
   },
@@ -274,9 +260,23 @@
    "currency": "USD",
    "store": "Video Game Trader LLC",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/619676_in_1000x1000.jpg",
-   "refCents": 5002,
+   "refCents": 5000,
    "refLabel": "median store price",
    "savingPct": 46
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "US",
+   "title": "The Hobbit Scene Box - Crack the Plates",
+   "url": "https://mtgcompare.app/us/p/the-hobbit-scene-box-crack-the-plates",
+   "cents": 3695,
+   "currency": "USD",
+   "store": "Poke-Collect",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/692968_in_1000x1000.jpg",
+   "refCents": 5996,
+   "refLabel": "median store price",
+   "savingPct": 38
   },
   {
    "kind": "deal",
