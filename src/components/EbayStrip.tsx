@@ -110,7 +110,7 @@ type State = { status: "idle" } | { status: "ready"; a: Accepted } | { status: "
  * missing, or when `eager`: a row of the price table, which must be in place before the visitor reaches it), load the context.
  * Returns the unit's state. While data is shown it is re-checked against its age bound.
  */
-function useListings(opts: { region: Region; context: string; placement: Placement; min: number; eager?: boolean }): { ref: React.RefObject<HTMLDivElement>; state: State; now: number } {
+export function useListings(opts: { region: Region; context: string; placement: Placement; min: number; eager?: boolean }): { ref: React.RefObject<HTMLDivElement>; state: State; now: number } {
   const { region, context, placement, min, eager = false } = opts;
   const ref = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<State>({ status: "idle" });

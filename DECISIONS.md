@@ -945,3 +945,23 @@ comparisons are not shared, scores are; the growth report of 3 Nov counted 14 sh
   made from prices 1.25 to 8 times apart so a day's moves don't flip an answer; nothing under 5 units (packs, sleeves) or over
   2,000 (cases) plays; a sold-out or TCGplayer-only row never does. Puzzle #1 is 2026-11-03; never move the epoch.
 - Linked from the sidebar's "More", the footer and the sitemap. `tests/daily.test.ts`.
+
+## The ember-fan logo, a Creators button in the hero, and an eBay + TCGplayer banner under it — 2026-11-03
+
+The owner wanted "a nicer logo that looks like the official one but is not a copy". The new mark (`components/Logo.tsx`, `app/icon.svg`,
+`public/logo.svg`, the PNG icons, `favicon.ico`, and a flat copy in `lib/og-card.tsx`) is five flame-tongue petals fanning up from a
+glowing sphere, red-orange with a lighter core, on the night-purple tile: the warm fan-shaped feel of the game's symbol, drawn as our own
+lotus of flames. Nothing is traced: the tongues are straight leaf shapes that come to a point, there is no circle around them, no curled
+tips and no planeswalker, mana or Wizards geometry. The five colour orbs (2026-10-27) are gone. When the mark changes again, re-render
+every icon (the PNGs and the ICO were drawn from `icon.svg` with headless Chromium).
+
+The featured-creators strip under the hero's paragraph (2026-10-30) is gone from the homepage; `/creators` is now a button in the hero
+("✦ Creators"), and the page, footer link, sidebar entry and sitemap entry are unchanged. In its place, straight under the hero, sits an
+eBay + TCGplayer banner (`components/home/LandingAds.tsx`): two panels side by side from md, stacked on a phone, 104px tiles with photo,
+price and name. The eBay half is the sealed feed of the region the browser suggests (fetched near the viewport, as every strip is; the
+page never fetches while rendering; blank tiles of the same size until it answers, a search button when there is nothing), placement
+`listings-landing`; the TCGplayer half is the newest sets' products in the server HTML (`lib/landing-ads.ts`, the page's one data read
+besides the picks), placement `tcgplayer-strip-landing`, each link tagged with the suggested region's sub-id. Two things that widened a
+390px phone to 814px and had to be fixed before shipping: an `auto` grid track sizes to the scroll row's content (`grid-cols-[minmax(0,1fr)]`
+and `min-w-0` on the panel), and a tile's `sr-only` span is absolutely positioned, so unless the tile is `relative` it is laid out at its
+static position in the page, outside the clipped row. Title, description, canonical, hreflang, h1 and the links are unchanged.

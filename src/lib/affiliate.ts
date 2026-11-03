@@ -39,13 +39,14 @@ export const PLACEMENTS = [
   "tcgplayer-strip-product", // product page: after "More from <set>"
   "tcgplayer-strip-mini", // product page: the small eBay + TCGplayer pair's TCGplayer row, under the best price (owner, 2026-10-29)
   "tcgplayer-strip-footer", // every other region page: the TCGplayer strip above the footer (owner, 2026-10-29)
+  "tcgplayer-strip-landing", // the root landing page: the TCGplayer half of the eBay + TCGplayer banner under the hero (owner, 2026-11-03)
   "header", // the "eBay" item in the site header (desktop nav, xl and up only)
   // eBay LISTING STRIPS (components/EbayStrip.tsx): real listings imported once a day (scripts/ebay-import.ts), read
   // from our database through /api/ebay/<region>. One placement per surface, so EPN's customid report and Vercel's
   // buy_click say which surface earned. The compact CTA a strip becomes when there is nothing to list uses its strip's placement.
   "listings-home", // region home: the chase strip under the stats row
   "listings-home-sealed", // region home: the sealed strip after the first rail
-  "listings-landing", // the root landing page (US feed, labelled "eBay US")
+  "listings-landing", // the root landing page: the eBay half of the eBay + TCGplayer banner under the hero, in the visitor's region (owner, 2026-11-03)
   "listings-product", // product page, in stock: the product's own listings below the offer table (cascade: type, sealed)
   "listings-product-soldout", // product page, sold out: the same strip directly under the sold-out callout
   "listings-set", // set page: the set's chase cards (cascade: chase), at the top
