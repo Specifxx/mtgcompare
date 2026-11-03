@@ -1,4 +1,5 @@
 import Link from "@/components/Link";
+import { SiteReviews } from "@/components/site-reviews/SiteReviews";
 import { inSeason } from "@/lib/black-friday";
 import { CORE_SALES, salesInSeason } from "@/lib/sale-seasons";
 import { ComingSoon } from "@/components/ComingSoon";
@@ -288,6 +289,8 @@ export default async function RegionHome({ params }: { params: { region: string 
         {/* Every set listed here, so every set page is two clicks from the landing page and its products three (2026-10-25). */}
         <SetIndex r={r} counts={setCounts} types={listedTypes} />
         <HowItWorks r={r} stores={storeCount} />
+        {/* The site's own star score and approved reviews (owner, 2026-11-03), loaded in the browser; nothing until there is a rating. */}
+        <SiteReviews />
         {/* The visitor's own recently viewed products, from this browser's storage: rendered at the end, so nothing above moves. */}
         <RecentlyViewed region={r.region} />
 

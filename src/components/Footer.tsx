@@ -8,6 +8,7 @@ import { AMAZON_DISCLOSURE, AMAZON_TRADEMARK } from "@/lib/amazon";
 import { NETWORK_PAGE, footerSisters } from "@/lib/family-network";
 import { LogoMark } from "./Logo";
 import { footerSeoSections } from "./seo/HubLinks";
+import { RateUsLink } from "./site-reviews/SiteReviews";
 import { Flag } from "@/components/Flag";
 
 type FooterLink = { href: string; label: string };
@@ -116,6 +117,11 @@ export function Footer({ region }: { region: Region | null }) {
                     </Link>
                   </li>
                 ))}
+                {c.links.some((l) => l.href === "/contact") && (
+                  <li>
+                    <RateUsLink className="flex min-h-10 items-center text-muted transition-colors hover:text-ink sm:min-h-8">Rate us</RateUsLink>
+                  </li>
+                )}
               </ul>
             </nav>
           ))}

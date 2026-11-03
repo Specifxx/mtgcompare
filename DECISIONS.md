@@ -894,3 +894,14 @@ homepages. On MTG Compare:
 - Product pages already had Product/AggregateOffer and BreadcrumbList; titles were already under 60 characters.
 - The landing page did NOT get the audit's FAQ block: the owner's 2026-10-25 short-landing rule (two sections, no
   FAQPage, `tests/shell.test.ts`) stands. The FAQ and its FAQPage markup stay on `/about` and the guides.
+
+## Rate us and "What people say", run by RiftCompare (2026-11-03)
+
+The owner wanted RiftCompare's rating pop-up on every site, each site's reviews public, and every written review approved in
+RiftCompare's admin; star ratings count at once. This site stores nothing: the corner card (`components/site-reviews/RateCard.tsx`,
+mounted in the root layout) posts cross-origin to `https://riftcompare.com/api/site-reviews`, and the region home's "What people
+say" block reads the score and approved reviews from `https://riftcompare.com/api/site-reviews/mtg` in the browser (a public JSON
+the CDN keeps six hours), so no page gains a function or a data read. The card copies RiftCompare's corner card, not its rating
+drive: never on arrival, after 4 pages and 3 minutes or on return from a store tab, at most three times 14 days apart, always
+closable; "Rate us" in the footer opens it at any time. No email is asked for. Never review markup (self-serving). RiftCompare's
+DECISIONS.md, "Every site's reviews, approved in one queue".

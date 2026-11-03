@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, Inter } from "next/font/google";
 import { SiteAnalytics } from "@/components/SiteAnalytics";
 import { ShareArrival } from "@/components/ShareArrival";
 import { QuickView } from "@/components/QuickView";
+import { RateCard } from "@/components/site-reviews/RateCard";
 import { IMPACT_SITE_VERIFICATIONS } from "@/lib/affiliate";
 import { ADSENSE_CLIENT, adsenseScriptSrc } from "@/lib/adsense";
 import { SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/site";
@@ -11,6 +12,7 @@ import { SEASON_BOOT_SCRIPT } from "@/lib/season";
 import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 import { REGION_BOOT_SCRIPT } from "@/lib/regions";
 import "./globals.css";
+import "@/components/site-reviews/site-reviews.css";
 
 // Font display is optional, not swap: both faces are preloaded, so a warm visit renders in them from the first paint, and a slow
 // first visit keeps the size-adjusted fallback for that page instead of re-wrapping every line when the font lands (that swap
@@ -76,6 +78,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(siteJsonLd()) }} />
         <QuickView />
+        {/* Rate us (owner, 2026-11-03): the corner card, asking only after real use; RiftCompare keeps the ratings. */}
+        <RateCard />
         <SiteAnalytics />
         <ShareArrival />
       </body>

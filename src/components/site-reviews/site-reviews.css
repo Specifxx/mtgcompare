@@ -1,0 +1,310 @@
+/* Rate us card and "What people say" (lib/site-reviews.ts). Colours come from
+   the site's own theme through --srv-* (set in globals.css); the fallbacks
+   below are a neutral light theme. */
+
+.srv-card,
+.srv-section {
+  --_bg: var(--srv-bg, #fff);
+  --_fg: var(--srv-fg, #16181d);
+  --_muted: var(--srv-muted, #5c606c);
+  --_line: var(--srv-line, #e4e3de);
+  --_accent: var(--srv-accent, #1d4ed8);
+  --_accent-fg: var(--srv-accent-fg, #fff);
+  --_star: var(--srv-star, #e7a600);
+  --_field: var(--srv-field, var(--_bg));
+  color: var(--_fg);
+}
+
+.srv-card {
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 70;
+  width: min(360px, calc(100vw - 32px));
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 20px 20px 14px;
+  border: 1px solid var(--_line);
+  border-radius: 16px;
+  background: var(--_bg);
+  box-shadow: 0 18px 50px rgb(0 0 0 / 0.22);
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.srv-x {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--_muted);
+  font-size: 15px;
+  cursor: pointer;
+}
+.srv-x:hover {
+  color: var(--_fg);
+}
+
+.srv-title {
+  margin: 0 24px;
+  font-size: 18px;
+  font-weight: 800;
+}
+.srv-muted {
+  margin: 4px 0 0;
+  color: var(--_muted);
+  font-size: 13px;
+}
+
+.srv-form {
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+  text-align: left;
+}
+.srv-stars {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+}
+.srv-star {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--_line);
+  font-size: 34px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+.srv-star.is-on {
+  color: var(--_star);
+}
+.srv-star:hover {
+  transform: scale(1.1);
+}
+.srv-star:focus-visible {
+  outline: 2px solid var(--_star);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.srv-label {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.srv-field {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--_line);
+  border-radius: 8px;
+  background: var(--_field);
+  color: var(--_fg);
+  font: inherit;
+  font-size: 16px; /* no zoom on iPhone */
+  font-weight: 400;
+}
+@media (min-width: 640px) {
+  .srv-field {
+    font-size: 14px;
+  }
+}
+.srv-field:focus {
+  outline: 2px solid var(--_accent);
+  outline-offset: 0;
+}
+.srv-hp {
+  display: none;
+}
+
+.srv-consent {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--_line);
+  border-radius: 8px;
+  font-size: 12px;
+}
+.srv-consent label {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+.srv-consent input[type="checkbox"] {
+  margin-top: 2px;
+}
+.srv-consent small {
+  display: block;
+  margin-top: 2px;
+  color: var(--_muted);
+}
+
+.srv-error {
+  margin: 0;
+  color: #dc2626;
+  font-size: 12px;
+}
+
+.srv-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid var(--_accent);
+  border-radius: 10px;
+  background: var(--_accent);
+  color: var(--_accent-fg);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.srv-btn:disabled {
+  opacity: 0.6;
+}
+.srv-btn-ghost {
+  background: transparent;
+  color: var(--_accent);
+  white-space: nowrap;
+}
+
+.srv-fine {
+  margin: 0;
+  color: var(--_muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+.srv-later {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+.srv-later button {
+  min-height: 32px;
+  border: 0;
+  background: transparent;
+  color: var(--_muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.srv-later button:hover {
+  color: var(--_fg);
+  text-decoration: underline;
+}
+
+.srv-done {
+  padding: 8px 0;
+  text-align: center;
+}
+.srv-done-stars {
+  color: var(--_star);
+  font-size: 28px;
+}
+.srv-done-title {
+  margin: 4px 0 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+/* What people say */
+.srv-section {
+  margin: 32px 0;
+}
+.srv-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.srv-head h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+}
+.srv-score {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 0;
+  font-size: 15px;
+}
+.srv-stars-static {
+  color: var(--_star);
+  letter-spacing: -1px;
+}
+.srv-stars-static span {
+  color: var(--_line);
+}
+.srv-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+@media (min-width: 640px) {
+  .srv-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .srv-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.srv-review {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--_line);
+  border-radius: 12px;
+  background: var(--_bg);
+}
+.srv-review blockquote {
+  flex: 1;
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.srv-review figcaption {
+  margin-top: 10px;
+  color: var(--_muted);
+  font-size: 12px;
+}
+.srv-more {
+  margin-top: 12px;
+  border: 0;
+  background: transparent;
+  color: var(--_accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .srv-star {
+    transition: none;
+  }
+  .srv-star:hover {
+    transform: none;
+  }
+}
