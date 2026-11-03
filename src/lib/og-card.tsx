@@ -76,10 +76,13 @@ export function ogCard({ lines, sub, chips, tag, size = 64 }: OgCard): ImageResp
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: 650 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <svg width="64" height="64" viewBox="0 0 64 64">
-              <rect width="64" height="64" rx="16" fill={BRAND} />
-              <path d="M18 16h14c10 0 16 6.5 16 16s-6 16-16 16H18z" fill="#fff" />
-              <path d="M26 24h5.5c5 0 8 3 8 8s-3 8-8 8H26z" fill={BRAND} />
-              <rect x="18" y="30" width="30" height="4" fill={BRAND} />
+              <rect width="64" height="64" rx="16" fill="#1a1030" />
+              <path d="M28.3 57.7 C17.4 50.5 12.1 41.7 8.2 36.4 C16.2 36.5 26.0 39.4 35.7 48.3 Z" fill="#e5471f" stroke="#1a1030" strokeWidth="1.1" />
+              <path d="M28.3 48.3 C38.0 39.4 47.8 36.5 55.8 36.4 C51.9 41.7 46.6 50.5 35.7 57.7 Z" fill="#e5471f" stroke="#1a1030" strokeWidth="1.1" />
+              <path d="M26.2 55.8 C18.4 42.1 16.8 30.0 15.2 22.2 C23.2 26.9 31.8 35.6 37.8 50.2 Z" fill="#f4601f" stroke="#1a1030" strokeWidth="1.1" />
+              <path d="M26.2 50.2 C32.2 35.6 40.8 26.9 48.8 22.2 C47.2 30.0 45.6 42.1 37.8 55.8 Z" fill="#f4601f" stroke="#1a1030" strokeWidth="1.1" />
+              <path d="M25.0 53.0 C24.0 35.5 28.1 22.6 32.0 14.0 C35.9 22.6 40.0 35.5 39.0 53.0 Z" fill="#ff7a24" stroke="#1a1030" strokeWidth="1.1" />
+              <circle cx="32" cy="53" r="5" fill="#ffd56a" stroke="#1a1030" strokeWidth="1.1" />
             </svg>
             <div style={{ display: "flex", fontSize: 42, fontWeight: 800, letterSpacing: -1 }}>
               MTG <span style={{ color: BRAND }}>Compare</span>

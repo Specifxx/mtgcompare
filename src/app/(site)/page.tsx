@@ -15,7 +15,8 @@ import { HalloweenDecor } from "@/components/home/HalloweenDecor";
 import { InnistradComing } from "@/components/home/InnistradComing";
 import { ChristmasDecor } from "@/components/home/ChristmasDecor";
 import { ChristmasGifts } from "@/components/home/ChristmasGifts";
-import { CreatorsTeaser } from "@/components/home/CreatorsTeaser";
+import { LandingAds } from "@/components/home/LandingAds";
+import { landingTcgTiles } from "@/lib/landing-ads";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js CDN_PAGES, "/"), like the region pages, never ISR and never
 // prerendered at build (a build reads no data: tests/vercel-ignore-build.test.ts). The region block's default (US) picks come from the
@@ -56,7 +57,12 @@ export default async function Landing() {
   // The default region's five, from the public data files: the server HTML is already filled.
   const today = new Date().toISOString().slice(0, 10);
   // The next set's block, every region's (seven small lists): the server HTML has the default region's, the browser the visitor's.
-  const [initialPicks, featured] = await Promise.all([regionPicks(X_DEFAULT_REGION).catch(() => []), loadFeaturedAll(today).catch(() => ({}))]);
+  // The banner's TCGplayer half (the newest sets' sealed products, from the public data files); its eBay half is fetched in the browser.
+  const [initialPicks, featured, tcgTiles] = await Promise.all([
+    regionPicks(X_DEFAULT_REGION).catch(() => []),
+    loadFeaturedAll(today).catch(() => ({})),
+    landingTcgTiles().catch(() => []),
+  ]);
   const hasFeatured = Object.keys(featured).length > 0;
   return (
     <div>
@@ -99,8 +105,20 @@ export default async function Landing() {
           <div className="mx-auto mt-4 max-w-2xl">
             <RegionSuggest formId="landing-search" links={HERO_LINKS} />
           </div>
+          {/* The creators page's one way in from the homepage (owner, 2026-11-03: "just have it as a button on the hero" instead of the
+              featured-creators strip that sat under the paragraph). */}
+          <Link href="/creators" className="btn-ghost mt-5 min-h-11 gap-1.5 px-5 text-sm sm:min-h-0 sm:py-2">
+            <span aria-hidden="true" className="text-[#c13584]">✦</span> Creators
+          </Link>
         </div>
       </section>
+
+      {/* The eBay + TCGplayer banner (owner, 2026-11-03), side by side straight under the hero (the featured-creators strip sat under the paragraph below
+          (2026-10-30 to 2026-11-03; /creators is now the hero's button). Real listings and products, labelled Ad; nothing moves when
+          the eBay half arrives or the region changes. */}
+      <div className="page mt-8 max-w-5xl">
+        <LandingAds tcg={tcgTiles} />
+      </div>
 
       {/* The owner's short landing page (2026-10-25, DECISIONS.md): one paragraph on how it is fair, the region's five, the hot
           buttons, the footer. The long text, the FAQ, the regions and what we compare live on /about; the guides on each region's
@@ -119,12 +137,6 @@ export default async function Landing() {
           </p>
         </div>
       </section>
-
-      {/* The creators we feature (owner, 2026-10-30: "feature him"), as on RiftCompare's homepage: one compact strip into /creators,
-          under the hero's paragraph and above the prices. */}
-      <div className="page mt-8 max-w-3xl">
-        <CreatorsTeaser />
-      </div>
 
       {/* The next set (lib/coming-soon.ts, by sets.ts dates): gone on its release day. It carries the pre-order hub link, so the hot
           buttons below keep their Commander decks button. */}
