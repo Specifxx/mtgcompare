@@ -135,7 +135,7 @@ async function tcgcsvSize() {
       best.set(p.productId, Math.max(best.get(p.productId) ?? 0, v));
     }
     for (const p of prods.results) {
-      const ext = Object.fromEntries(p.extendedData.map((e) => [e.name, e.value]));
+      const ext = Object.fromEntries((p.extendedData ?? []).map((e) => [e.name, e.value]));
       if (!ext.Number) { sealed++; continue; }
       cards++;
       if (numbers.length < 40 && Math.random() < 0.01) numbers.push(`${ext.Number} | ${p.name} | ${ext.Rarity}`);
@@ -147,7 +147,7 @@ async function tcgcsvSize() {
     }
     await sleep(100);
   }
-  const ext = (await fetchJson<{ results: { extendedData: { name: string }[] }[] }>(`${BASE}/${cat}/${groups[0].groupId}/products`, TCGCSV_INIT)).results.flatMap((p) => p.extendedData.map((e) => e.name));
+  const ext = (await fetchJson<{ results: { extendedData: { name: string }[] }[] }>(`${BASE}/${cat}/${groups[0].groupId}/products`, TCGCSV_INIT)).results.flatMap((p) => (p.extendedData ?? []).map((e) => e.name));
   console.log(JSON.stringify({ groups: groups.length, cards, sealed, cardsAtLeast1usd: overFloor, cardsAtLeast10usd: over10, cardsAtLeast20usd: over20, rarities: Object.fromEntries([...rarities].sort((a, b) => b[1] - a[1])), printings: Object.fromEntries(printings), extendedFields: [...new Set(ext)], sampleNumbers: numbers }, null, 1));
 }
 

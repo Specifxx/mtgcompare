@@ -2,7 +2,7 @@ name: Bandai site trial import (temporary research)
 on:
   push:
     branches: [claude/project-thread-r5d8h6]
-    paths: [".github/workflows/bandai-import.yml", "bandai-site/src/content/stores.ts"]
+    paths: [".github/workflows/bandai-import.yml", "bandai-site/src/content/stores.ts", "bandai-site/src/lib/import/tcgcsv.ts"]
 permissions:
   contents: write
 jobs:

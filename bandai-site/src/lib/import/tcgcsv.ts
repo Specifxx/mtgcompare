@@ -28,7 +28,7 @@ interface RawProduct {
   groupId: number;
   url: string;
   presaleInfo?: { isPresale: boolean; releasedOn: string | null };
-  extendedData: { name: string; value: string }[];
+  extendedData?: { name: string; value: string }[];
 }
 interface RawPrice {
   productId: number;
@@ -123,7 +123,7 @@ export async function loadTcgcsv(now = new Date()): Promise<{
       printings.get(p.productId)!.add(p.subTypeName);
     }
     for (const p of prods.results) {
-      const ext = Object.fromEntries(p.extendedData.map((e) => [e.name, e.value]));
+      const ext = Object.fromEntries((p.extendedData ?? []).map((e) => [e.name, e.value]));
       const isCard = !!ext.Number;
       let slug = slugify(p.name) || String(p.productId);
       if (SITE.slugStyle === "name-number") {
