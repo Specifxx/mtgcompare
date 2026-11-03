@@ -752,3 +752,14 @@ body:has([data-ebay-no-prefooter]) [data-ebay-prefooter] {
 
 /* lib/region-boot.ts: while a visitor is moved to their own region's copy of the page, at most 1.5 s. */
 html[data-geo="pending"] main { visibility: hidden; }
+
+/* Rate us card and "What people say" (components/site-reviews): drawn in the site's own theme, light and dark. */
+:root {
+  --srv-bg: rgb(var(--surface));
+  --srv-fg: rgb(var(--ink));
+  --srv-muted: rgb(var(--muted));
+  --srv-line: rgb(var(--line));
+  --srv-accent: rgb(var(--brand));
+  --srv-accent-fg: rgb(var(--brand-ink));
+  --srv-field: rgb(var(--raised));
+}
