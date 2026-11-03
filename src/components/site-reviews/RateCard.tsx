@@ -25,7 +25,7 @@ const SHOW_DELAY_MS = 8_000;
 export const NO_ADS_LINE = "We don't run banner ads, so if this helped, please leave us a review.";
 
 function pageHasAds(): boolean {
-  return !!document.querySelector('script[src*="googlesyndication"], script[src*="mediavine"], ins.adsbygoogle');
+  return !!document.querySelector('script[src*="googlesyndication"], script[src*="mediavine"], ins[data-ad-client]');
 }
 const RETURN_DELAY_MS = 1_500;
 
