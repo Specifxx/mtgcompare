@@ -24,7 +24,8 @@ test("the landing page links the hub in all seven regions", () => {
 });
 
 test("on and after release day: no banner (the registry retires it)", () => {
-  assert.equal(renderToStaticMarkup(React.createElement(PreorderBanner, { region: "au", today: "2026-11-13" })), "");
-  assert.equal(renderToStaticMarkup(React.createElement(PreorderRegionLinks, { today: "2026-11-13" })), "");
-  assert.equal(openPreorderGuides("2026-11-13").length, 0);
+  // The next sets (found by the import, lib/set-discovery.ts) may take its place; Star Trek's own banner is gone.
+  assert.doesNotMatch(renderToStaticMarkup(React.createElement(PreorderBanner, { region: "au", today: "2026-11-13" })), /star-trek/);
+  assert.doesNotMatch(renderToStaticMarkup(React.createElement(PreorderRegionLinks, { today: "2026-11-13" })), /star-trek/);
+  assert.ok(!openPreorderGuides("2026-11-13").some((x) => x.set.code === "trk"));
 });

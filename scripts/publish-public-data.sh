@@ -16,19 +16,24 @@ MARK=""
 [ "${2:-}" = "release" ] && MARK=" [deploy]"
 git config user.name "mtgcompare-data[bot]"
 git config user.email "mtgcompare-data@users.noreply.github.com"
-if git diff --quiet -- "$DIR" && [ -z "$(git ls-files --others --exclude-standard -- "$DIR")" ]; then
-  echo "[publish] data/public unchanged — nothing to commit."
+# data/sets/discovered.json (scripts/discover-sets.ts, run before the import) rides the same commit.
+SETS_DIR="data/sets"
+if git diff --quiet -- "$DIR" "$SETS_DIR" && [ -z "$(git ls-files --others --exclude-standard -- "$DIR" "$SETS_DIR")" ]; then
+  echo "[publish] data/public and data/sets unchanged — nothing to commit."
   exit 0
 fi
 TMP="$(mktemp -d)"
 cp -r "$DIR/." "$TMP/"
+TMP_SETS="$(mktemp -d)"
+[ -d "$SETS_DIR" ] && cp -r "$SETS_DIR/." "$TMP_SETS/"
 for attempt in 1 2 3 4 5; do
   git fetch -q origin main
   git reset -q --hard origin/main
   mkdir -p "$DIR"
   rm -f "$DIR"/*.json
   cp -r "$TMP/." "$DIR/"
-  git add -A -- "$DIR"
+  if [ -n "$(ls -A "$TMP_SETS")" ]; then mkdir -p "$SETS_DIR"; cp -r "$TMP_SETS/." "$SETS_DIR/"; fi
+  git add -A -- "$DIR" "$SETS_DIR"
   if git diff --cached --quiet; then
     echo "[publish] main already has this snapshot."
     exit 0

@@ -71,17 +71,14 @@ test("Star Trek: the dates Wizards of the Coast announced", () => {
 });
 
 test("pre-order pages retire themselves on release day", () => {
-  assert.deepEqual(
-    openPreorderGuides("2026-10-21").map((x) => x.set.code),
-    ["trk"],
-  );
-  assert.deepEqual(openPreorderGuides("2026-11-13"), [], "release day: no longer a pre-order");
+  assert.equal(openPreorderGuides("2026-10-21")[0].set.code, "trk", "the soonest release first");
+  assert.ok(!openPreorderGuides("2026-11-13").some((x) => x.set.code === "trk"), "release day: no longer a pre-order");
   assert.equal(isPreorderSet("trk", new Date("2026-11-12T23:59:00Z")), true);
   assert.equal(isPreorderSet("trk", new Date("2026-11-13T00:00:00Z")), false);
   const before = new Set(staticSitemap({}, undefined, "2026-10-21").map((e) => e.url));
   for (const r of REGION_LIST) assert.ok(before.has(`${SITE_URL}/${r.region}/preorders/star-trek`), r.region);
   const after = staticSitemap({}, undefined, "2026-11-13").map((e) => e.url);
-  assert.ok(!after.some((u) => u.includes("/preorders/")), "out of the sitemap once released");
+  assert.ok(!after.some((u) => u.includes("/preorders/star-trek")), "out of the sitemap once released");
 });
 
 test("the pre-order page says PreOrder, never InStock, and uses its own placement", () => {

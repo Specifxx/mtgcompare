@@ -13,6 +13,7 @@ import { productAdPlan, soldOutAdPlan } from "../src/lib/ebay-ads";
 import { cheapestPerPackByType } from "../src/lib/per-pack";
 import { fitTitle, openWhere, productDescription, productTitle, quickFacts, releaseChip, renderedTitle, shortDate, valueCheck } from "../src/lib/product-copy";
 import { altToCard, inStockAlternatives, setCodesNewestFirst, type AltRow } from "../src/lib/product-data";
+import { SETS } from "../src/lib/sets";
 import { MarketplacePanel, SoldOutCallout } from "../src/components/Marketplaces";
 import { OfferTable } from "../src/components/OfferTable";
 import { ShareButton } from "../src/components/ShareButton";
@@ -377,7 +378,8 @@ test("in-stock alternatives: one tagged-template query, LIMIT 4, same set first,
   const codes = values[4] as string[];
   assert.equal(codes[0], "fra", "released sets newest first (Reality Fracture, out 2026-10-02)");
   assert.ok(codes.indexOf("eoe") < codes.indexOf("tdm"), "Edge of Eternities before Tarkir: Dragonstorm");
-  assert.equal(codes[codes.length - 1], "trk", "a set still to come (Star Trek) last");
+  const firstToCome = codes.indexOf("trk");
+  assert.ok(firstToCome > 0 && codes.slice(firstToCome).every((c) => SETS.find((s) => s.code === c)!.releaseDate > "2026-10-14"), "sets still to come (Star Trek on) last");
   assert.deepEqual(codes, setCodesNewestFirst("2026-10-14"));
   assert.equal(values[5], 4);
   assert.equal(out[2].releaseDate, null);

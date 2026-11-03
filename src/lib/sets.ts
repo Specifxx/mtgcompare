@@ -9,6 +9,13 @@
 // ADDING A SET: add an entry at the top. `slug` is the URL (/au/sets/<slug>) and must never change once live. If stores title
 // the set some other way, add an `aliases` regex source. `boosters` says which booster lines the set was sold in, which is how a
 // bare "Booster Box" is read (see boosterKind() in sealed-title.ts): leave a line out and a title naming it is refused.
+//
+// NEW SETS ARRIVE BY THEMSELVES (2026-11-03): the sealed import adds Scryfall's upcoming sets to data/sets/discovered.json
+// (lib/set-discovery.ts), merged into SETS below. Write a row here only to correct one (a store spelling that needs an alias, a
+// name that needs a pattern, a booster line): the row replaces the discovered entry. Keep the slug the discovered entry had.
+
+import discovered from "../../data/sets/discovered.json";
+import type { DiscoveredSet } from "./set-discovery";
 
 /** The booster lines a set was sold in. "play" replaced "draft" + "set" from Murders at Karlov Manor (February 2024). */
 export type BoosterLine = "play" | "draft" | "set" | "collector" | "jumpstart";
@@ -125,7 +132,19 @@ function slugOf(name: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-export const SETS: MtgSet[] = ROWS.map(([code, name, releaseDate, series, boosters]) => ({ code, name, slug: slugOf(name), series, releaseDate, logo: null, ...(boosters ? { boosters } : {}) }));
+/** The hand-written sets above, alone (scripts/discover-sets.ts checks new sets against them). */
+export const HAND_SETS: MtgSet[] = ROWS.map(([code, name, releaseDate, series, boosters]) => ({ code, name, slug: slugOf(name), series, releaseDate, logo: null, ...(boosters ? { boosters } : {}) }));
+
+// Sets found by the sealed import in Scryfall's set list (lib/set-discovery.ts, data/sets/discovered.json), so a newly announced
+// set's pre-orders are filed, and its pages appear, without anyone editing this file. A hand-written row with the same code wins.
+const HAND_CODES = new Set(HAND_SETS.map((s) => s.code));
+const HAND_SLUGS = new Set(HAND_SETS.map((s) => s.slug));
+const FOUND: MtgSet[] = (discovered as DiscoveredSet[])
+  .filter((d) => !HAND_CODES.has(d.code) && !HAND_SLUGS.has(d.slug))
+  .map((d) => ({ code: d.code, name: d.name, slug: d.slug, series: d.series, releaseDate: d.releaseDate, logo: null, ...(d.boosters ? { boosters: d.boosters } : {}) }));
+
+/** Every set, newest first: the hand-written ones and the discovered ones. */
+export const SETS: MtgSet[] = [...HAND_SETS, ...FOUND].sort((a, b) => b.releaseDate.localeCompare(a.releaseDate));
 
 // Title spellings the plain set name doesn't cover (stores drop the subtitle, the "The", the "Universes Beyond:" or use the code).
 const ALIASES: Record<string, string[]> = {
