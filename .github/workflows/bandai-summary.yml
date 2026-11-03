@@ -5,7 +5,7 @@ on:
     paths: ["research/bandai-summary/**", ".github/workflows/bandai-summary.yml"]
 permissions:
   actions: read
-  contents: read
+  contents: write
 jobs:
   summary:
     runs-on: ubuntu-latest
@@ -14,4 +14,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: gh run download 41612727687 -D art -p 'probe-*'
         env: { GH_TOKEN: "${{ github.token }}" }
-      - run: python3 research/bandai-summary/summary.py
+      - run: python3 research/bandai-summary/summary.py | tee research/bandai/summary.txt
+      - run: |
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/bandai/summary.txt && git commit -m "research: Bandai probe summary (not for main)" && git push
