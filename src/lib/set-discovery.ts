@@ -48,8 +48,10 @@ export const DISCOVER_BEHIND_DAYS = 60;
 
 // Set types that are sold as sealed product of their own. Left out: commander decks of a main set (they carry parent_set_code and are
 // filed under the main set), Secret Lair ("box"), promos, tokens, Alchemy/digital, memorabilia, From the Vault, Spellbooks, duel
-// decks, starter and premium decks.
-const SEALED_TYPES = new Set(["expansion", "core", "masters", "draft_innovation", "commander", "funny"]);
+// decks, starter and premium decks. A "draft_innovation" set is taken only when it is a Horizons or Jumpstart release, whose booster
+// lines are known; the others (Mystery Booster, Un-sets: "funny") sell boosters under names of their own and are added by hand.
+const SEALED_TYPES = new Set(["expansion", "core", "masters", "commander"]);
+const KNOWN_INNOVATION = /\bhorizons\b|\bjump\s*start\b/i;
 
 const PLAY: BoosterLine[] = ["play", "collector"];
 
@@ -143,10 +145,18 @@ export function candidates(
   for (const s of all) {
     const date = s.released_at ?? "";
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date < from || date > to) continue;
-    if (s.digital || s.parent_set_code || !SEALED_TYPES.has(s.set_type)) continue;
+    if (s.digital || s.parent_set_code) continue;
     const code = s.code.toLowerCase();
     if (codes.has(code)) continue;
     const name = cleanSetName(s.name);
+    if (!SEALED_TYPES.has(s.set_type)) {
+      if (s.set_type === "draft_innovation" && KNOWN_INNOVATION.test(name)) {
+        // taken below
+      } else {
+        if (s.set_type === "draft_innovation" || s.set_type === "funny") skipped.push({ code, name, why: "supplemental release with booster lines of its own: add it to lib/sets.ts by hand if stores sell it" });
+        continue;
+      }
+    }
     if (name.length < 4) {
       skipped.push({ code, name, why: "name too short to match a store title safely" });
       continue;
@@ -200,6 +210,16 @@ export function mergeDiscovered(
   // Out of the window (it released over DISCOVER_BEHIND_DAYS ago) but still listed by Scryfall: keep it, the set page stays.
   for (const d of previous) if (!out.has(d.code) && allCodes.has(d.code) && !knownCodes.has(d.code)) out.set(d.code, d);
   return [...out.values()].sort((a, b) => b.releaseDate.localeCompare(a.releaseDate) || a.code.localeCompare(b.code));
+}
+
+/**
+ * Before any card is previewed: a set is taken as Universes Beyond when its name opens with the franchise of a hand-written
+ * Universes Beyond set ("Marvel: Darkhold Destiny" beside "Marvel Super Heroes"). Otherwise unknown (null).
+ */
+export function ubByFranchise(name: string, known: readonly { name: string; series: string }[]): boolean | null {
+  const first = words(name).map((w) => w.replace(/s$/, ""))[0];
+  if (!first || first.length < 4) return null;
+  return known.some((k) => k.series === "Universes Beyond" && words(k.name).map((w) => w.replace(/s$/, ""))[0] === first) ? true : null;
 }
 
 /** A set's cards are Universes Beyond when at least half carry the triangle security stamp; null when none are previewed yet. */

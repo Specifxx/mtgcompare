@@ -4,7 +4,7 @@
 // for 50-100 ms). Never fails the import: on any error it keeps the file as it is and says why in the job summary.
 import fs from "node:fs";
 import path from "node:path";
-import { candidates, isUniversesBeyond, mergeDiscovered, type DiscoveredSet, type ScryfallSet } from "../src/lib/set-discovery";
+import { candidates, isUniversesBeyond, ubByFranchise, mergeDiscovered, type DiscoveredSet, type ScryfallSet } from "../src/lib/set-discovery";
 import { HAND_SETS } from "../src/lib/sets";
 
 const FILE = path.join(process.cwd(), "data/sets/discovered.json");
@@ -52,7 +52,8 @@ async function main(): Promise<void> {
     if (set.set_type !== "expansion" && set.set_type !== "core") continue;
     const total = await count(`e:${set.code} game:paper`);
     const triangle = total ? await count(`e:${set.code} game:paper stamp:triangle`) : 0;
-    ub.set(set.code, total == null || triangle == null ? null : isUniversesBeyond(total, triangle));
+    const byCards = total == null || triangle == null ? null : isUniversesBeyond(total, triangle);
+    ub.set(set.code, byCards ?? ubByFranchise(set.name, HAND_SETS));
   }
 
   const next = mergeDiscovered(

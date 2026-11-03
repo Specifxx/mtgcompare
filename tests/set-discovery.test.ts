@@ -12,6 +12,7 @@ import {
   nameInside,
   seriesOf,
   setSlug,
+  ubByFranchise,
   type DiscoveredSet,
   type ScryfallSet,
 } from "../src/lib/set-discovery";
@@ -113,4 +114,28 @@ test("data/sets/discovered.json is well formed and SETS stays newest first with 
   assert.equal(new Set(SETS.map((s) => s.code)).size, SETS.length);
   assert.equal(new Set(SETS.map((s) => s.slug)).size, SETS.length);
   for (let i = 1; i < SETS.length; i++) assert.ok(SETS[i - 1].releaseDate >= SETS[i].releaseDate, SETS[i].code);
+});
+
+test("Mystery Booster and Un-sets are left for a hand-written row; Horizons and Jumpstart releases are taken", () => {
+  const all = [
+    sf("mbc", "Mystery Booster Commander Edition", "2026-10-19", "draft_innovation"),
+    sf("unx", "Unthinkable", "2027-01-08", "funny"),
+    sf("mh4", "Modern Horizons 4", "2027-03-12", "draft_innovation"),
+    sf("j27", "Jumpstart 2027", "2027-03-12", "draft_innovation"),
+  ];
+  const { take, skipped } = candidates(all, KNOWN, TODAY);
+  assert.deepEqual(
+    take.map((c) => c.set.code),
+    ["mh4", "j27"],
+  );
+  assert.deepEqual(
+    skipped.map((s) => s.code),
+    ["mbc", "unx"],
+  );
+});
+
+test("before previews, a set is Universes Beyond only when it opens with a known Universes Beyond franchise", () => {
+  assert.equal(ubByFranchise("Marvel: Darkhold Destiny", HAND_SETS), true);
+  assert.equal(ubByFranchise("Nauctis: The Sunken Realm", HAND_SETS), null);
+  assert.equal(ubByFranchise("Secrets of Ravnica", HAND_SETS), null);
 });
