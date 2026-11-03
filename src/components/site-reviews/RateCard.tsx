@@ -21,6 +21,12 @@ import { RatingForm } from "./RatingForm";
 // and "Not now" all close it.
 
 const SHOW_DELAY_MS = 8_000;
+/** Owner, 2026-11-03: "we don't run ads right now so the least you could do is leave us a review". Shown only while no ad script is on the page, so it is never untrue. */
+export const NO_ADS_LINE = "We don't run banner ads, so if this helped, please leave us a review.";
+
+function pageHasAds(): boolean {
+  return !!document.querySelector('script[src*="googlesyndication"], script[src*="mediavine"], ins.adsbygoogle');
+}
 const RETURN_DELAY_MS = 1_500;
 
 function sessionPages(path: string): number {
@@ -55,6 +61,7 @@ export function RateCard() {
   const path = usePathname() ?? "/";
   const [open, setOpen] = useState<null | "auto" | "user">(null);
   const [done, setDone] = useState(false);
+  const [noAds, setNoAds] = useState(false);
   const openRef = useRef(open);
   openRef.current = open;
 
@@ -118,6 +125,10 @@ export function RateCard() {
   }, []);
 
   useEffect(() => {
+    if (open) setNoAds(!pageHasAds());
+  }, [open]);
+
+  useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") close();
@@ -159,7 +170,7 @@ export function RateCard() {
       {!done && (
         <>
           <p className="srv-title">How would you rate {SITE_REVIEWS.name}?</p>
-          <p className="srv-muted">One tap. It helps other people find us.</p>
+          <p className="srv-muted">{noAds ? NO_ADS_LINE : "One tap. It helps other people find us."}</p>
         </>
       )}
       <RatingForm
