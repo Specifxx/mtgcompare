@@ -45,7 +45,7 @@ export function footerColumns(region: Region | null, listed?: ReadonlySet<string
     { title: "Latest sets", links: menuSets(6, undefined, listed).map((c) => SET_BY_CODE.get(c)!).map((set) => ({ href: `/${region}/sets/${set.slug}`, label: set.name })) },
     {
       title: "Explore",
-      links: [s("deals", "Deals"), s("blackFriday", "Black Friday deals"), s("boxingDay", "Boxing Day deals"), s("januarySales", "January sales"), s("lunarNewYear", "Lunar New Year deals"), s("thisWeek", "This week"), s("backInStock", "Back in stock"), s("priceMoves", "Price moves"), s("outOfPrint", "Older sets in stock"), s("releases", "Releases"), s("guides", "Guides"), s("tools", "Tools"), s("stores", "Where to buy"), s("sealed", "All sealed"), { href: COUNTRY_GUIDE.path, label: "Prices by country" }],
+      links: [s("deals", "Deals"), s("blackFriday", "Black Friday deals"), s("boxingDay", "Boxing Day deals"), s("januarySales", "January sales"), s("lunarNewYear", "Lunar New Year deals"), s("thisWeek", "This week"), s("backInStock", "Back in stock"), s("priceMoves", "Price moves"), s("outOfPrint", "Older sets in stock"), s("releases", "Releases"), s("guides", "Guides"), s("tools", "Tools"), s("daily", "Price Duel game"), s("stores", "Where to buy"), s("sealed", "All sealed"), { href: COUNTRY_GUIDE.path, label: "Prices by country" }],
     },
     // Every guide offered in the region (components/seo/HubLinks): no guide is an orphan.
     ...footerSeoSections(region).filter((sec) => sec.title === "Guides"),
