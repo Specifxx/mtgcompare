@@ -4,12 +4,12 @@ name: Refresh prices
 # The data commit's SUBJECT carries [deploy], so it is the day's one
 # production build (scripts/vercel-ignore-build.sh). Scheduled after TCGCSV's
 # ~20:00 UTC refresh would be ideal for TCGplayer, but the eBay run hour is set
-# per site (Cyberpunk Compare has its own eBay app since 2026-11-01; the
+# per site (BandaiCompare needs its own eBay app, owner rule 2026-11-01; the
 # hour is SITE.ebay.runHourUtc) — keep this cron's hour equal to it.
 
 on:
   schedule:
-    - cron: "17 0 * * *"
+    - cron: "17 3 * * *"
   workflow_dispatch:
     inputs:
       ebay:

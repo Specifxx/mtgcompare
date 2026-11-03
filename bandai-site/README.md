@@ -1,21 +1,25 @@
-# Cyberpunk Compare
+# BandaiCompare
 
-Free Cyberpunk TCG price comparison (cyberpunkcompare.com): every card and
-sealed product TCGplayer lists, Beta and Retail, compared across TCGplayer,
-eBay and Cyberpunk TCG stores (US, UK, Canada, Australia, EU), updated daily.
+Free price comparison for three Bandai card games on one site
+(bandaicompare.com): **Union Arena**, **Dragon Ball Super Fusion World** and
+the **Digimon Card Game**. Every card and sealed product TCGplayer lists,
+compared across TCGplayer, eBay and card stores in the US, UK, Canada,
+Australia, Europe and Singapore, updated daily. Not affiliated with Bandai.
 
 Built on the Rift Compare playbook (riftcompare.com, repo `Specifxx/TCGEmpire`),
-on the lean engine shared with Gundam Compare, Lorcana Compare and YGO Compare.
-The only game-specific files are `src/site.config.ts` and `src/content/`
-(stores, blog posts, pre-order copy), plus icons, share images, workflows and docs.
+on the lean engine shared with Gundam Compare, Lorcana Compare, YGO Compare
+and Cyberpunk Compare. The only game-specific files are `src/site.config.ts`
+and `src/content/` (stores, blog posts, pre-order copy, logo and look), plus
+icons, share images, workflows and docs.
 
 ## How it works
 
 ```
-GitHub Actions, daily 00:17 UTC (refresh-prices.yml)
-  TCGCSV (TCGplayer catalogue + prices, category 92)
+GitHub Actions, daily 03:17 UTC (refresh-prices.yml)
+  TCGCSV (TCGplayer catalogue + prices, categories 81, 80 and 63: SITE.lines)
   + every Shopify store in src/content/stores.ts  (products.json)
-  + eBay Browse API, budgeted (own app, 2,500 calls/day, cards from $10, all sealed)
+  + eBay Browse API, budgeted (own app, 2,500 calls/day, cards from $10, all sealed;
+    a no-op until EBAY_CLIENT_ID / EBAY_CLIENT_SECRET exist)
   → data/public/*.json, data/history/<set>.json, data/state/*.json
   → commit to main with "[deploy]" in the subject  → one Vercel build a day
   → IndexNow ping
@@ -29,17 +33,18 @@ GitHub Actions, daily 00:17 UTC (refresh-prices.yml)
   only when the commit subject has `[deploy]`; previews need `[preview]`;
   `claude/*` branches never deploy.
 
-## Cyberpunk TCG specifics
+## Three games, one catalogue
 
-* **Beta vs Retail.** Welcome to Night City exists twice under the same names:
-  the Kickstarter Beta print (36-pack boxes) and the Retail print (24-pack
-  boxes, 6 November 2026), at very different prices. `SITE.setEditions` keeps
-  them apart: a store or eBay title counts for Beta only when it says Beta,
-  36 packs or Kickstarter, and for Retail otherwise; a title naming both is
-  skipped.
-* **Rarities**: TCGplayer's codes (C, UC, R, E, S, IL, IO, IS, NR) are spelled
-  out by `SITE.rarityNames`.
-* **Card numbers** are bare ("012") within each TCGplayer group.
+* **`SITE.lines`** lists the three TCGplayer categories. Each set carries its
+  game; each game has a hub at `/games/<slug>`, a homepage tile and a menu
+  link, and eBay and TCGplayer links use the game's own words (`src/lib/lines.ts`).
+* **Card numbers** (`numberStyle: "series"`): FB11-084 (Fusion World),
+  BT25-104 (Digimon) and REZ-1-053 (Union Arena, written UE24BT/REZ-1-053 by
+  TCGplayer).
+* **Star rarities**: Union Arena's SR, SR*, SR** and SR*** share a number; a
+  listing that names one never prices another.
+* **Catalogue floor**: cards under US$1 in every printing stay out, except in
+  sets from the last 120 days (`catalogMinCardCents`), so the data and build stay small.
 
 ## Run locally
 

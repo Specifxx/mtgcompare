@@ -1,18 +1,20 @@
 # Working in this repo
 
-Read `README.md` first. This is Cyberpunk Compare (Cyberpunk TCG); Gundam
-Compare, Lorcana Compare and YGO Compare run the same engine. Engine code
-(`src/lib`, `src/app`, `src/components`, `scripts`) must stay game-agnostic:
-anything game-specific goes in `src/site.config.ts` or `src/content/`. When
-you change the engine, make the same change in the other three repos.
+Read `README.md` first. This is BandaiCompare (Union Arena, Dragon Ball Super
+Fusion World and the Digimon Card Game on one site, `SITE.lines`); Gundam
+Compare, Lorcana Compare, YGO Compare and Cyberpunk Compare run the same
+engine. Engine code (`src/lib`, `src/app`, `src/components`, `scripts`) must
+stay game-agnostic: anything game-specific goes in `src/site.config.ts` or
+`src/content/`. When you change the engine, make the same change in the other
+four repos.
 
-## One engine, four repos
+## One engine, five repos
 
-Gundam Compare, Lorcana Compare, YGO Compare and Cyberpunk Compare run ONE
-engine. `engine.json` lists its files (the code, tests and build config; never
-`src/site.config.ts`, `src/content/`, icons, share images, workflows or
-`data/`), and they must be byte-identical in all four repos. After an engine
-change here, copy it with `scripts/engine-sync.sh ../<sister> ../<sister> ../<sister>`,
+Gundam Compare, Lorcana Compare, YGO Compare, Cyberpunk Compare and
+BandaiCompare run ONE engine. `engine.json` lists its files (the code, tests
+and build config; never `src/site.config.ts`, `src/content/`, icons, share
+images, workflows or `data/`), and they must be byte-identical in all five
+repos. After an engine change here, copy it with `scripts/engine-sync.sh ../<sister> ../<sister> ../<sister> ../<sister>`,
 run the checks in each and open the PRs together; `npx tsx scripts/engine-drift.ts ../<sister>…`
 shows what still differs. Anything one game needs is an option in
 `site.config.ts`, off by default.
@@ -47,11 +49,13 @@ Keep the feed's price the lowest in-stock store price, never eBay or converted.
 
 ## The name
 
-"Cyberpunk" is CD PROJEKT's trademark; the owner chose the domain
-(2026-11-01). Never use CD PROJEKT, Cyberpunk 2077 or WeirdCo logos, key art
-or card designs as decoration: card and product images are TCGplayer's and
-the stores' own, hotlinked. Keep the not-affiliated line in the footer,
-`/about` and `/terms`.
+"Bandai" is the company's own trademark; the owner chose the domain anyway
+(2026-11-03, after the risk was explained). Keep `SITE.disclaimer` (not
+affiliated with, endorsed by or sponsored by Bandai or Bandai Namco) in the
+footer, `/about` and `/terms`. Never use Bandai, Bandai Namco, Union Arena,
+Dragon Ball or Digimon logos, card art, characters or key art as decoration:
+card and product images are TCGplayer's and the stores' own, hotlinked. Never
+write copy that reads as official ("the official", "Bandai's store").
 
 ## Cost rules (from Rift Compare, where breaking them exhausted Neon projects)
 
@@ -65,8 +69,8 @@ the stores' own, hotlinked. Keep the not-affiliated line in the footer,
 
 ## eBay
 
-Cyberpunk Compare has its OWN eBay app (owner, 2026-11-01), not the one
-Gundam, Lorcana and YGO share: `SITE.ebay.dailyBudget` 2,500 calls a day,
+BandaiCompare needs its OWN eBay app (owner rule, 2026-11-01: a new site never
+shares a key), which the owner supplies: `SITE.ebay.dailyBudget` 2,500 calls a day,
 counted in `data/state/ebay-usage.json`. Cards under $10 get no call; every
 sealed product does. The pass is a no-op until `EBAY_CLIENT_ID` /
 `EBAY_CLIENT_SECRET` exist. Never point it at a sister's keyset or raise the
@@ -78,11 +82,13 @@ the keyset exists.
 `src/lib/import/match.ts`: a wrong match is worse than none. Every card match
 needs the number AND the name (or an exact name inside a named set); ties are
 no match; foreign-language products are never matched; a store price under a
-quarter or over four times TCGplayer's is dropped. **Beta and Retail**
-(`SITE.setEditions`): a title is Beta only when it says Beta, 36 packs or
-Kickstarter, Retail otherwise, and a title naming both matches neither; store
-and eBay matching both apply it. Add a test in `tests/match.test.ts` or
-`tests/set-editions.test.ts` for every new title format.
+quarter or over four times TCGplayer's is dropped. **Three numbering schemes in
+one index** (`numberStyle: "series"`): Fusion World FB11-084, Digimon BT25-104,
+Union Arena REZ-1-053 (the volume is part of the key). **Star rarities**: one
+Union Arena number exists as SR, SR*, SR** and SR***; a title that names a
+rarity must name the card's own (`rarityMustAgree`, star spellings in
+`rarityAliases`). Add a test in `tests/match.test.ts` or
+`tests/series-numbers.test.ts` for every new title format.
 
 ## The site watches itself
 

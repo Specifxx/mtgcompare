@@ -3,55 +3,10 @@
 Newest at the bottom. The engine's own history (the lean Rift Compare
 playbook, eBay planning, matching rules, caching, forum, reports, seasons) is
 in the sister repos' DECISIONS.md (`Specifxx/GundamCompare`,
-`Specifxx/lorcanacompare`, `Specifxx/ygocompare`); code comments that cite a
-DECISIONS heading mean theirs unless it is below.
-
-## Why a Cyberpunk TCG site — 2026-11-01
-
-Owner asked whether Cyberpunk TCG was worth a site after affiliate sales of
-Cyberpunk cards showed up (most likely RiftCompare visitors buying on eBay
-within the 24-hour cookie). Research the same day: WeirdCo's Kickstarter
-raised US$28.35M from 50,773 backers (the most-funded tabletop campaign);
-Beta print shipped September 2026, retail release 6 November 2026; WeirdCo
-will not reprint a set or configuration; the Beta box (US$180 MSRP) sold
-around US$315 on TCGplayer in October with 223 eBay sales in 90 days.
-TCGplayer lists it (category 92, since 31 August), Cardmarket supports it in
-Europe. Of the 1,240 stores the sister sites track, 1,136 answered and 392
-listed Cyberpunk TCG (243 with three or more products). No site compared store
-prices for it (CHOOMDEX shows eBay and TCGplayer only). Owner: build it,
-domain cyberpunkcompare.com.
-
-Risks taken knowingly: a brand-new game with no track record and no date for
-set 2; "Cyberpunk" in the domain is CD PROJEKT's trademark (owner's call).
-
-## Beta and Retail are separate products, told apart by the title — 2026-11-01
-
-TCGplayer lists Welcome to Night City twice, "- Beta" and "- Retail", with
-identical card and sealed names, and the Beta box costs about twice the Retail
-one. A Beta price on the Retail box's page (or the reverse) is the worst kind
-of wrong match, and the 0.25×–4× plausibility guard cannot catch a 2× error.
-
-Engine option `SITE.setEditions` (off for the other games): the edition word
-is removed from set and sealed names for matching, and a title's edition must
-equal the product's. A title is Beta when it says "Beta", "36 packs" or
-"Kickstarter"/"backer"; otherwise it is Retail (the default edition) because
-stores selling the release-week box call it plain "Booster Box"; a title that
-points at both matches neither. The eBay pass applies the same rule, and its
-searches name the edition only for Beta. Pinned by `tests/set-editions.test.ts`.
-
-## Rarity codes spelled out — 2026-11-01
-
-TCGplayer stores Cyberpunk TCG rarities as codes (C, UC, R, E, S, IL, IO, IS,
-NR). Engine option `SITE.rarityNames` maps them at import, so pages, filters
-and rarity matching read "Iconic Legend", not "IL". IO is "Iconic" (TCGplayer's
-"other" Iconic cards); NR is Nova Rare (promos, box toppers, event prizes).
-
-## Its own eBay app — 2026-11-01
-
-Owner: Cyberpunk Compare gets a new eBay keyset; Gundam, Lorcana and YGO keep
-their shared app and budgets unchanged. `dailyBudget` 2,500 (half a keyset, so
-it can take a second site), cards from US$10, every sealed product. Runs at
-00:17 UTC. A no-op until the secrets exist.
+`Specifxx/lorcanacompare`, `Specifxx/ygocompare`, `Specifxx/cyberpunkcompare`);
+code comments that cite a DECISIONS heading mean theirs unless it is below.
+The engine entries from 2026-11-02 and 2026-11-03 below were copied from
+Cyberpunk Compare when this repo was made from it.
 
 ## 2026-11-02 — Self-updating price report
 
@@ -252,21 +207,6 @@ every three-hourly price commit, because neither had the gate.
   request, `[preview]` included; the older per-branch `false` entries stay for orphan commits' own copies.
 - So "push to prod" means land on the production branch; the release reaches visitors within a day.
 
-## 2026-11-02 — 69 stores from the official Cyberpunk TCG store locator
-
-Owner, 2026-11-02: "we need way more stores … 25+ per region, 200+ total". The
-official locator (cyberpunktcg.com/stores, 4,392 signed-up stores; its public
-`api.netdeck.gg/api/cyberpunk/retailers/stores` search, read from a runner with
-our own user agent) gave 2,269 store websites in our markets. `probe-stores.ts`
-(now skipping stores already listed) found 113 with a readable Shopify
-Cyberpunk collection; every one shows a contact page and a refund policy, none
-is on the banned list, and being in the official locator is the "known to
-other buyers" sign (TCGEmpire docs/store-vetting.md). A trial import kept only
-the 69 whose listings our matcher actually matched; the other 44 held only
-Cyberpunk RED RPG, Combat Zone miniatures or merch. Singapore stays at one
-store: of the locator's 24 Singapore stores, one has an online shop we can read
-and it has no Cyberpunk collection.
-
 ## 2026-11-03 — Footers link only card sites to card sites; every other site lists no sisters
 
 The owner asked whether linking every Compare Empire site together helps or is a risk for search and for how the
@@ -376,3 +316,72 @@ read, no build step. The card copies RiftCompare's corner card, not its rating d
 minutes or on return from a store tab, at most three times 14 days apart, always closable; "Rate us" in the footer opens it.
 While no ad script is on the page it says "We don't run banner ads, so if this helped, please leave us a review." (owner, same
 day). No email asked for, never review markup. RiftCompare's DECISIONS.md, "Every site's reviews, approved in one queue".
+
+## Why one site for three Bandai card games — 2026-11-03
+
+The owner asked for the next site that fits the affiliate setup the family
+already has (TCGplayer, eBay, Amazon). TCGplayer pays the most per click, so
+another card game on TCGplayer, built on this engine, is the cheapest growth.
+Union Arena, Dragon Ball Super Fusion World and the Digimon Card Game are three
+games from one publisher with overlapping players; each alone is a thinner site
+than Gundam, together they are bigger than most of the family:
+
+| Game | TCGplayer category | Products | Cards US$10+ | Sum of market prices |
+| --- | --- | --- | --- | --- |
+| Union Arena | 81 | 7,461 | 1,088 | US$192,811 |
+| Fusion World | 80 | 4,568 | 942 | US$152,543 |
+| Digimon | 63 | 9,805 | 962 | US$88,815 |
+| (Gundam, for scale) | 86 | 2,330 | 562 | US$105,222 |
+
+A free store check (2026-11-03, Shopify search over the 1,281 stores the
+sister sites know) found 591 that list at least one of the three: US 219,
+Canada 131, Europe 99, Australia 70, UK 57, New Zealand 8, Singapore 6. Union
+Arena is mostly sold in North America and Singapore; Fusion World and Digimon
+everywhere. `research/store-search-2026-11-03.txt` has the list.
+
+Dragon Ball Super Masters (category 27, the older game) is left out: its last
+sets are winding down and its numbers overlap Fusion World's starter decks.
+
+## The name: BandaiCompare, with a not-affiliated line — 2026-11-03
+
+The owner chose BandaiCompare (bandaicompare.com) after being told a domain on
+a company's own trademark is the easiest kind for that company to claim
+(AnimeCardCompare was the recommendation). So, as WargameCompare does for Games
+Workshop: `SITE.disclaimer` says plainly in the footer, /about and /terms that
+the site is not affiliated with, endorsed by or sponsored by Bandai or Bandai
+Namco; no Bandai logo, card art or character is used anywhere (the logo is
+three fanned blank cards, the look is pure CSS), and product photos are
+TCGplayer's and the stores' own, hotlinked.
+
+## Several games on one engine site: `SITE.lines` — 2026-11-03
+
+The engine was one TCGplayer category per site. `SITE.lines` (off by default)
+lists several: the import reads each category into one catalogue and tags each
+set with its game (`SetInfo.line`); a set name two games share gets the
+game's slug in front. Each game gets a hub at `/games/<slug>` (its sets, booster
+boxes and most valuable cards), a homepage tile and a menu link; set pages say
+their game and walk to the next set of the same game; eBay searches and
+TCGplayer links use the game's own words (`lib/lines.ts`), and ad strips on a
+set or game page stay inside that game. Single-game sites are unchanged: every
+helper falls back to `SITE.ebay.query` and `SITE.tcgplayerSlug`, and set slugs
+are exactly as before.
+
+## Card numbers: NumberStyle "series" — 2026-11-03
+
+Fusion World and Digimon number cards like the other "code" games (FB11-084,
+BT25-104; Digimon's TCGplayer number carries the rarity after a space). Union
+Arena's are "UE24BT/REZ-1-053": product, series, volume and number, and stores
+write "REZ-1-053". "series" keys Union Arena cards on series-volume-number and
+the rest as "code" does, so one index holds all three. The volume stays in the
+key (a series' second volume is a different set). One Union Arena number exists
+as SR, SR*, SR** and SR*** at very different prices, so `rarityMustAgree` is on
+with the star spellings as aliases: an "SR***" listing never prices the plain
+SR. Tests: `tests/series-numbers.test.ts`.
+
+## Its own eBay app, and Amazon until then — 2026-11-03
+
+Owner rule (2026-11-01): a new site never shares another site's eBay keys. The
+eBay pass is a no-op (a green run) until `EBAY_CLIENT_ID` and
+`EBAY_CLIENT_SECRET` exist in this repo's secrets; `dailyBudget` 2,500 (half a
+5,000-call app) and the import at 03:17 UTC, apart from the other card sites.
+Until the keys arrive the site earns through TCGplayer and Amazon.

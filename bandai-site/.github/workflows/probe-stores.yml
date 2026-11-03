@@ -1,6 +1,6 @@
 name: Probe stores
 
-# One-off research: which candidate stores sell Cyberpunk TCG through
+# One-off research: which candidate stores sell Union Arena, Fusion World or Digimon through
 # Shopify (scripts/probe-stores.ts). Read-only: it prints a stores.ts listing
 # in the log and uploads research/stores-probe.json; it commits nothing.
 
