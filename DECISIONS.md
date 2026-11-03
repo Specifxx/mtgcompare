@@ -865,3 +865,16 @@ as a link network and looks odd to a reader. The owner said do it.
   one owner, not paid, so no `sponsored`/`nofollow`.
 - Kept: the "Other card games" / hobby / tech price blocks on deals, Black Friday and pre-order pages
   (`clusterSisters`). They sit on a few pages, show real prices a reader of that page may want, and are not sitewide.
+
+## 2026-11-03 — SEO audit: alt text on every image, old 301s pinned, landing stays short
+
+The owner's 2026-11-03 SEO audit of all twelve sites asked for alt text, structured data, short titles and fuller
+homepages. On MTG Compare:
+
+- Every product, set-logo, eBay, cover and family image now carries the product, set or listing name as its alt
+  (search results, eBay strip, region home, this week, cheapest packs, sets, store listing, blog covers, embeds).
+  `tests/seo-audit.test.ts` fails on an `<img>` with an empty or missing alt.
+- The old singles URLs (`/card/*`, `/sets/*`) still 301 to the sealed pages; the same test pins those redirects.
+- Product pages already had Product/AggregateOffer and BreadcrumbList; titles were already under 60 characters.
+- The landing page did NOT get the audit's FAQ block: the owner's 2026-10-25 short-landing rule (two sections, no
+  FAQPage, `tests/shell.test.ts`) stands. The FAQ and its FAQPage markup stay on `/about` and the guides.

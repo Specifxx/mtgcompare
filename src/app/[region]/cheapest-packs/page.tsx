@@ -170,7 +170,7 @@ function Answer({ r, row }: { r: RegionInfo; row: PerPackRow }) {
       className="group card mt-6 grid grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-2 p-4 transition-shadow hover:shadow-lift sm:max-w-3xl sm:grid-cols-[5rem_minmax(0,1fr)_auto] sm:gap-x-5 sm:p-5"
     >
       <span className="plate flex h-14 w-14 items-center justify-center sm:row-span-2 sm:h-20 sm:w-20">
-        {img ? <img src={img} alt="" width={80} height={80} decoding="async" fetchPriority="high" className="h-full w-full object-contain p-1.5" /> : <Icon name="tag" className="text-faint" />}
+        {img ? <img src={img} alt={row.p.name} width={80} height={80} decoding="async" fetchPriority="high" className="h-full w-full object-contain p-1.5" /> : <Icon name="tag" className="text-faint" />}
       </span>
       <span className="min-w-0 sm:self-end">
         <span className="eyebrow block text-open">

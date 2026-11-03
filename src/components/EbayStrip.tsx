@@ -418,10 +418,10 @@ function Tile({ item, region, placement, variant, portrait, onBroken }: { item: 
     >
       <span className={`relative block shrink-0 overflow-hidden rounded-md bg-raised ${THUMB[variant][portrait ? "portrait" : "square"]}`}>
         {/* eBay's own picture, as eBay serves it: a plain <img> (never proxied or resized by us). A failed one hides its tile.
-            alt="" because the title follows in the same link (a screen reader would otherwise read it twice). */}
+            Its alt is the listing title (SEO audit, 2026-11-03: image search reads alt, not the neighbouring text). */}
         <img
           src={item.imageUrl}
-          alt=""
+          alt={item.title}
           width={500}
           height={500}
           loading="lazy"
@@ -671,9 +671,9 @@ export function EbayFeedTile({ region, nth, placement, className = "" }: { regio
           </span>
         </div>
         <span className="plate relative mt-2 block min-h-0 flex-1">
-          {/* eBay's own picture, as eBay serves it (never proxied or resized by us); a failed one removes the tile. alt="" because the
-              title follows in the link. */}
-          <img src={item.imageUrl} alt="" width={500} height={500} loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={() => setBroken(true)} className="absolute inset-0 h-full w-full object-contain p-2" />
+          {/* eBay's own picture, as eBay serves it (never proxied or resized by us); a failed one removes the tile. its alt is
+              the listing title (SEO audit, 2026-11-03). */}
+          <img src={item.imageUrl} alt={item.title} width={500} height={500} loading="lazy" decoding="async" referrerPolicy="no-referrer" onError={() => setBroken(true)} className="absolute inset-0 h-full w-full object-contain p-2" />
           {cond && <span className="absolute bottom-1.5 left-1.5 max-w-[calc(100%-0.75rem)] truncate rounded bg-surface/90 px-1.5 py-0.5 text-[10px] font-semibold leading-3 text-ink shadow-card">{cond}</span>}
         </span>
         <OutboundLink
@@ -947,7 +947,7 @@ export function MiniSealedAds({
               <li key={i.id}>
                 <OutboundLink href={i.href} rel={REL_SPONSORED} retailer={ebayRetailerForHref(i.href, region)} placement={ebayPlacement} className={MINI_TILE} title={`${i.title} · ${formatPrice(i.price)}`}>
                   <span className="relative block h-[56px] w-full overflow-hidden bg-raised">
-                    <img src={i.imageUrl} alt="" width={56} height={56} loading="lazy" decoding="async" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-contain" />
+                    <img src={i.imageUrl} alt={i.title} width={56} height={56} loading="lazy" decoding="async" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-contain" />
                   </span>
                   <span className="tabular block truncate bg-[#0064d2] px-0.5 text-center text-[10px] font-black leading-4 text-white">{formatPrice(i.price)}</span>
                   <span className="sr-only">{i.title}, on eBay</span>
@@ -981,7 +981,7 @@ export function MiniSealedAds({
             <li key={t.slug}>
               <OutboundLink href={t.href} rel={REL_SPONSORED} retailer="TCGplayer" placement={tcgPlacement} className={MINI_TILE} title={`${t.name} · ${usd(t.priceCents)}`}>
                 <span className="plate relative block h-[56px] w-full overflow-hidden">
-                  <img src={t.imageUrl} alt="" width={56} height={56} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-contain p-0.5 mix-blend-multiply" />
+                  <img src={t.imageUrl} alt={t.name} width={56} height={56} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-contain p-0.5 mix-blend-multiply" />
                 </span>
                 <span className="tabular block truncate bg-[#1f6fe5] px-0.5 text-center text-[10px] font-black leading-4 text-white">{usd(t.priceCents)}</span>
                 <span className="sr-only">{t.name}, on TCGplayer</span>

@@ -30,7 +30,7 @@ export interface Badge {
 
 /** The widget's whole HTML. Inline CSS, no script, noindex. */
 export function badgeHtml(b: Badge): string {
-  const img = b.image ? `<img class="i" src="${esc(b.image)}" alt="" width="48" height="67" loading="lazy" decoding="async">` : `<div class="i"></div>`;
+  const img = b.image ? `<img class="i" src="${esc(b.image)}" alt="${esc(b.name)}" width="48" height="67" loading="lazy" decoding="async">` : `<div class="i"></div>`;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>${esc(b.site)} price</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}html,body{background:transparent;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}a{text-decoration:none;color:inherit}
 .c{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #d6dae1;border-radius:12px;background:#fff;color:#0f172a}.c:hover{border-color:#2563eb}
