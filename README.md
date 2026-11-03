@@ -391,6 +391,13 @@ Guides are typed TSX modules, not MDX (`src/content/guides/`):
 
 ## Pre-order pages
 
+New sets arrive by themselves (2026-11-03): each sealed import first reads
+Scryfall's set list (`scripts/discover-sets.ts`, `src/lib/set-discovery.ts`)
+into `data/sets/discovered.json`, which `src/lib/sets.ts` merges into `SETS`,
+so a newly announced set's pre-order page, set page, calendar entry and
+Coming soon slot appear with the next release. A hand-written row in
+`sets.ts` overrides it (DECISIONS.md, 2026-11-03).
+
 An upcoming set can have a pre-order page at `/<region>/preorders/<set slug>`
 (`src/app/[region]/preorders/[set]/page.tsx`, ported from Rift Compare's
 `/radiance-preorders`): a summary strip (stores checked in the market, stores

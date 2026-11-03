@@ -894,3 +894,28 @@ homepages. On MTG Compare:
 - Product pages already had Product/AggregateOffer and BreadcrumbList; titles were already under 60 characters.
 - The landing page did NOT get the audit's FAQ block: the owner's 2026-10-25 short-landing rule (two sections, no
   FAQPage, `tests/shell.test.ts`) stands. The FAQ and its FAQPage markup stay on `/about` and the guides.
+
+## 2026-11-03 — New sets find themselves (Scryfall), so pre-order pages appear without anyone editing sets.ts
+
+The owner (2026-11-03): "We need a fresh pipeline of new products for all our sites, that's where our demand is." The
+pre-order page, the Coming soon block, the release calendar and the set pages already followed `lib/sets.ts`
+(2026-11-02), but that list was typed by hand, so a newly announced set was missing until a session added it, and
+until then the importer refused every store pre-order that named it (no set, no product).
+
+**What.** The sealed import first runs `scripts/discover-sets.ts`: one read of Scryfall's set list (public, no key),
+kept in `data/sets/discovered.json` and committed with the data snapshot (`publish-public-data.sh`). `lib/sets.ts`
+merges it into `SETS`, so that same import files the new set's pre-orders, and the next release builds its pages.
+
+- Taken: paper, top-level (no `parent_set_code`) expansion, core, masters and commander sets, plus Horizons and
+  Jumpstart releases, due within 180 days (or out within the last 60). Left out, and listed in the job summary for a
+  hand-written row: Mystery Booster, Un-sets, a name under four letters, a name already used, and a name that is part
+  of an existing set's name ("Marvel" beside "Marvel Super Heroes"), because a bare store title would then flip sets.
+- Name and date are Scryfall's; the slug is fixed when first seen (a live URL). Series from the set type; an
+  expansion is Universes Beyond once most previewed cards carry the triangle security stamp, or before previews when
+  its name opens with a known Universes Beyond franchise. Booster lines: Play and Collector (Jumpstart for a
+  Jumpstart release, none for Commander-only).
+- A hand-written row with the same code always wins: write one to add aliases, a pattern or a guide's facts.
+- Never fails the import: an unreadable Scryfall keeps yesterday's file. `tests/set-discovery.test.ts`.
+
+First live read (2026-11-03): Nauctis: The Sunken Realm (2027-02-05, Standard) and Marvel: Darkhold Destiny (2027-04-09,
+Universes Beyond); Mystery Booster Commander Edition left out.

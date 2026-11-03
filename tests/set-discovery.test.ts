@@ -82,6 +82,7 @@ test("series and booster lines come from the set type; Universes Beyond only fro
   assert.deepEqual(boostersOf({ set_type: "draft_innovation", name: "Jumpstart 2027" }), ["jumpstart"]);
   assert.equal(boostersOf({ set_type: "commander", name: "Commander Legends 3" }), undefined);
   assert.equal(isUniversesBeyond(0, 0), null);
+  assert.equal(isUniversesBeyond(4, 0), null);
   assert.equal(isUniversesBeyond(100, 90), true);
   assert.equal(isUniversesBeyond(100, 3), false);
 });

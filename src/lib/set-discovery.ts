@@ -222,8 +222,11 @@ export function ubByFranchise(name: string, known: readonly { name: string; seri
   return known.some((k) => k.series === "Universes Beyond" && words(k.name).map((w) => w.replace(/s$/, ""))[0] === first) ? true : null;
 }
 
-/** A set's cards are Universes Beyond when at least half carry the triangle security stamp; null when none are previewed yet. */
+/** Fewer previewed cards than this say nothing yet (an announcement promo, a card with no stamp recorded). */
+export const MIN_PREVIEWED = 20;
+
+/** A set's cards are Universes Beyond when at least half carry the triangle security stamp; null until MIN_PREVIEWED are out. */
 export function isUniversesBeyond(total: number, triangle: number): boolean | null {
-  if (total <= 0) return null;
+  if (total < MIN_PREVIEWED) return null;
   return triangle * 2 >= total;
 }
