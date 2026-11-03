@@ -1,0 +1,73 @@
+name: Production deploy
+# Fallback and manual release. The daily data commit (refresh-prices.yml)
+# normally deploys; this lands an empty [deploy] commit only if nothing has
+# released in 20 hours, or when "Run workflow" is pressed (urgent fixes).
+
+
+on:
+  schedule:
+    - cron: "0 22 * * *"
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Optional note, recorded in the release commit message"
+        type: string
+        required: false
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 200
+
+      - name: Decide whether anything has landed since the last release
+        id: check
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          head_subject="$(git log -1 --format=%s)"
+          recent_release="$(git log --since='20 hours ago' --format=%s | grep -ciF -- '[deploy]' || true)"
+          if [ "$EVENT" = "schedule" ] && printf '%s' "$head_subject" | grep -qiF -- '[deploy]'; then
+            echo "Newest commit on main is already a [deploy] release — nothing new since the last build. Skipping."
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT" = "schedule" ] && [ "${recent_release:-0}" -gt 0 ]; then
+            echo "A release landed in the last 20 hours (the snapshot-driven one). The fallback has nothing to do. Skipping."
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Land the release commit (Vercel builds this one)
+        if: steps.check.outputs.deploy == 'true'
+        env:
+          REASON: ${{ inputs.reason }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ "$EVENT" = "schedule" ]; then
+            subject="release: scheduled production deploy [deploy]"
+          else
+            subject="release: manual production deploy [deploy]"
+          fi
+          body="Builds the current main on Vercel. Pushes without [deploy] in their message are skipped by scripts/vercel-ignore-build.sh."
+          if [ -n "${REASON:-}" ]; then
+            git commit --allow-empty -m "$subject" -m "$body" -m "Reason: $REASON"
+          else
+            git commit --allow-empty -m "$subject" -m "$body"
+          fi
+          git push origin HEAD:main
+          echo "Release commit pushed: $(git rev-parse --short HEAD) — Vercel will build it."

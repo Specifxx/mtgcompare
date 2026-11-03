@@ -1,0 +1,39 @@
+name: Probe stores
+
+# One-off research: which candidate stores sell Cyberpunk TCG through
+# Shopify (scripts/probe-stores.ts). Read-only: it prints a stores.ts listing
+# in the log and uploads research/stores-probe.json; it commits nothing.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tcgcsv:
+        description: "Also measure the TCGplayer catalogue (cards, prices, rarities)"
+        type: boolean
+        default: true
+      hosts:
+        description: "Candidate list to probe"
+        type: string
+        default: research/candidate-hosts.txt
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx tsx scripts/probe-stores.ts ${{ inputs.tcgcsv && '--tcgcsv' || '' }} --hosts "${{ inputs.hosts }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stores-probe
+          path: research/stores-probe.json
+          if-no-files-found: ignore

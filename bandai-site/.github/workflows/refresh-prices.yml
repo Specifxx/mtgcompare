@@ -1,0 +1,72 @@
+name: Refresh prices
+
+# The daily import: TCGCSV + stores + budgeted eBay → data/ → commit to main.
+# The data commit's SUBJECT carries [deploy], so it is the day's one
+# production build (scripts/vercel-ignore-build.sh). Scheduled after TCGCSV's
+# ~20:00 UTC refresh would be ideal for TCGplayer, but the eBay run hour is set
+# per site (Cyberpunk Compare has its own eBay app since 2026-11-01; the
+# hour is SITE.ebay.runHourUtc) — keep this cron's hour equal to it.
+
+on:
+  schedule:
+    - cron: "17 0 * * *"
+  workflow_dispatch:
+    inputs:
+      ebay:
+        description: "Spend eBay calls this run"
+        type: boolean
+        default: true
+
+concurrency:
+  group: refresh-prices
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Import
+        env:
+          EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
+          EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
+          EBAY_REFRESH: ${{ github.event_name == 'workflow_dispatch' && !inputs.ebay && 'false' || 'true' }}
+        run: npx tsx scripts/import-all.ts
+      # The Compare Empire network (scripts/family-sync.ts): this site's best deals and pre-orders for
+      # its sisters, and their feeds for this site's "Also in this cluster" blocks. Never fatal.
+      - name: Family feed
+        continue-on-error: true
+        run: npx tsx scripts/family-sync.ts
+      - name: Commit data (this commit is the daily release)
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then
+            echo "No data changes."
+            exit 0
+          fi
+          git commit -m "data: daily prices $(date -u +%F) [deploy]" -m "Written by refresh-prices.yml. This is the one scheduled production build a day."
+          for i in 1 2 3 4; do
+            git push origin HEAD:main && exit 0
+            sleep $((2 ** i)); git pull --rebase origin main
+          done
+          exit 1
+      - name: IndexNow
+        if: success()
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL }}
+        run: npx tsx scripts/indexnow-submit.ts || true

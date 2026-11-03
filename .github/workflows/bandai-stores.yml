@@ -1,0 +1,21 @@
+name: Bandai site store probe (temporary research)
+on:
+  push:
+    branches: [claude/project-thread-r5d8h6]
+    paths: [".github/workflows/bandai-stores.yml", "bandai-site/research/candidate-hosts.txt", "bandai-site/scripts/probe-stores.ts"]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    defaults: { run: { working-directory: bandai-site } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm ci
+      - run: npx tsx scripts/probe-stores.ts --tcgcsv --hosts research/candidate-hosts.txt 2>&1 | tee research/stores-probe.log
+      - run: |
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/stores-probe.json research/stores-probe.log && git commit -m "research: Bandai store probe result (not for main)" && git pull --rebase && git push

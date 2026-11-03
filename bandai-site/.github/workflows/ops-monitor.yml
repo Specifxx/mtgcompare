@@ -1,0 +1,45 @@
+name: Ops monitor
+# Every three hours, from GitHub (so it works when the site or database is what
+# broke): live site, data freshness, store imports and the eBay budget.
+# Fails (and GitHub emails the owner) only when a check is red; every result,
+# amber included, goes to the `ops-status` branch for Empire HQ and the Monday report.
+on:
+  schedule:
+    - cron: "40 */3 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write # the ops-status branch only
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - env:
+          NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL }}
+          EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
+          EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
+        run: npx tsx scripts/ops-monitor.ts
+      # Empire HQ (riftcompare.com/admin/hq) and the Monday report read this file
+      # from the public `ops-status` branch: one orphan commit, force-pushed, so the
+      # branch stays one small file. Status and our own sentences only.
+      - name: Publish status for Empire HQ
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [ -f ops-status.json ] || { echo "No status file written."; exit 0; }
+          d=$(mktemp -d) && cp ops-status.json "$d/status.json" && cd "$d"
+          # Vercel reads vercel.json from the deployed commit, not from main: without
+          # this file every push here starts a preview build that fails (2026-11-02).
+          printf '%s\n' '{ "git": { "deploymentEnabled": false }, "ignoreCommand": "exit 0" }' > vercel.json
+          git init -q -b ops-status && git add status.json vercel.json
+          git -c user.name="github-actions[bot]" -c user.email="41898283+github-actions[bot]@users.noreply.github.com" commit -qm "ops status"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" ops-status

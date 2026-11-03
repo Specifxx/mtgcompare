@@ -1,0 +1,14 @@
+// BandaiCompare's mark: three cards fanned on an ink tile, one per game
+// (Union Arena pink, Fusion World orange, Digimon blue), the front one with
+// a manga speed-burst. Original artwork; it uses no Bandai, Bandai Namco,
+// Union Arena, Dragon Ball or Digimon logo, card design or character.
+export const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<rect width="64" height="64" rx="14" fill="#0b0d17"/>
+<rect x="14" y="13" width="20" height="29" rx="3" transform="rotate(-16 24 28)" fill="#ff3d6e" stroke="#05060d" stroke-width="2"/>
+<rect x="30" y="13" width="20" height="29" rx="3" transform="rotate(16 40 28)" fill="#2f9bff" stroke="#05060d" stroke-width="2"/>
+<rect x="21" y="16" width="22" height="32" rx="3" fill="#ff6a1a" stroke="#05060d" stroke-width="2.2"/>
+<path d="M32 22l2.2 5.2 5.6-.9-3.6 4.4 3.6 4.4-5.6-.9L32 39.4l-2.2-5.2-5.6.9 3.6-4.4-3.6-4.4 5.6.9Z" fill="#fff3e0" stroke="#05060d" stroke-width="1.4" stroke-linejoin="round"/>
+<rect x="10" y="52" width="14" height="3.4" rx="1.7" fill="#ff3d6e"/>
+<rect x="25" y="52" width="14" height="3.4" rx="1.7" fill="#ff6a1a"/>
+<rect x="40" y="52" width="14" height="3.4" rx="1.7" fill="#2f9bff"/>
+</svg>`;
