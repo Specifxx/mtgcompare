@@ -1,0 +1,5 @@
+[tcgcsv] category 81
+TypeError: Cannot read properties of undefined (reading 'map')
+    at loadTcgcsv (/home/runner/work/mtgcompare/mtgcompare/bandai-site/src/lib/import/tcgcsv.ts:126:53)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async main (/home/runner/work/mtgcompare/mtgcompare/bandai-site/scripts/import-all.ts:72:35)
