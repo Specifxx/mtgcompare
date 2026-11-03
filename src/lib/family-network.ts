@@ -90,10 +90,15 @@ export function clusterSisters(self: FamilySiteId, cluster: ClusterId): FamilySi
   return FAMILY_SITES.filter((s) => s.id !== self && s.clusters.includes(cluster));
 }
 
-/** Every site sharing any cluster with `self` (its footer list), in registry order. */
+/**
+ * A footer's sister list (owner, 2026-11-03: "is linking all our sites together even good?"): card sites
+ * list the other card sites, by brand name only, under "Other card games"; every other site lists none.
+ * Sitewide links between same-owner sites carry little search value and a mesh of unrelated sites
+ * (cameras on a card site) reads as a link network. Hobby and tech sisters still meet through the
+ * price blocks on deals and pre-order pages (`clusterSisters`), and compareempire.com/network lists all.
+ */
 export function footerSisters(self: FamilySiteId): FamilySite[] {
-  const mine = familySite(self).clusters;
-  return FAMILY_SITES.filter((s) => s.id !== self && s.clusters.some((c) => mine.includes(c)));
+  return familySite(self).clusters.includes("cards") ? clusterSisters(self, "cards") : [];
 }
 
 // ── The feed ────────────────────────────────────────────────────────────────

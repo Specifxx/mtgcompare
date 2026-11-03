@@ -847,3 +847,21 @@ reaches the eBay job.
 
 The same day's tests also caught the family block's heading "Other card games on sale" (#53) on the Black Friday
 page, where the copy rules ban "on sale"; it is now "Deals on other card games".
+
+## 2026-11-03 — Footers link only card sites to card sites; every other site lists no sisters
+
+The owner asked whether linking every Compare Empire site together helps or is a risk for search and for how the
+sites look. Verdict: a sitewide footer link between sites one person owns carries little ranking value (Google
+discounts it), and a mesh of unrelated sites (camera, appliance and figure sites in a card site's footer) can read
+as a link network and looks odd to a reader. The owner said do it.
+
+- `footerSisters()` in `lib/family-network.ts` (same file in every repo) now returns the other card sites for a card
+  site and nothing for any other site. Gundam's Gunpla side no longer pulls WargameCompare and FigureCompare into its
+  footer; the engine footer's heading is "Other card games".
+- WargameCompare, FigureCompare, CamCompare and Compare Empire show no sister list in their footers, only one
+  "A Compare Empire site" link to compareempire.com/network (Compare Empire: its own /network), the one page that
+  lists every site. KaeYoung still links none.
+- Anchors stay the brand name only, and links stay plain followed links: they are honest links between sites with
+  one owner, not paid, so no `sponsored`/`nofollow`.
+- Kept: the "Other card games" / hobby / tech price blocks on deals, Black Friday and pre-order pages
+  (`clusterSisters`). They sit on a few pages, show real prices a reader of that page may want, and are not sitewide.
