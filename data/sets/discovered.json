@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "code": "mdd",
+    "name": "Marvel: Darkhold Destiny",
+    "slug": "marvel-darkhold-destiny",
+    "releaseDate": "2027-04-09",
+    "series": "Universes Beyond",
+    "boosters": ["play", "collector"],
+    "scryfallType": "expansion",
+    "firstSeen": "2026-11-03"
+  },
+  {
+    "code": "nau",
+    "name": "Nauctis: The Sunken Realm",
+    "slug": "nauctis-the-sunken-realm",
+    "releaseDate": "2027-02-05",
+    "series": "Standard",
+    "boosters": ["play", "collector"],
+    "scryfallType": "expansion",
+    "firstSeen": "2026-11-03"
+  }
+]

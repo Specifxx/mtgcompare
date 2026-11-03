@@ -180,8 +180,12 @@ test("the sidebar (xl): product types, sets, deals and the rest, under each layo
   assert.deepEqual(groups.map((g) => g.title), ["Shop by product", "Sets", "Deals & stock", "More"]);
   for (const l of groups.flatMap((g) => g.links)) assert.match(l.href, /^\/au\/|^\/blog$|^\/creators$|^\/forum$/, l.href);
   assert.deepEqual(groups[1].links[0], { href: "/au/preorders/star-trek", label: "Star Trek pre-orders" }, "an open pre-order hub leads the sets");
-  assert.equal(groups[1].links[1].label, "Reality Fracture", "then the newest released set");
-  assert.equal(navGroups("au", "2026-11-13")[1].links[0].label, "Star Trek", "the hub is gone on release day; the set leads as the newest released");
+  // Every open pre-order hub leads (sets found by the import included: lib/set-discovery.ts), then the newest released set.
+  const firstSet = (g: typeof groups) => g[1].links.find((l) => !l.href.includes("/preorders/"))!;
+  assert.equal(firstSet(groups).label, "Reality Fracture", "then the newest released set");
+  const releaseDay = navGroups("au", "2026-11-13")[1].links;
+  assert.ok(!releaseDay.some((l) => l.href === "/au/preorders/star-trek"), "the hub is gone on release day");
+  assert.equal(firstSet(navGroups("au", "2026-11-13")).label, "Star Trek", "the set leads as the newest released");
   assert.equal(groups[1].links.at(-1)!.href, "/au/sets");
   assert.ok(navGroups("us", "2026-11-25")[2].links.some((l) => l.label === "Black Friday"), "Black Friday in season");
   assert.ok(!groups[2].links.some((l) => l.label === "Black Friday"));
