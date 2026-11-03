@@ -1,0 +1,22 @@
+name: Bandai site trial import (temporary research)
+on:
+  push:
+    branches: [claude/project-thread-r5d8h6]
+    paths: [".github/workflows/bandai-import.yml", "bandai-site/src/content/stores.ts"]
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    defaults: { run: { working-directory: bandai-site } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm ci
+      - env: { EBAY_REFRESH: "false" }
+        run: npx tsx scripts/import-all.ts 2>&1 | tee research/import.log
+      - run: |
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A data research/import.log && git commit -m "research: Bandai trial import (not for main)" && git pull --rebase && git push
