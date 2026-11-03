@@ -115,7 +115,7 @@ test("Footer with no region: Regions and MTG Compare columns only, and no region
 });
 
 test("the footer is drawn by each layout after its <main> (and by the 404 and error pages), not by the root layout", () => {
-  assert.match(src("app/[region]/layout.tsx"), /<\/main>\s*<\/div>\s*<Footer region=\{r\.region\} \/>/);
+  assert.match(src("app/[region]/layout.tsx"), /<\/main>\s*<\/div>\s*<Footer region=\{r\.region\}( listed=\{listed\})? \/>/);
   assert.match(src("app/(site)/layout.tsx"), /<\/main>\s*<\/div>\s*<Footer region=\{null\} \/>/);
   assert.match(src("app/not-found.tsx"), /<\/main>\s*<Footer region=\{null\} \/>/);
   assert.match(src("app/error.tsx"), /<\/main>\s*<Footer region=\{region\?\.region \?\? null\} \/>/);
@@ -192,7 +192,7 @@ test("the sidebar (xl): product types, sets, deals and the rest, under each layo
   const html = render(React.createElement(SideNav, { region: "au", groups }));
   assert.match(html, /^<aside class="hidden w-60 shrink-0 xl:block" data-sidenav="">/);
   assert.match(html, /href="\/au\/type\/commander-decks"/);
-  assert.match(src("app/[region]/layout.tsx"), /<SideNav region=\{r\.region\} groups=\{navGroups\(r\.region\)\} \/>/);
+  assert.match(src("app/[region]/layout.tsx"), /<SideNav region=\{r\.region\} groups=\{navGroups\(r\.region(, undefined, listed)?\)\} \/>/);
   assert.match(src("app/(site)/layout.tsx"), /<SoftSideNav built=\{X_DEFAULT_REGION\} groups=\{navGroups\(X_DEFAULT_REGION\)\} \/>/);
   // the same links in another region; a link outside a region stays put
   assert.equal(retargetHref("/us/type/bundles", "nz"), "/nz/type/bundles");

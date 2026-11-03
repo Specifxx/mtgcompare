@@ -7,7 +7,8 @@ import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared
 import { Header } from "../src/components/Header";
 import { shopMenuColumns } from "../src/components/ShopMenu";
 import { TYPE_BY_SLUG } from "../src/lib/sealed-title";
-import { SET_BY_SLUG } from "../src/lib/sets";
+import { SET_BY_SLUG, SETS } from "../src/lib/sets";
+import { menuSets } from "../src/lib/release";
 
 (globalThis as unknown as { React: typeof React }).React = React;
 const router = { back() {}, forward() {}, refresh() {}, push() {}, replace() {}, prefetch() {} };
@@ -41,4 +42,15 @@ test("header: the dropdown sits with All sealed inside the desktop nav, as plain
   assert.match(nav, /data-menu="shop"/);
   assert.match(nav, /href="\/uk\/type\/play-booster-boxes"[^>]*>Play booster boxes<\/a>/);
   assert.match(nav, /group-focus-within:visible/, "opens for keyboard focus too");
+});
+
+test("menus skip a set no store lists yet: its set page is a 404, so the link was dead site-wide (2026-11-03)", () => {
+  const all = shopMenuColumns("us", "2026-11-03");
+  const listed = new Set(SETS.slice(1, 12).map((s) => s.code)); // everything but the newest set
+  const some = shopMenuColumns("us", "2026-11-03", listed);
+  const hrefs = (cols: ReturnType<typeof shopMenuColumns>) => cols.flatMap((c) => c.links.map((l) => l.href));
+  assert.ok(hrefs(all).includes(`/us/sets/${SETS[0].slug}`), "without a listing set, every set is eligible");
+  assert.ok(!hrefs(some).includes(`/us/sets/${SETS[0].slug}`), "the unlisted set is not linked");
+  assert.ok(hrefs(some).includes(`/us/sets/${SETS[1].slug}`), "the next listed set takes its place");
+  assert.deepEqual(menuSets(3, "2026-11-03", new Set()), [], "nothing listed, nothing linked");
 });

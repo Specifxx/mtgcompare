@@ -1,6 +1,6 @@
 import { PreFooterStrip } from "@/components/EbayStrip";
 import { PreFooterTcgplayer } from "@/components/PreFooterTcgplayer";
-import { tcgplayerTiles, type TcgplayerTile } from "@/lib/data";
+import { listedSetCodes, tcgplayerTiles, type TcgplayerTile } from "@/lib/data";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { SideNav } from "@/components/SideNav";
@@ -17,13 +17,15 @@ import { regionOrNotFound } from "@/lib/regions";
 export default async function RegionLayout({ children, params }: { children: React.ReactNode; params: { region: string } }) {
   const r = regionOrNotFound(params.region);
   // The pre-footer TCGplayer strip's products: read at request time (pages are force-dynamic), never at build; a failure shows none.
-  const tcg: TcgplayerTile[] = await tcgplayerTiles().catch(() => []);
+  // The sets with a product here, so the menus and footer never link a set page that would 404 (lib/release.ts menuSets); a
+  // failed read links every set, as before.
+  const [tcg, listed] = await Promise.all([tcgplayerTiles().catch((): TcgplayerTile[] => []), listedSetCodes(r.market).catch(() => null)]);
   return (
     <>
-      <Header region={r.region} />
+      <Header region={r.region} listed={listed} />
       {/* From xl, the sidebar (components/SideNav.tsx) fills the wide screen's left side; the page keeps its own width beside it. */}
       <div className="mx-auto flex w-full max-w-shell flex-1">
-        <SideNav region={r.region} groups={navGroups(r.region)} />
+        <SideNav region={r.region} groups={navGroups(r.region, undefined, listed)} />
         <main id="main" className="min-w-0 flex-1">
         {children}
         {/* Every region page ends with a slim eBay listing strip (four tiles), directly above the site
@@ -36,7 +38,7 @@ export default async function RegionLayout({ children, params }: { children: Rea
         </div>
         </main>
       </div>
-      <Footer region={r.region} />
+      <Footer region={r.region} listed={listed} />
     </>
   );
 }

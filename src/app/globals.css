@@ -75,6 +75,10 @@ html {
 body {
   @apply bg-bg text-ink antialiased;
   font-feature-settings: "ss01", "cv11";
+  /* A safety net for phones: an element wider than the screen (a rail whose grid item lacks min-w-0, a wide table) is clipped
+     instead of laying the whole page out wider and zoomed out, with a sideways scroll into dead space. `clip`, not `hidden`,
+     so position: sticky keeps working. */
+  overflow-x: clip;
 }
 
 .tabular {

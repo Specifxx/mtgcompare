@@ -40,7 +40,7 @@ export function headerNav(today = new Date().toISOString().slice(0, 10)): typeof
  * becomes that set's pre-order hub ("Star Trek pre-orders", lib/preorder-guides.ts): Rift Compare's and this site's pre-order pages
  * are their most visited, and the release calendar stays one click away in the sidebar and phone menu. It retires itself on release day.
  */
-export function headerNavItems(region: Region, today = new Date().toISOString().slice(0, 10)): HeaderNavItem[] {
+export function headerNavItems(region: Region, today = new Date().toISOString().slice(0, 10), listed?: ReadonlySet<string> | null): HeaderNavItem[] {
   const pre = openPreorderGuides(today)[0];
   return headerNav(today).map((n) => ({
     href: n.key === "releases" && pre ? `/${region}/preorders/${pre.set.slug}` : sectionHref(region, n.key),
@@ -48,7 +48,7 @@ export function headerNavItems(region: Region, today = new Date().toISOString().
     also: n.key === "releases" && pre ? [`/${region}${SECTION_PATHS.releases}`] : n.also?.map((p) => `/${region}${p}`),
     xl: n.xl,
     // The sealed browse item opens the category dropdown (components/ShopMenu.tsx): by product, by set, by value.
-    menu: n.key === "sealed" ? shopMenuColumns(region, today) : undefined,
+    menu: n.key === "sealed" ? shopMenuColumns(region, today, listed) : undefined,
   }));
 }
 
@@ -65,11 +65,11 @@ export function headerNavItems(region: Region, today = new Date().toISOString().
  *
  * The search box is components/SearchBox.tsx with its own props; `.hdr-search` (globals.css) only sizes it to the row.
  */
-export function Header({ region }: { region: Region | null }) {
+export function Header({ region, listed }: { region: Region | null; listed?: ReadonlySet<string> | null }) {
   const home = region ? `/${region}` : "/";
   const built = region ?? X_DEFAULT_REGION;
-  const items = headerNavItems(built);
-  const groups = navGroups(built);
+  const items = headerNavItems(built, undefined, listed);
+  const groups = navGroups(built, undefined, listed);
   return (
     <header className="sticky top-0 z-40 h-[var(--hdr)] border-b border-line bg-surface/90 backdrop-blur-md">
       <div className="page flex h-full items-center gap-2 sm:gap-3 lg:gap-4 xl:max-w-shell">

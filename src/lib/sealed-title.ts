@@ -619,7 +619,13 @@ const SETLESS_OK = new Set<TypeKey>(["secret-lair", "deck", "collection", "start
  * ("MTG", "Magic: The Gathering") or use a product word only Magic has ("Play Booster", "Commander Deck", "Secret Lair"), since a
  * set name alone ("Final Fantasy", "Star Trek", "The Hobbit") could be another game's or another product's.
  */
+// A store's category label in front of the name, never part of it: "CCG: Aetherdrift Bundle" (gongaii, bonafidecomicstore, bamcards,
+// magessanctum…). Left in, "ccg" became one of the product's signature words and 117 one-store twins of real products existed
+// (2026-11-03), each missing from the real product's comparison.
+const STORE_PREFIX = /^\s*ccg\s*[:\-–—|]\s*/i;
+
 export function identify(title: string, opts: { strict?: boolean } = {}): SealedIdentity | Rejection {
+  title = title.replace(STORE_PREFIX, "");
   const t = stripFiller(normalizeTitle(title));
   if (!t) return "unclassified";
   if (FOREIGN.test(t) || new RegExp(LANG_NAMES, "i").test(normalizeTitle(title))) return "foreign";

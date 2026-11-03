@@ -424,3 +424,13 @@ test("Star Trek cleanup (2026-10-26): one product per real product; picked, even
   assert.equal(key("Secrets of Strixhaven SOS Commander Deck - Lorehold Spirit"), key("Secrets of Strixhaven Commander Deck : Lorehold Spirit (SoS)"));
   assert.equal(key("The Hobbit Fat Pack Bundle: Gift Edition - The Hobbit"), "hob|gift-bundle");
 });
+
+test("a store's 'CCG:' category prefix is not part of the product (2026-11-03: 117 one-store twins)", () => {
+  assert.equal(key("CCG: Aetherdrift Bundle"), key("Aetherdrift Bundle"));
+  assert.equal(key("CCG: Aetherdrift Prerelease Kit"), key("Aetherdrift Prerelease Pack"));
+  assert.equal(key("CCG: Lorwyn Eclipsed Commander Deck - Blight Curse"), key("Lorwyn Eclipsed Commander Deck - Blight Curse"));
+  assert.equal(key("CCG: 2022 Pioneer Challenger Deck"), key("2022 Pioneer Challenger Deck"));
+  const id = identify("CCG: Aetherdrift Bundle");
+  assert.ok(isIdentity(id));
+  assert.doesNotMatch(id.name, /^CCG/);
+});

@@ -891,7 +891,10 @@ const MINI_TILE = "flex w-[56px] shrink-0 snap-start flex-col overflow-hidden ro
 
 function MiniRow({ brand, all, children }: { brand: ReactNode; all: ReactNode; children: ReactNode }) {
   return (
-    <div className="flex h-[78px] items-stretch gap-2">
+    // min-w-0: the row is a grid item, whose min-width is auto, so without it the row grew to the rail's content width (688px on
+    // a 390px phone), the rail never scrolled and the whole product page laid out 713px wide: tiny text, sideways scroll and half
+    // the paid tiles unreachable (2026-11-03 phone audit).
+    <div className="flex h-[78px] min-w-0 items-stretch gap-2">
       <div className="flex w-12 shrink-0 flex-col items-center justify-center gap-1 text-center">
         {brand}
         {all}

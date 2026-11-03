@@ -1,8 +1,8 @@
 import { inSeason } from "./black-friday";
 import { openPreorderGuides } from "./preorder-guides";
-import { featureOrder } from "./release";
+import { menuSets } from "./release";
 import { isRegion, type Region } from "./regions";
-import { SET_BY_CODE, SETS } from "./sets";
+import { SET_BY_CODE } from "./sets";
 import { sectionHref, type SectionKey } from "./site";
 
 export type NavItem = { href: string; label: string };
@@ -14,10 +14,10 @@ export type NavGroup = { title: string; links: NavItem[] };
  * the two never disagree. Static (sets from lib/sets.ts, newest released first by release.ts featureOrder, never a pre-order first):
  * no read, no page that doesn't exist. Owner, 2026-10-28: navigation from the first page, no "Continue to <region>" step first.
  */
-export function navGroups(region: Region, today: string = new Date().toISOString().slice(0, 10)): NavGroup[] {
+export function navGroups(region: Region, today: string = new Date().toISOString().slice(0, 10), listed?: ReadonlySet<string> | null): NavGroup[] {
   const s = (key: SectionKey, label: string): NavItem => ({ href: sectionHref(region, key), label });
   const type = (slug: string, label: string): NavItem => ({ href: `/${region}/type/${slug}`, label });
-  const sets = featureOrder(SETS.slice(0, 8).map((x) => x.code), today)
+  const sets = menuSets(8, today, listed)
     .map((c) => SET_BY_CODE.get(c)!)
     .map((set) => ({ href: `/${region}/sets/${set.slug}`, label: set.releaseDate > today ? `${set.name} (pre-order)` : set.name }));
   return [

@@ -45,3 +45,15 @@ export function featureSort<T extends { setCode: string | null }>(items: readonl
   const order = featureOrder(codes, today);
   return items.map((p, i) => ({ p, i })).sort((a, b) => order.indexOf(a.p.setCode ?? "") - order.indexOf(b.p.setCode ?? "") || a.i - b.i).map((x) => x.p);
 }
+
+/**
+ * The newest `n` sets for a menu (the footer's "Latest sets", the shop dropdown, the sidebar and phone menu), in featureOrder.
+ * `listed` is the set of codes with at least one product in the region (lib/data.ts listedSetCodes): a set no store lists yet
+ * has no page (its set page is a real 404), so linking it from every page was a dead link site-wide (2026-11-03: Flowing
+ * Fists, announced 21 October for 5 February, in the footer and both menus). Without `listed` (a page outside a region, the
+ * tests) every set is eligible, as before.
+ */
+export function menuSets(n: number, today: string = new Date().toISOString().slice(0, 10), listed?: ReadonlySet<string> | null): string[] {
+  const codes = SETS.filter((s) => !listed || listed.has(s.code)).slice(0, n).map((s) => s.code);
+  return featureOrder(codes, today);
+}

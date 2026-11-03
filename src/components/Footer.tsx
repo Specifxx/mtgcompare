@@ -1,8 +1,8 @@
 import Link from "@/components/Link";
 import { COUNTRY_GUIDE } from "@/content/guides/country-prices";
 import { REGION_LIST, REGIONS, type Region } from "@/lib/regions";
-import { featureOrder } from "@/lib/release";
-import { SET_BY_CODE, SETS } from "@/lib/sets";
+import { menuSets } from "@/lib/release";
+import { SET_BY_CODE } from "@/lib/sets";
 import { CONTACT_EMAIL, FAN_CONTENT_DISCLAIMER, OPERATOR, SITE_NAME, sectionHref, type SectionKey } from "@/lib/site";
 import { AMAZON_DISCLOSURE, AMAZON_TRADEMARK } from "@/lib/amazon";
 import { NETWORK_PAGE, footerSisters } from "@/lib/family-network";
@@ -14,7 +14,7 @@ import { Flag } from "@/components/Flag";
 type FooterLink = { href: string; label: string };
 
 /** The footer's link columns. Region pages get Shop, Latest sets, Explore and MTG Compare; pages with no region, Regions and MTG Compare. Pure (no database). */
-export function footerColumns(region: Region | null): { title: string; links: FooterLink[] }[] {
+export function footerColumns(region: Region | null, listed?: ReadonlySet<string> | null): { title: string; links: FooterLink[] }[] {
   const site: FooterLink[] = [
     { href: "/about", label: "About & how it works" },
     { href: "/blog", label: "Blog" },
@@ -42,7 +42,7 @@ export function footerColumns(region: Region | null): { title: string; links: Fo
       links: [s("boosterBoxes", "Play Booster Boxes"), s("collectorBoxes", "Collector Booster Boxes"), s("bundles", "Bundles"), s("commanderDecks", "Commander decks"), s("secretLair", "Secret Lair"), s("perPack", "Cheapest per pack")],
     },
     // The newest released set first, the one on pre-order second (release.ts featureOrder): never a pre-order at the top.
-    { title: "Latest sets", links: featureOrder(SETS.slice(0, 6).map((x) => x.code)).map((c) => SET_BY_CODE.get(c)!).map((set) => ({ href: `/${region}/sets/${set.slug}`, label: set.name })) },
+    { title: "Latest sets", links: menuSets(6, undefined, listed).map((c) => SET_BY_CODE.get(c)!).map((set) => ({ href: `/${region}/sets/${set.slug}`, label: set.name })) },
     {
       title: "Explore",
       links: [s("deals", "Deals"), s("blackFriday", "Black Friday deals"), s("boxingDay", "Boxing Day deals"), s("januarySales", "January sales"), s("lunarNewYear", "Lunar New Year deals"), s("thisWeek", "This week"), s("backInStock", "Back in stock"), s("priceMoves", "Price moves"), s("outOfPrint", "Older sets in stock"), s("releases", "Releases"), s("guides", "Guides"), s("tools", "Tools"), s("stores", "Where to buy"), s("sealed", "All sealed"), { href: COUNTRY_GUIDE.path, label: "Prices by country" }],
@@ -61,9 +61,9 @@ export function footerColumns(region: Region | null): { title: string; links: Fo
  * The address (CONTACT_EMAIL, compareempire@gmail.com) is shown on every page beside a link to /contact (owner, 2026-10-30 and
  * 2026-11-01: contact information "really clear", the sites without their own inbox on compareempire@gmail.com).
  */
-export function Footer({ region }: { region: Region | null }) {
+export function Footer({ region, listed }: { region: Region | null; listed?: ReadonlySet<string> | null }) {
   const r = region ? REGIONS[region] : null;
-  const cols = footerColumns(region);
+  const cols = footerColumns(region, listed);
   return (
     <footer className="mt-20 border-t border-line bg-surface">
       <div className={`page grid gap-x-6 gap-y-10 py-12 ${r ? "lg:grid-cols-[minmax(0,1.35fr)_minmax(0,3fr)]" : "md:grid-cols-[minmax(0,1.35fr)_minmax(0,1.5fr)]"}`}>

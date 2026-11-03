@@ -271,7 +271,7 @@ export default async function TypePage({ params }: { params: { region: string; t
           <p className="mt-2 max-w-2xl text-sm text-muted">Not part of a numbered set, so not on any set page: each with its cheapest in-stock price today.</p>
           <ul className="mt-4 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2 lg:grid-cols-3">
             {index.map((x) => (
-              <li key={x.slug} className="flex min-h-8 items-baseline justify-between gap-3 border-b border-line/60 py-1">
+              <li key={x.slug} className="flex min-h-8 min-w-0 items-baseline justify-between gap-3 border-b border-line/60 py-1">
                 <Link href={`/${r.region}/p/${x.slug}`} prefetch={false} className="min-w-0 truncate font-semibold hover:text-brand hover:underline">
                   {x.name}
                 </Link>
