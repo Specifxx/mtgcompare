@@ -20,7 +20,7 @@ export function PostCover({ post, index, eager = false }: { post: Post; index: n
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={`/og/blog/${post.slug}`}
-        alt=""
+        alt={post.title}
         width={1200}
         height={630}
         loading={loading}
@@ -37,7 +37,7 @@ export function PostCover({ post, index, eager = false }: { post: Post; index: n
           <img
             key={c.number}
             src={scryfallNormal(c.image)}
-            alt=""
+            alt={c.name}
             width={488}
             height={680}
             loading={loading}

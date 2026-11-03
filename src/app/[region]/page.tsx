@@ -314,7 +314,7 @@ function HotRow({ p, r }: { p: ProductCardData; r: RegionInfo }) {
       className="group flex items-center gap-3 rounded-xl border border-line bg-surface p-2.5 pr-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-lift"
     >
       <span className="plate flex h-16 w-16 shrink-0 items-center justify-center">
-        {img ? <img src={img} alt="" width={64} height={64} decoding="async" className="h-full w-full object-contain p-1" /> : <Icon name="tag" className="text-faint" />}
+        {img ? <img src={img} alt={p.name} width={64} height={64} decoding="async" className="h-full w-full object-contain p-1" /> : <Icon name="tag" className="text-faint" />}
       </span>
       <span className="min-w-0 flex-1">
         <span className="line-clamp-2 text-sm font-semibold leading-snug group-hover:text-brand">{p.name}</span>
@@ -350,10 +350,10 @@ function SetCard({ r, s, items: all }: { r: RegionInfo; s: MtgSet; items: Produc
       <Link href={`/${r.region}/sets/${s.slug}`} prefetch={false} className="group flex min-h-[4.5rem] items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-raised sm:px-5">
         <span className="flex min-w-0 items-center gap-3">
           {s.logo ? (
-            <img src={s.logo} alt="" width={96} height={40} className="h-10 w-24 shrink-0 object-contain" loading="lazy" decoding="async" />
+            <img src={s.logo} alt={`${s.name} logo`} width={96} height={40} className="h-10 w-24 shrink-0 object-contain" loading="lazy" decoding="async" />
           ) : art ? (
             <span className="plate flex h-12 w-12 shrink-0 items-center justify-center">
-              <img src={art} alt="" width={48} height={48} className="h-full w-full object-contain p-1" loading="lazy" decoding="async" />
+              <img src={art} alt={s.name} width={48} height={48} className="h-full w-full object-contain p-1" loading="lazy" decoding="async" />
             </span>
           ) : (
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-brand-soft font-display font-bold text-brand-strong">{s.name.slice(0, 1)}</span>

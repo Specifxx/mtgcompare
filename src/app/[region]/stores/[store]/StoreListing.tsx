@@ -130,7 +130,7 @@ export async function StorePage({ r, s, page }: { r: RegionInfo; s: StoreConfig;
                 <li key={o.product.slug} className="relative flex items-center gap-4 px-4 py-3 hover:bg-raised sm:px-5">
                   <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-raised">
                     {o.product.imageUrl && (
-                      <img src={thumb(o.product.imageUrl, 120)!} alt="" width={56} height={56} loading="lazy" decoding="async" className="h-full w-full object-contain p-1" />
+                      <img src={thumb(o.product.imageUrl, 120)!} alt={o.product.name} width={56} height={56} loading="lazy" decoding="async" className="h-full w-full object-contain p-1" />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">

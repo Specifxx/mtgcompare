@@ -169,10 +169,10 @@ function SetBlock({ r, s, today, count, picks }: { r: RegionInfo; s: MtgSet; tod
     <li className="card flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:gap-6 sm:p-5">
       <div className="flex items-center gap-4 sm:w-52 sm:shrink-0 sm:flex-col sm:items-start sm:gap-3">
         {s.logo ? (
-          <img src={s.logo} alt="" width={112} height={48} loading="lazy" decoding="async" className="h-12 w-28 shrink-0 object-contain object-left" />
+          <img src={s.logo} alt={`${s.name} logo`} width={112} height={48} loading="lazy" decoding="async" className="h-12 w-28 shrink-0 object-contain object-left" />
         ) : (
           <span className="plate flex h-14 w-14 shrink-0 items-center justify-center">
-            {art ? <img src={art} alt="" width={56} height={56} loading="lazy" decoding="async" className="h-full w-full object-contain p-1" /> : <Icon name="calendar" className="text-faint" />}
+            {art ? <img src={art} alt={s.name} width={56} height={56} loading="lazy" decoding="async" className="h-full w-full object-contain p-1" /> : <Icon name="calendar" className="text-faint" />}
           </span>
         )}
         <div>

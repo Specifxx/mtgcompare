@@ -366,7 +366,7 @@ export function SearchBox({ region, size = "sm", autoFocus = false }: { region: 
               >
                 <span className="plate flex h-10 w-10 shrink-0 items-center justify-center">
                   {img ? (
-                    <img src={img} alt="" width={40} height={40} loading="lazy" decoding="async" className="h-full w-full object-contain p-0.5" />
+                    <img src={img} alt={p.name} width={40} height={40} loading="lazy" decoding="async" className="h-full w-full object-contain p-0.5" />
                   ) : (
                     <Icon name="tag" size={16} className="text-faint" />
                   )}

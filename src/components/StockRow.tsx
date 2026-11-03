@@ -26,7 +26,7 @@ export function StockRow({ p, r, extra }: { p: ProductCardData; r: RegionInfo; e
       className="group flex items-center gap-3 rounded-xl border border-line bg-surface p-2.5 pr-3 shadow-card transition-shadow hover:shadow-lift"
     >
       <span className="plate flex h-16 w-16 shrink-0 items-center justify-center">
-        {img ? <img src={img} alt="" width={64} height={64} loading="lazy" decoding="async" className="h-full w-full object-contain p-1 mix-blend-multiply" /> : <span className="text-[10px] font-semibold text-faint">{p.productType}</span>}
+        {img ? <img src={img} alt={p.name} width={64} height={64} loading="lazy" decoding="async" className="h-full w-full object-contain p-1 mix-blend-multiply" /> : <span className="text-[10px] font-semibold text-faint">{p.productType}</span>}
       </span>
       <span className="min-w-0 flex-1">
         <span className="line-clamp-2 text-sm font-semibold leading-snug group-hover:text-brand">{p.name}</span>

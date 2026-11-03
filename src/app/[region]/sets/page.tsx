@@ -114,7 +114,7 @@ function SetRow({ r, s, c }: { r: RegionInfo; s: MtgSet; c: SetCount | undefined
     <>
       <span className="flex h-10 w-20 shrink-0 items-center justify-center sm:h-12 sm:w-24">
         {s.logo ? (
-          <img src={s.logo} alt="" width={96} height={48} loading="lazy" decoding="async" className="max-h-full max-w-full object-contain" />
+          <img src={s.logo} alt={`${s.name} logo`} width={96} height={48} loading="lazy" decoding="async" className="max-h-full max-w-full object-contain" />
         ) : (
           <span aria-hidden="true" className="flex h-full w-full items-center justify-center rounded-lg bg-raised font-display text-sm font-bold tracking-wide text-faint ring-1 ring-line">
             {initials(s.name)}
