@@ -4,7 +4,7 @@
 //
 // Tags are hard-coded (owner, 2026-11-02: no Vercel variable decides a tag), one per Amazon store, because a tag earns only on the
 // store whose Associates account issued it:
-// - Amazon Australia (compareempire-22) in AU, and in NZ and SG (it may ship there; the copy says to check).
+// - Amazon Australia (mtgcompare-22) in AU, and in NZ and SG (it may ship there; the copy says to check).
 // - Amazon US (riftcompare-20) in the US; Amazon UK (compareempi03-21), Canada (compareempire-20) and Germany (compareempire-21, for
 //   the eurozone) in theirs.
 // A link that knows where it sits carries ascsubtag=mtg-<region>-<placement> (Associates' tracking report splits by it).
@@ -13,7 +13,7 @@ import ASINS from "@/data/amazon-asins.json";
 import { searchTerms, type Placement } from "./affiliate";
 import type { Region } from "./regions";
 
-export const AMAZON_DEFAULT_TAG = "compareempire-22";
+export const AMAZON_DEFAULT_TAG = "mtgcompare-22";
 export const AMAZON_US_DEFAULT_TAG = "riftcompare-20";
 /** The Amazon links' rel, exactly as the owner specified (no noreferrer). */
 export const REL_AMAZON = "sponsored nofollow noopener";
