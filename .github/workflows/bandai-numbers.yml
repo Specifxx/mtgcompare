@@ -1,0 +1,12 @@
+name: Bandai card numbers sample (temporary research)
+on:
+  push:
+    branches: [claude/project-thread-r5d8h6]
+    paths: ["research/bandai-numbers/**", ".github/workflows/bandai-numbers.yml"]
+jobs:
+  sample:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 research/bandai-numbers/numbers.py
