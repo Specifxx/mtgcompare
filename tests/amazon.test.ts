@@ -47,10 +47,10 @@ test("amazonUrl: /dp/<ASIN> when the ASIN is known, else a search; the tag on bo
   assert.equal(asinFor(null), null);
 });
 
-test("amazonTag: compareempire-22, hard-coded (owner, 2026-11-02: no Vercel variable decides a tag)", () => {
-  assert.equal(AMAZON_DEFAULT_TAG, "compareempire-22");
-  assert.equal(amazonTag(), "compareempire-22");
-  assert.match(amazonUrl("Bundle", { asins: {} }), /&tag=compareempire-22$/);
+test("amazonTag: mtgcompare-22, hard-coded (owner, 2026-11-02: no Vercel variable decides a tag)", () => {
+  assert.equal(AMAZON_DEFAULT_TAG, "mtgcompare-22");
+  assert.equal(amazonTag(), "mtgcompare-22");
+  assert.match(amazonUrl("Bundle", { asins: {} }), /&tag=mtgcompare-22$/);
   assert.doesNotMatch(readFileSync(new URL("../src/lib/amazon.ts", import.meta.url), "utf8"), /process\.env/);
 });
 
