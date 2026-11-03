@@ -1,0 +1,17 @@
+name: Bandai probe summary (temporary research)
+on:
+  push:
+    branches: [claude/project-thread-r5d8h6]
+    paths: ["research/bandai-summary/**", ".github/workflows/bandai-summary.yml"]
+permissions:
+  actions: read
+  contents: read
+jobs:
+  summary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: gh run download 41612727687 -D art -p 'probe-*'
+        env: { GH_TOKEN: "${{ github.token }}" }
+      - run: python3 research/bandai-summary/summary.py
