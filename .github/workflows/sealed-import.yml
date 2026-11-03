@@ -96,6 +96,13 @@ jobs:
         # here, loudly, instead of quietly deleting it.
         run: npx prisma db push --skip-generate && npx prisma generate
 
+      # New sets find themselves (src/lib/set-discovery.ts): Scryfall's upcoming sets go into data/sets/discovered.json before the
+      # stores are read, so a newly announced set's pre-orders are filed under it in this same run, and its pre-order page, set
+      # page and Coming soon slot appear with the release. Never fails the run (on an error the file is kept as it was).
+      - name: Discover new sets
+        if: steps.db.outputs.found == 'true'
+        run: npx tsx scripts/discover-sets.ts
+
       - name: Import
         if: steps.db.outputs.found == 'true'
         env:

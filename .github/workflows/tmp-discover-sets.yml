@@ -1,0 +1,13 @@
+name: TEMP discover sets check
+on:
+  push:
+    branches: [claude/project-thread-nojq4g]
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm, cache-dependency-path: package-lock.json }
+      - run: npm ci --no-audit --no-fund
+      - run: npx tsx scripts/discover-sets.ts && cat data/sets/discovered.json
