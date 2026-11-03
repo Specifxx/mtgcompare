@@ -8,7 +8,7 @@ const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "ut
 test("footer: one short line of the other card-game sites, then the network page (owner, 2026-11-02: the full list was convoluted)", () => {
   assert.deepEqual(
     footerSisters("mtg").map((s) => s.url),
-    ["https://riftcompare.com", "https://opcompare.app", "https://dexcompare.app", "https://gundamcompare.com", "https://lorcanacompare.com", "https://ygocompare.com", "https://cyberpunkcompare.com"],
+    ["https://riftcompare.com", "https://opcompare.app", "https://dexcompare.app", "https://gundamcompare.com", "https://lorcanacompare.com", "https://ygocompare.com", "https://cyberpunkcompare.com", "https://bandaicompare.com"],
   );
   const footer = src("src/components/Footer.tsx");
   assert.match(footer, /footerSisters\("mtg"\)\.map/);
