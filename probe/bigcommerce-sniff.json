@@ -1,0 +1,1085 @@
+[
+ {
+  "name": "Star City Games",
+  "base": "https://starcitygames.com",
+  "cur": "USD",
+  "robots": "User-agent: AdsBot-Google | Disallow: /account.php | Disallow: /cart.php | Disallow: /checkout.php | Disallow: /checkout | Disallow: /finishorder.php | Disallow: /login.php | Disallow: /orderstatus.php | Disallow: /postreview.php | Disallow: /productimage.php | Disallow: /productupdates.php | Disallow: /remote.php | Disallow: /search.php | Disallow: /viewfile.php | Disallow: /wishlist.php | Disallow: /admin/ | Disallow: /__socialshop/ | Disallow: /search/ | Disallow: /search/advanced/ | Disallow: /pages/ | User-agent: * | Disallow: /account.php | Disallow: /cart.php | Disallow: /checkout.php | Disallow: /checkout",
+  "home": 200,
+  "platform": "bigcommerce",
+  "cats": [
+   {
+    "path": "/mtg/star-trek/",
+    "status": 200,
+    "len": 220881,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 1
+   },
+   {
+    "path": "/mtg/reality-fracture/",
+    "status": 200,
+    "len": 222673,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 1
+   },
+   {
+    "path": "/mtg/the-hobbit/",
+    "status": 200,
+    "len": 221485,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 1
+   },
+   {
+    "path": "/mtg/",
+    "status": 200,
+    "len": 173936,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 1
+   },
+   {
+    "path": "/mtg/sealed-products/",
+    "status": 200,
+    "len": 222556,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 1
+   },
+   {
+    "path": "/pokemon/30th-celebration/",
+    "status": 200,
+    "len": 173151,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 1
+   },
+   {
+    "path": "/pokemon/mega-evolution-ascended-heroes/",
+    "status": 200,
+    "len": 163315,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 1
+   },
+   {
+    "path": "/pokemon/sealed-products/",
+    "status": 200,
+    "len": 193904,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 1
+   }
+  ],
+  "cf": true,
+  "candidates": 18
+ },
+ {
+  "name": "Miniature Market",
+  "base": "https://www.miniaturemarket.com",
+  "cur": "USD",
+  "robots": "User-agent: Screaming Frog SEO Spider | User-agent: Googlebot | Disallow: | User-agent: Googlebot-image | Disallow: | User-agent: * | Disallow: /checkout/ | Disallow: /account/ | Disallow: /wishlist/ | Disallow: /search/ | Disallow: /onestepcheckout/ | Disallow: /blog/ | Disallow: /*?SID= | Disallow: /*?dir= | Disallow: /*?mode= | Disallow: /*?limit= | Disallow: /cgi-bin/",
+  "home": 200,
+  "platform": "magento",
+  "cats": [
+   {
+    "path": "/trading-card/magic-the-gathering-singles",
+    "status": 200,
+    "len": 1907774,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 205
+   },
+   {
+    "path": "/trading-card-games/magic-the-gathering.html",
+    "status": 200,
+    "len": 1843202,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 203
+   },
+   {
+    "path": "/trading-card-games/pokemon.html",
+    "status": 200,
+    "len": 1727091,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 160
+   },
+   {
+    "path": "/trading-card/riftbound",
+    "status": 200,
+    "len": 663948,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 46
+   },
+   {
+    "path": "/trading-card-games/magic-the-gathering-singles",
+    "status": 200,
+    "len": 1907774,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 205
+   },
+   {
+    "path": "/Riftbound-TCG-Radiance-Booster-Box-24-New-Arrival/UVSRB05BD01-BOX",
+    "status": 200,
+    "len": 521450,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 23
+   }
+  ],
+  "cf": false,
+  "candidates": 6
+ },
+ {
+  "name": "Game Nerdz",
+  "base": "https://www.gamenerdz.com",
+  "cur": "USD",
+  "robots": "User-agent: * | Disallow: /account.php | Disallow: /cart.php | Disallow: /checkout.php | Disallow: /finishorder.php | Disallow: /login.php | Disallow: /orderstatus.php | Disallow: /postreview.php | Disallow: /productimage.php | Disallow: /productupdates.php | Disallow: /remote.php | Disallow: /search.php | Disallow: /viewfile.php | Disallow: /wishlist.php | Disallow: /admin/ | Disallow: /*sort= | Disallow: /__socialshop/ | Disallow: /*?_bc_fsnf=1* | Disallow: /*&_bc_fsnf=1* | User-agent: AI2Bot | User-agent: Ai2Bot-Dolma | User-agent: Amazonbot | User-agent: Applebot | User-agent: Applebot-Extended | User-agent: Bytespider",
+  "home": 200,
+  "platform": "bigcommerce",
+  "cats": [
+   {
+    "path": "/yu-gi-oh-maze-of-machines-booster-box-1st-edition-bulk-discounts-preorder",
+    "status": 200,
+    "len": 164244,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": true,
+    "prices": [
+     "{\n          if (mutationsList.length > 0) {\n            renderMessageIfPossible();\n          }\n        });\n\n        observer.observe(priceContainer, config);\n      }\n\n      function renderMessageIfPossible() {\n        const amount = getPriceAmount(priceContainer.innerText)[0];\n\n        if (amount) {\n          renderMessage(amount);\n        }\n      }\n\n      function getPriceAmount(text) {\n        /*\n         INFO:\n         - extracts a string from a pattern: [number][separator][number][separator]...\n           [separator] - any symbol but a digit, including whitespaces\n         */\n        const pattern = /\\d+(?:[^\\d]\\d+)+(?!\\d)/g;\n        const matches = text.match(pattern);\n        const results = [];\n\n        // if there are no matches\n        if (!matches?.length) {\n          const amount = text.replace(/[^\\d]/g, '');\n\n          if (!amount) return results;\n\n          results.push(amount);\n\n          return results;\n        }\n\n        matches.forEach(str => {\n          const sepIndexes = [];\n\n          for (let i = 0; i",
+     "{\n          if (mutationsList.length > 0) {\n            renderMessageIfPossible();\n          }\n        });\n\n        observer.observe(priceContainer, config);\n      }\n\n      function renderMessageIfPossible() {\n        const amount = getPriceAmount(priceContainer.innerText)[0];\n\n        if (amount) {\n          renderMessage(amount);\n        }\n      }\n\n      function getPriceAmount(text) {\n        /*\n         INFO:\n         - extracts a string from a pattern: [number][separator][number][separator]...\n           [separator] - any symbol but a digit, including whitespaces\n         */\n        const pattern = /\\d+(?:[^\\d]\\d+)+(?!\\d)/g;\n        const matches = text.match(pattern);\n        const results = [];\n\n        // if there are no matches\n        if (!matches?.length) {\n          const amount = text.replace(/[^\\d]/g, '');\n\n          if (!amount) return results;\n\n          results.push(amount);\n\n          return results;\n        }\n\n        matches.forEach(str => {\n          const sepIndexes = [];\n\n          for (let i = 0; i",
+     "$66.47"
+    ],
+    "titles": [],
+    "priceN": 3,
+    "curHits": 38
+   },
+   {
+    "path": "/star-wars-unlimited-icons-2027-edition-booster-box-preorder",
+    "status": 200,
+    "len": 159234,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": true,
+    "prices": [
+     "{\n          if (mutationsList.length > 0) {\n            renderMessageIfPossible();\n          }\n        });\n\n        observer.observe(priceContainer, config);\n      }\n\n      function renderMessageIfPossible() {\n        const amount = getPriceAmount(priceContainer.innerText)[0];\n\n        if (amount) {\n          renderMessage(amount);\n        }\n      }\n\n      function getPriceAmount(text) {\n        /*\n         INFO:\n         - extracts a string from a pattern: [number][separator][number][separator]...\n           [separator] - any symbol but a digit, including whitespaces\n         */\n        const pattern = /\\d+(?:[^\\d]\\d+)+(?!\\d)/g;\n        const matches = text.match(pattern);\n        const results = [];\n\n        // if there are no matches\n        if (!matches?.length) {\n          const amount = text.replace(/[^\\d]/g, '');\n\n          if (!amount) return results;\n\n          results.push(amount);\n\n          return results;\n        }\n\n        matches.forEach(str => {\n          const sepIndexes = [];\n\n          for (let i = 0; i",
+     "{\n          if (mutationsList.length > 0) {\n            renderMessageIfPossible();\n          }\n        });\n\n        observer.observe(priceContainer, config);\n      }\n\n      function renderMessageIfPossible() {\n        const amount = getPriceAmount(priceContainer.innerText)[0];\n\n        if (amount) {\n          renderMessage(amount);\n        }\n      }\n\n      function getPriceAmount(text) {\n        /*\n         INFO:\n         - extracts a string from a pattern: [number][separator][number][separator]...\n           [separator] - any symbol but a digit, including whitespaces\n         */\n        const pattern = /\\d+(?:[^\\d]\\d+)+(?!\\d)/g;\n        const matches = text.match(pattern);\n        const results = [];\n\n        // if there are no matches\n        if (!matches?.length) {\n          const amount = text.replace(/[^\\d]/g, '');\n\n          if (!amount) return results;\n\n          results.push(amount);\n\n          return results;\n        }\n\n        matches.forEach(str => {\n          const sepIndexes = [];\n\n          for (let i = 0; i",
+     "$69.97"
+    ],
+    "titles": [],
+    "priceN": 3,
+    "curHits": 38
+   },
+   {
+    "path": "/neopets-battledome-tcg-return-of-dr-sloth-booster-box-preorder",
+    "status": 200,
+    "len": 160979,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": true,
+    "prices": [
+     "{\n          if (mutationsList.length > 0) {\n            renderMessageIfPossible();\n          }\n        });\n\n        observer.observe(priceContainer, config);\n      }\n\n      function renderMessageIfPossible() {\n        const amount = getPriceAmount(priceContainer.innerText)[0];\n\n        if (amount) {\n          renderMessage(amount);\n        }\n      }\n\n      function getPriceAmount(text) {\n        /*\n         INFO:\n         - extracts a string from a pattern: [number][separator][number][separator]...\n           [separator] - any symbol but a digit, including whitespaces\n         */\n        const pattern = /\\d+(?:[^\\d]\\d+)+(?!\\d)/g;\n        const matches = text.match(pattern);\n        const results = [];\n\n        // if there are no matches\n        if (!matches?.length) {\n          const amount = text.replace(/[^\\d]/g, '');\n\n          if (!amount) return results;\n\n          results.push(amount);\n\n          return results;\n        }\n\n        matches.forEach(str => {\n          const sepIndexes = [];\n\n          for (let i = 0; i",
+     "{\n          if (mutationsList.length > 0) {\n            renderMessageIfPossible();\n          }\n        });\n\n        observer.observe(priceContainer, config);\n      }\n\n      function renderMessageIfPossible() {\n        const amount = getPriceAmount(priceContainer.innerText)[0];\n\n        if (amount) {\n          renderMessage(amount);\n        }\n      }\n\n      function getPriceAmount(text) {\n        /*\n         INFO:\n         - extracts a string from a pattern: [number][separator][number][separator]...\n           [separator] - any symbol but a digit, including whitespaces\n         */\n        const pattern = /\\d+(?:[^\\d]\\d+)+(?!\\d)/g;\n        const matches = text.match(pattern);\n        const results = [];\n\n        // if there are no matches\n        if (!matches?.length) {\n          const amount = text.replace(/[^\\d]/g, '');\n\n          if (!amount) return results;\n\n          results.push(amount);\n\n          return results;\n        }\n\n        matches.forEach(str => {\n          const sepIndexes = [];\n\n          for (let i = 0; i",
+     "$69.97"
+    ],
+    "titles": [],
+    "priceN": 3,
+    "curHits": 38
+   },
+   {
+    "path": "/marvel-heroclix-25th-anniversary-booster-brick-12-preorder",
+    "status": 200,
+    "len": 179767,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": true,
+    "prices": [
+     "{\n          if (mutationsList.length > 0) {\n            renderMessageIfPossible();\n          }\n        });\n\n        observer.observe(priceContainer, config);\n      }\n\n      function renderMessageIfPossible() {\n        const amount = getPriceAmount(priceContainer.innerText)[0];\n\n        if (amount) {\n          renderMessage(amount);\n        }\n      }\n\n      function getPriceAmount(text) {\n        /*\n         INFO:\n         - extracts a string from a pattern: [number][separator][number][separator]...\n           [separator] - any symbol but a digit, including whitespaces\n         */\n        const pattern = /\\d+(?:[^\\d]\\d+)+(?!\\d)/g;\n        const matches = text.match(pattern);\n        const results = [];\n\n        // if there are no matches\n        if (!matches?.length) {\n          const amount = text.replace(/[^\\d]/g, '');\n\n          if (!amount) return results;\n\n          results.push(amount);\n\n          return results;\n        }\n\n        matches.forEach(str => {\n          const sepIndexes = [];\n\n          for (let i = 0; i",
+     "{\n          if (mutationsList.length > 0) {\n            renderMessageIfPossible();\n          }\n        });\n\n        observer.observe(priceContainer, config);\n      }\n\n      function renderMessageIfPossible() {\n        const amount = getPriceAmount(priceContainer.innerText)[0];\n\n        if (amount) {\n          renderMessage(amount);\n        }\n      }\n\n      function getPriceAmount(text) {\n        /*\n         INFO:\n         - extracts a string from a pattern: [number][separator][number][separator]...\n           [separator] - any symbol but a digit, including whitespaces\n         */\n        const pattern = /\\d+(?:[^\\d]\\d+)+(?!\\d)/g;\n        const matches = text.match(pattern);\n        const results = [];\n\n        // if there are no matches\n        if (!matches?.length) {\n          const amount = text.replace(/[^\\d]/g, '');\n\n          if (!amount) return results;\n\n          results.push(amount);\n\n          return results;\n        }\n\n        matches.forEach(str => {\n          const sepIndexes = [];\n\n          for (let i = 0; i",
+     "$194.97"
+    ],
+    "titles": [],
+    "priceN": 3,
+    "curHits": 38
+   }
+  ],
+  "cf": true,
+  "candidates": 4
+ },
+ {
+  "name": "Game Goblins",
+  "base": "https://www.gamegoblins.com",
+  "cur": "USD",
+  "robots": "User-agent: * | Disallow: /account.php | Disallow: /cart.php | Disallow: /checkout.php | Disallow: /checkout | Disallow: /finishorder.php | Disallow: /login.php | Disallow: /orderstatus.php | Disallow: /postreview.php | Disallow: /productimage.php | Disallow: /productupdates.php | Disallow: /remote.php | Disallow: /search.php | Disallow: /viewfile.php | Disallow: /wishlist.php | Disallow: /admin/ | Disallow: /__socialshop/ | Disallow: /*?_bc_fsnf=1* | Disallow: /*&_bc_fsnf=1* | User-agent: AI2Bot | User-agent: Ai2Bot-Dolma | User-agent: Amazonbot | User-agent: Applebot | User-agent: Applebot-Extended | User-agent: Bytespider",
+  "home": 200,
+  "platform": "bigcommerce",
+  "cats": [],
+  "cf": true,
+  "candidates": 0
+ },
+ {
+  "name": "ToyWiz",
+  "base": "https://toywiz.com",
+  "cur": "USD",
+  "robots": "User-agent: AdsBot-Google | Disallow: /account.php | Disallow: /cart.php | Disallow: /checkout.php | Disallow: /finishorder.php | Disallow: /login.php | Disallow: /brands.php | Disallow: /orderstatus.php | Disallow: /postreview.php | Disallow: /productimage.php | Disallow: /productupdates.php | Disallow: /remote.php | Disallow: /search.php | Disallow: /viewfile.php | Disallow: /wishlist.php | Disallow: /admin/ | Disallow: /__socialshop/ | User-agent: * | Disallow: /account.php | Disallow: /brands.php | Disallow: /cart.php | Disallow: /checkout.php | Disallow: /finishorder.php | Disallow: /login.php | Disallow: /orderstatus.php",
+  "home": 200,
+  "platform": "bigcommerce",
+  "cats": [
+   {
+    "path": "/pokemon/",
+    "status": 200,
+    "len": 311255,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 2
+   },
+   {
+    "path": "/magic-the-gathering/",
+    "status": 200,
+    "len": 309914,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 2
+   },
+   {
+    "path": "/magic-the-gathering",
+    "status": 200,
+    "len": 309914,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 2
+   }
+  ],
+  "cf": true,
+  "candidates": 3
+ },
+ {
+  "name": "Magic Madhouse",
+  "base": "https://www.magicmadhouse.co.uk",
+  "cur": "GBP",
+  "robots": "User-agent: Googlebot | Disallow: /admin/ | Disallow: /__socialshop/ | User-agent: Googlebot-Image | Disallow: /admin/ | Disallow: /__socialshop/ | User-agent: * | Disallow: /account.php | Disallow: /cart.php | Disallow: /checkout.php | Disallow: /checkout | Disallow: /finishorder.php | Disallow: /login.php | Disallow: /orderstatus.php | Disallow: /postreview.php | Disallow: /productimage.php | Disallow: /productupdates.php | Disallow: /remote.php | Disallow: /search.php | Disallow: /viewfile.php | Disallow: /wishlist.php | Disallow: /admin/ | Disallow: /__socialshop/ | Disallow: /?_bc_fsnf=1* | Disallow: /*&_bc_fsnf=1*",
+  "home": 200,
+  "platform": "bigcommerce",
+  "cats": [],
+  "cf": true,
+  "candidates": 0
+ },
+ {
+  "name": "Grand J Games",
+  "base": "https://grandjgames.com",
+  "cur": "AUD",
+  "robots": "User-agent: AdsBot-Google | Disallow: /account.php | Disallow: /cart.php | Disallow: /checkout.php | Disallow: /checkout | Disallow: /finishorder.php | Disallow: /login.php | Disallow: /orderstatus.php | Disallow: /postreview.php | Disallow: /productimage.php | Disallow: /productupdates.php | Disallow: /remote.php | Disallow: /search.php | Disallow: /viewfile.php | Disallow: /wishlist.php | Disallow: /admin/ | Disallow: /__socialshop/ | User-agent: * | Disallow: /account.php | Disallow: /cart.php | Disallow: /checkout.php | Disallow: /checkout | Disallow: /finishorder.php | Disallow: /login.php | Disallow: /orderstatus.php",
+  "home": 200,
+  "platform": "bigcommerce",
+  "cats": [
+   {
+    "path": "/trading-card-game-products/sealed-card-game-products/latest-products/",
+    "status": 200,
+    "len": 1205632,
+    "cards": 69,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [
+     "104.95$ AUD",
+     "104.95$ AUD",
+     "104.95$ AUD",
+     "104.95$ AUD"
+    ],
+    "titles": [
+     "[Vanguard] DZ-BT15 Strike of Illusionary Shadows Booster Box",
+     "[Vanguard] DZ-BT16 Parallactic Dawn Booster Box",
+     "[Vanguard] DZ-TBP01 BanG Dream! Girls Band Party Booster Box",
+     "[Weiss Schwarz] Nikke Vol.2 Booster Box"
+    ],
+    "priceN": 138,
+    "curHits": 418
+   },
+   {
+    "path": "/tcgs/battle-spirits-saga/battle-spirits-saga-sealed/",
+    "status": 200,
+    "len": 523510,
+    "cards": 1,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [
+     "4.95$ AUD",
+     "4.95$ AUD"
+    ],
+    "titles": [
+     "Battle Spirits Saga Starter Deck - Forbidden Magic (ST04)"
+    ],
+    "priceN": 2,
+    "curHits": 14
+   },
+   {
+    "path": "/trading-card-game-products/card-game-singles/battle-spirits-saga/side-sets/cb01-collaboration-booster-01-halo-of-awakening/",
+    "status": 200,
+    "len": 1492114,
+    "cards": 100,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [
+     "5.00$ AUD",
+     "5.00$ AUD",
+     "8.25$ AUD",
+     "8.25$ AUD"
+    ],
+    "titles": [
+     "[CB01-001](X) New EVA-02a -Three-Barreled Gatling Gun- (Foil)",
+     "[CB01-002](X) New EVA-02a &amp; EVA-08y (Foil)",
+     "[CB01-003](R) New EVA-02a -Backdoor Code Triple Nine-",
+     "[CB01-003](R) New EVA-02a -Backdoor Code Triple Nine- (Foil)"
+    ],
+    "priceN": 200,
+    "curHits": 525
+   },
+   {
+    "path": "/trading-card-game-products/card-game-singles/battle-spirits-saga/starter-deck-singles/st04-forbidden-magic/",
+    "status": 200,
+    "len": 664508,
+    "cards": 15,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [
+     "1.50$ AUD",
+     "1.50$ AUD",
+     "1.00$ AUD",
+     "1.00$ AUD"
+    ],
+    "titles": [
+     "ST04-001X Calamity Beast Chaos Pegasoros (Foil)",
+     "ST04-002C Rapier Knight Cat-Sith",
+     "ST04-004C Al-Mi&#x27;raj",
+     "ST04-005R Chain Angel"
+    ],
+    "priceN": 30,
+    "curHits": 80
+   },
+   {
+    "path": "/tcgs/cardfight-vanguard/cardfight-vanguard-sealed/",
+    "status": 200,
+    "len": 663493,
+    "cards": 16,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [
+     "89.95$ AUD",
+     "89.95$ AUD",
+     "104.95$ AUD",
+     "104.95$ AUD"
+    ],
+    "titles": [
+     "[Vanguard] DZ-BT11 Symphony of Might and Bloom Booster Box",
+     "[Vanguard] DZ-BT12 Chasm of Lost Souls Booster Box",
+     "[Vanguard] DZ-BT13 Parallactic Clash Booster Box",
+     "[Vanguard] DZ-BT14 Envoys of the Crimson Moon Booster Box"
+    ],
+    "priceN": 32,
+    "curHits": 133
+   },
+   {
+    "path": "/trading-card-game-products/sealed-card-game-products/vanguard-overdress/lyrical-melody/",
+    "status": 200,
+    "len": 509717,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 5
+   },
+   {
+    "path": "/trading-card-game-products/card-game-singles/vanguard-overdress/deck-singles/d-sd06-mirei-minae-sealed-blaze-maiden/",
+    "status": 200,
+    "len": 585647,
+    "cards": 7,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [
+     "1.00$ AUD",
+     "1.00$ AUD",
+     "0.75$ AUD",
+     "0.75$ AUD"
+    ],
+    "titles": [
+     "D-SD06/001EN TD Sealed Blaze Maiden, Bavsargra (Holo)",
+     "D-SD06/009EN TD Spiritual King of Determination, Olbaria",
+     "D-SD06/010EN TD Conduct Spark Dragon",
+     "D-SD06/011EN TD Rushing Dragon, Steel Dilopho"
+    ],
+    "priceN": 14,
+    "curHits": 60
+   },
+   {
+    "path": "/trading-card-game-products/card-game-singles/vanguard-overdress/side-sets/d-ss05-festival-booster-2023/",
+    "status": 200,
+    "len": 1325668,
+    "cards": 91,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [
+     "23.50$ AUD",
+     "23.50$ AUD",
+     "21.00$ AUD",
+     "21.00$ AUD"
+    ],
+    "titles": [
+     "D-SS05/002EN ORRR Spiritual King of Aquatics, Idosfaro (ORRR)",
+     "D-SS05/003EN ORRR Forbidoll Surrogate (ORRR)",
+     "D-SS05/004EN ORRR Evergreen Transphere (ORRR)",
+     "D-SS05/005EN RRR Forcember Dragon, Red Exert Dragon"
+    ],
+    "priceN": 182,
+    "curHits": 480
+   }
+  ],
+  "cf": true,
+  "candidates": 211
+ },
+ {
+  "name": "Troll and Toad",
+  "base": "https://www.trollandtoad.com",
+  "cur": "USD",
+  "robots": "User-agent: * | Disallow: /admin | Disallow: /cart/ | Disallow: /*/cart/ | Disallow: /checkout | Disallow: /*/checkout | Disallow: /checkouts/ | Disallow: /*/checkouts/ | Disallow: /orders | Disallow: /*/orders | Disallow: /account | Disallow: /*/account | Disallow: /94632313128 | Disallow: /cdn/wpm/*.js | Disallow: /services | Disallow: /sf_* | Disallow: /.well-known/shopify/monorail | Disallow: /cart.js | Disallow: /*/cart.js | Disallow: /recommendations/products | Disallow: /*/recommendations/products | Disallow: /collections/*sort_by* | Disallow: /*/collections/*sort_by* | Disallow: /collections/*+* | Disallow: /collections/*%2B*",
+  "home": 200,
+  "platform": "shopify",
+  "cats": [],
+  "cf": false,
+  "candidates": 0
+ },
+ {
+  "name": "Card Kingdom",
+  "base": "https://www.cardkingdom.com",
+  "cur": "USD",
+  "robots": "User-agent: * | Disallow: /api/ | Disallow: /builder | Disallow: /cart/add | Disallow: /cart/affiliate/ | Disallow: /cart/empty | Disallow: /cart/lineitem/ | Disallow: /catalog/item/ | Disallow: /catalog/restock_notice | Disallow: /checkout/ | Disallow: /customer_login/logout | Disallow: /myaccount/ | Disallow: /orders/ | Disallow: /order_status/ | Disallow: /password-reset/ | Disallow: /processing/ | Disallow: /scheckout/ | Disallow: /sellcart/empty | Disallow: /sellcart/lineitem/ | Disallow: /sellcart/load_json | Disallow: /sellcart/set",
+  "home": 200,
+  "platform": "?",
+  "cats": [],
+  "cf": true,
+  "candidates": 0
+ },
+ {
+  "name": "Hobby Master NZ",
+  "base": "https://www.hobbymaster.co.nz",
+  "cur": "NZD",
+  "robots": "",
+  "home": 0,
+  "platform": "?",
+  "cats": [],
+  "cf": false,
+  "candidates": 0
+ },
+ {
+  "name": "Good Games AU",
+  "base": "https://www.goodgames.com.au",
+  "cur": "AUD",
+  "robots": "User-agent: * | Disallow: /admin | Disallow: /cart/ | Disallow: /*/cart/ | Disallow: /checkout | Disallow: /*/checkout | Disallow: /checkouts/ | Disallow: /*/checkouts/ | Disallow: /orders | Disallow: /*/orders | Disallow: /account | Disallow: /*/account | Disallow: /44064931998 | Disallow: /cdn/wpm/*.js | Disallow: /services | Disallow: /sf_* | Disallow: /.well-known/shopify/monorail | Disallow: /cart.js | Disallow: /*/cart.js | Disallow: /recommendations/products | Disallow: /*/recommendations/products | Disallow: /collections/*sort_by* | Disallow: /*/collections/*sort_by* | Disallow: /collections/*+* | Disallow: /collections/*%2B*",
+  "home": 200,
+  "platform": "shopify",
+  "cats": [
+   {
+    "path": "/collections/magic-the-gathering",
+    "status": 200,
+    "len": 939299,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 66
+   },
+   {
+    "path": "/collections/coming-soon-magic-the-gathering",
+    "status": 200,
+    "len": 869963,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 27
+   },
+   {
+    "path": "/collections/magic-the-gathering-reality-fracture",
+    "status": 200,
+    "len": 867524,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 25
+   },
+   {
+    "path": "/collections/magic-the-gathering-the-hobbit",
+    "status": 200,
+    "len": 869849,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 27
+   },
+   {
+    "path": "/collections/magic-the-gathering-marvel-super-heroes",
+    "status": 200,
+    "len": 882907,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 36
+   },
+   {
+    "path": "/collections/magic-the-gathering-secrets-of-strixhaven",
+    "status": 200,
+    "len": 927922,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 66
+   },
+   {
+    "path": "/collections/magic-the-gathering-teenage-mutant-ninja-turtles",
+    "status": 200,
+    "len": 873262,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 29
+   },
+   {
+    "path": "/collections/magic-the-gathering-lorwyn-eclipsed",
+    "status": 200,
+    "len": 874217,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 29
+   }
+  ],
+  "cf": false,
+  "candidates": 41
+ },
+ {
+  "name": "Gameology AU",
+  "base": "https://www.gameology.com.au",
+  "cur": "AUD",
+  "robots": "User-agent: *\r | Disallow: /admin\r | Disallow: /cart\r | Disallow: /cart/\r | Disallow: /*/cart/\r | Disallow: /checkout\r | Disallow: /*/checkout\r | Disallow: /checkouts/\r | Disallow: /*/checkouts/\r | Disallow: /orders\r | Disallow: /*/orders\r | Disallow: /account\r | Disallow: /*/account\r | Disallow: /9217330\r | Disallow: /cdn/wpm/*.js\r | Disallow: /services\r | Disallow: /sf_*\r | Disallow: /cart.js\r | Disallow: /recommendations/products\r | Disallow: /*/recommendations/products\r | Disallow: /collections/*sort_by*\r | Disallow: /*/collections/*sort_by*\r | Disallow: /collections/*+*\r | Disallow: /collections/*%2B*\r | Disallow: /collections/*%2b*\r",
+  "home": 200,
+  "platform": "shopify",
+  "cats": [
+   {
+    "path": "/collections/pokemon-tcg-single-cards",
+    "status": 200,
+    "len": 1521570,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 651
+   },
+   {
+    "path": "/collections/japanese-pokemon-singles",
+    "status": 200,
+    "len": 1527752,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 651
+   },
+   {
+    "path": "/collections/magic-the-gathering-singles",
+    "status": 200,
+    "len": 1532251,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 651
+   },
+   {
+    "path": "/collections/pokemon",
+    "status": 200,
+    "len": 1524630,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 651
+   },
+   {
+    "path": "/collections/pokemon-mega-evolution",
+    "status": 200,
+    "len": 1526007,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 651
+   },
+   {
+    "path": "/collections/pokemon-pitch-black",
+    "status": 200,
+    "len": 1471340,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 651
+   },
+   {
+    "path": "/collections/pokemon-chaos-rising",
+    "status": 200,
+    "len": 1470526,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 651
+   },
+   {
+    "path": "/collections/pokemon-perfect-order",
+    "status": 200,
+    "len": 1474315,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 651
+   }
+  ],
+  "cf": false,
+  "candidates": 81
+ },
+ {
+  "name": "Board Game Bliss CA",
+  "base": "https://www.boardgamebliss.com",
+  "cur": "CAD",
+  "robots": "User-agent: * | Disallow: /admin | Disallow: /cart/ | Disallow: /*/cart/ | Disallow: /checkout | Disallow: /*/checkout | Disallow: /checkouts/ | Disallow: /*/checkouts/ | Disallow: /orders | Disallow: /*/orders | Disallow: /account | Disallow: /*/account | Disallow: /2749631 | Disallow: /cdn/wpm/*.js | Disallow: /services | Disallow: /sf_* | Disallow: /.well-known/shopify/monorail | Disallow: /cart.js | Disallow: /*/cart.js | Disallow: /recommendations/products | Disallow: /*/recommendations/products | Disallow: /collections/*sort_by* | Disallow: /*/collections/*sort_by* | Disallow: /collections/*+* | Disallow: /collections/*%2B*",
+  "home": 500,
+  "platform": "?",
+  "cats": [],
+  "cf": false,
+  "candidates": 0
+ },
+ {
+  "name": "401 Games CA",
+  "base": "https://store.401games.ca",
+  "cur": "CAD",
+  "robots": "User-agent: * | Disallow: /admin | Disallow: /cart/ | Disallow: /*/cart/ | Disallow: /checkout | Disallow: /*/checkout | Disallow: /checkouts/ | Disallow: /*/checkouts/ | Disallow: /orders | Disallow: /*/orders | Disallow: /account | Disallow: /*/account | Disallow: /17041809 | Disallow: /cdn/wpm/*.js | Disallow: /services | Disallow: /sf_* | Disallow: /.well-known/shopify/monorail | Disallow: /cart.js | Disallow: /*/cart.js | Disallow: /recommendations/products | Disallow: /*/recommendations/products | Disallow: /collections/*sort_by* | Disallow: /*/collections/*sort_by* | Disallow: /collections/*+* | Disallow: /collections/*%2B*",
+  "home": 200,
+  "platform": "shopify",
+  "cats": [
+   {
+    "path": "/collections/magic-the-gathering-sales",
+    "status": 200,
+    "len": 527364,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 33
+   },
+   {
+    "path": "/collections/pokemon-sales",
+    "status": 200,
+    "len": 511348,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 22
+   },
+   {
+    "path": "/collections/magic-the-gathering-pre-orders",
+    "status": 200,
+    "len": 585894,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 68
+   },
+   {
+    "path": "/collections/magic-the-gathering-sealed-pre-orders",
+    "status": 200,
+    "len": 531869,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 36
+   },
+   {
+    "path": "/collections/magic-the-gathering-singles-pre-orders",
+    "status": 200,
+    "len": 570406,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 68
+   },
+   {
+    "path": "/collections/mtg-supplies-pre-orders",
+    "status": 200,
+    "len": 506442,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 18
+   },
+   {
+    "path": "/collections/pokemon-pre-orders",
+    "status": 200,
+    "len": 527060,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 34
+   },
+   {
+    "path": "/collections/pokemon-sealed-pre-order",
+    "status": 200,
+    "len": 527214,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 34
+   }
+  ],
+  "cf": false,
+  "candidates": 37
+ },
+ {
+  "name": "Chimera Hobby",
+  "base": "https://www.chimerahobby.com",
+  "cur": "USD",
+  "robots": "User-agent: Googlebot | Disallow: | User-agent: Googlebot-Image | Disallow: | User-agent: AdsBot-Google | Disallow: | User-agent: * | Disallow: /",
+  "home": 200,
+  "platform": "magento",
+  "cats": [
+   {
+    "path": "/catalog/magic_singles/8",
+    "status": 200,
+    "len": 216696,
+    "cards": 0,
+    "li": 5,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 2
+   },
+   {
+    "path": "/catalog/magic_singles-adventures_in_the_forgotten_realms_block/1725",
+    "status": 200,
+    "len": 165465,
+    "cards": 0,
+    "li": 1,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 2
+   },
+   {
+    "path": "/catalog/magic_singles-adventures_in_the_forgotten_realms_block-adventures_in_the_forgotten_realms/1726",
+    "status": 200,
+    "len": 321005,
+    "cards": 0,
+    "li": 24,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 2
+   },
+   {
+    "path": "/catalog/magic_singles-adventures_in_the_forgotten_realms_block-art_series_forgotten_realms/1727",
+    "status": 200,
+    "len": 306817,
+    "cards": 0,
+    "li": 24,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 2
+   },
+   {
+    "path": "/catalog/magic_singles-core_sets/65",
+    "status": 200,
+    "len": 182865,
+    "cards": 0,
+    "li": 5,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 2
+   },
+   {
+    "path": "/catalog/magic_singles-core_sets-magic_2021/1707",
+    "status": 200,
+    "len": 309341,
+    "cards": 0,
+    "li": 24,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 2
+   },
+   {
+    "path": "/catalog/magic_singles-core_sets-magic_2020/1690",
+    "status": 200,
+    "len": 319668,
+    "cards": 0,
+    "li": 24,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 2
+   },
+   {
+    "path": "/catalog/magic_singles-core_sets-magic_2019/1643",
+    "status": 200,
+    "len": 315600,
+    "cards": 0,
+    "li": 24,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 2
+   }
+  ],
+  "cf": false,
+  "candidates": 182
+ },
+ {
+  "name": "Mox Boarding House",
+  "base": "https://www.moxboardinghouse.com",
+  "cur": "USD",
+  "robots": "User-agent: * | Disallow: /admin | Disallow: /cart/ | Disallow: /*/cart/ | Disallow: /checkout | Disallow: /*/checkout | Disallow: /checkouts/ | Disallow: /*/checkouts/ | Disallow: /orders | Disallow: /*/orders | Disallow: /account | Disallow: /*/account | Disallow: /71245332653 | Disallow: /cdn/wpm/*.js | Disallow: /services | Disallow: /sf_* | Disallow: /.well-known/shopify/monorail | Disallow: /cart.js | Disallow: /*/cart.js | Disallow: /recommendations/products | Disallow: /*/recommendations/products | Disallow: /collections/*sort_by* | Disallow: /*/collections/*sort_by* | Disallow: /collections/*+* | Disallow: /collections/*%2B*",
+  "home": 200,
+  "platform": "shopify",
+  "cats": [
+   {
+    "path": "/collections/magic-the-gathering",
+    "status": 200,
+    "len": 883794,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 74
+   },
+   {
+    "path": "/collections/mtg-sealed",
+    "status": 200,
+    "len": 885123,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 76
+   },
+   {
+    "path": "/pages/mtg-singles",
+    "status": 200,
+    "len": 277719,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 19
+   },
+   {
+    "path": "/collections/pokemon",
+    "status": 200,
+    "len": 437818,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 33
+   }
+  ],
+  "cf": false,
+  "candidates": 4
+ },
+ {
+  "name": "Hareruya EN",
+  "base": "https://www.hareruyamtg.com",
+  "cur": "USD",
+  "robots": "User-agent: *\r | Disallow: /news/\r | Disallow: /jp/k/\r | Disallow: /index.php/\r | Disallow: /a/*\r | Disallow: /ja/forward/\r | Disallow: /en/forward/\r | Disallow: /ja/purchase/forward/\r | Disallow: /en/purchase/forward/\r | Disallow: /ja/events/*/*/\r | Disallow: /purchase/g/*\r | Disallow: /*.csv$\r | Disallow: /en/deck/download/*\r | Disallow: /ja/deck/download/*\r | Disallow: /ja/deck/bulk/*\r | Disallow: /en/deck/bulk/*\r | Disallow: /ja/deck/result?*\r | Disallow: /en/deck/result?*\r | Disallow: /ja/events/list?*page=*\r | Disallow: /en/events/list?*page=*\r | Disallow: /ja/products/search?*page=*\r | Disallow: /ja/products/search?*sort=*\r | Disallow: /ja/products/search?*order=*\r | Disallow: /en/products/search?*page=*\r | Disallow: /en/products/search?*sort=*\r",
+  "home": 200,
+  "platform": "?",
+  "cats": [
+   {
+    "path": "/ja/user_data/lp_mtg_x_trk",
+    "status": 200,
+    "len": 63480,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 0
+   },
+   {
+    "path": "/ja/user_data/mtg-startcampaign1000",
+    "status": 200,
+    "len": 57697,
+    "cards": 0,
+    "li": 0,
+    "ldProduct": false,
+    "prices": [],
+    "titles": [],
+    "priceN": 0,
+    "curHits": 0
+   }
+  ],
+  "cf": false,
+  "candidates": 2
+ }
+]
