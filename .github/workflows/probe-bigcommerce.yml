@@ -1,0 +1,15 @@
+name: probe-bigcommerce
+on: { workflow_dispatch: {} }
+permissions: { contents: write }
+jobs:
+  sniff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: node probe/bigcommerce-sniff.mjs
+      - run: |
+          git config user.name "probe" && git config user.email "probe@users.noreply.github.com"
+          git add probe/bigcommerce-sniff.json && git commit -m "probe: bigcommerce sniff results" && git push origin HEAD:${{ github.ref_name }}
