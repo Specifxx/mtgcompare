@@ -63,7 +63,7 @@ export default function Contact() {
         </p>
 
         <h2 id="suggest">Suggest a store</h2>
-        <p>Know a store we don&rsquo;t compare yet, or run one? Tell us here; we check every suggestion.</p>
+        <p>Know a store we don&rsquo;t compare yet? Tell us here; we check every suggestion. Run one? <a href="/list-your-store">List your store</a>, free.</p>
       </div>
       <div className="mt-3">
         <SuggestStore regions={REGION_LIST.map((x) => [x.short, x.name])} what="Magic sealed product" buttonClassName="btn-primary" />
