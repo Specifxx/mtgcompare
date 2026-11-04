@@ -9069,5 +9069,61 @@
       "magic-gift-bundles",
       "magic-for-the-collectors"
     ]
+  },
+  {
+    "key": "eclipsegamesau",
+    "name": "Eclipse Games",
+    "base": "https://eclipsegames.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "booster-boxes"
+    ]
+  },
+  {
+    "key": "hobbyco",
+    "name": "Hobbyco",
+    "base": "https://hobbyco.com.au",
+    "market": "AU",
+    "platform": "shopify",
+    "country": "AU",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "cardchasersmtl",
+    "name": "Card Chasers",
+    "base": "https://cardchasersmtl.com",
+    "market": "CA",
+    "platform": "shopify",
+    "country": "CA",
+    "collections": [
+      "mtg"
+    ]
+  },
+  {
+    "key": "magictraders",
+    "name": "Magic Traders",
+    "base": "https://magictraders.nl",
+    "market": "EU",
+    "platform": "shopify",
+    "country": "EU",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "gameroost",
+    "name": "Game Roost",
+    "base": "https://gameroost.co.nz",
+    "market": "NZ",
+    "platform": "shopify",
+    "country": "NZ",
+    "collections": [
+      "magic-the-gathering",
+      "pre-order"
+    ]
   }
 ]
