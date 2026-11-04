@@ -2,6 +2,7 @@
 import type { PostSlug } from "./index";
 import type { PostModule } from "./kit";
 import { cheapest, dearest } from "./posts/boxes";
+import { universesBeyond } from "./posts/universes-beyond";
 import { cheaperAbroad, whereToBuy } from "./posts/markets";
 import {
   fracturesChase,
@@ -17,6 +18,7 @@ import {
 } from "./posts/star-trek";
 
 export const POST_MODULES: Record<PostSlug, PostModule> = {
+  "universes-beyond-took-over-magic-sealed": universesBeyond,
   "star-trek-mtg-chase-cards": starTrekChase,
   "star-trek-collector-booster-contents": starTrekCollector,
   "reality-fracture-chase-cards": fracturesChase,

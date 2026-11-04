@@ -67,6 +67,9 @@ export async function loadPostData(
     case "magic-booster-box-prices":
       d.boxes = await perMarket((m) => boxesIn(m, 8, "desc"));
       break;
+    case "universes-beyond-took-over-magic-sealed":
+      [d.boxes, d.named] = await Promise.all([perMarket((m) => boxesIn(m, 6, "desc")), namedAcross(STAR_TREK_WORDS, 40)]);
+      break;
     case "are-magic-cards-cheaper-abroad":
       d.boxes = await perMarket(async (m) => [
         ...(await familyIn(m, "play-box", 30)),

@@ -10,6 +10,7 @@
 // "today"; no currency conversion; nothing may match BANNED_COPY; no pull rates, EV, investment or trend claims.
 
 export type PostSlug =
+  | "universes-beyond-took-over-magic-sealed"
   | "star-trek-mtg-chase-cards"
   | "star-trek-collector-booster-contents"
   | "reality-fracture-chase-cards"
@@ -37,6 +38,15 @@ const SEALED = "2026-10-21";
 
 /** Newest first. */
 export const POSTS: readonly Post[] = [
+  {
+    slug: "universes-beyond-took-over-magic-sealed",
+    title: "How Universes Beyond took over Magic sealed, 2022 to 2026",
+    description:
+      "Licensed sets went from one a year to more than half of the Magic release calendar. The count by year, what it did to the sealed shelf, and what is dated next.",
+    kicker: "Universes Beyond",
+    published: "2026-11-04",
+    updated: "2026-11-04",
+  },
   {
     slug: "star-trek-mtg-chase-cards",
     title: "Star Trek MTG chase cards: every mythic rare",
