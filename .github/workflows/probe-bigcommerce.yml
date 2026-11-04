@@ -1,5 +1,9 @@
 name: probe-bigcommerce
-on: { workflow_dispatch: {} }
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [claude/project-thread-qu5ees]
+    paths: [probe/bigcommerce-sniff.mjs]
 permissions: { contents: write }
 jobs:
   sniff:

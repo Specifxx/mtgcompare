@@ -66,3 +66,4 @@ for (const s of STORES) {
   console.log(JSON.stringify(r));
 }
 writeFileSync("probe/bigcommerce-sniff.json", JSON.stringify(out, null, 1));
+// run 1793770025
