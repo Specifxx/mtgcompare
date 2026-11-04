@@ -1,6 +1,0 @@
-[
-  { "name": "Grand J Games", "base": "https://grandjgames.com", "market": "AU", "platform": "bigcommerce" },
-  { "name": "Game Goblins", "base": "https://gamegoblins.com", "market": "US", "platform": "bigcommerce", "collections": ["/collectible-games/magic-the-gathering/"] },
-  { "name": "Miniature Market", "base": "https://www.miniaturemarket.com", "market": "US", "platform": "shopware", "collections": ["/trading-card-games/magic-the-gathering.html"] },
-  { "name": "Magic Madhouse", "base": "https://magicmadhouse.co.uk", "market": "UK", "platform": "bigcommerce" }
-]
