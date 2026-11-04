@@ -6,15 +6,36 @@
   "pages": [
    {
     "path": "/mtg/sealed-products/",
-    "robots": "disallowed"
+    "status": 200,
+    "len": 222556,
+    "articleCard": 0,
+    "liProduct": 0,
+    "productItem": 0,
+    "dataPrice": 0,
+    "priceBox": 0,
+    "dollar": 0
    },
    {
     "path": "/pokemon/sealed-products/",
-    "robots": "disallowed"
+    "status": 200,
+    "len": 193904,
+    "articleCard": 0,
+    "liProduct": 0,
+    "productItem": 0,
+    "dataPrice": 0,
+    "priceBox": 0,
+    "dollar": 0
    },
    {
     "path": "/riftbound/",
-    "robots": "disallowed"
+    "status": 200,
+    "len": 238262,
+    "articleCard": 0,
+    "liProduct": 0,
+    "productItem": 0,
+    "dataPrice": 0,
+    "priceBox": 0,
+    "dollar": 0
    }
   ]
  },
@@ -25,15 +46,36 @@
   "pages": [
    {
     "path": "/trading-card-games/magic-the-gathering.html",
-    "robots": "disallowed"
+    "status": 200,
+    "len": 1843203,
+    "articleCard": 0,
+    "liProduct": 0,
+    "productItem": 0,
+    "dataPrice": 0,
+    "priceBox": 0,
+    "dollar": 205
    },
    {
     "path": "/trading-card-games/pokemon.html",
-    "robots": "disallowed"
+    "status": 200,
+    "len": 1727123,
+    "articleCard": 0,
+    "liProduct": 0,
+    "productItem": 0,
+    "dataPrice": 0,
+    "priceBox": 0,
+    "dollar": 186
    },
    {
     "path": "/trading-card/riftbound",
-    "robots": "disallowed"
+    "status": 200,
+    "len": 663978,
+    "articleCard": 0,
+    "liProduct": 0,
+    "productItem": 0,
+    "dataPrice": 0,
+    "priceBox": 0,
+    "dollar": 49
    }
   ]
  },
@@ -46,21 +88,184 @@
  {
   "key": "magicmadhouse",
   "base": "https://www.magicmadhouse.co.uk",
-  "sitemapCats": [],
-  "pages": []
+  "sitemapCats": [
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=1",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=2",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=3",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=4",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=5",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=6",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=7",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=8",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=9",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=10",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=11",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=12",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=13",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=14",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=15",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=16",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=17",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=18",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=19",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=20",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=21",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=22",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=23",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=24",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=25",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=26",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=27",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=28",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=29",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=30",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=31",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=32",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=33",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=34",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=35",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=36",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=37",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=38",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=39",
+   "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=40"
+  ],
+  "pages": [
+   {
+    "path": "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=1",
+    "status": 0,
+    "len": 0,
+    "articleCard": 0,
+    "liProduct": 0,
+    "productItem": 0,
+    "dataPrice": 0,
+    "priceBox": 0,
+    "dollar": 0
+   },
+   {
+    "path": "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=2",
+    "status": 0,
+    "len": 0,
+    "articleCard": 0,
+    "liProduct": 0,
+    "productItem": 0,
+    "dataPrice": 0,
+    "priceBox": 0,
+    "dollar": 0
+   },
+   {
+    "path": "https://magicmadhouse.co.uk/xmlsitemap.php?type=products&amp;page=3",
+    "status": 0,
+    "len": 0,
+    "articleCard": 0,
+    "liProduct": 0,
+    "productItem": 0,
+    "dataPrice": 0,
+    "priceBox": 0,
+    "dollar": 0
+   }
+  ]
  },
  {
   "key": "toywiz",
   "base": "https://toywiz.com",
-  "sitemapCats": [],
+  "sitemapCats": [
+   "https://toywiz.com/magic-the-gathering/",
+   "https://toywiz.com/pokemon/",
+   "https://toywiz.com/pokemon/card-supplies-1/",
+   "https://toywiz.com/pokemon/pvc-mini-figures-keychains/japanese-vinyl-danglers-pvc-sets-more/",
+   "https://toywiz.com/pokemon/video-games-coins-assorted-merchandise/",
+   "https://toywiz.com/pokemon/pvc-mini-figures-keychains/tomy-japanese-pvc-collection-figures/",
+   "https://toywiz.com/pokemon/booster-boxes/",
+   "https://toywiz.com/pokemon/booster-packs/",
+   "https://toywiz.com/pokemon/starter-theme-decks/",
+   "https://toywiz.com/pokemon/single-cards/",
+   "https://toywiz.com/pokemon/older-hasbro-toys-figures/",
+   "https://toywiz.com/pokemon/v-trainers-battle-packs-thinkchip-figures/",
+   "https://toywiz.com/pokemon/single-cards/promo-cards/",
+   "https://toywiz.com/pokemon/single-cards/delta-species/",
+   "https://toywiz.com/pokemon/single-cards/legend-maker/",
+   "https://toywiz.com/pokemon/single-cards/dragon/",
+   "https://toywiz.com/pokemon/single-cards/sandstorm/",
+   "https://toywiz.com/pokemon/single-cards/ruby-sapphire/",
+   "https://toywiz.com/pokemon/single-cards/emerald/",
+   "https://toywiz.com/pokemon/single-cards/fire-red-leaf-green/",
+   "https://toywiz.com/pokemon/single-cards/hidden-legends/",
+   "https://toywiz.com/pokemon/single-cards/team-aqua-team-magma/",
+   "https://toywiz.com/pokemon/single-cards/team-rocket-returns/",
+   "https://toywiz.com/pokemon/single-cards/unseen-forces/",
+   "https://toywiz.com/pokemon/single-cards/japanese/assorted/",
+   "https://toywiz.com/pokemon/single-cards/jungle/",
+   "https://toywiz.com/pokemon/single-cards/neo-destiny/",
+   "https://toywiz.com/pokemon/single-cards/neo-discovery/",
+   "https://toywiz.com/pokemon/single-cards/neo-genesis/",
+   "https://toywiz.com/pokemon/single-cards/neo-revelation/",
+   "https://toywiz.com/pokemon/single-cards/team-rocket/",
+   "https://toywiz.com/yu-gi-oh/single-cards/magicians-force/",
+   "https://toywiz.com/yu-gi-oh/single-cards/magic-spell-ruler/",
+   "https://toywiz.com/pokemon/single-cards/base-set/",
+   "https://toywiz.com/pokemon/single-cards/crystal-guardians/",
+   "https://toywiz.com/pokemon/single-cards/dragon-frontiers/",
+   "https://toywiz.com/pokemon/single-cards/holon-phantoms/",
+   "https://toywiz.com/pokemon/pvc-mini-figures-keychains/nextquest-trading-figure-miniature-game/",
+   "https://toywiz.com/pokemon/jakks-pacific-toys-figures-plush/battle-frontier-basic-figures/",
+   "https://toywiz.com/pokemon/jakks-pacific-toys-figures-plush/battle-frontier-deluxe-figures/"
+  ],
   "pages": [
    {
     "path": "/pokemon/",
-    "robots": "disallowed"
+    "status": 200,
+    "len": 311255,
+    "articleCard": 0,
+    "liProduct": 0,
+    "productItem": 0,
+    "dataPrice": 0,
+    "priceBox": 0,
+    "dollar": 1
    },
    {
     "path": "/magic-the-gathering/",
-    "robots": "disallowed"
+    "status": 200,
+    "len": 309914,
+    "articleCard": 0,
+    "liProduct": 0,
+    "productItem": 0,
+    "dataPrice": 0,
+    "priceBox": 0,
+    "dollar": 1
+   },
+   {
+    "path": "/magic-the-gathering/",
+    "status": 200,
+    "len": 309914,
+    "articleCard": 0,
+    "liProduct": 0,
+    "productItem": 0,
+    "dataPrice": 0,
+    "priceBox": 0,
+    "dollar": 1
+   },
+   {
+    "path": "/pokemon/",
+    "status": 200,
+    "len": 311255,
+    "articleCard": 0,
+    "liProduct": 0,
+    "productItem": 0,
+    "dataPrice": 0,
+    "priceBox": 0,
+    "dollar": 1
+   },
+   {
+    "path": "/pokemon/card-supplies-1/",
+    "status": 200,
+    "len": 303968,
+    "articleCard": 0,
+    "liProduct": 0,
+    "productItem": 0,
+    "dataPrice": 0,
+    "priceBox": 0,
+    "dollar": 1
    }
   ]
  },
