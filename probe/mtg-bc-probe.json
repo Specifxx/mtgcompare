@@ -1,0 +1,220 @@
+[
+ {
+  "key": "gamegoblins",
+  "name": "Game Goblins",
+  "base": "https://gamegoblins.com",
+  "market": "US",
+  "platform": "bigcommerce",
+  "currency": "USD",
+  "currencyOk": true,
+  "country": "US",
+  "collections": [
+   "/collectible-games/magic-the-gathering/"
+  ],
+  "sealedProducts": 7,
+  "inStock": 0,
+  "allFound": 7,
+  "read": [
+   {
+    "handle": "/collectible-games/magic-the-gathering/",
+    "ok": true,
+    "products": 7,
+    "accepted": 7
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 1065
+ },
+ {
+  "key": "miniaturemarket",
+  "name": "Miniature Market",
+  "base": "https://www.miniaturemarket.com",
+  "market": "US",
+  "platform": "shopware",
+  "currency": null,
+  "currencyOk": true,
+  "country": "US",
+  "collections": [
+   "/trading-card-games/magic-the-gathering.html"
+  ],
+  "sealedProducts": 215,
+  "inStock": 118,
+  "allFound": 215,
+  "read": [
+   {
+    "handle": "/trading-card-games/magic-the-gathering.html",
+    "ok": true,
+    "products": 220,
+    "accepted": 215
+   }
+  ],
+  "rejections": {
+   "vague": 3,
+   "unclassified": 1,
+   "no-set": 1
+  },
+  "samples": [
+   {
+    "reason": "vague",
+    "title": "MTG: Marvel Super Heroes - Scene Box Set (2)"
+   },
+   {
+    "reason": "unclassified",
+    "title": "MTG: Teenage Mutant Ninja Turtles - Turtle Team-Up Theme Box"
+   },
+   {
+    "reason": "vague",
+    "title": "MTG: Star Trek - Scene Box Set (2) (Preorder)"
+   },
+   {
+    "reason": "vague",
+    "title": "MTG: Marvel Darkhold Destiny - Scene Box Set (2) (Preorder)"
+   },
+   {
+    "reason": "no-set",
+    "title": "MTG: Starter Commander Deck - Set of 5"
+   }
+  ],
+  "error": null,
+  "ms": 4643
+ },
+ {
+  "key": "grandjgames",
+  "name": "Grand J Games",
+  "base": "https://grandjgames.com",
+  "market": "AU",
+  "platform": "bigcommerce",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "/tcgs/magic-the-gathering/magic-the-gathering-sealed/"
+  ],
+  "sealedProducts": 78,
+  "inStock": 59,
+  "allFound": 78,
+  "read": [
+   {
+    "handle": "/sealed-product/magic-the-gathering-sealed/new-category-1/",
+    "ok": true,
+    "products": 5,
+    "accepted": 4
+   },
+   {
+    "handle": "/tcgs/magic-the-gathering/",
+    "ok": true,
+    "products": 300,
+    "accepted": 0
+   },
+   {
+    "handle": "/sealed-product/magic-the-gathering-sealed/new-category/",
+    "ok": true,
+    "products": 9,
+    "accepted": 7
+   },
+   {
+    "handle": "/tcgs/magic-the-gathering/magic-the-gathering-preorders/",
+    "ok": true,
+    "products": 16,
+    "accepted": 16
+   },
+   {
+    "handle": "/sealed-product/magic-the-gathering-sealed/new-category-3/",
+    "ok": true,
+    "products": 12,
+    "accepted": 9
+   },
+   {
+    "handle": "/tcgs/magic-the-gathering/magic-the-gathering-sealed/",
+    "ok": true,
+    "products": 97,
+    "accepted": 78
+   },
+   {
+    "handle": "/sealed-product/magic-the-gathering-sealed/new-category-2/",
+    "ok": true,
+    "products": 38,
+    "accepted": 30
+   }
+  ],
+  "rejections": {
+   "no-set": 29,
+   "unclassified": 300,
+   "vague": 3,
+   "accessory": 1
+  },
+  "samples": [
+   {
+    "reason": "no-set",
+    "title": "Magic the Gathering: Universes Beyond - Marvel Collector Booster Box"
+   },
+   {
+    "reason": "unclassified",
+    "title": "(ACR) 01-ACR Copy Token"
+   },
+   {
+    "reason": "unclassified",
+    "title": "(ACR) 03-ACR Human Rogue Token"
+   },
+   {
+    "reason": "unclassified",
+    "title": "(ACR) 04-ACR Assassin Token"
+   },
+   {
+    "reason": "unclassified",
+    "title": "(ACR) 04-ACR//06-ACR Assassin // Treasure Double-Sided Token"
+   },
+   {
+    "reason": "unclassified",
+    "title": "(ACR) 05-ACR Phobos"
+   },
+   {
+    "reason": "unclassified",
+    "title": "(ACR) 06-ACR Treasure Token"
+   },
+   {
+    "reason": "unclassified",
+    "title": "(ACR) 07-ACR Emblem - The Capitoline Triad"
+   },
+   {
+    "reason": "unclassified",
+    "title": "(ACR) 08-ACR A Mysterious Creature"
+   },
+   {
+    "reason": "unclassified",
+    "title": "(BIG) 01-BIG Bat Token"
+   },
+   {
+    "reason": "unclassified",
+    "title": "(BIG) 02-BIG//20-OTJ Blood // Plot Double-Sided Token"
+   },
+   {
+    "reason": "unclassified",
+    "title": "(BIG) 03-BIG Construct Token"
+   }
+  ],
+  "error": null,
+  "ms": 12585
+ },
+ {
+  "key": "magicmadhouse",
+  "name": "Magic Madhouse",
+  "base": "https://magicmadhouse.co.uk",
+  "market": "UK",
+  "platform": "bigcommerce",
+  "currency": null,
+  "currencyOk": false,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges ?, market UK is GBP",
+  "ms": 16382
+ }
+]

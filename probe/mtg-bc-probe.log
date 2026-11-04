@@ -1,0 +1,8 @@
+probing 4 stores, 2 at a time…
+[1/4] US Game Goblins (https://gamegoblins.com): ✓ 7 sealed (0 in stock) · /collectible-games/magic-the-gathering/ · 1s
+[2/4] US Miniature Market (https://www.miniaturemarket.com): ✓ 215 sealed (118 in stock) · /trading-card-games/magic-the-gathering.html · 5s
+[3/4] AU Grand J Games (https://grandjgames.com): ✓ 78 sealed (59 in stock) · /tcgs/magic-the-gathering/magic-the-gathering-sealed/ · 13s
+[4/4] UK Magic Madhouse (https://magicmadhouse.co.uk): ✗ charges ?, market UK is GBP ·  · 16s
+
+3/4 stores clear the bar (≥3 sealed products): { US: 2, AU: 1 }
+full results: probe/mtg-bc-probe.json
