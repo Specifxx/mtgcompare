@@ -403,17 +403,6 @@
     ]
   },
   {
-    "key": "hbtcollectables",
-    "name": "HBT Collectables",
-    "base": "https://www.hbtcollectables.com",
-    "market": "AU",
-    "platform": "shopify",
-    "country": "AU",
-    "collections": [
-      "magic-the-gathering"
-    ]
-  },
-  {
     "key": "hobbishack",
     "name": "HobbiShack",
     "base": "https://hobbishack.com.au",
