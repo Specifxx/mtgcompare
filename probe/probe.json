@@ -1,0 +1,1426 @@
+[
+ {
+  "key": "gamesparadise",
+  "name": "Games Paradise",
+  "base": "https://gamesparadise.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4181
+ },
+ {
+  "key": "curacards",
+  "name": "Cura Cards",
+  "base": "https://curacards.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed-product",
+    "ok": true,
+    "products": 9,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 4,
+   "foreign": 5
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4561
+ },
+ {
+  "key": "jenesmtg",
+  "name": "Jenes MTG",
+  "base": "https://jenesmtg.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 3887
+ },
+ {
+  "key": "tcg",
+  "name": "Gumnut Games",
+  "base": "https://tcg.gumnut.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4177
+ },
+ {
+  "key": "eclipsegamesau",
+  "name": "Eclipse Games AU",
+  "base": "https://eclipsegames.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "booster-boxes"
+  ],
+  "sealedProducts": 33,
+  "inStock": 1,
+  "allFound": 34,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "booster-boxes",
+    "ok": true,
+    "products": 530,
+    "accepted": 33
+   },
+   {
+    "handle": "booster-packs",
+    "ok": true,
+    "products": 58,
+    "accepted": 1
+   }
+  ],
+  "rejections": {
+   "foreign": 466,
+   "not-magic": 83,
+   "vague": 2,
+   "not-sealed": 3
+  },
+  "samples": [],
+  "error": null,
+  "ms": 9252
+ },
+ {
+  "key": "hobbyco",
+  "name": "Hobbyco",
+  "base": "https://hobbyco.com.au",
+  "market": "AU",
+  "platform": "shopify",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [
+   "magic-the-gathering"
+  ],
+  "sealedProducts": 64,
+  "inStock": 26,
+  "allFound": 64,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 80,
+    "accepted": 64
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 355,
+    "accepted": 0
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 750,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "unclassified": 9,
+   "multiple": 1,
+   "accessory": 375,
+   "no-set": 1,
+   "not-sealed": 394,
+   "not-magic": 314,
+   "foreign": 27
+  },
+  "samples": [
+   {
+    "reason": "unclassified",
+    "title": "Magic the Gathering Teenage Mutant Ninja Turtles Turtle Team Up"
+   },
+   {
+    "reason": "no-set",
+    "title": "1pc Magic the Gathering 2020 Core Booster Pack"
+   },
+   {
+    "reason": "unclassified",
+    "title": "Magic: The Gathering Star Trek Collector Commander 1pc"
+   },
+   {
+    "reason": "unclassified",
+    "title": "Magic the Gathering Unpainted Miniatures  Goblin Guide and Goblin Bushwhacker"
+   },
+   {
+    "reason": "unclassified",
+    "title": "Magic the Gathering Unpainted Miniatures Aurelia Exemplar of Justice Angel"
+   },
+   {
+    "reason": "unclassified",
+    "title": "1000pc  Magic The Gathering Panorama"
+   },
+   {
+    "reason": "unclassified",
+    "title": "1000pc Magic The Gathering 3"
+   },
+   {
+    "reason": "unclassified",
+    "title": "1000pc Magic The Gathering 2"
+   },
+   {
+    "reason": "unclassified",
+    "title": "1000pc Magic The Gathering 1"
+   }
+  ],
+  "error": null,
+  "ms": 11430
+ },
+ {
+  "key": "cardchasersmtl",
+  "name": "Card Chasers MTL",
+  "base": "https://cardchasersmtl.com",
+  "market": "CA",
+  "platform": "shopify",
+  "currency": "CAD",
+  "currencyOk": true,
+  "country": "CA",
+  "collections": [
+   "mtg"
+  ],
+  "sealedProducts": 21,
+  "inStock": 21,
+  "allFound": 21,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 25,
+    "accepted": 21
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "new-releases",
+    "ok": true,
+    "products": 22,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "vague": 4,
+   "not-magic": 20,
+   "accessory": 2
+  },
+  "samples": [
+   {
+    "reason": "vague",
+    "title": "MTG Marvel Super Heroes Collector's Edition Commander Deck"
+   },
+   {
+    "reason": "vague",
+    "title": "MTG Marvel Super Heroes Scene Box"
+   },
+   {
+    "reason": "vague",
+    "title": "MTG Teenage Mutant Ninja Turtles Commander Deck"
+   },
+   {
+    "reason": "vague",
+    "title": "MTG Lorwyn Eclipsed Commander Deck"
+   }
+  ],
+  "error": null,
+  "ms": 5671
+ },
+ {
+  "key": "eclipsetcg",
+  "name": "Eclipse TCG",
+  "base": "https://eclipsetcg.be",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "BE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 3,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 2,
+   "foreign": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 6169
+ },
+ {
+  "key": "magictraders",
+  "name": "Magic Traders",
+  "base": "https://magictraders.nl",
+  "market": "EU",
+  "platform": "shopify",
+  "currency": "EUR",
+  "currencyOk": true,
+  "country": "NL",
+  "collections": [
+   "magic-the-gathering"
+  ],
+  "sealedProducts": 38,
+  "inStock": 11,
+  "allFound": 38,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 47,
+    "accepted": 38
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 19,
+    "accepted": 16
+   }
+  ],
+  "rejections": {
+   "vague": 8,
+   "not-sealed": 2,
+   "foreign": 2
+  },
+  "samples": [
+   {
+    "reason": "vague",
+    "title": "Magic the Gathering: Universes Beyond - Final Fantasy Commander Deck"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic: The Gathering – Final Fantasy Gift Edition Bundle (English)"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic the Gathering: Universes Beyond - Final Fantasy Collector's Edition Commander Deck"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic the Gathering: Universes Beyond - Modern Horizons 3 Commander Deck"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic the Gathering: Universes Beyond - Fallout Commander Deck"
+   }
+  ],
+  "error": null,
+  "ms": 5973
+ },
+ {
+  "key": "gameroost",
+  "name": "Game Roost",
+  "base": "https://gameroost.co.nz",
+  "market": "NZ",
+  "platform": "shopify",
+  "currency": "NZD",
+  "currencyOk": true,
+  "country": "NZ",
+  "collections": [
+   "magic-the-gathering",
+   "pre-order"
+  ],
+  "sealedProducts": 16,
+  "inStock": 12,
+  "allFound": 16,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 18,
+    "accepted": 12
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-order",
+    "ok": true,
+    "products": 10,
+    "accepted": 4
+   },
+   {
+    "handle": "new-releases",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "vague": 7,
+   "unclassified": 1,
+   "not-magic": 4
+  },
+  "samples": [
+   {
+    "reason": "vague",
+    "title": "Magic Reality Fracture - Commander Deck"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic Marvel Super Heroes - Commander Deck"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic Marvel Super Heroes - Scene Box Assorted"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic Secrets of Strixhaven - Commander Deck"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic Lorwyn Eclipsed - Commander Deck"
+   },
+   {
+    "reason": "vague",
+    "title": "Magic the Gathering: Edge of Eternities - Commander Deck"
+   }
+  ],
+  "error": null,
+  "ms": 5552
+ },
+ {
+  "key": "toyworld",
+  "name": "Toyworld NZ",
+  "base": "https://toyworld.co.nz",
+  "market": "NZ",
+  "platform": "shopify",
+  "currency": "NZD",
+  "currencyOk": true,
+  "country": "NZ",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4541
+ },
+ {
+  "key": "cardarena",
+  "name": "Card Arena",
+  "base": "https://cardarena.sg",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 3877
+ },
+ {
+  "key": "capybaracards",
+  "name": "capybaracards.com",
+  "base": "https://capybaracards.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   }
+  ],
+  "rejections": {},
+  "samples": [],
+  "error": null,
+  "ms": 4756
+ },
+ {
+  "key": "jeuxkingdom",
+  "name": "Jeux Kingdom",
+  "base": "https://jeuxkingdom.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed-product",
+    "ok": true,
+    "products": 12,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 11,
+   "not-sealed": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5278
+ },
+ {
+  "key": "obocollectibles",
+  "name": "OBO Collectibles",
+  "base": "https://obocollectibles.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "sealed-product",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 1,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "foreign": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 5071
+ },
+ {
+  "key": "leisuregames",
+  "name": "Leisure Games",
+  "base": "https://leisuregames.com",
+  "market": "UK",
+  "platform": "shopify",
+  "currency": "GBP",
+  "currencyOk": true,
+  "country": "GB",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "pre-orders",
+    "ok": true,
+    "products": 41,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 37,
+   "not-sealed": 1,
+   "unclassified": 1,
+   "vague": 1,
+   "foreign": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 4718
+ },
+ {
+  "key": "gameshaventcg",
+  "name": "Games Haven",
+  "base": "https://gameshaventcg.com",
+  "market": "SG",
+  "platform": "shopify",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [
+   "new-arrivals"
+  ],
+  "sealedProducts": 66,
+  "inStock": 0,
+  "allFound": 66,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 750,
+    "accepted": 66
+   }
+  ],
+  "rejections": {
+   "not-magic": 502,
+   "not-sealed": 181,
+   "accessory": 1
+  },
+  "samples": [],
+  "error": null,
+  "ms": 7646
+ },
+ {
+  "key": "ilantcgbelgium",
+  "name": "Ilan TCG Belgium",
+  "base": "https://ilantcgbelgium.com",
+  "market": "EU",
+  "platform": "woocommerce",
+  "currency": null,
+  "currencyOk": false,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges ?, market EU is EUR",
+  "ms": 2362
+ },
+ {
+  "key": "madatsutcg",
+  "name": "Madatsu TCG",
+  "base": "https://madatsutcg.com",
+  "market": "EU",
+  "platform": "woocommerce",
+  "currency": null,
+  "currencyOk": false,
+  "country": "DE",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [],
+  "rejections": {},
+  "samples": [],
+  "error": "charges ?, market EU is EUR",
+  "ms": 2694
+ },
+ {
+  "key": "cardgiants",
+  "name": "Card Giants",
+  "base": "https://cardgiants.com",
+  "market": "US",
+  "platform": "shopify",
+  "currency": "USD",
+  "currencyOk": true,
+  "country": "US",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "magic-the-gathering-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-the-gathering",
+    "ok": true,
+    "products": 5,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "magic-sealed",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "mtg-sealed-products",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "tins",
+    "ok": true,
+    "products": 0,
+    "accepted": 0
+   },
+   {
+    "handle": "new-arrivals",
+    "ok": true,
+    "products": 30,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "no-set": 3,
+   "unclassified": 2,
+   "not-magic": 29,
+   "not-sealed": 1
+  },
+  "samples": [
+   {
+    "reason": "no-set",
+    "title": "Magic: The Gathering 30 Ct. PresstiShuffle Pack"
+   },
+   {
+    "reason": "unclassified",
+    "title": "Magic The Gathering Surprise Bag"
+   },
+   {
+    "reason": "unclassified",
+    "title": "Magic: The Gathering 15ct. PresstiPack"
+   },
+   {
+    "reason": "no-set",
+    "title": "Magic: The Gathering 4 Ct. PresstiPicks Pack"
+   },
+   {
+    "reason": "no-set",
+    "title": "Magic: The Gathering 15 Ct. Pack, 24 Pack Case"
+   }
+  ],
+  "error": null,
+  "ms": 4980
+ },
+ {
+  "key": "mg",
+  "name": "Mind Games",
+  "base": "https://m-g.com.au",
+  "market": "AU",
+  "platform": "woocommerce",
+  "currency": "AUD",
+  "currencyOk": true,
+  "country": "AU",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 24,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 24
+  },
+  "samples": [],
+  "error": null,
+  "ms": 7514
+ },
+ {
+  "key": "teamboardgame",
+  "name": "teamboardgame.com",
+  "base": "https://teamboardgame.com",
+  "market": "SG",
+  "platform": "woocommerce",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 8,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 8
+  },
+  "samples": [],
+  "error": null,
+  "ms": 8571
+ },
+ {
+  "key": "gamingotaku",
+  "name": "Gaming Otaku",
+  "base": "https://gamingotaku.com",
+  "market": "SG",
+  "platform": "woocommerce",
+  "currency": "SGD",
+  "currencyOk": true,
+  "country": "SG",
+  "collections": [],
+  "sealedProducts": 0,
+  "inStock": 0,
+  "allFound": 0,
+  "read": [
+   {
+    "handle": "search:pokemon",
+    "ok": true,
+    "products": 110,
+    "accepted": 0
+   }
+  ],
+  "rejections": {
+   "not-magic": 68,
+   "foreign": 42
+  },
+  "samples": [],
+  "error": null,
+  "ms": 14733
+ }
+]
