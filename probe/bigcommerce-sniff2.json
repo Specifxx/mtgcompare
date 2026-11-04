@@ -1,0 +1,79 @@
+[
+ {
+  "key": "scg",
+  "base": "https://starcitygames.com",
+  "sitemapCats": [],
+  "pages": [
+   {
+    "path": "/mtg/sealed-products/",
+    "robots": "disallowed"
+   },
+   {
+    "path": "/pokemon/sealed-products/",
+    "robots": "disallowed"
+   },
+   {
+    "path": "/riftbound/",
+    "robots": "disallowed"
+   }
+  ]
+ },
+ {
+  "key": "miniaturemarket",
+  "base": "https://www.miniaturemarket.com",
+  "sitemapCats": [],
+  "pages": [
+   {
+    "path": "/trading-card-games/magic-the-gathering.html",
+    "robots": "disallowed"
+   },
+   {
+    "path": "/trading-card-games/pokemon.html",
+    "robots": "disallowed"
+   },
+   {
+    "path": "/trading-card/riftbound",
+    "robots": "disallowed"
+   }
+  ]
+ },
+ {
+  "key": "gamegoblins",
+  "base": "https://www.gamegoblins.com",
+  "sitemapCats": [],
+  "pages": []
+ },
+ {
+  "key": "magicmadhouse",
+  "base": "https://www.magicmadhouse.co.uk",
+  "sitemapCats": [],
+  "pages": []
+ },
+ {
+  "key": "toywiz",
+  "base": "https://toywiz.com",
+  "sitemapCats": [],
+  "pages": [
+   {
+    "path": "/pokemon/",
+    "robots": "disallowed"
+   },
+   {
+    "path": "/magic-the-gathering/",
+    "robots": "disallowed"
+   }
+  ]
+ },
+ {
+  "key": "grandjgames",
+  "base": "https://grandjgames.com",
+  "sitemapCats": [],
+  "pages": []
+ },
+ {
+  "key": "gamenerdz",
+  "base": "https://www.gamenerdz.com",
+  "sitemapCats": [],
+  "pages": []
+ }
+]
