@@ -1,0 +1,31 @@
+name: Probe stores
+# Research only (temporary, claude/* branches): probes probe/candidates.json with scripts/probe-stores.ts and
+# commits probe/probe.json to the branch it ran on. Never touches data/ or main.
+on:
+  push:
+    branches: ["claude/**"]
+    paths: ["probe/candidates.json"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npx prisma generate
+      - run: npx tsx scripts/probe-stores.ts --in probe/candidates.json --out probe/probe.json --concurrency 4
+      - if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add probe/probe.json
+          git commit -m "probe: results" || exit 0
+          for i in 1 2 3 4; do git push origin HEAD:${GITHUB_REF_NAME} && exit 0; sleep $((2 ** i)); git pull --rebase origin ${GITHUB_REF_NAME}; done
+          exit 1
