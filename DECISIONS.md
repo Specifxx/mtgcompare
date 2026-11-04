@@ -998,6 +998,16 @@ page but its sitemap: out, never worked around. Star City Games, ToyWiz and Game
 JavaScript (no product in the HTML): not readable this way, and not worth a headless browser. Their homepages and category pages were
 fetched once each for this check and nothing else.
 
+## 2026-11-04 — HBT Collectables is removed and banned: they asked not to be linked
+
+HBT Collectables (hbtcollectables.com, AU) answered the store outreach email by sending it to their lawyers as
+"unauthorised linking" under their site's terms. The owner's call: take them off every site, apologise, send them
+no more visitors. Here the store leaves `stores.json` and the shipping table, its cached offers and store stats
+leave `data/public/`, and it joins `BLOCKED_STORES` (`src/lib/blocked-stores.ts`), which also drops any row of
+theirs from an older export at read time and keeps a probe or registry sweep from adding them back. Both hosts
+are on RiftCompare's `data/store-vetting/banned.json`. Not a judgement on the store: it does not want the
+traffic, so we don't send it. The change rides the next data release.
+
 ## 2026-11-04 — List your store: stores come to us
 
 The owner stopped cold email outreach ("not really doing anything") and set the aim: be popular enough that stores

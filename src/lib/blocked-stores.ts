@@ -3,7 +3,9 @@
 // Shopify shop is caught too. Pure (no imports): the importer, the probes, the file store and the tests all read it.
 //
 // - tcgsynergy (TCG Synergy, tcgsynergy.myshopify.com, CA): owner, 2026-10-31, "it's a scam site".
-export const BLOCKED_STORES: readonly string[] = ["tcgsynergy"];
+// - hbtcollectables (HBT Collectables, hbtcollectables.com, AU): asked not to be linked, legal notice to the
+//   owner, 2026-11-04. Not a scam; a store that does not want the traffic.
+export const BLOCKED_STORES: readonly string[] = ["tcgsynergy", "hbtcollectables"];
 
 function squash(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]/g, "");
