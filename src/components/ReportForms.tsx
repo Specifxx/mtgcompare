@@ -1,8 +1,8 @@
 "use client";
 
-// "Report a wrong price", "Suggest a store" and "Report a store": the visitor forms every
-// Compare Empire site shares. Both POST to /api/report, which files them in the
-// private reports repo (src/lib/reports-github.ts). Inline only: the price form
+// "Report a wrong price", "Suggest a store", "List your store" and "Report a store":
+// the visitor forms every Compare Empire site shares. All POST to /api/report, which
+// files them in the site's reports branch (src/lib/reports-github.ts). Inline only: the price form
 // opens in place under a quiet link, never as a pop-up (owner, 2026-10-27).
 // Nothing asks for an email address, and the hint says reports are public. Styling is inherited (currentColor and
 // translucent borders) so the same file sits on light and dark sites; a site
@@ -241,6 +241,91 @@ export function ReportStore({ stores = [], buttonClassName }: { stores?: string[
       </button>
       <Result state={state} sentText="" />
       <p style={hint}>No sign-up and no email needed. Reports are kept in our public records, so please leave out order numbers and personal details.</p>
+    </form>
+  );
+}
+
+/**
+ * "List your store": the form on /list-your-store, for the owner of a store that
+ * wants to be compared (owner, 2026-11-04: no more cold outreach; stores should
+ * come to us, and the ones that ask are encouraged). Filed as kind "suggest-store"
+ * with issue "owner", which the daily triage puts first and asks to be answered
+ * within two days. The branch is public, so no email is asked for: we reply
+ * through the contact details on the store's own website.
+ */
+export function ListStore({
+  regions,
+  buttonClassName,
+  what = "products",
+}: {
+  /** region codes and names the site covers, e.g. [["AU", "Australia"]] */
+  regions?: [string, string][];
+  buttonClassName?: string;
+  /** what the stores sell, for the copy: "One Piece cards" */
+  what?: string;
+}) {
+  const [state, setState] = useState<State>({ status: "idle" });
+
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const platform = String(fd.get("platform") || "unsure");
+    const extra = String(fd.get("note") || "").trim();
+    setState({ status: "sending" });
+    setState(
+      await send({
+        kind: "suggest-store",
+        issue: "owner",
+        store: fd.get("store"),
+        storeUrl: fd.get("storeUrl"),
+        region: fd.get("region"),
+        note: `Store owner request. Platform: ${platform}.${extra ? ` ${extra}` : ""}`,
+        website: fd.get("website"),
+      }),
+    );
+  }
+
+  if (state.status === "sent")
+    return (
+      <div style={box} data-list-store>
+        <Result state={state} sentText="Thanks! We'll check your store within a few days and reply through the contact details on your website. Once it's listed, your prices appear with the next daily update." />
+      </div>
+    );
+  return (
+    <form onSubmit={submit} style={{ ...box, maxWidth: 560 }} data-list-store>
+      <label style={{ ...label, marginTop: 0 }} htmlFor="ls-store">Store name</label>
+      <input id="ls-store" name="store" style={field} maxLength={160} required />
+      <label style={label} htmlFor="ls-url">Store website</label>
+      <input id="ls-url" name="storeUrl" style={field} maxLength={300} placeholder="example.com" inputMode="url" autoCapitalize="none" required />
+      <label style={label} htmlFor="ls-platform">What runs the shop?</label>
+      <select id="ls-platform" name="platform" style={field} defaultValue="unsure">
+        <option value="unsure">Not sure</option>
+        <option value="shopify">Shopify</option>
+        <option value="woocommerce">WooCommerce</option>
+        <option value="bigcommerce">BigCommerce</option>
+        <option value="other">Something else</option>
+      </select>
+      {regions?.length ? (
+        <>
+          <label style={label} htmlFor="ls-region">Where does it ship from?</label>
+          <select id="ls-region" name="region" style={field} defaultValue={regions[0]?.[0]}>
+            {regions.map(([v, t]) => (
+              <option key={v} value={v}>{t}</option>
+            ))}
+            <option value="OTHER">Somewhere else</option>
+          </select>
+        </>
+      ) : null}
+      <label style={label} htmlFor="ls-note">Anything we should know? (optional)</label>
+      <textarea id="ls-note" name="note" style={{ ...field, minHeight: 64 }} maxLength={800} placeholder={`e.g. the link to your ${what}, or a product feed we can read`} />
+      <div style={hidden} aria-hidden="true">
+        <label>Leave empty<input name="website" tabIndex={-1} autoComplete="off" /></label>
+      </div>
+      <button type="submit" className={buttonClassName} style={buttonClassName ? { marginTop: 12 } : defaultButton} disabled={state.status === "sending"}>
+        {state.status === "sending" ? "Sending…" : "List my store"}
+      </button>
+      <Result state={state} sentText="" />
+      <p style={hint}>No sign-up and no email needed: we reply through the contact details on your website. Requests are kept in our public records, so please leave out personal details.</p>
     </form>
   );
 }
