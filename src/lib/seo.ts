@@ -209,6 +209,8 @@ export function productJsonLd(p: {
       availability: p.preorder ? "https://schema.org/PreOrder" : "https://schema.org/InStock",
       // Sealed product from stores (and TCGplayer's sealed listings): every offer compared is new. eBay is never in here.
       itemCondition: "https://schema.org/NewCondition",
+      // The import runs daily, so a price is good until tomorrow (schema.org priceValidUntil, YYYY-MM-DD).
+      priceValidUntil: new Date(Date.now() + 86400e3).toISOString().slice(0, 10),
     },
   };
 }
