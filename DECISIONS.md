@@ -965,3 +965,16 @@ besides the picks), placement `tcgplayer-strip-landing`, each link tagged with t
 390px phone to 814px and had to be fixed before shipping: an `auto` grid track sizes to the scroll row's content (`grid-cols-[minmax(0,1fr)]`
 and `min-w-0` on the panel), and a tile's `sr-only` span is absolutely positioned, so unless the tile is `relative` it is laid out at its
 static position in the page, outside the clipped row. Title, description, canonical, hreflang, h1 and the links are unchanged.
+
+## 2026-11-04 — Big-store gap: 5 stores from the per-region research
+
+The owner asked for every big store captured with no gaps, on every site. Research per region (the sister sites' 1,300-host
+union, retailer lists, community "where to buy" threads) named 23 Magic sealed candidates not in `stores.json`; a runner
+probe (`scripts/probe-stores.ts`, the sandbox cannot reach stores) read each the way the import does. Five read sealed
+Magic in their region's currency and are added: **Eclipse Games** (AU, `booster-boxes`: 33 sealed), **Hobbyco** (AU,
+`magic-the-gathering`: 64 sealed, 26 in stock), **Card Chasers** (CA, `mtg`: 21 in stock), **Magic Traders** (EU,
+`magic-the-gathering`: 38), **Game Roost** (NZ: 16). Read but not added: Games Haven (SG; its only Magic sealed sits in
+a rolling `new-arrivals` collection, 0 in stock), Card Giants (US; its Magic collection is repacks and mystery bags),
+Leisure Games (UK), Mind Games (AU), Cura Cards, Gumnut, Jenes, Games Paradise, Card Arena, Jeux Kingdom, OBO, Team Board
+Game, Gaming Otaku (no Magic sealed in any collection), ILAN TCG and Madatsu (WooCommerce stores that state no currency).
+Not addable, and why (the same list every card site hit): the biggest US and UK names run platforms with no public feed or a robots.txt that forbids reading — BigCommerce (Star City Games, Game Nerdz, Game Goblins, ToyWiz, Magic Madhouse), CrystalCommerce stores whose robots.txt disallows everything (Three Kings Loot, Carta Magica, Gamekeeper, The Connection, Card Titan, Collector's Cache, Nerd Rage, Pastimes), bot walls that answer 403 or a Cloudflare challenge (Chaos Cards, Big Orbit, Wayland, Firestorm, Mighty Ape AU and NZ, Gamesmen, EB Games, MTG Mate, Imaginaire, Le Valet, Bazaar of Magic, FantasyWelt, Keepseven, Nedgame, Poromagia, Dave & Adam's, Pro-Play, Pokémon Center, Red Hobby) and custom storefronts (Card Kingdom, CoolStuffInc, ABUGames, CoreTCG, Ideal808, Noble Knight, Miniature Market, Play-in, Parkage, Agora Hobby, Hobby Master NZ). A bot wall is never worked around. A BigCommerce reader would unlock the most (Star City Games, Miniature Market, Game Nerdz, Magic Madhouse, Game Goblins) and is the next adapter worth writing.
