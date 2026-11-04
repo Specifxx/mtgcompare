@@ -30,7 +30,8 @@ async function robots(base) {
     if (/^user-agent:/i.test(l)) star = /^user-agent:\s*\*/i.test(l);
     else if (star && /^disallow:/i.test(l)) { const p = l.replace(/^disallow:\s*/i, "").trim(); if (p) dis.push(p); }
   }
-  return (path) => !dis.some((d) => path.startsWith(d.replace(/\*.*$/, "")));
+  // Same semantics as the sites' own robotsAllows: a plain prefix match on the rule as written (a wildcard rule never matches, fails open).
+  return (path) => !dis.some((d) => path.startsWith(d));
 }
 function strip(html) {
   return html.replace(/<script[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<svg[\s\S]*?<\/svg>/gi, "").replace(/\s+\n/g, "\n");
