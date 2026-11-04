@@ -3,17 +3,18 @@ on:
   workflow_dispatch: {}
   push:
     branches: [claude/project-thread-qu5ees]
-    paths: [probe/bigcommerce-sniff.mjs]
+    paths: [probe/candidates.json]
 permissions: { contents: write }
 jobs:
-  sniff:
+  probe:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - run: node probe/bigcommerce-sniff.mjs
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - run: npx tsx scripts/probe-stores.ts --in probe/candidates.json --out probe/mtg-bc-probe.json --concurrency 2 2>&1 | tee probe/mtg-bc-probe.log
       - run: |
           git config user.name "probe" && git config user.email "probe@users.noreply.github.com"
-          git add probe/ && git commit -m "probe: bigcommerce sniff results" && git push origin HEAD:${{ github.ref_name }}
+          git add probe/ && git commit -m "probe: results" && git push origin HEAD:${{ github.ref_name }}
