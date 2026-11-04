@@ -14,12 +14,13 @@ export interface StoreConfig {
   name: string;
   base: string; // https origin, no trailing slash
   market: Market;
-  platform: "shopify" | "woocommerce" | "tcgplayer";
+  platform: "shopify" | "woocommerce" | "bigcommerce" | "shopware" | "tcgplayer";
   // ISO country sent as Shopify's ?country= so a Markets-enabled store prices
   // in its own currency (see shopifyMeta in feeds.ts). The shop's home country
   // from /meta.json; for EU stores it is the store's own eurozone country.
   country: string;
-  // Shopify collection handles / WooCommerce category slugs to read, best first.
+  // Shopify collection handles / WooCommerce category slugs / BigCommerce and
+  // Shopware category paths ("/sealed-product/magic-the-gathering-sealed/") to read, best first.
   // "*" (WHOLE_CATALOGUE in feeds.ts) reads the store's whole /products.json.
   // Non-Pokémon collections (e.g. "pre-orders") are read strictly: a title
   // there must say "Pokémon" outright.

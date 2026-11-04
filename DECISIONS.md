@@ -978,3 +978,22 @@ a rolling `new-arrivals` collection, 0 in stock), Card Giants (US; its Magic col
 Leisure Games (UK), Mind Games (AU), Cura Cards, Gumnut, Jenes, Games Paradise, Card Arena, Jeux Kingdom, OBO, Team Board
 Game, Gaming Otaku (no Magic sealed in any collection), ILAN TCG and Madatsu (WooCommerce stores that state no currency).
 Not addable, and why (the same list every card site hit): the biggest US and UK names run platforms with no public feed or a robots.txt that forbids reading — BigCommerce (Star City Games, Game Nerdz, Game Goblins, ToyWiz, Magic Madhouse), CrystalCommerce stores whose robots.txt disallows everything (Three Kings Loot, Carta Magica, Gamekeeper, The Connection, Card Titan, Collector's Cache, Nerd Rage, Pastimes), bot walls that answer 403 or a Cloudflare challenge (Chaos Cards, Big Orbit, Wayland, Firestorm, Mighty Ape AU and NZ, Gamesmen, EB Games, MTG Mate, Imaginaire, Le Valet, Bazaar of Magic, FantasyWelt, Keepseven, Nedgame, Poromagia, Dave & Adam's, Pro-Play, Pokémon Center, Red Hobby) and custom storefronts (Card Kingdom, CoolStuffInc, ABUGames, CoreTCG, Ideal808, Noble Knight, Miniature Market, Play-in, Parkage, Agora Hobby, Hobby Master NZ). A bot wall is never worked around. A BigCommerce reader would unlock the most (Star City Games, Miniature Market, Game Nerdz, Magic Madhouse, Game Goblins) and is the next adapter worth writing.
+
+## 2026-11-04 — Stores without a feed: BigCommerce and Shopware read from their category pages
+
+The big-store gap report named BigCommerce as the one platform worth an adapter. `src/lib/storefront-html.ts` (ported from OP
+Compare's `lib/bigcommerce.ts`) reads a BigCommerce Stencil category page (`/<path>/?limit=100&page=N`: one `<article class="card">`
+per product with its title, price and "Add to Cart" / "Out of stock" button) and, since Miniature Market turned out to run Shopware 6
+rather than Magento, a Shopware listing (`<div class="card product-box">`, paged with `?p=N`, a `btn-buy` button or a stock-notify
+form). The importer (`readHtmlStore`) and `scripts/probe-stores.ts` (`platform: "bigcommerce" | "shopware"`, `collections` as
+category paths) put such a store through the same `identify()`, currency, floor, outlier and staleness rules as a Shopify or WooCommerce
+read. A first page with no product grid is a failed read, never an empty category, so a theme that draws its grid in the browser can
+never empty a store's rows. The pages state a currency only sometimes ("699.95$ AUD", JSON-LD); a page that states another currency
+is refused, and one that states none is taken on the registry's word, which the probe says in its output.
+
+Sniffed from a runner the same day (bot User-Agent, robots.txt honoured): **Miniature Market** (US, Shopware, 215 Magic sealed, 118 in
+stock) and **Grand J Games** (AU, BigCommerce, 78 sealed, 59 in stock, plus its pre-order category) read and were added. Game Goblins
+(US, BigCommerce) reads but lists 7 Magic sealed products, none in stock: not added. Magic Madhouse (UK) serves a bot challenge on every
+page but its sitemap: out, never worked around. Star City Games, ToyWiz and Game Nerdz are BigCommerce stores whose grids are drawn by
+JavaScript (no product in the HTML): not readable this way, and not worth a headless browser. Their homepages and category pages were
+fetched once each for this check and nothing else.

@@ -36,6 +36,7 @@ import {
   type FeedProduct,
 } from "./feeds";
 import { RateLimitedError, REQUEST_DELAY_MS, SCRAPE_HEADERS, sleep } from "./scrape-http";
+import { readHtmlCategory, type HtmlPlatform } from "./storefront-html";
 import { usMsrpCents } from "./rrp";
 import { canonicalName, cleanName, floorCents, identify, isIdentity, roughUsdCents, slugify, type SealedIdentity, type TypeKey } from "./sealed-title";
 import { headlineOffer, offerStock } from "./sealed-offers";
@@ -231,6 +232,21 @@ async function readWooStore(store: StoreConfig): Promise<{ reads: CollectionRead
   return { reads, rediscovered, error: null };
 }
 
+// A store read from its server-rendered category pages (lib/storefront-html.ts):
+// BigCommerce or Shopware. No rediscovery: a renamed category path is a failed
+// read, which keeps yesterday's rows and shows on /admin as a store to fix.
+async function readHtmlStore(store: StoreConfig, platform: HtmlPlatform): Promise<{ reads: CollectionRead[]; rediscovered: boolean; error: string | null }> {
+  const expected = storeCurrency(store);
+  const reads: CollectionRead[] = [];
+  for (const path of store.collections) {
+    await sleep(REQUEST_DELAY_MS);
+    reads.push(await readHtmlCategory(store.base, path, platform, expected, MAX_PAGES));
+  }
+  const wrong = reads.flatMap((r) => r.products).find((p) => p.currency && p.currency !== expected);
+  if (wrong) return { reads: [], rediscovered: false, error: `store now charges ${wrong.currency}, market ${store.market} is ${expected}` };
+  return { reads, rediscovered: false, error: null };
+}
+
 async function readTcgplayer(): Promise<{ reads: CollectionRead[]; rediscovered: boolean; error: string | null }> {
   // The catalogue is TCGplayer's Pokémon product line, so its titles are read
   // like a store's Pokémon collection: they needn't say "Pokémon".
@@ -246,7 +262,9 @@ export async function readStore(store: StoreConfig): Promise<StoreRead> {
         ? await readTcgplayer()
         : store.platform === "woocommerce"
           ? await readWooStore(store)
-          : await readShopifyStore(store);
+          : store.platform === "bigcommerce" || store.platform === "shopware"
+            ? await readHtmlStore(store, store.platform)
+            : await readShopifyStore(store);
     const products = reads.reduce((n, r) => n + r.products.length, 0);
     if (error) return { store, ok: false, error, rows: [], products, rediscovered, ms: Date.now() - t0 };
     // An empty read (every collection 404, a block page, a timeout) is a

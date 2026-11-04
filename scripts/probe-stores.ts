@@ -35,6 +35,7 @@ import { identify, isIdentity, type Rejection } from "../src/lib/sealed-title";
 import { REGIONS, isRegion, type Market } from "../src/lib/regions";
 import type { StoreConfig } from "../src/lib/stores";
 import { isBlockedStore } from "../src/lib/blocked-stores";
+import { bigCommerceCategories, readHtmlCategory, type HtmlPlatform } from "../src/lib/storefront-html";
 
 interface Candidate {
   key?: string;
@@ -42,7 +43,11 @@ interface Candidate {
   base: string;
   country?: string;
   market?: string;
+  // "bigcommerce" or "shopware" names a store read from its category pages
+  // (lib/storefront-html.ts); `collections` are its category paths, or for
+  // BigCommerce they are found in its categories sitemap when omitted.
   platform?: string;
+  collections?: string[];
 }
 
 interface ProbeResult {
@@ -50,7 +55,7 @@ interface ProbeResult {
   name: string;
   base: string;
   market: Market;
-  platform: "shopify" | "woocommerce" | null;
+  platform: "shopify" | "woocommerce" | HtmlPlatform | null;
   currency: string | null;
   currencyOk: boolean;
   country: string;
@@ -98,7 +103,8 @@ function marketOf(c: Candidate): Market | null {
   return isRegion(m) ? REGIONS[m].market : null;
 }
 
-async function detectPlatform(base: string): Promise<"shopify" | "woocommerce" | null> {
+async function detectPlatform(base: string, declared?: string): Promise<"shopify" | "woocommerce" | HtmlPlatform | null> {
+  if (declared === "bigcommerce" || declared === "shopware") return declared;
   const shop = (await get(`${base}/products.json?limit=1`)) as { products?: unknown[] } | null;
   if (shop && Array.isArray(shop.products)) return "shopify";
   await sleep(REQUEST_DELAY_MS);
@@ -130,7 +136,7 @@ async function probe(c: Candidate & { key: string; base: string; market: Market 
   };
   const expected = REGIONS[c.market.toLowerCase() as keyof typeof REGIONS].currency;
   try {
-    res.platform = await detectPlatform(c.base);
+    res.platform = await detectPlatform(c.base, c.platform);
     if (!res.platform) {
       res.error = "no public Shopify or WooCommerce feed";
       return res;
@@ -153,6 +159,25 @@ async function probe(c: Candidate & { key: string; base: string; market: Market 
       for (const h of ranked.slice(0, MAX_CANDIDATES)) {
         await sleep(REQUEST_DELAY_MS);
         reads.push(await readShopifyCollection(c.base, h, { country, maxPages: PROBE_PAGES }));
+      }
+    } else if (res.platform === "bigcommerce" || res.platform === "shopware") {
+      let paths = c.collections ?? [];
+      if (!paths.length && res.platform === "bigcommerce") {
+        paths = (await bigCommerceCategories(c.base)).filter((p) => isMagicCollection(p) && !/single|graded|accessor|sleeve|supplies/i.test(p)).slice(0, MAX_CANDIDATES);
+      }
+      for (const path of paths) {
+        await sleep(REQUEST_DELAY_MS);
+        reads.push(await readHtmlCategory(c.base, path, res.platform, expected, PROBE_PAGES));
+      }
+      // These pages state a currency only sometimes ("699.95$ AUD", JSON-LD); a
+      // page that states another currency is refused, one that states none is
+      // taken on the candidate's word and said so in the output.
+      const cur = reads.flatMap((r) => r.products).find((p) => p.currency)?.currency ?? null;
+      res.currency = cur;
+      res.currencyOk = cur === expected || (cur === null && reads.some((r) => r.ok));
+      if (!res.currencyOk) {
+        res.error = `charges ${cur ?? "?"}, market ${c.market} is ${expected}`;
+        return res;
       }
     } else {
       const cats = await wooCategories(c.base);

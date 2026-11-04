@@ -9071,6 +9071,17 @@
     ]
   },
   {
+    "key": "miniaturemarket",
+    "name": "Miniature Market",
+    "base": "https://www.miniaturemarket.com",
+    "market": "US",
+    "platform": "shopware",
+    "country": "US",
+    "collections": [
+      "/trading-card-games/magic-the-gathering.html"
+    ]
+  },
+  {
     "key": "eclipsegamesau",
     "name": "Eclipse Games",
     "base": "https://eclipsegames.com.au",
@@ -9090,6 +9101,18 @@
     "country": "AU",
     "collections": [
       "magic-the-gathering"
+    ]
+  },
+  {
+    "key": "grandjgames",
+    "name": "Grand J Games",
+    "base": "https://grandjgames.com",
+    "market": "AU",
+    "platform": "bigcommerce",
+    "country": "AU",
+    "collections": [
+      "/tcgs/magic-the-gathering/magic-the-gathering-sealed/",
+      "/tcgs/magic-the-gathering/magic-the-gathering-preorders/"
     ]
   },
   {
