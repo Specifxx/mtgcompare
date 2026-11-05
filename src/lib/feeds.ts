@@ -5,12 +5,15 @@
 //
 // Everything is normalised to FeedProduct so the importer has one code path.
 import { REQUEST_DELAY_MS, get, robotsAllows, sleep } from "./scrape-http";
+import { isPickupOnly, pickupText } from "./pickup-only";
 import { decodeEntities } from "./sealed-title";
 
 export interface FeedVariant {
   priceCents: number;
   available: boolean;
   title?: string; // Shopify variant title: "Default Title", "Single Tin", "Display (10)", …
+  // Shopify's requires_shipping. False is a variant the store never posts (pickup only, a service): never a listing (importer priceOf).
+  requiresShipping?: boolean;
 }
 
 export interface FeedProduct {
@@ -24,6 +27,9 @@ export interface FeedProduct {
   imageHeight?: number;
   variants: FeedVariant[];
   currency: string | null; // stated by the feed (Woo); Shopify's feed doesn't say
+  // The title, tags or description say the item is collected from the store, never posted (src/lib/pickup-only.ts): the importer
+  // leaves the product out, since the store's measured postage does not apply and a visitor elsewhere cannot buy it.
+  pickupOnly?: boolean;
 }
 
 export interface CollectionRead {
@@ -42,11 +48,14 @@ interface ShopifyVariantRaw {
   price?: string;
   available?: boolean;
   title?: string;
+  requires_shipping?: boolean;
 }
 interface ShopifyProductRaw {
   handle: string;
   title: string;
   url?: string; // not Shopify's: a non-Shopify store serving the same format links its own product page
+  body_html?: string;
+  tags?: string[] | string;
   variants?: ShopifyVariantRaw[];
   images?: { src?: string; width?: number; height?: number }[];
 }
@@ -98,9 +107,15 @@ export async function readShopifyCollection(
         imageWidth: p.images?.[0]?.width,
         imageHeight: p.images?.[0]?.height,
         variants: (p.variants ?? [])
-          .map((v) => ({ priceCents: Math.round(parseFloat(v.price ?? "0") * 100), available: v.available === true, title: v.title }))
+          .map((v) => ({
+            priceCents: Math.round(parseFloat(v.price ?? "0") * 100),
+            available: v.available === true,
+            title: v.title,
+            ...(typeof v.requires_shipping === "boolean" ? { requiresShipping: v.requires_shipping } : {}),
+          }))
           .filter((v) => Number.isFinite(v.priceCents) && v.priceCents > 0),
         currency: null,
+        pickupOnly: isPickupOnly(pickupText([p.title, Array.isArray(p.tags) ? p.tags.join(", ") : p.tags, p.body_html])),
       });
     }
     if (data.products.length < SHOPIFY_PAGE) break;
@@ -201,6 +216,8 @@ interface WooProductRaw {
   permalink: string;
   is_in_stock: boolean;
   is_purchasable?: boolean;
+  description?: string;
+  short_description?: string;
   images?: { src?: string }[];
   prices?: { price?: string; currency_code?: string; currency_minor_unit?: number };
 }
@@ -227,6 +244,7 @@ function wooProduct(p: WooProductRaw): FeedProduct | null {
     imageUrl: p.images?.[0]?.src ?? null,
     variants: [{ priceCents, available: p.is_in_stock === true && p.is_purchasable !== false }],
     currency: p.prices?.currency_code ?? null,
+    pickupOnly: isPickupOnly(pickupText([p.name, p.short_description, p.description])),
   };
 }
 

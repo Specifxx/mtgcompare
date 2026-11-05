@@ -1019,3 +1019,25 @@ The request is filed as a `suggest-store` report with `issue: "owner"`; RiftComp
 those first and asks for a reply within two days. No email is asked for (the reports branch is public); no pop-up,
 no cold email. RiftCompare and OP Compare keep their `/stores/suggest` page (now the owner pitch) and redirect
 `/list-your-store` to it.
+
+## 2026-11-05: Pickup-only listings are left out, never shown with a shipping price
+
+A visitor reported the Star Trek play booster box pre-order at the top of the MTG pre-orders page: a US$100 listing from 1st Capital
+Gaming shown with the store's measured postage, while the store's page says the pre-order is collected in store. The importer read
+nothing about that: Shopify's product feed carries the price, the stock and whether a variant needs shipping, and the store's note is
+injected on its page by a pre-order app, so no feed can see it (and the same note says "Shipping: Nov 6", so the store's own
+wording is ambiguous).
+
+What the feed does say is now read:
+
+- a Shopify variant with `requires_shipping: false` (pickup only, a service) is never a listing's price (`priceOf`); the posted
+  variant is, even when dearer;
+- a product whose title, tags or description say pickup only, in-store only, collection only, no shipping, cannot be shipped or
+  "this item does not ship" (`src/lib/pickup-only.ts`, Shopify and WooCommerce) is left out of the store's rows altogether.
+
+Left out, not labelled: a listing the store will not post is not a price a visitor elsewhere can pay, and the store's measured
+postage (`src/lib/shipping.ts`, which already leaves pickup rates out of every figure) does not apply to it. "Pickup available" and
+shipping policy ("cannot be shipped to PO boxes", "we do not ship internationally") are not refusals, and a rule here may only
+refuse more, never loosen: every wording is in `tests/pickup-only.test.ts`. DexCompare's sealed app (the same reader) gets the same
+change. The 1st Capital listing itself stays, since its feed says it ships and the probe measured US$9.25 postage on that
+collection; if the store writes "pickup only" into the product, the next import drops it.
