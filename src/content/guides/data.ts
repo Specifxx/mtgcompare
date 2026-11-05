@@ -85,6 +85,9 @@ const READS: Record<GuideSlug, readonly [FamilyKey, number][]> = {
   "best-commander-precons-australia": [],
   "where-to-buy-mtg-booster-boxes-australia": [],
   "best-magic-product-for-beginners": [],
+  "final-fantasy-mtg-sealed-prices": [],
+  "lord-of-the-rings-mtg-sealed-prices": [],
+  "avatar-last-airbender-mtg-sealed-prices": [],
 };
 
 const UB_CODES = SETS.filter((x) => x.series === "Universes Beyond").map((x) => x.code);
@@ -98,6 +101,8 @@ export function calendarSets(today: string) {
 async function extraFor(slug: GuideSlug, market: RegionInfo["market"], today: string): Promise<Partial<GuideData>> {
   const types = async (labels: readonly string[], take: number, order: "asc" | "desc" = "asc", extra: Record<string, unknown> = {}) =>
     Object.fromEntries(await Promise.all(labels.map(async (l) => [l, await openOfType(market, l, take, order, extra)] as const)));
+  // The set sealed price guides: the set's open products (cheapest first) and its listed/open counts.
+  const setOf = async (code: string): Promise<Partial<GuideData>> => ({ byType: { set: await openOfSets(market, [code], 400) }, sets: await setCountsOf(market, [code]) });
   const counts = async (labels: readonly string[]) => Object.fromEntries(await Promise.all(labels.map(async (l) => [l, await openCount(market, l)] as const)));
   switch (slug) {
     case "cheapest-way-to-buy-magic-packs":
@@ -135,6 +140,12 @@ async function extraFor(slug: GuideSlug, market: RegionInfo["market"], today: st
       return { byType: await types(["Starter Kit", "Commander Deck", "Play Booster Pack"], 6), openByType: await counts(["Starter Kit", "Commander Deck"]) };
     case "where-to-buy-mtg-booster-boxes-australia":
       return { byType: await types(["Play Booster Box", "Collector Booster Box"], 120), openByType: await counts(["Play Booster Box", "Collector Booster Box"]) };
+    case "final-fantasy-mtg-sealed-prices":
+      return setOf("fin");
+    case "lord-of-the-rings-mtg-sealed-prices":
+      return setOf("ltr");
+    case "avatar-last-airbender-mtg-sealed-prices":
+      return setOf("tla");
     default:
       return {};
   }

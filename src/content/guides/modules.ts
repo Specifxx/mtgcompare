@@ -24,6 +24,9 @@ import * as bundlePrices from "./mtg-bundle-prices";
 import * as commanderAu from "./best-commander-precons-australia";
 import * as boxesAu from "./where-to-buy-mtg-booster-boxes-australia";
 import * as beginners from "./best-magic-product-for-beginners";
+import * as finPrices from "./final-fantasy-mtg-sealed-prices";
+import * as ltrPrices from "./lord-of-the-rings-mtg-sealed-prices";
+import * as tlaPrices from "./avatar-last-airbender-mtg-sealed-prices";
 
 export const GUIDE_MODULES: Record<GuideSlug, GuideModule> = {
   "play-booster-vs-collector-booster-vs-bundle": compare,
@@ -48,4 +51,7 @@ export const GUIDE_MODULES: Record<GuideSlug, GuideModule> = {
   "best-commander-precons-australia": commanderAu,
   "where-to-buy-mtg-booster-boxes-australia": boxesAu,
   "best-magic-product-for-beginners": beginners,
+  "final-fantasy-mtg-sealed-prices": finPrices,
+  "lord-of-the-rings-mtg-sealed-prices": ltrPrices,
+  "avatar-last-airbender-mtg-sealed-prices": tlaPrices,
 };
