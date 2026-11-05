@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-04T16:47:21.697Z",
+ "generatedAt": "2026-11-05T01:17:50.621Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -50,7 +50,7 @@
    "currency": "AUD",
    "store": "Pro Gamers",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/657849_in_1000x1000.jpg",
-   "refCents": 24950,
+   "refCents": 24900,
    "refLabel": "median store price",
    "savingPct": 46
   },
@@ -212,57 +212,29 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "Edge of Eternities Commander Deck - World Shaper",
-   "url": "https://mtgcompare.app/us/p/edge-of-eternities-commander-deck-world-shaper",
-   "cents": 2699,
-   "currency": "USD",
-   "store": "Video Game Trader LLC",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/619676_in_1000x1000.jpg",
-   "refCents": 5198,
-   "refLabel": "median store price",
-   "savingPct": 48
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "US",
    "title": "FINAL FANTASY Commander Deck - FINAL FANTASY VII Limit Break (Game Edition)",
    "url": "https://mtgcompare.app/us/p/final-fantasy-commander-deck-final-fantasy-vii-limit-break-game-edition",
-   "cents": 4721,
+   "cents": 4631,
    "currency": "USD",
    "store": "Cards N MO",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/656732_in_1000x1000.jpg",
    "refCents": 8999,
    "refLabel": "median store price",
-   "savingPct": 48
+   "savingPct": 49
   },
   {
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "Lorwyn Eclipsed 60-Card Theme Deck - Pirates",
-   "url": "https://mtgcompare.app/us/p/lorwyn-eclipsed-60-card-theme-deck-pirates",
-   "cents": 1282,
+   "title": "Marvel Super Heroes Commander Deck - Wakanda Forever (Collector's Edition)",
+   "url": "https://mtgcompare.app/us/p/marvel-super-heroes-commander-deck-wakanda-forever-collectors-edition",
+   "cents": 8605,
    "currency": "USD",
-   "store": "Gamelandia",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/656330_in_1000x1000.jpg",
-   "refCents": 2399,
+   "store": "Cards N MO",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675628_in_1000x1000.jpg",
+   "refCents": 13999,
    "refLabel": "median store price",
-   "savingPct": 47
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "US",
-   "title": "Marvel Super Heroes - Beginner Box",
-   "url": "https://mtgcompare.app/us/p/marvel-super-heroes-beginner-box",
-   "cents": 1800,
-   "currency": "USD",
-   "store": "4GS Games",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675613_in_1000x1000.jpg",
-   "refCents": 2999,
-   "refLabel": "median store price",
-   "savingPct": 40
+   "savingPct": 39
   },
   {
    "kind": "deal",
@@ -277,6 +249,34 @@
    "refCents": 5995,
    "refLabel": "median store price",
    "savingPct": 38
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "US",
+   "title": "Secret Lair Drop: Cosmic Chill by Robin Eisenberg - Traditional Foil Edition",
+   "url": "https://mtgcompare.app/us/p/secret-lair-drop-cosmic-chill-by-robin-eisenberg-traditional-foil-edition",
+   "cents": 4500,
+   "currency": "USD",
+   "store": "Black Vault Gaming",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/713515_in_1000x1000.jpg",
+   "refCents": 5849,
+   "refLabel": "median store price",
+   "savingPct": 23
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "US",
+   "title": "Star Trek Commander Deck - Klingon Fury (Collector's Edition)",
+   "url": "https://mtgcompare.app/us/p/star-trek-commander-deck-klingon-fury-collectors-edition",
+   "cents": 15999,
+   "currency": "USD",
+   "store": "Cole Street Game Vault",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/706174_in_1000x1000.jpg",
+   "refCents": 19997,
+   "refLabel": "median store price",
+   "savingPct": 20
   },
   {
    "kind": "deal",
