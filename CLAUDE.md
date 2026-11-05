@@ -46,6 +46,14 @@ subject, only when the owner asks.
 - Pages are `force-dynamic` and cached by Vercel's CDN through `next.config.js` headers, never ISR; no page reads a cookie, header
   or session (`tests/cache-ttl.test.ts`).
 
+## Amazon's price on the product page (owner, 2026-11-05)
+
+`scripts/amazon-asins.ts` (daily import) finds each product's ASIN on its region's own Amazon, kept only when
+`identify()` reads the title as the same product; `scripts/fetch-amazon-prices.ts` (first in every build) fetches those
+prices into the git-ignored `data/amazon-live/`; `lib/amazon-live.ts` gives the product page its pinned Amazon row's link and
+24-hour price. Prices are never committed, never a sort, best price, deal, feed or quick view. Credentials
+`AMAZON_CREATORS_AU_*` (GitHub + Vercel) serve every store; a store without API access is skipped. `tests/amazon-api.test.ts`.
+
 ## eBay
 
 - Only `scripts/ebay-import.ts` (GitHub Actions) calls eBay's Browse API; the website never calls eBay and holds no eBay credential.

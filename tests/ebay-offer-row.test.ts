@@ -233,7 +233,7 @@ test("the product page gives the best-price card the same eBay pick as the table
   assert.match(product, /<BestPriceCard[\s\S]*ebay=\{ebayBest \? \{ slug: p\.slug, floor: ebayFloor, packs: rowPacks\(type\?\.key, packs\), query: ebayQ \} : null\}/);
   assert.match(product, /const ebayComparable = marketplaceOf\(r\.region\)\.currency === r\.currency;/);
   assert.match(product, /const ebayBest = ebayComparable && !pre;/, "never on a pre-order");
-  assert.match(product, /pinned=\{\{ productName: p\.name, tcgplayer \}\}/, "TCGplayer pinned under eBay in the table");
+  assert.match(product, /pinned=\{\{ productName: p\.name, tcgplayer, amazon: amazonLiveFor\(p\.slug, r\.region\) \}\}/, "TCGplayer pinned under eBay in the table, Amazon with this build's price");
   const strip = readFileSync(new URL("../src/components/EbayStrip.tsx", import.meta.url), "utf8");
   assert.match(strip, /const bestable = item != null && cents != null && !conditionLabel\(item\.condition\);/, "only a new listing can be the best price");
   assert.match(strip, /if \(byPrice && allowGiven && bestable && cents != null && cents < low\) top = "ebay";/, "the table's badge: the same rule");
