@@ -42,7 +42,14 @@ const nextConfig = {
   // The public data files (data/public/, ~25 MB: src/lib/public-data/) ride with every server function, which reads them instead of
   // Neon. Only when the build will read them (PUBLIC_DATA_MODE "files", the default, or "fallback").
   experimental: {
-    outputFileTracingIncludes: (process.env.PUBLIC_DATA_MODE || "files").trim().toLowerCase() === "db" ? {} : { "/**": ["./data/public/**/*.json"] },
+    outputFileTracingIncludes: {
+      "/**": [
+        ...((process.env.PUBLIC_DATA_MODE || "files").trim().toLowerCase() === "db" ? [] : ["./data/public/**/*.json"]),
+        // The product page's Amazon row: ASINs from the daily import, and the prices this build fetched (lib/amazon-live.ts).
+        "./data/amazon/*.json",
+        "./data/amazon-live/*.json",
+      ],
+    },
   },
   poweredByHeader: false,
   // Product photos are plain <img> tags pointing at each store's own CDN. Never

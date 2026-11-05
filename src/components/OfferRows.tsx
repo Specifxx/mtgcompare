@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, type ReactNode } from "react";
+import { AmazonPrice, type AmazonLiveCell } from "./AmazonPrice";
 import { moreClosedLabel, moreOpenLabel, splitRows } from "@/lib/ebay-offer-row";
 import { useShipMode, setShipMode } from "@/lib/ship-mode";
 import { rankRows, type ShipMode } from "@/lib/shipping-rank";
@@ -137,6 +138,8 @@ export interface StoreRowData {
   search?: boolean;
   /** A search row's words where the price would be (TCGplayer: "TCGplayer sellers' prices"). */
   searchText?: string;
+  /** The Amazon row's price from this build's Creators API fetch (lib/amazon-live.ts): with its time, hidden by the browser after 24 hours. */
+  live?: AmazonLiveCell;
   /** The Amazon row (lib/amazon.ts): GA4's amazon_click on top of buy_click. */
   amazon?: { product: string; region: string; page: string };
   /** False when the price is in another currency than the region's (TCGplayer's US$ outside the US): shown, never the best price. */
@@ -213,7 +216,9 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
         )}
       </div>
       <div className="mt-1 flex min-w-0 items-baseline gap-2 [grid-area:2/1] sm:mt-0 sm:block sm:text-right sm:[grid-area:1/3/3]">
-        {d.search ? (
+        {d.search && d.live ? (
+          <AmazonPrice live={d.live} fallback={d.searchText ?? "Amazon’s own price"} />
+        ) : d.search ? (
           <span className="block truncate text-sm leading-6 text-muted sm:text-xs">{d.searchText ?? "TCGplayer sellers’ prices"}</span>
         ) : (
           <>
@@ -231,7 +236,7 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
         amazon={d.amazon}
         className={`${d.best ? "btn-primary" : d.open ? "btn-soft" : "btn-ghost"} ${ROW_BUTTON}`}
       >
-        {d.kind === "amazon" ? "Check price" : d.search ? "Search" : d.open ? "View deal" : "View"} <span aria-hidden="true">↗</span>
+        {d.kind === "amazon" ? (d.live ? "View" : "Check price") : d.search ? "Search" : d.open ? "View deal" : "View"} <span aria-hidden="true">↗</span>
         {tcg && <span className="sr-only"> on TCGplayer</span>}
         {d.kind === "amazon" && <span className="sr-only"> on {d.name}</span>}
       </OutboundLink>

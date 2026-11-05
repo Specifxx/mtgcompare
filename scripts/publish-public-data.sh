@@ -18,7 +18,9 @@ git config user.name "mtgcompare-data[bot]"
 git config user.email "mtgcompare-data@users.noreply.github.com"
 # data/sets/discovered.json (scripts/discover-sets.ts, run before the import) rides the same commit.
 SETS_DIR="data/sets"
-if git diff --quiet -- "$DIR" "$SETS_DIR" && [ -z "$(git ls-files --others --exclude-standard -- "$DIR" "$SETS_DIR")" ]; then
+# data/amazon/ (scripts/amazon-asins.ts: ASINs and the run's status, never prices) rides the same commit.
+AMAZON_DIR="data/amazon"
+if git diff --quiet -- "$DIR" "$SETS_DIR" "$AMAZON_DIR" && [ -z "$(git ls-files --others --exclude-standard -- "$DIR" "$SETS_DIR" "$AMAZON_DIR")" ]; then
   echo "[publish] data/public and data/sets unchanged — nothing to commit."
   exit 0
 fi
@@ -33,7 +35,7 @@ for attempt in 1 2 3 4 5; do
   rm -f "$DIR"/*.json
   cp -r "$TMP/." "$DIR/"
   if [ -n "$(ls -A "$TMP_SETS")" ]; then mkdir -p "$SETS_DIR"; cp -r "$TMP_SETS/." "$SETS_DIR/"; fi
-  git add -A -- "$DIR" "$SETS_DIR"
+  git add -A -- "$DIR" "$SETS_DIR" "$AMAZON_DIR"
   if git diff --cached --quiet; then
     echo "[publish] main already has this snapshot."
     exit 0

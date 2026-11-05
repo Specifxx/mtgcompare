@@ -5,7 +5,7 @@
   "description": "MTG Compare — compare Magic: The Gathering sealed product prices and stock across independent stores.",
   "scripts": {
     "dev": "next dev -p 3003",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && (tsx scripts/fetch-amazon-prices.ts || true) && next build",
     "start": "next start -p 3003",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",

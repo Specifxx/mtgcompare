@@ -131,6 +131,18 @@ jobs:
         if: steps.db.outputs.found == 'true'
         run: npx tsx scripts/export-public-data.ts
 
+      # Amazon ASINs (Creators API searchItems, AMAZON_SEARCH_BUDGET a region a day) for the product pages' Amazon row,
+      # matched by the sealed classifier. ASINs only: Amazon prices are fetched by each Vercel build and never committed
+      # (DECISIONS.md 2026-11-05). A no-op until the secrets exist; never fails the run.
+      - name: Amazon ASINs (Creators API)
+        if: steps.db.outputs.found == 'true'
+        continue-on-error: true
+        env:
+          AMAZON_CREATORS_AU_CLIENT_ID: ${{ secrets.AMAZON_CREATORS_AU_CLIENT_ID }}
+          AMAZON_CREATORS_AU_CLIENT_SECRET: ${{ secrets.AMAZON_CREATORS_AU_CLIENT_SECRET }}
+          AMAZON_CREATORS_AU_VERSION: ${{ secrets.AMAZON_CREATORS_AU_VERSION }}
+        run: npx tsx scripts/amazon-asins.ts
+
       # The Compare Empire network (DECISIONS.md "Sites that grow each other"): this site's best deals for the sister
       # sites, and their feeds for the "Other card games on sale" block. Read from the files just exported; never fails the run.
       - name: Family feed
