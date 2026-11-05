@@ -38,7 +38,10 @@ export type GuideSlug =
   | "mtg-bundle-prices"
   | "best-commander-precons-australia"
   | "where-to-buy-mtg-booster-boxes-australia"
-  | "best-magic-product-for-beginners";
+  | "best-magic-product-for-beginners"
+  | "final-fantasy-mtg-sealed-prices"
+  | "lord-of-the-rings-mtg-sealed-prices"
+  | "avatar-last-airbender-mtg-sealed-prices";
 
 export interface Guide {
   slug: GuideSlug;
@@ -72,6 +75,8 @@ const D2 = "2026-10-23";
 const D3 = "2026-10-23";
 /** The Australian guides, first edition. */
 const D4 = "2026-10-25";
+/** The set sealed price guides (set-sealed-prices.tsx). */
+const D5 = "2026-11-05";
 const SEALED_EBAY = { heading: "Sealed Magic on eBay", query: "Magic the Gathering sealed" };
 
 export const GUIDES: readonly Guide[] = [
@@ -320,6 +325,43 @@ export const GUIDES: readonly Guide[] = [
     regions: ["au"],
     topic: { types: ["play-booster-box", "collector-booster-box"] },
     ebay: { heading: "Magic booster boxes on eBay", query: "MTG booster box" },
+  },
+  // One set each (2026-11-05): everything the region's stores list of a set, by kind, drawn from the set's own open products.
+  {
+    slug: "final-fantasy-mtg-sealed-prices",
+    title: "Final Fantasy MTG sealed prices today",
+    titleIn: "Final Fantasy MTG sealed prices in {in}",
+    description: "What Magic's Final Fantasy sealed product costs today: every kind stores list, from Play Booster boxes to the four Commander decks, cheapest first.",
+    kicker: "Final Fantasy",
+    published: D5,
+    updated: D5,
+    regions: "all",
+    topic: { types: ["play-booster-box", "collector-booster-box", "commander-deck", "bundle"] },
+    ebay: { heading: "Final Fantasy sealed on eBay", query: "MTG Final Fantasy sealed" },
+  },
+  {
+    slug: "lord-of-the-rings-mtg-sealed-prices",
+    title: "Lord of the Rings MTG sealed prices today",
+    titleIn: "Lord of the Rings MTG sealed prices in {in}",
+    description: "What The Lord of the Rings: Tales of Middle-earth sealed product costs today: boxes, Commander decks, Scene Boxes and bundles still in stock, cheapest first.",
+    kicker: "Lord of the Rings",
+    published: D5,
+    updated: D5,
+    regions: "all",
+    topic: { types: ["collector-booster-box", "set-booster-box", "draft-booster-box", "commander-deck"] },
+    ebay: { heading: "Lord of the Rings sealed on eBay", query: "MTG Lord of the Rings Tales of Middle-earth sealed" },
+  },
+  {
+    slug: "avatar-last-airbender-mtg-sealed-prices",
+    title: "Avatar: The Last Airbender MTG sealed prices",
+    titleIn: "Avatar MTG sealed prices in {in}",
+    description: "What Magic's Avatar: The Last Airbender sealed product costs today: Play and Collector Booster boxes, bundles, Scene Boxes and the Starter Kit, cheapest first.",
+    kicker: "Avatar",
+    published: D5,
+    updated: D5,
+    regions: "all",
+    topic: { types: ["play-booster-box", "collector-booster-box", "bundle", "scene-box"] },
+    ebay: { heading: "Avatar MTG sealed on eBay", query: "MTG Avatar The Last Airbender sealed" },
   },
 ];
 
