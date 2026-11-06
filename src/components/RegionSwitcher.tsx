@@ -95,7 +95,7 @@ export function RegionSwitcher({ region, compact = false, soft = false }: { regi
           <path d="M5 7.5 10 12.5 15 7.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
       </summary>
-      <div className="card absolute right-0 z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] p-1.5 shadow-lift">
+      <div className="card absolute right-0 z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] max-sm:fixed max-sm:inset-x-4 max-sm:top-16 max-sm:right-4 max-sm:w-auto max-sm:max-w-none p-1.5 shadow-lift">
         <p className="px-3 pb-1 pt-2 text-xs font-semibold text-muted">Each region compares its own stores, in its own currency</p>
         <ul>
           {REGION_LIST.map((r) => (
