@@ -40,6 +40,7 @@ export const PLACEMENTS = [
   "tcgplayer-strip-product", // product page: after "More from <set>"
   "tcgplayer-strip-mini", // product page: the small eBay + TCGplayer pair's TCGplayer row, under the best price (owner, 2026-10-29)
   "tcgplayer-strip-footer", // every other region page: the TCGplayer strip above the footer (owner, 2026-10-29)
+  "tcgplayer-strip-dock", // every page with the rails, narrow screens only: the phone dock's TCGplayer half (components/AdDock.tsx, owner, 2026-11-06)
   "tcgplayer-strip-side", // every region page from 1280px wide: the TCGplayer rail down the far right of the screen (components/SideAds.tsx, owner, 2026-11-06)
   "tcgplayer-strip-landing", // the root landing page: the TCGplayer half of the eBay + TCGplayer banner under the hero (owner, 2026-11-03)
   "header", // the "eBay" item in the site header (desktop nav, xl and up only)
@@ -73,6 +74,7 @@ export const PLACEMENTS = [
   "listings-footer", // every content page: the slim four-tile strip above the footer
   "listings-product-mini", // product page: the small eBay + TCGplayer pair's eBay row, under the best price (owner, 2026-10-29)
   "listings-notfound", // the 404 page
+  "listings-dock", // every page with the rails, narrow screens only: the phone dock's eBay half (components/AdDock.tsx, owner, 2026-11-06)
   "listings-side", // every region page from 1280px wide: the eBay sealed rail down the far left of the screen (components/SideAds.tsx, owner, 2026-11-06)
   "price-watch", // the Black Friday / Cyber Monday price watch: the eBay search beside each row and the graded chase strip
   // The highlighted eBay button of a POPULAR product or set (lib/popular.ts HOT_SETS: 30th Celebration first): eBay's blue

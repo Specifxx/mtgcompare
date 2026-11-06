@@ -1137,3 +1137,31 @@ component there first and copy it.
 
 **Addendum (owner, 2026-11-06: "the home page must have this as well"):** the home page gets the same rails, in the
 visitor's suggested or picked region (`SoftSideAds`, the way its header and sidebar follow the visitor).
+
+## 2026-11-06 — The phone dock: the side rails' ads on screens too narrow for them
+
+Owner: "how can we have those [eBay and TCGplayer side rail ads] on mobile phone … like I have a Z Fold 7 … but also iPhones.
+How do we get those ads to show on phones in the best way that doesn't interrupt user experience, but will also potentially
+get a couple of clicks."
+
+**Pattern:** below the rails' width, one bar along the foot of the screen (`AdDock.tsx`, fed by the rails' own tiles in
+`SideAds.tsx`), the phone buy bar's size and rules: 64px plus the safe area, slides on transform only (CLS 0), never on the
+first screen (only after 60% of a screen is scrolled), hidden while any other ad unit, the footer, a dialog, the menu or the
+keyboard is in view, never on a page with the buy bar (product pages keep their own units), ✕ for the visit. On a phone it
+shows one tile at a time with a View button, eBay and TCGplayer taking turns: the next tile peeks at the edge and swipes, and
+each time the dock comes back it shows the next one (nothing animates on its own). From 640px (tablets) both sides at once.
+Nothing is in the server HTML and nothing is requested until the visitor scrolls a third of a screen: no SEO change.
+Placements `listings-dock` / `tcgplayer-strip-dock` (or the site's equivalents) so its clicks can be read on their own.
+
+**Why this pattern (viewport simulation, Playwright, a local build):** Galaxy Z Fold cover screen (411×960, ~21:9), iPhone SE,
+iPhone 16 (393×852), iPhone 16 Pro Max (440×956), iPad (820×1180); home, browse, a guide and a product page, stopping every
+half screen. Without the dock an ad unit was in view at 8–20% of stops; with it 75–90% on the home page and guides, ~70% on
+browse, 0% on product pages (by design). Never two units in a phone screen because of the dock, layout shift unchanged, the
+bar is 7% of the Fold cover screen and 10% of an iPhone SE (Better Ads' "large sticky ad" line is 30%). Rejected: an extra
+in-flow strip (the pages already have one unit per screen at most and in-flow ads are what the visitor already scrolls past),
+a corner chip that opens a sheet (an overlay, and a tap before any product shows), a ticker under the header (covers the top
+of the page, where searchers land). Split halves (eBay | TCGplayer) were tried on phones first: at 375px each title was cut to
+a word, so phones show one at a time.
+
+**Measure:** the dock's placements against the strips' in the ~11-10 / ~11-17 checks. If pages per visit drop on phones,
+raise DOCK_ARM or drop the dock from that site first.
