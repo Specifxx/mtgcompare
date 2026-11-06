@@ -9,6 +9,8 @@ import { isPickupOnly, pickupText } from "./pickup-only";
 import { decodeEntities } from "./sealed-title";
 
 export interface FeedVariant {
+  // Shopify's variant id (other platforms leave it out): the cart link's key (lib/checkout-link.ts).
+  id?: number;
   priceCents: number;
   available: boolean;
   title?: string; // Shopify variant title: "Default Title", "Single Tin", "Display (10)", …
@@ -45,6 +47,7 @@ export interface CollectionRead {
 // ── Shopify ─────────────────────────────────────────────────────────────────
 
 interface ShopifyVariantRaw {
+  id?: number;
   price?: string;
   available?: boolean;
   title?: string;
@@ -108,6 +111,7 @@ export async function readShopifyCollection(
         imageHeight: p.images?.[0]?.height,
         variants: (p.variants ?? [])
           .map((v) => ({
+            ...(typeof v.id === "number" ? { id: v.id } : {}),
             priceCents: Math.round(parseFloat(v.price ?? "0") * 100),
             available: v.available === true,
             title: v.title,

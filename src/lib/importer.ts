@@ -23,6 +23,7 @@
 // Then every product's per-market summary (ProductStat) and every store's
 // health (StoreStat) is recomputed from the stored offers.
 import { createHash } from "node:crypto";
+import { listingKeyUrl, withShopifyVariant } from "./checkout-link";
 import { prisma } from "./db";
 import {
   isMagicCollection,
@@ -156,7 +157,7 @@ const MULTI_VARIANT = /\bdisplays?\b|\bcases?\b|\bbox\s*of\b|\bsets?\s*of\b|\bbu
  * (Shopify requires_shipping false: pickup only, a service) is not a listing, and a product whose feed text says "pickup only" is
  * left out altogether (src/lib/pickup-only.ts): a visitor elsewhere cannot buy it, and the store's measured postage does not apply.
  */
-export function priceOf(p: FeedProduct, floor: number): { priceCents: number; inStock: boolean } | null {
+export function priceOf(p: FeedProduct, floor: number): { priceCents: number; inStock: boolean; variantId?: number } | null {
   if (p.pickupOnly) return null;
   const posted = p.variants.filter((v) => v.requiresShipping !== false);
   // With several options, drop the multi-unit ones. A single variant is the
@@ -168,7 +169,8 @@ export function priceOf(p: FeedProduct, floor: number): { priceCents: number; in
   const inStock = avail.length > 0;
   const pool = (inStock ? avail : priced).filter((v) => v.priceCents >= floor);
   if (!pool.length) return null;
-  return { priceCents: Math.min(...pool.map((v) => v.priceCents)), inStock };
+  const pick = pool.reduce((a, b) => (b.priceCents < a.priceCents ? b : a));
+  return { priceCents: pick.priceCents, inStock, ...(inStock && pick.id != null ? { variantId: pick.id } : {}) };
 }
 
 /** Is `a` a better listing of the same product than `b`? In stock beats sold out, then cheaper wins. */
@@ -189,7 +191,11 @@ export function rowsFromReads(store: StoreConfig, reads: CollectionRead[]): Impo
       if (!isIdentity(id)) continue;
       const price = priceOf(p, floorCents(id.type, store.market));
       if (!price) continue;
-      const row: ImportRow = { identity: id, title: p.title, url: p.url, imageUrl: p.imageUrl, ...price };
+      // The priced variant on the URL, in-stock Shopify rows only: the buy link opens the
+      // store's checkout with exactly this item in the cart (lib/checkout-link.ts).
+      const { variantId, ...priced } = price;
+      const url = priced.inStock && store.platform === "shopify" ? withShopifyVariant(p.url, variantId) : p.url;
+      const row: ImportRow = { identity: id, title: p.title, url, imageUrl: p.imageUrl, ...priced };
       if (p.imageWidth && p.imageHeight) row.imageArea = p.imageWidth * p.imageHeight;
       const prev = best.get(id.groupKey);
       if (!prev || better(row, prev)) best.set(id.groupKey, row);
@@ -551,13 +557,14 @@ function misfiled(p: { name: string; groupKey: string }): boolean {
  * characters per stored offer instead of its whole URL).
  */
 export function offerRef(store: string, url: string): string {
-  return createHash("md5").update(`${store} ${url}`).digest("hex").slice(0, 16);
+  // The variant pick (lib/checkout-link.ts) is not part of a listing's identity.
+  return createHash("md5").update(`${store} ${listingKeyUrl(url)}`).digest("hex").slice(0, 16);
 }
 
 /** Every stored offer's product, store and ref. The one whole-table read of Offer URLs, as hashes. */
 async function previousOfferRefs(): Promise<{ productId: string; store: string; ref: string }[]> {
   return prisma.$queryRaw<{ productId: string; store: string; ref: string }[]>`
-    SELECT "productId", "store", left(md5("store" || ' ' || "url"), 16) AS "ref" FROM "Offer"`;
+    SELECT "productId", "store", left(md5("store" || ' ' || regexp_replace("url", '[?]variant=[0-9]+$', '')), 16) AS "ref" FROM "Offer"`;
 }
 
 /**

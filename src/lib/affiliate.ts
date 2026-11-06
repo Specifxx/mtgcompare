@@ -12,6 +12,7 @@
 // Pure (no database, no store registry): BrowseGrid imports this in the browser.
 import { REGIONS, type Region } from "./regions";
 import { awinUrl, clickref } from "./awin";
+import { shopifyCartUrl } from "./checkout-link";
 
 // ─── Placements ────────────────────────────────────────────────────────────────
 // Where on the site an outbound link sits. One list for both jobs: the affiliate
@@ -469,6 +470,16 @@ export function offerLink(store: string, url: string, region: Region, placement:
   // A store that accepted us on Awin (src/lib/awin.ts): the same page through its tracked deep link.
   const awin = awinUrl(url, clickref("mtg", region, placement));
   if (awin) return { href: awin, rel: REL_SPONSORED, sponsored: true };
+  // Straight to checkout (lib/checkout-link.ts, owner 2026-11-06): an in-stock Shopify row
+  // whose priced variant the import recorded opens the store's cart with it, tagged.
+  const cart = shopifyCartUrl(url);
+  if (cart) {
+    const c = new URL(cart);
+    c.searchParams.set("utm_source", "mtgcompare");
+    c.searchParams.set("utm_medium", "referral");
+    c.searchParams.set("utm_content", "checkout");
+    return { href: c.toString(), rel: REL_STORE, sponsored: false };
+  }
   return { href: url, rel: REL_STORE, sponsored: false };
 }
 
