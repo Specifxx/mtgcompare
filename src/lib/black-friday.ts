@@ -45,6 +45,20 @@ export const bfCopy = {
   h1: (r: Pick<RegionInfo, "inName">) => `Black Friday MTG deals in ${r.inName}`,
   description: (r: Pick<RegionInfo, "inName" | "adjective">, n: number, best: number | null) =>
     n
-      ? `${n} Magic sealed products under the median ${r.adjective} store price today, up to ${best}% under, checked about twice a day through Black Friday and Cyber Monday.`
-      : `Black Friday and Cyber Monday Magic sealed deals in ${r.inName}: products under the median store price, checked about twice a day.`,
+      ? `${n} Magic sealed products under the median ${r.adjective} store price today, up to ${best}% under, checked about twice a day through Black Friday and Cyber Monday. Plus a price watch: the dearest sealed in stock, the week's moves, older sets and graded chase cards, each with eBay listings.`
+      : `Black Friday and Cyber Monday Magic sealed deals in ${r.inName}: products under the median store price, checked about twice a day, with a price watch of sealed, older sets and graded chase cards on eBay.`,
 };
+
+// /<region>/cyber-monday (2026-11-06): the same page under Cyber Monday's own URL and words, so the Monday query has a page to rank.
+export const cmCopy = {
+  title: (r: Pick<RegionInfo, "inName">, year: number) => `Cyber Monday MTG deals in ${r.inName} ${year}`,
+  h1: (r: Pick<RegionInfo, "inName">) => `Cyber Monday MTG deals in ${r.inName}`,
+  description: (r: Pick<RegionInfo, "inName" | "adjective">, n: number, best: number | null) =>
+    n
+      ? `${n} Magic sealed products under the median ${r.adjective} store price today, up to ${best}% under, checked about twice a day through Cyber Monday. Plus a price watch: the dearest sealed in stock, the week's moves, older sets and graded chase cards, each with eBay listings.`
+      : `Cyber Monday Magic sealed deals in ${r.inName}: products under the median store price, checked about twice a day, with a price watch of sealed, older sets and graded chase cards on eBay.`,
+};
+
+export type SaleEvent = "black-friday" | "cyber-monday";
+export const eventCopy = (event: SaleEvent) => (event === "black-friday" ? bfCopy : cmCopy);
+export const EVENT_NAMES: Record<SaleEvent, string> = { "black-friday": "Black Friday", "cyber-monday": "Cyber Monday" };
