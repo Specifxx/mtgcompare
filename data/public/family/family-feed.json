@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-05T17:05:59.674Z",
+ "generatedAt": "2026-11-06T01:23:11.093Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -198,29 +198,15 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "Marvel Super Heroes Bundle",
-   "url": "https://mtgcompare.app/us/p/marvel-super-heroes-bundle",
-   "cents": 3550,
+   "title": "Kaldheim Draft Booster Pack",
+   "url": "https://mtgcompare.app/us/p/kaldheim-draft-booster-pack",
+   "cents": 399,
    "currency": "USD",
-   "store": "MinMaxGames",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675615_in_1000x1000.jpg",
-   "refCents": 6997,
+   "store": "Accidentally Cool Games",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/228246_in_1000x1000.jpg",
+   "refCents": 749,
    "refLabel": "median store price",
-   "savingPct": 49
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "US",
-   "title": "Star Trek Commander Deck - Klingon Fury (Collector's Edition)",
-   "url": "https://mtgcompare.app/us/p/star-trek-commander-deck-klingon-fury-collectors-edition",
-   "cents": 10875,
-   "currency": "USD",
-   "store": "Common Lands",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/706174_in_1000x1000.jpg",
-   "refCents": 19998,
-   "refLabel": "median store price",
-   "savingPct": 46
+   "savingPct": 47
   },
   {
    "kind": "deal",
@@ -254,15 +240,29 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "Secret Lair Drop: Cosmic Chill by Robin Eisenberg - Traditional Foil Edition",
-   "url": "https://mtgcompare.app/us/p/secret-lair-drop-cosmic-chill-by-robin-eisenberg-traditional-foil-edition",
+   "title": "The Lord of the Rings: Tales of Middle-earth Set Booster Pack",
+   "url": "https://mtgcompare.app/us/p/the-lord-of-the-rings-tales-of-middle-earth-set-booster-pack",
+   "cents": 899,
+   "currency": "USD",
+   "store": "Super Anime Store",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/484908_in_1000x1000.jpg",
+   "refCents": 1400,
+   "refLabel": "median store price",
+   "savingPct": 36
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "US",
+   "title": "Secret Lair Drop: Secret Lair x Marvel: Earth's Mightiest Pets - Traditional Foil Edition",
+   "url": "https://mtgcompare.app/us/p/secret-lair-drop-secret-lair-x-marvel-earths-mightiest-pets-traditional-foil-edition",
    "cents": 4500,
    "currency": "USD",
    "store": "Black Vault Gaming",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/713515_in_1000x1000.jpg",
-   "refCents": 5849,
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/713524_in_1000x1000.jpg",
+   "refCents": 5699,
    "refLabel": "median store price",
-   "savingPct": 23
+   "savingPct": 21
   },
   {
    "kind": "deal",
