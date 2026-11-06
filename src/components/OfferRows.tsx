@@ -22,6 +22,14 @@ export const ROW_BUTTON = "min-h-11 justify-self-end whitespace-nowrap [grid-are
 /** The store row's button cell: its buy button and the cart list's add button side by side (components/cart). */
 export const ROW_ACTIONS = "flex items-center gap-2 justify-self-end [grid-area:2/2/4] sm:[grid-area:1/4/3]";
 export const ROW_BUTTON_LINK = "min-h-11 whitespace-nowrap sm:min-h-10";
+/**
+ * The pinned rows' outlines (owner, 2026-11-06: eBay and Amazon rows "function exactly like a normal store price row … it just sits
+ * on the very top. And it has a different colored outline"): eBay green, Amazon amber. Inset, so the row keeps its height and grid.
+ */
+export const PIN_OUTLINE = {
+  ebay: "outline outline-2 -outline-offset-2 outline-[#16a34a]",
+  amazon: "outline outline-2 -outline-offset-2 outline-[#f59e0b]",
+} as const;
 
 
 /**
@@ -170,7 +178,7 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
   const tcg = d.kind === "tcgplayer";
   const badge = "shrink-0 rounded-full bg-open px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-surface";
   return (
-    <li data-offer-row="" data-row={d.kind} className={`${ROW_GRID} ${highlight ? "bg-open-soft/40" : ""}`}>
+    <li data-offer-row="" data-row={d.kind} className={`${ROW_GRID} ${highlight ? "bg-open-soft/40" : ""} ${d.kind === "amazon" ? PIN_OUTLINE.amazon : ""}`}>
       <div className="flex h-5 items-center gap-2 overflow-hidden sm:h-6">
         {d.rank != null && (
           <span className="tabular -mr-0.5 shrink-0 text-sm font-bold text-muted" aria-label={`Number ${d.rank} by price`}>
@@ -203,7 +211,7 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
         )}
       </div>
       <div className="truncate text-[11px] leading-4 text-faint sm:text-xs" title={d.title}>
-        {!d.search && d.host && <StoreVote url={d.host} name={d.name} className="-ml-1 mr-1 text-muted" />}
+        {(!d.search || d.kind === "amazon") && d.host && <StoreVote url={d.host} name={d.name} className="-ml-1 mr-1 text-muted" />}
         {d.host}
         {!d.search && (
           <>
@@ -215,7 +223,11 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
         {d.sponsored && <span className="text-muted"> · affiliate link</span>}
       </div>
       <div className="flex h-5 items-center justify-self-end [grid-area:1/2] sm:[grid-area:1/2/3]">
-        {d.search ? (
+        {d.kind === "amazon" && d.live ? (
+          <StockPill state="open" preorder={false}>
+            In stock
+          </StockPill>
+        ) : d.search ? (
           <span className="block h-5 rounded-full border border-line bg-surface px-2.5 text-xs font-semibold leading-[18px] text-muted sm:h-6 sm:leading-[22px]">Search</span>
         ) : (
           <StockPill state={d.state} preorder={preorder}>
@@ -238,7 +250,7 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
       </div>
       {/* The row's button, and beside it the cart list's "Add to cart" (components/cart) on an open store row. */}
       <div className={ROW_ACTIONS}>
-        {d.cart && d.open && !d.search && !d.kind && !d.marketplace && (
+        {d.cart && d.open && (d.kind === "amazon" ? Boolean(d.live) : !d.search && !d.kind && !d.marketplace) && (
           <CartAddButton href={d.href} productUrl={d.cart.productUrl} storeName={d.name} title={d.title} priceCents={d.cents} currency={d.cart.currency} className="text-muted" />
         )}
         <OutboundLink
@@ -249,7 +261,7 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
           amazon={d.amazon}
           className={`${d.best ? "btn-primary" : d.open ? "btn-soft" : "btn-ghost"} ${ROW_BUTTON_LINK}`}
         >
-          {d.kind === "amazon" ? (d.live ? "View" : "Check price") : d.search ? "Search" : d.open ? "View deal" : "View"} <span aria-hidden="true">↗</span>
+          {d.kind === "amazon" ? (d.live ? "View deal" : "Check Amazon") : d.search ? "Search" : d.open ? "View deal" : "View"} <span aria-hidden="true">↗</span>
           {tcg && <span className="sr-only"> on TCGplayer</span>}
           {d.kind === "amazon" && <span className="sr-only"> on {d.name}</span>}
         </OutboundLink>

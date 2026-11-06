@@ -29,8 +29,9 @@ type Tally = Record<string, [number, number]>;
 type Mine = Record<string, { v: 1 | -1 | 0; at: number; p: 0 | 1 | -1 }>;
 
 const HOST = /^(?=.{3,80}$)[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/;
-/** Marketplaces and networks are not one store: no thumbs for them (eBay, Amazon, TCGplayer, Cardmarket…). */
-const NOT_A_STORE = /(?:^|\.)(?:ebay|amazon)\.[a-z.]+$|(?:^|\.)(?:tcgplayer|cardmarket|etsy|aliexpress|walmart|awin1|anrdoezrs|dpbolvw|jdoqocy|kqzyfj|tkqlhce|linksynergy|shareasale|rakuten)\.com$|(?:^|\.)(?:sjv|pxf)\.io$/;
+/** Networks and references are not one store: no thumbs for them (TCGplayer, Cardmarket, affiliate hosts…).
+ *  eBay and Amazon rows get thumbs like a store row (owner, 2026-11-06), one tally per eBay / Amazon domain (marketKey). */
+const NOT_A_STORE = /(?:^|\.)(?:tcgplayer|cardmarket|etsy|aliexpress|walmart|awin1|anrdoezrs|dpbolvw|jdoqocy|kqzyfj|tkqlhce|linksynergy|shareasale|rakuten)\.com$|(?:^|\.)(?:sjv|pxf)\.io$/;
 const TALLY_KEY = "sv_tally";
 const MINE_KEY = "sv_votes";
 const VID_KEY = "sv_vid";
@@ -42,7 +43,8 @@ export function storeKey(url: string | null | undefined): string | null {
   try {
     const u = new URL(url.includes("://") ? url : `https://${url}`);
     if (u.protocol !== "https:" && u.protocol !== "http:") return null;
-    const host = u.hostname.toLowerCase().replace(/^www\./, "").replace(/\.$/, "");
+    // rover.ebay.com, m.ebay.co.uk, smile.amazon.com… share their domain's one tally.
+    const host = u.hostname.toLowerCase().replace(/^www\./, "").replace(/\.$/, "").replace(/^(?:[a-z0-9-]+\.)+((?:ebay|amazon)\.[a-z.]+)$/, "$1");
     return HOST.test(host) && !NOT_A_STORE.test(host) ? host : null;
   } catch {
     return null;

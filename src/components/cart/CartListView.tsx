@@ -172,6 +172,8 @@ export function CartListView() {
                           </>
                         ) : c?.status === "ok" ? (
                           "In stock now"
+                        ) : !l.priceCents ? (
+                          `See today's price on ${g.storeName}`
                         ) : !l.variantId ? (
                           "Buy on the store's page"
                         ) : null}
@@ -186,7 +188,7 @@ export function CartListView() {
                         +
                       </button>
                     </div>
-                    <div className="ce-cart-price">{formatMoney(price(l) * l.qty, g.currency)}</div>
+                    <div className="ce-cart-price">{price(l) > 0 ? formatMoney(price(l) * l.qty, g.currency) : "–"}</div>
                   </li>
                 );
               })}

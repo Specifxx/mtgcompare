@@ -1202,3 +1202,17 @@ every person, never a crawler, on a regional page of another region to the same 
 picked and offered everyone else a "Switch to <X> prices" line; Compare Empire made the same reversal earlier the same
 day. Crawlers still see every regional page as it is, and URLs, titles, canonicals and hreflang are unchanged, so
 indexing is untouched. A pick always beats the time zone. `tests/region-boot.test.ts` pins it.
+
+## 2026-11-06 — eBay and Amazon rows are full price rows, on top, outlined
+
+**Decision (owner: "eBay prices and Amazon prices should function exactly like a normal store price row. So you can also
+add to cart … if it's in stock … it just sits on the very top. And it has a different colored outline"):** the eBay row
+is always the first row, with a green outline, and Amazon the second, with an amber one. Both carry everything a store
+row has: the stock line, the store thumbs (one tally per eBay / Amazon domain, `ebay.com.au`, `amazon.com`…) and the
+cart button. They are "manual" cart lines on their own tagged links (`src/lib/cart-list.ts`), never a Shopify checkout;
+an Amazon line's price is dropped from the visitor's list after 24 hours (Amazon's licence), and the cart then says to
+see today's price on Amazon. With no Amazon price the row reads "Also check on Amazon", a tagged link. Unchanged: neither
+is counted as a store, "Best price", a deal, an alert price or the reference price; TCGplayer and Cardmarket stay
+references (no thumbs, no cart line); no Amazon link in a pop-up.
+MTG Compare (and DexCompare, the same tables): the slots are now eBay, Amazon, TCGplayer, then the stores (TCGplayer was
+second). The eBay listing row (`EbayOfferRow`) shows the store row's "In stock" pill, with its shipping moved under the price.

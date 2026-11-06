@@ -109,9 +109,9 @@ export function OfferTable({
           Prices are each store&rsquo;s own, in {r.currency}, read from their public product listings about twice a day; each row says when.
           &ldquo;Not checked recently&rdquo; means we couldn&rsquo;t read that store for over three days, so its stock is unknown. No store pays
           to be listed or to rank higher: <Link href="/about" prefetch={false} className="underline underline-offset-2 hover:text-ink">how MTG Compare works</Link>.
-          {tcg && " TCGplayer is a US marketplace of many sellers, pinned under eBay; its link is an affiliate link, and outside the US its price is in US$ and never compared with the stores'."}
-          {amazon && !amazon.live && ` ${amazon.name} is pinned under TCGplayer as a search: we don't read Amazon's prices, so it is never ranked or the best price, and its link is an affiliate link. ${AMAZON_DISCLOSURE}`}
-          {amazon?.live && ` ${amazon.name} is pinned under TCGplayer with Amazon's own price for this listing, shown with its time and never ranked or the best price; its link is an affiliate link. ${AMAZON_DISCLOSURE} * ${AMAZON_PRICE_DISCLAIMER}`}
+          {tcg && " TCGplayer is a US marketplace of many sellers, pinned under eBay and Amazon; its link is an affiliate link, and outside the US its price is in US$ and never compared with the stores'."}
+          {amazon && !amazon.live && ` ${amazon.name} is pinned under eBay: with no price from Amazon it is a search, never ranked or the best price, and its link is an affiliate link. ${AMAZON_DISCLOSURE}`}
+          {amazon?.live && ` ${amazon.name} is pinned under eBay with Amazon's own price for this listing, shown with its time and never ranked or the best price; its link is an affiliate link. ${AMAZON_DISCLOSURE} * ${AMAZON_PRICE_DISCLAIMER}`}
           {storeOffers.some((o) => o.marketplace) && " TCGplayer is a marketplace of many sellers; it ranks by price and stock like any store, and its link is an affiliate link."}
         </p>
         {ebay && <p>{ebayRowNote(region).trim()}</p>}
@@ -257,11 +257,14 @@ function amazonRow(productName: string, region: Region, now: number, live: Amazo
     amazon: { product: productName, region, page: "product" },
     perPack: null,
     ship: null,
-    cents: 0,
+    // Amazon's own price when this build fetched one: the cart list's line (lib/cart-list.ts drops it after 24 hours). Never ranked:
+    // the row is pinned outside the ranking and is never `top`.
+    cents: priced && live?.cents ? live.cents : 0,
     open: true,
     state: "open",
     best: false,
     host: a.host.replace(/^www\./, ""),
+    ...(priced && live ? { cart: { productUrl: live.url, currency: REGIONS[region].currency } } : {}),
     title: live ? `${productName} on ${a.retailer}` : `Search ${a.retailer} for ${productName}`,
     href: live?.url ?? amazonUrl(productName, { region, placement: "amazon-table" }),
     rel: REL_AMAZON,
@@ -270,7 +273,7 @@ function amazonRow(productName: string, region: Region, now: number, live: Amazo
     lastSeen: new Date(now).toISOString(),
     ago: "",
     search: true,
-    searchText: "Amazon’s own price",
+    searchText: "Also check on Amazon",
     ...(priced ? { live: priced } : {}),
     ...(region === "nz" || region === "sg" ? { note: "check delivery" } : {}),
   };
