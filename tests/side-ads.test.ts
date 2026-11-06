@@ -66,7 +66,7 @@ test("the phone dock: narrow screens only, never on the first screen, never besi
   assert.match(d, /^"use client";/);
   assert.match(d, /return armed \? <>\{children\}<\/> : null;/, "nothing rendered or fetched before the visitor scrolls");
   assert.match(d, /translate-y-full/, "slides on transform only (CLS 0)");
-  assert.match(d, /querySelectorAll\(`footer, \[data-dock-yield\], \$\{yieldTo\}`\)/, "hides beside every other unit and the footer");
+  assert.match(d, /querySelectorAll\(`footer, \[data-dock-yield\], \[data-rate-card\], \$\{yieldTo\}`\)/, "hides beside every other unit, the rating card and the footer");
   assert.match(d, /yieldTo = "\[data-ad\]"/, "every [data-ad] unit by default");
   assert.match(d, /sessionStorage\.setItem\(DISMISS_KEY, "1"\)/, "✕ hides it for the visit");
   assert.match(d, />Ad<\/span>/, "labelled Ad");

@@ -12,7 +12,7 @@ import { Icon } from "./Icon";
 //     the visitor has scrolled a third of a screen (DockGate): a visit that reads only its first screen costs nothing and sees nothing.
 //   • Never on the first screen: it shows only once the visitor has scrolled DOCK_ARM of a screen (not an interstitial, never over
 //     the content a searcher lands on).
-//   • Never beside another unit: it hides while any other ad unit (`yieldTo`, [data-ad] by default), the footer or anything marked [data-dock-yield] is in
+//   • Never beside another unit: it hides while any other ad unit (`yieldTo`, [data-ad] by default), the footer, the rating card ([data-rate-card]) or anything marked [data-dock-yield] is in
 //     view or about to be (120 px), and never shows on a page with the buy bar (`buybar`, the product page) or while a dialog,
 //     the menu or the keyboard is open. So a phone screen still holds at most one unit.
 //   • Fixed, 64 px plus the safe area (6–10% of a phone screen; Better Ads' "large sticky ad" line is 30%), sliding on transform only:
@@ -150,7 +150,7 @@ export function AdDock({ label, sides, placement, minWidth, yieldTo = "[data-ad]
       { rootMargin: "120px 0px 120px 0px" },
     );
     const scan = () => {
-      const now = new Set<Element>([...document.querySelectorAll(`footer, [data-dock-yield], ${yieldTo}`)].filter((el) => !dock.contains(el)));
+      const now = new Set<Element>([...document.querySelectorAll(`footer, [data-dock-yield], [data-rate-card], ${yieldTo}`)].filter((el) => !dock.contains(el)));
       for (const el of now) if (!watched.has(el)) (watched.add(el), io.observe(el));
       for (const el of [...watched]) {
         if (now.has(el)) continue;
