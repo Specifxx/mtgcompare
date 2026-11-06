@@ -1134,3 +1134,6 @@ sites shares its thumbs; this site stores nothing and fetches the tally in the b
 step). One vote per browser per store, a few per network, marketplaces (eBay, Amazon, TCGplayer…) get none. Votes never
 order prices, hide a store or decide the cheapest. RiftCompare's DECISIONS.md, 2026-11-06, has the rules; change the
 component there first and copy it.
+
+**Addendum (owner, 2026-11-06: "the home page must have this as well"):** the home page gets the same rails, in the
+visitor's suggested or picked region (`SoftSideAds`, the way its header and sidebar follow the visitor).

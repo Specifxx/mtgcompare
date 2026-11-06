@@ -41,3 +41,11 @@ test("the region layout mounts the rails once, after the footer; the server HTML
   assert.match(layout, /<Footer region=\{r\.region\}( listed=\{listed\})? \/>\s*\{\/\*[\s\S]*?\*\/\}\s*<SideAds region=\{r\.region\} tiles=\{tcg\} \/>/, "after the footer, the pre-footer strip's tiles");
   assert.equal(layout.match(/<SideAds /g)?.length, 1);
 });
+
+test("the home page gets the same rails, in the visitor's region, read per request (never at build)", () => {
+  const home = src("app/(site)/page.tsx");
+  assert.match(home, /^export const dynamic = "force-dynamic"/m);
+  assert.match(home, /<SoftSideAds tiles=\{railTiles\} \/>/);
+  assert.match(home, /landingRailTiles\(\)\.catch\(/, "a failed read shows no TCGplayer rail, never an error page");
+  assert.match(src("components/SideAds.tsx"), /export function SoftSideAds[\s\S]*?useSoftRegion\(\)/);
+});
