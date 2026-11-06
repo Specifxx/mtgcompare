@@ -12,8 +12,8 @@ import { Icon } from "./Icon";
 //     the visitor has scrolled a third of a screen (DockGate): a visit that reads only its first screen costs nothing and sees nothing.
 //   • Never on the first screen: it shows only once the visitor has scrolled DOCK_ARM of a screen (not an interstitial, never over
 //     the content a searcher lands on).
-//   • Never beside another unit: it hides while any other ad unit ([data-ad]), the footer or anything marked [data-dock-yield] is in
-//     view or about to be (120 px), and never shows on a page with the buy bar ([data-buybar], the product page) or while a dialog,
+//   • Never beside another unit: it hides while any other ad unit (`yieldTo`, [data-ad] by default), the footer or anything marked [data-dock-yield] is in
+//     view or about to be (120 px), and never shows on a page with the buy bar (`buybar`, the product page) or while a dialog,
 //     the menu or the keyboard is open. So a phone screen still holds at most one unit.
 //   • Fixed, 64 px plus the safe area (6–10% of a phone screen; Better Ads' "large sticky ad" line is 30%), sliding on transform only:
 //     nothing on the page moves (CLS 0). While it shows the page's scroll-padding-bottom is its height, so nothing focused is under it.
@@ -103,7 +103,11 @@ export function DockTile({ img, alt, brand, title, price, cta, plate = false }: 
   );
 }
 
-export function AdDock({ label, sides, placement, minWidth }: { label: string; sides: DockSide[]; placement: string; minWidth: number }) {
+/**
+ * `yieldTo`: the site's ad units and anything else it must never share a screen with, beside the footer and [data-dock-yield];
+ * `buybar`: the site's phone buy bar (a page that has one never shows the dock).
+ */
+export function AdDock({ label, sides, placement, minWidth, yieldTo = "[data-ad]", buybar = "[data-buybar]" }: { label: string; sides: DockSide[]; placement: string; minWidth: number; yieldTo?: string; buybar?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [shown, setShown] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -126,7 +130,7 @@ export function AdDock({ label, sides, placement, minWidth }: { label: string; s
           scrolled: window.scrollY,
           screen: window.innerHeight,
           blockers: blockers.size,
-          buybar: !!document.querySelector("[data-buybar]"),
+          buybar: !!document.querySelector(buybar),
           modal: modal(),
           typing,
           dismissed: false,
@@ -145,7 +149,7 @@ export function AdDock({ label, sides, placement, minWidth }: { label: string; s
       { rootMargin: "120px 0px 120px 0px" },
     );
     const scan = () => {
-      const now = new Set<Element>([...document.querySelectorAll("footer, [data-ad], [data-dock-yield]")].filter((el) => !dock.contains(el)));
+      const now = new Set<Element>([...document.querySelectorAll(`footer, [data-dock-yield], ${yieldTo}`)].filter((el) => !dock.contains(el)));
       for (const el of now) if (!watched.has(el)) (watched.add(el), io.observe(el));
       for (const el of [...watched]) {
         if (now.has(el)) continue;
@@ -161,7 +165,7 @@ export function AdDock({ label, sides, placement, minWidth }: { label: string; s
       if (!frame) frame = requestAnimationFrame(() => ((frame = 0), scan()));
     };
     const mo = new MutationObserver(later);
-    mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-ad", "data-dock-yield", "data-buybar", "open", "aria-modal", "style"] });
+    mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-ad", "data-dock-yield", "data-buybar", "class", "open", "aria-modal", "style"] });
     const onFocus = (e: FocusEvent) => {
       const t = e.target as HTMLElement | null;
       typing = !!t?.matches?.("input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]), textarea, select, [contenteditable='true']");
@@ -186,7 +190,7 @@ export function AdDock({ label, sides, placement, minWidth }: { label: string; s
       document.removeEventListener("focusout", onBlur);
       wide.removeEventListener?.("change", update);
     };
-  }, [minWidth]);
+  }, [minWidth, yieldTo, buybar]);
 
   // Each time it comes back, the next pair.
   useEffect(() => {
