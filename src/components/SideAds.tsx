@@ -11,6 +11,7 @@ import { useListings } from "./EbayStrip";
 import { useSoftRegion } from "./RegionSuggest";
 import { EbayMark } from "./EbayMark";
 import { OutboundLink } from "./OutboundLink";
+import { AdDock, DockGate, DockTile, DOCK_LINK, type DockSide } from "./AdDock";
 
 // The two side rails (ported from DexCompare 2026-11-06, owner: "I really want those ads to be on MTG Compare"; DexCompare's brief, 2026-11-03: "a lot of space on the very, very left … and the very, very right … the left side could be
 // eBay and the right side TCGplayer … only if you can fit it. If you can't fit it, then don't use the ads"): real sealed eBay listings
@@ -53,9 +54,13 @@ export function railFits(innerHeight: number): boolean {
 
 export function SideAds({ region, tiles }: { region: Region; tiles: TcgplayerTile[] }) {
   const [fit, setFit] = useState(false);
+  const [narrow, setNarrow] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia(`(min-width: ${MIN_WIDTH}px)`);
-    const update = () => setFit(mq.matches && railFits(window.innerHeight));
+    const update = () => {
+      setFit(mq.matches && railFits(window.innerHeight));
+      setNarrow(!mq.matches);
+    };
     update();
     mq.addEventListener("change", update);
     window.addEventListener("resize", update, { passive: true });
@@ -64,6 +69,8 @@ export function SideAds({ region, tiles }: { region: Region; tiles: TcgplayerTil
       window.removeEventListener("resize", update);
     };
   }, []);
+  // Too narrow for the rails (phones, tablets, a small window): the same tiles in the phone dock (AdDock.tsx).
+  if (narrow) return <PhoneDock region={region} tiles={tiles} />;
   if (!fit) return null;
   return (
     <>
@@ -191,4 +198,53 @@ function Note({ href, retailer, placement, label, usd = false }: { href: string;
       </span>
     </p>
   );
+}
+
+/** The phone dock: the rails' first tiles, eBay's on the left and TCGplayer's on the right (AdDock.tsx has the rules). */
+function PhoneDock({ region, tiles }: { region: Region; tiles: TcgplayerTile[] }) {
+  return (
+    <DockGate minWidth={MIN_WIDTH}>
+      <DockAds region={region} tiles={tiles} />
+    </DockGate>
+  );
+}
+
+function DockAds({ region, tiles }: { region: Region; tiles: TcgplayerTile[] }) {
+  const placement: Placement = "listings-dock";
+  const tcgPlacement: Placement = "tcgplayer-strip-dock";
+  // The eBay rail's three feeds, the same requests (CDN-cached, shared with the strips).
+  const { state } = useListings({ region, context: "sealed", placement, min: 1, eager: true });
+  const boxes = useListings({ region, context: "type:play-booster-boxes", placement, min: 1, eager: true }).state;
+  const collectors = useListings({ region, context: "type:collector-booster-boxes", placement, min: 1, eager: true }).state;
+  const items = state.status === "ready" ? mergeListings([state, boxes, collectors]) : [];
+  const us = region === "us";
+  const price = (cents: number) => (us ? money(cents, "US") : `US${money(cents, "US")}`);
+  const tcgBrand = (
+    <span className="font-black tracking-tight text-ink" aria-label="TCGplayer">
+      TCG<span className="text-[#1f6fe5]">player</span>
+    </span>
+  );
+  const sides: DockSide[] = [];
+  if (items.length > 0)
+    sides.push({
+      key: "ebay",
+      items: items.map((i) => (
+        <OutboundLink key={i.id} href={i.href} rel={REL_SPONSORED} retailer={ebayRetailerForHref(i.href, region)} placement={placement} className={DOCK_LINK} title={`${i.title} · ${formatPrice(i.price)}`}>
+          <DockTile img={i.imageUrl} alt={i.title} brand={<EbayMark className="text-[11px]" />} title={i.title} price={formatPrice(i.price)} cta="View" />
+          <span className="sr-only">, on eBay</span>
+        </OutboundLink>
+      )),
+    });
+  if (tiles.length >= 2)
+    sides.push({
+      key: "tcgplayer",
+      items: tiles.slice(0, MAX_TILES).map((t) => (
+        <OutboundLink key={t.slug} href={tcgplayerAffiliateUrl(t.url, region, tcgPlacement)} rel={REL_SPONSORED} retailer={TCGPLAYER_RETAILER} placement={tcgPlacement} className={DOCK_LINK} title={`${t.name} · ${price(t.priceCents)}`}>
+          <DockTile img={thumb(t.imageUrl, 100) ?? t.imageUrl} alt={t.name} brand={tcgBrand} title={t.name} price={price(t.priceCents)} cta="View" plate />
+          <span className="sr-only">, on TCGplayer</span>
+        </OutboundLink>
+      )),
+    });
+  if (sides.length === 0) return null;
+  return <AdDock label="Sponsored: sealed Magic on eBay and TCGplayer" sides={sides} placement={placement} minWidth={MIN_WIDTH} />;
 }

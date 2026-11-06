@@ -184,7 +184,10 @@ have changed; check eBay."
   * no derived statistics (but for the best-price card's per-pack price and median/MSRP badges, computed in the browser), no
     script or iframe, never in server HTML, JSON-LD, meta, OG or the sitemap, no pop-up, interstitial, auto-redirect or countdown,
     no incentive to click;
-  * **no sticky or overlay unit, with one exception**: the phone buy bar above, which hides whenever another unit is in view;
+  * **no sticky or overlay unit, with two exceptions**: the phone buy bar above, which hides whenever another unit is in view, and
+    the phone dock (`src/components/AdDock.tsx`, owner 2026-11-06), the side rails' tiles in a 64px bar along the foot of a screen too
+    narrow for the rails, with the buy bar's rules (never on the first screen, hidden beside any other unit, the footer, a dialog or the
+    keyboard, never on a page with the buy bar, ✕ for the visit, transform only);
   * **at most one unit in a phone viewport and two in a desktop one** (the header's item is one of them on xl and up), at least
     960 px apart, and **ad density** (ad-unit height ÷ main content height) **at most 25% per page at 390 and 1440 wide** (a
     ceiling, not a target); no eBay unit on the About, Terms, Privacy or Contact pages.
