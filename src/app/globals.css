@@ -772,8 +772,8 @@ html[data-geo="pending"] main { visibility: hidden; }
    the shell leaves 160px (a 136px rail and two 12px gutters) free on each side for them; from 1864px it is its full 1480px again
    and the rails sit just outside it. Pure CSS, the same on the server and in the browser: no layout shift when the rails mount. */
 @media (min-width: 1280px) {
-  .max-w-shell,
-  .xl\:max-w-shell {
+  /* The page's shell only: the header keeps its full width (the rails start below it), or its menu would not fit. */
+  .max-w-shell {
     max-width: min(1480px, calc(100vw - 320px));
   }
 }
