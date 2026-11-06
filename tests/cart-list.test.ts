@@ -46,15 +46,38 @@ test("an Awin or partner link stays a manual line with that link, so the commiss
   assert.equal(l.href, awin);
 });
 
-test("marketplaces never become a line", () => {
-  for (const href of [
-    "https://www.ebay.com.au/itm/123?campid=5339155912",
-    "https://tcgplayer.pxf.io/c/1/2?u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F1",
-    "https://www.amazon.com.au/dp/B0TEST?tag=x-22",
-  ]) {
+test("TCGplayer and Cardmarket never become a line", () => {
+  for (const href of ["https://tcgplayer.pxf.io/c/1/2?u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F1", "https://www.cardmarket.com/en/Magic/Products/1"]) {
     assert.equal(makeLine({ ...row, href, productUrl: null }), null, href);
   }
   assert.equal(makeLine({ ...row, href: "https://tcgplayer.pxf.io/c/1", productUrl: "https://www.tcgplayer.com/product/1" }), null);
+});
+
+// eBay and Amazon rows are full price rows (owner, 2026-11-06): manual lines on their tagged links.
+test("an eBay or Amazon row is a manual line on its tagged link, one group per domain", () => {
+  const ebay = makeLine({ ...row, storeName: "eBay", href: "https://www.ebay.com.au/itm/123?campid=5339155912&customid=x", productUrl: "https://www.ebay.com.au/itm/123" })!;
+  assert.equal(ebay.store, "ebay.com.au");
+  assert.equal(ebay.variantId, null);
+  assert.equal(ebay.base, null);
+  assert.match(ebay.href, /campid=5339155912/);
+  const rover = makeLine({ ...row, href: "https://rover.ebay.com/rover/1/705-53470-19255-0/1?mpre=x", productUrl: null })!;
+  assert.equal(rover.store, "ebay.com");
+  const amazon = makeLine({ ...row, storeName: "Amazon", href: "https://www.amazon.com.au/dp/B0TEST?tag=x-22", productUrl: null })!;
+  assert.equal(amazon.store, "amazon.com.au");
+  assert.equal(amazon.variantId, null);
+  // even a link shaped like a cart permalink is never a Shopify checkout on eBay
+  assert.equal(makeLine({ ...row, href: "https://www.ebay.com/cart/12345678:1", productUrl: null })!.variantId, null);
+});
+
+test("an Amazon line's price is dropped after 24 hours (Amazon's licence); eBay's is kept", () => {
+  const now = new Date("2026-11-07T12:00:00Z");
+  const amazon = makeLine({ ...row, href: "https://www.amazon.com/dp/B0TEST?tag=x-20", productUrl: null }, new Date("2026-11-07T00:00:00Z"))!;
+  const old = { ...amazon, id: "amazon.com:u:old", addedAt: "2026-11-05T00:00:00Z" };
+  const ebay = { ...makeLine({ ...row, href: "https://www.ebay.com/itm/1", productUrl: null })!, addedAt: "2026-11-01T00:00:00Z" };
+  const [fresh, stale, e] = parseCart(JSON.stringify([amazon, old, ebay]), now);
+  assert.equal(fresh.priceCents, 7500);
+  assert.equal(stale.priceCents, 0);
+  assert.equal(e.priceCents, 7500);
 });
 
 test("one checkout per store, with every variant and quantity, tagged with where it came from", () => {

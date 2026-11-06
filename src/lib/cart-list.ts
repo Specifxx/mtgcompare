@@ -14,8 +14,15 @@
 // is cartable only when the row's link already is a cart permalink (the single-click
 // checkout links, `/cart/<id>:1`), which each site builds only for a Shopify store
 // with no programme of its own. A store on Awin, a store partner deal, eBay, Amazon,
-// TCGplayer, or a row whose variant is unknown keeps its product link: it is a
-// "manual" line, listed with its own link, so the commission still tracks.
+// or a row whose variant is unknown keeps its product link: it is a "manual" line,
+// listed with its own (tagged) link, so the commission still tracks.
+//
+// eBay and Amazon rows are full price rows (owner, 2026-11-06: "eBay prices and Amazon
+// prices should function exactly like a normal store price row. So you can also add to
+// cart"): they add manual lines, grouped as one "store" per eBay / Amazon domain.
+// Amazon's licence lets a price be kept 24 hours, so an Amazon line's price is dropped
+// after AMAZON_PRICE_TTL_MS (priceCents 0 = "see the price on Amazon"). TCGplayer and
+// Cardmarket stay references, never lines.
 //
 // Pure apart from the guarded localStorage/window helpers at the bottom.
 
@@ -67,10 +74,22 @@ const VARIANT = /^\d{6,20}$/;
 
 function hostOf(url: string): string | null {
   try {
-    return new URL(url).hostname.replace(/^www\./i, "").toLowerCase();
+    // rover.ebay.com, m.ebay.co.uk, smile.amazon.com… are one eBay / Amazon per domain.
+    return new URL(url).hostname
+      .replace(/^www\./i, "")
+      .toLowerCase()
+      .replace(/^(?:[a-z0-9-]+\.)+((?:ebay|amazon)\.[a-z.]+)$/, "$1");
   } catch {
     return null;
   }
+}
+
+export const AMAZON_PRICE_TTL_MS = 24 * 60 * 60 * 1000;
+const AMAZON = /^amazon\.[a-z.]+$/;
+
+/** An Amazon line (its price may be shown for 24 hours only). */
+export function isAmazonLine(l: { store: string }): boolean {
+  return AMAZON.test(l.store);
 }
 
 /** The Shopify cart base and variant of a cart permalink (`…/cart/<id>:<qty>`), else null. */
@@ -96,10 +115,10 @@ export function storeHost(input: { href: string; productUrl?: string | null }): 
 }
 
 /**
- * Marketplaces are never a cart line: eBay, Amazon, TCGplayer and Cardmarket rows are
- * labelled ads or references, never counted as a store, never in a basket.
+ * TCGplayer and Cardmarket are references, never a cart line. eBay and Amazon rows are
+ * (manual lines on their tagged links, owner 2026-11-06), still never counted as a store.
  */
-const MARKETPLACE = /(?:^|\.)(?:ebay|amazon|amzn|tcgplayer|cardmarket)(?:\.|$)/i;
+const MARKETPLACE = /(?:^|\.)(?:tcgplayer|cardmarket)(?:\.|$)/i;
 
 export function isMarketplace(host: string | null | undefined): boolean {
   return !!host && MARKETPLACE.test(host);
@@ -109,7 +128,8 @@ export function isMarketplace(host: string | null | undefined): boolean {
 export function makeLine(input: CartAddInput, now = new Date()): CartLine | null {
   const store = storeHost(input);
   if (!store || isMarketplace(store) || isMarketplace(hostOf(input.href)) || !input.title || !Number.isFinite(input.priceCents) || input.priceCents <= 0) return null;
-  const cart = cartTarget(input.href);
+  // eBay and Amazon are never a Shopify checkout, whatever the link looks like.
+  const cart = /^(?:ebay|amazon)\./.test(store) ? null : cartTarget(input.href);
   const id = cart ? `${store}:v:${cart.variantId}` : `${store}:u:${input.productUrl || input.href}`;
   return {
     id,
@@ -131,7 +151,7 @@ export function makeLine(input: CartAddInput, now = new Date()): CartLine | null
 }
 
 /** Keep only well-formed lines (localStorage is the visitor's to edit). */
-export function parseCart(raw: string | null | undefined): CartLine[] {
+export function parseCart(raw: string | null | undefined, now = new Date()): CartLine[] {
   if (!raw) return [];
   try {
     const v = JSON.parse(raw);
@@ -150,6 +170,7 @@ export function parseCart(raw: string | null | undefined): CartLine[] {
       )
       .map((l) => ({
         ...l,
+        priceCents: isAmazonLine(l) && !(now.getTime() - Date.parse(l.addedAt) < AMAZON_PRICE_TTL_MS) ? 0 : l.priceCents,
         qty: Math.min(CART_MAX_QTY, Math.max(1, Math.round(Number(l.qty) || 1))),
         base: l.base && /^https:\/\//.test(l.base) ? l.base : null,
         variantId: l.variantId && VARIANT.test(String(l.variantId)) ? String(l.variantId) : null,

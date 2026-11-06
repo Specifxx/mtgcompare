@@ -723,7 +723,10 @@ export function useEbayPick({ region, slug, floor, packs, placement }: { region:
 // The price table's split into visible rows and collapsed groups, and its store rows (imported here, beside the two functions that use
 // them; OfferTable.tsx imports this module too, which is fine: neither uses the other while the modules load).
 import { EBAY_ROW_KEY, moreClosedLabel, moreOpenLabel, splitRows } from "@/lib/ebay-offer-row";
-import { ROW_BUTTON, ROW_GRID, StoreRow, useRankedRows, type StoreRowData } from "./OfferRows";
+import { PIN_OUTLINE, ROW_ACTIONS, ROW_BUTTON_LINK, ROW_GRID, StoreRow, useRankedRows, type StoreRowData } from "./OfferRows";
+import { StockPill } from "./StockPill";
+import { StoreVote } from "./StoreVote";
+import { CartAddButton } from "./cart/CartAddButton";
 
 /**
  * A product's price table with eBay and TCGplayer PINNED at the top (the owner, 2026-10-26: "put eBay at the very top … then TCGplayer
@@ -754,9 +757,9 @@ export function OfferRowsWithEbay({
   preorder = false,
 }: {
   rows: StoreRowData[];
-  /** The TCGplayer row, pinned second (OfferTable builds it); null = none. */
+  /** The TCGplayer row, pinned third, under eBay and Amazon (owner, 2026-11-06; OfferTable builds it); null = none. */
   tcg?: StoreRowData | null;
-  /** The Amazon search row, pinned third (OfferTable builds it where the region has an Amazon tag); null = none. Never the best price. */
+  /** The Amazon row, pinned second, right under eBay (owner, 2026-11-06; OfferTable builds it where the region has an Amazon tag); null = none. Never the best price. */
   amazon?: StoreRowData | null;
   region: Region;
   slug: string;
@@ -784,8 +787,8 @@ export function OfferRowsWithEbay({
   type Slot = { key: string; open: boolean; node: ReactNode };
   const slots: Slot[] = [
     { key: EBAY_ROW_KEY, open: true, node: ebayRow },
-    ...(tcg ? [{ key: tcg.key, open: tcg.open, node: <StoreRow key={tcg.key} d={tcg} preorder={preorder} top={top === "tcg"} /> }] : []),
     ...(amazon ? [{ key: amazon.key, open: true, node: <StoreRow key={amazon.key} d={amazon} preorder={preorder} top={false} /> }] : []),
+    ...(tcg ? [{ key: tcg.key, open: tcg.open, node: <StoreRow key={tcg.key} d={tcg} preorder={preorder} top={top === "tcg"} /> }] : []),
     ...rows.map((d) => ({ key: d.key, open: d.open, node: <StoreRow key={d.key} d={d} preorder={preorder} top={top === "store" && d === store} /> })),
   ];
   const { shown, moreOpen, moreClosed } = splitRows(slots);
@@ -818,6 +821,11 @@ export function OfferRowsWithEbay({
 const EBAY_BUTTON = "btn-soft";
 
 /**
+ * Since 2026-11-06 (owner: "eBay prices and Amazon prices should function exactly like a normal store price row. So you can also add
+ * to cart … if it's in stock … it just sits on the very top. And it has a different colored outline") a listing row has the store
+ * row's stock pill, thumbs (one tally for the eBay domain) and cart button (a manual line on its tagged link, lib/cart-list.ts), its
+ * shipping under the price, and a green outline.
+ *
  * Shaped exactly like a store row (OfferRows.tsx StoreRow: the same grid, cells and line heights, 88 px on a phone), so it reads as one
  * more price row; only the small "Ad" label sets it apart. The name cell says "eBay" (and the listing's condition when
  * it is not new); the stock-pill cell, the listing's shipping (or "Marketplace" before there is a listing); the price cell, the listing's
@@ -829,7 +837,7 @@ function EbayOfferRow({ region, placement, query, item, cents, age, best }: { re
   const cond = item ? conditionLabel(item.condition) : "";
   const q = query.trim();
   return (
-    <li data-offer-row="" data-ad={placement} data-state={item ? "listing" : "search"} className={`${ROW_GRID} ${best ? "bg-open-soft/40" : ""}`}>
+    <li data-offer-row="" data-ad={placement} data-state={item ? "listing" : "search"} className={`${ROW_GRID} ${best ? "bg-open-soft/40" : ""} ${PIN_OUTLINE.ebay}`}>
       <div className="flex h-5 min-w-0 items-center gap-2 overflow-hidden sm:h-6">
         <span className="truncate text-[15px] font-semibold sm:text-base">eBay</span>
         <span className="ad-pill">Ad</span>
@@ -837,6 +845,7 @@ function EbayOfferRow({ region, placement, query, item, cents, age, best }: { re
         {cond && <span className="min-w-0 max-w-[9rem] truncate rounded-full border border-line bg-surface px-2 py-0.5 text-[10px] font-bold uppercase leading-3 tracking-wide text-muted">{cond}</span>}
       </div>
       <div className="truncate text-[11px] leading-4 text-faint sm:text-xs" title={item?.title}>
+        <StoreVote url={item ? item.href : ebaySearchUrl(q, region, placement)} name="eBay" className="-ml-1 mr-1 text-muted" />
         {item ? (
           <>
             {ebayLabel(region)} · updated {age} · {item.title}
@@ -846,31 +855,41 @@ function EbayOfferRow({ region, placement, query, item, cents, age, best }: { re
         )}
         <span className="text-muted"> · affiliate link</span>
       </div>
-      {/* where a store row has its stock pill: the listing's shipping, or what the row is before there is one */}
+      {/* the stock pill, as on a store row: a Buy It Now listing is in stock; before there is one, what the row is */}
       <div className="flex h-5 items-center justify-self-end [grid-area:1/2] sm:[grid-area:1/2/3]">
-        <span
-          className={`block h-5 max-w-[10rem] truncate whitespace-nowrap rounded-full px-2.5 text-xs font-semibold leading-[18px] sm:h-6 sm:leading-[22px] ${ship?.free ? "bg-open-soft text-open" : "border border-line bg-surface text-muted"}`}
-        >
-          {ship ? ship.text : "Marketplace"}
-        </span>
+        {item ? (
+          <StockPill state="open" preorder={false}>
+            In stock
+          </StockPill>
+        ) : (
+          <span className="block h-5 whitespace-nowrap rounded-full border border-line bg-surface px-2.5 text-xs font-semibold leading-[18px] text-muted sm:h-6 sm:leading-[22px]">Marketplace</span>
+        )}
       </div>
       <div className="mt-1 flex min-w-0 items-baseline gap-2 [grid-area:2/1] sm:mt-0 sm:block sm:text-right sm:[grid-area:1/3/3]">
         {item ? (
-          <span className="tabular font-display text-lg font-bold leading-6">{cents != null ? money(cents, r.market) : formatPrice(item.price)}</span>
+          <>
+            <span className="tabular font-display text-lg font-bold leading-6">{cents != null ? money(cents, r.market) : formatPrice(item.price)}</span>
+            {ship && <span className={`tabular truncate text-[11px] leading-4 sm:block sm:text-xs ${ship.free ? "font-semibold text-open" : "text-muted"}`}>{ship.text}</span>}
+          </>
         ) : (
           <span className="block truncate text-sm leading-6 text-muted sm:text-xs">eBay sellers&rsquo; prices</span>
         )}
       </div>
-      <OutboundLink
-        href={item ? item.href : ebaySearchUrl(q, region, placement)}
-        rel={REL_SPONSORED}
-        retailer={item ? ebayRetailerForHref(item.href, region) : ebayRetailer(region)}
-        placement={placement}
-        className={`${EBAY_BUTTON} ${ROW_BUTTON}`}
-      >
-        {item ? "View on eBay" : "Search eBay"} <Arrow />
-        <span className="sr-only">{item ? ` (ad): ${item.title}, opens eBay` : " (ad), opens eBay"}</span>
-      </OutboundLink>
+      <div className={ROW_ACTIONS}>
+        {item && cents != null && (
+          <CartAddButton href={item.href} productUrl={item.href} storeName="eBay" title={item.title} priceCents={cents} currency={r.currency} image={item.imageUrl} className="text-muted" />
+        )}
+        <OutboundLink
+          href={item ? item.href : ebaySearchUrl(q, region, placement)}
+          rel={REL_SPONSORED}
+          retailer={item ? ebayRetailerForHref(item.href, region) : ebayRetailer(region)}
+          placement={placement}
+          className={`${EBAY_BUTTON} ${ROW_BUTTON_LINK}`}
+        >
+          {item ? "View on eBay" : "Search eBay"} <Arrow />
+          <span className="sr-only">{item ? ` (ad): ${item.title}, opens eBay` : " (ad), opens eBay"}</span>
+        </OutboundLink>
+      </div>
     </li>
   );
 }

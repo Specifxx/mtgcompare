@@ -11,6 +11,7 @@ import { EBAY_CAMPAIGN_ID, PLACEMENTS, REL_SPONSORED } from "../src/lib/affiliat
 import type { OfferView } from "../src/lib/data";
 import { displayPacksFromCards, ebayRowNote, listingCents, pickListing, rowPacks, statedPacks, wrongPackCount } from "../src/lib/ebay-offer-row";
 import { OfferTable } from "../src/components/OfferTable";
+import { PIN_OUTLINE } from "../src/components/OfferRows";
 import { BestPriceCard, type BestPriceCardProps } from "../src/components/BestPriceCard";
 
 (globalThis as unknown as { React: typeof React }).React = React;
@@ -96,7 +97,8 @@ test("the server table: the eBay row FIRST as a search (labelled Ad, sponsored, 
   assert.match(rows[0], /data-ad="listings-offer-row"/, "pinned first (owner, 2026-10-26)");
   assert.match(rows[0], /data-state="search"/);
   assert.doesNotMatch(rows[0], /bg-ad|shadow-/, "no sponsored tint: it blends in with the store rows");
-  assert.equal(/class="([^"]*)"/.exec(rows[0])![1].trim(), /class="([^"]*)"/.exec(rows[2])![1].trim(), "the same grid as a store row");
+  assert.equal(/class="([^"]*)"/.exec(rows[0])![1].replace(PIN_OUTLINE.ebay, "").trim(), /class="([^"]*)"/.exec(rows[2])![1].trim(), "the same grid as a store row");
+  assert.ok(rows[0].includes(PIN_OUTLINE.ebay), "its green outline (owner, 2026-11-06)");
   const ebay = html.slice(html.indexOf('data-ad="listings-offer-row"'));
   const a = /<a ([^>]*)>([\s\S]*?)<\/a>/.exec(ebay)!;
   const href = /href="([^"]*)"/.exec(a[1])![1].replace(/&amp;/g, "&");
@@ -119,18 +121,19 @@ test("the server table: the eBay row FIRST as a search (labelled Ad, sponsored, 
   assert.ok(!(PLACEMENTS as readonly string[]).includes("listings-price-rows"), "the old block above the table is gone");
 });
 
-test("pinned TCGplayer: second under eBay, its own ink button; in the US its offer (the best price when cheapest), elsewhere US$ and never compared, else a search", () => {
+test("pinned TCGplayer: third, under eBay and Amazon (owner, 2026-11-06), its own ink button; in the US its offer (the best price when cheapest), elsewhere US$ and never compared, else a search", () => {
   const tcgOffer = offer("tcgplayer", 4500, true, { storeName: "TCGplayer", storeHost: "tcgplayer.com", url: "https://www.tcgplayer.com/product/1", marketplace: true });
   const offers = [tcgOffer, offer("alpha", 5000), offer("beta", 6000)];
   const us = render(React.createElement(OfferTable, { offers, region: "us", preorder: false, ebay: { slug: "x", query: "X", floor: null, packs: null }, pinned: { productName: "X", tcgplayer: null } }));
   const rows = [...us.matchAll(/<li data-offer-row=""([^>]*)>/g)].map((m) => m[1]);
   assert.equal(rows.length, 5);
   assert.match(rows[0], /data-ad="listings-offer-row"/);
-  assert.match(rows[1], /data-row="tcgplayer"/, "TCGplayer second");
-  assert.match(rows[2], /data-row="amazon"/, "Amazon US third (lib/amazon.ts), a search row, never highlighted");
-  assert.doesNotMatch(rows[2], /bg-open-soft/);
+  assert.match(rows[1], /data-row="amazon"/, "Amazon US second, right under eBay (owner, 2026-11-06), a search row, never highlighted");
+  assert.doesNotMatch(rows[1], /bg-open-soft/);
+  assert.ok(rows[1].includes(PIN_OUTLINE.amazon), "its amber outline");
+  assert.match(rows[2], /data-row="tcgplayer"/, "TCGplayer third");
   assert.match(us, /href="https:\/\/www\.amazon\.com\/s\?k=[^"]*&amp;tag=[A-Za-z0-9-]+&amp;ascsubtag=mtg-us-amazon-table"/);
-  assert.match(rows[1], /bg-open-soft\/40/, "cheapest of the whole table: highlighted");
+  assert.match(rows[2], /bg-open-soft\/40/, "cheapest of the whole table: highlighted");
   assert.match(us, /data-best="tcg"/);
   assert.match(us, />Best store price</, "the cheapest store says so");
   assert.equal([...us.matchAll(/class="btn-primary/g)].length, 1, "the cheapest store keeps the one red button");
