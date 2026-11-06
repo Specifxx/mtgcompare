@@ -4,7 +4,7 @@ import vm from "node:vm";
 import { readFileSync } from "node:fs";
 import { REGION_BOOT_SCRIPT, X_DEFAULT_REGION } from "../src/lib/regions";
 
-// Owner, 2026-11-01: the visitor's own region by default, the US when we can't tell; crawlers are never moved.
+// Owner, 2026-11-06 (2026-11-01 first): the visitor's own region by default, the US when we can't tell; crawlers are never moved.
 
 function boot(path: string, tz: string, opts: { saved?: string; ua?: string; alternates?: Record<string, string> } = {}) {
   const attrs: Record<string, string> = {};
@@ -57,36 +57,12 @@ test("the layout runs it before paint", () => {
   assert.match(readFileSync("src/app/globals.css", "utf8"), /html\[data-geo="pending"\] main \{ visibility: hidden; \}/);
 });
 
-test("a visitor who never picked is not moved, but offered their region's copy in one line (2026-11-02)", () => {
-  const made: any[] = [];
-  const body = { firstChild: null, insertBefore: (el: any) => made.push(el) };
-  const el = () => { const e: any = { style: {}, kids: [] as any[], setAttribute(k: string, v: string) { e[k] = v; }, appendChild(c: any) { e.kids.push(c); } }; return e; };
-  let moved: string | null = null;
-  const run = (ua: string) => vm.runInNewContext(REGION_BOOT_SCRIPT, {
-    URL,
-    navigator: { userAgent: ua },
-    location: { pathname: "/us/deals", search: "", hash: "", href: "https://mtgcompare.app/us/deals", replace: (u: string) => (moved = u) },
-    localStorage: { getItem: () => null, setItem() {} },
-    sessionStorage: { getItem: () => null, setItem() {} },
-    Intl: { DateTimeFormat: () => ({ resolvedOptions: () => ({ timeZone: "Australia/Sydney" }) }) },
-    setTimeout: () => 0,
-    document: {
-      readyState: "complete",
-      body,
-      addEventListener() {},
-      getElementById: () => null,
-      createElement: el,
-      documentElement: { setAttribute() {}, removeAttribute() {} },
-      querySelector: (sel: string) => (/hreflang=/.test(sel) ? { href: "https://mtgcompare.app/au/deals" } : null),
-    },
-  });
-  run("Mozilla/5.0 (iPhone) Safari/604.1");
-  assert.equal(moved, null, "not moved on a guess");
-  assert.equal(made.length, 1, "one line offered");
-  const link = made[0].kids[1];
-  assert.equal(link.href, "/au/deals");
-  assert.equal(link.textContent, "Switch to Australian prices");
-  made.length = 0;
-  run("Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)");
-  assert.equal(made.length, 0, "never for crawlers");
+test("a visitor who never picked goes to their time zone's region, else the US (owner, 2026-11-06)", () => {
+  assert.equal(boot("/us/deals", "Australia/Sydney", { alternates: alts }).moved, "/au/deals", "detected → their region");
+  assert.equal(boot("/au/deals", "America/Chicago", { alternates: alts }).moved, "/us/deals");
+  assert.equal(boot("/au/deals", "Asia/Tokyo", { alternates: alts }).moved, "/us/deals", "unknown → US");
+  assert.equal(boot("/au/deals", "", { alternates: alts }).moved, "/us/deals", "no time zone → US");
+  assert.equal(boot("/us/deals", "America/Chicago", { alternates: alts }).moved, null);
+  assert.equal(boot("/us/deals", "Australia/Sydney", { saved: "us", alternates: alts }).moved, null, "a pick beats the time zone");
+  assert.equal(boot("/us/deals", "Australia/Sydney", { ua: "Mozilla/5.0 (compatible; Googlebot/2.1)", alternates: alts }).moved, null, "never crawlers");
 });
