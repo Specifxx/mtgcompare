@@ -71,6 +71,7 @@ export const PLACEMENTS = [
   "listings-footer", // every content page: the slim four-tile strip above the footer
   "listings-product-mini", // product page: the small eBay + TCGplayer pair's eBay row, under the best price (owner, 2026-10-29)
   "listings-notfound", // the 404 page
+  "price-watch", // the Black Friday / Cyber Monday price watch: the eBay search beside each row and the graded chase strip
   // The highlighted eBay button of a POPULAR product or set (lib/popular.ts HOT_SETS: 30th Celebration first): eBay's blue
   // search button inside a strip's own top line (EbayStrip `highlight`), and the compact CTA that strip becomes. One placement
   // per surface, so the owner can see which highlight earns: the region home's sealed strip, a hot set's page, a hot product's page.

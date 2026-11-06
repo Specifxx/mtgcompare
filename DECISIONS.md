@@ -1070,3 +1070,25 @@ One credential serves every store: `AMAZON_CREATORS_AU_CLIENT_ID` / `_CLIENT_SEC
 Vercel Production variables (the same values as Compare Empire's; `AMAZON_CREATORS_<REGION>_*` would override for one
 store). Access is per marketplace and opens by itself once that store's account has qualifying sales (about 10 in 30
 days); a refused store is skipped, so the feature costs nothing until then and switches on without a code change.
+
+## 2026-11-06 — Black Friday and Cyber Monday price watch pages
+
+The owner's October numbers (2026-11-06): the US made 73% of affiliate earnings at a US$108 average order, one US$6.4k order
+earned as much as twelve ordinary days, and eBay credits only a purchase made within 24 hours of the click. His asks: Black
+Friday and Cyber Monday "price watch" pages this week, so Google indexes them before 27 and 30 November, and the high end of
+the market (sealed, graded, vintage) in its own prominent sections, each ending in a live eBay listing. Ported from DexCompare
+the same day.
+
+- `/[region]/cyber-monday` joins `/[region]/black-friday`: ONE component (`components/HolidaySalePage.tsx`) under two URLs,
+  thin routes, `lib/black-friday.ts` `eventCopy(event)` for the words. The Black Friday page's URL, title, h1 and metadata are
+  unchanged; both pages are in the sitemap for every region and link each other.
+- Under the deals table, a **price watch** (`lib/price-watch.ts`, `#price-watch`): the dearest sealed in stock today (the
+  region's ProductStat rows, dearest first, in stock only), the week's moves down (`priceMovesData(market).down`), older sets
+  still in stock (one product per set from `olderInStockData`) and graded chase-card searches (`GRADED_SEARCHES`: Black Lotus,
+  Alpha/Beta, Mox, Reserved List, Sheoldred, BGS 10). Every row ends in a tagged eBay search button (`placement: "price-watch"`,
+  in `PLACEMENTS`), and the graded block carries the chase `EbayStrip`.
+- Why searches and strips, not listings in the HTML: a sealed-only site holds no eBay listing of a single in its server data (the
+  strips fetch at request time by design), and a graded slab is never a store row. A search link still carries the EPN tag and
+  starts the 24-hour credit window on the click.
+- The words keep `BANNED_COPY`: "down this week" and "dearest in stock", never "price drops", "was", "sale" or urgency;
+  `tests/price-watch.test.ts` renders the Cyber Monday page in `files` mode and sweeps it, and pins the sitemap entry.

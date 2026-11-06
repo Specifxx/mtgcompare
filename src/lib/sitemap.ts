@@ -78,6 +78,7 @@ export function staticSitemap(
     const skip = new Set(thin[r.region] ?? []);
     if (!skip.has("/deals")) out.push(url(`/${r.region}/deals`, m, "daily", 0.7));
     out.push(url(`/${r.region}/black-friday`, m, "daily", 0.7));
+    out.push(url(`/${r.region}/cyber-monday`, m, "daily", 0.7));
     // The seasonal sale pages (DECISIONS.md, "Seasonal sale pages"): always listed, so they are indexed before each event.
     for (const p of ["/boxing-day", "/january-sales", "/lunar-new-year"]) out.push(url(`/${r.region}${p}`, m, "daily", 0.6));
     if (!skip.has("/cheapest-packs")) out.push(url(`/${r.region}/cheapest-packs`, m, "daily", 0.6));
