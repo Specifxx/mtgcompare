@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, type ReactNode } from "react";
+import { StoreVote } from "./StoreVote";
 import { AmazonPrice, type AmazonLiveCell } from "./AmazonPrice";
 import { moreClosedLabel, moreOpenLabel, splitRows } from "@/lib/ebay-offer-row";
 import { useShipMode, setShipMode } from "@/lib/ship-mode";
@@ -196,6 +197,7 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
         )}
       </div>
       <div className="truncate text-[11px] leading-4 text-faint sm:text-xs" title={d.title}>
+        {!d.search && d.host && <StoreVote url={d.host} name={d.name} className="-ml-1 mr-1 text-muted" />}
         {d.host}
         {!d.search && (
           <>
