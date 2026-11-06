@@ -1,0 +1,65 @@
+name: WaxCompare store probe
+
+# Research only, on this claude/* branch (never main, never data/): reads the
+# candidate sports card shops in wax-probe/candidates.txt and commits
+# wax-probe/results.json and summary.md. Two runners, one shop each at a time.
+
+on:
+  push:
+    branches: ["claude/**"]
+    paths: ["wax-probe/candidates.txt", "wax-probe/probe.mjs"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node wax-probe/probe.mjs
+        env:
+          SHARD: ${{ matrix.shard }}
+          SHARDS: 2
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: probe-${{ matrix.shard }}
+          path: wax-probe/out-${{ matrix.shard }}.json
+          if-no-files-found: ignore
+
+  collect:
+    needs: probe
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: shards
+      - name: Commit results
+        run: |
+          set -euo pipefail
+          node wax-probe/summarize.mjs shards
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for i in 1 2 3 4 5; do
+            git fetch origin ${GITHUB_REF_NAME}
+            git stash push -q -- wax-probe/results.json wax-probe/summary.md
+            git checkout -q -B ${GITHUB_REF_NAME} FETCH_HEAD
+            git checkout -q stash@{0} -- wax-probe/results.json wax-probe/summary.md && git stash drop -q
+            git add wax-probe/results.json wax-probe/summary.md
+            git commit -q -m "wax probe: store results" || exit 0
+            git push origin HEAD:${GITHUB_REF_NAME} && exit 0
+            sleep $((2 ** i))
+          done
+          exit 1
