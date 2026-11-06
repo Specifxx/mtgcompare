@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-06T01:23:11.093Z",
+ "generatedAt": "2026-11-06T10:23:31.357Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -214,13 +214,13 @@
    "region": "US",
    "title": "The Hobbit Scene Box - Crack the Plates",
    "url": "https://mtgcompare.app/us/p/the-hobbit-scene-box-crack-the-plates",
-   "cents": 3595,
+   "cents": 3495,
    "currency": "USD",
    "store": "Poke-Collect",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/692968_in_1000x1000.jpg",
    "refCents": 5995,
    "refLabel": "median store price",
-   "savingPct": 40
+   "savingPct": 42
   },
   {
    "kind": "deal",
@@ -240,15 +240,15 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "The Lord of the Rings: Tales of Middle-earth Set Booster Pack",
-   "url": "https://mtgcompare.app/us/p/the-lord-of-the-rings-tales-of-middle-earth-set-booster-pack",
-   "cents": 899,
+   "title": "Secret Lair Drop: Secret Lair x Masters of the Universe: Nyah-ha-ha! - Traditional Foil Edition",
+   "url": "https://mtgcompare.app/us/p/secret-lair-drop-secret-lair-x-masters-of-the-universe-nyah-ha-ha-traditional-foil-edition",
+   "cents": 4499,
    "currency": "USD",
-   "store": "Super Anime Store",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/484908_in_1000x1000.jpg",
-   "refCents": 1400,
+   "store": "Black Vault Gaming",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/715712_in_1000x1000.jpg",
+   "refCents": 6148,
    "refLabel": "median store price",
-   "savingPct": 36
+   "savingPct": 27
   },
   {
    "kind": "deal",

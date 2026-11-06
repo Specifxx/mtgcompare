@@ -1138,6 +1138,19 @@ component there first and copy it.
 **Addendum (owner, 2026-11-06: "the home page must have this as well"):** the home page gets the same rails, in the
 visitor's suggested or picked region (`SoftSideAds`, the way its header and sidebar follow the visitor).
 
+## 2026-11-06 — Buy links open the store's checkout
+
+**Decision (owner: "for all the sites that we can, send them directly to the checkout page, with the item in the
+basket"):** an in-stock Shopify store row opens that store's checkout with the priced item in the cart, through
+Shopify's cart permalink (`/cart/<variant id>:1`), as RiftCompare (#340) and OP Compare (#99) do. `feeds.ts` keeps each
+variant's id, `priceOf` names the in-stock variant it priced, and the importer stores it as `?variant=<id>` on the
+offer URL (still the product page, with that variant picked). `offerLink` turns it into the cart link, tagged
+`utm_source=mtgcompare&utm_medium=referral&utm_content=checkout`. `offerRef` (and its SQL twin) strips the variant, so a
+listing keeps its identity across runs. Awin stores keep their tracked product link (Awin is returned first); TCGplayer,
+eBay and Amazon keep their pages; sold-out rows and WooCommerce/BigCommerce/HTML stores keep product pages.
+`buy_click` carries `link_type`. `lib/checkout-link.ts`, `tests/checkout-link.test.ts`. Revert by removing the
+`shopifyCartUrl` block in `offerLink`.
+
 ## 2026-11-06 — The phone dock: the side rails' ads on screens too narrow for them
 
 Owner: "how can we have those [eBay and TCGplayer side rail ads] on mobile phone … like I have a Z Fold 7 … but also iPhones.
