@@ -11,6 +11,7 @@
 //
 // Pure (no database, no store registry): BrowseGrid imports this in the browser.
 import { REGIONS, type Region } from "./regions";
+import { awinUrl, clickref } from "./awin";
 
 // ─── Placements ────────────────────────────────────────────────────────────────
 // Where on the site an outbound link sits. One list for both jobs: the affiliate
@@ -455,13 +456,17 @@ export interface OutboundHref {
 
 /**
  * The link for an Offer row: TCGplayer's is wrapped and sponsored; a store's is
- * its own URL, untouched. `sponsored` is true only if the URL really was wrapped.
+ * its own URL, untouched, unless the store accepted us on Awin (then its tracked deep
+ * link). `sponsored` is true only if the URL really was wrapped.
  */
 export function offerLink(store: string, url: string, region: Region, placement: Placement): OutboundHref {
   if (store === TCGPLAYER_KEY) {
     const href = tcgplayerAffiliateUrl(url, region, placement);
     if (href !== url) return { href, rel: REL_SPONSORED, sponsored: true };
   }
+  // A store that accepted us on Awin (src/lib/awin.ts): the same page through its tracked deep link.
+  const awin = awinUrl(url, clickref("mtg", region, placement));
+  if (awin) return { href: awin, rel: REL_SPONSORED, sponsored: true };
   return { href: url, rel: REL_STORE, sponsored: false };
 }
 
