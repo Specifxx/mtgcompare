@@ -131,7 +131,8 @@ export function AdDock({ label, sides, placement, minWidth, yieldTo = "[data-ad]
           screen: window.innerHeight,
           blockers: blockers.size,
           buybar: !!document.querySelector(buybar),
-          modal: modal(),
+          // An ad-free visitor (Plus/Premium where a site has them) and a native app with its own banner: never.
+          modal: modal() || document.documentElement.matches("[data-adfree], .capacitor-native"),
           typing,
           dismissed: false,
         }),
@@ -202,10 +203,13 @@ export function AdDock({ label, sides, placement, minWidth, yieldTo = "[data-ad]
     const root = document.documentElement;
     const el = ref.current as (HTMLDivElement & { inert?: boolean }) | null;
     if (el) el.inert = !visible;
+    // <html data-ad-dock> while it shows: a site lifts its corner buttons above it (as it does for the buy bar).
+    root.toggleAttribute("data-ad-dock", visible);
     if (!visible || !el) return;
     root.style.scrollPaddingBottom = `${el.offsetHeight}px`;
     return () => {
       root.style.scrollPaddingBottom = "";
+      root.removeAttribute("data-ad-dock");
     };
   }, [visible]);
 
