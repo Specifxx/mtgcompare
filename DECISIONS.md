@@ -1102,6 +1102,27 @@ site copies it first in every build (`scripts/fetch-awin.ts` → `src/lib/awin-p
 empty list). `offerLink` turns a link to a joined advertiser's own domain (Magic Madhouse, Chaos Cards, Zatu…, whichever
 accept) into its Awin deep link to the same page, `sponsored`, with the affiliate note. Order and prices never change.
 
+## 2026-11-06 — Side rails on every regular screen, scrolling through ten popular products
+
+**Decision (owner: "I do not see those ads on the left and right side of the screen … it should appear on regular 16:9
+screens … 16:10 even … scrollable … up to 10 products … popular products"):** the side rails now show from 1280px wide,
+not 1864px. Below 1864px the shell gives up 160px a side for them (`globals.css`: `.max-w-shell` and `xl:max-w-shell` are
+`min(1480px, 100vw - 320px)` from 1280px), so a 1280, 1366, 1440, 1536, 1600 or 1680px window gets a 136px rail on each
+side, 12px from the window and from the page; from 1864px the shell is its full 1480px and the rails sit just outside it as
+before. Each rail runs from under the header to the window's foot and its list scrolls through up to ten tiles, popular
+first, instead of as many as the height fitted (at most six). A window too short for one whole tile shows none.
+
+**Still true:** browser-only (mounted after a matchMedia check, nothing in the server HTML, so no SEO change), fixed (CLS
+0; the shell rule is CSS, identical in the server HTML, so nothing moves when the rails mount), labelled Ad, rel
+sponsored under their own placements, never a store, never Amazon.
+
+**Cost:** the content column is narrower between 1280 and 1864px (960px at 1280). Pages already lay out at those
+widths (a 1024px laptop gets the same), so nothing breaks; revisit if clicks per visit fall on laptops.
+
+MTG Compare had no rails until now: this ports DexCompare's (`SideAds.tsx`, placements `listings-side` and `tcgplayer-strip-side`). The eBay rail tops
+the sealed feed up from the Play Booster Box and Collector Booster Box feeds, no listing twice; the TCGplayer rail is the
+pre-footer strip's ten newest-set products.
+
 ## 2026-11-06 — Store thumbs up and down, one tally shared by every site
 
 **Decision (owner: "a little mini area where you can rate a shop … thumbs up a store or thumbs down a store … across all

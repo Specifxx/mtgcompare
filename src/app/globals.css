@@ -767,3 +767,18 @@ html[data-geo="pending"] main { visibility: hidden; }
   --srv-accent-fg: rgb(var(--brand-ink));
   --srv-field: rgb(var(--raised));
 }
+
+/* The side rails (components/SideAds.tsx; owner 2026-11-06: "it should appear on regular 16:9 screens … 16:10 even"). From 1280px
+   the shell leaves 160px (a 136px rail and two 12px gutters) free on each side for them; from 1864px it is its full 1480px again
+   and the rails sit just outside it. Pure CSS, the same on the server and in the browser: no layout shift when the rails mount. */
+@media (min-width: 1280px) {
+  /* The page's shell only: the header keeps its full width (the rails start below it), or its menu would not fit. */
+  .max-w-shell {
+    max-width: min(1480px, calc(100vw - 320px));
+  }
+}
+/* A rail's list scrolls inside it (up to ten tiles): a thin bar, and the page does not scroll on past the list's end. */
+.rail-scroll {
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+}

@@ -78,13 +78,15 @@ export function Header({ region, listed }: { region: Region | null; listed?: Rea
         </Link>
         <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Main">
           {region ? <HeaderNavItems items={items} /> : <SoftHeaderNavItems items={items} />}
-          <NavLink href="/blog" className="whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors">
+          {/* From 1440px only: below that the row ran out of room once the side rails narrowed nothing but the page (the sidebar's
+              "Guides & news" group links the blog on every screen). */}
+          <NavLink href="/blog" className="hidden whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors min-[1440px]:inline-flex">
             Blog
           </NavLink>
           {/* A discreet, labelled sponsored item (xl and up only): eBay's search, tagged. Not a section of the site. */}
           {region && <EbayNavLink region={region} />}
         </nav>
-        <div className="hdr-search min-w-0 flex-1 lg:ml-auto lg:w-56 lg:flex-none xl:w-64">{region ? <SearchBox region={region} size="sm" /> : <SoftSearchBox />}</div>
+        <div className="hdr-search min-w-0 flex-1 lg:ml-auto lg:min-w-[7rem] lg:max-w-64">{region ? <SearchBox region={region} size="sm" /> : <SoftSearchBox />}</div>
         <ThemeToggle />
         {region ? <RegionSwitcher region={region} compact /> : <SoftRegionSwitcher />}
         <MobileMenu region={region} groups={groups} built={built} className="lg:hidden" />
