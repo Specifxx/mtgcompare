@@ -180,6 +180,7 @@ export function offerRowsData({
       lastSeen: o.lastSeen,
       ago: timeAgo(o.lastSeen, now),
       ship: o.marketplace ? null : shippingCell(o.store, r.market, o.priceCents, (c) => money(c, r.market)),
+      ...(o.marketplace ? {} : { cart: { productUrl: o.url, currency: r.currency } }),
     };
   });
   const tcg = pin ? tcgRow(tcgOffer, pin, region, placement, now) : null;
