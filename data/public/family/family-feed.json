@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-06T10:23:31.357Z",
+ "generatedAt": "2026-11-06T16:30:31.532Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -212,6 +212,20 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
+   "title": "Lorwyn Eclipsed 60-Card Theme Deck - Pirates",
+   "url": "https://mtgcompare.app/us/p/lorwyn-eclipsed-60-card-theme-deck-pirates",
+   "cents": 1282,
+   "currency": "USD",
+   "store": "Gamelandia",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/656330_in_1000x1000.jpg",
+   "refCents": 2399,
+   "refLabel": "median store price",
+   "savingPct": 47
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "US",
    "title": "The Hobbit Scene Box - Crack the Plates",
    "url": "https://mtgcompare.app/us/p/the-hobbit-scene-box-crack-the-plates",
    "cents": 3495,
@@ -235,20 +249,6 @@
    "refCents": 13999,
    "refLabel": "median store price",
    "savingPct": 39
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "US",
-   "title": "Secret Lair Drop: Secret Lair x Masters of the Universe: Nyah-ha-ha! - Traditional Foil Edition",
-   "url": "https://mtgcompare.app/us/p/secret-lair-drop-secret-lair-x-masters-of-the-universe-nyah-ha-ha-traditional-foil-edition",
-   "cents": 4499,
-   "currency": "USD",
-   "store": "Black Vault Gaming",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/715712_in_1000x1000.jpg",
-   "refCents": 6148,
-   "refLabel": "median store price",
-   "savingPct": 27
   },
   {
    "kind": "deal",
@@ -512,9 +512,9 @@
    "currency": "EUR",
    "store": "Mana Market EU",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/657856_in_1000x1000.jpg",
-   "refCents": 5990,
+   "refCents": 5870,
    "refLabel": "median store price",
-   "savingPct": 43
+   "savingPct": 42
   },
   {
    "kind": "deal",
@@ -529,20 +529,6 @@
    "refCents": 6490,
    "refLabel": "median store price",
    "savingPct": 41
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "SG",
-   "title": "Marvel Super Heroes Commander Deck - The Fantastic Four",
-   "url": "https://mtgcompare.app/sg/p/marvel-super-heroes-commander-deck-the-fantastic-four",
-   "cents": 4444,
-   "currency": "SGD",
-   "store": "Tefuda Games",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675632_in_1000x1000.jpg",
-   "refCents": 8500,
-   "refLabel": "median store price",
-   "savingPct": 48
   },
   {
    "kind": "deal",
@@ -613,6 +599,20 @@
    "refCents": 5500,
    "refLabel": "median store price",
    "savingPct": 27
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "SG",
+   "title": "Marvel Super Heroes - Heroes United Scene Box",
+   "url": "https://mtgcompare.app/sg/p/marvel-super-heroes-heroes-united-scene-box",
+   "cents": 4800,
+   "currency": "SGD",
+   "store": "Daimonji TCG",
+   "image": "https://cdn.shopify.com/s/files/1/0558/2114/0029/files/marvel-super-heroes-scene-box-heroes-united-magic-the-gathering.jpg?v=1769587671",
+   "refCents": 6500,
+   "refLabel": "median store price",
+   "savingPct": 26
   }
  ]
 }
