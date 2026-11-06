@@ -13,6 +13,7 @@ import { RegionSwitcher } from "./RegionSwitcher";
 import { HeaderNavItems, SoftHeaderNavItems, SoftRegionSwitcher, SoftSearchBox, type HeaderNavItem } from "./HeaderNav";
 import { shopMenuColumns } from "./ShopMenu";
 import { ThemeToggle } from "./ThemeToggle";
+import { CartHeaderLink } from "./cart/CartHeaderLink";
 import { SearchBox } from "./SearchBox";
 
 /**
@@ -89,6 +90,8 @@ export function Header({ region, listed }: { region: Region | null; listed?: Rea
         <div className="hdr-search min-w-0 flex-1 lg:ml-auto lg:min-w-[7rem] lg:max-w-64">{region ? <SearchBox region={region} size="sm" /> : <SoftSearchBox />}</div>
         <ThemeToggle />
         {region ? <RegionSwitcher region={region} compact /> : <SoftRegionSwitcher />}
+        {/* The cart list (components/cart, owner 2026-11-06): every width, with its count. */}
+        <CartHeaderLink />
         <MobileMenu region={region} groups={groups} built={built} className="lg:hidden" />
       </div>
     </header>

@@ -1,5 +1,6 @@
 "use client";
 
+import { CartAddButton } from "./cart/CartAddButton";
 import { useMemo, type ReactNode } from "react";
 import { StoreVote } from "./StoreVote";
 import { AmazonPrice, type AmazonLiveCell } from "./AmazonPrice";
@@ -18,6 +19,9 @@ import { StockPill } from "./StockPill";
 
 export const ROW_GRID = "grid grid-cols-[1fr_auto] items-center gap-x-3 px-4 py-3 sm:grid-cols-[1fr_auto_10rem_auto] sm:gap-x-4 sm:px-5 sm:py-3.5";
 export const ROW_BUTTON = "min-h-11 justify-self-end whitespace-nowrap [grid-area:2/2/4] sm:min-h-10 sm:[grid-area:1/4/3]";
+/** The store row's button cell: its buy button and the cart list's add button side by side (components/cart). */
+export const ROW_ACTIONS = "flex items-center gap-2 justify-self-end [grid-area:2/2/4] sm:[grid-area:1/4/3]";
+export const ROW_BUTTON_LINK = "min-h-11 whitespace-nowrap sm:min-h-10";
 
 
 /**
@@ -147,6 +151,8 @@ export interface StoreRowData {
   comparable?: boolean;
   /** A few words after the host line's "checked …" (TCGplayer outside the US: "US$, ships from the US"). */
   note?: string;
+  /** The cart list (components/cart, owner 2026-11-06): a store row's own product URL and currency. Never on a marketplace row. */
+  cart?: { productUrl: string; currency: string };
 }
 
 /**
@@ -230,18 +236,24 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
           </>
         )}
       </div>
-      <OutboundLink
-        href={d.href}
-        rel={d.rel}
-        retailer={d.retailer}
-        placement={d.placement ?? "product-table"}
-        amazon={d.amazon}
-        className={`${d.best ? "btn-primary" : d.open ? "btn-soft" : "btn-ghost"} ${ROW_BUTTON}`}
-      >
-        {d.kind === "amazon" ? (d.live ? "View" : "Check price") : d.search ? "Search" : d.open ? "View deal" : "View"} <span aria-hidden="true">↗</span>
-        {tcg && <span className="sr-only"> on TCGplayer</span>}
-        {d.kind === "amazon" && <span className="sr-only"> on {d.name}</span>}
-      </OutboundLink>
+      {/* The row's button, and beside it the cart list's "Add to cart" (components/cart) on an open store row. */}
+      <div className={ROW_ACTIONS}>
+        {d.cart && d.open && !d.search && !d.kind && !d.marketplace && (
+          <CartAddButton href={d.href} productUrl={d.cart.productUrl} storeName={d.name} title={d.title} priceCents={d.cents} currency={d.cart.currency} className="text-muted" />
+        )}
+        <OutboundLink
+          href={d.href}
+          rel={d.rel}
+          retailer={d.retailer}
+          placement={d.placement ?? "product-table"}
+          amazon={d.amazon}
+          className={`${d.best ? "btn-primary" : d.open ? "btn-soft" : "btn-ghost"} ${ROW_BUTTON_LINK}`}
+        >
+          {d.kind === "amazon" ? (d.live ? "View" : "Check price") : d.search ? "Search" : d.open ? "View deal" : "View"} <span aria-hidden="true">↗</span>
+          {tcg && <span className="sr-only"> on TCGplayer</span>}
+          {d.kind === "amazon" && <span className="sr-only"> on {d.name}</span>}
+        </OutboundLink>
+      </div>
     </li>
   );
 }
