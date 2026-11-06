@@ -66,7 +66,7 @@ test("the Creators API client stays script-side; only the product page reads liv
     const s = readFileSync(f, "utf8");
     if (f !== "src/lib/amazon-creators.ts") assert.ok(!/amazon-creators/.test(s), `${f} imports the Creators API client`);
     if (/from "@\/lib\/amazon-live"/.test(s) && !/import type \{[^}]*\} from "@\/lib\/amazon-live"/.test(s) && !/import \{ AMAZON_CLOCK, type AmazonLive \}/.test(s))
-      assert.equal(f, "src/app/[region]/p/[slug]/page.tsx", `${f} reads live Amazon prices`);
+      assert.ok(["src/app/[region]/p/[slug]/page.tsx", "src/app/api/quick/[region]/[slug]/route.ts"].includes(f), `${f} reads live Amazon prices`);
     assert.ok(!/AMAZON_CREATORS/.test(s) || f === "src/lib/amazon-creators.ts", `${f} names the credentials`);
   }
   assert.match(readFileSync(".gitignore", "utf8"), /^data\/amazon-live\/$/m);
@@ -74,4 +74,11 @@ test("the Creators API client stays script-side; only the product page reads liv
   assert.match(readFileSync("next.config.js", "utf8"), /data\/amazon-live\/\*\.json/);
   assert.match(readFileSync(".github/workflows/sealed-import.yml", "utf8"), /scripts\/amazon-asins\.ts/);
   assert.match(readFileSync("scripts/publish-public-data.sh", "utf8"), /AMAZON_DIR="data\/amazon"/);
+});
+
+test("the quick view's Amazon row is the product page's tagged link, never Amazon's price (owner, 2026-11-06)", () => {
+  const src = readFileSync("src/app/api/quick/[region]/[slug]/route.ts", "utf8");
+  assert.doesNotMatch(src, /amazon: null/, "the quick view keeps the Amazon link");
+  assert.match(src, /const amazonLink = found \? \{ asin: found\.asin, url: found\.url \} : null;/, "the link only: the price stays on the product page");
+  assert.match(src, /pinned: \{ productName: p\.name, tcgplayer, amazon: amazonLink \}/);
 });

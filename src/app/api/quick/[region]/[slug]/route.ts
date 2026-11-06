@@ -7,13 +7,14 @@ import { packsFor } from "@/lib/packs";
 import { REGIONS, isRegion } from "@/lib/regions";
 import { isPreorderSet } from "@/lib/release";
 import { offerStock } from "@/lib/sealed-offers";
+import { amazonLiveFor } from "@/lib/amazon-live";
 import { priceGap, shareText } from "@/lib/share-link";
 import { money } from "@/lib/format";
 import { TYPE_BY_LABEL } from "@/lib/sealed-title";
 
 // GET /api/quick/<region>/<slug>: a product card's quick view (components/QuickView.tsx), the product page's price table as data: the same
 // rows (OfferTable.tsx offerRowsData), the same eBay pick arguments, so the same rows in the same order (eBay first, then TCGplayer and
-// Amazon, then the stores). Rendered per request and kept by Vercel's CDN for a day, like the pages (the data only changes with a
+// Amazon, then the stores; Amazon's row without its price). Rendered per request and kept by Vercel's CDN for a day, like the pages (the data only changes with a
 // release, which empties the CDN), never ISR. /api/ is disallowed in robots.txt.
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,12 @@ export async function GET(_req: Request, { params }: { params: { region: string;
   const cheapestCents = best?.priceCents ?? p.offers.reduce<number | null>((m, o) => (m == null || o.priceCents < m ? o.priceCents : m), null);
   const ebayComparable = marketplaceOf(region).currency === r.currency;
   const floor = cheapestCents != null && ebayComparable ? { value: (cheapestCents * 0.4) / 100, currency: r.currency } : null;
-  const { rows, tcg, storeOffers } = offerRowsData({ offers: p.offers, region, packs, placement: "quickview-table", pinned: { productName: p.name, tcgplayer } });
+  // The product page's Amazon row and tagged link (owner, 2026-11-06: a visitor-opened view of this one product is the Associates
+  // policy's "pop-up windows in conjunction with your Site promoting Products closely associated with the materials on your Site"),
+  // the item's own page where the import found its ASIN, but never Amazon's price: that stays on the product page (24-hour licence).
+  const found = amazonLiveFor(p.slug, r.region);
+  const amazonLink = found ? { asin: found.asin, url: found.url } : null;
+  const { rows, tcg, amazon, storeOffers } = offerRowsData({ offers: p.offers, region, packs, placement: "quickview-table", pinned: { productName: p.name, tcgplayer, amazon: amazonLink } });
   const stores = storeOffers.filter((o) => !o.marketplace);
   return Response.json(
     {
@@ -44,8 +50,7 @@ export async function GET(_req: Request, { params }: { params: { region: string;
       inStock: stores.filter((o) => offerStock(o) === "open").length,
       rows,
       tcg,
-      // No Amazon link in a pop-up window (Associates Operating Agreement, 2026-11-02): the product page carries it.
-      amazon: null,
+      amazon,
       ebay: { slug: p.slug, query: ebayQuery(p.name, tcgplayer), floor, packs: rowPacks(type?.key, packs) },
       preorder: pre,
       // For a quick view opened from a plain link, which knows only the slug.
