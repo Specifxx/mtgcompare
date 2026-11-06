@@ -8,6 +8,7 @@ import { money } from "@/lib/format";
 import { thumb } from "@/lib/images";
 import type { Region } from "@/lib/regions";
 import { useListings } from "./EbayStrip";
+import { useSoftRegion } from "./RegionSuggest";
 import { EbayMark } from "./EbayMark";
 import { OutboundLink } from "./OutboundLink";
 
@@ -70,6 +71,14 @@ export function SideAds({ region, tiles }: { region: Region; tiles: TcgplayerTil
       {tiles.length >= 2 && <TcgRail region={region} tiles={tiles} />}
     </>
   );
+}
+
+/**
+ * The same rails on the pages with no region of their own (the home page, the blog, About…; owner 2026-11-06: "the home page must
+ * have this as well"), in the visitor's suggested or picked region (RegionSuggest.tsx), like their header and sidebar.
+ */
+export function SoftSideAds({ tiles }: { tiles: TcgplayerTile[] }) {
+  return <SideAds region={useSoftRegion()} tiles={tiles} />;
 }
 
 const LIST = "rail-scroll grid min-h-0 flex-1 content-start gap-2 overflow-y-auto overscroll-contain";
