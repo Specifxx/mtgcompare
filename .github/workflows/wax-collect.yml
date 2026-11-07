@@ -1,0 +1,42 @@
+name: WaxCompare store probe (collect)
+
+# Research only, on this claude/* branch: joins the two shards of probe run 42314452626 (the probe's own collect step failed
+# on a stash of untracked files) into wax-probe/results.json and summary.md, and commits them here.
+
+on:
+  push:
+    branches: ["claude/**"]
+    paths: [".github/workflows/wax-collect.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: shards
+          run-id: 42314452626
+          github-token: ${{ github.token }}
+      - name: Commit results
+        run: |
+          set -euo pipefail
+          node wax-probe/summarize.mjs shards > /dev/null
+          mkdir -p /tmp/out && cp wax-probe/results.json wax-probe/summary.md /tmp/out/
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for i in 1 2 3 4 5; do
+            git fetch -q origin ${GITHUB_REF_NAME}
+            git checkout -q -B ${GITHUB_REF_NAME} FETCH_HEAD
+            cp /tmp/out/results.json /tmp/out/summary.md wax-probe/
+            git add wax-probe/results.json wax-probe/summary.md
+            git commit -q -m "wax probe: store results" || exit 0
+            git push origin HEAD:${GITHUB_REF_NAME} && exit 0
+            sleep $((2 ** i))
+          done
+          exit 1
