@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-07T00:34:04.963Z",
+ "generatedAt": "2026-11-07T15:22:36.177Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -204,7 +204,7 @@
    "currency": "USD",
    "store": "Collector Store",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/675615_in_1000x1000.jpg",
-   "refCents": 6997,
+   "refCents": 6995,
    "refLabel": "median store price",
    "savingPct": 50
   },
@@ -226,6 +226,20 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
+   "title": "Star Trek Commander Deck - Klingon Fury (Collector's Edition)",
+   "url": "https://mtgcompare.app/us/p/star-trek-commander-deck-klingon-fury-collectors-edition",
+   "cents": 8500,
+   "currency": "USD",
+   "store": "Vegas Singles",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/706174_in_1000x1000.jpg",
+   "refCents": 16668,
+   "refLabel": "median store price",
+   "savingPct": 49
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "US",
    "title": "The Hobbit Scene Box - Crack the Plates",
    "url": "https://mtgcompare.app/us/p/the-hobbit-scene-box-crack-the-plates",
    "cents": 3495,
@@ -240,15 +254,15 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "The Hobbit Play Booster Pack",
-   "url": "https://mtgcompare.app/us/p/the-hobbit-play-booster-pack",
-   "cents": 475,
+   "title": "Secret Lair Drop: Secret Lair x Masters of the Universe: By the Power of Grayskull! - Traditional Foil Edition",
+   "url": "https://mtgcompare.app/us/p/secret-lair-drop-secret-lair-x-masters-of-the-universe-by-the-power-of-grayskull-tradition",
+   "cents": 4499,
    "currency": "USD",
-   "store": "MinMaxGames",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/692959_in_1000x1000.jpg",
-   "refCents": 699,
+   "store": "Black Vault Gaming",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/715702_in_1000x1000.jpg",
+   "refCents": 5998,
    "refLabel": "median store price",
-   "savingPct": 32
+   "savingPct": 25
   },
   {
    "kind": "deal",
@@ -263,20 +277,6 @@
    "refCents": 8718,
    "refLabel": "median store price",
    "savingPct": 20
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "US",
-   "title": "Secret Lair Drop: Featuring: Gene Luen Yang - Traditional Foil Edition",
-   "url": "https://mtgcompare.app/us/p/secret-lair-drop-featuring-gene-luen-yang-traditional-foil-edition",
-   "cents": 4500,
-   "currency": "USD",
-   "store": "Black Vault Gaming",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/713508_in_1000x1000.jpg",
-   "refCents": 4997,
-   "refLabel": "median store price",
-   "savingPct": 10
   },
   {
    "kind": "deal",
@@ -450,20 +450,6 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "EU",
-   "title": "Marvel Super Heroes Bundle",
-   "url": "https://mtgcompare.app/eu/p/marvel-super-heroes-bundle",
-   "cents": 3499,
-   "currency": "EUR",
-   "store": "Mana Market EU",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675615_in_1000x1000.jpg",
-   "refCents": 6499,
-   "refLabel": "median store price",
-   "savingPct": 46
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "EU",
    "title": "Marvel Super Heroes Commander Deck - The Fantastic Four",
    "url": "https://mtgcompare.app/eu/p/marvel-super-heroes-commander-deck-the-fantastic-four",
    "cents": 3867,
@@ -487,6 +473,20 @@
    "refCents": 16500,
    "refLabel": "median store price",
    "savingPct": 45
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "EU",
+   "title": "Marvel Super Heroes Bundle",
+   "url": "https://mtgcompare.app/eu/p/marvel-super-heroes-bundle",
+   "cents": 3499,
+   "currency": "EUR",
+   "store": "Mana Market EU",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675615_in_1000x1000.jpg",
+   "refCents": 6297,
+   "refLabel": "median store price",
+   "savingPct": 44
   },
   {
    "kind": "deal",
