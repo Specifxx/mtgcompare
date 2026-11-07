@@ -290,6 +290,12 @@ export async function HolidaySalePage({ event, params }: { event: SaleEvent } & 
             — the same deals and price watch, under the {event === "black-friday" ? "Monday" : "Friday"}&rsquo;s own page.
           </li>
           <li>
+            <Link href={`/${r.region}/guides/magic-black-friday-2026`} prefetch={false} className="font-semibold text-brand hover:underline">
+              Black Friday: the prices to beat
+            </Link>{" "}
+            — today&rsquo;s cheapest prices to read a Black Friday price against, and five checks before you pay.
+          </li>
+          <li>
             <Link href={`/${r.region}/deals`} prefetch={false} className="font-semibold text-brand hover:underline">
               All deals by product type
             </Link>{" "}
