@@ -1249,6 +1249,7 @@ back: their deals are what the site is for, and identify() already decides what 
 
 Not done: putting "6 boxes" in the eBay query. Browse requires every keyword in the title, so it would hide the real cases
 titled "Play Booster Box Case" with no count (most of them); the refusal after the search does the job without that loss.
+
 ## 2026-11-07 — The low-traction cull: Secret Lairs, precons and other multi-set products must be a comparison
 
 Owner, 2026-11-07: apply Compare Empire's focus cull to every site. On 2026-11-07 MTG Compare listed 4,798 products; 1,760 were in
@@ -1258,3 +1259,15 @@ under 120 days or upcoming, two in-stock sources in one market, or a core produc
 with any listing. `LOW_VALUE_TYPES` (Secret Lair drops, Commander and other decks, prerelease packs, special bundles, scene boxes,
 collections) need the comparison. ≈4,800 → 1,950 products. Neon and the price history keep everything; a culled URL 301s to its
 type page (`data/public/culled.json`, `lib/culled.ts`).
+
+## 2026-11-07: Three listings to index a region page; the sitemap lists the core
+
+The owner's Search Console and Bing audit (2026-11-07) found thousands of region product pages "Crawled" or
+"Discovered – currently not indexed": the same product exists at seven region URLs, and a page where one or two stores
+list it is a store's shelf inside the template, which Google buckets as thin. `productTier` (`src/lib/index-tiers.ts`)
+now needs three listings (stores, plus an open marketplace offer) for a region page to be indexable (`MIN_INDEX_LISTINGS`):
+0–2 is thin, noindex, follow, out of the sitemap and out of hreflang (the page's `regionAlternates` already advertises
+only the regions where `productNoindex` is false). The sitemap's strong tier is now the core: in stock at three or more
+stores (`STRONG_IN_STOCK`), or a headline product five or more stores list (`STRONG_HEADLINE_LISTED`); everything between
+stays indexable and linked, out of the sitemap. Every page stays live and every URL is unchanged. Loosen the constants
+once Search Console shows the core indexed (recheck ~25 Nov). `tests/index-tiers.test.ts`.
