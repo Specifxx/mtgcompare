@@ -14,6 +14,8 @@ import path from "node:path";
 import { prisma } from "../src/lib/db";
 import { buildPublicFiles, type Tables } from "../src/lib/public-data/export";
 import { META_FILE, type PublicDataMeta } from "../src/lib/public-data/format";
+import { execFileSync } from "node:child_process";
+import { demandSlugs, focusCatalog, type FocusOffer, type FocusProduct } from "../src/lib/focus";
 import { dayOf, HISTORY_FILE, isPriceHistory, updatePriceHistory, type PriceHistory } from "../src/lib/price-history";
 
 const BATCH = 5000;
@@ -24,6 +26,22 @@ async function all<T>(read: (skip: number) => Promise<T[]>): Promise<T[]> {
     const page = await read(skip);
     out.push(...page);
     if (page.length < BATCH) return out;
+  }
+}
+
+const CULLED_FILE = "culled.json";
+
+/** Search Console page demand from this repo's `demand` branch (RiftCompare's sister-demand job); none when it can't be read. */
+function readDemand(): Set<string> {
+  try {
+    execFileSync("git", ["fetch", "--quiet", "--depth=1", "origin", "demand"], { stdio: "ignore", timeout: 60_000 });
+    const raw = execFileSync("git", ["show", "FETCH_HEAD:gsc-pages.json"], { encoding: "utf8", timeout: 30_000 });
+    const s = demandSlugs((JSON.parse(raw) as { pages?: Record<string, number[]> }).pages ?? {});
+    console.log(`[export] ${s.size} product pages with search demand`);
+    return s;
+  } catch {
+    console.log("[export] no demand branch: the focus rule alone decides");
+    return new Set();
   }
 }
 
@@ -50,13 +68,33 @@ async function main() {
   }
   const n = { products: tables.Product.length, offers: tables.Offer.length };
   if (!n.products || !n.offers) throw new Error(`refusing to export: ${n.products} products, ${n.offers} offers`);
-  for (const [model, now] of [["Product", n.products], ["Offer", n.offers]] as const) {
+
+  // The low-traction cull (lib/focus.ts, owner 2026-11-07): only listed products, their offers and stats reach the site. The
+  // database and the price history below keep everything, so a product that qualifies again comes back with its chart.
+  const { keep, culled } = focusCatalog(
+    tables.Product as unknown as FocusProduct[],
+    tables.Offer as unknown as FocusOffer[],
+    readDemand(),
+  );
+  const listed = { ...tables } as Tables;
+  listed.Product = tables.Product.filter((r) => keep.has(String(r.id)));
+  listed.Offer = tables.Offer.filter((r) => keep.has(String(r.productId)));
+  listed.ProductStat = tables.ProductStat.filter((r) => keep.has(String(r.productId)));
+  // Never replace good files with a snapshot under half the last one. The last files hold listed rows once a focused export has
+  // run (culled.json is there), the whole tables before that.
+  const focused = fs.existsSync(path.join(dir, CULLED_FILE));
+  const base = focused ? listed : tables;
+  for (const model of ["Product", "Offer"] as const) {
     const before = previous?.counts?.[model] ?? 0;
+    const now = base[model].length;
     if (before && now < before / 2) throw new Error(`refusing to export: ${model} fell from ${before} to ${now} rows`);
   }
+  console.log(`[export] focus: ${listed.Product.length} of ${tables.Product.length} products listed, ${Object.keys(culled).length} culled`);
 
-  const files = buildPublicFiles(tables, { generatedAt: new Date(), source: process.env.DB_SOURCE_NAME || "DATABASE_URL" });
+  const files = buildPublicFiles(listed, { generatedAt: new Date(), source: process.env.DB_SOURCE_NAME || "DATABASE_URL" });
   fs.mkdirSync(dir, { recursive: true });
+  // Culled product slug → its type page's slug ("" = the region's home): the product page 301s there (lib/culled.ts).
+  files.set(CULLED_FILE, `${JSON.stringify(Object.fromEntries(Object.entries(culled).sort(([a], [b]) => (a < b ? -1 : 1))))}\n`);
   let bytes = 0;
   for (const [name, body] of files) {
     fs.writeFileSync(path.join(dir, name), body);
