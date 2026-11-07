@@ -1249,6 +1249,7 @@ back: their deals are what the site is for, and identify() already decides what 
 
 Not done: putting "6 boxes" in the eBay query. Browse requires every keyword in the title, so it would hide the real cases
 titled "Play Booster Box Case" with no count (most of them); the refusal after the search does the job without that loss.
+
 ## 2026-11-07 — The low-traction cull: Secret Lairs, precons and other multi-set products must be a comparison
 
 Owner, 2026-11-07: apply Compare Empire's focus cull to every site. On 2026-11-07 MTG Compare listed 4,798 products; 1,760 were in
@@ -1258,6 +1259,7 @@ under 120 days or upcoming, two in-stock sources in one market, or a core produc
 with any listing. `LOW_VALUE_TYPES` (Secret Lair drops, Commander and other decks, prerelease packs, special bundles, scene boxes,
 collections) need the comparison. ≈4,800 → 1,950 products. Neon and the price history keep everything; a culled URL 301s to its
 type page (`data/public/culled.json`, `lib/culled.ts`).
+
 ## 2026-11-07: Three listings to index a region page; the sitemap lists the core
 
 The owner's Search Console and Bing audit (2026-11-07) found thousands of region product pages "Crawled" or
