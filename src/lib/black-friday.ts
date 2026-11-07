@@ -34,6 +34,19 @@ export function inSeason(today: string): boolean {
   return today >= `${y}-11-01` && today <= addDays(cyberMonday(y), 7);
 }
 
+/**
+ * The one-line strip under the header on every region page, and the nav entry (DECISIONS.md, "Black Friday strip",
+ * 2026-11-07): Black Friday from 1 November to the Saturday after it, then Cyber Monday to the day after Cyber Monday, then
+ * nothing (the region home keeps its banner until a week after). A link in the server HTML, never a pop-up or a countdown.
+ */
+export function saleStrip(today: string): { key: "blackFriday" | "cyberMonday"; name: string } | null {
+  const y = Number(today.slice(0, 4));
+  if (today < `${y}-11-01`) return null;
+  if (today <= addDays(blackFriday(y), 1)) return { key: "blackFriday", name: "Black Friday" };
+  if (today <= addDays(cyberMonday(y), 1)) return { key: "cyberMonday", name: "Cyber Monday" };
+  return null;
+}
+
 function addDays(iso: string, n: number): string {
   const d = new Date(`${iso}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + n);

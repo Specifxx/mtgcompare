@@ -3,6 +3,7 @@ import { PreFooterTcgplayer } from "@/components/PreFooterTcgplayer";
 import { listedSetCodes, tcgplayerTiles, type TcgplayerTile } from "@/lib/data";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { HolidayStrip } from "@/components/HolidayStrip";
 import { SideAds } from "@/components/SideAds";
 import { SideNav } from "@/components/SideNav";
 import { navGroups } from "@/lib/nav";
@@ -24,6 +25,7 @@ export default async function RegionLayout({ children, params }: { children: Rea
   return (
     <>
       <Header region={r.region} listed={listed} />
+      <HolidayStrip region={r.region} />
       {/* From xl, the sidebar (components/SideNav.tsx) fills the wide screen's left side; the page keeps its own width beside it. */}
       <div className="mx-auto flex w-full max-w-shell flex-1">
         <SideNav region={r.region} groups={navGroups(r.region, undefined, listed)} />
