@@ -1230,6 +1230,34 @@ else the tagged search), never Amazon's price: that stays on the product page un
 overlays (a phone ad dock, a corner card, an exit pop-up) still never carry Amazon, and an Amazon page is never framed
 (item (n)).
 
+## 2026-11-07: A case is six boxes, and eBay far under the median is never the best price (visitor feedback)
+
+An eBay seller (JT, Leatherwood Collectibles) wrote that the Marvel Super Heroes Play Booster Box Case page (six boxes,
+180 packs) showed a 120-pack "Sleeved Play Booster Case" from eBay as "Best price in stock … 26% below the median": another
+product at two-thirds of the price. `rowPacks` skipped every pack check on a case (its listings state one box's packs), so
+nothing caught it. Now `wrongCaseQuantity` (`sealed-title.ts`) refuses, on a Play/Collector Booster Box Case or Bundle Case,
+a title that says "sleeved", a unit count other than six ("Case of 4", "24x … Master Case", "4 Bundles") or a case-sized pack
+count that is not this case's ("120 Packs"; Play 180/216, Collector 72). It runs in `refusedForType` (the import AND the read
+path, so stored rows go at once) and in `identify()` for store titles (collectorstore's sleeved cases, heroesworld's
+"Case of 4"). Only stated counts count: plural "6 Boxes", "6x", "x6", "case of 6", "6-Box"; a set's own number ("Modern
+Horizons 3 Bundle Case") is never read. Every store title on 2026-11-07 says six, so six is the rule, not a guess.
+
+Second guard (`ebayFloorFor` / `ebayMayBeBest`, `ebay-offer-row.ts`): an eBay listing under 75% of the in-stock stores'
+median (two or more stores) is still shown in its row at its price, but is never "Best price", the best-price card or a
+"% below the median" claim. A real deal that far under every store is rare; a different product is not. Stores are not held
+back: their deals are what the site is for, and identify() already decides what they are.
+
+Not done: putting "6 boxes" in the eBay query. Browse requires every keyword in the title, so it would hide the real cases
+titled "Play Booster Box Case" with no count (most of them); the refusal after the search does the job without that loss.
+## 2026-11-07 — The low-traction cull: Secret Lairs, precons and other multi-set products must be a comparison
+
+Owner, 2026-11-07: apply Compare Empire's focus cull to every site. On 2026-11-07 MTG Compare listed 4,798 products; 1,760 were in
+stock nowhere and 1,786 at one store only; 2,158 were Secret Lair drops. Search Console (56 days, `demand` branch) put 3 product
+pages over a click or 10 impressions. Same rule as DexCompare's (`lib/focus.ts`, applied by the exporter): search demand, a set
+under 120 days or upcoming, two in-stock sources in one market, or a core product (boxes, bundles, packs, cases, starter kits)
+with any listing. `LOW_VALUE_TYPES` (Secret Lair drops, Commander and other decks, prerelease packs, special bundles, scene boxes,
+collections) need the comparison. ≈4,800 → 1,950 products. Neon and the price history keep everything; a culled URL 301s to its
+type page (`data/public/culled.json`, `lib/culled.ts`).
 ## 2026-11-07 — Black Friday strip (owner: "capture all of the Black Friday SEO")
 
 One line under the header on every region page, in the server HTML, linking that region's `/black-friday` from 1 November

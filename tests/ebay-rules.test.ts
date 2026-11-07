@@ -67,3 +67,31 @@ test("refused: parts, singles, opened, damaged, random and other languages", () 
   ] as [string, TypeKey][])
     assert.ok(refused(t, type), `${type}: ${t}`);
 });
+
+// Visitor feedback 2026-11-07 (an eBay seller): the Marvel Super Heroes Play Booster Box Case page's cheapest offer was a 120-pack
+// sleeved case, "26% below the median". A case is six boxes; real eBay and store titles read 2026-11-07.
+test("cases: another quantity is another product", () => {
+  const play = "play-booster-box-case" as const;
+  for (const t of [
+    "120x Sleeved Play Booster Packs 1x Case Magic the Gathering: Marvel Super Heroes",
+    "Marvel Super Heroes Sleeved Play Booster Case 120 Packs MTG MAGIC THE GATHERING",
+    "Magic the Gathering: Star Trek Sleeved Booster Case (120 Packs) SEALED CASE",
+    "Play Booster Boxes (Case of 4) | Secrets of Strixhaven | Magic the Gathering TCG",
+    "Sealed Magic MTG Final Fantasy Play Booster Display Box Case X 20 (120 Boxes)",
+  ]) assert.equal(refused(t, play), true, t);
+  for (const t of [
+    "MASTER SEALED CASE! 24x Collector Booster Box Marvel Super Heroes MSH MTG",
+    "MTG TARKIR DRAGONSTORM COLLECTOR BOOSTER BOX SEALED MASTER CASE (24 BOXES)",
+  ]) assert.equal(refused(t, "collector-booster-box-case"), true, t);
+  for (const t of ["MTG Pizza Bundle Sealed Case (4 Bundles) Teenage Mutant Ninja Turtles English", "Magic MTG: Teenage Mutant Ninja Turtles Special Bundle | Sealed Case of 4 Bundle"])
+    assert.equal(refused(t, "bundle-case"), true, t);
+  for (const t of [
+    "SEALED CASE! 6x Play Booster Box Marvel Super Heroes MSH MTG",
+    "Magic MTG Booster Marvel Super Heroes PLAY Booster 6-Box CASE SEALED!",
+    "TEENAGE MUTANT NINJA TURTLES Magic Play Booster Box Sealed Case 6x Boosters MTG",
+    "Secrets of Strixhaven Play Booster Box Case (6 Booster Boxes) New Sealed Magic",
+    "Magic The Gathering Marvel Super Heroes Marvel Play Booster Case Factory Sealed",
+  ]) assert.equal(refused(t, play), false, t);
+  assert.equal(refused("Marvel Super Heroes Collector Booster Box Case 6 Boxes MTG Sealed English Magic", "collector-booster-box-case"), false);
+  assert.equal(refused("Magic the Gathering: Modern Horizons 3 Bundle Case", "bundle-case"), false);
+});

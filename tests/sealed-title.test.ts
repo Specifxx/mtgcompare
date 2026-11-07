@@ -434,3 +434,16 @@ test("a store's 'CCG:' category prefix is not part of the product (2026-11-03: 1
   assert.ok(isIdentity(id));
   assert.doesNotMatch(id.name, /^CCG/);
 });
+
+// Visitor feedback 2026-11-07: a store's 120-pack sleeved case or "Case of 4" is not the six-box case (store titles read 2026-11-07).
+test("cases: a store's other quantity is not the case", () => {
+  for (const t of [
+    "Magic the Gathering: Marvel Super Heroes Sleeved Play Booster Case (120x Sleeved Boosters)",
+    "MTG: The Hobbit Play Booster Sleeved Pack Case (120 Packs)",
+    "Play Booster Boxes (Case of 4) | Secrets of Strixhaven | Magic the Gathering TCG",
+    "Magic: The Gathering Teenage Mutant Ninja Turtles Pizza Bundle Case (4 Bundles)",
+  ]) assert.ok(!["play-booster-box-case", "bundle-case"].includes(classify(t) as string), t);
+  assert.equal(classify("Magic: The Gathering Marvel Super Heroes Play Booster Box Case (6 Boxes)"), "play-booster-box-case");
+  assert.equal(classify("Teenage Mutant Ninja Turtles - Case da 6 Play Booster Box (ENG)"), "play-booster-box-case");
+  assert.equal(classify("Magic the Gathering: Modern Horizons 3 Bundle Case"), "bundle-case");
+});

@@ -9,7 +9,7 @@ import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { EBAY_CAMPAIGN_ID, PLACEMENTS, REL_SPONSORED } from "../src/lib/affiliate";
 import type { OfferView } from "../src/lib/data";
-import { displayPacksFromCards, ebayRowNote, listingCents, pickListing, rowPacks, statedPacks, wrongPackCount } from "../src/lib/ebay-offer-row";
+import { displayPacksFromCards, ebayFloorFor, ebayMayBeBest, ebayRowNote, listingCents, pickListing, rowPacks, statedPacks, wrongPackCount } from "../src/lib/ebay-offer-row";
 import { OfferTable } from "../src/components/OfferTable";
 import { PIN_OUTLINE } from "../src/components/OfferRows";
 import { BestPriceCard, type BestPriceCardProps } from "../src/components/BestPriceCard";
@@ -238,7 +238,7 @@ test("the product page gives the best-price card the same eBay pick as the table
   assert.match(product, /const ebayBest = ebayComparable && !pre;/, "never on a pre-order");
   assert.match(product, /pinned=\{\{ productName: p\.name, tcgplayer, amazon: amazonLiveFor\(p\.slug, r\.region\) \}\}/, "TCGplayer pinned under eBay in the table, Amazon with this build's price");
   const strip = readFileSync(new URL("../src/components/EbayStrip.tsx", import.meta.url), "utf8");
-  assert.match(strip, /const bestable = item != null && cents != null && !conditionLabel\(item\.condition\);/, "only a new listing can be the best price");
+  assert.match(strip, /const bestable = item != null && cents != null && !conditionLabel\(item\.condition\) && ebayMayBeBest\(cents, floor\);/, "only a new listing, not far under the median, can be the best price");
   assert.match(strip, /if \(byPrice && allowGiven && bestable && cents != null && cents < low\) top = "ebay";/, "the table's badge: the same rule");
   assert.ok((PLACEMENTS as readonly string[]).includes("listings-best-price"));
   const card = readFileSync(new URL("../src/components/BestPriceCard.tsx", import.meta.url), "utf8");
@@ -255,4 +255,14 @@ test("the listing shown is the cheapest delivered: item plus the postage eBay st
   const dearerFreePost = { id: "b", price: { value: "110.00", currency: "AUD" }, ship: { free: true } };
   assert.equal(pickListing([cheapItemDearPost, dearerFreePost], null)?.id, "b");
   assert.equal(pickListing([cheapItemDearPost, { ...dearerFreePost, price: { value: "131.00", currency: "AUD" } }], null)?.id, "a");
+});
+
+// Visitor feedback 2026-11-07: an eBay listing far under the stores' median is still shown, never the best price.
+test("an eBay listing more than 25% under the stores' median is never the best price", () => {
+  const f = ebayFloorFor(75000, "USD", 74995, 4);
+  assert.equal(f?.bestMinCents, 56246);
+  assert.equal(ebayMayBeBest(47500, f), false);
+  assert.equal(ebayMayBeBest(59899, f), true);
+  assert.equal(ebayFloorFor(75000, "USD", 74995, 1)?.bestMinCents, undefined);
+  assert.equal(ebayMayBeBest(100, ebayFloorFor(75000, "USD", null, 0)), true);
 });

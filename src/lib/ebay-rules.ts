@@ -1,7 +1,7 @@
 // Which eBay listings are NOT one unit of a sealed Magic product: shared by the importer (ebay-normalise.ts, ebay-sweep.ts) and the
 // website's read path (ebay-read.ts drops a stored row that today's rules refuse). Pure; imports only the title normaliser and the
 // set list, so the route's chain stays free of the importer's modules (tests/ebay-api.test.ts).
-import { normalizeTitle, type TypeKey } from "./sealed-title";
+import { normalizeTitle, wrongCaseQuantity, type TypeKey } from "./sealed-title";
 import { SETS } from "./sets";
 
 const CASE_TYPES = new Set<TypeKey>(["play-booster-box-case", "collector-booster-box-case", "bundle-case"]);
@@ -83,6 +83,10 @@ export function refusedForType(title: string, type: TypeKey): boolean {
   // A single pack is never a box, a display or a bundle ("box fresh" is a pack).
   if (PACK_TYPES.has(type) && (/\b(?:display|bundle)\b|\bbox\b(?!\s*fresh)/.test(t))) return true;
   if (CASE_TYPES.has(type) && (CASE_FRESH.test(t) || WITH_A_CASE.test(t))) return true;
+  // A case is six boxes (or bundles): a "Case of 4", a 120-pack sleeved case or a 24-box master case is another product (visitor feedback 2026-11-07).
+  if (CASE_TYPES.has(type) && wrongCaseQuantity(title, type)) return true;
+  // Sleeved boosters are single retail packs: never a box.
+  if (BOX_TYPES.has(type) && /\bsleeved\b/.test(t)) return true;
   // A box is a box or a display: "36 Play Boosters" are loose packs.
   if (BOX_TYPES.has(type) && !/\b(?:box|boxes|display|displays)\b/.test(t)) return true;
   // "36 Play Boosters (loose, from a box)": the packs, not the box.
