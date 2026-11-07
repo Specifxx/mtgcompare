@@ -14,7 +14,7 @@ export function HolidayStrip({ region, today = new Date().toISOString().slice(0,
     <div className="border-b border-line bg-brand-soft" data-holiday-strip={s.key}>
       <p className="page truncate py-1.5 text-center text-xs sm:text-sm">
         <Link href={sectionHref(region, s.key)} prefetch={false} className="hover:text-ink">
-          <b>{s.name} MTG deals in {r.inName}</b> · sealed under the median store price today · <span className="font-semibold text-brand-strong">see the deals →</span>
+          <b>{s.name} MTG deals in {r.inName}</b><span className="hidden sm:inline"> · sealed under the median store price today</span> · <span className="font-semibold text-brand-strong">see the deals →</span>
         </Link>
       </p>
     </div>
