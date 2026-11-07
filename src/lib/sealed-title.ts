@@ -320,7 +320,7 @@ const CASE_PACKS: Partial<Record<TypeKey, readonly number[]>> = {
   "play-booster-box-case": [180, 216],
   "collector-booster-box-case": [72],
 };
-const CASE_UNIT_COUNT = /\b(\d{1,2})\s*x\b(?!\s*\d)|\bx\s*(\d{1,2})\b|\bcase\s+(?:of|da|de|von|mit)\s+(\d{1,2})\b|\b(\d{1,2})\s*(?:x\s*)?(?:(?:play|collector|draft|set)\s+)?(?:booster\s+)?(?:boxes|displays|bundles)\b|\b(\d{1,2})-(?:box|display|bundle)\b/g;
+const CASE_UNIT_COUNT = /(?<![\d.])\b(\d{1,2})\s*x\b(?!\s*\d)|\bx\s*(\d{1,2})\b|\bcase\s+(?:of|da|de|von|mit)\s+(\d{1,2})\b|(?<![\d.])\b(\d{1,2})\s*(?:x\s*)?(?:(?:play|collector|draft|set)\s+)?(?:booster\s+)?(?:boxes|displays|bundles)\b|\b(\d{1,2})-(?:box|display|bundle)\b/g;
 const CASE_PACK_COUNT = /\b(\d{2,3})\s*(?:x\s*)?(?:(?:sleeved|play|collector|draft|set)\s+)*(?:booster\s*)?(?:packs?|boosters)\b/g;
 
 /**
