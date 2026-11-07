@@ -41,7 +41,8 @@ export type GuideSlug =
   | "best-magic-product-for-beginners"
   | "final-fantasy-mtg-sealed-prices"
   | "lord-of-the-rings-mtg-sealed-prices"
-  | "avatar-last-airbender-mtg-sealed-prices";
+  | "avatar-last-airbender-mtg-sealed-prices"
+  | "magic-black-friday-2026";
 
 export interface Guide {
   slug: GuideSlug;
@@ -156,6 +157,17 @@ export const GUIDES: readonly Guide[] = [
     regions: "all",
     topic: { types: ["play-booster-box", "collector-booster-box", "bundle"] },
     ebay: SEALED_EBAY,
+  },
+  {
+    slug: "magic-black-friday-2026",
+    title: "Magic Black Friday 2026: the prices to beat",
+    description: "Magic: The Gathering Black Friday and Cyber Monday 2026: the dates, today's cheapest boxes, Bundles and Commander decks, and five checks before you pay.",
+    kicker: "Black Friday",
+    published: "2026-11-07",
+    updated: "2026-11-07",
+    regions: "all",
+    topic: { types: ["play-booster-box", "collector-booster-box", "bundle"] },
+    ebay: { heading: "Magic booster boxes on eBay", query: "MTG booster box" },
   },
   {
     slug: "how-to-avoid-resealed-magic-products",

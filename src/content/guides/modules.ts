@@ -9,6 +9,7 @@ import * as collector from "./is-a-collector-booster-box-worth-it";
 import * as whereToBuy from "./where-to-buy-magic-sealed-online";
 import * as preorder from "./how-to-preorder-magic-sets";
 import * as resealed from "./how-to-avoid-resealed-magic-products";
+import * as blackFriday from "./magic-black-friday-2026";
 import * as msrp from "./magic-msrp";
 import * as cheapestPacks from "./cheapest-way-to-buy-magic-packs";
 import * as playVsCollector from "./play-vs-collector-booster-box-value-by-set";
@@ -36,6 +37,7 @@ export const GUIDE_MODULES: Record<GuideSlug, GuideModule> = {
   "where-to-buy-magic-sealed-online": whereToBuy,
   "how-to-preorder-magic-sets": preorder,
   "how-to-avoid-resealed-magic-products": resealed,
+  "magic-black-friday-2026": blackFriday,
   "magic-msrp": msrp,
   "cheapest-way-to-buy-magic-packs": cheapestPacks,
   "play-vs-collector-booster-box-value-by-set": playVsCollector,

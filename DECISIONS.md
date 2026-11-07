@@ -1278,3 +1278,11 @@ to the Saturday after Black Friday, then its `/cyber-monday` to the day after Cy
 `lib/black-friday.ts`, tested). The xl header entry switches to Cyber Monday on the same day; the sidebar and footer list
 both pages. A link, never a pop-up (pop-up policy: nothing uninvited on a visit's first page), never a countdown or any
 BANNED_COPY phrase. The strip covers the widths (phone, lg) where the header has no room for the entry.
+
+## Black Friday guide (2026-11-07)
+
+Owner: get the Black Friday pages indexed and ranking. The sale pages were already in the sitemap and the daily IndexNow
+run (it submits the whole sitemap). Added: the guide `magic-black-friday-2026` (every region), which gives the dates,
+today's cheapest Play and Collector Booster boxes, Bundles and Commander decks as a live block (the prices to read a
+Black Friday price against) and five checks. It links both sale pages, and they link back to it. It makes no claim
+about what will be cheaper on the day, and nothing in it matches BANNED_COPY.

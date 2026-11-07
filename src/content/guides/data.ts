@@ -88,6 +88,7 @@ const READS: Record<GuideSlug, readonly [FamilyKey, number][]> = {
   "final-fantasy-mtg-sealed-prices": [],
   "lord-of-the-rings-mtg-sealed-prices": [],
   "avatar-last-airbender-mtg-sealed-prices": [],
+  "magic-black-friday-2026": [["play-box", 4], ["collector-box", 3], ["bundle", 3], ["commander", 3]],
 };
 
 const UB_CODES = SETS.filter((x) => x.series === "Universes Beyond").map((x) => x.code);
