@@ -1271,3 +1271,10 @@ only the regions where `productNoindex` is false). The sitemap's strong tier is 
 stores (`STRONG_IN_STOCK`), or a headline product five or more stores list (`STRONG_HEADLINE_LISTED`); everything between
 stays indexable and linked, out of the sitemap. Every page stays live and every URL is unchanged. Loosen the constants
 once Search Console shows the core indexed (recheck ~25 Nov). `tests/index-tiers.test.ts`.
+## 2026-11-07 — Black Friday strip (owner: "capture all of the Black Friday SEO")
+
+One line under the header on every region page, in the server HTML, linking that region's `/black-friday` from 1 November
+to the Saturday after Black Friday, then its `/cyber-monday` to the day after Cyber Monday, then nothing (`saleStrip` in
+`lib/black-friday.ts`, tested). The xl header entry switches to Cyber Monday on the same day; the sidebar and footer list
+both pages. A link, never a pop-up (pop-up policy: nothing uninvited on a visit's first page), never a countdown or any
+BANNED_COPY phrase. The strip covers the widths (phone, lg) where the header has no room for the entry.

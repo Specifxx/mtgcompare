@@ -54,3 +54,13 @@ test("the page renders from real data: parseable JSON-LD, no banned copy, the re
   assert.ok(REGIONS.au);
 });
 
+
+test("the strip shows Black Friday from 1 November, then Cyber Monday, then nothing", async () => {
+  const { saleStrip } = await import("../src/lib/black-friday");
+  assert.equal(saleStrip("2026-10-31"), null);
+  assert.equal(saleStrip("2026-11-01")?.key, "blackFriday");
+  assert.equal(saleStrip("2026-11-28")?.key, "blackFriday");
+  assert.equal(saleStrip("2026-11-29")?.key, "cyberMonday");
+  assert.equal(saleStrip("2026-12-01")?.key, "cyberMonday");
+  assert.equal(saleStrip("2026-12-02"), null);
+});
