@@ -16,27 +16,27 @@ import { REGIONS } from "../src/lib/regions";
 const src = (p: string) => readFileSync(new URL(`../src/${p}`, import.meta.url), "utf8");
 const stat = (inStockStores: number, listedStores: number, marketplaceOpen = false) => ({ inStockStores, listedStores, marketplaceOpen });
 
-test("product tiers: strong, middle, thin, from the import's counts", () => {
+test("product tiers: strong, middle, thin, from the import's counts (2026-11-07: three listings to index)", () => {
   assert.equal(listings(stat(0, 1, true)), 2, "a store and the marketplace are two listings");
-  // thin: fewer than two listings
+  // thin: fewer than three listings (0–2 stores)
   assert.equal(productTier(stat(1, 1), "Tin"), "thin");
+  assert.equal(productTier(stat(2, 2), "Tin"), "thin", "two stores is a shelf, not a comparison");
   assert.equal(productTier(stat(0, 0, true), "Play Booster Box"), "thin", "TCGplayer alone");
-  assert.equal(productTier(stat(0, 1), "Play Booster Box"), "thin");
-  // strong
-  assert.equal(productTier(stat(2, 2), "Tin"), "strong");
-  assert.equal(productTier(stat(1, 3), "Blister"), "strong");
-  assert.equal(productTier(stat(0, 3), "Play Booster Box"), "strong", "a headline product listed by three stores, sold out");
-  // middle
-  assert.equal(productTier(stat(0, 3), "Blister"), "middle", "sold out, not a headline type");
-  assert.equal(productTier(stat(1, 2), "Collection"), "middle");
-  assert.equal(productTier(stat(0, 1, true), "Collection"), "middle", "one store and TCGplayer");
-  for (const t of HEADLINE_TYPES) assert.equal(productTier(stat(0, 3), t), "strong", t);
+  assert.equal(productTier(stat(0, 1, true), "Play Booster Box"), "thin");
+  // strong: three in stock, or a headline product five stores list
+  assert.equal(productTier(stat(3, 3), "Tin"), "strong");
+  assert.equal(productTier(stat(0, 5), "Play Booster Box"), "strong", "a headline product listed by five stores, sold out");
+  // middle: indexable, out of the sitemap
+  assert.equal(productTier(stat(2, 3), "Blister"), "middle");
+  assert.equal(productTier(stat(0, 4), "Play Booster Box"), "middle");
+  assert.equal(productTier(stat(1, 2, true), "Collection"), "middle", "two stores and TCGplayer");
+  for (const t of HEADLINE_TYPES) assert.equal(productTier(stat(0, 5), t), "strong", t);
 
   assert.equal(productNoindex(null, "Tin"), true, "no stats row here");
-  assert.equal(productNoindex(stat(1, 1), "Tin"), true);
-  assert.equal(productNoindex(stat(0, 2), "Tin"), false, "middle stays indexable");
-  assert.equal(productInSitemap(stat(0, 2), "Tin"), false, "…but out of the sitemap");
-  assert.equal(productInSitemap(stat(2, 2), "Tin"), true);
+  assert.equal(productNoindex(stat(2, 2), "Tin"), true);
+  assert.equal(productNoindex(stat(0, 3), "Tin"), false, "middle stays indexable");
+  assert.equal(productInSitemap(stat(0, 3), "Tin"), false, "…but out of the sitemap");
+  assert.equal(productInSitemap(stat(3, 3), "Tin"), true);
 });
 
 test("the product page's robots tag and hreflang set follow productNoindex", () => {
