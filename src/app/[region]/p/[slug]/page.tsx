@@ -4,7 +4,8 @@ import { PriceHistoryChart } from "@/components/PriceHistoryChart";
 import { PreorderBanner } from "@/components/PreorderBanner";
 import { dailySeries, daysOfHistory, MIN_DAYS, readPriceHistory } from "@/lib/price-history";
 import { preorderPath } from "@/lib/preorder-guides";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
+import { culledTarget } from "@/lib/culled";
 import { cache } from "react";
 import type { Metadata } from "next";
 import { Ago } from "@/components/Ago";
@@ -76,7 +77,12 @@ const getRelated = cache((market: Market, setCode: string, slug: string) => rela
  */
 async function load(slug: string, r: RegionInfo) {
   const p = await getPage(slug, r.market);
-  if (!p) notFound();
+  if (!p) {
+    // Culled by the low-traction rule (lib/focus.ts): its type page lists what is left.
+    const to = culledTarget(slug, r.region);
+    if (to) permanentRedirect(to);
+    notFound();
+  }
   const here = p.stats.find((s) => s.market === r.market) ?? null;
   if (!here && !p.offers.length) notFound();
   return { p, here };
