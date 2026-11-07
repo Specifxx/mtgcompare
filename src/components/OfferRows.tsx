@@ -29,6 +29,9 @@ export const ROW_BUTTON_LINK = "min-h-11 whitespace-nowrap sm:min-h-10";
 export const PIN_OUTLINE = {
   ebay: "outline outline-2 -outline-offset-2 outline-[#16a34a]",
   amazon: "outline outline-2 -outline-offset-2 outline-[#f59e0b]",
+  /** The best-price row (owner, 2026-11-07: "the cheapest listing should also have an outline too"): sky blue, never read as eBay's
+   *  green or Amazon's amber; it wins over either when that row is itself the best price. */
+  cheapest: "outline outline-2 -outline-offset-2 outline-[#0ea5e9]",
 } as const;
 
 
@@ -178,7 +181,7 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
   const tcg = d.kind === "tcgplayer";
   const badge = "shrink-0 rounded-full bg-open px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-surface";
   return (
-    <li data-offer-row="" data-row={d.kind} className={`${ROW_GRID} ${highlight ? "bg-open-soft/40" : ""} ${d.kind === "amazon" ? PIN_OUTLINE.amazon : ""}`}>
+    <li data-offer-row="" data-row={d.kind} className={`${ROW_GRID} ${highlight ? "bg-open-soft/40" : ""} ${highlight ? PIN_OUTLINE.cheapest : d.kind === "amazon" ? PIN_OUTLINE.amazon : ""}`}>
       <div className="flex h-5 items-center gap-2 overflow-hidden sm:h-6">
         {d.rank != null && (
           <span className="tabular -mr-0.5 shrink-0 text-sm font-bold text-muted" aria-label={`Number ${d.rank} by price`}>
