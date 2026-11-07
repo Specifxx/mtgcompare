@@ -1229,3 +1229,23 @@ the owner accepted the remaining risk. The quick view shows the link only (the i
 else the tagged search), never Amazon's price: that stays on the product page under the 24-hour licence. Uninvited
 overlays (a phone ad dock, a corner card, an exit pop-up) still never carry Amazon, and an Amazon page is never framed
 (item (n)).
+
+## 2026-11-07: A case is six boxes, and eBay far under the median is never the best price (visitor feedback)
+
+An eBay seller (JT, Leatherwood Collectibles) wrote that the Marvel Super Heroes Play Booster Box Case page (six boxes,
+180 packs) showed a 120-pack "Sleeved Play Booster Case" from eBay as "Best price in stock … 26% below the median": another
+product at two-thirds of the price. `rowPacks` skipped every pack check on a case (its listings state one box's packs), so
+nothing caught it. Now `wrongCaseQuantity` (`sealed-title.ts`) refuses, on a Play/Collector Booster Box Case or Bundle Case,
+a title that says "sleeved", a unit count other than six ("Case of 4", "24x … Master Case", "4 Bundles") or a case-sized pack
+count that is not this case's ("120 Packs"; Play 180/216, Collector 72). It runs in `refusedForType` (the import AND the read
+path, so stored rows go at once) and in `identify()` for store titles (collectorstore's sleeved cases, heroesworld's
+"Case of 4"). Only stated counts count: plural "6 Boxes", "6x", "x6", "case of 6", "6-Box"; a set's own number ("Modern
+Horizons 3 Bundle Case") is never read. Every store title on 2026-11-07 says six, so six is the rule, not a guess.
+
+Second guard (`ebayFloorFor` / `ebayMayBeBest`, `ebay-offer-row.ts`): an eBay listing under 75% of the in-stock stores'
+median (two or more stores) is still shown in its row at its price, but is never "Best price", the best-price card or a
+"% below the median" claim. A real deal that far under every store is rare; a different product is not. Stores are not held
+back: their deals are what the site is for, and identify() already decides what they are.
+
+Not done: putting "6 boxes" in the eBay query. Browse requires every keyword in the title, so it would hide the real cases
+titled "Play Booster Box Case" with no count (most of them); the refusal after the search does the job without that loss.

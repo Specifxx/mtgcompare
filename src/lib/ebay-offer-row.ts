@@ -17,6 +17,29 @@ export interface PriceFloor {
   /** In major units ("12.40"), the eBay listing's own currency. */
   value: number;
   currency: string;
+  /**
+   * In cents: the lowest eBay price that may be called the BEST price (75% of the in-stock stores' median). A listing further under the
+   * median is still shown in its row, at its price, but is never "Best price", the best-price card or a "% below the median" claim: a
+   * real deal that far under every store is rare, a different product (a 120-pack case on a 180-pack case's page) is not (visitor
+   * feedback 2026-11-07). Absent: no check (fewer than two stores in stock).
+   */
+  bestMinCents?: number;
+}
+
+/** How far under the stores' median an eBay listing may be and still be the best price. */
+export const EBAY_BEST_MIN_OF_MEDIAN = 0.75;
+
+/** The eBay row's floor: 40% of the cheapest store price (cheaper is a part or a single), and the best-price bar under the median. */
+export function ebayFloorFor(cheapestCents: number | null, currency: string, medianCents: number | null | undefined, inStockStores: number): PriceFloor | null {
+  if (cheapestCents == null) return null;
+  const floor: PriceFloor = { value: (cheapestCents * 0.4) / 100, currency };
+  if (medianCents && medianCents > 0 && inStockStores >= 2) floor.bestMinCents = Math.round(medianCents * EBAY_BEST_MIN_OF_MEDIAN);
+  return floor;
+}
+
+/** May an eBay price (cents, the stores' currency) be called the best price under this floor? */
+export function ebayMayBeBest(cents: number, floor: PriceFloor | null): boolean {
+  return !floor?.bestMinCents || cents >= floor.bestMinCents;
 }
 
 /** A listing's price in cents, or null when it is not a positive number. */

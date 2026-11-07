@@ -83,7 +83,7 @@ test("normaliseChase: high-end sealed only (no single card, no pack, no play box
   const ok = (t: string, p = 700) => normaliseChase(summary("1", t, p), "EBAY_US", NOW);
   for (const t of [
     "MTG Final Fantasy Collector Booster Box Sealed",
-    "MTG Aetherdrift Collector Booster Box Case 4 Boxes Sealed",
+    "MTG Aetherdrift Collector Booster Box Case 6 Boxes Sealed",
     "MTG Edge of Eternities Play Booster Box Case 6 Boxes",
     "MTG Bloomburrow Commander Deck Set of 4 Sealed",
     "Secret Lair x Final Fantasy Sealed Foil Edition",

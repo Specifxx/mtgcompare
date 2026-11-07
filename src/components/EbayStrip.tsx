@@ -716,13 +716,14 @@ export function useEbayPick({ region, slug, floor, packs, placement }: { region:
   const item = a ? pickListing(a.items, floor, packs) : null;
   const cents = item && item.price.currency === REGIONS[region]?.currency ? listingCents(item.price.value) : null;
   // Only a NEW listing, priced in the stores' currency, can be the best price (a used or graded box is not the product the stores sell).
-  const bestable = item != null && cents != null && !conditionLabel(item.condition);
+  // Nor one far under the stores' median (lib/ebay-offer-row.ts ebayMayBeBest): it is still shown, never "Best price".
+  const bestable = item != null && cents != null && !conditionLabel(item.condition) && ebayMayBeBest(cents, floor);
   return { ref, item, cents, bestable, age: a ? formatAge(now - a.fetchedAtMs) : "" };
 }
 
 // The price table's split into visible rows and collapsed groups, and its store rows (imported here, beside the two functions that use
 // them; OfferTable.tsx imports this module too, which is fine: neither uses the other while the modules load).
-import { EBAY_ROW_KEY, moreClosedLabel, moreOpenLabel, splitRows } from "@/lib/ebay-offer-row";
+import { EBAY_ROW_KEY, ebayMayBeBest, moreClosedLabel, moreOpenLabel, splitRows } from "@/lib/ebay-offer-row";
 import { PIN_OUTLINE, ROW_ACTIONS, ROW_BUTTON_LINK, ROW_GRID, StoreRow, useRankedRows, type StoreRowData } from "./OfferRows";
 import { StockPill } from "./StockPill";
 import { StoreVote } from "./StoreVote";

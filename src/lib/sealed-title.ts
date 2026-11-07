@@ -309,6 +309,42 @@ const PACK_OF: Record<Line, TypeKey> = {
   jumpstart: "jumpstart-booster",
 };
 
+// ─── A case's quantity (visitor feedback 2026-11-07, an eBay seller) ──────────────
+// A Magic case is SIX units: six Play or Collector Booster Boxes (180 or 216 Play Boosters, 72 Collector Boosters), six Bundles. A
+// "Sleeved Play Booster Case" is 120 retail sleeved packs, a "Case of 4" is four boxes: other products, two-thirds of the price, which
+// ranked as the case's cheapest offer "26% below the median". Read only where a title says it outright: "6x", "x6", "case of 6",
+// "6 Boxes" / "6 Displays" / "6 Bundles" (plural, so a set's own number, "Modern Horizons 3 Bundle Case", is never a count), "6-Box",
+// and a case-sized pack count ("120 Packs"; a per-box "36 Packs Each" and a stray "6x Boosters" are left alone).
+export const UNITS_PER_CASE = 6;
+const CASE_PACKS: Partial<Record<TypeKey, readonly number[]>> = {
+  "play-booster-box-case": [180, 216],
+  "collector-booster-box-case": [72],
+};
+const CASE_UNIT_COUNT = /\b(\d{1,2})\s*x\b(?!\s*\d)|\bx\s*(\d{1,2})\b|\bcase\s+(?:of|da|de|von|mit)\s+(\d{1,2})\b|\b(\d{1,2})\s*(?:x\s*)?(?:(?:play|collector|draft|set)\s+)?(?:booster\s+)?(?:boxes|displays|bundles)\b|\b(\d{1,2})-(?:box|display|bundle)\b/g;
+const CASE_PACK_COUNT = /\b(\d{2,3})\s*(?:x\s*)?(?:(?:sleeved|play|collector|draft|set)\s+)*(?:booster\s*)?(?:packs?|boosters)\b/g;
+
+/**
+ * Does this title, read as a case `type`, state a quantity that is not a case's: another unit count ("Case of 4", "24x Collector Booster
+ * Box" master case), a case-sized pack count that is not this case's ("120 Packs"), or sleeved packs? Only refuses; silence passes.
+ */
+export function wrongCaseQuantity(title: string, type: TypeKey): boolean {
+  if (type !== "play-booster-box-case" && type !== "collector-booster-box-case" && type !== "bundle-case") return false;
+  const t = normalizeTitle(title).toLowerCase();
+  if (/\bsleeved\b/.test(t)) return true;
+  for (const m of t.matchAll(CASE_UNIT_COUNT)) {
+    const n = Number(m[1] ?? m[2] ?? m[3] ?? m[4] ?? m[5]);
+    if (n > 1 && n !== UNITS_PER_CASE) return true;
+  }
+  const packs = CASE_PACKS[type];
+  if (packs) {
+    for (const m of t.matchAll(CASE_PACK_COUNT)) {
+      const n = Number(m[1]);
+      if (n >= 40 && !packs.includes(n)) return true;
+    }
+  }
+  return false;
+}
+
 /** The product type a title describes, "vague" when it is a booster product of an unreadable line, or null when it isn't one we compare. */
 function classifyIn(title: string, set: MtgSet | null): TypeKey | "vague" | null {
   const t = normalizeTitle(title).toLowerCase();
@@ -337,7 +373,7 @@ function classifyIn(title: string, set: MtgSet | null): TypeKey | "vague" | null
   // Bundles. The Fat Pack is the Bundle's old name. "Gift Bundle" is its own product; a bundle with a name of its own (Codex,
   // Nightmare, Beam Me Up, Chocobo, Secret Lair Bundle) is a special bundle, decided by identify() from the title's words.
   if (/\bbundles?\b|\bfat\s*packs?\b/.test(t)) {
-    if (caseWord) return /\bgift\b/.test(t) ? null : "bundle-case";
+    if (caseWord) return /\bgift\b/.test(t) || wrongCaseQuantity(title, "bundle-case") ? null : "bundle-case";
     if (/\bdisplay\b/.test(t)) return null;
     return /\bgift\s*bundle\b|\bbundle\s*[-:–]?\s*gift\s*edition\b/.test(t) ? "gift-bundle" : "bundle";
   }
@@ -355,7 +391,10 @@ function classifyIn(title: string, set: MtgSet | null): TypeKey | "vague" | null
   if (box || (caseWord && PACK_WORD.test(t))) {
     const line = boosterLine(t, set);
     if (line === "vague") return "vague";
-    if (caseWord) return line === "play" ? "play-booster-box-case" : line === "collector" ? "collector-booster-box-case" : null;
+    if (caseWord) {
+      const c = line === "play" ? "play-booster-box-case" : line === "collector" ? "collector-booster-box-case" : null;
+      return c && wrongCaseQuantity(title, c) ? null : c;
+    }
     return BOX_OF[line];
   }
   if (caseWord) return null;

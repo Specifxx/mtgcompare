@@ -2,7 +2,7 @@ import { offerRowsData } from "@/components/OfferTable";
 import { ebayQuery } from "@/components/Marketplaces";
 import { productPage } from "@/lib/data";
 import { marketplaceOf } from "@/lib/ebay-context";
-import { rowPacks } from "@/lib/ebay-offer-row";
+import { ebayFloorFor, rowPacks } from "@/lib/ebay-offer-row";
 import { packsFor } from "@/lib/packs";
 import { REGIONS, isRegion } from "@/lib/regions";
 import { isPreorderSet } from "@/lib/release";
@@ -35,7 +35,8 @@ export async function GET(_req: Request, { params }: { params: { region: string;
   const best = p.offers.find((o) => offerStock(o) === "open");
   const cheapestCents = best?.priceCents ?? p.offers.reduce<number | null>((m, o) => (m == null || o.priceCents < m ? o.priceCents : m), null);
   const ebayComparable = marketplaceOf(region).currency === r.currency;
-  const floor = cheapestCents != null && ebayComparable ? { value: (cheapestCents * 0.4) / 100, currency: r.currency } : null;
+  const here = p.stats.find((s) => s.market === r.market) ?? null;
+  const floor = ebayComparable ? ebayFloorFor(cheapestCents, r.currency, here?.medianOpenCents, here?.inStockStores ?? 0) : null;
   // The product page's Amazon row and tagged link (owner, 2026-11-06: a visitor-opened view of this one product is the Associates
   // policy's "pop-up windows in conjunction with your Site promoting Products closely associated with the materials on your Site"),
   // the item's own page where the import found its ASIN, but never Amazon's price: that stays on the product page (24-hour licence).

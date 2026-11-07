@@ -32,7 +32,7 @@ import { StickyBuyBar } from "@/components/StickyBuyBar";
 import { RecentTracker } from "@/components/Recent";
 import { ebaySearchUrl, offerLink, offerRetailer, tcgplayerAffiliateUrl, tcgplayerSearchUrl } from "@/lib/affiliate";
 import { productAdPlan, soldOutAdPlan } from "@/lib/ebay-ads";
-import { rowPacks, tableShape } from "@/lib/ebay-offer-row";
+import { ebayFloorFor, rowPacks, tableShape } from "@/lib/ebay-offer-row";
 import { productPage, setTcgplayerTiles, type ProductCardData } from "@/lib/data";
 import { TcgplayerStrip } from "@/components/TcgplayerStrip";
 import { money, plural, timeAgo } from "@/lib/format";
@@ -256,7 +256,7 @@ export default async function ProductPage({ params }: { params: { region: string
   // an eBay listing of an unreleased product is a seller's pre-sale. The same rule decides where an eBay PRICE may show at all (the
   // panel's row, the sold-out box, the buy bar): elsewhere they stay eBay searches.
   const ebayBest = ebayComparable && !pre;
-  const ebayFloor = cheapestCents != null && ebayComparable ? { value: (cheapestCents * 0.4) / 100, currency: r.currency } : null;
+  const ebayFloor = ebayComparable ? ebayFloorFor(cheapestCents, r.currency, here?.medianOpenCents, here?.inStockStores ?? 0) : null;
   // Price signals beside the best price, each a fact about the current listings: per pack (when the product line fixes a pack count),
   // the median of the in-stock stores (from ProductStat, null under two stores), and in the US TPCi's published MSRP. Nothing is history.
   const packs = type ? packsFor(type.key, p.setCode, p.name) : null;
