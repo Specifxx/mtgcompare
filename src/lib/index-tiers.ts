@@ -32,11 +32,23 @@ export interface TierStat {
 /** Listings a visitor can compare: the stores that list it, plus an open marketplace offer. */
 export const listings = (s: TierStat): number => s.listedStores + (s.marketplaceOpen ? 1 : 0);
 
+// 2026-11-07 (the owner's Search Console and Bing audit: thousands of region pages "Crawled" or "Discovered – currently not
+// indexed"): a region page needs three listings to be indexed (one or two stores is a shelf, not a comparison, and the same
+// product exists in seven regions), and the sitemap lists only the core of the strong tier: three or more stores with it in
+// stock, or a headline product five or more stores list. Every page stays live and linked; hreflang already advertises only
+// the regions where the page is indexable (regionAlternates). DECISIONS.md, 2026-11-07.
+
+/** A region page with fewer listings than this is thin: noindex, out of the sitemap and out of hreflang. */
+export const MIN_INDEX_LISTINGS = 3;
+/** In stock at this many stores: strong (in the sitemap). */
+export const STRONG_IN_STOCK = 3;
+/** A headline product this many stores list, in stock or not: strong. */
+export const STRONG_HEADLINE_LISTED = 5;
+
 export function productTier(s: TierStat, productType: string): IndexTier {
-  if (listings(s) < 2) return "thin";
-  if (s.inStockStores >= 2) return "strong";
-  if (s.inStockStores >= 1 && s.listedStores >= 3) return "strong";
-  if (HEADLINE_TYPES.includes(productType) && s.listedStores >= 3) return "strong";
+  if (listings(s) < MIN_INDEX_LISTINGS) return "thin";
+  if (s.inStockStores >= STRONG_IN_STOCK) return "strong";
+  if (HEADLINE_TYPES.includes(productType) && s.listedStores >= STRONG_HEADLINE_LISTED) return "strong";
   return "middle";
 }
 
