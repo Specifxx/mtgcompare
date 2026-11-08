@@ -211,6 +211,19 @@ export default function CreatorsPage() {
         </div>
       </section>
 
+      {/* Weekly price-movers video (owner, 2026-11-08): made every Monday by compareempiretake2's weekly-movers.yml. */}
+      <section id="weekly-video" className="mt-10 scroll-mt-24">
+        <h2 className="font-display text-2xl font-bold tracking-tight">Free weekly price-movers video</h2>
+        <p className="mt-2 max-w-2xl text-[15px] leading-7 text-muted">
+          Every Monday we make a 20-second vertical video of the week&rsquo;s biggest Magic sealed price moves: three up, three
+          cheaper, with real prices and original music. Post it on TikTok, Reels or Shorts as it is, or talk over it. It comes
+          with a ready caption; all we ask is that {SITE_NAME} stays named in the video or your caption.
+        </p>
+        <a href="https://github.com/Specifxx/compareempiretake2/tree/reels/movers" target="_blank" rel="noopener" className="btn-primary mt-4 inline-flex min-h-11 items-center px-5">
+          Get this week&rsquo;s video
+        </a>
+      </section>
+
       <section id="work-with-us" className="mt-10 scroll-mt-24" aria-labelledby="work-with-us-title">
         <h2 id="work-with-us-title" className="font-display text-2xl font-bold tracking-tight">How to work with us</h2>
         <p className="mt-2 max-w-2xl text-[15px] leading-7 text-muted">
