@@ -11,7 +11,7 @@ const src = (p: string) => readFileSync(new URL(`../src/${p}`, import.meta.url),
 
 test("side rails: wide screens only, the same width in the hook and the class, drawn in the browser after a matchMedia check", () => {
   assert.equal(MIN_WIDTH, 1280, "every regular 16:9 and 16:10 screen (owner, 2026-11-06)");
-  assert.match(src("app/globals.css"), /max-width: min\(1480px, calc\(100vw - 320px\)\)/, "the shell leaves the rails their room");
+  assert.match(src("app/globals.css"), /\.max-w-shell \{\s*max-width: none;\s*width: auto;\s*margin-left: 136px;\s*margin-right: 136px;/, "the shell leaves the rails their room");
   const s = src("components/SideAds.tsx");
   assert.match(s, /^"use client";/, "a client component");
   assert.match(s, /min-\[1280px\]:flex/, "the CSS gate says the same width");

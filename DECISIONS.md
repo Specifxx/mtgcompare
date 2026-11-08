@@ -1306,3 +1306,15 @@ product and guide. `INDEXED_DETAIL_REGIONS` (`lib/index-tiers.ts`) is us, au, uk
 visitors, but their product, guide and tool pages are `noindex`, out of the sitemap and out of every hreflang set. Their
 home, sealed, set and type hubs stay indexable. The 3-listing product rule (`productNoindex`) is unchanged. Add a region
 back once the core is indexed (recheck ~2026-11-25).
+
+## 2026-11-08 — Full-width shell and a featured-product hero
+
+Owner, 2026-11-08: KaeYoung and ScentCompare's hero ("feature some products on the hero … uses the full screen"), "maybe the same for
+the DexCompare / MTG Compare engine". Ported from DexCompare (CompareEmpire #154), same files:
+
+- From 1280px the shell runs from the eBay rail's edge to the TCGplayer rail's (`.max-w-shell` margins of 136px), the sidebar flush
+  against the left rail; `.page` 1440px.
+- Landing page and region homes: two columns from lg, two big product cards on the right (`components/home/HeroCards.tsx`): the
+  first two `hotPicks` on region homes under the same "Hot right now" h2, the most-stocked two on the landing page (`lib/picks.ts`,
+  swapped to the visitor's region through `/api/picks/<region>`). Stat chips; on a phone the type shortcuts are one sideways row.
+  Same h1 words, links, URLs, titles and metadata. Seasonal decor unchanged.

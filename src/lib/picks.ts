@@ -15,6 +15,8 @@ export interface Pick {
   /** Independent stores that list it (in stock or not): "in stock at 12 of 15 stores". */
   listed: number;
   tcg: boolean;
+  /** The median open store price (null under two stores): the hero card's "Save N%" (components/home/HeroCards.tsx). */
+  median: number | null;
 }
 
 export const PICK_SLOTS = 5;
@@ -26,5 +28,5 @@ export async function regionPicks(region: Region): Promise<Pick[]> {
   pool.sort((a, b) => b.p.inStockStores - a.p.inStockStores || a.i - b.i);
   return pool
     .slice(0, PICK_SLOTS)
-    .map(({ p }) => ({ slug: p.slug, name: p.name, type: p.productType, img: p.imageUrl, cents: p.lowestPriceCents, stores: p.inStockStores, listed: Math.max(p.listedStores, p.inStockStores), tcg: p.marketplaceOpen }));
+    .map(({ p }) => ({ slug: p.slug, name: p.name, type: p.productType, img: p.imageUrl, cents: p.lowestPriceCents, stores: p.inStockStores, listed: Math.max(p.listedStores, p.inStockStores), tcg: p.marketplaceOpen, median: p.medianOpenCents }));
 }

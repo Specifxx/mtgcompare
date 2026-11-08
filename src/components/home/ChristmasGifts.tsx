@@ -8,7 +8,7 @@ import { X_DEFAULT_REGION } from "@/lib/regions";
 export function ChristmasGifts() {
   if (!seasonMarkupLive("christmas")) return null;
   return (
-    <div className="xmas-pill-row mb-3 justify-center sm:mb-4">
+    <div className="xmas-pill-row mb-3 sm:mb-4">
       <Link href={`/${X_DEFAULT_REGION}/sealed`} className="xmas-pill">
         <span className="xmas-pill-icon" aria-hidden="true" />
         <b>Christmas gifts</b>
