@@ -6,7 +6,7 @@ import test from "node:test";
 import { regionSwitchFollow } from "../src/components/RegionSwitcher";
 import { findBannedCopy } from "../src/lib/copy-rules";
 import { prevNextSet } from "../src/lib/hub-copy";
-import { HEADLINE_TYPES, listings, productInSitemap, productNoindex, productTier } from "../src/lib/index-tiers";
+import { detailIndexed, HEADLINE_TYPES, INDEXED_DETAIL_REGIONS, listings, productInSitemap, productNoindex, productTier } from "../src/lib/index-tiers";
 import { productFaq, type FaqInput } from "../src/lib/product-faq";
 import { dealsThin, movesThin, packsThin } from "../src/lib/section-thin";
 import { SETS } from "../src/lib/sets";
@@ -41,8 +41,8 @@ test("product tiers: strong, middle, thin, from the import's counts (2026-11-07:
 
 test("the product page's robots tag and hreflang set follow productNoindex", () => {
   const page = src("app/[region]/p/[slug]/page.tsx");
-  assert.match(page, /const noindex = productNoindex\(loaded\.here, p\.productType\);/);
-  assert.match(page, /return !productNoindex\(p\.stats\.find\(\(st\) => st\.market === x\.market\), p\.productType\);/);
+  assert.match(page, /const noindex = !detailIndexed\(r\.region\) \|\| productNoindex\(loaded\.here, p\.productType\);/);
+  assert.match(page, /return detailIndexed\(x\.region\) && !productNoindex\(p\.stats\.find\(\(st\) => st\.market === x\.market\), p\.productType\);/);
 });
 
 test("the sitemap: strong products only; sets and types from three comparable products", () => {
@@ -158,4 +158,15 @@ test("internal links: every listed set from the region home, set-less strong pro
   const hub = src("lib/hub-data.ts");
   assert.match(hub, /p\.setCode == null/);
   assert.match(hub, /\.filter\(\(r\) => productInSitemap\(r, label\)\)/, "strong products only");
+});
+
+test("detail pages are indexed in the US, AU, UK and CA only (2026-11-08): NZ, SG and EU product, guide and tool pages are noindex", () => {
+  assert.deepEqual([...INDEXED_DETAIL_REGIONS], ["us", "au", "uk", "ca"]);
+  for (const r of ["nz", "sg", "eu"]) assert.equal(detailIndexed(r), false, r);
+  for (const r of ["us", "au", "uk", "ca"]) assert.equal(detailIndexed(r), true, r);
+  const page = src("app/[region]/p/[slug]/page.tsx");
+  assert.match(page, /const noindex = !detailIndexed\(r\.region\) \|\| productNoindex/);
+  assert.match(page, /return detailIndexed\(x\.region\) && !productNoindex/);
+  for (const f of ["app/[region]/guides/[slug]/page.tsx", "app/[region]/tools/[tool]/page.tsx"]) assert.match(src(f), /noindex: !detailIndexed\(r\.region\)/, f);
+  assert.match(src("app/sitemap.ts"), /detailIndexed\(r\.region\) \? strongSlugs\(r\.market\)/);
 });

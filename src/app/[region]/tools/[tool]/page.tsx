@@ -1,3 +1,4 @@
+import { detailIndexed } from "@/lib/index-tiers";
 import Link from "@/components/Link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -46,7 +47,9 @@ export function generateMetadata({ params }: { params: { region: string; tool: s
     title: t.title,
     description: t.description,
     path: toolHref(r.region, t.slug),
-    alternates: regionAlternates(r.region, `/tools/${t.slug}`, toolRegions(t)),
+    // Indexed in INDEXED_DETAIL_REGIONS only (2026-11-08): elsewhere noindex, its own canonical and no hreflang.
+    alternates: detailIndexed(r.region) ? regionAlternates(r.region, `/tools/${t.slug}`, toolRegions(t).filter(detailIndexed)) : undefined,
+    noindex: !detailIndexed(r.region),
   });
   return { ...meta, title: toolMetaTitle(t.title) };
 }

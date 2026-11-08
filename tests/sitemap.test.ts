@@ -87,14 +87,14 @@ test("region sitemap: nothing comparable → empty, never a guess", () => {
   assert.deepEqual(regionSitemap(REGIONS.sg, { typeLabels: [], setCodes: [], productSlugs: [], lastmod: null }), []);
 });
 
-test("static sitemap: every guide in each region it is offered in, and nowhere else (the MSRP guide is US-only)", () => {
+test("static sitemap: every guide in each indexed region it is offered in, and nowhere else (the MSRP guide is US-only)", () => {
   const entries = staticSitemap({});
   onSite(entries);
   const urls = new Set(entries.map((e) => e.url));
   for (const g of GUIDES) {
     for (const r of REGION_LIST) {
       const u = `${SITE_URL}/${r.region}/guides/${g.slug}`;
-      assert.equal(urls.has(u), guideRegions(g).includes(r.region), u);
+      assert.equal(urls.has(u), guideRegions(g).includes(r.region) && ["us", "au", "uk", "ca"].includes(r.region), u);
     }
   }
   assert.ok(urls.has(`${SITE_URL}/us/guides/magic-msrp`));

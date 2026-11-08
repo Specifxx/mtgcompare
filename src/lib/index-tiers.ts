@@ -52,6 +52,16 @@ export function productTier(s: TierStat, productType: string): IndexTier {
   return "middle";
 }
 
+/**
+ * The regions whose product, guide and tool pages Google is asked to index (owner, 2026-11-08, after the Search Console audit:
+ * a new site with no outside links offering seven near-identical regional copies of every product and guide gets cautious
+ * treatment). NZ, SG and EU keep every page for visitors, but their product, guide and tool pages are `noindex`, out of the
+ * sitemap and out of every hreflang set. Their home, sealed, set and type hubs stay indexable. Add a region back once the core
+ * is indexed (recheck ~2026-11-25).
+ */
+export const INDEXED_DETAIL_REGIONS: readonly string[] = ["us", "au", "uk", "ca"];
+export const detailIndexed = (region: string): boolean => INDEXED_DETAIL_REGIONS.includes(region);
+
 /** Noindex: no stats row in this market, or a thin one. */
 export const productNoindex = (s: TierStat | null | undefined, productType: string): boolean => !s || productTier(s, productType) === "thin";
 
