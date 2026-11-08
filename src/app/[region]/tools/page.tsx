@@ -13,8 +13,8 @@ export const dynamic = "force-dynamic";
 export function generateMetadata({ params }: { params: { region: string } }): Metadata {
   const r = regionOrNotFound(params.region);
   return pageMeta({
-    title: "MTG tools: sealed value checker and eBay fee calculator",
-    description: `Free Magic: The Gathering tools for ${r.inName}: a sealed value checker and an eBay selling-fee calculator.`,
+    title: "MTG tools: good price checker, value checker, eBay fees",
+    description: `Free Magic: The Gathering tools for ${r.inName}: check if a store link is a good price, a sealed value checker and an eBay selling-fee calculator.`,
     path: `/${r.region}/tools`,
     alternates: regionAlternates(r.region, "/tools"),
   });

@@ -218,6 +218,12 @@ export function SearchBox({ region, size = "sm", autoFocus = false }: { region: 
   const goAll = (t: string) => {
     close();
     inputRef.current?.blur();
+    // A pasted store link goes to the "Is this a good price?" checker, which looks it up (lib/link-check.ts). In the fragment, so
+    // the CDN serves the one cached page whatever the link.
+    if (/^\s*(https?:\/\/|[a-z0-9-]+(\.[a-z0-9-]+)+\/)/i.test(t)) {
+      router.push(`/${region}/tools/is-this-a-good-price#link=${encodeURIComponent(t.trim())}`);
+      return;
+    }
     if (t && isBrowsePath(pathname, region)) {
       window.dispatchEvent(new CustomEvent(BROWSE_QUERY_EVENT, { detail: t }));
       return;

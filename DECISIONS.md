@@ -1336,3 +1336,19 @@ biggest price drops once a week", sent as `weekly` beside the alert. RiftCompare
 (TCGEmpire DECISIONS.md, "A weekly biggest-drops email for the sister sites"): it rides the same double opt-in, builds
 one edition a week from this site's own `/alert-feed.json`, links only to this site's pages (no eBay or Amazon), and
 every email has a one-click stop. This site still stores no address and holds no mail key, and nothing new pops up.
+## 2026-11-08 — "Is this a good price?": paste a store link
+
+Owner, 2026-11-08 (the competitor scan's gap #7, "implement all of this"): a visitor pastes a store's product link and sees whether
+it is a good price. `/<region>/tools/is-this-a-good-price` (`components/tools/LinkChecker.tsx`, `lib/link-check.ts`):
+
+- The browser asks `/api/check/<host>` for that store's listings: our own stored rows, only for a store in `src/data/stores.json`
+  (anything else is a 404), force-dynamic and kept by the CDN for a day like the quick view, never ISR. It never fetches the pasted
+  page. The product's cheapest and median in-stock prices come from the browse index the browser already loads.
+- A link is keyed by host and path (`linkPath`: a Shopify product is `/products/<handle>` from any collection or market prefix); two
+  products under one path need the `?variant=` to tell them apart, or there is no answer (a wrong product is worse than none).
+- Verdict (`priceVerdict`): within 1% of the cheapest in stock is the best price; under the median fair; within 3% of it typical;
+  above it "you can pay less", with the saving. A listing that was out of stock says so instead. eBay, Amazon, marketplaces, stores
+  we don't read and unmatched pages fall back to a search from the link's words, and the visitor types the price.
+- Pasting a link into the header search opens the checker (`#link=` in the fragment, so the CDN keeps one copy of the page).
+- Fixed on the way: the old singles site's `/:region/tools/:rest*` redirect sent `/au/tools` and every tool page outside the US and
+  NZ to the sealed list since the tools were ported (2026-10-23). It now redirects only paths that are not today's tools.
