@@ -5,7 +5,6 @@ import { menuSets } from "@/lib/release";
 import { SET_BY_CODE } from "@/lib/sets";
 import { CONTACT_EMAIL, FAN_CONTENT_DISCLAIMER, OPERATOR, SITE_NAME, sectionHref, type SectionKey } from "@/lib/site";
 import { AMAZON_DISCLOSURE, AMAZON_TRADEMARK } from "@/lib/amazon";
-import { NETWORK_PAGE, footerSisters } from "@/lib/family-network";
 import { LogoMark } from "./Logo";
 import { footerSeoSections } from "./seo/HubLinks";
 import { RateUsLink } from "./site-reviews/SiteReviews";
@@ -126,24 +125,14 @@ export function Footer({ region, listed }: { region: Region | null; listed?: Rea
             </nav>
           ))}
         </div>
-        {/* One short line (owner, 2026-11-02: the old list of every site was "convoluted"): the other card-game sites, then one
-            link to the network page that lists every site (lib/family-network.ts, DECISIONS.md "Sites that grow each other"). */}
+        {/* One link to the page that lists our other sites (2026-11-08): eight keyword-titled links to them on every page were
+            ~9,000 site-wide links between our own sites, the pattern Google's link-spam policy warns about. */}
         <nav aria-label="Sister sites" className={r ? "lg:col-span-2" : "md:col-span-2"}>
-          <h2 className="eyebrow mb-2">Other card games</h2>
+          <h2 className="eyebrow mb-2">Compare Empire</h2>
           <p className="text-sm text-muted">
-            {footerSisters("mtg").map((s, i) => (
-              <span key={s.id}>
-                {i ? " · " : ""}
-                <a href={s.url} rel="noopener" title={s.label} className="font-semibold hover:text-ink">
-                  {s.name}
-                </a>
-              </span>
-            ))}
-          </p>
-          <p className="mt-2 text-sm text-muted">
-            <a href={NETWORK_PAGE} rel="noopener" className="hover:text-ink">
-              A Compare Empire site →
-            </a>
+            <Link href="/our-sites" prefetch={false} className="font-semibold hover:text-ink">
+              Our other price comparison sites →
+            </Link>
           </p>
         </nav>
       </div>
