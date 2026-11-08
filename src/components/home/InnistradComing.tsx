@@ -9,7 +9,7 @@ import { X_DEFAULT_REGION } from "@/lib/regions";
 export function InnistradComing() {
   if (!seasonMarkupLive("halloween")) return null;
   return (
-    <div className="mb-4 flex justify-center">
+    <div className="mb-4 flex">
       <Link href={`/${X_DEFAULT_REGION}/sealed?q=innistrad`} className="mc-moon">
         <span className="mc-eyes" aria-hidden="true">
           <i />

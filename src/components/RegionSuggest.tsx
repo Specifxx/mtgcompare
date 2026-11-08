@@ -110,7 +110,7 @@ export function RegionSuggest({ formId, links }: { formId?: string; links: NavIt
     if (formId) document.getElementById(formId)?.setAttribute("action", `/${region}/sealed`);
   }, [formId, region]);
   return (
-    <ul className="flex flex-wrap justify-center gap-2" aria-label={`Popular pages in ${REGIONS[region].inName}`}>
+    <ul className="flex flex-wrap gap-2" aria-label={`Popular pages in ${REGIONS[region].inName}`}>
       {links.map((l, i) => (
         <li key={l.label}>
           <Link href={retargetHref(l.href, region)} prefetch={false} className={i === 0 ? "btn-primary min-h-11 px-4" : "chip min-h-11"}>
