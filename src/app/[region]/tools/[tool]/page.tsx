@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Icon } from "@/components/Icon";
 import { FeeCalculator } from "@/components/tools/FeeCalculator";
+import { LinkChecker } from "@/components/tools/LinkChecker";
 import { ValueChecker } from "@/components/tools/ValueChecker";
 import { guideFor } from "@/content/guides";
 import { SETS } from "@/lib/sets";
@@ -73,6 +74,7 @@ export default function ToolPage({ params }: { params: { region: string; tool: s
         <p className="mt-3 text-lg leading-8 text-muted">{t.lede}</p>
       </header>
 
+      {t.slug === "is-this-a-good-price" && <LinkChecker region={r.region} />}
       {t.slug === "value-checker" && (
         <ValueChecker region={r.region} market={r.market} place={r.inName} examples={sets.slice(0, 3).flatMap((s, i) => (i === 0 ? [`${s.name} play booster box`, `${s.name} collector booster box`] : [`${s.name} bundle`]))} />
       )}

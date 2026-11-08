@@ -8,7 +8,7 @@
 import type { Region } from "../../lib/regions";
 import { REGION_LIST } from "../../lib/regions";
 
-export type ToolSlug = "value-checker" | "selling-fee-calculator";
+export type ToolSlug = "is-this-a-good-price" | "value-checker" | "selling-fee-calculator";
 
 export interface ToolFaq {
   q: string;
@@ -37,6 +37,33 @@ export interface Tool {
 }
 
 export const TOOLS: readonly Tool[] = [
+  {
+    slug: "is-this-a-good-price",
+    title: "Is this a good price? MTG sealed link checker",
+    description: "Paste a store's link to a Magic booster box, bundle or Commander deck and see if it's a good price against every store we compare.",
+    kicker: "Price check",
+    lede: "Paste the link to a sealed Magic product at any store and see how its price compares with the cheapest and the typical in-stock price today.",
+    about: [
+      "Found a booster box at a store and not sure the price is right? Paste the link to its product page. If it is one of the independent stores MTG Compare reads, the checker finds that listing in our own records, reads the price we last saw there, and puts it beside the cheapest and the median in-stock price at every other store in the same region.",
+      "The answer is one line: the cheapest we found, a fair price under what most stores ask, a typical price, or one you can beat, with how much less the cheapest store asks. Prices change, so the price we saw is filled in for you and you can type the one the page shows now.",
+      "A link from eBay, Amazon, a marketplace or a store we don't read yet still works: the checker reads the product's name from the link, shows the matching products, and you type the price you see. We never open the page you paste; we only compare it with listings we already read.",
+    ],
+    steps: [
+      "Copy the address of the store's product page (in a phone browser: Share, then Copy).",
+      "Paste it into the box. The checker looks it up straight away.",
+      "Read the verdict and the cheapest and median in-stock prices beside it.",
+      "If the page shows a different price now, type it to check again.",
+    ],
+    faq: [
+      { q: "Which links does it work with?", a: "Product pages at any independent store MTG Compare reads in your region, and in other regions too (it compares with that store's own region). For eBay, Amazon and stores we don't read, it finds the product from the link's words and you type the price." },
+      { q: "Do you open the page I paste?", a: "No. The checker only reads the store's address and the product's part of the link, then looks it up in the listings we already read from that store, about twice a day." },
+      { q: "Why is the store's price different from the page?", a: "We read each store about twice a day, so a price can change in between. Type the price the page shows now and the verdict updates." },
+      { q: "What counts as a good price?", a: "The cheapest in-stock price at the stores we compare, or within 1% of it. Under the median (the middle in-stock store price) is fair; about the median is typical; above it, you can usually pay less elsewhere." },
+      { q: "Does it include shipping?", a: "No. Every price is the store's own listed price before shipping, the same way the rest of MTG Compare compares them. Check postage at checkout." },
+    ],
+    guides: ["where-to-buy-magic-sealed-online", "how-to-avoid-resealed-magic-products"],
+    updated: "2026-11-08",
+  },
   {
     slug: "value-checker",
     title: "MTG sealed value checker",
