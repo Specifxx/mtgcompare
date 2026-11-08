@@ -28,6 +28,9 @@ TMP="$(mktemp -d)"
 cp -r "$DIR/." "$TMP/"
 TMP_SETS="$(mktemp -d)"
 [ -d "$SETS_DIR" ] && cp -r "$SETS_DIR/." "$TMP_SETS/"
+# data/amazon/ (ASINs and status) must survive the reset below too, or every run's finds are lost (2026-11-08).
+TMP_AMAZON="$(mktemp -d)"
+[ -d "$AMAZON_DIR" ] && cp -r "$AMAZON_DIR/." "$TMP_AMAZON/"
 for attempt in 1 2 3 4 5; do
   git fetch -q origin main
   git reset -q --hard origin/main
@@ -35,6 +38,7 @@ for attempt in 1 2 3 4 5; do
   rm -f "$DIR"/*.json
   cp -r "$TMP/." "$DIR/"
   if [ -n "$(ls -A "$TMP_SETS")" ]; then mkdir -p "$SETS_DIR"; cp -r "$TMP_SETS/." "$SETS_DIR/"; fi
+  if [ -n "$(ls -A "$TMP_AMAZON")" ]; then mkdir -p "$AMAZON_DIR"; cp -r "$TMP_AMAZON/." "$AMAZON_DIR/"; fi
   git add -A -- "$DIR" "$SETS_DIR" "$AMAZON_DIR"
   if git diff --cached --quiet; then
     echo "[publish] main already has this snapshot."

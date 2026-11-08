@@ -122,7 +122,14 @@ export async function creatorsClient(region: Region, tag: string, creds: Credent
     });
     await sleep(1100);
     if (res.status === 401 || res.status === 403 || res.status === 429) throw new AmazonRefused(`${op} ${res.status} ${(await res.text()).slice(0, 160)}`);
-    if (!res.ok) throw new Error(`${op} ${res.status} ${(await res.text()).slice(0, 160)}`);
+    if (!res.ok) {
+      const text = (await res.text()).slice(0, 160);
+      // 400 InvalidAssociate: this credential belongs to another country's Associates account than the store's tag
+      // (a region without its own AMAZON_CREATORS_<REGION>_* falls back to AU's). Every call would fail the same way,
+      // so stop the region instead of spending a second a product on it (2026-11-08: Dex spent 25 minutes on EU).
+      if (/InvalidAssociate|not linked to the partner tag/i.test(text)) throw new AmazonRefused(`${op} ${res.status} ${text}`);
+      throw new Error(`${op} ${res.status} ${text}`);
+    }
     return itemsOf((await res.json()) as Body);
   }
   return { call, calls: () => calls };
