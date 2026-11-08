@@ -1286,3 +1286,23 @@ run (it submits the whole sitemap). Added: the guide `magic-black-friday-2026` (
 today's cheapest Play and Collector Booster boxes, Bundles and Commander decks as a live block (the prices to read a
 Black Friday price against) and five checks. It links both sale pages, and they link back to it. It makes no claim
 about what will be cheaper on the day, and nothing in it matches BANNED_COPY.
+
+## 2026-11-08 — One Our sites page instead of footer cross-links
+
+From the owner's Search Console audit of DexCompare: its only links from other sites were ~9,000 site-wide footer
+links from our own sites, all to its home page, with the brand or a keyword as the anchor. They pass no authority,
+and a network of same-owner sites linking each other from every page is the pattern Google's link-spam policy warns
+about. CamCompare indexes well with more of them, so they are not what holds a site back, but they buy nothing.
+DexCompare's footer went first (CompareEmpire #153); every other site now does the same: the footer links one
+internal page, `/our-sites`, and that page links each other family site once, by its plain name, from
+`FAMILY_SITES` (`lib/family-network.ts`, unchanged; `footerSisters` stays for the shared test). Every other footer
+link, page URL and title is unchanged. Cross-traffic still comes from the price blocks on the deals and pre-order pages.
+
+## 2026-11-08 — Product, guide and tool pages indexed in the US, AU, UK and CA only
+
+Ported from DexCompare (CompareEmpire #153), after the owner's Search Console audit there: 8,899 URLs "Discovered –
+currently not indexed", and a new site with no outside links offering seven near-identical regional copies of every
+product and guide. `INDEXED_DETAIL_REGIONS` (`lib/index-tiers.ts`) is us, au, uk, ca: NZ, SG and EU keep every page for
+visitors, but their product, guide and tool pages are `noindex`, out of the sitemap and out of every hreflang set. Their
+home, sealed, set and type hubs stay indexable. The 3-listing product rule (`productNoindex`) is unchanged. Add a region
+back once the core is indexed (recheck ~2026-11-25).

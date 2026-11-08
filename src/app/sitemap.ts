@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { isComparable, statsInMarket } from "@/lib/public-data/joins";
 import { routeRaw } from "@/lib/public-data/route";
 import { activeStoreKeys } from "@/lib/hub-data";
-import { MIN_HUB_PRODUCTS, productInSitemap } from "@/lib/index-tiers";
+import { detailIndexed, MIN_HUB_PRODUCTS, productInSitemap } from "@/lib/index-tiers";
 import { regionOfSitemapId, SITEMAP_IDS, STATIC_SITEMAP_ID, regionSitemap, staticSitemap } from "@/lib/sitemap";
 import { REGION_LIST, type Market } from "@/lib/regions";
 import { thinSections } from "@/lib/section-thin";
@@ -45,7 +45,8 @@ export default async function sitemap({ id }: { id: number }): Promise<MetadataR
     const [typeLabels, setCodes, productSlugs, lastmod] = await Promise.all([
       typesInMarket(r.market),
       setsInMarket(r.market),
-      strongSlugs(r.market),
+      // NZ, SG and EU product pages are noindex (INDEXED_DETAIL_REGIONS, 2026-11-08): none of them is listed.
+      detailIndexed(r.region) ? strongSlugs(r.market) : Promise.resolve([] as string[]),
       lastImport(r.market),
     ]);
     return regionSitemap(r, { typeLabels, setCodes, productSlugs, lastmod });

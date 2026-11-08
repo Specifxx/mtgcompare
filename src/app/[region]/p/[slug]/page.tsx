@@ -47,7 +47,7 @@ import { prevNextSet } from "@/lib/hub-copy";
 import { setCountsGrouped } from "@/lib/hub-data";
 import { TYPE_ABOUT } from "@/lib/type-about";
 import { inStockAlternatives, relatedWithFormats } from "@/lib/product-data";
-import { productNoindex } from "@/lib/index-tiers";
+import { detailIndexed, productNoindex } from "@/lib/index-tiers";
 import { productFaq } from "@/lib/product-faq";
 import { isPreorderSet } from "@/lib/release";
 import { regionOrNotFound, REGION_LIST, type Market, type RegionInfo } from "@/lib/regions";
@@ -145,11 +145,12 @@ export async function generateMetadata({ params }: { params: { region: string; s
   // Thin pages stay reachable but out of the index: fewer than two listings to compare (lib/index-tiers.ts, the rule the sitemap
   // follows too, so the two agree). A noindex page carries no hreflang set either, and the set only names the regional copies that
   // are themselves indexable.
-  const noindex = productNoindex(loaded.here, p.productType);
+  // NZ, SG and EU product pages are noindex whatever their stock (INDEXED_DETAIL_REGIONS, 2026-11-08).
+  const noindex = !detailIndexed(r.region) || productNoindex(loaded.here, p.productType);
   const path = `/${r.region}/p/${p.slug}`;
   const indexable = REGION_LIST.filter((x) => {
     if (x.region === r.region) return !noindex;
-    return !productNoindex(p.stats.find((st) => st.market === x.market), p.productType);
+    return detailIndexed(x.region) && !productNoindex(p.stats.find((st) => st.market === x.market), p.productType);
   });
   const image = thumb(p.imageUrl, 1200);
   const title = seoCopy.productTitle({ name: p.name, market: r.market, inName: r.inName, cheapestCents: cheapest?.priceCents ?? null, productType: p.productType, setCode: p.setCode });

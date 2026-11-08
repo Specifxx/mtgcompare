@@ -5,14 +5,13 @@ import { footerSisters } from "../src/lib/family-network";
 
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 
-test("footer: one short line of the other card-game sites, then the network page (owner, 2026-11-02: the full list was convoluted)", () => {
-  assert.deepEqual(
-    footerSisters("mtg").map((s) => s.url),
-    ["https://riftcompare.com", "https://opcompare.app", "https://dexcompare.app", "https://gundamcompare.com", "https://lorcanacompare.com", "https://ygocompare.com", "https://cyberpunkcompare.com", "https://bandaicompare.com"],
-  );
+test("footer: one link to /our-sites, which lists every other site once by name (2026-11-08: no site-wide keyword cross-links)", () => {
   const footer = src("src/components/Footer.tsx");
-  assert.match(footer, /footerSisters\("mtg"\)\.map/);
-  assert.match(footer, /NETWORK_PAGE/);
-  assert.match(footer, /rel="noopener"/);
-  assert.doesNotMatch(footer, /nofollow|sponsored/);
+  assert.match(footer, /href="\/our-sites"/);
+  assert.doesNotMatch(footer, /footerSisters|NETWORK_PAGE|https?:\/\//, "no external site links in the footer");
+  const page = src("src/app/(site)/our-sites/page.tsx");
+  assert.match(page, /FAMILY_SITES\.filter\(\(s\) => s\.id !== "mtg"\)/);
+  assert.match(page, /rel="noopener"/);
+  assert.doesNotMatch(page, /nofollow|sponsored/);
+  assert.ok(footerSisters("mtg").length > 0, "the shared helper still exists for the other sites");
 });
