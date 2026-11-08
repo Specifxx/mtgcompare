@@ -78,7 +78,10 @@ const nextConfig = {
       { source: "/star-trek-preorders", destination: "/us/preorders/star-trek", permanent: true },
       { source: "/:path(card|cards|singles|browse|search|price-guide|movers|rising|market|commanders|decks|deck|tools|colors|keywords|gallery|trade|embed|c)", destination: "/us/sealed", permanent: true },
       { source: "/:path(card|cards|singles|browse|search|price-guide|movers|rising|market|commanders|decks|deck|tools|colors|keywords|gallery|trade|embed|c)/:rest*", destination: "/us/sealed", permanent: true },
-      { source: "/:region(au|uk|ca|eu|sg)/:path(card|cards|singles|browse|search|price-guide|movers|rising|market|commanders|decks|tools)/:rest*", destination: "/:region/sealed", permanent: true },
+      { source: "/:region(au|uk|ca|eu|sg)/:path(card|cards|singles|browse|search|price-guide|movers|rising|market|commanders|decks)/:rest*", destination: "/:region/sealed", permanent: true },
+      // The old singles site's tools, but never today's /<region>/tools pages (src/content/tools): until 2026-11-08 this rule also
+      // sent /au/tools and every tool page outside the US and NZ to the sealed list.
+      { source: "/:region(au|uk|ca|eu|sg)/tools/:rest((?!value-checker$|selling-fee-calculator$|is-this-a-good-price$).+)", destination: "/:region/sealed", permanent: true },
       { source: "/:path(premium|login|account|profile|dashboard|portfolio|watching|watchlist|alerts|newsletter|unsubscribe|support|feedback|learn|methodology|editorial-policy|authors|admin)", destination: "/about", permanent: true },
       { source: "/:path(premium|login|account|profile|dashboard|portfolio|watching|watchlist|alerts|newsletter|unsubscribe|support|feedback|learn|methodology|editorial-policy|authors|admin)/:rest*", destination: "/about", permanent: true },
       // The old singles site's creator pages: /creators is the creators hub again (2026-10-30); anything under it goes there.
