@@ -39,6 +39,7 @@ import { olderInStockData } from "@/lib/stock-data";
 import { StockRow } from "@/components/StockRow";
 import { storesInMarket } from "@/lib/stores";
 import { emptyHomeReport, loadHomeReport } from "@/lib/home-report";
+import { HeroCards, type HeroCard } from "@/components/home/HeroCards";
 import { MarketReport } from "@/components/home/MarketReport";
 import { SetIndex } from "@/components/SetIndex";
 import { setCountsGrouped, typeLabelsInMarket } from "@/lib/hub-data";
@@ -94,13 +95,24 @@ export default async function RegionHome({ params }: { params: { region: string 
   // eBay button, "Shop 30th Celebration on eBay": inside that strip's own top line, so the page keeps its two units.
   const hotHighlight = hotSetHighlight(firstHotSet());
   const hot = hotPicks(preorders, boxes);
+  // The hero's two cards: the hot picks in their own order (lib/hot-picks.ts), the ones with a photo first.
+  const heroCards: HeroCard[] = [...hot.filter((p) => p.imageUrl), ...hot.filter((p) => !p.imageUrl)].slice(0, 2).map((p) => ({
+    slug: p.slug,
+    name: p.name,
+    type: p.productType,
+    img: p.imageUrl,
+    cents: p.lowestPriceCents,
+    stores: p.inStockStores || p.listedStores,
+    median: p.medianOpenCents,
+    pre: isPreorderSet(p.setCode),
+  }));
   const other = REGIONS[nearestRegion(r.region)];
   const preorderLink = { href: `/${r.region}/releases`, label: "Pre-orders" };
 
   return (
     <div>
       <section className="relative overflow-hidden border-b border-line bg-surface">
-        <div className="page relative grid gap-10 py-8 sm:py-12 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-center">
+        <div className="page relative grid gap-8 py-8 sm:py-12 lg:grid-cols-[minmax(0,1fr)_minmax(340px,480px)] lg:items-center lg:gap-10">
           <div className="min-w-0">
             <Breadcrumbs items={[{ href: "/", label: "MTG Compare" }, { label: r.name }]} />
             <div className="eyebrow">
@@ -117,10 +129,8 @@ export default async function RegionHome({ params }: { params: { region: string 
               <SearchBox region={r.region} size="lg" />
             </div>
             <RegionChips region={r.region} className="mt-4" />
-            <nav
-              aria-label="Shop by type"
-              className="mt-4 flex flex-wrap gap-2"
-            >
+            {/* One sideways row on a phone, so the featured products come up sooner; wrapped from sm. */}
+            <nav aria-label="Shop by type" className="scroller mt-4 gap-2 sm:flex-wrap sm:overflow-visible sm:[-webkit-mask-image:none] sm:[mask-image:none]">
               <Link href={`/${r.region}/deals`} prefetch={false} className="chip min-h-10 border-brand/30 bg-brand-soft font-semibold text-brand-strong hover:border-brand/60">
                 <Icon name="tag" size={16} /> Deals
               </Link>
@@ -142,32 +152,26 @@ export default async function RegionHome({ params }: { params: { region: string 
                 );
               })}
             </nav>
-            <p className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
-              <span className="h-2 w-2 shrink-0 rounded-full bg-open motion-safe:animate-pulse" aria-hidden="true" />
-              <span>
-                <b className="tabular font-semibold text-ink">{storeCount.toLocaleString("en")}</b> stores
+            {/* The stat line as chips (2026-11-08, the KaeYoung / ScentCompare hero). */}
+            <p className="mt-5 flex flex-wrap items-center gap-2 text-sm">
+              <span className="hero-stat">
+                <span className="h-2 w-2 shrink-0 rounded-full bg-open motion-safe:animate-pulse" aria-hidden="true" />
+                <b className="tabular">{storeCount.toLocaleString("en")}</b> stores
               </span>
-              <span aria-hidden="true">·</span>
-              <span>
-                <b className="tabular font-semibold text-ink">{overview.inStock.toLocaleString("en")}</b> in stock
+              <span className="hero-stat">
+                <b className="tabular">{overview.inStock.toLocaleString("en")}</b> in stock
               </span>
-              <span aria-hidden="true">·</span>
               {/* A live <time>: the page is cached for a day, so a fixed "3 hours ago" would freeze. */}
-              <span>checked {overview.lastChecked ? <Ago iso={overview.lastChecked.toISOString()} initial={timeAgo(overview.lastChecked)} /> : "twice a day"}</span>
+              <span className="hero-stat">checked {overview.lastChecked ? <Ago iso={overview.lastChecked.toISOString()} initial={timeAgo(overview.lastChecked)} /> : "twice a day"}</span>
             </p>
           </div>
-          {hot.length > 0 && (
+          {heroCards.length > 0 && (
             <aside aria-labelledby="hot-now">
               <h2 id="hot-now" className="eyebrow mb-3">
                 Hot right now
               </h2>
-              <ul className="grid gap-3">
-                {hot.map((p) => (
-                  <li key={p.slug}>
-                    <HotRow p={p} r={r} />
-                  </li>
-                ))}
-              </ul>
+              {/* Two big product cards (owner, 2026-11-08: "feature some products on the hero", as KaeYoung and ScentCompare do). */}
+              <HeroCards cards={heroCards} region={r.region} />
             </aside>
           )}
         </div>
@@ -304,35 +308,6 @@ export default async function RegionHome({ params }: { params: { region: string 
         <MarketReport report={report} />
       </div>
     </div>
-  );
-}
-
-function HotRow({ p, r }: { p: ProductCardData; r: RegionInfo }) {
-  const img = thumb(p.imageUrl, 200);
-  const pre = isPreorderSet(p.setCode);
-  return (
-    <Link
-      href={`/${r.region}/p/${p.slug}`}
-      prefetch={false}
-      className="group flex items-center gap-3 rounded-xl border border-line bg-surface p-2.5 pr-3 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-lift"
-    >
-      <span className="plate flex h-16 w-16 shrink-0 items-center justify-center">
-        {img ? <img src={img} alt={p.name} width={64} height={64} decoding="async" className="h-full w-full object-contain p-1" /> : <Icon name="tag" className="text-faint" />}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="line-clamp-2 text-sm font-semibold leading-snug group-hover:text-brand">{p.name}</span>
-        {/* stock first, then the price */}
-        <span className="mt-1 flex flex-wrap items-center gap-x-1.5" title={stockLabel(p, pre)}>
-          <StockPill state="open" preorder={pre} size="sm">
-            {stockHeadline(p, pre).text}
-          </StockPill>
-          {p.inStockStores > 0 && p.marketplaceOpen && <span className="text-[11px] font-medium text-muted">+ TCGplayer</span>}
-        </span>
-        <span className="mt-0.5 block text-sm text-muted">
-          From <span className="tabular font-display font-bold text-ink">{money(p.lowestPriceCents, r.market)}</span>
-        </span>
-      </span>
-    </Link>
   );
 }
 
