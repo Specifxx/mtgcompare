@@ -14,7 +14,6 @@ import { SITE_NAME, SITE_URL, sectionHref } from "@/lib/site";
 import { STORES } from "@/lib/stores";
 import { HalloweenDecor } from "@/components/home/HalloweenDecor";
 import { InnistradComing } from "@/components/home/InnistradComing";
-import { ChristmasDecor } from "@/components/home/ChristmasDecor";
 import { ChristmasGifts } from "@/components/home/ChristmasGifts";
 import { SoftHeroCards } from "@/components/home/SoftHeroCards";
 import { LandingAds } from "@/components/home/LandingAds";
@@ -75,7 +74,6 @@ export default async function Landing() {
           region. Same h1, same links. */}
       <section className="mc-hero relative">
         <HalloweenDecor />
-        <ChristmasDecor />
         <div className="page mc-hero-content grid gap-8 pb-10 pt-8 sm:pb-14 sm:pt-12 lg:grid-cols-[minmax(0,1fr)_minmax(340px,480px)] lg:items-center lg:gap-10">
           <div className="min-w-0">
             <InnistradComing />

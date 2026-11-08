@@ -47,21 +47,15 @@ test("the boot script stamps Christmas from the visitor's date and takes a ?seas
   assert.equal(boot(at(2026, 11, 20), "?season=bogus"), null);
 });
 
-test("the Christmas decoration is gated, aria-hidden, never takes a tap, and stops for reduced motion", () => {
+test("Christmas is one quiet line in the site's own colours (owner, 2026-11-08: the theme must match the domain)", () => {
   const css = read("src/app/globals.css");
-  assert.match(css, /\.xmas-only \{\s*display: none !important;/);
-  assert.match(css, /:root\[data-season="christmas"\] \.xmas-only \{\s*display: block !important;/);
-  for (const sel of [".xmas-snow {", ".xmas-lights {", ".xmas-art {", ".xmas-hero {"]) {
-    const i = css.indexOf(sel);
-    assert.ok(i >= 0, sel);
-    assert.match(css.slice(i, css.indexOf("}", i)), /pointer-events: none;/, `${sel} must not take taps`);
+  for (const gone of [".xmas-snow", ".xmas-lights", ".xmas-art", ".xmas-hero", ".xmas-logo-hat", "/xmas/", "#dc2626 0 10px"]) {
+    assert.ok(!css.includes(gone), `${gone} is gone`);
   }
-  assert.match(css, /prefers-reduced-motion: reduce\) \{\s*\.xmas-snow::before,/);
-  const decor = read("src/components/home/ChristmasDecor.tsx");
-  assert.match(decor, /seasonMarkupLive\("christmas"\)/);
-  assert.match(decor, /className="xmas-only xmas-hero" aria-hidden="true"/);
-  for (const f of ["lights", "santa-hat", "xmas-tree", "stocking", "candy-cane", "gift", "snowflake", "holly"]) {
-    const svg = read(`public/xmas/${f}.svg`);
-    assert.ok(svg.startsWith("<svg") && svg.length < 4000, `${f}.svg stays a small vector file`);
-  }
+  assert.doesNotMatch(css, /data-season="christmas"\][^{]*\{[^}]*--(c-ink|bg|surface|brand)/, "no palette swap");
+  assert.match(css, /:root\[data-season="christmas"\] \.xmas-pill-row \{\s*display: flex;/);
+  assert.match(css, /\.xmas-pill \{[^}]*color: inherit;/, "drawn in the site's own colours");
+  const gifts = read("src/components/home/ChristmasGifts.tsx");
+  assert.match(gifts, /seasonMarkupLive\("christmas"\)/);
+  assert.doesNotMatch(gifts, /xmas-pill-icon/);
 });
