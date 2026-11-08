@@ -44,3 +44,10 @@ test("the feed's deal bar is deals.ts isDeal", () => {
     assert.equal(feedIsDeal({ lowestPriceCents: lo, medianOpenCents: med, inStockStores: n, market }, type), isDeal(card, market), `${lo}/${med}/${n}/${type}`);
   }
 });
+
+test("the weekly price drops box is opt-in: unticked, and sent only as the visitor left it (2026-11-08)", () => {
+  const src = fs.readFileSync("src/components/PriceAlertForm.tsx", "utf8");
+  assert.match(src, /<input type="checkbox" name="weekly" style=\{\{ marginTop: 3 \}\} \/>/);
+  assert.ok(!/defaultChecked|checked=/.test(src), "never pre-ticked");
+  assert.match(src, /const weekly = f\.get\("weekly"\) === "on";/);
+});
