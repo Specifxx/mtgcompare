@@ -14,7 +14,6 @@ import { SITE_NAME, SITE_URL, sectionHref } from "@/lib/site";
 import { STORES } from "@/lib/stores";
 import { HalloweenDecor } from "@/components/home/HalloweenDecor";
 import { InnistradComing } from "@/components/home/InnistradComing";
-import { ChristmasDecor } from "@/components/home/ChristmasDecor";
 import { ChristmasGifts } from "@/components/home/ChristmasGifts";
 import { LandingAds } from "@/components/home/LandingAds";
 import { landingRailTiles, landingTcgTiles } from "@/lib/landing-ads";
@@ -71,7 +70,6 @@ export default async function Landing() {
     <div>
       <section className="mc-hero relative">
         <HalloweenDecor />
-        <ChristmasDecor />
         <div className="page mc-hero-content pb-10 pt-10 text-center sm:pb-14 sm:pt-16">
           <InnistradComing />
           <ChristmasGifts />

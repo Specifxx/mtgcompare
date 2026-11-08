@@ -1306,3 +1306,12 @@ product and guide. `INDEXED_DETAIL_REGIONS` (`lib/index-tiers.ts`) is us, au, uk
 visitors, but their product, guide and tool pages are `noindex`, out of the sitemap and out of every hreflang set. Their
 home, sealed, set and type hubs stay indexable. The 3-listing product rule (`productNoindex`) is unchanged. Add a region
 back once the core is indexed (recheck ~2026-11-25).
+
+## 2026-11-08 — Christmas is one quiet line, not a costume
+
+Owner: "some of the christmas themes on our websites are a bit too much - the theme must match the domain". The
+2026-11-01 Christmas look (falling snow, a strand of lights, trees, presents, candy canes, stockings, a Santa hat on the
+logo, candy-cane stripes and seasonal palette swaps) is gone, with its art in `public/xmas/`. The season keeps at most ONE
+touch, drawn in the site's own colours: the gifts line in the hero (`ChristmasGifts`, `.xmas-pill`), a plain pill that inherits the hero's text colour, with no gift icon or red glow. It still starts and ends by itself (`lib/season.ts`, 1 November to
+Boxing Day), and the tests pin that nothing else comes back. Black Friday and Cyber Monday (strip, pages, nav) are
+unchanged. The same rule went to every sister site: the site's own identity first.

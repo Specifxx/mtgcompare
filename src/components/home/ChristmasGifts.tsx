@@ -10,7 +10,6 @@ export function ChristmasGifts() {
   return (
     <div className="xmas-pill-row mb-3 justify-center sm:mb-4">
       <Link href={`/${X_DEFAULT_REGION}/sealed`} className="xmas-pill">
-        <span className="xmas-pill-icon" aria-hidden="true" />
         <b>Christmas gifts</b>
         <span className="xmas-pill-more hidden sm:inline">· booster boxes, bundles and Commander decks, cheapest first →</span>
       </Link>
