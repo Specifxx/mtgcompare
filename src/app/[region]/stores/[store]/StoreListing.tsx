@@ -22,6 +22,9 @@ import { pageMeta } from "@/lib/seo";
 import { fitDescription, seoCopy } from "@/lib/seo-titles";
 import { isMarketplace, STORE_BY_KEY, storeHost, storesInMarket, type StoreConfig } from "@/lib/stores";
 import { Flag } from "@/components/Flag";
+import { StoreBadgeBox } from "@/components/StoreBadgeBox";
+import { storeBadge } from "@/lib/embed";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 // Shared by /[region]/stores/[store] (page 1) and …/page/[n]: a big store has
 // 1,400 listings, so each page of 48 is its own cached render reading only its
@@ -158,6 +161,7 @@ export async function StorePage({ r, s, page }: { r: RegionInfo; s: StoreConfig;
       )}
       <Pagination base={base} page={page} pages={pages} />
       <p className="mt-4 text-xs text-muted">In stock first, then cheapest first. Prices are the store&rsquo;s own, in {r.currency}, and exclude shipping.</p>
+      {page === 1 && <StoreBadgeBox html={storeBadge(SITE_URL, SITE_NAME, "Magic sealed", base)} storeName={s.name} />}
       {/* After the store's list, not above it (the list is what the visitor came for). It is the page's one unit, so the strip above the footer is
           dropped. A short list gets no unit at all: a strip under a handful of rows would be over a quarter of the page (the §C4 density ceiling). */}
       <NoPreFooter />

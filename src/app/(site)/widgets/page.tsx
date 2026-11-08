@@ -6,6 +6,7 @@ import { REGION_LIST } from "@/lib/regions";
 import { pageMeta } from "@/lib/seo";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { embedSnippet, storeBadge } from "@/lib/embed";
+import { attributionHtml, PRICE_API_PATH } from "@/lib/price-api";
 
 // /widgets: the free widgets directory (DECISIONS.md, "Free price widgets", 2026-11-02), what outreach points at instead
 // of asking for a link. Code only, never live iframes of our own widgets. Force-dynamic and kept a day by the CDN
@@ -51,6 +52,20 @@ export default async function EmbedPage() {
         <p className="text-sm text-muted">A plain-HTML badge telling customers your prices are compared openly. No script, no image, nothing to host.</p>
         <div dangerouslySetInnerHTML={{ __html: badge }} />
         <pre className="overflow-x-auto rounded bg-black/5 p-3 text-xs"><code>{badge}</code></pre>
+      </section>
+      <section className="card flex flex-col gap-3 p-4" id="price-data">
+        <h2 className="text-lg font-bold">Free price data</h2>
+        <p className="text-sm text-muted">
+          Building a Discord bot, a collection tool, a spreadsheet or a blog? Every product&apos;s cheapest in-stock store price in each region is in one
+          JSON file: <a className="underline" href={PRICE_API_PATH}>{SITE_URL}{PRICE_API_PATH}</a>. Free, no key, no signup, open to every origin, and
+          refreshed with each daily release.
+        </p>
+        <ul className="list-disc pl-5 text-sm text-muted">
+          <li>Each product has an <code>id</code>, a <code>name</code> and, per region, <code>cents</code> in that region&apos;s <code>currency</code> with a <code>url</code> to its comparison.</li>
+          <li>Store prices only: never eBay, and never converted between currencies.</li>
+          <li>Free for any use, including commercial. The one condition: a visible link back wherever the prices appear, for example:</li>
+        </ul>
+        <pre className="overflow-x-auto rounded bg-black/5 p-3 text-xs"><code>{attributionHtml()}</code></pre>
       </section>
     </div>
   );

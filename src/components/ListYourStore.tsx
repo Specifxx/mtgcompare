@@ -27,6 +27,7 @@ export function ListYourStore({
   buttonClassName,
   showTitle = true,
   children,
+  badge,
 }: {
   /** the site's name, e.g. "Gundam Compare" */
   site: string;
@@ -52,6 +53,8 @@ export function ListYourStore({
   showTitle?: boolean;
   /** anything site-specific to say under "What we need" */
   children?: ReactNode;
+  /** the site's plain-HTML "compared on" badge (lib/embed.ts storeBadge), offered to stores already listed (2026-11-08) */
+  badge?: string;
 }) {
   const count = storeCount && storeCount >= 5 ? `${storeCount} stores` : "stores";
   return (
@@ -95,6 +98,23 @@ export function ListYourStore({
         <p style={{ ...p, opacity: 0.8 }}>
           Not a store owner, just know a good shop? <a href={suggestHref}>Suggest a store</a> instead.
         </p>
+      ) : null}
+
+      {/* The badge for stores already listed (competitor scan, 2026-11-08): plain HTML and an ordinary link, no iframe,
+          script, image or tracking, so the link sits on the store's own page. Offered here and on a store's own page only,
+          never sent to anyone. */}
+      {badge ? (
+        <>
+          <h2 style={h2}>Already listed? Add our badge</h2>
+          <p style={p}>
+            Show your customers that your prices are compared in the open. Paste this into your footer or product pages. It is
+            plain HTML: no script, no image to load and no tracking.
+          </p>
+          <div style={{ margin: "12px 0" }} dangerouslySetInnerHTML={{ __html: badge }} />
+          <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-all", userSelect: "all", fontSize: 12, lineHeight: 1.5, padding: 12, borderRadius: 8, border: "1px solid rgba(127,127,127,.35)", margin: "8px 0" }}>
+            <code>{badge}</code>
+          </pre>
+        </>
       ) : null}
     </div>
   );
