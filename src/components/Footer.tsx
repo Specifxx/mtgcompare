@@ -16,6 +16,7 @@ type FooterLink = { href: string; label: string };
 export function footerColumns(region: Region | null, listed?: ReadonlySet<string> | null): { title: string; links: FooterLink[] }[] {
   const site: FooterLink[] = [
     { href: "/about", label: "About & how it works" },
+    { href: "/collection", label: "My collection" },
     { href: "/blog", label: "Blog" },
     { href: "/creators", label: "Creators" },
     { href: "/widgets", label: "Free price widgets" },

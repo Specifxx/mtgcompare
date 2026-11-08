@@ -1352,3 +1352,24 @@ it is a good price. `/<region>/tools/is-this-a-good-price` (`components/tools/Li
 - Pasting a link into the header search opens the checker (`#link=` in the fragment, so the CDN keeps one copy of the page).
 - Fixed on the way: the old singles site's `/:region/tools/:rest*` redirect sent `/au/tools` and every tool page outside the US and
   NZ to the sealed list since the tools were ported (2026-10-23). It now redirects only paths that are not today's tools.
+
+## 2026-11-08 — Store badges, free price data and My collection (competitor scan)
+
+The owner approved the competitor scan's ideas (Collectr and PriceCharting keep people coming back with "what is my
+collection worth"; Scryfall grew on free data credited with a link; price sites earn links from the stores they list).
+- **Store badge.** `/list-your-store` ends with "Already listed? Add our badge": the site's plain-HTML "prices compared on"
+  badge (an ordinary link: no iframe, script, image or tracking) and its code to copy. `ListYourStore.tsx` takes it as the
+  optional `badge` prop and stays the same file in every site. Stores see it when they come to us; nobody is emailed about it
+  (cold outreach stays stopped).
+- **Per-store badge.** A store's own page ends with "Add this badge to <store>'s site" (`components/StoreBadgeBox.tsx`): the
+  same badge, pointing at that store's page here (`storeBadge(…, path)`), so a store that adds it links to its own listing.
+- **Free price data.** `/prices.json` (`lib/price-api.ts`): every product's cheapest in-stock price per market, in that
+  market's currency, with an absolute link to its comparison; never eBay, never converted. Free for any use with a visible
+  link back (the licence and an attribution snippet are in the file and on the widgets page). Built from the same numbers as
+  `/alert-feed.json` and served as a static file: no function runs for it and only a release changes it. Open CORS.
+- **My collection.** "I own this" on the product page (`components/vault`, `lib/vault.ts`, the same files in every site)
+  keeps a list in the browser only (`ce_vault_v1`: no account, no database, nothing sent to us). `/collection` (a static,
+  noindex shell) values it from `/prices.json` in the market each item was added in, one total per market (never converted):
+  worth today, the change since the items were added, the change since the last look (one total per market and day in
+  `ce_vault_days_v1`), and a share line with the real totals (`utm_medium=collection`). Values are the price to buy it again
+  at a store, and the page says so. Linked from the footer.

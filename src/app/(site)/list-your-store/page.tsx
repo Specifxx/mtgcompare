@@ -4,6 +4,7 @@ import { CONTACT_EMAIL, SITE_NAME, SITE_URL } from "@/lib/site";
 import { REGION_LIST } from "@/lib/regions";
 import { STORES, isMarketplace } from "@/lib/stores";
 import { ListYourStore } from "@/components/ListYourStore";
+import { storeBadge } from "@/lib/embed";
 
 // The store-owner page every Compare Empire site shares (owner, 2026-11-04).
 export const metadata: Metadata = {
@@ -20,6 +21,7 @@ export default function ListYourStorePage() {
       <Breadcrumbs items={[{ href: "/", label: SITE_NAME }, { label: "List your store" }]} />
       <div className="prose-dex mt-6">
         <ListYourStore
+          badge={storeBadge(SITE_URL, SITE_NAME, "Magic sealed")}
           site={SITE_NAME}
           what="Magic sealed product"
           markets={markets}

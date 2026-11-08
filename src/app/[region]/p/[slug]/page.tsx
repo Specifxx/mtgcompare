@@ -29,6 +29,7 @@ import { StockPill } from "@/components/StockPill";
 import { stockHeadline } from "@/lib/stock";
 import { priceGap, shareText } from "@/lib/share-link";
 import { ShareButton } from "@/components/ShareButton";
+import { VaultAddButton } from "@/components/vault/VaultAddButton";
 import { StickyBuyBar } from "@/components/StickyBuyBar";
 import { RecentTracker } from "@/components/Recent";
 import { ebaySearchUrl, offerLink, offerRetailer, tcgplayerAffiliateUrl, tcgplayerSearchUrl } from "@/lib/affiliate";
@@ -514,6 +515,8 @@ export default async function ProductPage({ params }: { params: { region: string
                 <ShareButton title={heading} path={`/${r.region}/p/${p.slug}`} kind="product" text={shareText(heading, priceGap(open.filter((o) => !o.marketplace).map((o) => ({ priceCents: o.priceCents, storeName: o.storeName }))), (c) => money(c, r.market))} className="float-right -mt-1 ml-2" />
                 <h1 className="font-display text-2xl font-bold leading-tight sm:text-3xl">{heading}</h1>
               </div>
+              {/* My collection (lib/vault.ts): valued in this region from /prices.json, kept in the browser only. */}
+              <VaultAddButton id={p.id} name={heading} href={`/${r.region}/p/${p.slug}`} image={img?.small ?? null} market={r.market} currency={r.currency} addedCents={here?.lowestPriceCents ?? 0} className="mt-3" />
             </div>
           </div>
 

@@ -47,6 +47,6 @@ export function embedSnippet(siteUrl: string, siteName: string, region: Region, 
 }
 
 /** Plain-HTML store badge: no iframe, so the link sits on the store's own page. */
-export function storeBadge(siteUrl: string, siteName: string, game: string): string {
-  return `<a href="${siteUrl}/us/stores" style="display:inline-block;padding:6px 10px;border:1px solid #d6dae1;border-radius:8px;font:600 12px system-ui,sans-serif;color:#0f172a;text-decoration:none;background:#fff">${game} prices compared on ${siteName}</a>`;
+export function storeBadge(siteUrl: string, siteName: string, game: string, path = "/us/stores"): string {
+  return `<a href="${siteUrl}${path}" style="display:inline-block;padding:6px 10px;border:1px solid #d6dae1;border-radius:8px;font:600 12px system-ui,sans-serif;color:#0f172a;text-decoration:none;background:#fff">${game} prices compared on ${siteName}</a>`;
 }
