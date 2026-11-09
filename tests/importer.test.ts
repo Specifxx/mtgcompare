@@ -34,6 +34,17 @@ test("price: a multi-unit option is never the product's price", () => {
   assert.deepEqual(priceOf(one, 10500), { priceCents: 26995, inStock: true });
 });
 
+test("price: a damaged-box variant is never the product's price", () => {
+  const etb = prod("d", "Pokémon Destined Rivals Elite Trainer Box", []);
+  etb.variants = [
+    { priceCents: 21995, available: true, title: "Damaged Box" },
+    { priceCents: 24995, available: true, title: "Standard" },
+  ];
+  assert.deepEqual(priceOf(etb, 10500), { priceCents: 24995, inStock: true });
+  etb.variants = [{ priceCents: 21995, available: true, title: "Minor box damage" }, { priceCents: 22995, available: true, title: "Dented" }];
+  assert.equal(priceOf(etb, 10500), null);
+});
+
 test("a store keeps its best listing per product: in stock beats cheaper-but-sold-out", () => {
   const rows = rowsFromReads(store, [
     {
