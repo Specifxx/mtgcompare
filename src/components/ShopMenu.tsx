@@ -1,10 +1,42 @@
-import { menuSets } from "@/lib/release";
+import { featureOrder, menuSets } from "@/lib/release";
 import type { Region } from "@/lib/regions";
-import { SET_BY_CODE } from "@/lib/sets";
+import { slugify } from "@/lib/sealed-title";
+import { SERIES_ORDER, SET_BY_CODE, SETS } from "@/lib/sets";
 import { sectionHref, type SectionKey } from "@/lib/site";
 
 export type MenuLink = { href: string; label: string };
-export type MenuColumn = { title: string; links: MenuLink[] };
+/** `href`: the column's heading is a link too (the series columns go to their block on the sets page). */
+export type MenuColumn = { title: string; links: MenuLink[]; href?: string };
+
+/** The series (era) the header's "Sets" menu and the sidebar's "Sets by series" group draw, newest first, and how many each shows. */
+export const SETS_MENU_SERIES = 4;
+const PER_SERIES = 4;
+
+/** Where a series sits on the sets page: its block's id there (sets/page.tsx uses the same slugify). */
+export const seriesHref = (region: string, series: string): string => `/${region}/sets#${slugify(series)}`;
+
+/** The series that have at least one set the region lists (a set no store lists has no page), in the sets page's order. Pure. */
+export function listedSeries(listed?: ReadonlySet<string> | null): string[] {
+  return SERIES_ORDER.filter((series) => SETS.some((s) => s.series === series && (!listed || listed.has(s.code))));
+}
+
+/**
+ * The desktop "Sets" dropdown: one column per series (the era a collector says: "Scarlet & Violet", "Universes Beyond"), its newest
+ * sets under it, and the heading goes to the series' block on the sets page. Only sets the region lists, so no dead link; the same
+ * destinations as the sidebar and phone menu, a static list with no read. Pure.
+ */
+export function setsMenuColumns(region: Region, today: string = new Date().toISOString().slice(0, 10), listed?: ReadonlySet<string> | null): MenuColumn[] {
+  return listedSeries(listed)
+    .slice(0, SETS_MENU_SERIES)
+    .map((series) => {
+      const codes = SETS.filter((s) => s.series === series && (!listed || listed.has(s.code))).map((s) => s.code);
+      const links = featureOrder(codes, today)
+        .slice(0, PER_SERIES)
+        .map((c) => SET_BY_CODE.get(c)!)
+        .map((set) => ({ href: `/${region}/sets/${set.slug}`, label: set.releaseDate > today ? `${set.name} (pre-order)` : set.name }));
+      return { title: series, href: seriesHref(region, series), links: [...links, { href: seriesHref(region, series), label: `All ${series} sets →` }] };
+    });
+}
 
 /**
  * The desktop "All sealed" dropdown's columns (lg and up), category-first like the big skin and card marketplaces: what kind of

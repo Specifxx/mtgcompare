@@ -16,6 +16,8 @@ export interface HeaderNavItem {
   also?: string[];
   xl?: boolean;
   menu?: MenuColumn[];
+  /** Which dropdown `menu` is: the product one ("shop") or the sets-by-series one ("sets"). */
+  menuKind?: "shop" | "sets";
 }
 
 /**
@@ -23,13 +25,19 @@ export interface HeaderNavItem {
  * (keyboard: tab to "All sealed" and on into the links), so the links are plain <a> in the HTML. Below lg the header has no nav;
  * the phone menu lists the same places.
  */
-export function ShopMenuPanel({ columns }: { columns: MenuColumn[] }) {
+export function ShopMenuPanel({ columns, kind = "shop" }: { columns: MenuColumn[]; kind?: "shop" | "sets" }) {
   return (
     <div className="invisible absolute left-0 top-full z-50 pt-2 opacity-0 transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-      <div className="grid w-[40rem] grid-cols-3 gap-6 rounded-2xl border border-line bg-surface p-5 shadow-lg" data-menu="shop">
+      <div className={`grid max-w-[calc(100vw-2rem)] gap-6 rounded-2xl border border-line bg-surface p-5 shadow-lg ${columns.length > 3 ? "w-[46rem]" : "w-[40rem]"}`} style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }} data-menu={kind}>
         {columns.map((col) => (
           <div key={col.title}>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">{col.title}</p>
+            {col.href ? (
+              <Link href={col.href} prefetch={false} className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted hover:text-ink">
+                {col.title}
+              </Link>
+            ) : (
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">{col.title}</p>
+            )}
             <ul className="space-y-0.5">
               {col.links.map((l) => (
                 <li key={l.href}>
@@ -64,7 +72,7 @@ export function HeaderNavItems({ items }: { items: HeaderNavItem[] }) {
         return n.menu ? (
           <div key={n.label} className="group relative">
             {link}
-            <ShopMenuPanel columns={n.menu} />
+            <ShopMenuPanel columns={n.menu} kind={n.menuKind} />
           </div>
         ) : (
           link
@@ -79,7 +87,7 @@ function retargetItems(items: HeaderNavItem[], to: Region): HeaderNavItem[] {
     ...n,
     href: retargetHref(n.href, to),
     also: n.also?.map((h) => retargetHref(h, to)),
-    menu: n.menu?.map((c) => ({ ...c, links: c.links.map((l) => ({ ...l, href: retargetHref(l.href, to) })) })),
+    menu: n.menu?.map((c) => ({ ...c, href: c.href && retargetHref(c.href, to), links: c.links.map((l) => ({ ...l, href: retargetHref(l.href, to) })) })),
   }));
 }
 
