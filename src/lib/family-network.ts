@@ -25,6 +25,7 @@ export type FamilySiteId =
   | "op"
   | "dex"
   | "mtg"
+  | "wax"
   | "gundam"
   | "lorcana"
   | "ygo"
@@ -59,6 +60,7 @@ export const FAMILY_SITES: readonly FamilySite[] = [
   { id: "op", name: "OP Compare", url: "https://opcompare.app", label: "One Piece card prices", topic: "One Piece", clusters: ["cards"], feed: `${RAW}/OpCompare/snapshot/family-feed.json`, report: "/market" },
   { id: "dex", name: "DexCompare", url: "https://dexcompare.app", label: "Pokémon TCG sealed prices", topic: "Pokémon", clusters: ["cards"], feed: `${RAW}/CompareEmpire/main/apps/dexcompare-sealed/data/public/family/family-feed.json` },
   { id: "mtg", name: "MTG Compare", url: "https://mtgcompare.app", label: "Magic: The Gathering sealed prices", topic: "Magic", clusters: ["cards"], feed: `${RAW}/mtgcompare/main/data/public/family/family-feed.json` },
+  { id: "wax", name: "SportsCardCompare", url: "https://sportscardcompare.com", label: "Sealed sports card box prices", topic: "Sports cards", clusters: ["cards"], feed: `${RAW}/waxcompare/main/data/public/family/family-feed.json` },
   { id: "gundam", name: "Gundam Compare", url: "https://gundamcompare.com", label: "Gundam card and Gunpla prices", topic: "Gundam", clusters: ["cards", "hobby"], feed: `${RAW}/GundamCompare/main/data/public/family/family-feed.json`, report: "/price-report" },
   { id: "lorcana", name: "Lorcana Compare", url: "https://lorcanacompare.com", label: "Disney Lorcana card prices", topic: "Lorcana", clusters: ["cards"], feed: `${RAW}/lorcanacompare/main/data/public/family/family-feed.json`, report: "/price-report" },
   { id: "ygo", name: "YGO Compare", url: "https://ygocompare.com", label: "Yu-Gi-Oh! card prices", topic: "Yu-Gi-Oh!", clusters: ["cards"], feed: `${RAW}/ygocompare/main/data/public/family/family-feed.json`, report: "/price-report" },
