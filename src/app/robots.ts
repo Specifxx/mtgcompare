@@ -4,13 +4,15 @@ import { SITE_URL } from "@/lib/site";
 // Backlink, data and minor-engine crawlers that render page after page of the
 // long tail for someone else's index and send no visitors (2026-10-16, as on
 // RiftCompare). A bot that ignores robots.txt needs the Vercel Firewall instead.
+// AI answer engines (GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot, Claude-SearchBot, PerplexityBot, Google-Extended, Applebot-Extended)
+// are ALLOWED since 2026-11-09 (owner: be found in AI answers). Pages are CDN-cached, so a crawl costs almost nothing.
 const BLOCKED_BOTS = [
   "Bytespider", "meta-externalagent", "Meta-ExternalAgent",
   "MJ12bot", "DotBot", "PetalBot", "DataForSeoBot", "BLEXBot", "Barkrowler", "serpstatbot", "SeekportBot", "ImagesiftBot", "Timpibot",
   // Added 2026-10-22 (cost: each page a crawler renders is a billed function invocation, ~17,000 product URLs × a release a day):
   // SEO-tool crawlers and AI training crawlers, which send no visitors. Search engines and AI SEARCH crawlers (OAI-SearchBot,
   // PerplexityBot, Claude-SearchBot) can still read the site.
-  "AhrefsBot", "SemrushBot", "GPTBot", "CCBot", "ClaudeBot", "anthropic-ai", "Google-Extended", "Applebot-Extended", "Amazonbot", "cohere-ai", "Diffbot", "omgili",
+  "AhrefsBot", "SemrushBot", "CCBot", "Diffbot", "omgili",
 ];
 
 // QUERY-STRING URLS ARE NOT CRAWLED (2026-10-16). No page reads a query string
