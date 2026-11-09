@@ -2,7 +2,6 @@ import Link from "@/components/Link";
 
 import { inSeason, saleStrip } from "@/lib/black-friday";
 import { navGroups } from "@/lib/nav";
-import { openPreorderGuides } from "@/lib/preorder-guides";
 import { REGIONS, X_DEFAULT_REGION, type Region } from "@/lib/regions";
 import { sectionHref, SECTION_PATHS, type SectionKey } from "@/lib/site";
 import { EbayNavLink } from "./Ebay";
@@ -11,7 +10,7 @@ import { MobileMenu } from "./MobileMenu";
 import { NavLink } from "./NavLink";
 import { RegionSwitcher } from "./RegionSwitcher";
 import { HeaderNavItems, SoftHeaderNavItems, SoftRegionSwitcher, SoftSearchBox, type HeaderNavItem } from "./HeaderNav";
-import { setsMenuColumns, shopMenuColumns } from "./ShopMenu";
+import { dealsMenuColumns, guidesMenuColumns, setsMenuColumns, shopMenuColumns } from "./ShopMenu";
 import { ThemeToggle } from "./ThemeToggle";
 import { CartHeaderLink } from "./cart/CartHeaderLink";
 import { SearchBox } from "./SearchBox";
@@ -24,8 +23,7 @@ export const HEADER_NAV: { key: SectionKey; label: string; also?: string[]; xl?:
   { key: "deals", label: "Deals", also: [SECTION_PATHS.perPack, SECTION_PATHS.thisWeek, SECTION_PATHS.backInStock, SECTION_PATHS.priceMoves, SECTION_PATHS.outOfPrint] },
   { key: "sealed", label: "All sealed", also: ["/type"] },
   { key: "sets", label: "Sets" },
-  { key: "releases", label: "Releases" },
-  { key: "guides", label: "Guides" },
+  { key: "guides", label: "Guides", also: [SECTION_PATHS.tools, SECTION_PATHS.releases] },
   { key: "stores", label: "Stores" },
 ];
 
@@ -39,20 +37,18 @@ export function headerNav(today = new Date().toISOString().slice(0, 10)): typeof
 }
 
 /**
- * The desktop nav's items for a region, links and all (the "All sealed" dropdown's included). While a set is on pre-order, "Releases"
- * becomes that set's pre-order hub ("Star Trek pre-orders", lib/preorder-guides.ts): Rift Compare's and this site's pre-order pages
- * are their most visited, and the release calendar stays one click away in the sidebar and phone menu. It retires itself on release day.
+ * The desktop nav's items for a region, links and all: Deals, All sealed, Sets and Guides each open a mega menu
+ * (components/NavMenu.tsx; the columns are in components/ShopMenu.tsx). The pre-order hub that "Releases" used to become while a set
+ * is on pre-order leads the Deals menu's "Coming soon" column, with the release calendar (owner, 2026-11-09).
  */
 export function headerNavItems(region: Region, today = new Date().toISOString().slice(0, 10), listed?: ReadonlySet<string> | null): HeaderNavItem[] {
-  const pre = openPreorderGuides(today)[0];
   return headerNav(today).map((n) => ({
-    href: n.key === "releases" && pre ? `/${region}/preorders/${pre.set.slug}` : sectionHref(region, n.key),
-    label: n.key === "releases" && pre ? `${pre.set.name} pre-orders` : n.label,
-    also: n.key === "releases" && pre ? [`/${region}${SECTION_PATHS.releases}`] : n.also?.map((p) => `/${region}${p}`),
+    href: sectionHref(region, n.key),
+    label: n.label,
+    also: n.also?.map((p) => `/${region}${p}`),
     xl: n.xl,
-    // The sealed browse item opens the category dropdown (components/ShopMenu.tsx): by product, by set, by value.
-    menu: n.key === "sealed" ? shopMenuColumns(region, today, listed) : n.key === "sets" ? setsMenuColumns(region, today, listed) : undefined,
-    menuKind: n.key === "sets" ? "sets" : n.key === "sealed" ? "shop" : undefined,
+    menu: n.key === "sealed" ? shopMenuColumns(region, today, listed) : n.key === "sets" ? setsMenuColumns(region, today, listed) : n.key === "deals" ? dealsMenuColumns(region, today) : n.key === "guides" ? guidesMenuColumns(region) : undefined,
+    menuKind: n.key === "sets" ? "sets" : n.key === "sealed" ? "shop" : n.key === "deals" ? "deals" : n.key === "guides" ? "guides" : undefined,
   }));
 }
 
@@ -82,11 +78,6 @@ export function Header({ region, listed }: { region: Region | null; listed?: Rea
         </Link>
         <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Main">
           {region ? <HeaderNavItems items={items} /> : <SoftHeaderNavItems items={items} />}
-          {/* From 1440px only: below that the row ran out of room once the side rails narrowed nothing but the page (the sidebar's
-              "Guides & news" group links the blog on every screen). */}
-          <NavLink href="/blog" className="hidden whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors min-[1440px]:inline-flex">
-            Blog
-          </NavLink>
           {/* A discreet, labelled sponsored item (xl and up only): eBay's search, tagged. Not a section of the site. */}
           {region && <EbayNavLink region={region} />}
         </nav>
