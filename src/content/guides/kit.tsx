@@ -500,10 +500,23 @@ export function TocDisclosure({ sections }: { sections: readonly Pick<GuideSecti
 }
 
 /** A guide as a card (the index, and "More guides"). */
-export function GuideCard({ r, guide, headingLevel = 2 }: { r: RegionInfo; guide: Guide; headingLevel?: 2 | 3 }) {
+export function GuideCard({ r, guide, headingLevel = 2, thumbnail = true }: { r: RegionInfo; guide: Guide; headingLevel?: 2 | 3; thumbnail?: boolean }) {
   const H = headingLevel === 2 ? "h2" : "h3";
   return (
-    <Link href={guideHref(r, guide.slug)} prefetch={false} className="card group flex h-full flex-col p-5 transition-shadow hover:shadow-lift sm:p-6">
+    <Link href={guideHref(r, guide.slug)} prefetch={false} className="card group flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lift">
+      {thumbnail && (
+        // The guide's own share card (app/og/guides/[slug], a static PNG), as its thumbnail (2026-11-09).
+        <img
+          src={`/og/guides/${guide.slug}`}
+          alt={`${guideTitleIn(guide, r)}: guide cover`}
+          width={1200}
+          height={630}
+          loading="lazy"
+          decoding="async"
+          className="aspect-[1200/630] w-full border-b border-line bg-raised object-cover"
+        />
+      )}
+      <div className="flex flex-1 flex-col p-5 sm:p-6">
       <span className="eyebrow">{guide.kicker}</span>
       <H className="mt-2 font-display text-xl font-bold leading-snug tracking-tight group-hover:text-brand">{guideTitleIn(guide, r)}</H>
       <p className="mt-2 flex-1 text-[15px] leading-6 text-muted">{guide.description}</p>
@@ -515,6 +528,7 @@ export function GuideCard({ r, guide, headingLevel = 2 }: { r: RegionInfo; guide
           Read <Icon name="arrow-right" size={14} />
         </span>
       </span>
+      </div>
     </Link>
   );
 }

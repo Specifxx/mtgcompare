@@ -26,6 +26,8 @@ import { money, plural, timeAgo } from "@/lib/format";
 import { thumb } from "@/lib/images";
 import { hotPicks } from "@/lib/hot-picks";
 import { COUNTRY_GUIDE } from "@/content/guides/country-prices";
+import { guidesFor } from "@/content/guides";
+import { GuideCard } from "@/content/guides/kit";
 import { openPreorderGuides } from "@/lib/preorder-guides";
 import { featureOrder, featureSort, isPreorderSet, formatRelease } from "@/lib/release";
 import { REGIONS, regionOrNotFound, type Market, type RegionInfo } from "@/lib/regions";
@@ -292,6 +294,16 @@ export default async function RegionHome({ params }: { params: { region: string 
 
         {/* Every set listed here, so every set page is two clicks from the landing page and its products three (2026-10-25). */}
         <SetIndex r={r} counts={setCounts} types={listedTypes} />
+        {/* Guides with thumbnails (owner, 2026-11-09): the six most recently updated, server-rendered, below the rails. */}
+        <Section title="Guides" kicker="Plain-English buying advice" href={`/${r.region}/guides`} linkLabel="All guides">
+          <ul role="list" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[...guidesFor(r.region)].sort((a, b) => b.updated.localeCompare(a.updated)).slice(0, 6).map((g) => (
+              <li key={g.slug}>
+                <GuideCard r={r} guide={g} headingLevel={3} />
+              </li>
+            ))}
+          </ul>
+        </Section>
         <HowItWorks r={r} stores={storeCount} />
         {/* The site's own star score and approved reviews (owner, 2026-11-03), loaded in the browser; nothing until there is a rating. */}
         <SiteReviews />
