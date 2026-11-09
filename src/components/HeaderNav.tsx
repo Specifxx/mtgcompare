@@ -5,6 +5,7 @@ import { retargetHref } from "@/lib/nav";
 import type { Region } from "@/lib/regions";
 import type { MenuColumn } from "./ShopMenu";
 import { NavLink } from "./NavLink";
+import { NavMenu } from "./NavMenu";
 import { RegionSwitcher } from "./RegionSwitcher";
 import { useSoftRegion } from "./RegionSuggest";
 import { SearchBox } from "./SearchBox";
@@ -17,7 +18,7 @@ export interface HeaderNavItem {
   xl?: boolean;
   menu?: MenuColumn[];
   /** Which dropdown `menu` is: the product one ("shop") or the sets-by-series one ("sets"). */
-  menuKind?: "shop" | "sets";
+  menuKind?: "shop" | "sets" | "deals" | "guides";
 }
 
 /**
@@ -25,10 +26,10 @@ export interface HeaderNavItem {
  * (keyboard: tab to "All sealed" and on into the links), so the links are plain <a> in the HTML. Below lg the header has no nav;
  * the phone menu lists the same places.
  */
-export function ShopMenuPanel({ columns, kind = "shop" }: { columns: MenuColumn[]; kind?: "shop" | "sets" }) {
+export function ShopMenuPanel({ columns, kind = "shop" }: { columns: MenuColumn[]; kind?: NonNullable<HeaderNavItem["menuKind"]> }) {
   return (
-    <div className="invisible absolute left-0 top-full z-50 pt-2 opacity-0 transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
-      <div className={`grid max-w-[calc(100vw-2rem)] gap-6 rounded-2xl border border-line bg-surface p-5 shadow-lg ${columns.length > 3 ? "w-[46rem]" : "w-[40rem]"}`} style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }} data-menu={kind}>
+    <>
+      <div className={`grid max-w-[calc(100vw-2rem)] gap-6 rounded-2xl border border-line bg-surface p-5 shadow-lg ${columns.length > 3 ? "w-[46rem]" : columns.length > 2 ? "w-[40rem]" : columns.length > 1 ? "w-[28rem]" : "w-[15rem]"}`} style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }} data-menu={kind}>
         {columns.map((col) => (
           <div key={col.title}>
             {col.href ? (
@@ -50,7 +51,7 @@ export function ShopMenuPanel({ columns, kind = "shop" }: { columns: MenuColumn[
           </div>
         ))}
       </div>
-    </div>
+    </>
   );
 }
 
@@ -58,22 +59,21 @@ export function ShopMenuPanel({ columns, kind = "shop" }: { columns: MenuColumn[
 export function HeaderNavItems({ items }: { items: HeaderNavItem[] }) {
   return (
     <>
-      {items.map((n) => {
+      {items.map((n, i) => {
         const link = (
           <NavLink
             key={n.label}
             href={n.href}
             also={n.also}
-            className={`${n.xl ? "hidden xl:inline-flex" : ""} whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors`}
+            className={`${n.xl ? "hidden xl:inline-flex" : ""} ${n.menu ? "pr-6" : ""} whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition-colors`}
           >
             {n.label}
           </NavLink>
         );
         return n.menu ? (
-          <div key={n.label} className="group relative">
-            {link}
-            <ShopMenuPanel columns={n.menu} kind={n.menuKind} />
-          </div>
+          <NavMenu key={n.label} label={n.label} link={link} xl={n.xl} align={i >= items.length - 1 ? "right" : "left"}>
+              <ShopMenuPanel columns={n.menu} kind={n.menuKind} />
+          </NavMenu>
         ) : (
           link
         );

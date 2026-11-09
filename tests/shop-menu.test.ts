@@ -5,7 +5,7 @@ import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { Header } from "../src/components/Header";
-import { setsMenuColumns, shopMenuColumns } from "../src/components/ShopMenu";
+import { dealsMenuColumns, guidesMenuColumns, setsMenuColumns, shopMenuColumns } from "../src/components/ShopMenu";
 import { TYPE_BY_SLUG } from "../src/lib/sealed-title";
 import { SET_BY_SLUG, SETS } from "../src/lib/sets";
 import { menuSets } from "../src/lib/release";
@@ -38,10 +38,10 @@ test("shop menu: the newest released set leads; a pre-order is labelled, never f
 test("header: the dropdown sits with All sealed inside the desktop nav, as plain links", () => {
   const html = render(React.createElement(Header, { region: "uk" }));
   const nav = /<nav class="hidden items-center gap-0\.5 lg:flex" aria-label="Main">([\s\S]*?)<\/nav>/.exec(html)?.[1] ?? "";
-  assert.match(nav, /<div class="group relative"><a [^>]*href="\/uk\/sealed"[^>]*>All sealed<\/a>/);
+  assert.match(nav, /<div class="group relative" data-open="false"><a [^>]*href="\/uk\/sealed"[^>]*>All sealed<\/a><button type="button" data-nav-trigger="true" aria-label="All sealed menu" aria-haspopup="true" aria-expanded="false"/);
   assert.match(nav, /data-menu="shop"/);
   assert.match(nav, /href="\/uk\/type\/play-booster-boxes"[^>]*>Play booster boxes<\/a>/);
-  assert.match(nav, /group-focus-within:visible/, "opens for keyboard focus too");
+  assert.match(nav, /data-nav-panel="true" class="[^"]*invisible/, "closed panels stay in the HTML, hidden until opened by hover, click or keyboard");
 });
 
 test("menus skip a set no store lists yet: its set page is a 404, so the link was dead site-wide (2026-11-03)", () => {
@@ -68,6 +68,21 @@ test("sets menu: one column per series (the era), newest sets under it, heading 
   assert.ok(!some.includes(`/us/sets/${SETS[0].slug}`), "the unlisted set is not linked");
   const html = render(React.createElement(Header, { region: "uk" }));
   const nav = /<nav class="hidden items-center gap-0\.5 lg:flex" aria-label="Main">([\s\S]*?)<\/nav>/.exec(html)?.[1] ?? "";
-  assert.match(nav, /<div class="group relative"><a [^>]*href="\/uk\/sets"[^>]*>Sets<\/a>/);
+  assert.match(nav, /<div class="group relative" data-open="false"><a [^>]*href="\/uk\/sets"[^>]*>Sets<\/a>/);
   assert.match(nav, /data-menu="sets"/);
+});
+
+test("Deals and Guides open mega menus of real links in the HTML (owner, 2026-11-09)", () => {
+  const html = render(React.createElement(Header, { region: "au" }));
+  const nav = /<nav class="hidden items-center gap-0\.5 lg:flex" aria-label="Main">([\s\S]*?)<\/nav>/.exec(html)?.[1] ?? "";
+  for (const h of ["/au/cheapest-packs", "/au/back-in-stock", "/au/price-moves", "/au/releases", "/au/tools", "/blog", "/forum"]) assert.match(nav, new RegExp(`href="${h}"`), h);
+  assert.match(nav, /data-menu="deals"/);
+  assert.match(nav, /data-menu="guides"/);
+  assert.equal((nav.match(/data-nav-trigger/g) ?? []).length, 4, "Deals, All sealed, Sets and Guides carry a menu");
+  assert.ok(dealsMenuColumns("au", "2026-11-09").length === 3 && guidesMenuColumns("au").length === 1);
+});
+
+test("NavMenu: hover intent, click toggle, Escape, arrow keys, focus-out and aria, one file for the family", async () => {
+  const src = await import("node:fs").then((fs) => fs.readFileSync(new URL("../src/components/NavMenu.tsx", import.meta.url), "utf8"));
+  for (const needle of ["OPEN_MS", "CLOSE_MS", 'e.key === "Escape"', "ArrowDown", "aria-expanded", "aria-controls", "pointerdown", "onBlur", "usePathname"]) assert.ok(src.includes(needle), needle);
 });

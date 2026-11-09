@@ -1390,3 +1390,20 @@ dimension, the series.
 - Not done: a `/series/<slug>` hub or a series filter on the browse grid (new indexable pages, owner's call); the side rails
   (`SideAds`, `AdDock`) and the footer's "Our sites" link fall short of the rubric's "no clutter" item but are the owner's own
   revenue and family decisions, so they stay until he says.
+
+## 2026-11-09: one mega-menu component for the header dropdowns (owner)
+
+- Bill: navigation like the best modern sites, one shared pattern across the Dex / MTG engine family. `components/NavMenu.tsx` (the same
+  file in DexCompare, MTG, Gundam, Wargame, YGO and Bandai; keep them identical) wraps every header dropdown: the panel is always in the
+  server's HTML as plain links (closed it is only `invisible`, so crawlers read it and keyboards skip it), it opens on hover with intent
+  (90 ms in, 200 ms grace out), a chevron button toggles it for touch and click, focus into the item opens it, ArrowDown/Up/Home/End move
+  through the links, Escape closes and returns focus, focus leaving or a press outside closes it, one menu open at a time, a navigation
+  closes it (`aria-expanded`, `aria-controls`, `aria-haspopup`). The label stays a real link.
+- Header is now Deals, All sealed, Sets, Guides, Stores, the first four dropdowns. New: Deals (best prices, stock and moves, coming soon:
+  the open pre-order hub and the release calendar, replacing the "Releases" item) and Guides (guides, tools, Price Duel, blog, creators,
+  forum; the separate 1440px "Blog" link went into it). Product (Play / Collector / Commander / Secret Lair) and sets by series (Standard,
+  Universes Beyond, Masters, Commander) already existed.
+- No URL, title, canonical, h1 or JSON-LD changed; no read or page added; the phone menu and the sidebar are unchanged.
+- Not done: removing the side panel (the menus do not yet cover its deep groups, and it carries the current-section state for the
+  deep levels; revisit once the menus have been in use), a phone bottom sheet (the `<dialog>` menu stays), and the side rails and
+  footer links, which are the owner's own decisions. Deals is a hover menu: nothing is added to the deploy cadence.

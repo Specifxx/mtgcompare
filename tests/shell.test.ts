@@ -141,20 +141,20 @@ test("Header on a region page: search at every width (never in a hidden wrapper)
   assert.doesNotMatch(html, /aria-label="Sections"[^>]*class="page flex gap-1 overflow-x-auto/, "the second chip row is gone");
 });
 
-test("Header nav (lg and up): Deals · All sealed · Sets · Releases · Guides · Stores, each to its region path", () => {
+test("Header nav (lg and up): Deals · All sealed · Sets · Guides · Stores, each to its region path", () => {
   assert.deepEqual(
     HEADER_NAV.map((n) => n.label),
-    ["Deals", "All sealed", "Sets", "Releases", "Guides", "Stores"],
+    ["Deals", "All sealed", "Sets", "Guides", "Stores"],
   );
   const html = render(React.createElement(Header, { region: "uk" }));
   const nav = /<nav class="hidden items-center gap-0\.5 lg:flex" aria-label="Main">([\s\S]*?)<\/nav>/.exec(html)?.[1] ?? "";
-  // While a set is on pre-order, "Releases" is its pre-order hub.
+  // While a set is on pre-order its hub leads the Deals menu; the release calendar is there too.
   const pre = openPreorderGuides()[0];
   for (const [href, label] of [
     ["/uk/deals", "Deals"],
     ["/uk/sealed", "All sealed"],
     ["/uk/sets", "Sets"],
-    pre ? [`/uk/preorders/${pre.set.slug}`, `${pre.set.name} pre-orders`] : ["/uk/releases", "Releases"],
+    pre ? [`/uk/preorders/${pre.set.slug}`, `${pre.set.name} pre-orders`] : ["/uk/releases", "Release calendar"],
     ["/uk/guides", "Guides"],
     ["/uk/stores", "Stores"],
   ])
