@@ -25,6 +25,7 @@ export type FamilySiteId =
   | "op"
   | "dex"
   | "mtg"
+  | "wax"
   | "gundam"
   | "lorcana"
   | "ygo"
