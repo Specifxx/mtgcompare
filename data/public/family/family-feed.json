@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-09T00:15:52.466Z",
+ "generatedAt": "2026-11-09T19:23:10.901Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -202,9 +202,9 @@
    "url": "https://mtgcompare.app/us/p/marvel-super-heroes-bundle",
    "cents": 3499,
    "currency": "USD",
-   "store": "Collector Store",
+   "store": "Blue Mist",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/675615_in_1000x1000.jpg",
-   "refCents": 6995,
+   "refCents": 6978,
    "refLabel": "median store price",
    "savingPct": 50
   },
@@ -212,15 +212,29 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "Teenage Mutant Ninja Turtles Play Booster Box",
-   "url": "https://mtgcompare.app/us/p/teenage-mutant-ninja-turtles-play-booster-box",
-   "cents": 7500,
+   "title": "Lorwyn Eclipsed 60-Card Theme Deck - Pirates",
+   "url": "https://mtgcompare.app/us/p/lorwyn-eclipsed-60-card-theme-deck-pirates",
+   "cents": 1276,
    "currency": "USD",
-   "store": "Cole Street Game Vault",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/657849_in_1000x1000.jpg",
-   "refCents": 14995,
+   "store": "Gamelandia",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/656330_in_1000x1000.jpg",
+   "refCents": 2399,
    "refLabel": "median store price",
-   "savingPct": 50
+   "savingPct": 47
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "US",
+   "title": "Star Trek Commander Deck - Klingon Fury (Collector's Edition)",
+   "url": "https://mtgcompare.app/us/p/star-trek-commander-deck-klingon-fury-collectors-edition",
+   "cents": 8500,
+   "currency": "USD",
+   "store": "Vegas Singles",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/706174_in_1000x1000.jpg",
+   "refCents": 15999,
+   "refLabel": "median store price",
+   "savingPct": 47
   },
   {
    "kind": "deal",
@@ -235,20 +249,6 @@
    "refCents": 13999,
    "refLabel": "median store price",
    "savingPct": 43
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "US",
-   "title": "The Hobbit Scene Box - Crack the Plates",
-   "url": "https://mtgcompare.app/us/p/the-hobbit-scene-box-crack-the-plates",
-   "cents": 3495,
-   "currency": "USD",
-   "store": "Poke-Collect",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/692968_in_1000x1000.jpg",
-   "refCents": 5747,
-   "refLabel": "median store price",
-   "savingPct": 39
   },
   {
    "kind": "deal",
@@ -310,6 +310,20 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "UK",
+   "title": "Teenage Mutant Ninja Turtles Play Booster Box",
+   "url": "https://mtgcompare.app/uk/p/teenage-mutant-ninja-turtles-play-booster-box",
+   "cents": 7995,
+   "currency": "GBP",
+   "store": "Tabletop Dominion",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/657849_in_1000x1000.jpg",
+   "refCents": 13999,
+   "refLabel": "median store price",
+   "savingPct": 43
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "UK",
    "title": "Avatar: The Last Airbender - Beginner Box",
    "url": "https://mtgcompare.app/uk/p/avatar-the-last-airbender-beginner-box",
    "cents": 1599,
@@ -345,20 +359,6 @@
    "store": "Roll N Play",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/658346_in_1000x1000.jpg",
    "refCents": 4995,
-   "refLabel": "median store price",
-   "savingPct": 40
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "UK",
-   "title": "Marvel Super Heroes Draft Night",
-   "url": "https://mtgcompare.app/uk/p/marvel-super-heroes-draft-night",
-   "cents": 6000,
-   "currency": "GBP",
-   "store": "Thistle Tavern",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675625_in_1000x1000.jpg",
-   "refCents": 9995,
    "refLabel": "median store price",
    "savingPct": 40
   },
@@ -436,15 +436,15 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "CA",
-   "title": "Secret Lair: Special Guest: Yuko Shimizu",
-   "url": "https://mtgcompare.app/ca/p/secret-lair-special-guest-yuko-shimizu",
-   "cents": 3999,
+   "title": "Marvel Super Heroes Commander Deck - Avengers Assemble (Collector's Edition)",
+   "url": "https://mtgcompare.app/ca/p/marvel-super-heroes-commander-deck-avengers-assemble-collectors-edition",
+   "cents": 12999,
    "currency": "CAD",
-   "store": "Dungeon Comics & Cards",
-   "image": "https://cdn.shopify.com/s/files/1/0511/6493/8423/products/SpecialGuestYukoShimizu.png?v=1661019671",
-   "refCents": 6997,
+   "store": "Face to Face Games",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675627_in_1000x1000.jpg",
+   "refCents": 23247,
    "refLabel": "median store price",
-   "savingPct": 43
+   "savingPct": 44
   },
   {
    "kind": "deal",
@@ -498,9 +498,9 @@
    "currency": "EUR",
    "store": "Mana Market EU",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/657856_in_1000x1000.jpg",
-   "refCents": 5870,
+   "refCents": 5990,
    "refLabel": "median store price",
-   "savingPct": 42
+   "savingPct": 43
   },
   {
    "kind": "deal",
@@ -596,9 +596,9 @@
    "currency": "SGD",
    "store": "Daimonji TCG",
    "image": "https://cdn.shopify.com/s/files/1/0558/2114/0029/files/marvel-super-heroes-scene-box-villains-unleashed-magic-the-gathering.jpg?v=1769587641",
-   "refCents": 6500,
+   "refCents": 6250,
    "refLabel": "median store price",
-   "savingPct": 26
+   "savingPct": 23
   },
   {
    "kind": "deal",
