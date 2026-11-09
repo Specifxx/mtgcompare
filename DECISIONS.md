@@ -1407,3 +1407,7 @@ dimension, the series.
 - Not done: removing the side panel (the menus do not yet cover its deep groups, and it carries the current-section state for the
   deep levels; revisit once the menus have been in use), a phone bottom sheet (the `<dialog>` menu stays), and the side rails and
   footer links, which are the owner's own decisions. Deals is a hover menu: nothing is added to the deploy cadence.
+
+## 2026-11-09 — A damaged-box variant is never a store's price
+
+`priceOf` drops variants titled as damaged, dented or imperfect when the store lists others (all damaged: no listing), so a cheaper cosmetically damaged copy never becomes the product's price. Ported from DexCompare after a store asked for standard and damaged boxes to be kept apart.

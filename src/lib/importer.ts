@@ -152,6 +152,10 @@ const CUT_OFF_ERROR = "feed cut off";
 // as options of one listing, and the multiple's price is not the product's.
 const MULTI_VARIANT = /\bdisplays?\b|\bcases?\b|\bbox\s*of\b|\bsets?\s*of\b|\bbundle\b|\blot\b|\bbooster\s*box\b|\b(?:[2-9]|[1-9]\d)\s*x\b|\bx\s*(?:[2-9]|[1-9]\d)\b|\b(?:[2-9]|[1-9]\d)\s*(?:packs?|tins?|boxes|units?|pcs|pieces)\b|\bfull\s*(?:set|case)\b|\ball\s*\d/i;
 
+// A variant sold as damaged ("Dented Box", "Damaged", "Minor Box Damage", "Imperfect"): the store's cheaper, cosmetically flawed
+// copy of the same product. It is never the product's price (the title rules already refuse a damaged product by name).
+const DAMAGED_VARIANT = /\b(?:damaged?|dent(?:ed|s)?|crushed|creased|torn|imperfect(?:ions?)?|cosmetic|blemish(?:ed)?|box\s*(?:wear|damage)|(?:minor|slight|light|small)\s+(?:box\s+|corner\s+|seal\s+)?(?:wear|damage|dents?|tears?)|seconds|b-?\s*grade|open(?:ed)?\s*box)\b/i;
+
 /**
  * Pick the price a product lists at: the cheapest orderable variant at or above the floor. A variant the store never posts
  * (Shopify requires_shipping false: pickup only, a service) is not a listing, and a product whose feed text says "pickup only" is
@@ -162,7 +166,10 @@ export function priceOf(p: FeedProduct, floor: number): { priceCents: number; in
   const posted = p.variants.filter((v) => v.requiresShipping !== false);
   // With several options, drop the multi-unit ones. A single variant is the
   // product itself, whatever its (often "Default Title") name says.
-  const single = posted.length > 1 ? posted.filter((v) => !v.title || !MULTI_VARIANT.test(v.title)) : posted;
+  // A damaged-condition variant is dropped when the store lists others (all damaged: no listing); a lone variant is the product
+  // itself, and its title is judged upstream.
+  const multi = posted.length > 1;
+  const single = multi ? posted.filter((v) => !v.title || (!MULTI_VARIANT.test(v.title) && !DAMAGED_VARIANT.test(v.title))) : posted;
   const priced = single.filter((v) => v.priceCents > 0);
   if (!priced.length) return null;
   const avail = priced.filter((v) => v.available);
