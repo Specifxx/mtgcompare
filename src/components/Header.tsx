@@ -11,7 +11,7 @@ import { MobileMenu } from "./MobileMenu";
 import { NavLink } from "./NavLink";
 import { RegionSwitcher } from "./RegionSwitcher";
 import { HeaderNavItems, SoftHeaderNavItems, SoftRegionSwitcher, SoftSearchBox, type HeaderNavItem } from "./HeaderNav";
-import { shopMenuColumns } from "./ShopMenu";
+import { setsMenuColumns, shopMenuColumns } from "./ShopMenu";
 import { ThemeToggle } from "./ThemeToggle";
 import { CartHeaderLink } from "./cart/CartHeaderLink";
 import { SearchBox } from "./SearchBox";
@@ -51,7 +51,8 @@ export function headerNavItems(region: Region, today = new Date().toISOString().
     also: n.key === "releases" && pre ? [`/${region}${SECTION_PATHS.releases}`] : n.also?.map((p) => `/${region}${p}`),
     xl: n.xl,
     // The sealed browse item opens the category dropdown (components/ShopMenu.tsx): by product, by set, by value.
-    menu: n.key === "sealed" ? shopMenuColumns(region, today, listed) : undefined,
+    menu: n.key === "sealed" ? shopMenuColumns(region, today, listed) : n.key === "sets" ? setsMenuColumns(region, today, listed) : undefined,
+    menuKind: n.key === "sets" ? "sets" : n.key === "sealed" ? "shop" : undefined,
   }));
 }
 

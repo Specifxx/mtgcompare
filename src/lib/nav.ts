@@ -2,8 +2,9 @@ import { inSeason } from "./black-friday";
 import { openPreorderGuides } from "./preorder-guides";
 import { menuSets } from "./release";
 import { isRegion, type Region } from "./regions";
-import { SET_BY_CODE } from "./sets";
+import { SERIES_ORDER, SET_BY_CODE, SETS } from "./sets";
 import { sectionHref, type SectionKey } from "./site";
+import { slugify } from "./sealed-title";
 
 export type NavItem = { href: string; label: string };
 export type NavGroup = { title: string; links: NavItem[] };
@@ -40,6 +41,11 @@ export function navGroups(region: Region, today: string = new Date().toISOString
     },
     // An open pre-order hub leads the sets (lib/preorder-guides.ts; gone on release day).
     { title: "Sets", links: [...openPreorderGuides(today).map(({ set }) => ({ href: `/${region}/preorders/${set.slug}`, label: `${set.name} pre-orders` })), ...sets, s("sets", "Every set")] },
+    // By series (era): the other way a collector browses sets. Each goes to its block on the sets page, only for a series with a set listed here.
+    {
+      title: "Sets by series",
+      links: SERIES_ORDER.filter((series) => SETS.some((x) => x.series === series && (!listed || listed.has(x.code)))).map((series) => ({ href: `/${region}/sets#${slugify(series)}`, label: series })),
+    },
     {
       title: "Deals & stock",
       links: [

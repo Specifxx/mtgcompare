@@ -1373,3 +1373,20 @@ collection worth"; Scryfall grew on free data credited with a link; price sites 
   worth today, the change since the items were added, the change since the last look (one total per market and day in
   `ce_vault_days_v1`), and a share line with the real totals (`utm_medium=collection`). Values are the price to buy it again
   at a store, and the page says so. Linked from the footer.
+
+## 2026-11-09: Navigation audit: browse sets by series (era), not only by newest
+
+Bill: navigation is very important; a collector deep in one space wants to get to it fast. The audit scored the header, sidebar, phone
+menu, search, breadcrumbs and browse pages against the rubric in the project thread. Product type was already one click (the "All
+sealed" dropdown) and sets were a flat list of the newest eight, but a player who thinks "Universes Beyond" or "Masters & Horizons"
+had to open the sets page and scroll. Reference: SportsCardCompare's sport/brand menus (waxcompare #13), ported to this niche's own
+dimension, the series.
+
+- The header's "Sets" item now opens a dropdown (`setsMenuColumns`, ShopMenu.tsx): one column per series (up to four), its newest
+  sets under it, heading and "All <series> sets" to that series' block on `/sets` (`/sets#universes-beyond`; the page already had the
+  ids and the chip row). The sidebar and phone menu get a "Sets by series" group from the same `navGroups` list.
+- No new page, no new read: the lists come from `sets.ts`, and a set (or a series) no store lists in the region is left out
+  (`listed`), so no dead link. URLs, titles, canonicals, h1s and JSON-LD are untouched.
+- Not done: a `/series/<slug>` hub or a series filter on the browse grid (new indexable pages, owner's call); the side rails
+  (`SideAds`, `AdDock`) and the footer's "Our sites" link fall short of the rubric's "no clutter" item but are the owner's own
+  revenue and family decisions, so they stay until he says.

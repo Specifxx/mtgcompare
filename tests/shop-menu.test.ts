@@ -5,7 +5,7 @@ import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { Header } from "../src/components/Header";
-import { shopMenuColumns } from "../src/components/ShopMenu";
+import { setsMenuColumns, shopMenuColumns } from "../src/components/ShopMenu";
 import { TYPE_BY_SLUG } from "../src/lib/sealed-title";
 import { SET_BY_SLUG, SETS } from "../src/lib/sets";
 import { menuSets } from "../src/lib/release";
@@ -53,4 +53,21 @@ test("menus skip a set no store lists yet: its set page is a 404, so the link wa
   assert.ok(!hrefs(some).includes(`/us/sets/${SETS[0].slug}`), "the unlisted set is not linked");
   assert.ok(hrefs(some).includes(`/us/sets/${SETS[1].slug}`), "the next listed set takes its place");
   assert.deepEqual(menuSets(3, "2026-11-03", new Set()), [], "nothing listed, nothing linked");
+});
+
+test("sets menu: one column per series (the era), newest sets under it, heading and footer to the series' block on /sets; unlisted sets skipped", () => {
+  const cols = setsMenuColumns("us", "2026-11-03");
+  assert.ok(cols.length >= 3 && cols.length <= 4);
+  for (const c of cols) {
+    assert.match(c.href!, /^\/us\/sets#[a-z0-9-]+$/, c.title);
+    assert.equal(c.links.at(-1)!.href, c.href, "the footer link is the series block");
+    for (const l of c.links.slice(0, -1)) assert.ok(SET_BY_SLUG.has(/^\/us\/sets\/([^/]+)$/.exec(l.href)![1]), l.href);
+  }
+  const listed = new Set(SETS.slice(1, 12).map((s) => s.code));
+  const some = setsMenuColumns("us", "2026-11-03", listed).flatMap((c) => c.links.map((l) => l.href));
+  assert.ok(!some.includes(`/us/sets/${SETS[0].slug}`), "the unlisted set is not linked");
+  const html = render(React.createElement(Header, { region: "uk" }));
+  const nav = /<nav class="hidden items-center gap-0\.5 lg:flex" aria-label="Main">([\s\S]*?)<\/nav>/.exec(html)?.[1] ?? "";
+  assert.match(nav, /<div class="group relative"><a [^>]*href="\/uk\/sets"[^>]*>Sets<\/a>/);
+  assert.match(nav, /data-menu="sets"/);
 });
