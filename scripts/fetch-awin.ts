@@ -23,3 +23,23 @@ async function main() {
 }
 
 main().catch((e) => console.warn(`Awin list not fetched (${(e as Error).message}); links stay untracked this build.`));
+
+/** The Impact brands that accepted us (Compare Empire's hand-kept data/impact/programmes.json, 2026-11-10), into
+ *  src/lib/impact-programmes.json for src/lib/awin.ts, which keeps only tracking links of our own Impact accounts.
+ *  On any error the committed empty list stays and those brands' links are untracked for this build. */
+const IMPACT_SRC = "https://raw.githubusercontent.com/Specifxx/compareempiretake2/HEAD/data/impact/programmes.json";
+const IMPACT_OUT = "src/lib/impact-programmes.json";
+
+async function impact() {
+  const res = await fetch(IMPACT_SRC, { signal: AbortSignal.timeout(15_000) });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const f = (await res.json()) as { updatedAt?: unknown; joined?: unknown };
+  if (!Array.isArray(f.joined)) throw new Error("unexpected shape");
+  const joined = (f.joined as Record<string, unknown>[])
+    .filter((p) => p && typeof p.id === "number" && typeof p.name === "string" && typeof p.link === "string" && /^https:\/\/[a-z0-9.-]+\/c\/\d+\/\d+\/\d+\/?$/i.test(p.link) && Array.isArray(p.domains) && (p.domains as unknown[]).every((d) => typeof d === "string"))
+    .map((p) => ({ id: p.id, name: p.name, domains: p.domains, link: p.link, ...(typeof p.region === "string" ? { region: p.region } : {}), ...(typeof p.currency === "string" ? { currency: p.currency } : {}) }));
+  writeFileSync(IMPACT_OUT, JSON.stringify({ updatedAt: typeof f.updatedAt === "string" ? f.updatedAt : null, joined }, null, 2) + "\n");
+  console.log(`Impact: ${joined.length} joined brands copied.`);
+}
+
+impact().catch((e) => console.warn(`Impact list not fetched (${(e as Error).message}); those links stay untracked this build.`));
