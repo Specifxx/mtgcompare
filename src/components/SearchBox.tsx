@@ -11,6 +11,7 @@ import { money, plural } from "@/lib/format";
 import { thumb } from "@/lib/images";
 import { BROWSE_QUERY_EVENT, isBrowsePath, loadIndex, peekIndex, searchHref, searchOptions, type LoadedIndex, type SearchOption } from "@/lib/index-client";
 import { REGIONS, type Region } from "@/lib/regions";
+import { compareSearchHref } from "@/lib/compare-search";
 import { Icon } from "./Icon";
 import { StockPill } from "./StockPill";
 
@@ -32,6 +33,8 @@ import { StockPill } from "./StockPill";
 // Analytics: one search_select { kind: "product" | "all" } per choice. The words typed are never sent anywhere.
 
 const LIMIT = 8;
+/** Which site sent a visitor to compareempire.com/search (lib/compare-search.ts). */
+const SEARCH_FROM = "mtg";
 /** Fewest product rows the list drops to so that it fits the screen without scrolling (a scrolling list inside a page is a trap). */
 const MIN_FIT = 3;
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
@@ -322,6 +325,11 @@ export function SearchBox({ region, size = "sm", autoFocus = false }: { region: 
           <p className="px-4 pt-3 text-sm text-muted">
             No product names match &ldquo;{term}&rdquo; in {REGIONS[region].inName}. Try a set name, or a type like &ldquo;bundle&rdquo;.
           </p>
+        )}
+        {load === "ready" && ranked.total === 0 && term.length > 1 && (
+          <a href={compareSearchHref(term, SEARCH_FROM, region)} rel="nofollow" className="block px-4 pt-2 text-sm font-semibold text-brand-strong underline-offset-2 hover:underline">
+            Search every Compare Empire site for &ldquo;{term}&rdquo; &rarr;
+          </a>
         )}
         <div role="listbox" id={listId} aria-label="Search suggestions" className="py-1.5">
           {options.map((o, i) => {
