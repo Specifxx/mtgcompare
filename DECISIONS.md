@@ -1435,3 +1435,16 @@ hreflang, JSON-LD, headings and every link are byte-identical (compared). The sa
   canonical or noindex rule changed. `tests/sitemap.test.ts` pins it.
 - Search Console still counts 41,703 URLs for this sitemap from the old singles site. After the release, `sitemap.xml` is
   resubmitted once (site review task MTG-1, owned by the page-slimming thread).
+
+## 2026-11-10: A "which product should you buy" guide for each upcoming set (MTG-2)
+
+Release pages are the site's best pages (`/us/preorders/star-trek` 106 visitors a week, the Star Trek chase-cards post 9 Google
+clicks at position 9.5), and Search Console's question queries are "how many packs", "cheapest booster box" and "best set to buy".
+Each announced set now has a buying guide built on the shared set guide (`set-sealed-prices.tsx`) with a new `which` section: one
+line per goal (open or draft: Play Booster box; foils and alternate art: Collector Booster box, 12 packs; smaller start or gift:
+Bundle; Commander out of the box: a Commander deck; try the set: one pack), each with today's cheapest open listing in the region
+and its per-pack price where the pack count is certain. A kind no store lists is left out. Star Trek (13 Nov 2026), Nauctis: The
+Sunken Realm (5 Feb 2027) and Marvel: Darkhold Destiny (9 Apr 2027), dates from the set list (Scryfall). `SET_BUYING_GUIDES`
+(`content/guides/index.ts`) maps set code to guide: the set's pre-order page links it, and the region home's pre-order section
+links every guide whose set is still unreleased. The shared set guide now says "comes out on" for a future release instead of
+"was released". Add a set's guide when it is announced; leave it up after release (it becomes the set's price guide).

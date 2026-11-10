@@ -42,7 +42,10 @@ export type GuideSlug =
   | "final-fantasy-mtg-sealed-prices"
   | "lord-of-the-rings-mtg-sealed-prices"
   | "avatar-last-airbender-mtg-sealed-prices"
-  | "magic-black-friday-2026";
+  | "magic-black-friday-2026"
+  | "star-trek-mtg-which-product-to-buy"
+  | "nauctis-mtg-which-product-to-buy"
+  | "marvel-darkhold-destiny-mtg-which-product-to-buy";
 
 export interface Guide {
   slug: GuideSlug;
@@ -76,6 +79,8 @@ const D2 = "2026-10-23";
 const D3 = "2026-10-23";
 /** The Australian guides, first edition. */
 const D4 = "2026-10-25";
+/** The upcoming sets' buying guides (MTG-2). */
+const D6 = "2026-11-10";
 /** The set sealed price guides (set-sealed-prices.tsx). */
 const D5 = "2026-11-05";
 const SEALED_EBAY = { heading: "Sealed Magic on eBay", query: "Magic the Gathering sealed" };
@@ -375,7 +380,50 @@ export const GUIDES: readonly Guide[] = [
     topic: { types: ["play-booster-box", "collector-booster-box", "bundle", "scene-box"] },
     ebay: { heading: "Avatar MTG sealed on eBay", query: "MTG Avatar The Last Airbender sealed" },
   },
+  {
+    slug: "star-trek-mtg-which-product-to-buy",
+    title: "Star Trek MTG: which product should you buy?",
+    titleIn: "Star Trek MTG: which product to buy in {in}",
+    description: "Play Booster box, Collector Booster box, Bundle or a Commander deck? What each Star Trek product is for, with today's cheapest store price for each.",
+    kicker: "Star Trek",
+    published: D6,
+    updated: D6,
+    regions: "all",
+    topic: { types: ["play-booster-box", "collector-booster-box", "bundle", "commander-deck"] },
+    ebay: { heading: "Star Trek MTG sealed on eBay", query: "MTG Star Trek sealed" },
+  },
+  {
+    slug: "nauctis-mtg-which-product-to-buy",
+    title: "Nauctis MTG: which product should you buy?",
+    titleIn: "Nauctis MTG: which product to buy in {in}",
+    description: "Nauctis: The Sunken Realm pre-orders: Play Booster box, Collector Booster box or Bundle? What each is for, with today's cheapest store price for each.",
+    kicker: "Nauctis",
+    published: D6,
+    updated: D6,
+    regions: "all",
+    topic: { types: ["play-booster-box", "collector-booster-box", "bundle"] },
+    ebay: { heading: "Nauctis MTG sealed on eBay", query: "MTG Nauctis sealed" },
+  },
+  {
+    slug: "marvel-darkhold-destiny-mtg-which-product-to-buy",
+    title: "Marvel Darkhold Destiny MTG: which product to buy?",
+    titleIn: "Darkhold Destiny MTG: which product to buy in {in}",
+    description: "Marvel: Darkhold Destiny pre-orders: Play or Collector Booster box, Bundle, Commander deck or Scene Box? What each is for, with today's cheapest price.",
+    kicker: "Marvel",
+    published: D6,
+    updated: D6,
+    regions: "all",
+    topic: { types: ["play-booster-box", "collector-booster-box", "bundle", "commander-deck"] },
+    ebay: { heading: "Darkhold Destiny sealed on eBay", query: "MTG Marvel Darkhold Destiny sealed" },
+  },
 ];
+
+/** Upcoming sets' buying guides by set code (MTG-2, 2026-11-10): the pre-order page and the region homes link them. */
+export const SET_BUYING_GUIDES: Readonly<Record<string, GuideSlug>> = {
+  trk: "star-trek-mtg-which-product-to-buy",
+  nau: "nauctis-mtg-which-product-to-buy",
+  mdd: "marvel-darkhold-destiny-mtg-which-product-to-buy",
+};
 
 export const GUIDE_BY_SLUG: ReadonlyMap<string, Guide> = new Map(GUIDES.map((g) => [g.slug, g]));
 

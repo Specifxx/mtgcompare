@@ -25,6 +25,7 @@ import { cardOpen } from "@/lib/compact";
 import { money, plural, timeAgo } from "@/lib/format";
 import { thumb } from "@/lib/images";
 import { hotPicks } from "@/lib/hot-picks";
+import { SET_BUYING_GUIDES } from "@/content/guides";
 import { COUNTRY_GUIDE } from "@/content/guides/country-prices";
 import { guidesFor } from "@/content/guides";
 import { GuideCard } from "@/content/guides/kit";
@@ -111,6 +112,13 @@ export default async function RegionHome({ params }: { params: { region: string 
   const other = REGIONS[nearestRegion(r.region)];
   const preorderLink = { href: `/${r.region}/releases`, label: "Pre-orders" };
 
+  // The upcoming sets' buying guides (MTG-2), soonest release first.
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const buyingGuides = Object.entries(SET_BUYING_GUIDES)
+    .map(([code, slug]) => ({ slug, set: SET_BY_CODE.get(code) }))
+    .filter((x) => x.set && x.set.releaseDate > todayIso)
+    .sort((a, b) => a.set!.releaseDate.localeCompare(b.set!.releaseDate))
+    .map((x) => ({ slug: x.slug, name: x.set!.name }));
   return (
     <div>
       <section className="relative overflow-hidden border-b border-line bg-surface">
@@ -242,6 +250,15 @@ export default async function RegionHome({ params }: { params: { region: string 
             linkLabel={preorderGuide ? `Compare ${preorderGuide.set.name} pre-orders` : "Release calendar"}
           >
             <ProductGrid products={preorders} region={r.region} />
+            {buyingGuides.length > 0 && (
+              <p className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
+                {buyingGuides.map((g) => (
+                  <Link key={g.slug} href={`/${r.region}/guides/${g.slug}`} prefetch={false} className="font-semibold text-brand hover:underline">
+                    Which {g.name} product to buy →
+                  </Link>
+                ))}
+              </p>
+            )}
           </Section>
         )}
 

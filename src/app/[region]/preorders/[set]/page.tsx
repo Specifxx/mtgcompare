@@ -12,6 +12,7 @@ import { cardOpen } from "@/lib/compact";
 import { money, plural, relativeDay, timeAgo } from "@/lib/format";
 import { packsForLabel, perPackCents } from "@/lib/packs";
 import { COUNTRY_GUIDE } from "@/content/guides/country-prices";
+import { SET_BUYING_GUIDES } from "@/content/guides";
 import { titleText } from "@/lib/hub-copy";
 import {
   cheapestStoreByType,
@@ -324,6 +325,11 @@ export default async function PreorderPage({ params }: Params) {
       )}
 
       <div className="mt-10 flex flex-wrap gap-2 text-sm">
+        {SET_BUYING_GUIDES[set.code] ? (
+          <Link href={`/${r.region}/guides/${SET_BUYING_GUIDES[set.code]}`} prefetch={false} className="chip py-2">
+            Which {set.name} product should you buy?
+          </Link>
+        ) : null}
         <Link href={`/${r.region}/sets/${set.slug}`} prefetch={false} className="chip py-2">
           All {set.name} products
         </Link>
