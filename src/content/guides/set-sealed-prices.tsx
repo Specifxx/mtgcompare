@@ -27,7 +27,10 @@ export interface SetGuideSpec {
   tcgQuery: string;
   /** The type labels to pull out of the table as their own section, in order, when the set has them. */
   focus: readonly string[];
+  /** Adds "Which <set> product should you buy?" (MTG-2, 2026-11-10): the buying guides for upcoming sets. */
+  which?: boolean;
 }
+
 
 /** The order the type table lists product kinds in: boxes, then packs, then everything else as the data has it. */
 const TYPE_ORDER = [
@@ -79,6 +82,8 @@ export function setGuideOutline(spec: SetGuideSpec, r: RegionInfo, data: GuideDa
   const pre = isPreorderSet(spec.code, now);
   const name = set?.name ?? spec.short;
   const released = set ? formatRelease(set.releaseDate) : null;
+  const upcoming = !!set && set.releaseDate > data.today;
+  const cheapestOf = (t: string) => all.find((p) => p.productType === t) ?? null;
   const focusRows = spec.focus.map((t) => ({ type: t, products: all.filter((p) => p.productType === t) })).filter((x) => x.products.length);
   return {
     intro: (
@@ -90,7 +95,7 @@ export function setGuideOutline(spec: SetGuideSpec, r: RegionInfo, data: GuideDa
             <Link href={productHref(r, low)} prefetch={false} className="font-semibold text-brand underline-offset-2 hover:underline">
               {low.name}
             </Link>{" "}
-            at <strong>{m(low.lowestPriceCents!)}</strong>, in {r.currency} before shipping.{released ? <> {name} was released in English on {released}{pre ? " and is on pre-order" : ""}.</> : null}
+            at <strong>{m(low.lowestPriceCents!)}</strong>, in {r.currency} before shipping.{released ? (upcoming ? <> {name} comes out in English on {released}; stores are taking pre-orders.</> : <> {name} was released in English on {released}{pre ? " and is on pre-order" : ""}.</>) : null}
           </>
         ) : (
           <>
@@ -139,6 +144,7 @@ export function setGuideOutline(spec: SetGuideSpec, r: RegionInfo, data: GuideDa
           </>
         ),
       },
+      ...(spec.which ? [whichSection(spec, r, data, cheapestOf, m)] : []),
       {
         id: "cheapest",
         title: `The cheapest ${spec.short} sealed products in ${r.inName}`,
@@ -195,7 +201,9 @@ export function setGuideOutline(spec: SetGuideSpec, r: RegionInfo, data: GuideDa
           q: `What is the cheapest ${spec.short} sealed product?`,
           a: low ? `${low.name}, at ${m(low.lowestPriceCents!)} today in ${r.inName}.` : `Nothing from ${name} is in stock at the stores we compare right now.`,
         },
-        { q: `When was ${name} released?`, a: released ? `In English on ${released}.` : "The English release date is on the set's page." },
+        upcoming
+          ? { q: `When does ${name} come out?`, a: released ? `In English on ${released}. Stores are taking pre-orders now.` : "The English release date is on the set's page." }
+          : { q: `When was ${name} released?`, a: released ? `In English on ${released}.` : "The English release date is on the set's page." },
       ]),
       whereToBuy(r, {
         tcg: { query: spec.tcgQuery, label: `${spec.short} sealed` },
@@ -205,6 +213,56 @@ export function setGuideOutline(spec: SetGuideSpec, r: RegionInfo, data: GuideDa
         ],
       }),
     ],
+  };
+}
+
+/**
+ * "Which <set> product should you buy?": one line per goal, each with today's cheapest open listing of the product that serves it.
+ * Only what is certain about every set's line: a Play Booster box is the packs to open or draft, a Collector Booster box (12 packs)
+ * the foil and alternate-art versions and the dearest per pack, a Bundle fewer packs for less, a Commander deck ready to play. A
+ * kind no store lists today is left out, not guessed.
+ */
+function whichSection(spec: SetGuideSpec, r: RegionInfo, data: GuideData, cheapestOf: (t: string) => ProductCardData | null, m: (c: number) => string) {
+  const line = (t: string, goal: ReactNode, what: ReactNode) => {
+    const p = cheapestOf(t);
+    if (!p) return null;
+    const pp = perPackCents(p.lowestPriceCents, packsOfCard(p));
+    return (
+      <li key={t}>
+        <strong className="text-ink">{goal}</strong> {what}{" "}
+        <Link href={productHref(r, p)} prefetch={false} className="font-semibold text-brand underline-offset-2 hover:underline">
+          From {m(p.lowestPriceCents!)}
+        </Link>
+        {pp != null ? <> ({m(pp)} a pack)</> : null} today.
+      </li>
+    );
+  };
+  const items = [
+    line("Play Booster Box", "To open packs or draft with friends:", "a Play Booster box, the set's main booster box."),
+    line("Collector Booster Box", "For the foil and alternate-art cards:", "a Collector Booster box, 12 packs and the dearest per pack."),
+    line("Bundle", "For a smaller start or a gift:", "a Bundle, fewer packs for less money."),
+    line("Commander Deck", "To play Commander out of the box:", "one of the set's Commander decks, ready to play."),
+    line("Play Booster Pack", "To try the set:", "a single Play Booster pack."),
+  ].filter(Boolean);
+  return {
+    id: "which",
+    title: `Which ${spec.short} product should you buy?`,
+    live: true,
+    body: (
+      <>
+        <Prose>
+          <p>It depends on what you want from the set. Each line is the cheapest open listing of that kind in {r.inName} today, before shipping.</p>
+        </Prose>
+        <LiveBlock r={r} checked={data.checked}>
+          {items.length ? <ul className="list-disc space-y-2 pl-5 text-sm">{items}</ul> : <p className="text-sm text-muted">No store in {r.inName} lists {spec.short} sealed product yet.</p>}
+        </LiveBlock>
+        <Prose>
+          <p>
+            <a href={guideHref(r, "play-booster-vs-collector-booster-vs-bundle")}>Play Booster vs Collector Booster vs Bundle</a> compares the three in more detail.
+          </p>
+        </Prose>
+      </>
+    ),
   };
 }
 

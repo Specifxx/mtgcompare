@@ -28,6 +28,9 @@ import * as beginners from "./best-magic-product-for-beginners";
 import * as finPrices from "./final-fantasy-mtg-sealed-prices";
 import * as ltrPrices from "./lord-of-the-rings-mtg-sealed-prices";
 import * as tlaPrices from "./avatar-last-airbender-mtg-sealed-prices";
+import * as trkWhich from "./star-trek-mtg-which-product-to-buy";
+import * as nauWhich from "./nauctis-mtg-which-product-to-buy";
+import * as mddWhich from "./marvel-darkhold-destiny-mtg-which-product-to-buy";
 
 export const GUIDE_MODULES: Record<GuideSlug, GuideModule> = {
   "play-booster-vs-collector-booster-vs-bundle": compare,
@@ -56,4 +59,7 @@ export const GUIDE_MODULES: Record<GuideSlug, GuideModule> = {
   "final-fantasy-mtg-sealed-prices": finPrices,
   "lord-of-the-rings-mtg-sealed-prices": ltrPrices,
   "avatar-last-airbender-mtg-sealed-prices": tlaPrices,
+  "star-trek-mtg-which-product-to-buy": trkWhich,
+  "nauctis-mtg-which-product-to-buy": nauWhich,
+  "marvel-darkhold-destiny-mtg-which-product-to-buy": mddWhich,
 };

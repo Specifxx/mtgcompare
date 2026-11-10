@@ -88,6 +88,9 @@ const READS: Record<GuideSlug, readonly [FamilyKey, number][]> = {
   "final-fantasy-mtg-sealed-prices": [],
   "lord-of-the-rings-mtg-sealed-prices": [],
   "avatar-last-airbender-mtg-sealed-prices": [],
+  "star-trek-mtg-which-product-to-buy": [],
+  "nauctis-mtg-which-product-to-buy": [],
+  "marvel-darkhold-destiny-mtg-which-product-to-buy": [],
   "magic-black-friday-2026": [["play-box", 4], ["collector-box", 3], ["bundle", 3], ["commander", 3]],
 };
 
@@ -147,6 +150,12 @@ async function extraFor(slug: GuideSlug, market: RegionInfo["market"], today: st
       return setOf("ltr");
     case "avatar-last-airbender-mtg-sealed-prices":
       return setOf("tla");
+    case "star-trek-mtg-which-product-to-buy":
+      return setOf("trk");
+    case "nauctis-mtg-which-product-to-buy":
+      return setOf("nau");
+    case "marvel-darkhold-destiny-mtg-which-product-to-buy":
+      return setOf("mdd");
     default:
       return {};
   }
