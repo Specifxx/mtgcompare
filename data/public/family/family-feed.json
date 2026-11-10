@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-09T19:23:10.901Z",
+ "generatedAt": "2026-11-10T03:17:41.120Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -198,20 +198,6 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "Marvel Super Heroes Bundle",
-   "url": "https://mtgcompare.app/us/p/marvel-super-heroes-bundle",
-   "cents": 3499,
-   "currency": "USD",
-   "store": "Blue Mist",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675615_in_1000x1000.jpg",
-   "refCents": 6978,
-   "refLabel": "median store price",
-   "savingPct": 50
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "US",
    "title": "Lorwyn Eclipsed 60-Card Theme Deck - Pirates",
    "url": "https://mtgcompare.app/us/p/lorwyn-eclipsed-60-card-theme-deck-pirates",
    "cents": 1276,
@@ -219,6 +205,20 @@
    "store": "Gamelandia",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/656330_in_1000x1000.jpg",
    "refCents": 2399,
+   "refLabel": "median store price",
+   "savingPct": 47
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "US",
+   "title": "Edge of Eternities Commander Deck - World Shaper",
+   "url": "https://mtgcompare.app/us/p/edge-of-eternities-commander-deck-world-shaper",
+   "cents": 2699,
+   "currency": "USD",
+   "store": "Video Game Trader LLC",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/619676_in_1000x1000.jpg",
+   "refCents": 5050,
    "refLabel": "median store price",
    "savingPct": 47
   },
@@ -240,6 +240,20 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
+   "title": "Avatar: The Last Airbender - Beginner Box",
+   "url": "https://mtgcompare.app/us/p/avatar-the-last-airbender-beginner-box",
+   "cents": 1899,
+   "currency": "USD",
+   "store": "Mox Boarding House",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/648682_in_1000x1000.jpg",
+   "refCents": 3498,
+   "refLabel": "median store price",
+   "savingPct": 46
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "US",
    "title": "Marvel Super Heroes Commander Deck - Wakanda Forever (Collector's Edition)",
    "url": "https://mtgcompare.app/us/p/marvel-super-heroes-commander-deck-wakanda-forever-collectors-edition",
    "cents": 8000,
@@ -254,29 +268,15 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "Secret Lair Drop: Secret Lair x Masters of the Universe: Allies and Enemies of Eternia - Non-Foil Edition",
-   "url": "https://mtgcompare.app/us/p/secret-lair-drop-secret-lair-x-masters-of-the-universe-allies-and-enemies-of-eternia-non-f",
-   "cents": 6997,
+   "title": "Marvel Super Heroes Commander Deck - The Fantastic Four (Collector's Edition)",
+   "url": "https://mtgcompare.app/us/p/marvel-super-heroes-commander-deck-the-fantastic-four-collectors-edition",
+   "cents": 8500,
    "currency": "USD",
-   "store": "Larry's Game Store",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/715717_in_1000x1000.jpg",
-   "refCents": 8718,
+   "store": "Vegas Singles",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675629_in_1000x1000.jpg",
+   "refCents": 13999,
    "refLabel": "median store price",
-   "savingPct": 20
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "US",
-   "title": "Secret Lair Drop: Featuring: Gene Luen Yang - Traditional Foil Edition",
-   "url": "https://mtgcompare.app/us/p/secret-lair-drop-featuring-gene-luen-yang-traditional-foil-edition",
-   "cents": 4500,
-   "currency": "USD",
-   "store": "Black Vault Gaming",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/713508_in_1000x1000.jpg",
-   "refCents": 4997,
-   "refLabel": "median store price",
-   "savingPct": 10
+   "savingPct": 39
   },
   {
    "kind": "deal",
@@ -408,6 +408,20 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "CA",
+   "title": "Phyrexia: All Will Be One Set Booster Pack",
+   "url": "https://mtgcompare.app/ca/p/phyrexia-all-will-be-one-set-booster-pack",
+   "cents": 699,
+   "currency": "CAD",
+   "store": "Play N Trade Winnipeg",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/451871_in_1000x1000.jpg",
+   "refCents": 1250,
+   "refLabel": "median store price",
+   "savingPct": 44
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "CA",
    "title": "FINAL FANTASY Commander Deck - FINAL FANTASY VI Revival Trance",
    "url": "https://mtgcompare.app/ca/p/final-fantasy-commander-deck-final-fantasy-vi-revival-trance",
    "cents": 4452,
@@ -429,20 +443,6 @@
    "store": "Dungeon Comics & Cards",
    "image": "https://cdn.shopify.com/s/files/1/0496/0098/7297/products/HappyLittleGatheringFoilEdition.png?v=1633806850",
    "refCents": 13499,
-   "refLabel": "median store price",
-   "savingPct": 44
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "CA",
-   "title": "Marvel Super Heroes Commander Deck - Avengers Assemble (Collector's Edition)",
-   "url": "https://mtgcompare.app/ca/p/marvel-super-heroes-commander-deck-avengers-assemble-collectors-edition",
-   "cents": 12999,
-   "currency": "CAD",
-   "store": "Face to Face Games",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675627_in_1000x1000.jpg",
-   "refCents": 23247,
    "refLabel": "median store price",
    "savingPct": 44
   },
@@ -536,13 +536,13 @@
    "region": "SG",
    "title": "The Hobbit Gift Bundle",
    "url": "https://mtgcompare.app/sg/p/the-hobbit-gift-bundle",
-   "cents": 12000,
+   "cents": 11000,
    "currency": "SGD",
-   "store": "Flagship Games",
+   "store": "Tefuda Games",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/692971_in_1000x1000.jpg",
    "refCents": 19000,
    "refLabel": "median store price",
-   "savingPct": 37
+   "savingPct": 42
   },
   {
    "kind": "deal",
@@ -550,13 +550,13 @@
    "region": "SG",
    "title": "Marvel Super Heroes Play Booster Box",
    "url": "https://mtgcompare.app/sg/p/marvel-super-heroes-play-booster-box",
-   "cents": 13742,
+   "cents": 13250,
    "currency": "SGD",
    "store": "Tefuda Games",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/675603_in_1000x1000.jpg",
    "refCents": 21000,
    "refLabel": "median store price",
-   "savingPct": 35
+   "savingPct": 37
   },
   {
    "kind": "deal",
@@ -569,6 +569,20 @@
    "store": "Tefuda Games",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/657862_in_1000x1000.jpg",
    "refCents": 5500,
+   "refLabel": "median store price",
+   "savingPct": 27
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "SG",
+   "title": "Marvel Super Heroes Commander Deck - Wakanda Forever",
+   "url": "https://mtgcompare.app/sg/p/marvel-super-heroes-commander-deck-wakanda-forever",
+   "cents": 4550,
+   "currency": "SGD",
+   "store": "Tefuda Games",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675633_in_1000x1000.jpg",
+   "refCents": 6200,
    "refLabel": "median store price",
    "savingPct": 27
   },
@@ -599,20 +613,6 @@
    "refCents": 6250,
    "refLabel": "median store price",
    "savingPct": 23
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "SG",
-   "title": "Marvel Super Heroes Commander Deck - Wakanda Forever",
-   "url": "https://mtgcompare.app/sg/p/marvel-super-heroes-commander-deck-wakanda-forever",
-   "cents": 4879,
-   "currency": "SGD",
-   "store": "Tefuda Games",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675633_in_1000x1000.jpg",
-   "refCents": 6200,
-   "refLabel": "median store price",
-   "savingPct": 21
   }
  ]
 }
