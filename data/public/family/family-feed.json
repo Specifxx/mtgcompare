@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-10T03:17:41.120Z",
+ "generatedAt": "2026-11-10T16:53:26.649Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -198,20 +198,6 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "Lorwyn Eclipsed 60-Card Theme Deck - Pirates",
-   "url": "https://mtgcompare.app/us/p/lorwyn-eclipsed-60-card-theme-deck-pirates",
-   "cents": 1276,
-   "currency": "USD",
-   "store": "Gamelandia",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/656330_in_1000x1000.jpg",
-   "refCents": 2399,
-   "refLabel": "median store price",
-   "savingPct": 47
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "US",
    "title": "Edge of Eternities Commander Deck - World Shaper",
    "url": "https://mtgcompare.app/us/p/edge-of-eternities-commander-deck-world-shaper",
    "cents": 2699,
@@ -240,6 +226,20 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
+   "title": "Lorwyn Eclipsed 60-Card Theme Deck - Pirates",
+   "url": "https://mtgcompare.app/us/p/lorwyn-eclipsed-60-card-theme-deck-pirates",
+   "cents": 1290,
+   "currency": "USD",
+   "store": "Gamelandia",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/656330_in_1000x1000.jpg",
+   "refCents": 2399,
+   "refLabel": "median store price",
+   "savingPct": 46
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "US",
    "title": "Avatar: The Last Airbender - Beginner Box",
    "url": "https://mtgcompare.app/us/p/avatar-the-last-airbender-beginner-box",
    "cents": 1899,
@@ -247,6 +247,20 @@
    "store": "Mox Boarding House",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/648682_in_1000x1000.jpg",
    "refCents": 3498,
+   "refLabel": "median store price",
+   "savingPct": 46
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "US",
+   "title": "Secret Lair Drop: Fallout Beyond Vault 33",
+   "url": "https://mtgcompare.app/us/p/secret-lair-drop-fallout-beyond-vault-33",
+   "cents": 2500,
+   "currency": "USD",
+   "store": "The Cardboard Bros",
+   "image": "https://cdn.shopify.com/s/files/1/0103/3021/0367/files/magic-the-gathering-secret-lair-x-fallout-beyond-vault-33-132556_8882f.jpg?v=1776133486",
+   "refCents": 4600,
    "refLabel": "median store price",
    "savingPct": 46
   },
@@ -263,20 +277,6 @@
    "refCents": 13999,
    "refLabel": "median store price",
    "savingPct": 43
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "US",
-   "title": "Marvel Super Heroes Commander Deck - The Fantastic Four (Collector's Edition)",
-   "url": "https://mtgcompare.app/us/p/marvel-super-heroes-commander-deck-the-fantastic-four-collectors-edition",
-   "cents": 8500,
-   "currency": "USD",
-   "store": "Vegas Singles",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675629_in_1000x1000.jpg",
-   "refCents": 13999,
-   "refLabel": "median store price",
-   "savingPct": 39
   },
   {
    "kind": "deal",
@@ -536,13 +536,13 @@
    "region": "SG",
    "title": "The Hobbit Gift Bundle",
    "url": "https://mtgcompare.app/sg/p/the-hobbit-gift-bundle",
-   "cents": 11000,
+   "cents": 10850,
    "currency": "SGD",
    "store": "Tefuda Games",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/692971_in_1000x1000.jpg",
    "refCents": 19000,
    "refLabel": "median store price",
-   "savingPct": 42
+   "savingPct": 43
   },
   {
    "kind": "deal",
@@ -550,13 +550,13 @@
    "region": "SG",
    "title": "Marvel Super Heroes Play Booster Box",
    "url": "https://mtgcompare.app/sg/p/marvel-super-heroes-play-booster-box",
-   "cents": 13250,
+   "cents": 13100,
    "currency": "SGD",
    "store": "Tefuda Games",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/675603_in_1000x1000.jpg",
    "refCents": 21000,
    "refLabel": "median store price",
-   "savingPct": 37
+   "savingPct": 38
   },
   {
    "kind": "deal",
@@ -576,20 +576,6 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "SG",
-   "title": "Marvel Super Heroes Commander Deck - Wakanda Forever",
-   "url": "https://mtgcompare.app/sg/p/marvel-super-heroes-commander-deck-wakanda-forever",
-   "cents": 4550,
-   "currency": "SGD",
-   "store": "Tefuda Games",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675633_in_1000x1000.jpg",
-   "refCents": 6200,
-   "refLabel": "median store price",
-   "savingPct": 27
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "SG",
    "title": "Marvel Super Heroes - Heroes United Scene Box",
    "url": "https://mtgcompare.app/sg/p/marvel-super-heroes-heroes-united-scene-box",
    "cents": 4800,
@@ -599,6 +585,20 @@
    "refCents": 6500,
    "refLabel": "median store price",
    "savingPct": 26
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "SG",
+   "title": "Marvel Super Heroes Commander Deck - Wakanda Forever",
+   "url": "https://mtgcompare.app/sg/p/marvel-super-heroes-commander-deck-wakanda-forever",
+   "cents": 4650,
+   "currency": "SGD",
+   "store": "Tefuda Games",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675633_in_1000x1000.jpg",
+   "refCents": 6200,
+   "refLabel": "median store price",
+   "savingPct": 25
   },
   {
    "kind": "deal",
