@@ -214,6 +214,8 @@ export interface SearchSpec {
   limit: number;
   /** Lower price bound in the marketplace's own currency; null = no price filter. */
   minPrice: number | null;
+  /** Upper price bound (exclusive in intent, eBay's range is inclusive), same currency; absent = none. A price band of the sweep. */
+  maxPrice?: number | null;
   /** The affiliateReferenceId of this search's feed (feedReference); the default for a check or a test is AFFILIATE_REFERENCE. */
   ref?: string;
   /** The page: results to skip (the catalogue sweep pages through a search 200 at a time). eBay serves offset + limit <= 10,000. */
@@ -223,11 +225,13 @@ export interface SearchSpec {
 /** The deepest a search can be paged: eBay's Browse search answers at most offset + limit = 10,000. */
 export const MAX_SEARCH_DEPTH = 10_000;
 
-export function searchFilter(marketplace: MarketplaceId, minPrice: number | null): string {
+export function searchFilter(marketplace: MarketplaceId, minPrice: number | null, maxPrice: number | null = null): string {
   const m = MARKETPLACES[marketplace];
+  const lo = minPrice != null ? String(Math.max(1, Math.floor(minPrice))) : "";
+  const hi = maxPrice != null ? String(Math.max(1, Math.floor(maxPrice))) : "";
   return [
     "buyingOptions:{FIXED_PRICE}",
-    ...(minPrice != null ? [`price:[${Math.max(1, Math.floor(minPrice))}..]`, `priceCurrency:${m.currency}`] : []),
+    ...(lo || hi ? [`price:[${lo}..${hi}]`, `priceCurrency:${m.currency}`] : []),
     `deliveryCountry:${m.country}`,
     // Local sellers only (visitor feedback 2026-10-31): eBay Germany stands for the whole EU, so its search keeps every EU seller
     // and the importer drops the rest (ebay-context.ts localSeller).
@@ -239,7 +243,7 @@ export function buildSearchUrl(spec: SearchSpec): string {
   const u = new URL(SEARCH_URL);
   u.searchParams.set("q", spec.q.slice(0, 100));
   u.searchParams.set("limit", String(Math.min(Math.max(Math.floor(spec.limit), 1), 200)));
-  u.searchParams.set("filter", searchFilter(spec.marketplace, spec.minPrice));
+  u.searchParams.set("filter", searchFilter(spec.marketplace, spec.minPrice, spec.maxPrice ?? null));
   const offset = Math.floor(spec.offset ?? 0);
   if (offset > 0) u.searchParams.set("offset", String(Math.min(offset, MAX_SEARCH_DEPTH - 1)));
   return u.toString();

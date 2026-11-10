@@ -660,10 +660,11 @@ their per-product searches out of what the sweep leaves.
 * **Markets.** `PRIORITY_MARKETPLACES` is US, UK, EU (eBay.de). Every part of the run goes in the order **US, UK, EU, then AU/NZ, CA**
   (`MARKETPLACE_ORDER` in `src/lib/ebay-import.ts`): the fixed feeds (so a cap hit drops Canada's before the US's), the sweep's
   marketplaces, and the per-product searches. The audience weights (`MARKET_WEIGHT` in `src/lib/ebay-context.ts`: **US 1, UK 0.7,
-  EU 0.7, AU/NZ 0.35, CA 0.25**) size each marketplace's share of the sweep (the products it lists x its weight, at least about 8%
-  each) and rank the eligible per-product searches. With the product counts of 2026-10-11 that is about 37% of the sweep for the US,
-  22% for the UK, 16% for the EU, 12% for AU and 13% for CA (it was 33 / 17 / 8 / 18 / 23% before), and what one marketplace leaves
-  unspent rolls on to the next in that order. (Arithmetic from the counts, not yet a measured run: read the next summary's Sweep table.)
+  EU 0.7, AU/NZ 0.35, CA 0.25**) rank the eligible per-product searches. The sweep's split is fixed since 2026-11-10 (owner;
+  `SWEEP_SHARE` in `src/lib/ebay-sweep.ts`): **US 800, CA 127, AU 126, UK 100, EU 70**, scaled to the sweep's budget (of the
+  workflow's 1,200: US 784, UK 98, EU 68, AU 124, CA 126), and what one marketplace leaves unspent rolls on to the next in that
+  order. In the US, "commander deck" and "secret lair" are also searched in price bands (`US_DEEP_QUERIES`), each band its own
+  10,000 deep. The one-by-one searches after the sweep stop at `EBAY_ITEM_CALLS` (40); DECISIONS.md, 2026-11-10.
 * **Hot sets.** `HOT_SETS`, most wanted first: 30th Celebration (`cel30`), then Pitch Black, Chaos Rising, Ascended Heroes, Prismatic
   Evolutions, Perfect Order, Phantasmal Flames and 151. They go first twice:
   1. **In the sweep.** Each marketplace starts with a **hot pass**: for each hot set in that order and each product type that

@@ -30,7 +30,7 @@ import { refusedForType, refusedListing } from "./ebay-rules";
 import type { PlanRow } from "./ebay-store";
 import { HOT_SET_QUERY, HOT_SETS } from "./popular";
 import { identify, isIdentity, normalizeTitle, PRODUCT_TYPES, TYPE_BY_KEY, TYPE_BY_LABEL, type TypeKey } from "./sealed-title";
-import { MARKET_WEIGHT, MARKETPLACE_OF_REGION } from "./ebay-context";
+import { MARKETPLACE_OF_REGION } from "./ebay-context";
 import type { Region } from "./regions";
 import { SETS } from "./sets";
 
@@ -50,6 +50,9 @@ export interface SweepQuery {
   q: string;
   /** The product types this query is FOR (its price floor is the lowest of theirs). Any type it finds is still matched. */
   types: readonly TypeKey[];
+  /** A price band (the marketplace's currency): a deep search split so each band's results fit eBay's 10,000-deep limit. */
+  minPrice?: number;
+  maxPrice?: number;
 }
 
 /**
@@ -72,6 +75,26 @@ export const SWEEP_QUERIES: readonly SweepQuery[] = [
   { key: "scene", q: "scene box", types: ["scene-box"] },
   { key: "starter", q: "starter kit", types: ["starter"] },
 ];
+
+/**
+ * The US's extra searches (owner, 2026-11-10; DECISIONS.md): "commander deck" and "secret lair" ran into eBay's 10,000-deep limit in
+ * the US (50 pages each, stopped on "depth", 2026-11-10) while the US sweep left its share unspent. Each is searched again in price
+ * bands, so every band is its own 10,000 deep; a band that gains nothing stops after DRY_PAGES like any query. US only: elsewhere
+ * those queries reach their end.
+ */
+export const US_DEEP_QUERIES: readonly SweepQuery[] = [
+  { key: "commander-under-60", q: "commander deck", types: ["commander-deck", "commander-deck-set"], maxPrice: 60 },
+  { key: "commander-60-150", q: "commander deck", types: ["commander-deck", "commander-deck-set"], minPrice: 60, maxPrice: 150 },
+  { key: "commander-150-up", q: "commander deck", types: ["commander-deck", "commander-deck-set"], minPrice: 150 },
+  { key: "secret-lair-under-50", q: "secret lair", types: ["secret-lair"], maxPrice: 50 },
+  { key: "secret-lair-50-120", q: "secret lair", types: ["secret-lair"], minPrice: 50, maxPrice: 120 },
+  { key: "secret-lair-120-up", q: "secret lair", types: ["secret-lair"], minPrice: 120 },
+];
+
+/** A marketplace's general sweep queries: SWEEP_QUERIES, and in the US the price-banded deep searches after them. */
+export function sweepQueriesFor(marketplace: MarketplaceId): readonly SweepQuery[] {
+  return marketplace === "EBAY_US" ? [...SWEEP_QUERIES, ...US_DEEP_QUERIES] : SWEEP_QUERIES;
+}
 
 // ─── Hot sets ──────────────────────────────────────────────────────────────────
 
@@ -439,7 +462,8 @@ export class SweepCollector {
 /** A query's search spec at an offset, for one marketplace: "MTG <q>", 200 a page, the lowest price floor of its types. */
 export function sweepSpec(q: SweepQuery, marketplace: MarketplaceId, offset: number): SearchSpec {
   const floor = Math.min(...q.types.map((t) => typeFloor(t, marketplace)));
-  return { q: `MTG ${q.q}`, marketplace, limit: SWEEP_PAGE, minPrice: floor, ref: feedReference(marketplace, "item"), offset };
+  const minPrice = q.minPrice != null ? Math.max(floor, q.minPrice) : floor;
+  return { q: `MTG ${q.q}`, marketplace, limit: SWEEP_PAGE, minPrice, ...(q.maxPrice != null ? { maxPrice: q.maxPrice } : {}), ref: feedReference(marketplace, "item"), offset };
 }
 
 export interface QueryProgress {
@@ -465,8 +489,8 @@ export async function sweepMarketplace(
   fetchPage: FetchPage,
   opts: { concurrency: number; queries?: readonly SweepQuery[]; shouldStop?: () => boolean; isFatal?: (e: unknown) => boolean },
 ): Promise<QueryProgress[]> {
-  const queries = opts.queries ?? SWEEP_QUERIES;
   const mp = collector.index.marketplace;
+  const queries = opts.queries ?? sweepQueriesFor(mp);
   const progress: QueryProgress[] = queries.map((q) => ({ key: q.key, pages: 0, total: null, gained: 0, stopped: null }));
   let left = Math.max(0, Math.floor(budget));
   const dry = queries.map(() => 0);
@@ -554,17 +578,25 @@ export async function sweepWithHot(
   const hot = hotQueries.length && hotBudget > 0 ? await sweepMarketplace(collector, hotBudget, counted, { ...common, queries: hotQueries }) : [];
   if (common.shouldStop?.()) return { hot, general: [] };
   const used = spent ? spent() - start : fetched;
-  const general = await sweepMarketplace(collector, Math.max(0, total - used), counted, { ...common, queries: queries ?? SWEEP_QUERIES });
+  const general = await sweepMarketplace(collector, Math.max(0, total - used), counted, { ...common, queries: queries ?? sweepQueriesFor(collector.index.marketplace) });
   return { hot, general };
 }
 
 /**
- * How a sweep budget is shared between marketplaces: by how many products each lists × its audience weight (MARKET_WEIGHT: the US
- * first, then the UK and the EU, then Australia and Canada), with a floor so a small one still gets a few pages. The importer asks
- * again before each marketplace with what is left, so what one leaves unspent rolls forward in MARKETPLACE_ORDER.
+ * The catalogue sweep's split of its calls between marketplaces (owner, 2026-11-10: "use the recommendation"; DECISIONS.md). Measured
+ * 30 days to 11 Nov: the US had 74% of visitors and every eBay dollar (A$100.40) on 45% of the sweep's calls, and the 255 one-by-one
+ * hot-set searches found 18 listings. So the US sweep takes those calls and some of Germany's and the UK's: of a full sweep, US about
+ * 800, CA 127, AU 126, UK 100, EU 70. The US is still swept first (MARKETPLACE_ORDER).
  */
-export function marketplaceShares(indexes: readonly SweepIndex[], budget: number, minShare = 0.08): Map<MarketplaceId, number> {
-  const w = (x: SweepIndex) => x.products.length * MARKET_WEIGHT[x.marketplace];
+export const SWEEP_SHARE: Record<MarketplaceId, number> = { EBAY_US: 800, EBAY_GB: 100, EBAY_DE: 70, EBAY_AU: 126, EBAY_CA: 127 };
+
+/**
+ * How a sweep budget is shared between marketplaces: by SWEEP_SHARE (fixed, not by product count since 2026-11-10), with a floor so a
+ * small one still gets a few pages. The importer asks again before each marketplace with what is left, so what one leaves unspent rolls
+ * forward in MARKETPLACE_ORDER, split by the same shares.
+ */
+export function marketplaceShares(indexes: readonly SweepIndex[], budget: number, minShare = 0.05): Map<MarketplaceId, number> {
+  const w = (x: SweepIndex) => (x.products.length > 0 ? SWEEP_SHARE[x.marketplace] : 0);
   const total = indexes.reduce((a, x) => a + w(x), 0);
   const out = new Map<MarketplaceId, number>();
   if (!total || budget <= 0) {
