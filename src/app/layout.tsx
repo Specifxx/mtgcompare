@@ -14,6 +14,7 @@ import { REGION_BOOT_SCRIPT } from "@/lib/regions";
 import "./globals.css";
 // The cart list's styles (components/cart): imported here, never from a component, so node tests can load them.
 import "@/components/cart/cart.css";
+import "@/components/store-vote.css";
 import "@/components/vault/vault.css";
 import "@/components/site-reviews/site-reviews.css";
 

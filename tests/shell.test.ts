@@ -227,7 +227,7 @@ test("the phone menu: every group of the sidebar under the region, then the regi
   for (const l of groups.flatMap((g) => g.links)) assert.ok(hrefs(sheet).includes(l.href), l.href);
   for (const p of ["/deals", "/this-week", "/back-in-stock", "/price-moves", "/out-of-print", "/sealed", "/type/play-booster-boxes", "/type/collector-booster-boxes", "/type/bundles", "/type/commander-decks", "/cheapest-packs", "/sets", "/releases", "/guides", "/tools", "/stores"])
     assert.ok(hrefs(sheet).includes(`/ca${p}`), p);
-  assert.equal(sheet.match(/aria-hidden="true" focusable="false" class="text-2xl"/g)?.length, 7, "seven flag tiles");
+  assert.equal(sheet.match(/class="flag text-2xl"/g)?.length, 7, "seven flag tiles");
   assert.ok(hrefs(sheet).includes("/uk/stores"), "a region tile goes to the same page there");
   // a soft sheet (a page with no region): every tile to the region's home
   const soft = render(React.createElement(MenuSheet, { region: "au", groups: navGroups("au", "2026-10-28"), pathname: "/about", onClose() {}, soft: true }));
@@ -349,17 +349,21 @@ const card = (o: Partial<ProductCardData> = {}): ProductCardData => ({
 
 test("ProductCard: photo on a plate, short type pill, sentence-case 'From' before the price, stock with its unit, the compare line", () => {
   const html = render(React.createElement(ProductCard, { p: card(), region: "us" }));
-  assert.match(html, /class="plate relative m-2 aspect-square lg:mb-0 lg:aspect-\[8\/7\]"/);
-  assert.match(html, /mix-blend-multiply/);
-  assert.match(html, /max-w-\[calc\(100%-1\.5rem\)\] truncate[^"]*">Collector box<\/span>/);
-  assert.match(html, /<span class="text-xs font-medium text-muted">From<\/span><span class="tabular [^"]*">\$57\.50<\/span>/);
+  // The card's cells are short classes (globals.css .pc-*, site review X1 2026-11-10); the CSS is pinned below.
+  assert.match(html, /class="plate pc-plate"/);
+  assert.match(html, /class="pc-img"/);
+  const css = readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
+  assert.match(css, /\.pc-img \{\s*@apply [^;]*mix-blend-multiply/);
+  assert.match(css, /\.pc-cue \{\s*@apply [^;]*lg:opacity-0[^;]*lg:group-hover:opacity-100[^;]*lg:group-focus-visible:opacity-100/);
+  assert.match(html, /class="pc-type">Collector box<\/span>/);
+  assert.match(html, /<span class="text-xs font-medium text-muted">From<\/span><span class="pc-price">\$57\.50<\/span>/);
   // stock first: the pill comes before the price in the markup
   assert.ok(html.indexOf("In stock at 12 of 19") < html.indexOf("$57.50"), "stock before price");
   assert.doesNotMatch(html, /uppercase tracking-wide text-faint">From|Last listed/);
   assert.match(html, />In stock at 12 of 19<span class="stock-unit"> stores<\/span><\/span>/);
   assert.match(html, /\+ TCGplayer/);
   assert.match(html, /Compare 20 prices&nbsp;→|Compare 20 prices →/);
-  assert.match(html, /lg:opacity-0[^"]*lg:group-hover:opacity-100[^"]*lg:group-focus-visible:opacity-100/);
+  assert.match(html, /class="pc-cue"/);
   assert.doesNotMatch(html, /ebay|tcgplayer\.com|data-ad/i, "no paid link inside a card");
   assert.equal(findBannedCopy(html.replace(/<[^>]+>/g, " ")), null);
 });

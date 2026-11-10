@@ -1411,3 +1411,17 @@ dimension, the series.
 ## 2026-11-09 — A damaged-box variant is never a store's price
 
 `priceOf` drops variants titled as damaged, dented or imperfect when the store lists others (all damaged: no listing), so a cheaper cosmetically damaged copy never becomes the product's price. Ported from DexCompare after a store asked for standard and damaged boxes to be kept apart.
+
+## 2026-11-10: Product page weight cut, every store row kept (site review X1, ported from DexCompare)
+
+Measured on a local production build with today's data: /us/p/star-trek-play-booster-box went from 843 KB (313 KB payload) to 483 KB (254 KB payload); /us 692 KB to 573 KB of HTML. The title, meta tags, canonical,
+hreflang, JSON-LD, headings and every link are byte-identical (compared). The same change as DexCompare's entry of the same day:
+
+- Price-table rows past `FULL_ROWS` (20, `lib/ebay-offer-row.ts`) in the server's price order are lean (`OfferRows.tsx` LeanRow):
+  store, stock pill, price, button. Their data drops title, cart, per-pack, host and shipping text; the shipping cents stay, so
+  "Price + shipping" still ranks them. Every row stays visible and in the server HTML. `FULL_ROWS` lives in a server module: a
+  server component importing a value from a "use client" module gets a client reference, not the number.
+- Row cells, `StockPill` and `ProductCard` use short `@apply` classes in `globals.css` (`.or-*`, `.sp-*`, `.pc-*`); `StoreVote`
+  reads `components/store-vote.css` (imported by the root layout so node tests can load the component).
+- The shipping sentence is said once, under the table, not on every row.
+- `Flag` is an `<img>` of `public/flags/<code>.svg`, written by `scripts/write-flags.tsx`, not ~2 KB of inline SVG per flag.

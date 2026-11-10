@@ -17,21 +17,20 @@ import { StockPill } from "./StockPill";
 // The price table's rows (OfferTable.tsx decides them on the server, as data): a client module because the visitor's "Price + shipping"
 // choice re-ranks them in the browser. Nothing here may import the stores' data or the shipping snapshot (they would join the bundle).
 
-export const ROW_GRID = "grid grid-cols-[1fr_auto] items-center gap-x-3 px-4 py-3 sm:grid-cols-[1fr_auto_10rem_auto] sm:gap-x-4 sm:px-5 sm:py-3.5";
+// The row's cells are short classes from globals.css (.or-*, site review X1 2026-11-10): an 80-row table repeated the utility lists.
+export const ROW_GRID = "or-row";
 export const ROW_BUTTON = "min-h-11 justify-self-end whitespace-nowrap [grid-area:2/2/4] sm:min-h-10 sm:[grid-area:1/4/3]";
 /** The store row's button cell: its buy button and the cart list's add button side by side (components/cart). */
-export const ROW_ACTIONS = "flex items-center gap-2 justify-self-end [grid-area:2/2/4] sm:[grid-area:1/4/3]";
-export const ROW_BUTTON_LINK = "min-h-11 whitespace-nowrap sm:min-h-10";
+export const ROW_ACTIONS = "or-act";
+export const ROW_BUTTON_LINK = "or-btn";
 /**
- * The pinned rows' outlines (owner, 2026-11-06: eBay and Amazon rows "function exactly like a normal store price row … it just sits
- * on the very top. And it has a different colored outline"): eBay green, Amazon amber. Inset, so the row keeps its height and grid.
+ * The pinned rows' outlines (owner, 2026-11-06): eBay green, Amazon amber; the best-price row (owner, 2026-11-07) sky blue with the
+ * tint (.or-hl), winning over either. Inset, so the row keeps its height and grid.
  */
 export const PIN_OUTLINE = {
-  ebay: "outline outline-2 -outline-offset-2 outline-[#16a34a]",
-  amazon: "outline outline-2 -outline-offset-2 outline-[#f59e0b]",
-  /** The best-price row (owner, 2026-11-07: "the cheapest listing should also have an outline too"): sky blue, never read as eBay's
-   *  green or Amazon's amber; it wins over either when that row is itself the best price. */
-  cheapest: "outline outline-2 -outline-offset-2 outline-[#0ea5e9]",
+  ebay: "or-ebay",
+  amazon: "or-amz",
+  cheapest: "or-hl",
 } as const;
 
 
@@ -164,6 +163,8 @@ export interface StoreRowData {
   note?: string;
   /** The cart list (components/cart, owner 2026-11-06): a store row's own product URL and currency. Never on a marketplace row. */
   cart?: { productUrl: string; currency: string };
+  /** Past FULL_ROWS in the server's order: drawn lean (store, stock, price, button), and its data carries no title, cart or shipping text. */
+  lean?: boolean;
 }
 
 /**
@@ -179,16 +180,17 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
   const pinned = top !== undefined;
   const highlight = pinned ? top : d.best;
   const tcg = d.kind === "tcgplayer";
-  const badge = "shrink-0 rounded-full bg-open px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-surface";
+  const badge = "or-badge";
+  if (d.lean && !highlight) return <LeanRow d={d} preorder={preorder} />;
   return (
-    <li data-offer-row="" data-row={d.kind} className={`${ROW_GRID} ${highlight ? "bg-open-soft/40" : ""} ${highlight ? PIN_OUTLINE.cheapest : d.kind === "amazon" ? PIN_OUTLINE.amazon : ""}`}>
-      <div className="flex h-5 items-center gap-2 overflow-hidden sm:h-6">
+    <li data-offer-row="" data-row={d.kind} className={highlight ? "or-row or-hl" : d.kind === "amazon" ? "or-row or-amz" : "or-row"}>
+      <div className="or-top">
         {d.rank != null && (
           <span className="tabular -mr-0.5 shrink-0 text-sm font-bold text-muted" aria-label={`Number ${d.rank} by price`}>
             {d.rank}.
           </span>
         )}
-        <span className="truncate text-[15px] font-semibold sm:text-base">{d.name}</span>
+        <span className="or-name">{d.name}</span>
         {d.marketplace && (
           <span className="hidden shrink-0 rounded-full border border-line bg-raised px-2 py-0.5 sm:inline text-[10px] font-bold uppercase leading-3 tracking-wide text-muted">Marketplace</span>
         )}
@@ -213,7 +215,7 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
           ))
         )}
       </div>
-      <div className="truncate text-[11px] leading-4 text-faint sm:text-xs" title={d.title}>
+      <div className="or-host" title={d.title || undefined}>
         {(!d.search || d.kind === "amazon") && d.host && <StoreVote url={d.host} name={d.name} className="-ml-1 mr-1 text-muted" />}
         {d.host}
         {!d.search && (
@@ -225,7 +227,7 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
         {d.note && ` · ${d.note}`}
         {d.sponsored && <span className="text-muted"> · affiliate link</span>}
       </div>
-      <div className="flex h-5 items-center justify-self-end [grid-area:1/2] sm:[grid-area:1/2/3]">
+      <div className="or-stock">
         {d.kind === "amazon" && d.live ? (
           <StockPill state="open" preorder={false}>
             In stock
@@ -238,15 +240,15 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
           </StockPill>
         )}
       </div>
-      <div className="mt-1 flex min-w-0 items-baseline gap-2 [grid-area:2/1] sm:mt-0 sm:block sm:text-right sm:[grid-area:1/3/3]">
+      <div className="or-pc">
         {d.search && d.live ? (
           <AmazonPrice live={d.live} fallback={d.searchText ?? "Amazon’s own price"} />
         ) : d.search ? (
           <span className="block truncate text-sm leading-6 text-muted sm:text-xs">{d.searchText ?? "TCGplayer sellers’ prices"}</span>
         ) : (
           <>
-            <span className={`tabular font-display text-lg font-bold leading-6 ${d.open ? "" : "text-faint line-through decoration-1"}`}>{d.price}</span>
-            {d.perPack && <span className="tabular truncate text-[11px] leading-4 text-muted sm:block sm:text-xs">≈ {d.perPack} / pack</span>}
+            <span className={d.open ? "or-price" : "or-price text-faint line-through decoration-1"}>{d.price}</span>
+            {d.perPack && <span className="or-sub text-muted">≈ {d.perPack} / pack</span>}
             <ShipLine ship={d.ship} />
           </>
         )}
@@ -273,14 +275,47 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
   );
 }
 
-/** The row's shipping: always one line (known or not), so a row is the same height in either ranking. */
+/**
+ * The row's shipping: always one line (known or not), so a row is the same height in either ranking. The full sentence is said once,
+ * in "How these prices work", not on every row (site review X1, 2026-11-10).
+ */
 function ShipLine({ ship }: { ship: ShipCell | null }) {
-  if (!ship) return <span className="truncate text-[11px] leading-4 text-faint sm:block sm:text-xs">{SHIP_UNKNOWN}</span>;
+  if (!ship) return <span className="or-sub text-faint">{SHIP_UNKNOWN}</span>;
   return (
-    <span title={ship.title} className={`tabular truncate text-[11px] leading-4 sm:block sm:text-xs ${ship.max === 0 ? "font-semibold text-open" : "text-muted"}`}>
+    <span className={ship.max === 0 ? "or-sub font-semibold text-open" : "or-sub text-muted"}>
       {ship.text}
       {ship.hint && <span className="hidden sm:inline">{ship.hint}</span>}
-      <span className="sr-only">. {ship.title}</span>
     </span>
+  );
+}
+
+/**
+ * A row past FULL_ROWS (lib/ebay-offer-row.ts): the store, its stock, its price and its button, nothing else. Still a real row with its
+ * link in the server HTML; the full row's grid, so the columns line up.
+ */
+function LeanRow({ d, preorder }: { d: StoreRowData; preorder: boolean }) {
+  return (
+    <li data-offer-row="" data-lean="" data-open={d.open ? "" : undefined} className="or-row or-lean">
+      <span className="or-name">{d.name}</span>
+      <div className="or-stock">
+        <StockPill state={d.state} preorder={preorder}>
+          {offerStockLabel(d.state, preorder)}
+        </StockPill>
+      </div>
+      <div className="or-pc">
+        <span className={d.open ? "or-price" : "or-price text-faint line-through decoration-1"}>{d.price}</span>
+      </div>
+      <div className="or-act">
+        <OutboundLink
+          href={d.href}
+          rel={d.rel}
+          retailer={d.retailer}
+          placement={d.placement ?? "product-table"}
+          className={`${d.best ? "btn-primary" : d.open ? "btn-soft" : "btn-ghost"} or-btn`}
+        >
+          {d.open ? "View deal" : "View"} <span aria-hidden="true">↗</span>
+        </OutboundLink>
+      </div>
+    </li>
   );
 }

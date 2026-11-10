@@ -93,6 +93,129 @@ body {
 }
 
 @layer components {
+  /* The price table's rows (components/OfferRows.tsx): one short class per cell, not the utility list on every row (site review X1,
+     2026-11-10: an 80-row table repeated ~2 KB of class names per row). */
+  /* StockPill (components/StockPill.tsx): the pill and its dot. */
+  .sp {
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold;
+  }
+  .sp::before {
+    @apply h-1.5 w-1.5 shrink-0 rounded-full bg-current;
+    content: "";
+  }
+  .sp-sm {
+    @apply gap-1 px-2 py-0.5 text-[11px] leading-4;
+  }
+  .sp-open {
+    @apply bg-open-soft text-open;
+  }
+  .sp-open::before {
+    @apply animate-pulse;
+  }
+  .sp-pre {
+    @apply bg-pre-soft text-pre;
+  }
+  .sp-pre::before {
+    @apply animate-pulse;
+  }
+  .sp-sold {
+    @apply bg-sold-soft text-sold;
+  }
+  .sp-stale {
+    @apply bg-stale-soft text-stale;
+  }
+  /* ProductCard (components/ProductCard.tsx). */
+  .pc-link {
+    @apply flex flex-1 flex-col overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lift;
+  }
+  .pc-plate {
+    @apply relative m-2 aspect-square lg:mb-0 lg:aspect-[8/7];
+  }
+  .pc-img {
+    @apply absolute inset-0 h-full w-full object-contain p-3 mix-blend-multiply transition-transform duration-300 group-hover:scale-[1.03];
+  }
+  .pc-noimg {
+    @apply flex h-full items-center justify-center p-6 text-center text-sm font-semibold text-[#5c606c];
+  }
+  .pc-type {
+    @apply absolute left-2 top-2 max-w-[calc(100%-1.5rem)] truncate rounded-full bg-surface/90 px-2 py-0.5 text-[11px] font-semibold text-muted shadow-card backdrop-blur;
+  }
+  .pc-body {
+    @apply flex flex-1 flex-col gap-2 px-3 pb-3 pt-1 sm:px-4 sm:pb-4 lg:pt-3;
+  }
+  .pc-name {
+    @apply line-clamp-2 text-sm font-semibold leading-snug group-hover:text-brand sm:text-[15px];
+  }
+  .pc-save {
+    @apply flex flex-wrap gap-1.5 text-[11px] font-semibold leading-4 text-open;
+  }
+  .pc-msrp {
+    @apply rounded-full border border-open/40 px-1.5;
+  }
+  .pc-stock {
+    @apply flex flex-wrap items-center gap-x-1.5 gap-y-0.5;
+  }
+  .pc-tcg {
+    @apply text-[11px] font-medium leading-4 text-muted;
+  }
+  .pc-price {
+    @apply font-display text-lg font-bold tabular-nums;
+  }
+  .pc-cue {
+    @apply h-4 truncate text-[11px] font-semibold leading-4 text-brand-strong lg:h-5 lg:text-xs lg:leading-5 lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100 lg:group-focus-visible:opacity-100;
+  }
+  .or-row {
+    @apply grid grid-cols-[1fr_auto] items-center gap-x-3 px-4 py-3 sm:grid-cols-[1fr_auto_10rem_auto] sm:gap-x-4 sm:px-5 sm:py-3.5;
+  }
+  .or-lean {
+    @apply py-2 sm:py-2.5;
+  }
+  /* An open lean row has no cart button: keep its button and price in the full rows' columns (the cart button is 2.5rem + gap). */
+  .or-lean[data-open] .or-act {
+    @apply sm:pl-12;
+  }
+  .or-hl {
+    @apply bg-open-soft/40 outline outline-2 -outline-offset-2 outline-[#0ea5e9];
+  }
+  .or-amz {
+    @apply outline outline-2 -outline-offset-2 outline-[#f59e0b];
+  }
+  .or-ebay {
+    @apply outline outline-2 -outline-offset-2 outline-[#16a34a];
+  }
+  .or-top {
+    @apply flex h-5 items-center gap-2 overflow-hidden sm:h-6;
+  }
+  .or-name {
+    @apply truncate text-[15px] font-semibold sm:text-base;
+  }
+  .or-badge {
+    @apply shrink-0 rounded-full bg-open px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-surface;
+  }
+  .or-host {
+    @apply truncate text-[11px] leading-4 text-faint sm:text-xs;
+  }
+  .or-stock {
+    @apply flex h-5 items-center justify-self-end [grid-area:1/2] sm:[grid-area:1/2/3];
+  }
+  .or-pc {
+    @apply mt-1 flex min-w-0 items-baseline gap-2 [grid-area:2/1] sm:mt-0 sm:block sm:text-right sm:[grid-area:1/3/3];
+  }
+  .or-price {
+    @apply tabular-nums font-display text-lg font-bold leading-6;
+  }
+  .or-sub {
+    @apply truncate text-[11px] leading-4 tabular-nums sm:block sm:text-xs;
+  }
+  .or-act {
+    @apply flex items-center gap-2 justify-self-end [grid-area:2/2/4] sm:[grid-area:1/4/3];
+  }
+  .or-btn {
+    @apply min-h-11 whitespace-nowrap sm:min-h-10;
+  }
+}
+
+@layer components {
   .page {
     @apply mx-auto w-full max-w-page px-4 sm:px-6;
   }
@@ -564,4 +687,15 @@ html[data-geo="pending"] main { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .hc-card { transition: none; }
   .hc-card:hover { transform: none; }
+}
+
+/* components/Flag.tsx: a flag image the height of the text beside it. */
+.flag {
+  width: 1.35em;
+  height: 0.9em;
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: -0.1em;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(127, 127, 127, 0.35);
 }
