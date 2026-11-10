@@ -70,6 +70,12 @@ export const DEFAULT_DAILY_CAP = 2500;
  * searches after it found listings for 150 products (0.37 a call). So the sweep gets most of the day.
  */
 export const DEFAULT_SWEEP_CALLS = 2100;
+/**
+ * The most one-by-one product searches a run makes after the sweep (owner, 2026-11-10; DECISIONS.md). On 2026-11-10 the 255 made
+ * (hot-set products the sweep missed) found listings for 18; the sweep's pages find 2-3 products a call. So they are capped and the
+ * calls go to the US sweep (ebay-sweep.ts SWEEP_SHARE). EBAY_ITEM_CALLS overrides.
+ */
+export const DEFAULT_ITEM_CALLS = 40;
 /** Feeds the sweep writes per database transaction. */
 export const SWEEP_WRITE_BATCH = 100;
 /** The hard ceiling for the daily cap setting: eBay's default limit is 5,000 a day for the whole application, shared with the owner's other site. */
@@ -503,6 +509,7 @@ export interface CapEnv {
   EBAY_DAILY_CAP?: string;
   EBAY_RUN_CAP?: string;
   EBAY_SWEEP_CALLS?: string;
+  EBAY_ITEM_CALLS?: string;
   EBAY_LISTING_MAX_AGE_HOURS?: string;
 }
 
@@ -513,6 +520,9 @@ export function capsFromEnv(env: CapEnv): { daily: number; run: number } {
 
 /** The catalogue sweep's call allowance (default 2,100, clamped to 0..2500). */
 export const sweepCallsFromEnv = (env: CapEnv) => clampInt(env.EBAY_SWEEP_CALLS, DEFAULT_SWEEP_CALLS, 0, MAX_DAILY_CAP);
+
+/** The one-by-one searches' allowance (default 40, clamped to 0..2500). */
+export const itemCallsFromEnv = (env: CapEnv) => clampInt(env.EBAY_ITEM_CALLS, DEFAULT_ITEM_CALLS, 0, MAX_DAILY_CAP);
 
 /** What this run may spend: min(run cap, what is left of today's daily cap, --max-calls). */
 export function runCap(caps: { daily: number; run: number }, usedToday: number, maxCalls?: number): number {
@@ -1068,7 +1078,7 @@ export async function runImport(deps: ImportDeps, opts: RunOptions = {}): Promis
   if (stop && wantItems) summary.feedsPlanned += plan.feeds.filter((f) => f.bucket === "items" && counted(f)).length; // the run stopped first: that work is unfinished, not absent
   if (!stop && wantItems) {
     const room = Math.max(0, plan.cap - spent);
-    const take = Math.max(0, room - retryAllowance(Math.min(room, open.length)));
+    const take = Math.min(itemCallsFromEnv(env), Math.max(0, room - retryAllowance(Math.min(room, open.length))));
     const list = open.slice(0, take);
     buckets.items.planned = list.length;
     summary.feedsPlanned += list.filter(counted).length;

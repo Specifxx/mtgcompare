@@ -42,7 +42,7 @@ import { hoursToMs, MARKET_WEIGHT, MARKETPLACE_OF_REGION } from "../src/lib/ebay
 import type { Region } from "../src/lib/regions";
 import { PRODUCT_TYPES, fromRoughUsdCents, type TypeKey } from "../src/lib/sealed-title";
 import { SETS } from "../src/lib/sets";
-import { hotSweepQueries, SWEEP_PAGE, SWEEP_QUERIES } from "../src/lib/ebay-sweep";
+import { hotSweepQueries, SWEEP_PAGE, SWEEP_QUERIES, sweepQueriesFor } from "../src/lib/ebay-sweep";
 import { HOT_SETS, PRIORITY_MARKETPLACES } from "../src/lib/popular";
 import { fakeDb, harness, json, NOW, okToken, planRow, requestedReference, summary, withReference, type FakeDb, type Handler } from "./helpers/ebay-fakes";
 
@@ -512,7 +512,7 @@ test("run: every search is reserved BEFORE it is made; the database counter equa
   const s = await runImport(deps(db, h), { concurrency: 1 });
   // the fixed feeds (260), the sweep (every query's first page in each of the 5 marketplaces: the mock's pages are short, so each
   // query ends after one), then one search per eligible key the sweep did not cover (the mock's cards match no product: all 40)
-  const sweepCalls = SWEEP_QUERIES.length * MARKETPLACE_ORDER.length;
+  const sweepCalls = MARKETPLACE_ORDER.reduce((a, mp) => a + sweepQueriesFor(mp).length, 0); // the US adds its price-banded deep searches
   const total = 260 + sweepCalls + 40;
   assert.equal(s.buckets.sweep.calls, sweepCalls);
   assert.equal(s.sweep.length, 5);
@@ -820,14 +820,14 @@ test("fresh feeds are not bought again (a re-run, an overlapping run, a retry af
   const h8 = harness(e.handler);
   const s8 = await runImport(deps(db4, h8), { concurrency: 3, force: true });
   assert.equal(s8.buckets.sweep.fresh, 0);
-  assert.equal(s8.buckets.sweep.calls, SWEEP_QUERIES.length);
-  assert.equal(h8.searches().length, 260 + SWEEP_QUERIES.length + 60);
+  assert.equal(s8.buckets.sweep.calls, sweepQueriesFor("EBAY_US").length);
+  assert.equal(h8.searches().length, 260 + sweepQueriesFor("EBAY_US").length + 40, "the one-by-one searches stop at DEFAULT_ITEM_CALLS (40)");
   // stale (older than the window): swept again without forcing
   const h9 = harness(e.handler);
   h9.clock.t = NOW + 3 * 3600_000;
   const s9 = await runImport(deps(db4, h9), { concurrency: 3 });
   assert.equal(s9.buckets.sweep.fresh, 0);
-  assert.equal(s9.buckets.sweep.calls, SWEEP_QUERIES.length);
+  assert.equal(s9.buckets.sweep.calls, sweepQueriesFor("EBAY_US").length);
   // compliant mode (bound 5.5 h): the window is 1.4 h, so a 4-hourly run always buys again
   const db3 = fakeDb(MANY(0));
   await runImport(deps(db3, harness(e.handler)), { only: ["chase"], concurrency: 3 });

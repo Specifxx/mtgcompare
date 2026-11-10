@@ -1448,3 +1448,22 @@ Sunken Realm (5 Feb 2027) and Marvel: Darkhold Destiny (9 Apr 2027), dates from 
 (`content/guides/index.ts`) maps set code to guide: the set's pre-order page links it, and the region home's pre-order section
 links every guide whose set is still unreleased. The shared set guide now says "comes out on" for a future release instead of
 "was released". Add a set's guide when it is announced; leave it up after release (it becomes the set's price guide).
+
+## 2026-11-10: The US sweep takes the one-by-one searches and some of the UK's and the EU's calls (owner: "use the recommendation")
+
+Measured over the 30 days to 11 Nov (`/mnt/project-files/strategy/ebay-site-region-split-2026-11-10.html`): the US had 74% of
+visitors and every eBay dollar (A$100.40) on 45% of the sweep's calls. The run of 2026-11-10 swept US 439 / EU 141 / UK 133 /
+CA 127 / AU 126 pages, then searched 255 hot-set products one by one and found listings for 18. In the US, "commander deck" and
+"secret lair" stopped on eBay's 10,000-deep limit (50 pages each) and every other US query ran out, so the US left its share
+unspent. The owner approved the recommended split on 2026-11-10.
+
+- **A fixed sweep split** (`SWEEP_SHARE`, `src/lib/ebay-sweep.ts`): **US 800, CA 127, AU 126, UK 100, EU 70**, scaled to the
+  sweep's budget (the workflow's 1,200: US 784, UK 98, EU 68, AU 124, CA 126). Product counts no longer decide it. The US is
+  still swept first; what a marketplace leaves unspent rolls forward by the same shares.
+- **US deep searches** (`US_DEEP_QUERIES`): Commander decks (under US$60, 60–150, 150 up) and Secret Lair (under US$50, 50–120,
+  120 up) are searched again in price bands, each band its own 10,000 deep, so the US share has pages to spend. eBay's limit
+  itself cannot be raised; a band that gains nothing stops after two dry pages like any query.
+- **One-by-one searches capped at 40** (`DEFAULT_ITEM_CALLS`, `EBAY_ITEM_CALLS`). Fixed feeds 260 + sweep 1,200 + 40 = the
+  1,500 daily cap. If the sweep runs dry early the rest of the cap is left unspent on the shared keyset, not spent one by one.
+- The daily cap (1,500), the keyset (RiftCompare's) and the fixed feeds do not change. Recheck about 24 Nov: the Sweep table's
+  US pages and stop reasons, no 429, and mtg-us-* earnings against the 30 days to 11 Nov.

@@ -110,6 +110,7 @@ test("search request: filter, marketplace and affiliate headers per marketplace;
   assert.equal(searchFilter("EBAY_AU", 75), "buyingOptions:{FIXED_PRICE},price:[75..],priceCurrency:AUD,deliveryCountry:AU,itemLocationCountry:AU");
   assert.equal(searchFilter("EBAY_DE", 45.7), "buyingOptions:{FIXED_PRICE},price:[45..],priceCurrency:EUR,deliveryCountry:DE", "eBay Germany stands for the EU: EU sellers are kept after the search");
   assert.equal(searchFilter("EBAY_GB", null), "buyingOptions:{FIXED_PRICE},deliveryCountry:GB,itemLocationCountry:GB", "no price filter: no priceCurrency either");
+  assert.equal(searchFilter("EBAY_US", 25, 60), "buyingOptions:{FIXED_PRICE},price:[25..60],priceCurrency:USD,deliveryCountry:US,itemLocationCountry:US", "a price band (the sweep's deep searches)");
   const u = new URL(buildSearchUrl({ q: "x".repeat(150), marketplace: "EBAY_US", limit: 999, minPrice: 25 }));
   assert.equal(u.origin + u.pathname, "https://api.ebay.com/buy/browse/v1/item_summary/search");
   assert.equal(u.searchParams.get("q")!.length, 100);

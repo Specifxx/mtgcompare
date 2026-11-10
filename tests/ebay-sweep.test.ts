@@ -15,6 +15,9 @@ import {
   setWordsIn,
   SWEEP_PAGE,
   SWEEP_QUERIES,
+  SWEEP_SHARE,
+  sweepQueriesFor,
+  US_DEEP_QUERIES,
   SweepCollector,
   sweepMarketplace,
   sweepSignatureSets,
@@ -206,27 +209,45 @@ test("paging: 200 a page with the offset, round-robin across queries, stops at t
   assert.equal(tight[0].stopped, "budget");
 });
 
-test("shares: by product count x audience weight (the US first), with a floor for a small marketplace, never more than the budget", () => {
+test("shares: the owner's fixed split (2026-11-10), the US first and largest, never more than the budget, unspent rolls forward", () => {
   const rows = [...catalogue(), ...Array.from({ length: 40 }, (_, i) => planRow("secret-lair", "CA", 4000, { name: `Secret Lair Drop - Test Drop ${i}`, productId: `ca${i}` }))];
   const vocab = sweepVocabulary(rows);
   const ix = (["EBAY_US", "EBAY_AU", "EBAY_CA"] as const).map((m) => buildSweepIndex(rows, m, vocab));
   assert.deepEqual(ix.map((x) => x.products.length), [8, 1, 40]);
+  // product counts no longer decide: Canada's 40 products do not outbid the US's 8
   const sh = marketplaceShares(ix, 1000);
-  const total = [...sh.values()].reduce((a, b) => a + b, 0);
-  assert.ok(total <= 1000);
-  assert.ok(sh.get("EBAY_CA")! > sh.get("EBAY_US")!, "five times the products at a quarter of the weight: more pages");
-  assert.ok(sh.get("EBAY_AU")! >= 70, "the floor");
-  // the same products at the US's weight, the UK's and Canada's: the US's share is the largest, Canada's the smallest
-  const same = (["EBAY_US", "EBAY_GB", "EBAY_DE", "EBAY_AU", "EBAY_CA"] as const).map((marketplace) => ({ ...ix[0], marketplace }));
-  const s2 = marketplaceShares(same, 1000);
-  assert.ok(s2.get("EBAY_US")! > s2.get("EBAY_GB")! && s2.get("EBAY_GB")! === s2.get("EBAY_DE")! && s2.get("EBAY_DE")! > s2.get("EBAY_AU")! && s2.get("EBAY_AU")! > s2.get("EBAY_CA")!, JSON.stringify([...s2]));
-  // the first full run's catalogue (2026-10-11: US 2,538, UK 2,169, EU 1,593, AU 2,339, CA 3,526 products): the US gets the most
-  const sized = (marketplace: "EBAY_US" | "EBAY_GB" | "EBAY_DE" | "EBAY_AU" | "EBAY_CA", n: number) => ({ ...ix[0], marketplace, products: Array.from({ length: n }, () => ix[0].products[0]) });
-  const real = marketplaceShares([sized("EBAY_US", 2538), sized("EBAY_GB", 2169), sized("EBAY_DE", 1593), sized("EBAY_AU", 2339), sized("EBAY_CA", 3526)], 2100);
-  const us = real.get("EBAY_US")!;
-  assert.ok([...real].every(([m, v]) => m === "EBAY_US" || v < us), JSON.stringify([...real]));
-  assert.ok(real.get("EBAY_GB")! > real.get("EBAY_AU")! && real.get("EBAY_GB")! > real.get("EBAY_CA")!, "the UK before Australia and Canada");
-  assert.ok([...real.values()].reduce((a, b) => a + b, 0) <= 2100);
+  assert.ok([...sh.values()].reduce((a, b) => a + b, 0) <= 1000);
+  assert.ok(sh.get("EBAY_US")! > sh.get("EBAY_CA")!, JSON.stringify([...sh]));
+  assert.deepEqual(SWEEP_SHARE, { EBAY_US: 800, EBAY_GB: 100, EBAY_DE: 70, EBAY_AU: 126, EBAY_CA: 127 });
+  // the workflow's 1,200, asked again before each marketplace in MARKETPLACE_ORDER as the importer does
+  const all = (["EBAY_US", "EBAY_GB", "EBAY_DE", "EBAY_AU", "EBAY_CA"] as const).map((marketplace) => ({ ...ix[0], marketplace }));
+  const walk = (spentOf: (m: string, budget: number) => number) => {
+    let left = 1200;
+    const got: Record<string, number> = {};
+    all.forEach((x, i) => {
+      const b = marketplaceShares(all.slice(i), left).get(x.marketplace)!;
+      got[x.marketplace] = b;
+      left -= spentOf(x.marketplace, b);
+    });
+    return got;
+  };
+  assert.deepEqual(walk((_, b) => b), { EBAY_US: 784, EBAY_GB: 98, EBAY_DE: 68, EBAY_AU: 124, EBAY_CA: 126 });
+  // the UK stops early: what it leaves goes on to the EU, Australia and Canada
+  const short = walk((m, b) => (m === "EBAY_GB" ? 40 : b));
+  assert.ok(short.EBAY_DE > 68 && short.EBAY_AU > 124 && short.EBAY_CA > 126, JSON.stringify(short));
+});
+
+test("the US's deep searches: Commander and Secret Lair again in price bands, the US only, each band its own filter", () => {
+  assert.deepEqual(sweepQueriesFor("EBAY_GB"), SWEEP_QUERIES);
+  const us = sweepQueriesFor("EBAY_US");
+  assert.equal(us.length, SWEEP_QUERIES.length + US_DEEP_QUERIES.length);
+  assert.equal(new Set(us.map((q) => q.key)).size, us.length, "every key unique");
+  const filter = (k: string) => new URL(buildSearchUrl(sweepSpec(us.find((q) => q.key === k)!, "EBAY_US", 0))).searchParams.get("filter")!;
+  const floor = Math.floor(typeFloor("commander-deck", "EBAY_US"));
+  assert.match(filter("commander-under-60"), new RegExp(`price:\\[${Math.max(1, floor)}\\.\\.60\\]`));
+  assert.match(filter("commander-60-150"), /price:\[60\.\.150\]/);
+  assert.match(filter("commander-150-up"), /price:\[150\.\.\]/);
+  assert.match(filter("secret-lair-50-120"), /price:\[50\.\.120\],priceCurrency:USD/);
 });
 
 // ─── hot sets (src/lib/popular.ts) ──────────────────────────────────────────────
