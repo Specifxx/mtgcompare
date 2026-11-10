@@ -79,11 +79,11 @@ export function ProductCard({ p, region, priority = false }: { p: ProductCardDat
         data-qv-name={p.name}
         data-qv-sub={p.productType}
         data-qv-img={img ?? undefined}
-        className="group card flex flex-1 flex-col overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lift"
+        className="group card pc-link"
       >
         {/* The photo on its plate (globals.css .plate): white in light mode, where multiply melts a photo's own white into it; a
             light plate in dark mode, so a store's white-backed photo is never a glaring square on a dark card. */}
-        <div className="plate relative m-2 aspect-square lg:mb-0 lg:aspect-[8/7]">
+        <div className="plate pc-plate">
           {img ? (
             <img
               src={img}
@@ -95,46 +95,46 @@ export function ProductCard({ p, region, priority = false }: { p: ProductCardDat
               loading={priority ? "eager" : "lazy"}
               fetchPriority={priority ? "high" : "auto"}
               decoding="async"
-              className="absolute inset-0 h-full w-full object-contain p-3 mix-blend-multiply transition-transform duration-300 group-hover:scale-[1.03]"
+              className="pc-img"
             />
           ) : (
-            <div className="flex h-full items-center justify-center p-6 text-center text-sm font-semibold text-[#5c606c]">{p.productType}</div>
+            <div className="pc-noimg">{p.productType}</div>
           )}
           <span
             title={p.productType}
-            className="absolute left-2 top-2 max-w-[calc(100%-1.5rem)] truncate rounded-full bg-surface/90 px-2 py-0.5 text-[11px] font-semibold text-muted shadow-card backdrop-blur"
+            className="pc-type"
           >
             {shortTypeLabel(p.productType)}
           </span>
         </div>
-        <div className="card-body flex flex-1 flex-col gap-2 px-3 pb-3 pt-1 sm:px-4 sm:pb-4 lg:pt-3">
+        <div className="card-body pc-body">
           <div className="min-h-[2.5rem]">
-            <h3 className="line-clamp-2 text-sm font-semibold leading-snug group-hover:text-brand sm:text-[15px]">{p.name}</h3>
+            <h3 className="pc-name">{p.name}</h3>
             {set && <p className="mt-0.5 text-xs text-faint">{set.series}</p>}
           </div>
           {(saving || belowMsrp) && (
-            <p className="flex flex-wrap gap-1.5 text-[11px] font-semibold leading-4 text-open">
+            <p className="pc-save">
               {saving && <span>{saving}</span>}
-              {belowMsrp && <span className="rounded-full border border-open/40 px-1.5">below MSRP</span>}
+              {belowMsrp && <span className="pc-msrp">below MSRP</span>}
             </p>
           )}
           <div className="mt-auto">
             {/* Stock first, then the price: where it can be bought is what a buyer hunting a box needs to know (owner, 2026-10-25). The
                 pill, then "+ TCGplayer" beside it where the card is wide enough (a desktop) and under it where not (a phone). */}
             <div
-              className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5"
+              className="pc-stock"
               title={`${stock}${unit}${open && n > 0 && p.marketplaceOpen ? " and on TCGplayer" : ""}`}
             >
               <StockPill state={open ? "open" : "soldout"} preorder={pre} size="sm">
                 {stock}
                 {unit && <span className="stock-unit">{unit}</span>}
               </StockPill>
-              {n > 0 && p.marketplaceOpen && <span className="text-[11px] font-medium leading-4 text-muted">+ TCGplayer</span>}
+              {n > 0 && p.marketplaceOpen && <span className="pc-tcg">+ TCGplayer</span>}
             </div>
             {open ? (
               <p className="mt-1.5 flex items-baseline gap-1.5">
                 <span className="text-xs font-medium text-muted">From</span>
-                <span className="tabular font-display text-lg font-bold">{money(p.lowestPriceCents, market)}</span>
+                <span className="pc-price">{money(p.lowestPriceCents, market)}</span>
               </p>
             ) : (
               <p className="mt-1.5 text-xs font-medium text-faint">No price while sold out</p>
@@ -145,7 +145,7 @@ export function ProductCard({ p, region, priority = false }: { p: ProductCardDat
               desktop it shows on hover or keyboard focus, its line reserved (invisible until then), so nothing moves. */}
           <p
             aria-hidden="true"
-            className="h-4 truncate text-[11px] font-semibold leading-4 text-brand-strong lg:h-5 lg:text-xs lg:leading-5 lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100 lg:group-focus-visible:opacity-100"
+            className="pc-cue"
           >
             {cardCompareLabel(p)}&nbsp;→
           </p>

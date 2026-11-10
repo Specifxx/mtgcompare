@@ -9,7 +9,7 @@ import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { EBAY_CAMPAIGN_ID, PLACEMENTS, REL_SPONSORED } from "../src/lib/affiliate";
 import type { OfferView } from "../src/lib/data";
-import { displayPacksFromCards, ebayFloorFor, ebayMayBeBest, ebayRowNote, listingCents, pickListing, rowPacks, statedPacks, wrongPackCount } from "../src/lib/ebay-offer-row";
+import { displayPacksFromCards, FULL_ROWS, ebayFloorFor, ebayMayBeBest, ebayRowNote, listingCents, pickListing, rowPacks, statedPacks, wrongPackCount } from "../src/lib/ebay-offer-row";
 import { OfferTable } from "../src/components/OfferTable";
 import { PIN_OUTLINE } from "../src/components/OfferRows";
 import { BestPriceCard, type BestPriceCardProps } from "../src/components/BestPriceCard";
@@ -112,7 +112,7 @@ test("the server table: the eBay row FIRST as a search (labelled Ad, sponsored, 
   assert.match(ebay, /class="ad-pill">Ad</);
   assert.match(html, /Search Bloomburrow Play Booster Box on ebay\.com/);
   // no listing yet: the cheapest store is the best price (tint, badge, the one red button)
-  assert.match(rows[1], /bg-open-soft\/40/, "alpha, the cheapest open store, second");
+  assert.match(rows[1], /or-hl/, "alpha, the cheapest open store, second");
   assert.match(html, />Best price</);
   assert.doesNotMatch(html, /Best store price/, "nothing cheaper than the store yet");
   assert.match(html, /data-best="store"/);
@@ -129,11 +129,11 @@ test("pinned TCGplayer: third, under eBay and Amazon (owner, 2026-11-06), its ow
   assert.equal(rows.length, 5);
   assert.match(rows[0], /data-ad="listings-offer-row"/);
   assert.match(rows[1], /data-row="amazon"/, "Amazon US second, right under eBay (owner, 2026-11-06), a search row, never highlighted");
-  assert.doesNotMatch(rows[1], /bg-open-soft/);
+  assert.doesNotMatch(rows[1], /or-hl/);
   assert.ok(rows[1].includes(PIN_OUTLINE.amazon), "its amber outline");
   assert.match(rows[2], /data-row="tcgplayer"/, "TCGplayer third");
   assert.match(us, /href="https:\/\/www\.amazon\.com\/s\?k=[^"]*&amp;tag=[A-Za-z0-9-]+&amp;ascsubtag=mtg-us-amazon-table"/);
-  assert.match(rows[2], /bg-open-soft\/40/, "cheapest of the whole table: highlighted");
+  assert.match(rows[2], /or-hl/, "cheapest of the whole table: highlighted");
   assert.match(us, /data-best="tcg"/);
   assert.match(us, />Best store price</, "the cheapest store says so");
   assert.equal([...us.matchAll(/class="btn-primary/g)].length, 1, "the cheapest store keeps the one red button");
@@ -265,4 +265,14 @@ test("an eBay listing more than 25% under the stores' median is never the best p
   assert.equal(ebayMayBeBest(59899, f), true);
   assert.equal(ebayFloorFor(75000, "USD", 74995, 1)?.bestMinCents, undefined);
   assert.equal(ebayMayBeBest(100, ebayFloorFor(75000, "USD", null, 0)), true);
+});
+
+test("page weight (site review X1, 2026-11-10): every store row stays in the HTML; past FULL_ROWS a row is lean in the data and the markup", () => {
+  const offers = Array.from({ length: FULL_ROWS + 5 }, (_, i) => offer(`store${i}`, 5000 + i * 100, i % 3 !== 2));
+  const html = render(React.createElement(OfferTable, { offers, region: "us", preorder: false, ebay: { slug: "x-etb", query: "X Elite Trainer Box", floor: null, packs: null } }));
+  for (const o of offers) assert.ok(html.includes(o.url.replace(/&/g, "&amp;")) || html.includes(encodeURIComponent(o.url)), `${o.store}'s link is in the HTML`);
+  assert.equal(html.match(/data-lean=""/g)?.length, 5, "the five rows past FULL_ROWS are lean");
+  for (const lean of html.match(/<li data-offer-row="" data-lean[\s\S]*?<\/li>/g) ?? [])
+    assert.doesNotMatch(lean, /data-store-vote|ce-cart-add|shipping|pack/, "a lean row: store, stock, price, button");
+  assert.doesNotMatch(html, /style="/, "no inline styles in the table (StoreVote, StockPill and Flag are classes)");
 });

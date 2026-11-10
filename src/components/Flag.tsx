@@ -1,10 +1,11 @@
-// Small inline SVG flags for the region switchers (owner, 2026-11-02: "have the
+// Small SVG flags for the region switchers (owner, 2026-11-02: "have the
 // flags as well"). Drawn here, not emoji: Windows shows a flag emoji as two
-// letters, and not image files: nothing new to host or download. No ids, no
-// clip paths, so a flag can sit inside a closed menu or appear many times on a
-// page. Bodies are functions so importing this file draws nothing (the
-// node tests import components without React). Shared by the Compare Empire
-// sites; keep copies identical.
+// letters. Since 2026-11-10 (site review X1) a flag is an <img> of a static
+// file, public/flags/<code>.svg, written from FLAGS by scripts/write-flags.tsx:
+// drawn inline, the header, footer and region chips repeated ~2 KB of SVG per
+// flag in the HTML and again in the page payload, about 60 KB a page. Bodies
+// are functions so importing this file draws nothing (the node tests import
+// components without React). Shared by the Compare Empire sites.
 import type { CSSProperties, ReactElement } from "react";
 
 function star(cx: number, cy: number, r: number, points = 5, inner = 0.4): string {
@@ -40,7 +41,7 @@ const leaf = [...LEAF_RIGHT, ...LEAF_RIGHT.slice().reverse().map(([x, y]) => [-x
   .map(([x, y]) => `${(20 + x).toFixed(2)},${(10.3 + y).toFixed(2)}`)
   .join(" ");
 
-const FLAGS: Record<string, { box: string; body: () => ReactElement }> = {
+export const FLAGS: Record<string, { box: string; body: () => ReactElement }> = {
   US: {
     box: "0 0 38 20",
     body: () => (
@@ -150,31 +151,12 @@ export function hasFlag(code: string): boolean {
 }
 
 /**
- * A region's flag, 3:2, about the height of the text beside it. Decorative:
+ * A region's flag, 3:2, about the height of the text beside it (globals.css .flag). Decorative:
  * the region's name or code is always written next to it.
  */
 export function Flag({ code, className, style }: { code: string; className?: string; style?: CSSProperties }) {
-  const f = FLAGS[code.toUpperCase()];
-  if (!f) return null;
-  return (
-    <svg
-      viewBox={f.box}
-      preserveAspectRatio="none"
-      aria-hidden="true"
-      focusable="false"
-      className={className}
-      style={{
-        width: "1.35em",
-        height: "0.9em",
-        flexShrink: 0,
-        display: "inline-block",
-        verticalAlign: "-0.1em",
-        borderRadius: "2px",
-        boxShadow: "0 0 0 1px rgba(127,127,127,0.35)",
-        ...style,
-      }}
-    >
-      {f.body()}
-    </svg>
-  );
+  const key = code.toUpperCase();
+  if (!FLAGS[key]) return null;
+  // eslint-disable-next-line @next/next/no-img-element -- a 1 KB static SVG; next/image would add a function call per flag
+  return <img src={`/flags/${key.toLowerCase()}.svg`} alt="" aria-hidden="true" width={27} height={18} decoding="async" className={className ? `flag ${className}` : "flag"} style={style} />;
 }
