@@ -40,13 +40,16 @@ const url = (path: string, lastModified: Date | null | undefined, changeFrequenc
 
 /**
  * The static pages, each region's landing pages (its pre-order pages
- * included, while their set is upcoming) and every store page.
+ * included, while their set is upcoming); store pages only while SITEMAP_STORE_PAGES is on (it is off).
  * `lastmod` is each market's last import (StoreStat max(updatedAt) — a
  * current-state column, not history). `activeStores`, when given, is the keys
  * of the stores worth indexing (hub-data.ts activeStoreKeys: something listed,
  * not dormant); a store outside it is noindex and gets no URL here. Without it
  * (the build, with no database) every store is listed.
  */
+/** Whether each store's own page is listed (off since 2026-11-10; see staticSitemap). */
+export const SITEMAP_STORE_PAGES = false;
+
 export function staticSitemap(
   lastmod: Partial<Record<string, Date | null>>,
   activeStores?: Iterable<string>,
@@ -95,7 +98,10 @@ export function staticSitemap(
     // Pre-order pages, until release day (they are noindexed from then on: lib/preorder-guides.ts).
     for (const { set } of openPreorderGuides(today)) out.push(url(`/${r.region}/preorders/${set.slug}`, m, "daily", 0.8));
   }
-  for (const s of STORES) {
+  // Store pages are out of the sitemap since 2026-11-10 (SITEMAP_STORE_PAGES, as DexCompare's since 2026-11-07): 761 of 3,414
+  // URLs, and nobody searches a shop's page on a comparison site. They stay live and indexable, linked from each region's
+  // /stores directory (which stays listed).
+  for (const s of SITEMAP_STORE_PAGES ? STORES : []) {
     if (active && !active.has(s.key)) continue;
     const r = regionOfMarket(s.market);
     if (r) out.push(url(`/${r.region}/stores/${s.key}`, lastmod[s.market], "daily", 0.4));
