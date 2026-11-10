@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { REGION_LIST, REGIONS } from "../src/lib/regions";
-import { regionOfSitemapId, regionSitemap, SITEMAP_IDS, sitemapIdOf, STATIC_SITEMAP_ID, staticSitemap } from "../src/lib/sitemap";
+import { regionOfSitemapId, regionSitemap, SITEMAP_IDS, SITEMAP_STORE_PAGES, sitemapIdOf, STATIC_SITEMAP_ID, staticSitemap } from "../src/lib/sitemap";
 import { SITE_URL } from "../src/lib/site";
 import { STORES } from "../src/lib/stores";
 import { GUIDE_BY_SLUG, GUIDES, guideRegions } from "../src/content/guides";
@@ -34,7 +34,7 @@ test("sitemap ids: 0 = static, 1..7 = REGION_LIST order", () => {
   for (const r of REGION_LIST) assert.equal(regionOfSitemapId(sitemapIdOf(r.region))?.region, r.region);
 });
 
-test("static sitemap: root, trust pages, every region's landing pages, every store; all on SITE_URL", () => {
+test("static sitemap: root, trust pages, every region's landing pages, the store directories but no store page; all on SITE_URL", () => {
   const when = new Date("2026-09-25T07:54:42Z");
   const entries = staticSitemap({ AU: when });
   onSite(entries);
@@ -46,22 +46,19 @@ test("static sitemap: root, trust pages, every region's landing pages, every sto
   assert.deepEqual([at("/au/cheapest-packs").changeFrequency, at("/au/cheapest-packs").priority], ["daily", 0.6]);
   assert.deepEqual([at("/au/this-week").changeFrequency, at("/au/this-week").priority], ["daily", 0.5]);
   assert.deepEqual([at("/au/guides").changeFrequency, at("/au/guides").priority, at("/au/guides").lastModified], ["weekly", 0.5, undefined], "an editorial index: no import-time lastmod");
-  for (const s of STORES) assert.ok(urls.has(`${SITE_URL}/${s.market.toLowerCase()}/stores/${s.key}`), s.key);
+  assert.equal(SITEMAP_STORE_PAGES, false);
+  for (const s of STORES) assert.ok(!urls.has(`${SITE_URL}/${s.market.toLowerCase()}/stores/${s.key}`), `${s.key} is not listed`);
   assert.equal(entries.find((e) => e.url === `${SITE_URL}/au`)?.lastModified, when);
   assert.equal(entries.find((e) => e.url === `${SITE_URL}/us`)?.lastModified, undefined);
   assert.equal(urls.size, entries.length, "no duplicate URLs");
 });
 
-test("static sitemap with activeStores: only the stores that list something and are not dormant get a URL", () => {
-  const [kept, dropped] = [STORES[0], STORES[1]];
-  const entries = staticSitemap({}, [kept.key, "not-a-store"]);
+test("static sitemap: store pages stay out whatever the active list says; the directories stay (SEO-4, 2026-11-10)", () => {
+  const entries = staticSitemap({}, STORES.map((s) => s.key));
   onSite(entries);
-  const storeUrls = entries.filter((e) => /\/stores\/[^/]+$/.test(e.url)).map((e) => e.url);
-  assert.deepEqual(storeUrls, [`${SITE_URL}/${kept.market.toLowerCase()}/stores/${kept.key}`]);
-  assert.ok(!entries.some((e) => e.url.endsWith(`/stores/${dropped.key}`)), "a store outside the active list is left out");
+  assert.equal(entries.filter((e) => /\/stores\/[^/]+$/.test(e.url)).length, 0);
   for (const r of REGION_LIST) assert.ok(entries.some((e) => e.url === `${SITE_URL}/${r.region}/stores`), "the directory pages stay");
-  assert.equal(staticSitemap({}).filter((e) => /\/stores\/[^/]+$/.test(e.url)).length, STORES.length, "without the list (the build), every store");
-  assert.equal(staticSitemap({}, []).filter((e) => /\/stores\/[^/]+$/.test(e.url)).length, 0);
+  assert.equal(staticSitemap({}).filter((e) => /\/stores\/[^/]+$/.test(e.url)).length, 0);
 });
 
 test("region sitemap: known types and sets only, every comparable product, all on SITE_URL", () => {

@@ -1425,3 +1425,13 @@ hreflang, JSON-LD, headings and every link are byte-identical (compared). The sa
   reads `components/store-vote.css` (imported by the root layout so node tests can load the component).
 - The shipping sentence is said once, under the table, not on every row.
 - `Flag` is an `<img>` of `public/flags/<code>.svg`, written by `scripts/write-flags.tsx`, not ~2 KB of inline SVG per flag.
+
+## 2026-11-10: Store pages out of the sitemap (SEO indexing plan, SEO-4)
+
+- 761 of the sitemap's 3,414 URLs were `/<region>/stores/<store>` pages. Nobody searches a shop's page on a comparison site, and
+  Google reads a few URLs a day. DexCompare took its own out on 2026-11-07; `SITEMAP_STORE_PAGES = false` (`lib/sitemap.ts`)
+  is the same switch here. The sitemap is about 2,650 URLs.
+- The pages stay live and indexable, linked from each region's `/stores` directory, which stays listed. No URL, title,
+  canonical or noindex rule changed. `tests/sitemap.test.ts` pins it.
+- Search Console still counts 41,703 URLs for this sitemap from the old singles site. After the release, `sitemap.xml` is
+  resubmitted once (site review task MTG-1, owned by the page-slimming thread).
