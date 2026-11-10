@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
-import { compareSearchHref } from "@/lib/compare-search";
 import { flushSync } from "react-dom";
 import type { ProductCardData } from "@/lib/data";
 import { cardOpen, expandCard, type CompactCard } from "@/lib/compact";
@@ -475,13 +474,6 @@ export function BrowseGrid({ rows, total, region, base, page = 1, strip }: { row
               Clear filters <Icon name="close" size={14} />
             </button>
             {elsewhere && <MarketplaceSearch region={region} query={elsewhere} placement="browse-empty" />}
-            {q.trim().length > 1 && (
-              <p className="mt-4 text-sm">
-                <a href={compareSearchHref(q, "mtg", region)} rel="nofollow" className="font-semibold text-brand-strong underline-offset-2 hover:underline">
-                  Search every Compare Empire site for &ldquo;{q.trim()}&rdquo; &rarr;
-                </a>
-              </p>
-            )}
           </div>
         )}
 
