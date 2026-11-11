@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-10T16:53:26.649Z",
+ "generatedAt": "2026-11-11T01:10:01.829Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -214,27 +214,13 @@
    "region": "US",
    "title": "Star Trek Commander Deck - Klingon Fury (Collector's Edition)",
    "url": "https://mtgcompare.app/us/p/star-trek-commander-deck-klingon-fury-collectors-edition",
-   "cents": 8500,
+   "cents": 8499,
    "currency": "USD",
-   "store": "Vegas Singles",
+   "store": "Collector Store",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/706174_in_1000x1000.jpg",
    "refCents": 15999,
    "refLabel": "median store price",
    "savingPct": 47
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "US",
-   "title": "Lorwyn Eclipsed 60-Card Theme Deck - Pirates",
-   "url": "https://mtgcompare.app/us/p/lorwyn-eclipsed-60-card-theme-deck-pirates",
-   "cents": 1290,
-   "currency": "USD",
-   "store": "Gamelandia",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/656330_in_1000x1000.jpg",
-   "refCents": 2399,
-   "refLabel": "median store price",
-   "savingPct": 46
   },
   {
    "kind": "deal",
@@ -268,15 +254,29 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "Marvel Super Heroes Commander Deck - Wakanda Forever (Collector's Edition)",
-   "url": "https://mtgcompare.app/us/p/marvel-super-heroes-commander-deck-wakanda-forever-collectors-edition",
-   "cents": 8000,
+   "title": "The Hobbit - Prerelease Pack",
+   "url": "https://mtgcompare.app/us/p/the-hobbit-prerelease-pack",
+   "cents": 3299,
    "currency": "USD",
-   "store": "Vegas Singles",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675628_in_1000x1000.jpg",
-   "refCents": 13999,
+   "store": "Collector Store",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/692973_in_1000x1000.jpg",
+   "refCents": 4499,
    "refLabel": "median store price",
-   "savingPct": 43
+   "savingPct": 27
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "US",
+   "title": "Commander Legends Draft Booster Pack",
+   "url": "https://mtgcompare.app/us/p/commander-legends-draft-booster-pack",
+   "cents": 1499,
+   "currency": "USD",
+   "store": "Sweets and Geeks",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/221318_in_1000x1000.jpg",
+   "refCents": 2000,
+   "refLabel": "median store price",
+   "savingPct": 25
   },
   {
    "kind": "deal",
@@ -456,7 +456,7 @@
    "currency": "EUR",
    "store": "TCG Tavern",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/675603_in_1000x1000.jpg",
-   "refCents": 16625,
+   "refCents": 16750,
    "refLabel": "median store price",
    "savingPct": 46
   },
@@ -536,7 +536,7 @@
    "region": "SG",
    "title": "The Hobbit Gift Bundle",
    "url": "https://mtgcompare.app/sg/p/the-hobbit-gift-bundle",
-   "cents": 10850,
+   "cents": 10900,
    "currency": "SGD",
    "store": "Tefuda Games",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/692971_in_1000x1000.jpg",
