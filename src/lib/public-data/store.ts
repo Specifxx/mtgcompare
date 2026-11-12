@@ -3,6 +3,7 @@
 // The files are bundled with each release (next.config.js outputFileTracingIncludes), and every data export is a commit to main, so
 // a release IS a data refresh: for the life of a server instance the files never change, and each is read at most once per instance
 // and kept, with lazy per-field indexes (Offer by productId, Product by slug …) built on first use.
+import { inviteOnlyUrl, isInviteOnly } from "../invite-only";
 import fs from "node:fs";
 import path from "node:path";
 import { modelInfo, PUBLIC_MODELS, type ModelName } from "./models";
@@ -57,7 +58,10 @@ class FileSource implements RowSource {
     if (!rows) {
       const raw = readJson<Record<string, unknown>[]>(path.join(this.dir, FILES[model]));
       // A banned store's rows (offers, store stats) never reach a page, even from a data export made before the ban.
-      rows = raw.filter((r) => !isBlockedStore(r.store as string | undefined)).map((r) => revive(model, r, this.meta));
+      // An invite-only, raffle or lottery offer an older export still holds is never a price either (src/lib/invite-only.ts).
+      rows = raw
+        .filter((r) => !isBlockedStore(r.store as string | undefined) && !(model === "Offer" && (inviteOnlyUrl(r.url as string | undefined) || isInviteOnly(r.title as string | undefined))))
+        .map((r) => revive(model, r, this.meta));
       this.rows.set(model, rows);
     }
     return rows;

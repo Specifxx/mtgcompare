@@ -6,6 +6,7 @@
 // Everything is normalised to FeedProduct so the importer has one code path.
 import { REQUEST_DELAY_MS, get, robotsAllows, sleep } from "./scrape-http";
 import { isPickupOnly, pickupText } from "./pickup-only";
+import { inviteOnlyUrl, inviteText, isInviteOnly } from "./invite-only";
 import { decodeEntities } from "./sealed-title";
 
 export interface FeedVariant {
@@ -32,6 +33,8 @@ export interface FeedProduct {
   // The title, tags or description say the item is collected from the store, never posted (src/lib/pickup-only.ts): the importer
   // leaves the product out, since the store's measured postage does not apply and a visitor elsewhere cannot buy it.
   pickupOnly?: boolean;
+  // Invitation only, raffle, lottery or draw (src/lib/invite-only.ts): not a price a visitor can pay; the importer leaves it out.
+  inviteOnly?: boolean;
 }
 
 export interface CollectionRead {
@@ -120,6 +123,9 @@ export async function readShopifyCollection(
           .filter((v) => Number.isFinite(v.priceCents) && v.priceCents > 0),
         currency: null,
         pickupOnly: isPickupOnly(pickupText([p.title, Array.isArray(p.tags) ? p.tags.join(", ") : p.tags, p.body_html])),
+        inviteOnly:
+          isInviteOnly(inviteText([p.title, Array.isArray(p.tags) ? p.tags.join(", ") : p.tags, p.body_html, ...(p.variants ?? []).map((v) => v.title)])) ||
+          inviteOnlyUrl(productUrl(base, p)),
       });
     }
     if (data.products.length < SHOPIFY_PAGE) break;
@@ -249,6 +255,7 @@ function wooProduct(p: WooProductRaw): FeedProduct | null {
     variants: [{ priceCents, available: p.is_in_stock === true && p.is_purchasable !== false }],
     currency: p.prices?.currency_code ?? null,
     pickupOnly: isPickupOnly(pickupText([p.name, p.short_description, p.description])),
+    inviteOnly: isInviteOnly(inviteText([p.name, p.short_description, p.description])) || inviteOnlyUrl(p.permalink),
   };
 }
 

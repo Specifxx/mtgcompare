@@ -1512,3 +1512,9 @@ same day.
   weekly subscribers per site.
 - Unchanged: every URL, title, meta, canonical, JSON-LD and heading; no address is stored here.
 - Measure on 19 Nov: sign-ups per 100 visitors.
+
+## 2026-11-12: invite-only, raffle and lottery listings are never a price
+
+- A visitor reported (on DexCompare) that most of the cheapest prices were invite-only offers. Same reader here, so the same fix:
+  `src/lib/invite-only.ts` reads title, link, tags, description and option names; `priceOf` drops a match and the public-data reader
+  drops any such Offer row an older export holds. Rules may only refuse more. Tests: `tests/invite-only.test.ts`.
