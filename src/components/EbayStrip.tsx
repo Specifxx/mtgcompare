@@ -819,7 +819,7 @@ export function OfferRowsWithEbay({
 }
 
 // The stores' own button (owner, 2026-11-01: eBay and Amazon rows "blend in and look exactly the same as the other price rows").
-const EBAY_BUTTON = "btn-soft";
+const EBAY_BUTTON = "btn-primary";
 
 /**
  * Since 2026-11-06 (owner: "eBay prices and Amazon prices should function exactly like a normal store price row. So you can also add

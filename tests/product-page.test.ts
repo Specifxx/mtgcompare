@@ -74,7 +74,7 @@ test("the table: every row of the ranked list (eBay's at its rank) in the server
   assert.ok(html.slice(0, html.indexOf("<details")).match(/<li data-offer-row=""/g)!.length === 24, "all of them before 'How these prices work'");
   assert.equal(rows.findIndex((r) => r.includes('data-ad="listings-offer-row"')), 0, "the eBay row is pinned first");
   // one red button, on the cheapest open row; the other open rows btn-soft, the closed ones btn-ghost
-  assert.equal([...html.matchAll(/class="btn-primary/g)].length, 1);
+  assert.equal([...html.matchAll(/class="btn-primary/g)].length, 2, "the eBay row and the cheapest store wear the filled button (owner, 2026-11-12)");
   const a = links(html);
   assert.ok(a.find((l) => l.href === "https://open0.example/p")!.cls.startsWith("btn-primary"));
   assert.ok(a.find((l) => l.href === "https://open5.example/p")!.cls.startsWith("btn-soft"));
@@ -123,7 +123,7 @@ test("no table has row groups: a short one and an all-sold-out one show every ro
   assert.equal([...html.matchAll(/<li data-offer-row=""/g)].length, 12, "11 closed rows and the eBay search, all visible");
   assert.doesNotMatch(html, /more stores? sold out or not checked/);
   for (const o of sold) assert.ok(links(html).some((l) => l.href === o.url));
-  assert.doesNotMatch(html, /class="btn-primary/, "nothing open, no red button");
+  assert.equal([...html.matchAll(/class="btn-primary/g)].length, 1, "nothing open: only the eBay search is filled (owner, 2026-11-12)");
 });
 
 // ─── The sold-out callout ─────────────────────────────────────────────────────
