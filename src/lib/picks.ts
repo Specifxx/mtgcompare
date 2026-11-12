@@ -1,9 +1,10 @@
 // The landing page's "Most stocked in <region> today" (components/HomeRegionGrid.tsx): five in-stock products of one region, taken
 // from the region home's newest Play Booster Boxes and Collector Booster Boxes (data.ts homeRails, up to eight of each) and ordered
-// by how many of the region's stores have them in stock, newest set first on a tie. Read by /api/picks/<region> (CDN-cached a day)
+// by price, dearest first (owner, 2026-11-12: lib/feature-floor.ts), then by how many stores have them in stock, newest set first. Read by /api/picks/<region> (CDN-cached a day)
 // and, for the default region, by the landing page itself, so the first paint is already filled.
 import { homeRails } from "./data";
 import { REGIONS, type Region } from "./regions";
+import { featured } from "./feature-floor";
 
 export interface Pick {
   slug: string;
@@ -23,10 +24,9 @@ export const PICK_SLOTS = 5;
 
 export async function regionPicks(region: Region): Promise<Pick[]> {
   const { boxes, etbs: collector } = await homeRails(REGIONS[region].market);
-  // Both lists come newest set first; a stable sort by store count keeps that order among equals.
-  const pool = [...boxes, ...collector].map((p, i) => ({ p, i }));
-  pool.sort((a, b) => b.p.inStockStores - a.p.inStockStores || a.i - b.i);
+  // Both lists come newest set first; a stable sort keeps that order among equals. Dearest first, topped up if short.
+  const market = REGIONS[region].market;
+  const pool = featured([...boxes, ...collector].sort((a, b) => b.inStockStores - a.inStockStores), market, (p) => p.lowestPriceCents, PICK_SLOTS, true).map((p) => ({ p }));
   return pool
-    .slice(0, PICK_SLOTS)
     .map(({ p }) => ({ slug: p.slug, name: p.name, type: p.productType, img: p.imageUrl, cents: p.lowestPriceCents, stores: p.inStockStores, listed: Math.max(p.listedStores, p.inStockStores), tcg: p.marketplaceOpen, median: p.medianOpenCents }));
 }
