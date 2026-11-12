@@ -15,7 +15,6 @@ import { hotProductHighlight, isHotReleased, NoPreFooter } from "@/components/Eb
 import { EbayStrip, MiniSealedAds } from "@/components/EbayStrip";
 import { marketplaceOf } from "@/lib/ebay-context";
 import { ebayQuery, SoldOutCallout } from "@/components/Marketplaces";
-import { AmazonProductRow } from "@/components/Amazon";
 import { OfferTable } from "@/components/OfferTable";
 import { amazonLiveFor } from "@/lib/amazon-live";
 import { amazonCarries } from "@/lib/amazon";
@@ -664,8 +663,6 @@ export default async function ProductPage({ params }: { params: { region: string
           />
         </div>
       )}
-      {/* Sold out: the Amazon row (lib/amazon.ts), a marketplace link with no price. In stock it is a search row pinned in the table. */}
-      {!best && amazonCarries(type?.key, !!amazonLiveFor(p.slug, r.region)) && <AmazonProductRow region={r.region} name={p.name} slug={p.slug} />}
 
       {!best && alternatives.length > 0 && (
         <Section id="instead" title="In stock instead" href={typeLink.href} linkLabel="See all">
