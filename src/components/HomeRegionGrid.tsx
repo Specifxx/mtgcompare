@@ -129,7 +129,7 @@ export function HomeRegionGrid({ initial, preorder = null }: { initial: Pick[]; 
                     </span>
                     {/* Stock first, then the price (owner, 2026-10-25). */}
                     <span className="mt-1 flex items-baseline gap-2 sm:mt-auto sm:block sm:pt-1.5">
-                      <span className="block truncate text-xs font-semibold text-open">
+                      <span className="block truncate text-xs font-medium text-muted">
                         {p.stores > 0 ? `In stock at ${p.stores} of ${plural(p.listed ?? p.stores, "store")}` : "In stock"}
                         {p.tcg && r.market === "US" ? <span className="font-medium text-muted"> + TCGplayer</span> : null}
                       </span>
@@ -161,7 +161,7 @@ export function HomeRegionGrid({ initial, preorder = null }: { initial: Pick[]; 
               href={h.href}
               prefetch={false}
               data-hot-button=""
-              className={`card flex min-h-14 flex-1 items-center gap-2 px-4 py-3 text-[15px] font-semibold leading-5 transition-shadow hover:shadow-lift ${h.pre ? "border-pre/40 bg-pre-soft/40 text-pre" : "hover:text-brand"}`}
+              className={`card flex min-h-14 flex-1 items-center gap-2 px-4 py-3 text-[15px] font-semibold leading-5 transition-shadow hover:shadow-lift hover:text-brand`}
             >
               {h.icon && <Icon name={h.icon} size={18} className="shrink-0" />}
               <span className="min-w-0">{h.label}</span>

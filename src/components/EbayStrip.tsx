@@ -296,7 +296,7 @@ function HotLink({ region, highlight, placement, className = "" }: { region: Reg
       rel={REL_SPONSORED}
       retailer={ebayRetailer(region)}
       placement={hot}
-      className={`inline-flex min-h-11 min-w-0 max-w-full items-center justify-center gap-2 rounded-full bg-[#3665f3] px-5 py-2 text-center text-sm font-bold leading-5 text-white shadow-card transition-colors hover:bg-[#2a50c8] ${className}`}
+      className={`inline-flex min-h-11 min-w-0 max-w-full items-center justify-center gap-2 rounded-full bg-ink px-5 py-2 text-center text-sm font-bold leading-5 text-surface shadow-card transition-colors hover:bg-ink/85 ${className}`}
     >
       <span>{highlight.label}</span> <Arrow />
     </OutboundLink>
@@ -688,7 +688,7 @@ export function EbayFeedTile({ region, nth, placement, className = "" }: { regio
           <span className={`block h-4 truncate text-[11px] leading-4 ${ship.free ? "font-medium text-open" : "text-muted"}`}>{ship.text}</span>
           <span className="sr-only"> View on eBay (opens in a new tab)</span>
         </OutboundLink>
-        <span aria-hidden="true" className="btn-ad mt-2 h-8 w-full shrink-0 whitespace-nowrap px-2 py-0 text-xs group-hover:bg-[#2a50c8]">
+        <span aria-hidden="true" className="btn-ad mt-2 h-8 w-full shrink-0 whitespace-nowrap px-2 py-0 text-xs group-hover:bg-ink/85">
           View on eBay <Arrow />
         </span>
         <p className="mt-1.5 shrink-0 text-[10.5px] leading-[14px] text-muted">
@@ -870,7 +870,7 @@ function EbayOfferRow({ region, placement, query, item, cents, age, best }: { re
         {item ? (
           <>
             <span className="tabular font-display text-lg font-bold leading-6">{cents != null ? money(cents, r.market) : formatPrice(item.price)}</span>
-            {ship && <span className={`tabular truncate text-[11px] leading-4 sm:block sm:text-xs ${ship.free ? "font-semibold text-open" : "text-muted"}`}>{ship.text}</span>}
+            {ship && <span className={`tabular truncate text-[11px] leading-4 sm:block sm:text-xs ${ship.free ? "font-semibold text-ink" : "text-muted"}`}>{ship.text}</span>}
           </>
         ) : (
           <span className="block truncate text-sm leading-6 text-muted sm:text-xs">eBay sellers&rsquo; prices</span>
@@ -960,7 +960,7 @@ export function MiniSealedAds({
       <MiniRow
         brand={<EbayMark className="text-base" />}
         all={
-          <OutboundLink href={searchAll} rel={REL_SPONSORED} retailer={ebayRetailer(region)} placement={ebayPlacement} className="text-[10px] font-bold text-brand">
+          <OutboundLink href={searchAll} rel={REL_SPONSORED} retailer={ebayRetailer(region)} placement={ebayPlacement} className="text-[10px] font-bold text-muted hover:text-ink">
             All →
           </OutboundLink>
         }
@@ -972,7 +972,7 @@ export function MiniSealedAds({
                   <span className="relative block h-[56px] w-full overflow-hidden bg-raised">
                     <img src={i.imageUrl} alt={i.title} width={56} height={56} loading="lazy" decoding="async" referrerPolicy="no-referrer" className="absolute inset-0 h-full w-full object-contain" />
                   </span>
-                  <span className="tabular block truncate bg-[#0064d2] px-0.5 text-center text-[10px] font-black leading-4 text-white">{formatPrice(i.price)}</span>
+                  <span className="tabular block truncate bg-raised px-0.5 text-center text-[10px] font-bold leading-4 text-ink">{formatPrice(i.price)}</span>
                   <span className="sr-only">{i.title}, on eBay</span>
                 </OutboundLink>
               </li>
@@ -995,7 +995,7 @@ export function MiniSealedAds({
             </span>
           }
           all={
-            <OutboundLink href={tcgSearchHref} rel={REL_SPONSORED} retailer="TCGplayer" placement={tcgPlacement} className="text-[10px] font-bold text-[#1f6fe5]">
+            <OutboundLink href={tcgSearchHref} rel={REL_SPONSORED} retailer="TCGplayer" placement={tcgPlacement} className="text-[10px] font-bold text-muted hover:text-ink">
               All →
             </OutboundLink>
           }
@@ -1006,7 +1006,7 @@ export function MiniSealedAds({
                 <span className="plate relative block h-[56px] w-full overflow-hidden">
                   <img src={t.imageUrl} alt={t.name} width={56} height={56} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-contain p-0.5 mix-blend-multiply" />
                 </span>
-                <span className="tabular block truncate bg-[#1f6fe5] px-0.5 text-center text-[10px] font-black leading-4 text-white">{usd(t.priceCents)}</span>
+                <span className="tabular block truncate bg-raised px-0.5 text-center text-[10px] font-bold leading-4 text-ink">{usd(t.priceCents)}</span>
                 <span className="sr-only">{t.name}, on TCGplayer</span>
               </OutboundLink>
             </li>

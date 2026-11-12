@@ -150,13 +150,14 @@ export default async function RegionHome({ params }: { params: { region: string 
               <SearchBox region={r.region} size="lg" />
             </div>
             <RegionChips region={r.region} className="mt-4" />
-            {/* One sideways row on a phone, so the featured products come up sooner; wrapped from sm. */}
-            <nav aria-label="Shop by type" className="scroller mt-4 gap-2 sm:flex-wrap sm:overflow-visible sm:[-webkit-mask-image:none] sm:[mask-image:none]">
-              <Link href={`/${r.region}/deals`} prefetch={false} className="chip min-h-10 border-brand/30 bg-brand-soft font-semibold text-brand-strong hover:border-brand/60">
-                <Icon name="tag" size={16} /> Deals
+            {/* One sideways row at every width (calm palette, 2026-11-12): wrapped, the thirteen chips were five rows of the hero on a
+                desktop. Every link is still in the HTML, and the sidebar lists the same types. */}
+            <nav aria-label="Shop by type" className="scroller mt-4 gap-2">
+              <Link href={`/${r.region}/deals`} prefetch={false} className="chip min-h-10 font-semibold">
+                <Icon name="tag" size={16} className="text-muted" /> Deals
               </Link>
-              <Link href={`/${r.region}/back-in-stock`} prefetch={false} className="chip min-h-10 border-open/30 bg-open-soft font-semibold text-open hover:border-open/60">
-                <Icon name="check" size={16} /> Back in stock
+              <Link href={`/${r.region}/back-in-stock`} prefetch={false} className="chip min-h-10 font-semibold">
+                <Icon name="check" size={16} className="text-muted" /> Back in stock
               </Link>
               <Link href={`/${r.region}/out-of-print`} prefetch={false} className="chip min-h-10">
                 Older sets in stock
@@ -176,7 +177,7 @@ export default async function RegionHome({ params }: { params: { region: string 
             {/* The stat line as chips (2026-11-08, the KaeYoung / ScentCompare hero). */}
             <p className="mt-5 flex flex-wrap items-center gap-2 text-sm">
               <span className="hero-stat">
-                <span className="h-2 w-2 shrink-0 rounded-full bg-open motion-safe:animate-pulse" aria-hidden="true" />
+                <span className="h-2 w-2 shrink-0 rounded-full bg-open" aria-hidden="true" />
                 <b className="tabular">{storeCount.toLocaleString("en")}</b> stores
               </span>
               <span className="hero-stat">
@@ -386,7 +387,7 @@ function SetCard({ r, s, items: all }: { r: RegionInfo; s: MtgSet; items: Produc
           </span>
         </span>
         {pre ? (
-          <span className="shrink-0 rounded-full bg-pre-soft px-2.5 py-1 text-xs font-semibold text-pre">Pre-order</span>
+          <span className="sp sp-pre shrink-0">Pre-order</span>
         ) : (
           <Icon name="arrow-right" size={18} className="shrink-0 text-faint transition-transform group-hover:translate-x-0.5 group-hover:text-brand" />
         )}
@@ -400,7 +401,7 @@ function SetCard({ r, s, items: all }: { r: RegionInfo; s: MtgSet; items: Produc
                 <span className="tabular text-right font-semibold">
                   {cardOpen(p) ? (
                     <>
-                      <span className="block text-xs font-semibold text-open sm:inline sm:text-sm">
+                      <span className="block text-xs font-normal text-muted sm:inline sm:text-sm">
                         {stockLabel(p)}
                         <span className="hidden sm:inline font-normal text-faint"> · </span>
                       </span>

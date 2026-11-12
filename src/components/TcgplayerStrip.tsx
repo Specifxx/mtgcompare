@@ -30,7 +30,7 @@ export function TcgplayerStrip({
   if (tiles.length < 3) return null;
   const us = region === "us";
   return (
-    <section data-ad className={`overflow-hidden rounded-2xl border border-[#1f6fe5]/35 bg-gradient-to-br from-[#1f6fe5]/[0.08] to-transparent ${className}`} aria-label={title}>
+    <section data-ad className={`ad-box overflow-hidden ${className}`} aria-label={title}>
       <div className="flex items-center gap-3 px-4 pt-4">
         <span className="shrink-0 text-xl font-black tracking-tight" aria-label="TCGplayer">
           TCG<span className="text-[#1f6fe5]">player</span>
@@ -45,7 +45,7 @@ export function TcgplayerStrip({
           rel={REL_SPONSORED}
           retailer={TCGPLAYER_RETAILER}
           placement={placement}
-          className="hidden shrink-0 rounded-lg bg-[#1f6fe5] px-3 py-1.5 text-xs font-bold text-white sm:inline-block"
+          className="btn-ad hidden shrink-0 px-3 py-1.5 text-xs sm:inline-flex"
         >
           Shop TCGplayer →
         </OutboundLink>
@@ -58,11 +58,11 @@ export function TcgplayerStrip({
               rel={REL_SPONSORED}
               retailer={TCGPLAYER_RETAILER}
               placement={placement}
-              className="group flex h-full flex-col overflow-hidden rounded-xl border border-line bg-surface transition hover:-translate-y-0.5 hover:border-[#1f6fe5]/60"
+              className="group flex h-full flex-col overflow-hidden rounded-xl border border-line bg-surface transition hover:-translate-y-0.5 hover:border-ink/40"
             >
               <span className="plate relative block aspect-square">
                 <img src={thumb(t.imageUrl, 200) ?? t.imageUrl} alt={t.name} width={200} height={200} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-contain p-2 mix-blend-multiply" />
-                <span className="absolute bottom-1.5 right-1.5 rounded-md bg-[#1f6fe5] px-1.5 py-0.5 text-xs font-black text-white shadow">
+                <span className="absolute bottom-1.5 right-1.5 rounded-md bg-[#15171c] px-1.5 py-0.5 text-xs font-bold text-white shadow">
                   {us ? money(t.priceCents, "US") : `US${money(t.priceCents, "US")}`}
                 </span>
               </span>
@@ -76,9 +76,9 @@ export function TcgplayerStrip({
             rel={REL_SPONSORED}
             retailer={TCGPLAYER_RETAILER}
             placement={placement}
-            className="flex h-full min-h-[180px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-[#1f6fe5]/50 p-3 text-center"
+            className="flex h-full min-h-[180px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-ad-line p-3 text-center"
           >
-            <span className="rounded-full bg-[#1f6fe5] px-3 py-1 text-xs font-bold text-white">Shop TCGplayer →</span>
+            <span className="btn-ad px-3 py-1 text-xs">Shop TCGplayer →</span>
             <span className="text-[11px] text-muted">Every listing, sorted by price</span>
           </OutboundLink>
         </li>

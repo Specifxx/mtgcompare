@@ -67,7 +67,8 @@ function Tile({ href, retailer, placement, image, price, name, color, site, plat
   );
 }
 
-const EBAY_BLUE = "#0064d2";
+// Calm palette (2026-11-12): the tiles' price tags are the site's ink, not a brand blue; only the TCGplayer wordmark keeps its colour.
+const TAG = "#15171c";
 const TCG_BLUE = "#1f6fe5";
 
 export function LandingAds({ tcg, className = "" }: { tcg: TcgplayerTile[]; className?: string }) {
@@ -85,13 +86,13 @@ export function LandingAds({ tcg, className = "" }: { tcg: TcgplayerTile[]; clas
         title="Sealed Magic on eBay"
         sub={`Live listings on eBay ${ebayLabel(region)}`}
         all={
-          <OutboundLink href={searchAll} rel={REL_SPONSORED} retailer={ebayRetailer(region)} placement={EBAY_PLACEMENT} className="shrink-0 rounded-full bg-[#0064d2] px-2.5 py-1 text-[11px] font-bold text-white hover:brightness-110">
+          <OutboundLink href={searchAll} rel={REL_SPONSORED} retailer={ebayRetailer(region)} placement={EBAY_PLACEMENT} className="btn-ad shrink-0 px-2.5 py-1 text-[11px]">
             All on eBay →
           </OutboundLink>
         }
       >
         {items && items.length ? (
-          items.map((i) => <Tile key={i.id} href={i.href} retailer={ebayRetailerForHref(i.href, region)} placement={EBAY_PLACEMENT} image={i.imageUrl} price={formatPrice(i.price)} name={i.title} color={EBAY_BLUE} site="eBay" />)
+          items.map((i) => <Tile key={i.id} href={i.href} retailer={ebayRetailerForHref(i.href, region)} placement={EBAY_PLACEMENT} image={i.imageUrl} price={formatPrice(i.price)} name={i.title} color={TAG} site="eBay" />)
         ) : state.status === "idle" ? (
           Array.from({ length: TILES }, (_, n) => <li key={n} aria-hidden="true" className="h-[140px] w-[104px] shrink-0 rounded-lg bg-raised" />)
         ) : (
@@ -112,13 +113,13 @@ export function LandingAds({ tcg, className = "" }: { tcg: TcgplayerTile[]; clas
           title="Sealed Magic on TCGplayer"
           sub={region === "us" ? "In stock on TCGplayer today" : "The US marketplace · prices in US$"}
           all={
-            <OutboundLink href={tcgplayerSearchUrl("", region, TCG_PLACEMENT)} rel={REL_SPONSORED} retailer="TCGplayer" placement={TCG_PLACEMENT} className="shrink-0 rounded-full bg-[#1f6fe5] px-2.5 py-1 text-[11px] font-bold text-white hover:brightness-110">
+            <OutboundLink href={tcgplayerSearchUrl("", region, TCG_PLACEMENT)} rel={REL_SPONSORED} retailer="TCGplayer" placement={TCG_PLACEMENT} className="btn-ad shrink-0 px-2.5 py-1 text-[11px]">
               All on TCGplayer →
             </OutboundLink>
           }
         >
           {tiles.map((t) => (
-            <Tile key={t.slug} href={tcgplayerAffiliateUrl(t.url, region, TCG_PLACEMENT)} retailer="TCGplayer" placement={TCG_PLACEMENT} image={thumb(t.imageUrl, 240) ?? t.imageUrl} price={usd(t.priceCents)} name={t.name} color={TCG_BLUE} site="TCGplayer" plate />
+            <Tile key={t.slug} href={tcgplayerAffiliateUrl(t.url, region, TCG_PLACEMENT)} retailer="TCGplayer" placement={TCG_PLACEMENT} image={thumb(t.imageUrl, 240) ?? t.imageUrl} price={usd(t.priceCents)} name={t.name} color={TAG} site="TCGplayer" plate />
           ))}
         </Panel>
       )}

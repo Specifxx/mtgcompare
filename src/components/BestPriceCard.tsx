@@ -177,7 +177,7 @@ export function EbayAltLine({ alt, market, region }: { alt: EbayAlt; market: str
         ) : (
           <span className="min-w-0 truncate text-muted">Compare listings on eBay</span>
         )}
-        <span className="ml-auto shrink-0 font-semibold text-[#3665f3] dark:text-[#7c9cff]">
+        <span className="ml-auto shrink-0 font-semibold text-ink">
           {alt.kind === "listing" ? "View" : "Search"} <span aria-hidden="true">↗</span>
         </span>
       </OutboundLink>
@@ -265,7 +265,7 @@ function EbayTop(props: BestPriceCardProps & { cents: number | null; href: strin
             rel={REL_SPONSORED}
             retailer={ebayRetailerForHref(href, region)}
             placement={placement}
-            className="inline-flex shrink-0 items-center justify-center gap-2 self-start whitespace-nowrap rounded-full bg-[#3665f3] px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-[#2a50c8] sm:self-auto"
+            className="inline-flex shrink-0 items-center justify-center gap-2 self-start whitespace-nowrap rounded-full bg-ink px-6 py-3 text-base font-semibold text-surface transition-colors hover:bg-ink/85 sm:self-auto"
           >
             View on eBay <span aria-hidden="true">↗</span>
             <span className="sr-only"> (ad): {title}</span>
