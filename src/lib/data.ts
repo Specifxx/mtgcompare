@@ -541,7 +541,7 @@ export interface TcgplayerTile {
  * or the ten newest, capped; the TCGplayer price is US$
  * and the strip says so outside the US. An ad, never a price claim: nothing ranks or sorts by it.
  */
-export async function tcgplayerTiles(opts: { setCode?: string; exclude?: string; take?: number } = {}): Promise<TcgplayerTile[]> {
+export async function tcgplayerTiles(opts: { setCode?: string; exclude?: string; take?: number; minCents?: number } = {}): Promise<TcgplayerTile[]> {
   const rows = await prisma.offer.findMany({
     // Site-wide, only the ten newest sets' rows: the strip shows the newest sets anyway, and the read stays small (src/lib/db.ts).
     where: { store: TCGPLAYER.key, inStock: true, product: { imageUrl: { not: null }, setCode: opts.setCode ?? { in: SETS.slice(0, 10).map((s) => s.code) } } },
@@ -551,8 +551,12 @@ export async function tcgplayerTiles(opts: { setCode?: string; exclude?: string;
   const release = (code: string | null) => (code ? SET_BY_CODE.get(code)?.releaseDate ?? "" : "");
   const headline = (t: string) => (HEADLINE_TYPES.includes(t) ? HEADLINE_TYPES.indexOf(t) : HEADLINE_TYPES.length);
   const sorted = rows
-    .filter((r) => r.product.imageUrl && r.product.slug !== opts.exclude && r.priceCents > 0)
-    .sort((a, b) => release(b.product.setCode).localeCompare(release(a.product.setCode)) || headline(a.product.productType) - headline(b.product.productType) || b.priceCents - a.priceCents);
+    .filter((r) => r.product.imageUrl && r.product.slug !== opts.exclude && r.priceCents > 0 && r.priceCents >= (opts.minCents ?? 0))
+    // `minCents` is the front pages' floor (feature-floor.ts, owner 2026-11-12): TCGplayer prices are US$, and the dearer product leads within a set.
+    .sort((a, b) =>
+      release(b.product.setCode).localeCompare(release(a.product.setCode)) ||
+      (opts.minCents ? 0 : headline(a.product.productType) - headline(b.product.productType)) ||
+      b.priceCents - a.priceCents);
   // Site-wide, at most three per set, so one big release does not fill the strip.
   const perSet = new Map<string | null, number>();
   const picked: typeof sorted = [];

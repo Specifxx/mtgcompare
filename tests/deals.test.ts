@@ -300,7 +300,7 @@ test("the new routes are CDN-cached per-request renders with no static params, r
   const home = src("app/[region]/page.tsx");
   assert.match(home, /const getOverview = cache\(/, "regionOverview read once for the metadata and the page");
   assert.match(home, /<NoPreFooter \/>/);
-  assert.match(home, /dealsInMarket\(r\.market, \{ take: 8 \}\)/);
+  assert.match(home, /dealsInMarket\(r\.market, \{ take: 24 \}\)/);
 });
 
 test("deals.ts: tagged-template SQL only, every read capped or grouped, no unstable_cache", () => {

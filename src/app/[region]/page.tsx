@@ -25,6 +25,7 @@ import { cardOpen } from "@/lib/compact";
 import { money, plural, timeAgo } from "@/lib/format";
 import { thumb } from "@/lib/images";
 import { hotPicks } from "@/lib/hot-picks";
+import { FEATURE_MIN_USD_CENTS, featured as featuredByPrice, featureWorthy, priciestFirst } from "@/lib/feature-floor";
 import { SET_BUYING_GUIDES } from "@/content/guides";
 import { COUNTRY_GUIDE } from "@/content/guides/country-prices";
 import { guidesFor } from "@/content/guides";
@@ -77,17 +78,17 @@ const QUICK_TYPES = ["play-booster-boxes", "collector-booster-boxes", "bundles",
 
 export default async function RegionHome({ params }: { params: { region: string } }) {
   const r = regionOrNotFound(params.region);
-  const [{ boxes, etbs, preorders, latestSets: bySet }, overview, deals, report, older, featured, setCounts, listedTypes, tcgTiles] = await Promise.all([
+  const [{ boxes, etbs, preorders, latestSets: bySet }, overview, allDeals, report, older, featured, setCounts, listedTypes, tcgTiles] = await Promise.all([
     homeRails(r.market),
     getOverview(r.market),
-    dealsInMarket(r.market, { take: 8 }),
+    dealsInMarket(r.market, { take: 24 }),
     // The written market report, moved here from the landing page (2026-10-25): this region's figures, after the rails.
     loadHomeReport(r.region).catch(() => emptyHomeReport(r.region)),
     olderInStockData(r.market).catch(() => []),
     loadFeatured(r.region).catch(() => null),
     setCountsGrouped(r.market),
     typeLabelsInMarket(r.market),
-    tcgplayerTiles({ take: 12 }).catch(() => []),
+    tcgplayerTiles({ take: 12, minCents: FEATURE_MIN_USD_CENTS }).catch(() => []),
   ]);
   // The soonest upcoming set with a pre-order page: the rail's "see all" goes there.
   const preorderGuide = openPreorderGuides()[0] ?? null;
@@ -97,7 +98,14 @@ export default async function RegionHome({ params }: { params: { region: string 
   // The first hot set that is out, in featuring order (lib/popular.ts hotSetsByFeature: the newest release first), gets the sealed strip's highlighted
   // eBay button, "Shop 30th Celebration on eBay": inside that strip's own top line, so the page keeps its two units.
   const hotHighlight = hotSetHighlight(firstHotSet());
-  const hot = hotPicks(preorders, boxes);
+  // The deals rail and the pre-order grid feature the dearer products (lib/feature-floor.ts, owner 2026-11-12): deals by the biggest saving
+  // in money, so a $40 off a Collector box leads a $3 off a pack; the pre-order grid keeps every one only when none clears the floor.
+  const deals = priciestFirst(allDeals.filter((p) => featureWorthy(p.lowestPriceCents, r.market)), r.market, (p) => (p.medianOpenCents ?? 0) - (p.lowestPriceCents ?? 0)).slice(0, 8);
+  const preorderShelf = (() => {
+    const top = featuredByPrice(preorders, r.market, (p) => p.lowestPriceCents, 8);
+    return top.length ? top : preorders;
+  })();
+  const hot = hotPicks(preorders, boxes, undefined, r.market);
   // The hero's two cards: the hot picks in their own order (lib/hot-picks.ts), the ones with a photo first.
   const heroCards: HeroCard[] = [...hot.filter((p) => p.imageUrl), ...hot.filter((p) => !p.imageUrl)].slice(0, 2).map((p) => ({
     slug: p.slug,
@@ -249,7 +257,7 @@ export default async function RegionHome({ params }: { params: { region: string 
             href={preorderGuide ? `/${r.region}/preorders/${preorderGuide.set.slug}` : `/${r.region}/releases`}
             linkLabel={preorderGuide ? `Compare ${preorderGuide.set.name} pre-orders` : "Release calendar"}
           >
-            <ProductGrid products={preorders} region={r.region} />
+            <ProductGrid products={preorderShelf} region={r.region} />
             {buyingGuides.length > 0 && (
               <p className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
                 {buyingGuides.map((g) => (
