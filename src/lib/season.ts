@@ -57,3 +57,10 @@ const WINDOWS = (Object.entries(SEASONS) as [Season, (typeof SEASONS)[Season]][]
   w.to[0] * 100 + w.to[1],
 ]);
 export const SEASON_BOOT_SCRIPT = `(function(){try{var W=${JSON.stringify(WINDOWS)},i,q=(location.search.match(/[?&]season=([a-z]+)/)||[])[1];var s=null;if(q){for(i=0;i<W.length;i++)if(W[i][0]===q)s=q}else{var d=new Date(),v=(d.getMonth()+1)*100+d.getDate();for(i=0;i<W.length;i++)if(v>=W[i][1]&&v<=W[i][2])s=W[i][0]}if(s)document.documentElement.setAttribute("data-season",s)}catch(e){}})();`;
+
+// The festive layer (owner, 2026-11-12: "more festive again", after the 8 November tone-down): a gift-guide card on the home page
+// (ChristmasGifts), a 3px cranberry-and-pine hairline at the top of every page and the same two colours on the gifts pill and the
+// Black Friday strip, all CSS keyed on data-season="christmas" plus data-festive (layout.tsx). THE ONE OFF SWITCH: set this to
+// false after New Year (or simply let the window above end on 26 December, when data-season goes) and the card markup, the
+// hairline and the accents all go; the quiet gifts pill of 8 November stays. Never snow, lights, hats, stripes or a palette swap.
+export const CHRISTMAS_FESTIVE_LAYER = true;

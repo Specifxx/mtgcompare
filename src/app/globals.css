@@ -617,6 +617,78 @@ body:has([data-ebay-no-prefooter]) [data-ebay-prefooter] {
 .xmas-pill .xmas-pill-more {
   opacity: 0.75;
 }
+/* Festive layer (owner, 2026-11-12: "more festive again", after the 8 November tone-down). TASTEFUL ACCENTS ONLY, all
+   keyed on data-season="christmas" AND data-festive (set from CHRISTMAS_FESTIVE_LAYER in lib/season.ts, the one off
+   switch): a muted cranberry and pine as colour tokens, a 3px two-tone hairline at the very top of the page, the gift-guide
+   card (.xmas-guide) and the same accent on the gifts pill and the Black Friday strip. Still no snow, lights, hats, stripes,
+   palette swap, animation, image or script. */
+:root {
+  --xmas-red: 158 34 53; /* cranberry #9e2235: 8:1 on white */
+  --xmas-pine: 31 94 61; /* pine #1f5e3d: 8:1 on white */
+}
+:root:not([data-theme="light"]) {
+  --xmas-red: 214 84 100; /* 5.5:1 on the dark page */
+  --xmas-pine: 74 163 116; /* 6:1 on the dark page */
+}
+:root[data-season="christmas"][data-festive] body::before {
+  content: "";
+  display: block;
+  flex: none;
+  height: 3px;
+  background: linear-gradient(to right, rgb(var(--xmas-red)) 50%, rgb(var(--xmas-pine)) 50%);
+}
+.xmas-guide {
+  display: flex;
+  flex: 0 1 44rem;
+  min-width: 0;
+  align-items: center;
+  gap: 0.7rem;
+  border: 1px solid rgb(var(--line));
+  border-left: 3px solid rgb(var(--xmas-red));
+  border-radius: 0.75rem;
+  background: rgb(var(--surface));
+  padding: 0.6rem 0.9rem;
+  color: inherit;
+  line-height: 1.3;
+  transition: border-color 150ms ease;
+}
+.xmas-guide:hover,
+.xmas-guide:focus-visible {
+  border-color: rgb(var(--xmas-pine));
+  border-left-color: rgb(var(--xmas-red));
+}
+.xmas-guide-icon {
+  flex: none;
+  width: 1.4rem;
+  height: 1.4rem;
+  color: rgb(var(--xmas-pine));
+}
+.xmas-guide-text {
+  min-width: 0;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 0.9rem;
+}
+.xmas-guide-text b {
+  font-weight: 700;
+}
+.xmas-guide-more {
+  opacity: 0.75;
+}
+.xmas-guide-go {
+  flex: none;
+  font-weight: 700;
+  color: rgb(var(--xmas-red));
+}
+:root[data-season="christmas"][data-festive] .xmas-pill {
+  border-color: rgb(var(--xmas-red) / 0.5);
+}
+:root[data-season="christmas"][data-festive] [data-holiday-strip] {
+  border-bottom-color: rgb(var(--xmas-pine) / 0.6);
+}
 /* xmas-common:end */
 
 
