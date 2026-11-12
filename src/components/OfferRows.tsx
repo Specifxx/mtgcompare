@@ -266,7 +266,7 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
           retailer={d.retailer}
           placement={d.placement ?? "product-table"}
           amazon={d.amazon}
-          className={`${d.best || (d.open && (d.marketplace || d.kind === "tcgplayer")) ? "btn-primary" : d.open ? "btn-soft" : "btn-ghost"} ${ROW_BUTTON_LINK}`}
+          className={`${d.kind === "tcgplayer" && d.open ? "btn-tcg" : d.best || (d.open && d.marketplace) ? "btn-primary" : d.open ? "btn-soft" : "btn-ghost"} ${ROW_BUTTON_LINK}`}
         >
           {d.kind === "amazon" ? (d.live ? "View deal" : "Check Amazon") : d.search ? "Search" : d.open ? "View deal" : "View"} <span aria-hidden="true">↗</span>
           {tcg && <span className="sr-only"> on TCGplayer</span>}
@@ -313,7 +313,7 @@ function LeanRow({ d, preorder }: { d: StoreRowData; preorder: boolean }) {
           rel={d.rel}
           retailer={d.retailer}
           placement={d.placement ?? "product-table"}
-          className={`${d.best || (d.open && (d.marketplace || d.kind === "tcgplayer")) ? "btn-primary" : d.open ? "btn-soft" : "btn-ghost"} or-btn`}
+          className={`${d.kind === "tcgplayer" && d.open ? "btn-tcg" : d.best || (d.open && d.marketplace) ? "btn-primary" : d.open ? "btn-soft" : "btn-ghost"} or-btn`}
         >
           {d.open ? "View deal" : "View"} <span aria-hidden="true">↗</span>
         </OutboundLink>
