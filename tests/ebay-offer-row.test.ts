@@ -133,8 +133,8 @@ test("pinned TCGplayer: third, under eBay and Amazon (owner, 2026-11-06), its ow
   assert.match(rows[1], /or-hl/, "cheapest of the whole table: highlighted");
   assert.match(us, /data-best="tcg"/);
   assert.match(us, />Best store price</, "the cheapest store says so");
-  assert.equal([...us.matchAll(/class="btn-primary/g)].length, 3, "eBay and TCGplayer wear the filled button (owner, 2026-11-12)");
-  assert.equal([...us.matchAll(/class="btn-tcg/g)].length, 0, "TCGplayer wears the stores' button too");
+  assert.equal([...us.matchAll(/class="btn-primary/g)].length, 2, "eBay wears the filled button (owner, 2026-11-12)");
+  assert.equal([...us.matchAll(/class="btn-tcg/g)].length, 1, "TCGplayer wears the blue button (owner, 2026-11-12)");
   assert.match(us, /View deal <span aria-hidden="true">↗<\/span><span class="sr-only"> on TCGplayer<\/span>/, "a store row's label; only the colour differs");
   // the UK: the US$ offer, labelled, never the best price
   const uk = render(
