@@ -95,3 +95,10 @@ export function amazonUrl(name: string, opts: { slug?: string | null; tag?: stri
 }
 
 export type AmazonPlacement = Extract<Placement, `amazon-${string}`>;
+
+/**
+ * Sealed types Amazon carries (owner, 2026-11-12: no Amazon link where Amazon doesn't sell the item). A real ASIN says yes; otherwise
+ * not a prerelease pack, draft-night or scene box, Secret Lair or any case.
+ */
+export const AMAZON_EXCLUDED_TYPES: ReadonlySet<string> = new Set(["prerelease-pack", "draft-night", "scene-box", "secret-lair", "play-booster-box-case", "collector-booster-box-case", "bundle-case"]);
+export const amazonCarries = (typeKey: string | null | undefined, hasAsin = false): boolean => hasAsin || (!!typeKey && !AMAZON_EXCLUDED_TYPES.has(typeKey));

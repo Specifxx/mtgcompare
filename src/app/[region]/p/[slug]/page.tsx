@@ -18,6 +18,7 @@ import { ebayQuery, SoldOutCallout } from "@/components/Marketplaces";
 import { AmazonProductRow } from "@/components/Amazon";
 import { OfferTable } from "@/components/OfferTable";
 import { amazonLiveFor } from "@/lib/amazon-live";
+import { amazonCarries } from "@/lib/amazon";
 import { ReportPrice } from "@/components/ReportForms";
 import { PriceAlertForm } from "@/components/PriceAlertForm";
 import { ALERT_SITE_KEY } from "@/lib/alert-feed";
@@ -621,7 +622,7 @@ export default async function ProductPage({ params }: { params: { region: string
             preorder={pre}
             packs={packs}
             ebay={{ slug: p.slug, query: ebayQ, floor: ebayFloor, packs: rowPacks(type?.key, packs) }}
-            pinned={{ productName: p.name, tcgplayer, amazon: amazonLiveFor(p.slug, r.region) }}
+            pinned={{ productName: p.name, tcgplayer, amazon: amazonLiveFor(p.slug, r.region), noAmazon: !amazonCarries(type?.key, !!amazonLiveFor(p.slug, r.region)) }}
             notes={notes}
           />
         ) : (
@@ -664,7 +665,7 @@ export default async function ProductPage({ params }: { params: { region: string
         </div>
       )}
       {/* Sold out: the Amazon row (lib/amazon.ts), a marketplace link with no price. In stock it is a search row pinned in the table. */}
-      {!best && <AmazonProductRow region={r.region} name={p.name} slug={p.slug} />}
+      {!best && amazonCarries(type?.key, !!amazonLiveFor(p.slug, r.region)) && <AmazonProductRow region={r.region} name={p.name} slug={p.slug} />}
 
       {!best && alternatives.length > 0 && (
         <Section id="instead" title="In stock instead" href={typeLink.href} linkLabel="See all">
