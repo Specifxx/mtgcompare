@@ -583,6 +583,19 @@ export default async function ProductPage({ params }: { params: { region: string
               </p>
             </div>
           )}
+          {/* The price alert, under the best price where people look (2026-11-12: it was a text link under the whole table and the
+              service held no alerts). RiftCompare's shared alert service emails when it drops (lib/alert-feed.ts, DECISIONS.md 2026-11-02).
+              A button in the server HTML; the form opens in place on a tap, never by itself. */}
+          <PriceAlertForm
+            site={ALERT_SITE_KEY}
+            productId={p.id}
+            region={r.market}
+            priceCents={here?.lowestPriceCents ?? null}
+            className="mt-3"
+            buttonClassName="btn-ghost"
+            prominent
+            summary={here?.lowestPriceCents == null ? "Email me when a store has it at my price" : "Email me when the price drops"}
+          />
           {/* The small eBay + TCGplayer pair under the best price (owner, 2026-10-29: "much smaller … near the top … not
               intrusive"): the product's own eBay listings (the strip's request) and the set's TCGplayer products. */}
           <MiniSealedAds
@@ -622,8 +635,6 @@ export default async function ProductPage({ params }: { params: { region: string
           buttonClassName="btn-ghost"
           stores={p.offers.filter((o) => !o.marketplace).map((o) => ({ name: o.storeName, price: money(o.priceCents, r.market) }))}
         />
-        {/* RiftCompare's shared alert service emails when it drops (lib/alert-feed.ts, DECISIONS.md 2026-11-02). */}
-        <PriceAlertForm site={ALERT_SITE_KEY} productId={p.id} region={r.market} priceCents={here?.lowestPriceCents ?? null} className="mt-3" buttonClassName="btn-ghost" />
         {riftHref && (
           // The owner's other Pokémon site keeps what this one does not: TCGplayer's market price over time (lib/riftcompare.ts).
           <p className="mt-4 text-sm text-muted">

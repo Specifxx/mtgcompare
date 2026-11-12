@@ -1,3 +1,6 @@
+import { WeeklyDropsBox } from "@/components/WeeklyDropsBox";
+import { weeklyBoxLive } from "@/lib/weekly-box";
+import { ALERT_SITE_KEY } from "@/lib/alert-feed";
 import Link from "@/components/Link";
 import { dealsThin } from "@/lib/section-thin";
 import { cache } from "react";
@@ -206,6 +209,8 @@ export default async function DealsPage({ params }: { params: { region: string }
         </Section>
       )}
 
+      {/* The weekly price-drops email, one field (components/WeeklyDropsBox.tsx, 2026-11-12). */}
+      {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="deals" className="mt-12 max-w-2xl" buttonClassName="btn-primary" />}
       <FamilyCluster kind="deal" region={r.region} />
 
       <aside className="mt-14 rounded-xl border border-line bg-raised p-5 text-sm leading-6 text-muted sm:p-6" aria-labelledby="how-deals">

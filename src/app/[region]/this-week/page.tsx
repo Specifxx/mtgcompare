@@ -1,3 +1,6 @@
+import { WeeklyDropsBox } from "@/components/WeeklyDropsBox";
+import { weeklyBoxLive } from "@/lib/weekly-box";
+import { ALERT_SITE_KEY } from "@/lib/alert-feed";
 import Link from "@/components/Link";
 import type { Metadata } from "next";
 import { Ago } from "@/components/Ago";
@@ -106,6 +109,8 @@ export default async function ThisWeekPage({ params }: { params: { region: strin
         )}
       </Section>
 
+      {/* The weekly price-drops email, one field (components/WeeklyDropsBox.tsx, 2026-11-12). */}
+      {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="this-week" className="mt-10 max-w-2xl" buttonClassName="btn-primary" />}
       <EbayStrip region={r.region} context="sealed" placement="listings-digest" className="mt-10" search={{ kind: "sealed", query: "" }} />
 
       <Section id="just-released" title="Just released" kicker={`Out in the last ${JUST_RELEASED_DAYS} days`} href={`/${r.region}/sets`} linkLabel="All sets">

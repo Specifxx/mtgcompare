@@ -1492,3 +1492,23 @@ canvas and repeating gradients in the Christmas CSS.
 
 **Taking it off.** Set `CHRISTMAS_FESTIVE_LAYER = false` after New Year, or let the window end on 26 December: the card, the hairline and the
 accents all go together. Without the layer the quiet gifts pill of 8 November  is what remains.
+
+## 2026-11-12: a sign-up people can see (price alert beside the best price, a weekly-drops box on the hubs)
+
+Owner, 2026-11-12: growth has stalled and he wants it fixed with no work from him. Measured the same day: MTG Compare had 1,193
+visitors in the week to 11 Nov and RiftCompare's alert service counted 0 alerts and 0 weekly subscribers for this site since
+alerts launched on 2 Nov. The only sign-up was a text link under the whole price table. The same change as DexCompare's, the
+same day.
+
+- **The price alert moves under the best price.** `PriceAlertForm` gets `prominent`: a real button (`btn-ghost`, a bell) in the
+  server HTML right under the best-price card, on in-stock and sold-out products alike. The form still opens in place on a
+  tap, never by itself; its fields, copy, unticked weekly box and privacy line are unchanged. The old link under the table
+  is gone (one form per page).
+- **A weekly-drops box on the hubs** (`WeeklyDropsBox`): the region home, deals, a set's page, price moves and this week. One
+  email field, posting `kind: "weekly"` to the alert service: no product, no price, no alert; the same double opt-in. No
+  heading tag, a fixed height in the server HTML, never a pop-up, never on a product page.
+- **Drawn from 14 Nov** (`lib/weekly-box.ts`), once RiftCompare's release takes `kind: "weekly"`.
+- **Counted**: `alert_open`, `alert_created`, `weekly_signup` in Web Analytics; RiftCompare's Monday report lists alerts and
+  weekly subscribers per site.
+- Unchanged: every URL, title, meta, canonical, JSON-LD and heading; no address is stored here.
+- Measure on 19 Nov: sign-ups per 100 visitors.
