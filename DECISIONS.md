@@ -1540,3 +1540,9 @@ clutter was here. The rule now, as on DexCompare (CompareEmpire #196):
 - Unchanged: URLs, titles, metadata, headings, text, JSON-LD and every link in the server HTML. Classes and tokens only.
 - Measure a week on (19 Nov): outbound clicks per placement against the week before. If the pinned eBay row's clicks fall, give that row's
   button the ink fill (`.btn-ad`) before bringing any outline back.
+
+## 2026-11-12: Only eBay and TCGplayer are paid rows
+
+Owner: "we just want eBay and TCGplayer as the paid links at the top. That is why our revenue is declining." The pinned Amazon row
+now exists only when this build fetched a real Amazon price for the product (`amazonRow` returns null otherwise), and the sold-out
+page's Amazon search row is gone. `tests/paid-rows.test.ts` pins it.
