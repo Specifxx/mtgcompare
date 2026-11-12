@@ -7,10 +7,13 @@
 // checks this site's own /alert-feed.json once a day. Only the site key,
 // product id, region, price and address are sent, plus an UNTICKED box for
 // the site's weekly biggest-drops email (2026-11-08, opt-in only). Inline
-// only, under a quiet link (no pop-up, owner 2026-10-27). Styling is inherited (currentColor and
+// only, under a quiet link (no pop-up, owner 2026-10-27), or with `prominent`
+// under a real button beside the best price (2026-11-12: nobody found the
+// link). Styling is inherited (currentColor and
 // translucent borders) so the same file sits on light and dark sites; a site
 // passes its own button class. The same file is copied into every site.
 import { useState, type CSSProperties, type FormEvent } from "react";
+import { track } from "@vercel/analytics";
 
 export const ALERT_SERVICE = "https://riftcompare.com/api/sister-alerts";
 export const ALERT_PRIVACY = "https://riftcompare.com/privacy#sister-alerts";
@@ -47,6 +50,7 @@ export function PriceAlertForm({
   className,
   buttonClassName,
   summary = "Email me when the price drops",
+  prominent = false,
 }: {
   /** this site's key in the alert service ("mtg", "gundam", …) */
   site: string;
@@ -58,6 +62,8 @@ export function PriceAlertForm({
   className?: string;
   buttonClassName?: string;
   summary?: string;
+  /** a real button (the site's `buttonClassName`) with a bell, for the spot beside the best price; the quiet link otherwise */
+  prominent?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<State>({ status: "idle" });
@@ -79,12 +85,34 @@ export function PriceAlertForm({
         body: JSON.stringify({ site, productId, region, email: String(f.get("email") ?? ""), weekly, targetCents }),
       });
       const j = (await r.json().catch(() => ({}))) as { ok?: boolean; status?: string; error?: string };
+      if (r.ok && j.ok) track("alert_created", { region, weekly, prominent });
       setState(r.ok && j.ok ? { status: "done", confirm: j.status !== "active", weekly } : { status: "error", message: j.error || "Couldn't save your alert. Please try again." });
     } catch {
       setState({ status: "error", message: "Couldn't save your alert. Check your connection and try again." });
     }
   }
 
+  if (!open && prominent) {
+    return (
+      <div className={className}>
+        <button
+          type="button"
+          className={buttonClassName}
+          style={buttonClassName ? undefined : defaultButton}
+          onClick={() => {
+            track("alert_open", { region, prominent: true });
+            setOpen(true);
+          }}
+        >
+          <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block", verticalAlign: "-3px", marginRight: 6 }}>
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+          </svg>
+          {summary}
+        </button>
+      </div>
+    );
+  }
   if (!open) {
     return (
       <div className={className}>

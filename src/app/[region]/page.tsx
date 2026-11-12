@@ -1,3 +1,6 @@
+import { WeeklyDropsBox } from "@/components/WeeklyDropsBox";
+import { weeklyBoxLive } from "@/lib/weekly-box";
+import { ALERT_SITE_KEY } from "@/lib/alert-feed";
 import Link from "@/components/Link";
 import { SiteReviews } from "@/components/site-reviews/SiteReviews";
 import { inSeason } from "@/lib/black-friday";
@@ -235,6 +238,8 @@ export default async function RegionHome({ params }: { params: { region: string 
           </Section>
         )}
 
+        {/* The weekly price-drops email, one field (components/WeeklyDropsBox.tsx, 2026-11-12). */}
+        {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="home" className="mt-10 max-w-2xl" buttonClassName="btn-primary" />}
         {/* The page's first eBay unit, under the deals rail: sealed listings as an image strip (imported from eBay once a day, fetched in the
             browser once it is near the viewport), with the owner's hot set as its highlighted button; with none to list, the compact CTA row.
             The chase-card strip follows the booster-box rail, far enough down that the two never share a phone screen. */}

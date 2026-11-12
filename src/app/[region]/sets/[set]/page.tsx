@@ -1,3 +1,6 @@
+import { WeeklyDropsBox } from "@/components/WeeklyDropsBox";
+import { weeklyBoxLive } from "@/lib/weekly-box";
+import { ALERT_SITE_KEY } from "@/lib/alert-feed";
 import Link from "@/components/Link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
@@ -230,6 +233,8 @@ export default async function SetPage({ params }: { params: { region: string; se
           </>
         )}
       </Section>
+      {/* The weekly price-drops email, one field (components/WeeklyDropsBox.tsx, 2026-11-12). */}
+      {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="set" className="mt-10 max-w-2xl" buttonClassName="btn-primary" />}
 
       {/* Real sealed products on TCGplayer (2026-10-28), after this page's own comparison. */}
       <TcgplayerStrip tiles={tcgTiles} region={r.region} placement="tcgplayer-strip-set" title={`${s.name} & more on TCGplayer`} searchName={s.name} className="mt-14" />
