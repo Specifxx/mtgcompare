@@ -108,7 +108,7 @@ test("the server table: the eBay row FIRST as a search (labelled Ad, sponsored, 
   assert.equal(u.searchParams.get("customid"), "mtg-us-listings-offer-row");
   assert.equal(u.searchParams.get("_nkw"), "MTG Bloomburrow Play Booster Box sealed");
   assert.equal(/rel="([^"]*)"/.exec(a[1])![1], REL_SPONSORED);
-  assert.match(a[1], /class="btn-soft /, "the stores' own button (owner, 2026-11-01: blend in)");
+  assert.match(a[1], /class="btn-primary /, "the marketplace buttons stand out (owner, 2026-11-12)");
   assert.match(ebay, /class="ad-pill">Ad</);
   assert.match(html, /Search Bloomburrow Play Booster Box on ebay\.com/);
   // no listing yet: the cheapest store is the best price (tint, badge, the one red button)
@@ -133,7 +133,7 @@ test("pinned TCGplayer: third, under eBay and Amazon (owner, 2026-11-06), its ow
   assert.match(rows[1], /or-hl/, "cheapest of the whole table: highlighted");
   assert.match(us, /data-best="tcg"/);
   assert.match(us, />Best store price</, "the cheapest store says so");
-  assert.equal([...us.matchAll(/class="btn-primary/g)].length, 1, "the cheapest store keeps the one red button");
+  assert.equal([...us.matchAll(/class="btn-primary/g)].length, 3, "eBay and TCGplayer wear the filled button (owner, 2026-11-12)");
   assert.equal([...us.matchAll(/class="btn-tcg/g)].length, 0, "TCGplayer wears the stores' button too");
   assert.match(us, /View deal <span aria-hidden="true">↗<\/span><span class="sr-only"> on TCGplayer<\/span>/, "a store row's label; only the colour differs");
   // the UK: the US$ offer, labelled, never the best price
