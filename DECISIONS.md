@@ -1471,3 +1471,24 @@ unspent. The owner approved the recommended split on 2026-11-10.
 ## 2026-11-12: front pages feature the dearer products
 
 Owner: "promote the more expensive items, so when users buy them we get more commission". Where the site chooses what to FEATURE (the landing page's five picks and TCGplayer banner, the region home's hero cards, deals rail, pre-order grid and TCGplayer strip) it now keeps only products at or above US$100 (`FEATURE_MIN_USD_CENTS`, `lib/feature-floor.ts`; other markets through `roughUsdCents`) and puts the dearer first. Real US data of 2026-11-12: median in-stock product $57, top quartile from $103, so the floor keeps booster boxes, Collector boxes, cases, Commander deck sets and big bundles and drops packs, prerelease packs, Secret Lair drops and most decks. The deals rail ranks by the saving in money, not percent. Cheap products stay listed, searchable and linked from their type and set pages; URLs, titles, metadata, JSON-LD, the sitemap and each product's price-ordered store rows are unchanged, the reference price stays TCGplayer's market and eBay is still never a deal. No commission rate is read. The landing hero tops up to five picks if fewer clear the floor; the pre-order grid falls back to every pre-order when none does. To change the bar, change the one constant.
+
+
+## 2026-11-12: a tasteful festive layer on the Christmas season (owner)
+
+Bill asked on 2026-11-08 to strip the over-the-top Christmas theme ("the theme must match the domain"), and on 2026-11-12 asked for it to be
+more festive again. We chose tasteful accents, not a return of the costume.
+
+**What.** Behind the existing season window (`data-season="christmas"`, 1 November to Boxing Day, the visitor's date, `?season=` preview) and
+ONE off switch, `CHRISTMAS_FESTIVE_LAYER` in `src/lib/season.ts` (it sets `data-festive` on `<html>` and gates the card's markup): (1) a one-line
+"Christmas gift guide" card on the home page, an inline SVG gift in `currentColor`, linking the existing "Magic sealed gifts under $50" guide, in the site's own surface and
+text colours with a cranberry 3px left border and a pine icon; it is a link in the server HTML, not a heading, so every title, meta, h1 and h2 is
+unchanged; (2) a 3px two-tone hairline (cranberry then pine, flat, no stripes) at the very top of the page, drawn by `body::before` from CSS
+alone, with lighter tones in the dark theme for contrast; (3) the same two colour tokens (`--xmas-red`, `--xmas-pine`) on the gifts pill's border and the
+Black Friday strip's bottom border, no new elements. No new page was made.
+
+**Still gone, and pinned.** No snow, lights, Santa hats, candy-cane stripes, palette swap, sparkles, animation, image, webfont, extra request,
+pop-up, floating rail or layout shift; no client JavaScript. The test pins both the new pieces and the absence of `@keyframes`, snow, flake,
+canvas and repeating gradients in the Christmas CSS.
+
+**Taking it off.** Set `CHRISTMAS_FESTIVE_LAYER = false` after New Year, or let the window end on 26 December: the card, the hairline and the
+accents all go together. Without the layer the quiet gifts pill of 8 November  is what remains.

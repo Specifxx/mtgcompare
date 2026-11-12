@@ -8,7 +8,7 @@ import { IMPACT_SITE_VERIFICATIONS } from "@/lib/affiliate";
 import { ADSENSE_CLIENT, adsenseScriptSrc } from "@/lib/adsense";
 import { SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/site";
 import { jsonLd, siteJsonLd } from "@/lib/seo";
-import { SEASON_BOOT_SCRIPT } from "@/lib/season";
+import { CHRISTMAS_FESTIVE_LAYER, SEASON_BOOT_SCRIPT } from "@/lib/season";
 import { THEME_BOOT_SCRIPT } from "@/lib/theme";
 import { REGION_BOOT_SCRIPT } from "@/lib/regions";
 import "./globals.css";
@@ -44,7 +44,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     // The season and theme boot scripts below stamp data-season and data-theme on this element before React hydrates; React must not report that.
-    <html lang="en" className={`${sans.variable} ${display.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${sans.variable} ${display.variable}`} data-festive={CHRISTMAS_FESTIVE_LAYER ? "on" : undefined} suppressHydrationWarning>
       <head>
         <link rel="alternate" type="application/rss+xml" title={`${SITE_NAME} guides`} href="/feed.xml" />
         {/* Seasonal theme (Halloween, 16-31 October): data-season on <html> from the visitor's own date, before first paint, so the
