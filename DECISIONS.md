@@ -1518,3 +1518,8 @@ same day.
 - A visitor reported (on DexCompare) that most of the cheapest prices were invite-only offers. Same reader here, so the same fix:
   `src/lib/invite-only.ts` reads title, link, tags, description and option names; `priceOf` drops a match and the public-data reader
   drops any such Offer row an older export holds. Rules may only refuse more. Tests: `tests/invite-only.test.ts`.
+
+## 2026-11-12 — Amazon only where Amazon carries the product (owner)
+
+The owner: no Amazon where Amazon doesn't sell the item (RiftCompare first). `amazonCarries` (lib/amazon.ts) hides the product page's and quick view's Amazon row, and
+the sold-out Amazon card, for prerelease packs, draft-night and scene boxes, Secret Lair and cases, unless the import found a real ASIN.

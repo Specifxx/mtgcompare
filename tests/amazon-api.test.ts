@@ -80,5 +80,12 @@ test("the quick view's Amazon row is the product page's tagged link, never Amazo
   const src = readFileSync("src/app/api/quick/[region]/[slug]/route.ts", "utf8");
   assert.doesNotMatch(src, /amazon: null/, "the quick view keeps the Amazon link");
   assert.match(src, /const amazonLink = found \? \{ asin: found\.asin, url: found\.url \} : null;/, "the link only: the price stays on the product page");
-  assert.match(src, /pinned: \{ productName: p\.name, tcgplayer, amazon: amazonLink \}/);
+  assert.match(src, /pinned: \{ productName: p\.name, tcgplayer, amazon: amazonLink, noAmazon: !amazonCarries\(type\?\.key, !!found\) \}/);
+});
+
+test("Amazon's row only for types Amazon carries (owner, 2026-11-12)", async () => {
+  const { amazonCarries } = await import("../src/lib/amazon");
+  for (const t of ["play-booster-box", "bundle", "commander-deck", "play-booster"]) assert.equal(amazonCarries(t), true, t);
+  for (const t of ["prerelease-pack", "secret-lair", "bundle-case", "draft-night", null]) assert.equal(amazonCarries(t), false, String(t));
+  assert.equal(amazonCarries("prerelease-pack", true), true, "a real ASIN wins");
 });
