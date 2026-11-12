@@ -162,7 +162,7 @@ const DAMAGED_VARIANT = /\b(?:damaged?|dent(?:ed|s)?|crushed|creased|torn|imperf
  * left out altogether (src/lib/pickup-only.ts): a visitor elsewhere cannot buy it, and the store's measured postage does not apply.
  */
 export function priceOf(p: FeedProduct, floor: number): { priceCents: number; inStock: boolean; variantId?: number } | null {
-  if (p.pickupOnly) return null;
+  if (p.pickupOnly || p.inviteOnly) return null;
   const posted = p.variants.filter((v) => v.requiresShipping !== false);
   // With several options, drop the multi-unit ones. A single variant is the
   // product itself, whatever its (often "Default Title") name says.
