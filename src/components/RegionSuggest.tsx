@@ -113,7 +113,7 @@ export function RegionSuggest({ formId, links }: { formId?: string; links: NavIt
     <ul className="flex flex-wrap gap-2" aria-label={`Popular pages in ${REGIONS[region].inName}`}>
       {links.map((l, i) => (
         <li key={l.label}>
-          <Link href={retargetHref(l.href, region)} prefetch={false} className={i === 0 ? "btn-primary min-h-11 px-4" : "chip min-h-11"}>
+          <Link href={retargetHref(l.href, region)} prefetch={false} className={i === 0 ? "chip chip-on min-h-11 font-semibold" : "chip min-h-11"}>
             {l.label}
           </Link>
         </li>

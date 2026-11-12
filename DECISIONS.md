@@ -1523,3 +1523,20 @@ same day.
 
 The owner: no Amazon where Amazon doesn't sell the item (RiftCompare first). `amazonCarries` (lib/amazon.ts) hides the product page's and quick view's Amazon row, and
 the sold-out Amazon card, for prerelease packs, draft-night and scene boxes, Secret Lair and cases, unless the import found a real ASIN.
+
+## 2026-11-12 — A calmer palette: three colours, three jobs (owner left the design to us; ported from DexCompare)
+
+The owner found DexCompare's home page and quick view too busy ("too many colors … all the colored rows") and left the redesign to us; the same
+clutter was here. The rule now, as on DexCompare (CompareEmpire #196):
+
+- **The brand colour is the one thing to press**: the Search button and the best price's button, plus section links. A price table has ONE filled
+  brand button; every other buy button (`.btn-soft`: the other stores and the pinned eBay, Amazon and TCGplayer rows) is neutral.
+- **Green (`--open`) is money**: a saving and the best-price row (`.or-hl`: a raised ground, a 3px green edge, the "Best price" badge). Stock is
+  a 6px dot beside grey words (`.sp-*`), not a tinted pill, and nothing pulses.
+- **Everything else is neutral.** The row outlines of 2026-11-06 and 11-07 are gone (the classes stay as hooks); rows keep their order, tags and
+  links. Ads (`.ad-box`, `.btn-ad`, the TCGplayer strip, the landing pair) are a dashed neutral box with the "Ad" label and an ink-filled button.
+  Logos keep their colours. Pre-order and sale cards are plain cards; the region chip in use is the ink chip.
+- The quick view's footer link is a ghost button; the hero's type chips are one sideways row at every width.
+- Unchanged: URLs, titles, metadata, headings, text, JSON-LD and every link in the server HTML. Classes and tokens only.
+- Measure a week on (19 Nov): outbound clicks per placement against the week before. If the pinned eBay row's clicks fall, give that row's
+  button the ink fill (`.btn-ad`) before bringing any outline back.

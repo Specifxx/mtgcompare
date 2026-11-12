@@ -23,8 +23,8 @@
   --stale-soft: 253 243 219;
   --pre: 88 76 214;
   --pre-soft: 236 234 252;
-  --ad: 243 246 252; /* sponsored units: a cool tint no store row or product card uses. muted 5.8:1, brand 4.7:1 on it */
-  --ad-line: 120 128 148;
+  --ad: 250 250 248; /* sponsored units: the raised neutral (calm palette, 2026-11-12); the dashed line and the "Ad" label mark them, not a tint */
+  --ad-line: 150 152 158;
   --shadow: 24 22 18;
   /* The sticky header's height: sticky offsets (top-[var(--hdr)]) and anchor jumps (scroll-padding-top below) follow it. */
   --hdr: 60px;
@@ -59,8 +59,8 @@
     --stale-soft: 52 40 14;
     --pre: 160 150 255;
     --pre-soft: 36 32 70;
-    --ad: 26 31 45;
-    --ad-line: 120 130 156;
+    --ad: 29 31 37;
+    --ad-line: 104 108 120;
     --shadow: 0 0 0;
     color-scheme: dark;
 }
@@ -97,32 +97,31 @@ body {
      2026-11-10: an 80-row table repeated ~2 KB of class names per row). */
   /* StockPill (components/StockPill.tsx): the pill and its dot. */
   .sp {
-    @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold;
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-muted;
   }
   .sp::before {
     @apply h-1.5 w-1.5 shrink-0 rounded-full bg-current;
     content: "";
   }
   .sp-sm {
-    @apply gap-1 px-2 py-0.5 text-[11px] leading-4;
+    @apply gap-1 text-[11px] leading-4;
   }
-  .sp-open {
-    @apply bg-open-soft text-open;
-  }
+  /* Calm palette (2026-11-12): the words are grey, only the 6px dot carries the state's colour, and nothing pulses. A grid of
+     sixteen cards or an 80-row table was sixteen or eighty green pills. */
   .sp-open::before {
-    @apply animate-pulse;
-  }
-  .sp-pre {
-    @apply bg-pre-soft text-pre;
+    @apply bg-open;
   }
   .sp-pre::before {
-    @apply animate-pulse;
+    @apply bg-pre;
   }
   .sp-sold {
-    @apply bg-sold-soft text-sold;
+    @apply text-faint;
   }
-  .sp-stale {
-    @apply bg-stale-soft text-stale;
+  .sp-sold::before {
+    @apply bg-sold;
+  }
+  .sp-stale::before {
+    @apply bg-stale;
   }
   /* ProductCard (components/ProductCard.tsx). */
   .pc-link {
@@ -162,7 +161,7 @@ body {
     @apply font-display text-lg font-bold tabular-nums;
   }
   .pc-cue {
-    @apply h-4 truncate text-[11px] font-semibold leading-4 text-brand-strong lg:h-5 lg:text-xs lg:leading-5 lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100 lg:group-focus-visible:opacity-100;
+    @apply h-4 truncate text-[11px] font-semibold leading-4 text-muted group-hover:text-ink lg:h-5 lg:text-xs lg:leading-5 lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100 lg:group-focus-visible:opacity-100;
   }
   .or-row {
     @apply grid grid-cols-[1fr_auto] items-center gap-x-3 px-4 py-3 sm:grid-cols-[1fr_auto_10rem_auto] sm:gap-x-4 sm:px-5 sm:py-3.5;
@@ -174,14 +173,11 @@ body {
   .or-lean[data-open] .or-act {
     @apply sm:pl-12;
   }
+  /* Calm palette (2026-11-12, owner: "all the colored rows … a bit much"): no outlines. The best price is the one marked row: a
+     faint raised ground, a 3px green edge and its green "Best price" badge. eBay's and Amazon's rows are ordinary rows with their
+     "Ad" / "Marketplace" tag; they keep their place at the top. */
   .or-hl {
-    @apply bg-open-soft/40 outline outline-2 -outline-offset-2 outline-[#0ea5e9];
-  }
-  .or-amz {
-    @apply outline outline-2 -outline-offset-2 outline-[#f59e0b];
-  }
-  .or-ebay {
-    @apply outline outline-2 -outline-offset-2 outline-[#16a34a];
+    @apply bg-raised shadow-[inset_3px_0_0_rgb(var(--open))];
   }
   .or-top {
     @apply flex h-5 items-center gap-2 overflow-hidden sm:h-6;
@@ -231,10 +227,11 @@ body {
   .btn-ghost {
     @apply btn border border-line bg-surface text-ink hover:bg-raised;
   }
-  /* A secondary action that is still a buy action (an in-stock store that is not the cheapest): the brand's tint, quieter than
-     .btn-primary, louder than .btn-ghost. brand-strong on brand-soft is 5.6:1 (6.9:1 dark). */
+  /* A secondary action that is still a buy action (an in-stock store that is not the cheapest, and the pinned eBay, Amazon and
+     TCGplayer rows): neutral since the calm palette (2026-11-12), so the table has ONE coloured button, the best price's
+     .btn-primary. Ink on the raised ground is 13:1 or more in both themes. */
   .btn-soft {
-    @apply btn bg-brand-soft text-brand-strong hover:bg-brand/15;
+    @apply btn border border-line bg-raised text-ink hover:border-ink/40;
   }
   .chip {
     @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:border-ink/30;
@@ -242,16 +239,15 @@ body {
   .chip-on {
     @apply border-ink bg-ink text-surface hover:border-ink;
   }
-  /* A sponsored eBay unit: dashed, cool-tinted, always with an .ad-pill. Never a card, never a row. */
+  /* A sponsored eBay unit: dashed, on the raised neutral, always with an .ad-pill. Never a card, never a row. */
   .ad-box {
     @apply rounded-xl border border-dashed border-ad-line bg-ad;
   }
-  /* An ad's own button: eBay's button blue, #3665f3 with white text (4.9:1; #2a50c8 on hover, 6.8:1), the blue of eBay's own
-     buttons, the price table's eBay row and the hot buttons. It never passes for the site's red actions (.btn-primary) and every
-     unit around one carries its "Ad" label. (Until the growth release it was a grey outline.) The transparent border keeps the
-     box the size the outline gave it. */
+  /* An ad's own button: filled with the site's ink (near-black; near-white in dark mode), the strongest neutral there is, so a paid
+     link is as easy to see and tap as before without adding a hue (calm palette, 2026-11-12; it was eBay's blue). It never passes
+     for the site's red action (.btn-primary) and every unit around one carries its "Ad" label. */
   .btn-ad {
-    @apply btn border border-transparent bg-[#3665f3] text-white hover:bg-[#2a50c8];
+    @apply btn border border-transparent bg-ink text-surface hover:bg-ink/85;
   }
   /* TCGplayer's button in the price table's pinned TCGplayer row: the site's ink (near-black, white in dark mode), so the table's four
      kinds of row read apart by their button alone: eBay blue, TCGplayer ink, the cheapest store red (.btn-primary), the others soft. */

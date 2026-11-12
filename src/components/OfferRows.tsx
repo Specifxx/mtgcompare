@@ -24,8 +24,10 @@ export const ROW_BUTTON = "min-h-11 justify-self-end whitespace-nowrap [grid-are
 export const ROW_ACTIONS = "or-act";
 export const ROW_BUTTON_LINK = "or-btn";
 /**
- * The pinned rows' outlines (owner, 2026-11-06): eBay green, Amazon amber; the best-price row (owner, 2026-11-07) sky blue with the
- * tint (.or-hl), winning over either. Inset, so the row keeps its height and grid.
+ * The pinned rows' classes. Until 2026-11-12 each drew an outline (eBay green, Amazon amber, the best price sky blue; owner, 2026-11-06
+ * and 11-07). The owner then found "all the colored rows" in the quick view "a bit much" and left the design to us (DECISIONS.md, "A
+ * calmer palette"): the eBay and Amazon rows are plain rows again (their classes stay as hooks and draw nothing), and only the
+ * best-price row is marked (.or-hl in globals.css: a raised ground and a green edge, with its "Best price" badge).
  */
 export const PIN_OUTLINE = {
   ebay: "or-ebay",
@@ -282,7 +284,7 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
 function ShipLine({ ship }: { ship: ShipCell | null }) {
   if (!ship) return <span className="or-sub text-faint">{SHIP_UNKNOWN}</span>;
   return (
-    <span className={ship.max === 0 ? "or-sub font-semibold text-open" : "or-sub text-muted"}>
+    <span className={ship.max === 0 ? "or-sub font-semibold text-ink" : "or-sub text-muted"}>
       {ship.text}
       {ship.hint && <span className="hidden sm:inline">{ship.hint}</span>}
     </span>

@@ -189,7 +189,7 @@ function Head({ brand }: { brand: ReactNode }) {
 function Note({ href, retailer, placement, label, usd = false }: { href: string; retailer: string; placement: Placement; label: string; usd?: boolean }) {
   return (
     <p className="flex h-[34px] shrink-0 flex-col justify-center px-2 text-[10px] leading-[13px] text-muted">
-      <OutboundLink href={href} rel={REL_SPONSORED} retailer={retailer} placement={placement} className="truncate font-bold text-brand">
+      <OutboundLink href={href} rel={REL_SPONSORED} retailer={retailer} placement={placement} className="truncate font-bold text-ink hover:underline">
         {label}
       </OutboundLink>
       <span className="truncate" title={AFFILIATE_NOTE_SHORT}>

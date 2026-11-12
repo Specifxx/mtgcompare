@@ -23,16 +23,16 @@ export function PreorderBanner({ region, today = new Date().toISOString().slice(
             href={`/${region}/preorders/${set.slug}`}
             prefetch={false}
             data-preorder-banner={set.slug}
-            className="card flex flex-wrap items-center justify-between gap-3 border-pre/40 bg-pre-soft/40 px-5 py-4 transition-shadow hover:shadow-lift"
+            className="card flex flex-wrap items-center justify-between gap-3 px-5 py-4 transition-shadow hover:shadow-lift"
           >
             <span className="min-w-0">
-              <span className="eyebrow text-pre">Pre-order · out {formatRelease(set.releaseDate)}</span>
+              <span className="eyebrow">Pre-order · out {formatRelease(set.releaseDate)}</span>
               <span className="mt-0.5 block font-display text-lg font-bold leading-snug">
                 {withMtg(set.name)} releases {relativeDay(set.releaseDate, today)}
               </span>
               <span className="block text-sm text-muted">Every store taking pre-orders, cheapest first: Play Booster box, Collector box, bundle and more.</span>
             </span>
-            <span className="shrink-0 text-sm font-semibold text-pre">Compare pre-orders →</span>
+            <span className="shrink-0 text-sm font-semibold text-brand-strong">Compare pre-orders →</span>
           </Link>
         </li>
       ))}
@@ -46,8 +46,8 @@ export function PreorderRegionLinks({ today = new Date().toISOString().slice(0, 
   if (!open.length) return null;
   const { set } = open[0];
   return (
-    <div className="card border-pre/40 bg-pre-soft/40 px-5 py-4" data-preorder-banner={set.slug}>
-      <p className="eyebrow text-pre">Pre-order · out {formatRelease(set.releaseDate)}</p>
+    <div className="card px-5 py-4" data-preorder-banner={set.slug}>
+      <p className="eyebrow">Pre-order · out {formatRelease(set.releaseDate)}</p>
       <p className="mt-0.5 font-display text-lg font-bold leading-snug">
         {withMtg(set.name)} releases {relativeDay(set.releaseDate, today)}: compare pre-order prices
       </p>

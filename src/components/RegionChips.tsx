@@ -34,7 +34,7 @@ export function RegionChips({ region = null, className = "" }: { region?: Region
                 pickRegion(r.region);
               }
             }}
-            className={`chip min-h-11 ${on ? "border-brand bg-brand-soft font-semibold text-brand-strong" : ""}`}
+            className={`chip min-h-11 ${on ? "chip-on font-semibold" : ""}`}
           >
             <Flag code={r.short} />
             {r.short}
