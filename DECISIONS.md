@@ -1573,3 +1573,20 @@ turns, eBay first, scrolling sideways when the column is narrower (`.scroller`).
 ## 2026-11-13: the price alert button is in the quick view too
 
 Ported from DexCompare the same day (its DECISIONS.md has the measurement: over half of Dex's buy clicks start in the quick view, and the alert button, on the product page only, had no taps in its first day and a half). The quick route sends `alert` (the service's site key, the product id, the region's lowest in-stock store price and its market) and `QuickView` draws the same `PriceAlertForm` above its footer link: a button, the form opens in place on a tap, never by itself. A response the CDN kept from before has no `alert` and draws nothing. `QuickView` takes the site key from the route, never from `lib/alert-feed.ts`, which reads files. `tests/quick-view-alert.test.ts`.
+
+## 2026-11-13: the front page is trimmed: a short "Coming soon", ten products, green stock words
+
+Owner: the landing page's "Coming soon" block "takes up too much of the page … so long vertically when there's only one row", the front page
+should show more in-stock products, and the "in stock … at X stores" text should be a different colour.
+
+- **Coming soon** (`components/ComingSoon.tsx`): the hub link moved up to the heading's line, and on the landing page the products are ONE sideways
+  row of fixed-size tiles. Before, the block reserved a full row per product of the busiest region (so a region swap moved nothing), which left the
+  US, with one pre-order, four empty rows. One row is the same height for every region, so the swap still moves nothing (CLS 0). The region home's
+  block keeps its two columns and gets the same one-line heading.
+- **Ten picks** (`lib/picks.ts` `PICK_SLOTS`, `HomeRegionGrid` `SLOTS`): "Most stocked in <region> today" is two rows of five (ten rows on a phone),
+  from the same pool (the region's newest in-stock Play and Collector Booster Boxes, up to sixteen); the second row's photos load lazily.
+- **Stock words** (`globals.css` `.sp-open`, the landing grid's line): an open product's "In stock at 12 of 15 stores" is the stock green, semibold,
+  instead of grey words beside a green dot. This relaxes one detail of the calm palette (2026-11-12): green is still the only colour used, for money
+  and availability; pre-order, sold-out and stale stay grey.
+
+URLs, titles, metadata, headings and JSON-LD are unchanged. Released with `[deploy] [urgent]` in the merge subject, as the owner asked.

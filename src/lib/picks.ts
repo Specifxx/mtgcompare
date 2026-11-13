@@ -20,7 +20,8 @@ export interface Pick {
   median: number | null;
 }
 
-export const PICK_SLOTS = 5;
+// Ten since 2026-11-13 (owner: "more products shown" on the front page); five before.
+export const PICK_SLOTS = 10;
 
 export async function regionPicks(region: Region): Promise<Pick[]> {
   const { boxes, etbs: collector } = await homeRails(REGIONS[region].market);

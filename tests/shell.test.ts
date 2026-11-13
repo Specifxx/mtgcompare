@@ -268,7 +268,7 @@ test("landing metadata: hreflang for the seven region homes plus x-default '/', 
   assert.ok(title.length <= 65, title);
 });
 
-test("landing page: static and short: hero, one fair paragraph, the region's five, the hot buttons, and nothing else", () => {
+test("landing page: static and short: hero, one fair paragraph, the region's ten, the hot buttons, and nothing else", () => {
   const page = src("app/(site)/page.tsx");
   assert.doesNotMatch(page, /prisma|@\/lib\/db|@\/lib\/data"/, "no database");
   assert.match(page, /text-4xl[^"]*sm:text-6xl/);

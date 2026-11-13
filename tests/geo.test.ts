@@ -49,7 +49,7 @@ test("the landing page: the region grid's server HTML has every region link and 
   assert.match(html, /data-home-grid=""/);
   for (const r of REGION_LIST) assert.match(html, new RegExp(`href="/${r.region}"`), r.region);
   const grid = html.slice(html.indexOf("data-home-grid"));
-  assert.equal((grid.match(/class="card h-\[5\.5rem\] overflow-hidden sm:h-\[18\.5rem\]"/g) ?? []).length, 5, "five slots of fixed height: filling them moves nothing");
+  assert.equal((grid.match(/class="card h-\[5\.5rem\] overflow-hidden sm:h-\[18\.5rem\]"/g) ?? []).length, 10, "ten slots of fixed height (five until 2026-11-13): filling them moves nothing");
   assert.match(grid, /Most stocked in the US today/);
   const hot = grid.match(/data-hot-button=""/g) ?? [];
   assert.ok(hot.length >= 4 && hot.length <= 8, `${hot.length} hot buttons`);
