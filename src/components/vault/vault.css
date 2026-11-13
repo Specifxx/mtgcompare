@@ -1,6 +1,9 @@
 /* My collection (src/lib/vault.ts). Drawn in currentColor so it sits in any site's theme; the accent is the cart's. */
 :where(.ce-vault-add) { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; }
-:where(.ce-vault-btn) {
+/* The button and the link are written with their class, not :where(): a site's reset (Tailwind's preflight) gives a bare
+   <button> no padding and its parent's size and weight, and a bare <a> its parent's colour, and one element out-weighs a
+   rule of no weight. "+ I own this" drew with its words against its border until 2026-11-13 (tests/vault.test.ts). */
+.ce-vault-btn {
   display: inline-flex; align-items: center; gap: 0.4rem; min-height: 2.5rem; padding: 0 0.9rem; border-radius: 0.6rem;
   border: 1px solid color-mix(in srgb, currentColor 28%, transparent); background: transparent; color: inherit;
   font: inherit; font-size: 0.875rem; font-weight: 700; text-decoration: none; cursor: pointer;
@@ -9,7 +12,7 @@
 .ce-vault-btn.is-in { background: var(--cart-accent); border-color: var(--cart-accent); color: var(--cart-on-accent); cursor: default; }
 .ce-vault-btn:focus-visible, .ce-vault-qty button:focus-visible, .ce-vault-link:focus-visible { outline: 2px solid var(--cart-accent); outline-offset: 2px; }
 :where(.ce-vault-hint, .ce-vault-muted) { font-size: 0.8rem; opacity: 0.7; }
-:where(.ce-vault-link) { font-size: 0.875rem; font-weight: 700; color: var(--cart-accent); text-decoration: none; }
+.ce-vault-link { font-size: 0.875rem; font-weight: 700; color: var(--cart-accent); text-decoration: none; }
 :where(.ce-vault-qty) {
   display: inline-flex; align-items: center; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); border-radius: 0.6rem; height: 2.25rem;
 }
