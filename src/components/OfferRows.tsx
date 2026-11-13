@@ -177,7 +177,7 @@ export interface StoreRowData {
  */
 export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: boolean; top?: boolean }) {
   // `top` (the pinned table, OfferRowsWithEbay): the cheapest row of the whole table, eBay and TCGplayer included: the tint and "Best
-  // price". The cheapest store (`d.best`) keeps the red button either way, and reads "Best store price" when another row is cheaper.
+  // price". The cheapest store (`d.best`) keeps the red button either way, and carries no badge when another row is cheaper (owner, 2026-11-13: no "Best store price").
   // Without `top` (the store-only table) the cheapest store is the best price, as before.
   const pinned = top !== undefined;
   const highlight = pinned ? top : d.best;
@@ -197,11 +197,7 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
           <span className="hidden shrink-0 rounded-full border border-line bg-raised px-2 py-0.5 sm:inline text-[10px] font-bold uppercase leading-3 tracking-wide text-muted">Marketplace</span>
         )}
         {pinned ? (
-          top ? (
-            <span className={badge}>Best price</span>
-          ) : (
-            d.best && <span className={badge}>Best store price</span>
-          )
+          top && <span className={badge}>Best price</span>
         ) : (
           d.best &&
           (d.badge ? (
@@ -211,8 +207,7 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
             </span>
           ) : (
             <span className={badge}>
-              Best <span className="hidden group-data-[ebay=cheaper]/offers:inline">store </span>
-              price
+              Best price
             </span>
           ))
         )}
