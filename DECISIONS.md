@@ -1557,7 +1557,7 @@ Owner: visitors looked down, the side banners "don't look as good" and spoil the
 
 ## 2026-11-13: one horizontal in-page ad block in place of the side rails
 
-Owner: with the side rails off (entry above), replace them with ONE bigger, subtler, horizontal ad block inside the page that looks native: the site's own
+Owner: with the side rails off (2026-11-13: the side rails are off), replace them with ONE bigger, subtler, horizontal ad block inside the page that looks native: the site's own
 dashed `.ad-box`, a small "Ad" pill, six larger tiles (172px pictures, the logo word, two title lines, price and "View"), eBay's and TCGplayer's taking
 turns, eBay first, scrolling sideways when the column is narrower (`.scroller`). No pop-up, nothing fixed, no side space.
 
