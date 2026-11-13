@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-13T01:49:17.092Z",
+ "generatedAt": "2026-11-13T16:55:44.460Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -78,7 +78,7 @@
    "currency": "AUD",
    "store": "HobbiShack",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/657860_in_1000x1000.jpg",
-   "refCents": 17999,
+   "refCents": 17950,
    "refLabel": "median store price",
    "savingPct": 44
   },
@@ -212,29 +212,15 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "Marvel Super Heroes Bundle",
-   "url": "https://mtgcompare.app/us/p/marvel-super-heroes-bundle",
-   "cents": 3499,
-   "currency": "USD",
-   "store": "Blue Mist",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675615_in_1000x1000.jpg",
-   "refCents": 6730,
-   "refLabel": "median store price",
-   "savingPct": 48
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "US",
    "title": "Edge of Eternities Commander Deck - World Shaper",
    "url": "https://mtgcompare.app/us/p/edge-of-eternities-commander-deck-world-shaper",
    "cents": 2699,
    "currency": "USD",
    "store": "Video Game Trader LLC",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/619676_in_1000x1000.jpg",
-   "refCents": 5110,
+   "refCents": 5242,
    "refLabel": "median store price",
-   "savingPct": 47
+   "savingPct": 49
   },
   {
    "kind": "deal",
@@ -242,27 +228,41 @@
    "region": "US",
    "title": "Star Trek Commander Deck - Klingon Fury (Collector's Edition)",
    "url": "https://mtgcompare.app/us/p/star-trek-commander-deck-klingon-fury-collectors-edition",
-   "cents": 8499,
+   "cents": 8175,
    "currency": "USD",
-   "store": "Collector Store",
+   "store": "Common Lands",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/706174_in_1000x1000.jpg",
    "refCents": 15999,
    "refLabel": "median store price",
-   "savingPct": 47
+   "savingPct": 49
   },
   {
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "Star Trek Commander Deck - Federation Fleet",
-   "url": "https://mtgcompare.app/us/p/star-trek-commander-deck-federation-fleet",
-   "cents": 3500,
+   "title": "Teenage Mutant Ninja Turtles Play Booster Pack",
+   "url": "https://mtgcompare.app/us/p/teenage-mutant-ninja-turtles-play-booster-pack",
+   "cents": 325,
    "currency": "USD",
-   "store": "Vegas Singles",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/706167_in_1000x1000.jpg",
-   "refCents": 6299,
+   "store": "MinMaxGames",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/657848_in_1000x1000.jpg",
+   "refCents": 602,
    "refLabel": "median store price",
-   "savingPct": 44
+   "savingPct": 46
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "US",
+   "title": "Lorwyn Eclipsed 60-Card Theme Deck - Pirates",
+   "url": "https://mtgcompare.app/us/p/lorwyn-eclipsed-60-card-theme-deck-pirates",
+   "cents": 1299,
+   "currency": "USD",
+   "store": "Mox Boarding House",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/656330_in_1000x1000.jpg",
+   "refCents": 2399,
+   "refLabel": "median store price",
+   "savingPct": 46
   },
   {
    "kind": "deal",
@@ -366,6 +366,20 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "CA",
+   "title": "Phyrexia: All Will Be One Set Booster Pack",
+   "url": "https://mtgcompare.app/ca/p/phyrexia-all-will-be-one-set-booster-pack",
+   "cents": 699,
+   "currency": "CAD",
+   "store": "Play N Trade Winnipeg",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/451871_in_1000x1000.jpg",
+   "refCents": 1499,
+   "refLabel": "median store price",
+   "savingPct": 53
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "CA",
    "title": "Unfinity Collector Booster Pack",
    "url": "https://mtgcompare.app/ca/p/unfinity-collector-booster-pack",
    "cents": 2799,
@@ -386,7 +400,7 @@
    "currency": "CAD",
    "store": "KanZenGames",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/706169_in_1000x1000.jpg",
-   "refCents": 8699,
+   "refCents": 8600,
    "refLabel": "median store price",
    "savingPct": 48
   },
@@ -435,14 +449,14 @@
   {
    "kind": "deal",
    "cluster": "cards",
-   "region": "CA",
-   "title": "The Hobbit Scene Box - Treasures of Smaug",
-   "url": "https://mtgcompare.app/ca/p/the-hobbit-scene-box-treasures-of-smaug",
-   "cents": 5500,
-   "currency": "CAD",
-   "store": "Mad Merchant Cards and Games Limited",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/692969_in_1000x1000.jpg",
-   "refCents": 9999,
+   "region": "EU",
+   "title": "Marvel Super Heroes Commander Deck - The Fantastic Four",
+   "url": "https://mtgcompare.app/eu/p/marvel-super-heroes-commander-deck-the-fantastic-four",
+   "cents": 3867,
+   "currency": "EUR",
+   "store": "Mana Market EU",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675632_in_1000x1000.jpg",
+   "refCents": 6995,
    "refLabel": "median store price",
    "savingPct": 45
   },
@@ -456,21 +470,7 @@
    "currency": "EUR",
    "store": "TCG Tavern",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/675603_in_1000x1000.jpg",
-   "refCents": 16750,
-   "refLabel": "median store price",
-   "savingPct": 46
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "EU",
-   "title": "Marvel Super Heroes Commander Deck - The Fantastic Four",
-   "url": "https://mtgcompare.app/eu/p/marvel-super-heroes-commander-deck-the-fantastic-four",
-   "cents": 3867,
-   "currency": "EUR",
-   "store": "Mana Market EU",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675632_in_1000x1000.jpg",
-   "refCents": 6990,
+   "refCents": 16250,
    "refLabel": "median store price",
    "savingPct": 45
   },
@@ -512,9 +512,9 @@
    "currency": "EUR",
    "store": "Mana Market EU",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/675633_in_1000x1000.jpg",
-   "refCents": 6490,
+   "refCents": 6745,
    "refLabel": "median store price",
-   "savingPct": 41
+   "savingPct": 43
   },
   {
    "kind": "deal",
@@ -590,29 +590,29 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "SG",
-   "title": "Marvel Super Heroes Commander Deck - Wakanda Forever",
-   "url": "https://mtgcompare.app/sg/p/marvel-super-heroes-commander-deck-wakanda-forever",
-   "cents": 4700,
+   "title": "Star Trek Commander Deck - Landing Party",
+   "url": "https://mtgcompare.app/sg/p/star-trek-commander-deck-landing-party",
+   "cents": 7500,
    "currency": "SGD",
    "store": "Tefuda Games",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675633_in_1000x1000.jpg",
-   "refCents": 6200,
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/706168_in_1000x1000.jpg",
+   "refCents": 10000,
    "refLabel": "median store price",
-   "savingPct": 24
+   "savingPct": 25
   },
   {
    "kind": "deal",
    "cluster": "cards",
    "region": "SG",
-   "title": "Marvel Super Heroes - Scene Box [Villains Unleashed] - Marvel Super Heroes",
-   "url": "https://mtgcompare.app/sg/p/marvel-super-heroes-scene-box-villains-unleashed-marvel-super-heroes",
-   "cents": 4800,
+   "title": "Star Trek Commander Deck - We Are the Borg",
+   "url": "https://mtgcompare.app/sg/p/star-trek-commander-deck-we-are-the-borg",
+   "cents": 7500,
    "currency": "SGD",
-   "store": "Daimonji TCG",
-   "image": "https://cdn.shopify.com/s/files/1/0558/2114/0029/files/marvel-super-heroes-scene-box-villains-unleashed-magic-the-gathering.jpg?v=1769587641",
-   "refCents": 6250,
+   "store": "Tefuda Games",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/706171_in_1000x1000.jpg",
+   "refCents": 10000,
    "refLabel": "median store price",
-   "savingPct": 23
+   "savingPct": 25
   }
  ]
 }
