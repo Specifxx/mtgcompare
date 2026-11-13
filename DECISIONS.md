@@ -1554,3 +1554,18 @@ Owner asked for every site to be released now: the unpriced-Amazon fix, Fetch as
 ## 2026-11-13: the side rails are off; the ads are the strips inside the page
 
 Owner: visitors looked down, the side banners "don't look as good" and spoil the site's look, so the eBay and TCGplayer (or Amazon) rails come off every site and the page column gets the side space back. The ads that stay are the horizontal strips inside the page and, on small screens, the phone dock (after a scroll, never on a product page). The rail code stays behind one constant (`SIDE_RAILS = false` in the rail component, or `SITE.sideRails` on MotorCompare): nothing is rendered or fetched while it is false, and the CSS that narrowed the column for them is gone. Measured before the change (Vercel Web Analytics, unique visitors, Oct 30 to Nov 5 against Nov 6 to Nov 12, the rails having shipped Nov 6): DexCompare 4,200 to 4,972 with bounce 57% to 43%; RiftCompare 3,399 to 3,179 (its fall was Oct 29, a week before the rails); OP Compare 1,123 to 1,016. The measure to watch next is clicks per placement for the strips, not visitors. Never re-add rails, a floating banner or a gutter ad without the owner.
+
+## 2026-11-13: one horizontal in-page ad block in place of the side rails
+
+Owner: with the side rails off (entry above), replace them with ONE bigger, subtler, horizontal ad block inside the page that looks native: the site's own
+dashed `.ad-box`, a small "Ad" pill, six larger tiles (172px pictures, the logo word, two title lines, price and "View"), eBay's and TCGplayer's taking
+turns, eBay first, scrolling sideways when the column is narrower (`.scroller`). No pop-up, nothing fixed, no side space.
+
+- **Where, once a page** (`components/InlineAds.tsx`): the region home between sections (where the TCGplayer strip was), below a product page's "More
+  from <set>" and below a set page's grid, never beside a buy button or above a price; every other region page gets it from the layout directly above
+  the footer. The pre-footer eBay strip, the pre-footer TCGplayer strip and `TcgplayerStrip` are gone (replaced, so a page has one such block). The
+  page's own eBay strips and in-feed tiles are unchanged; the in-feed tiles still start past the 6th listing, which the block can show.
+- **Browser only, CLS 0:** the server HTML holds an empty box of the block's height; tiles are fetched (the sealed feed the strips share, CDN-cached) and
+  drawn when it nears the viewport; under three tiles the box is removed. The phone dock stays and yields to the block (`[data-ad]`).
+- **Paid links:** eBay and TCGplayer only, never Amazon; `rel` sponsored; placements `listings-inline` and `tcgplayer-strip-inline` (the side placements
+  are removed). Never a store row, best price, deal or alert. `tests/side-ads.test.ts` pins it. The rail code (`SIDE_RAILS`, the two rails) is deleted.

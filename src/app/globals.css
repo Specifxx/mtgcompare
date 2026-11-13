@@ -715,17 +715,10 @@ html[data-geo="pending"] main { visibility: hidden; }
   --srv-field: rgb(var(--raised));
 }
 
-/* A rail's list scrolls inside it (up to ten tiles): a thin bar, and the page does not scroll on past the list's end. */
-.rail-scroll {
-  scrollbar-width: thin;
-  scrollbar-gutter: stable;
-}
-
 /* ── The full-width layout and the featured-product hero (owner, 2026-11-08: "how they feature some products on the hero and how it
    uses the full screen", KaeYoung and ScentCompare's) ─────────────────────────────────────────────────────────────────────────────
-   From 1280px the shell runs from the eBay rail's edge to the TCGplayer rail's at every width, so the sidebar sits flush against the
-   left rail and nothing floats in a gap. Margins, not a max-width of 100vw - 272px: 100vw counts a desktop scrollbar, which would push
-   the shell under a rail. The header keeps its full width (its own xl:max-w-shell is a different class). */
+   From 1280px the shell takes the whole width (the side rails are gone, 2026-11-13). The header keeps its full width (its own
+   xl:max-w-shell is a different class). */
 @media (min-width: 1280px) {
   .max-w-shell {
     max-width: none;

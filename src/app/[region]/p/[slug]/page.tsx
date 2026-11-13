@@ -36,7 +36,7 @@ import { ebaySearchUrl, offerLink, offerRetailer, tcgplayerAffiliateUrl, tcgplay
 import { productAdPlan, soldOutAdPlan } from "@/lib/ebay-ads";
 import { ebayFloorFor, rowPacks, tableShape } from "@/lib/ebay-offer-row";
 import { productPage, setTcgplayerTiles, type ProductCardData } from "@/lib/data";
-import { TcgplayerStrip } from "@/components/TcgplayerStrip";
+import { InlineAds } from "@/components/InlineAds";
 import { money, plural, timeAgo } from "@/lib/format";
 import { thumb } from "@/lib/images";
 import { packsFor } from "@/lib/packs";
@@ -739,7 +739,7 @@ export default async function ProductPage({ params }: { params: { region: string
       )}
 
       {/* Real sealed products on TCGplayer: after the price table, the chart and "More from <set>", never between a buyer and a price. */}
-      <TcgplayerStrip tiles={tcgTiles} region={r.region} placement="tcgplayer-strip-product" title={set ? `More ${set.name} on TCGplayer` : "Magic sealed on TCGplayer"} searchName={set?.name ?? ""} className="mt-14" />
+      <InlineAds region={r.region} tiles={tcgTiles} className="mt-14" />
 
       {best && !p.setCode && alternatives.length > 0 && (
         <Section title={`More ${type ? type.plural : "sealed products"} in ${r.inName}`} href={typeLink.href} linkLabel="See all">

@@ -27,7 +27,7 @@ import {
   isEbayHost,
   parseEbayBanner,
 } from "../src/lib/affiliate";
-import { FEED_EVERY, FEED_FIRST_INDEX, FEED_MAX, FEED_MIN_TAIL, FEED_PLACEMENTS, FEED_WIDE_MIN_TAIL, feedSlots, gridPageHasRoomForFooter, listHasRoomForFooter, preFooterPlan, productAdPlan, soldOutAdPlan, tileSource, withFeed, type FeedSurface } from "../src/lib/ebay-ads";
+import { FEED_EVERY, FEED_FIRST_INDEX, FEED_MAX, FEED_MIN_TAIL, FEED_PLACEMENTS, FEED_WIDE_MIN_TAIL, feedSlots, gridPageHasRoomForFooter, listHasRoomForFooter, productAdPlan, soldOutAdPlan, tileSource, withFeed, type FeedSurface } from "../src/lib/ebay-ads";
 import { MAX_FEED_ROWS } from "../src/lib/ebay-context";
 import { REGION_LIST, type Region } from "../src/lib/regions";
 import { STORES, TCGPLAYER } from "../src/lib/stores";
@@ -294,11 +294,6 @@ test("in-feed tiles: each a different listing that no strip or pre-footer strip 
   assert.ok(FEED_FIRST_INDEX + FEED_MAX <= MAX_FEED_ROWS, "every tile a grid can have has a stored row to show");
   assert.deepEqual(FEED_PLACEMENTS, { browse: "listings-browse-feed", set: "listings-set-feed", type: "listings-type-feed", deals: "listings-deals-feed" });
   for (const p of Object.values(FEED_PLACEMENTS)) assert.ok((PLACEMENTS as readonly string[]).includes(p), `${p} is a placement`);
-  // pages whose own strip is sealed (deals, browse, type pages that cascade to it) get the chase pre-footer strip, so the tiles' sealed
-  // listings are never also above the footer; where the pre-footer strip IS sealed (set pages) it shows the 1st-4th only
-  assert.deepEqual(preFooterPlan("/us/deals", "us"), { context: "chase" });
-  assert.deepEqual(preFooterPlan("/us/sealed", "us"), { context: "chase" });
-  assert.deepEqual(preFooterPlan("/us/sets/pitch-black", "us"), { context: "sealed" });
 });
 
 test("in-feed tiles: the first lands 12 products after the strip (after product 4), over a screen apart on a phone and a desktop", () => {
@@ -308,17 +303,6 @@ test("in-feed tiles: the first lands 12 products after the strip (after product 
   // rows of two cards on a phone (~330 px), four on a desktop (~446 px): both clear the 960 px gap between two units
   assert.ok(((first - STRIP_AFTER) / 2) * 330 >= 960 && ((first - STRIP_AFTER) / 4) * 446 >= 960);
   assert.ok(((second - first) / 2) * 330 >= 960 && ((second - first) / 4) * 446 >= 960);
-});
-
-test("pre-footer strip: the feed the page's own strip is not; a region's home page has none (two strips of its own, and a feed holds only 8 listings)", () => {
-  assert.equal(preFooterPlan("/au", "au"), null);
-  assert.equal(preFooterPlan("/au/", "au"), null);
-  assert.deepEqual(preFooterPlan("/au/sets/surging-sparks", "au"), { context: "sealed" });
-  assert.deepEqual(preFooterPlan("/uk/stores/foo", "uk"), { context: "sealed" });
-  assert.deepEqual(preFooterPlan("/au/type/secret-lair", "au"), { context: "chase" });
-  assert.deepEqual(preFooterPlan("/au/p/some-product", "au"), { context: "chase" });
-  assert.deepEqual(preFooterPlan("/au/sealed/page/2", "au"), { context: "chase" });
-  assert.deepEqual(preFooterPlan("/us/sets", "au"), { context: "chase" }, "another region's path is not this region's");
 });
 
 test("listing links: eBay's affiliate URL is used exactly as stored; the buy_click carries the placement, the URL the per-feed sub-id", () => {

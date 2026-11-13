@@ -10,7 +10,7 @@ import { Ago } from "@/components/Ago";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { NoPreFooter, setSealedHighlight } from "@/components/Ebay";
 import { EbayStrip } from "@/components/EbayStrip";
-import { TcgplayerStrip } from "@/components/TcgplayerStrip";
+import { InlineAds } from "@/components/InlineAds";
 import { Icon } from "@/components/Icon";
 import { OutboundLink } from "@/components/OutboundLink";
 import { StockFilter } from "@/components/StockFilter";
@@ -237,7 +237,7 @@ export default async function SetPage({ params }: { params: { region: string; se
       {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="set" className="mt-10 max-w-2xl" buttonClassName="btn-primary" />}
 
       {/* Real sealed products on TCGplayer (2026-10-28), after this page's own comparison. */}
-      <TcgplayerStrip tiles={tcgTiles} region={r.region} placement="tcgplayer-strip-set" title={`${s.name} & more on TCGplayer`} searchName={s.name} className="mt-14" />
+      <InlineAds region={r.region} tiles={tcgTiles} className="mt-14" />
 
       <section aria-labelledby="about-set" className="mt-14 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10">
         <div>

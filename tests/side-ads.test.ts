@@ -1,60 +1,73 @@
-// The side rails (components/SideAds.tsx, ported from DexCompare 2026-11-06: eBay down the far left, TCGplayer down the far right).
-// Pinned: browser-only from 1280px (nothing in the server HTML, no layout shift), ten tiles that scroll, the placements, no Amazon.
+// The in-page ad block (components/InlineAds.tsx, owner 2026-11-13, in place of the side rails) and the phone dock (components/SideAds.tsx).
+// Pinned: browser only (nothing in the server HTML but an empty box of the block's height), eBay and TCGplayer only (never Amazon), labelled
+// Ad, rel sponsored, its own placements, one block a page, nothing fixed or floating, the rails gone.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { PLACEMENTS } from "../src/lib/affiliate";
-import { MAX_TILES, MIN_WIDTH, TILE_H, mergeListings, railFits } from "../src/components/SideAds";
+import { MAX_TILES, MIN_WIDTH, mergeListings } from "../src/components/SideAds";
+import { INLINE_H, INLINE_MAX, inlineOrder, layoutInlineAdsAllowed } from "../src/components/InlineAds";
 import { DOCK_ARM, dockShows, interleave, type DockState } from "../src/components/AdDock";
 
 const src = (p: string) => readFileSync(new URL(`../src/${p}`, import.meta.url), "utf8");
 
-test("side rails: wide screens only, the same width in the hook and the class, drawn in the browser after a matchMedia check", () => {
-  assert.equal(MIN_WIDTH, 1280, "every regular 16:9 and 16:10 screen (owner, 2026-11-06)");
-  assert.match(src("app/globals.css"), /\.max-w-shell \{\s*max-width: none;\s*width: auto;\s*margin-left: 0;\s*margin-right: 0;/, "the page column keeps the whole width: no rails (owner, 2026-11-13)");
-  const s = src("components/SideAds.tsx");
-  assert.match(s, /^"use client";/, "a client component");
-  assert.match(s, /min-\[1280px\]:flex/, "the CSS gate says the same width");
-  assert.match(s, /window\.matchMedia\(`\(min-width: \$\{MIN_WIDTH\}px\)`\)/, "mounted only when the viewport fits");
-  assert.match(s, /const \[fit, setFit\] = useState\(false\);[\s\S]*if \(!SIDE_RAILS \|\| !fit\) return null;/, "nothing is rendered before the check or when nothing fits (no SSR markup)");
-  assert.match(s, /"fixed z-30 hidden flex-col/, "fixed beside the shell: takes no space, below the header (z-40) and the quick view (z-50)");
-  for (const p of ["listings-side", "tcgplayer-strip-side"]) assert.ok((PLACEMENTS as readonly string[]).includes(p), `${p} is a placement`);
-  assert.match(s, /useListings\(\{ region, context: "sealed", placement, min: 1, eager: true \}\)/, "the eBay rail shares the home strip's sealed request");
-  assert.match(s, />Ad<\/span>/, "labelled Ad");
+test("the in-page block: eBay and TCGplayer tiles taking turns, eBay first, six at most, drawn in the browser, labelled Ad, no Amazon", () => {
+  assert.equal(INLINE_MAX, 6);
+  assert.deepEqual(inlineOrder(["e1", "e2", "e3", "e4"], ["t1", "t2", "t3", "t4"]), ["e1", "t1", "e2", "t2", "e3", "t3"]);
+  assert.deepEqual(inlineOrder(["e1"], ["t1", "t2", "t3", "t4", "t5"]), ["e1", "t1", "t2", "t3", "t4", "t5"], "a short side hands its turns over");
+  assert.deepEqual(inlineOrder([], ["t1", "t2"]), ["t1", "t2"]);
+  for (const p of ["listings-inline", "tcgplayer-strip-inline"]) assert.ok((PLACEMENTS as readonly string[]).includes(p), `${p} is a placement`);
+  const s = src("components/InlineAds.tsx");
+  assert.match(s, /^"use client";/);
+  assert.match(s, /const \[mounted, setMounted\] = useState\(false\);/, "drawn after hydration: no tiles in the server HTML");
+  assert.match(s, /style=\{\{ minHeight: INLINE_H \}\}/, "the box keeps its height in every state (CLS 0)");
+  assert.ok(INLINE_H >= 300);
+  assert.match(s, /<span className="ad-pill">Ad<\/span>/, "labelled Ad");
   assert.match(s, /rel=\{REL_SPONSORED\}/, "sponsored links");
-  assert.doesNotMatch(s, /amazon/i, "no Amazon in a rail");
+  assert.match(s, /className="scroller/, "scrolls sideways when narrow");
+  assert.match(s, /EbayMark/, "each eBay tile carries its logo word");
+  assert.match(s, /aria-label="TCGplayer"/, "each TCGplayer tile carries its logo word");
+  assert.doesNotMatch(s, /amazon/i, "never Amazon on a TCG site");
+  assert.doesNotMatch(s, /\bfixed\b|\bsticky\b/, "nothing fixed or floating");
 });
 
-test("side rails: up to ten tiles that scroll inside the rail, popular sealed first, no listing twice", () => {
+test("the block is placed once a page: the layout's copy skips the pages that place it themselves; the side rails and pre-footer strips are gone", () => {
+  for (const p of ["/us", "/us/", "/au/p/some-product", "/uk/sets/pitch-black"]) assert.ok(!layoutInlineAdsAllowed(p), `${p} places its own`);
+  for (const p of ["/us/deals", "/us/sealed", "/au/type/secret-lair", "/us/sets", "/uk/stores/foo"]) assert.ok(layoutInlineAdsAllowed(p), `${p} gets the layout's block`);
+  const layout = src("app/[region]/layout.tsx");
+  assert.equal(layout.match(/<LayoutInlineAds /g)?.length, 1);
+  assert.doesNotMatch(layout, /PreFooterStrip|PreFooterTcgplayer/);
+  for (const f of ["app/[region]/page.tsx", "app/[region]/p/[slug]/page.tsx", "app/[region]/sets/[set]/page.tsx"]) {
+    const t = src(f);
+    assert.equal(t.match(/<InlineAds /g)?.length, 1, `${f}: one block`);
+    assert.doesNotMatch(t, /<TcgplayerStrip/, `${f}: the old strip is replaced`);
+  }
+  assert.ok(!existsSync(new URL("../src/components/TcgplayerStrip.tsx", import.meta.url)) && !existsSync(new URL("../src/components/PreFooterTcgplayer.tsx", import.meta.url)));
+  assert.doesNotMatch(src("components/SideAds.tsx"), /fixed z-30|SIDE_RAILS|EbayRail|TcgRail|listings-side|tcgplayer-strip-side/, "no rail code");
+  assert.ok(!(PLACEMENTS as readonly string[]).includes("listings-side") && !(PLACEMENTS as readonly string[]).includes("tcgplayer-strip-side"));
+  assert.match(src("app/globals.css"), /\.max-w-shell \{\s*max-width: none;\s*width: auto;\s*margin-left: 0;\s*margin-right: 0;/, "the page column keeps the whole width");
+});
+
+test("the dock's tiles: up to ten, popular sealed first, no listing twice", () => {
+  assert.equal(MIN_WIDTH, 1280);
   assert.equal(MAX_TILES, 10);
-  assert.ok(!railFits(300), "too short for one whole tile: no rail");
-  assert.ok(railFits(720), "a 1280×720 window has rails");
-  assert.ok(TILE_H > 160 && TILE_H < 240, `a tile is ${TILE_H}px tall`);
-  assert.match(src("components/SideAds.tsx"), /overflow-y-auto/, "the list scrolls");
   const item = (id: string) => ({ id }) as never;
   const ready = (ids: string[]) => ({ status: "ready", a: { items: ids.map(item) } }) as never;
   const merged = mergeListings([ready(["a", "b", "c", "d", "e", "f", "g", "h"]), ready(["c", "i", "j", "k", "l"]), { status: "none" } as never]);
   assert.deepEqual(merged.map((i: { id: string }) => i.id), ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]);
 });
 
-test("the region layout mounts the rails once, after the footer; the server HTML of a page never holds them", () => {
-  const layout = src("app/[region]/layout.tsx");
-  assert.match(layout, /<Footer region=\{r\.region\}( listed=\{listed\})? \/>\s*\{\/\*[\s\S]*?\*\/\}\s*<SideAds region=\{r\.region\} tiles=\{tcg\} \/>/, "after the footer, the pre-footer strip's tiles");
-  assert.equal(layout.match(/<SideAds /g)?.length, 1);
-});
-
-test("the home page gets the same rails, in the visitor's region, read per request (never at build)", () => {
+test("the home page keeps the phone dock, in the visitor's region, read per request (never at build)", () => {
   const home = src("app/(site)/page.tsx");
   assert.match(home, /^export const dynamic = "force-dynamic"/m);
   assert.match(home, /<SoftSideAds tiles=\{railTiles\} \/>/);
-  assert.match(home, /landingRailTiles\(\)\.catch\(/, "a failed read shows no TCGplayer rail, never an error page");
   assert.match(src("components/SideAds.tsx"), /export function SoftSideAds[\s\S]*?useSoftRegion\(\)/);
 });
 
 test("the phone dock: narrow screens only, never on the first screen, never beside another unit, the buy bar or a dialog", () => {
   const ok: DockState = { narrow: true, scrolled: 1000, screen: 800, blockers: 0, buybar: false, modal: false, typing: false, dismissed: false };
   assert.ok(dockShows(ok));
-  assert.ok(!dockShows({ ...ok, narrow: false }), "wide screens have the rails");
+  assert.ok(!dockShows({ ...ok, narrow: false }), "wide screens have the in-page block");
   assert.ok(!dockShows({ ...ok, scrolled: 800 * DOCK_ARM - 1 }), "not on the first screen");
   assert.ok(!dockShows({ ...ok, blockers: 1 }), "another unit or the footer in view");
   assert.ok(!dockShows({ ...ok, buybar: true }), "never on a page with the buy bar");
