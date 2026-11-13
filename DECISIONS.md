@@ -1663,3 +1663,20 @@ featured cards in the hero.
   `shop-menu`, `black-friday`, `side-ads`, `hot-ui`, `geo` and `base-components` are updated for the new markup.
 
 URLs, titles, metadata, h1s and JSON-LD are unchanged. Released with `[deploy] [urgent]` in the merge subject, as the owner asked.
+
+## 2026-11-13: "+ I own this" has its padding: the collection's button and link carry their class's weight
+
+Found while checking the minimal look, old build against new (Lighthouse, then a walk of the product page). The redesign changed
+nothing here: the fault is as old as the collection. `vault.css` wrote the button as `:where(.ce-vault-btn)`, which weighs nothing,
+and Tailwind's preflight styles a bare `<button>` (padding 0, the parent's size and weight) and a bare `<a>` (the parent's colour):
+one element out-weighs a `:where()`. So "+ I own this" and "Share my collection" drew with no padding, their words against the
+border, at 16px and weight 400 where the file asks for 14.4px, 14px and 700, and "See my collection →" was the text's colour, not
+the accent. The two rules are written with their class now (`.ce-vault-btn`, `.ce-vault-link`). Measured on a fresh build: the
+button is 111.8×40px with 14.4px of padding (it was 91.2×40px with none), and the link is the accent, which reads at 4.5:1 or
+better on the page's ground in both themes.
+
+`tests/vault.test.ts` reads the reset from `tailwindcss` itself and the elements from the components' markup, and fails on any
+`:where()` rule in `vault.css` that the reset beats (six lines on the old file). `cart.css` is written the same way and is left
+alone: its add button is an icon, where the lost padding and size show nothing, and its class's weight would out-rank the
+`text-muted` the price rows put on it. DexCompare and YGO Compare took the same fix the same day; the file is also on Gundam, Bandai, Lorcana,
+Cyberpunk and SportsCardCompare, which this change did not touch (reported). No deploy marker: it rides the next release.

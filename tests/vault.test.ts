@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import path from "node:path";
+import { createRequire } from "node:module";
 import { addItem, itemKey, lastLook, parseVault, recordDay, setItemQty, shareText, sinceAdded, totalsByMarket, valueItems, type PriceFile, type VaultItem } from "../src/lib/vault";
 
 // My collection (competitor scan, 2026-11-08): kept in the browser, valued from /prices.json, never converted.
@@ -53,4 +55,53 @@ test("the collection page is a static, noindex shell that reads only /prices.jso
   assert.match(page, /index: false/);
   const view = fs.readFileSync("src/components/vault/VaultView.tsx", "utf8");
   assert.deepEqual(view.match(/fetch\("[^"]+"/g), ['fetch("/prices.json"']);
+});
+
+// "+ I own this" drew with its words against its border (found 2026-11-13). vault.css wrote the button as
+// :where(.ce-vault-btn), which weighs nothing, and a site's reset (Tailwind's preflight) styles a bare <button> (no padding,
+// its parent's size and weight) and a bare <a> (its parent's colour): one element out-weighs a rule of no weight. Read from
+// the reset itself and from the components' own markup, so any class put on an element the reset styles is held to the same.
+test("the collection's button and link carry their class's weight: a :where() rule loses its padding, size and colour to the site's reset", () => {
+  const rules = (css: string) =>
+    [...css.replace(/\/\*[\s\S]*?\*\//g, "").matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(([, selector, body]) => ({
+      selector: selector.trim(),
+      decls: new Map(body.split(";").map((d) => [d.slice(0, d.indexOf(":")).trim(), d.slice(d.indexOf(":") + 1).trim()] as [string, string]).filter(([k, v]) => k && v)),
+    }));
+  const preflight = rules(fs.readFileSync(path.join(path.dirname(createRequire(import.meta.url).resolve("tailwindcss/package.json")), "src/css/preflight.css"), "utf8"));
+  /** What the reset declares on a bare element of this kind. */
+  const reset = (tag: string) => new Map(preflight.filter((r) => r.selector.split(/,(?![^()]*\))/).some((s) => s.trim() === tag)).flatMap((r) => [...r.decls]));
+  assert.equal(reset("button").get("padding"), "0", "the reset is read");
+  assert.equal(reset("button").get("font-weight"), "inherit");
+  assert.equal(reset("a").get("color"), "inherit");
+
+  // Which element each ce-vault-* class is put on, from the markup.
+  const on = new Map<string, Set<string>>();
+  for (const file of fs.readdirSync("src/components/vault").filter((f) => f.endsWith(".tsx"))) {
+    const src = fs.readFileSync(`src/components/vault/${file}`, "utf8");
+    for (const m of src.matchAll(/className=(?:"|\{`)([^"`]*)/g)) {
+      const tag = /^<([a-z][a-z0-9]*)/.exec(src.slice(src.lastIndexOf("<", m.index)))?.[1];
+      if (tag) for (const cls of m[1].split(/\s+/).filter((c) => c.startsWith("ce-vault-"))) on.set(cls, (on.get(cls) ?? new Set<string>()).add(tag));
+    }
+  }
+  assert.ok(on.get("ce-vault-btn")?.has("button"), "the button is found in the markup");
+  assert.ok(on.get("ce-vault-link")?.has("a"), "the link is found in the markup");
+
+  const sheet = rules(fs.readFileSync("src/components/vault/vault.css", "utf8"));
+  const lost: string[] = [];
+  for (const rule of sheet) {
+    const where = /^:where\(([^()]*)\)$/.exec(rule.selector);
+    for (const cls of where ? where[1].split(",").map((s) => s.trim().replace(/^\./, "")) : []) {
+      for (const tag of on.get(cls) ?? []) {
+        for (const [prop, value] of rule.decls) {
+          const theirs = reset(tag).get(prop);
+          if (theirs !== undefined && theirs !== value) lost.push(`<${tag} class="${cls}"> ${prop}: ${value} loses to the reset's ${theirs}`);
+        }
+      }
+    }
+  }
+  assert.deepEqual(lost, []);
+  // And what the two are meant to be, as written.
+  const button = sheet.find((r) => r.selector === ".ce-vault-btn");
+  assert.deepEqual(button && [button.decls.get("padding"), button.decls.get("font-size"), button.decls.get("font-weight"), button.decls.get("min-height")], ["0 0.9rem", "0.875rem", "700", "2.5rem"]);
+  assert.equal(sheet.find((r) => r.selector === ".ce-vault-link")?.decls.get("color"), "var(--cart-accent)");
 });
