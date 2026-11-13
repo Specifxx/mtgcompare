@@ -1590,3 +1590,76 @@ should show more in-stock products, and the "in stock … at X stores" text shou
   and availability; pre-order, sold-out and stale stay grey.
 
 URLs, titles, metadata, headings and JSON-LD are unchanged. Released with `[deploy] [urgent]` in the merge subject, as the owner asked.
+
+## 2026-11-13: the minimal look: one navigation, a hero of words and a search, products first
+
+Owner: "we're making things too complicated, and before it was simplicity that was driving it … get rid of the products on the hero … cull the
+features that we show and all the display aesthetics … we can be minimalistic, dynamic, aesthetic and smooth without having everything there". Ported
+from DexCompare the same day (its DECISIONS.md has the review of every page type), with this site's own names, copy, product types, colours and data.
+It goes further than the trim above (same day): the "Coming soon" block that entry shortened is off both home pages. It reverses the 2026-11-08
+featured cards in the hero.
+
+- **One navigation.** The desktop sidebar (`SideNav.tsx`, deleted) repeated the header's menus down the left of every page. The header is the site's
+  only navigation now: four sections (Deals, All sealed, Sets, Guides), each with its menu, then the search with the row's spare room, the theme, the
+  region and the cart; below lg the menu button's sheet lists the same groups (`lib/nav.ts`). The row had up to seven entries: the seasonal "Black
+  Friday", "Stores" and eBay's sponsored link are out of it. "Stores we compare" and the booster box price guide (the sidebar's first link) are in the
+  Guides menu's "The data" column, both sale pages lead the Deals menu in season (`dealsMenuColumns`; the strip under the header stays), and the All
+  sealed menu lists eight sets, as the phone menu does (with seven, the eighth newest set had lost its link from every page). So no page lost a
+  site-wide link: compared link by link on 24 pages, the only internal links that left a page are product links from the home pages' cut blocks (1 on
+  the landing page, 8 on /us, 7 on /au, 8 on /uk), each still linked from its type page, set page or pre-order hub. eBay's link is out of the header:
+  no ad in the navigation. The page is one centred column, 1200px (`max-w-page`; it was 1440px beside a 240px sidebar).
+- **The hero has no product, on the landing page and on every region home** (`components/home/Hero.tsx`): the same h1, one line under it, the search,
+  the region row and six ways in, centred, on a ground of two CSS gradients. `SoftWaysIn.tsx` points the landing page's ways and search at the
+  visitor's region, as `RegionSuggest` did for the old shortcuts. `HeroCards` and `SoftHeroCards` ("Hot right now") are deleted, not hidden; the stat
+  chips, the "Shop by type" chip row (the All sealed and Deals menus) and the Creators chip (the Guides menu, the footer) are gone. A region home
+  keeps its breadcrumb and one quiet line (stores, in stock, checked). In season the landing hero's one pill is the Christmas gift guide; the
+  Halloween dressing is no longer placed (`HalloweenDecor`, `InnistradComing` and their CSS stay for next October's decision). Both headlines are
+  long, so they are set a size down on a wider measure (`.hero-h1-long`): two lines on a desktop, where the landing page's first products show at the
+  foot of a 1440×900 screen.
+- **Where pre-orders live now.** The "Coming soon" block left the landing page and the region home (`ComingSoon.tsx`, `ComingSoonSwitch.tsx`,
+  `lib/coming-soon.ts`, `lib/coming-soon-data.ts` and `tests/coming-soon.test.ts` are deleted: nothing else used them). The owner wanted it short, not
+  unreachable, so pre-orders are: the hero's sixth tile on the landing page ("Pre-orders": the release calendar, with what stores have open); the
+  hero's pill (the soonest set with a pre-order hub) and the shelf's Pre-orders tab on a region home, whose sixth tile is "All sets"; and the Deals
+  menu's "Coming soon" column (the open hubs, then the calendar) on every page.
+- **A region home was eighteen blocks, one after another; it is six.** The hero; ONE shelf, "In stock today", whose lists (Play booster boxes,
+  Collector boxes, deals, pre-orders) sit behind tabs (`Tabs.tsx`: every panel is server-rendered and stays in the HTML, a tab only chooses which
+  shows, no request); the four latest sets as tiles, two columns (a Magic set's name and "Play Booster Box from $179.99" need the width); the weekly
+  email; the page's one ad block; then the reading matter (the market report's four sections and "Every set and product type") as closed `<details>`
+  with their `<h2>` in the summary (`Fold.tsx`), and recently viewed. Gone from the page, each still one click away: the Black Friday and sale cards
+  (the strip under the header; the Deals menu), both eBay strips, the latest sets' product rows and the "which product to buy" links (each set's page;
+  the footer's guides), the older-sets rows (Deals menu, "Older sets in stock"), the six guide cards (Guides menu, footer), "How MTG Compare works"
+  (/about, from the footer) and the reviews row (the footer's "Rate us").
+- **The landing page is the hero, the region's ten and one ad block.** The paragraph on how stores are ranked is gone: the footer says "No store pays
+  to be listed or to rank" on every page and links /about. The eBay + TCGplayer banner (`LandingAds`; owner, 2026-11-03: straight under the hero) is
+  still the page's one ad block, under the ten products now: the products are what the visitor came for.
+- **List pages show products first.** A type page's intro and facts table (two clamped lines and "More about") sat between the headline and the grid;
+  they are the fold "About <type>" under it, and its two text links are buttons under the grid. A set page's sentence opens its "About", its per-pack
+  strip follows the product grid, and its header lost its box.
+- **The product card** is the photo, the name, one stock line ("In stock · 12 stores", still the stock green of the trim above; its title keeps the
+  whole sentence, "In stock at 12 of 15 stores") and the price, with the per-pack price beside it and at most one badge on the photo (−N% under the
+  median, else "Below MSRP" where Wizards publish one, US only). No frame, type pill, series line, saving line, "+ TCGplayer" tag or compare cue. It
+  is still one link with the same `data-qv*`, so the quick view and its buy rows are untouched, and so is the product page (the page that earns) apart
+  from the missing sidebar.
+- **Ads: the trade-off.** A page keeps ONE in-page block under what the visitor came for, the list pages' own strips and in-grid tiles, and the phone
+  dock. The header link and the region home's two strips are gone. Revenue check, 13 November: side rails and banners had 163 eBay clicks and 0 sales
+  last week; the earnings come from the product page's and the quick view's rows, which did not change. Clicks per placement are rechecked on 19
+  November; if the home's strips earned, one comes back under the shelf.
+- **Motion is CSS only** (`globals.css`, "Motion."): the hero's parts rise in turn on load (the h1 moves 10px but is never transparent, so the largest
+  paint is not held back), sections rise as they scroll in only where the browser ties it to the scroll position (`animation-timeline: view()`), tabs
+  and folds fade in, the header takes its line once the page moves under it (a colour, tied to the scroll). Transforms and opacity only, inside
+  `@media screen and (prefers-reduced-motion: no-preference)` or switched off under `prefers-reduced-motion: reduce`; nothing in the layout moves. No
+  animation library, no scroll listener, no observer.
+- **Found on the way, and fixed: every region page was wider than a phone's screen.** A visually hidden label inside a sideways scroller that is not
+  positioned is not clipped by it and counts toward the page's width. On a 390px phone the layout was 962px wide on every region page once the ad
+  block's tiles loaded and 658px on a product page from its first paint (1,726px on a 1440px desktop), so the page slid sideways. `:where(.scroller,
+  .overflow-x-auto, .overflow-x-scroll) { position: relative }`: 390px (and 1440px) on all thirteen pages measured, after scrolling each to its end.
+- **Measured, old build against new, same data** (US region; phone 390px, desktop 1440px; heights at load): the region home 27,157px → 7,132px on a
+  phone and 15,848px → 5,344px on a desktop; its HTML 505,515 → 402,397 bytes, elements 2,357 → 1,787, links 460 → 381, first-load JS 148 → 139 kB.
+  Landing page: 5,049px → 3,883px on a phone, 3,203px → 2,869px on a desktop, 200,953 → 171,118 bytes, 1,026 → 829 elements, first-load JS 143 → 140
+  kB. A type page 1,448 → 1,248 elements, a set page 1,920 → 1,630, the product page 2,602 → 2,468 (its JS unchanged at 142 kB). Titles, descriptions,
+  canonicals, hreflang, robots, Open Graph, h1s and JSON-LD compared field by field on 24 pages against the build before: no change.
+- `tests/minimal-look.test.ts` pins the hero (no product, no ad, no script), the shelf (every panel in the HTML), the folds, the region home's order
+  and outline, where pre-orders live, the products-first order of a type and a set page, one h1, valid JSON-LD and the motion rules; `shell`,
+  `shop-menu`, `black-friday`, `side-ads`, `hot-ui`, `geo` and `base-components` are updated for the new markup.
+
+URLs, titles, metadata, h1s and JSON-LD are unchanged. Released with `[deploy] [urgent]` in the merge subject, as the owner asked.

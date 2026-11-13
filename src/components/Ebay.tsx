@@ -10,7 +10,7 @@ import { OutboundLink } from "./OutboundLink";
 //   • the "Ad" label, used wherever an eBay link sits inside another component;
 //   • <NoPreFooter/>: a page too short to hold its own units beside the strip above the footer asks for it to go;
 //   • EbaySearchLink: a plain <a> to an EPN-tagged eBay SEARCH (affiliate.ts ebaySearchUrl), through OutboundLink,
-//     for the header's "eBay" item and the product page's functional marketplace rows.
+//     for the product page's functional marketplace rows (the header's "eBay" item is gone, 2026-11-13: no ad in the navigation).
 //
 // What they all do, and never do:
 //   • rel is "sponsored nofollow noopener noreferrer"; one buy_click {retailer, placement} per click; no redirect hop;
@@ -136,28 +136,5 @@ export function EbaySearchLink({
     >
       {children}
     </OutboundLink>
-  );
-}
-
-const Arrow = () => <span aria-hidden="true">↗</span>;
-
-/**
- * The header's "eBay" item, with its "Ad" mark: desktop (xl and up) only. A phone's
- * sticky header would put it on screen with the page's own unit, and from lg to xl
- * the nav has no room for it (the region switcher would be pushed off the edge).
- */
-export function EbayNavLink({ region }: { region: Region }) {
-  return (
-    <span data-ad="header" className="hidden shrink-0 xl:inline-flex">
-      <EbaySearchLink
-        region={region}
-        query=""
-        placement="header"
-        title="Ad: affiliate link to Magic sealed searches on eBay. We may earn a commission, at no cost to you."
-        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-muted hover:bg-raised hover:text-ink"
-      >
-        eBay <AdPill /> <Arrow />
-      </EbaySearchLink>
-    </span>
   );
 }

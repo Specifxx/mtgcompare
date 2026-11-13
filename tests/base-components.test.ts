@@ -94,8 +94,11 @@ test("Icon: the twelve names, inline SVG in currentColor, decorative unless titl
 });
 
 test("Section takes an id (an in-page anchor); Empty takes actions (internal links), and without them is unchanged", () => {
-  assert.match(renderToStaticMarkup(React.createElement(Section, { id: "prices", title: "Prices", children: "x" })), /^<section id="prices" class="mt-14">/);
-  assert.match(renderToStaticMarkup(React.createElement(Section, { title: "Prices", children: "x" })), /^<section class="mt-14">/);
+  // More air between a page's blocks (the minimal look, 2026-11-13: 64px, 80px from sm; it was 56px).
+  assert.match(renderToStaticMarkup(React.createElement(Section, { id: "prices", title: "Prices", children: "x" })), /^<section id="prices" class="mt-16 sm:mt-20">/);
+  assert.match(renderToStaticMarkup(React.createElement(Section, { title: "Prices", children: "x" })), /^<section class="mt-16 sm:mt-20">/);
+  // A page that sets its own distance (the first block under a hero sits closer) passes the whole class.
+  assert.match(renderToStaticMarkup(React.createElement(Section, { title: "Prices", className: "reveal mt-8 sm:mt-12", children: "x" })), /^<section class="reveal mt-8 sm:mt-12">/);
   const empty = renderToStaticMarkup(
     React.createElement(Empty, { actions: [{ href: "/au/type/play-booster-boxes", label: "All booster boxes" }, { href: "/nz", label: "New Zealand" }], children: "Nothing in stock right now." }),
   );

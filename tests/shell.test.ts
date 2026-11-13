@@ -1,5 +1,6 @@
-// The site's shell: the header (one 60px row, search at every width), the phone menu, the region footer, the root layout's
-// fonts, the landing page's metadata, breadcrumbs, the product card and the empty state. Rendered on the server as a crawler sees them.
+// The site's shell: the header (one 60px row, search at every width, the site's ONE navigation since 2026-11-13), the phone menu,
+// the region footer, the root layout's fonts, the landing page's metadata, breadcrumbs, the product card and the empty state.
+// Rendered on the server as a crawler sees them.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
@@ -15,13 +16,12 @@ import { DEFAULT_OG_IMAGE } from "../src/lib/seo";
 import { findBannedCopy } from "../src/lib/copy-rules";
 import { Breadcrumbs, parentCrumb } from "../src/components/Breadcrumbs";
 import { Footer, footerColumns } from "../src/components/Footer";
-import { Header, HEADER_NAV } from "../src/components/Header";
+import { Header, HEADER_NAV, headerNavItems } from "../src/components/Header";
 import { openPreorderGuides } from "../src/lib/preorder-guides";
 import { MENU_ROWS, MenuSheet } from "../src/components/MobileMenu";
-import { SideNav } from "../src/components/SideNav";
 import { navGroups, retargetGroups, retargetHref } from "../src/lib/nav";
 import { isActivePath } from "../src/components/NavLink";
-import { cardCompareLabel, cardStockLabel, ProductCard, shortTypeLabel } from "../src/components/ProductCard";
+import { cardStockLabel, cardStockShort, ProductCard } from "../src/components/ProductCard";
 import { pathAfterRegion, regionSwitchHref } from "../src/components/RegionSwitcher";
 import { Empty, emptyActionIcon } from "../src/components/Section";
 import { metadata as landingMetadata } from "../src/app/(site)/page";
@@ -114,8 +114,9 @@ test("Footer with no region: Regions and MTG Compare columns only, and no region
 });
 
 test("the footer is drawn by each layout after its <main> (and by the 404 and error pages), not by the root layout", () => {
-  assert.match(src("app/[region]/layout.tsx"), /<\/main>\s*<\/div>\s*<Footer region=\{r\.region\}( listed=\{listed\})? \/>/);
-  assert.match(src("app/(site)/layout.tsx"), /<\/main>\s*<\/div>\s*<Footer region=\{null\} \/>/);
+  // Directly after <main> since 2026-11-13: there is no sidebar, so no row around the sidebar and the page.
+  assert.match(src("app/[region]/layout.tsx"), /<\/main>\s*<Footer region=\{r\.region\}( listed=\{listed\})? \/>/);
+  assert.match(src("app/(site)/layout.tsx"), /<\/main>\s*<Footer region=\{null\} \/>/);
   assert.match(src("app/not-found.tsx"), /<\/main>\s*<Footer region=\{null\} \/>/);
   assert.match(src("app/error.tsx"), /<\/main>\s*<Footer region=\{region\?\.region \?\? null\} \/>/);
   assert.doesNotMatch(src("app/layout.tsx"), /<Footer|components\/Footer/);
@@ -127,7 +128,9 @@ test("the footer is drawn by each layout after its <main> (and by the 404 and er
 
 test("Header on a region page: search at every width (never in a hidden wrapper), the menu button, a compact region button", () => {
   const html = render(React.createElement(Header, { region: "us" }));
-  assert.match(html, /^<header class="sticky top-0 z-40 h-\[var\(--hdr\)\] border-b border-line bg-surface\/90 backdrop-blur-md">/);
+  // On the page's own ground, blurred; its line fades in once the page scrolls under it (globals.css .hdr).
+  assert.match(html, /^<header class="hdr sticky top-0 z-40 h-\[var\(--hdr\)\] border-b border-line bg-bg\/80 backdrop-blur-xl">/);
+  assert.match(html, /^<header[^>]*><div class="page flex h-full items-center gap-2 sm:gap-3 xl:gap-4">/, "the header's row is the page's column");
   const form = html.indexOf('role="search"');
   assert.ok(form > 0, "the search form is in the header");
   const wrapper = html.lastIndexOf("<div", form);
@@ -141,11 +144,14 @@ test("Header on a region page: search at every width (never in a hidden wrapper)
   assert.doesNotMatch(html, /aria-label="Sections"[^>]*class="page flex gap-1 overflow-x-auto/, "the second chip row is gone");
 });
 
-test("Header nav (lg and up): Deals · All sealed · Sets · Guides · Stores, each to its region path", () => {
+test("Header nav (lg and up): four sections, Deals · All sealed · Sets · Guides, each to its region path with its menu", () => {
+  // Four and no more (the minimal look, 2026-11-13): the row had seven entries with the seasonal sale, Stores and eBay's link.
+  // Stores is in the Guides menu; the sale pages lead the Deals menu in season.
   assert.deepEqual(
     HEADER_NAV.map((n) => n.label),
-    ["Deals", "All sealed", "Sets", "Guides", "Stores"],
+    ["Deals", "All sealed", "Sets", "Guides"],
   );
+  assert.ok(headerNavItems("uk").every((n) => n.menu && n.menu.length > 0), "every section opens a menu");
   const html = render(React.createElement(Header, { region: "uk" }));
   const nav = /<nav class="hidden items-center gap-0\.5 lg:flex" aria-label="Main">([\s\S]*?)<\/nav>/.exec(html)?.[1] ?? "";
   // While a set is on pre-order its hub leads the Deals menu; the release calendar is there too.
@@ -156,10 +162,13 @@ test("Header nav (lg and up): Deals · All sealed · Sets · Guides · Stores, e
     ["/uk/sets", "Sets"],
     pre ? [`/uk/preorders/${pre.set.slug}`, `${pre.set.name} pre-orders`] : ["/uk/releases", "Release calendar"],
     ["/uk/guides", "Guides"],
-    ["/uk/stores", "Stores"],
+    ["/uk/stores", "Stores we compare"],
+    ["/uk/guides/mtg-booster-box-prices", "Booster box prices"],
   ])
     assert.match(nav, new RegExp(`href="${href}"[^>]*>${label}</a>`), label);
-  assert.match(nav, /data-ad="header"/, "eBay's labelled link stays (xl)");
+  // No ad in the navigation: eBay's labelled search link left the row (ads are in the page, labelled, never in the menu row).
+  assert.doesNotMatch(html, /data-ad="header"|ebay/i, "no eBay link in the header");
+  assert.doesNotMatch(src("components/Ebay.tsx"), /EbayNavLink/);
 });
 
 test("Header with no region: the whole header, built for the default region (the browser moves it to the visitor's)", () => {
@@ -168,13 +177,13 @@ test("Header with no region: the whole header, built for the default region (the
   const nav = /<nav class="hidden items-center gap-0\.5 lg:flex" aria-label="Main">([\s\S]*?)<\/nav>/.exec(html)?.[1] ?? "";
   const pre = openPreorderGuides()[0];
   for (const h of ["/us/deals", "/us/sealed", "/us/sets", pre ? `/us/preorders/${pre.set.slug}` : "/us/releases", "/us/guides", "/us/stores", "/blog"]) assert.match(nav, new RegExp(`href="${h}"`), h);
-  assert.doesNotMatch(nav, /data-ad="header"/, "eBay's link is a region page's only");
+  assert.doesNotMatch(html, /data-ad="header"/, "no ad in the header");
   assert.match(html, /aria-label="Menu"/);
   assert.match(html, /aria-label="Region: United States\. Change region"/);
   assert.doesNotMatch(html, /Continue to|Choose your region/);
 });
 
-test("the sidebar (xl): product types, sets, deals and the rest, under each layout, every link a real region path", () => {
+test("the menu's groups: product types, sets, deals and the rest, every link a real region path; no sidebar draws them any more", () => {
   const groups = navGroups("au", "2026-10-28");
   assert.deepEqual(groups.map((g) => g.title), ["Shop by product", "Sets", "Sets by series", "Deals & stock", "More"]);
   for (const l of groups.flatMap((g) => g.links)) assert.match(l.href, /^\/au\/|^\/blog$|^\/creators$|^\/forum$/, l.href);
@@ -190,11 +199,19 @@ test("the sidebar (xl): product types, sets, deals and the rest, under each layo
   assert.ok(groups[2].links.length >= 3 && groups[2].links.every((l) => /^\/au\/sets#[a-z0-9-]+$/.test(l.href)), "series links");
   assert.ok(navGroups("us", "2026-11-25")[3].links.some((l) => l.label === "Black Friday"), "Black Friday in season");
   assert.ok(!groups[3].links.some((l) => l.label === "Black Friday"));
-  const html = render(React.createElement(SideNav, { region: "au", groups }));
-  assert.match(html, /^<aside class="hidden w-60 shrink-0 xl:block" data-sidenav="">/);
-  assert.match(html, /href="\/au\/type\/commander-decks"/);
-  assert.match(src("app/[region]/layout.tsx"), /<SideNav region=\{r\.region\} groups=\{navGroups\(r\.region(, undefined, listed)?\)\} \/>/);
-  assert.match(src("app/(site)/layout.tsx"), /<SoftSideNav built=\{X_DEFAULT_REGION\} groups=\{navGroups\(X_DEFAULT_REGION\)\} \/>/);
+  // ONE navigation (owner, 2026-11-13: "we're making things too complicated"): the desktop sidebar that repeated the header's menus
+  // down the left of every page is gone. The phone menu draws these groups; the header's mega menus and the footer carry the links
+  // on a desktop.
+  assert.ok(!existsSync(new URL("../src/components/SideNav.tsx", import.meta.url)), "no sidebar component");
+  for (const f of ["app/[region]/layout.tsx", "app/(site)/layout.tsx"]) {
+    assert.doesNotMatch(src(f), /<SideNav|<SoftSideNav|<aside/, `${f}: no sidebar`);
+    assert.match(src(f), /<main id="main" className="min-w-0 flex-1">/, `${f}: the page is the whole row`);
+  }
+  assert.match(src("components/Header.tsx"), /<MobileMenu region=\{region\} groups=\{groups\} built=\{built\} className="lg:hidden" \/>/, "the menu button's sheet, below lg");
+  // What only the sidebar linked on a desktop is in the header's menus now.
+  const menus = headerNavItems("au", "2026-10-28").flatMap((n) => [n.href, ...(n.menu ?? []).flatMap((c) => c.links.map((l) => l.href))]);
+  for (const h of ["/au/type/commander-decks", "/au/type/secret-lair", "/au/sets", "/au/deals", "/au/back-in-stock", "/au/price-moves", "/au/out-of-print", "/au/cheapest-packs", "/au/this-week", "/au/releases", "/au/guides", "/au/guides/mtg-booster-box-prices", "/au/tools", "/au/stores", "/blog", "/forum", "/creators"])
+    assert.ok(menus.includes(h), `${h} is in a header menu`);
   // the same links in another region; a link outside a region stays put
   assert.equal(retargetHref("/us/type/bundles", "nz"), "/nz/type/bundles");
   assert.equal(retargetHref("/us", "nz"), "/nz");
@@ -216,7 +233,7 @@ test("NavLink's current-section logic (aria-current='page'): whole segments, and
   assert.equal(isActivePath("/au/sets", "/us/sets"), false);
 });
 
-test("the phone menu: every group of the sidebar under the region, then the regions, which switch to the same page", () => {
+test("the phone menu: every group of lib/nav.ts under the region, then the regions, which switch to the same page", () => {
   assert.ok(MENU_ROWS.length >= 10, "the 404's tiles");
   // The sheet's contents render on the first open: the header's server HTML has the empty <dialog> only.
   assert.match(render(React.createElement(Header, { region: "ca" })), /<dialog id="site-menu" data-menu="" aria-label="Menu" class="menu-sheet [^"]*"><\/dialog>/);
@@ -268,25 +285,56 @@ test("landing metadata: hreflang for the seven region homes plus x-default '/', 
   assert.ok(title.length <= 65, title);
 });
 
-test("landing page: static and short: hero, one fair paragraph, the region's ten, the hot buttons, and nothing else", () => {
+test("landing page: per request behind the CDN, short: a hero of words and a search, the region's ten, one ad block, nothing else", () => {
   const page = src("app/(site)/page.tsx");
+  assert.match(page, /^export const dynamic = "force-dynamic";/m);
   assert.doesNotMatch(page, /prisma|@\/lib\/db|@\/lib\/data"/, "no database");
-  assert.match(page, /text-4xl[^"]*sm:text-6xl/);
-  assert.match(page, /MTG booster box, bundle &amp; Commander deck prices, <span className="text-brand">cheapest first\.<\/span>/);
+  // The hero (components/home/Hero.tsx, owner 2026-11-13: "get rid of the products on the hero"): the headline, one line, the search,
+  // the region row and six ways in. No product, no photo, no card and no ad in it.
+  assert.match(page, /<h1 className="hero-h1 hero-h1-long rise-solid">\s*MTG booster box, bundle &amp; Commander deck prices, <span className="text-brand">cheapest first\.<\/span>/);
+  const hero = page.slice(page.indexOf("<Hero>"), page.indexOf("</Hero>"));
+  assert.ok(hero.length > 0, "the hero");
+  assert.doesNotMatch(hero, /HeroCards|SoftHeroCards|ProductCard|ProductGrid|HomeRegionGrid|LandingAds|<img|\{initialPicks\}/, "no products and no ad in the hero");
+  for (const f of ["components/home/HeroCards.tsx", "components/home/SoftHeroCards.tsx"]) assert.ok(!existsSync(new URL(`../src/${f}`, import.meta.url)), `${f} is gone`);
   // No "Continue to <region>" step (owner, 2026-10-28): the search, then the shortcuts in the visitor's region.
   assert.match(page, /<form\s+id="landing-search"\s+action=\{`\/\$\{X_DEFAULT_REGION\}\/sealed`\}\s+method="get"/);
-  assert.match(page, /<\/form>[\s\S]*<RegionSuggest formId="landing-search" links=\{HERO_LINKS\} \/>/);
-  assert.match(page, /ranked by price and stock only[\s\S]*No store pays to be listed or to rank, and every affiliate link is marked\.[\s\S]*href="\/about"[\s\S]*How it works/);
-  // The next set's "Coming soon" block between the hero and the region's five (2026-10-26); it carries the pre-order hub link, so the
-  // hot buttons keep their Commander decks button.
-  assert.match(page, /<ComingSoonSwitch byRegion=\{featured\} today=\{today\} \/>[\s\S]*<HomeRegionGrid initial=\{initialPicks\} \/>/);
+  assert.match(page, /<\/form>[\s\S]*<RegionChips [^>]*\/>\s*<SoftWaysIn formId="landing-search" links=\{HERO_LINKS\} \/>/);
+  // Six ways in: four product types, deals and pre-orders. The "Coming soon" block that sat on this page left on 2026-11-13 (the owner
+  // had asked for it short, not unreachable): pre-orders are the sixth tile, one tap from the hero.
+  const ways = page.slice(page.indexOf("const HERO_LINKS"), page.indexOf("];", page.indexOf("const HERO_LINKS")));
+  assert.deepEqual(
+    [...ways.matchAll(/sectionHref\(X_DEFAULT_REGION, "(\w+)"\), label: "([^"]+)", icon: "(\w+)"/g)].map((m) => m.slice(1)),
+    [
+      ["boosterBoxes", "Play booster boxes", "box"],
+      ["collectorBoxes", "Collector boxes", "collector"],
+      ["commanderDecks", "Commander decks", "deck"],
+      ["bundles", "Bundles", "bundle"],
+      ["deals", "Deals", "tag"],
+      ["releases", "Pre-orders", "calendar"],
+    ],
+  );
+  // The products straight under the hero, then the page's ONE ad block (the eBay + TCGplayer banner sat between the hero and them).
+  assert.match(page, /<HomeRegionGrid initial=\{initialPicks\} \/>/);
+  assert.ok(page.indexOf("</Hero>") < page.indexOf("<HomeRegionGrid"), "the products come after the hero, not in it");
+  assert.ok(page.indexOf("<HomeRegionGrid") < page.indexOf("<LandingAds"), "the ad block is under the products");
+  assert.equal((page.match(/<LandingAds/g) ?? []).length, 1, "one ad block");
   // What moved to /about, the guides index and the region homes stays off the landing page.
   assert.doesNotMatch(page, /FAQPage|faqJsonLd|GuideCard|MarketReport|SuggestedTypeLinks|EbayStrip|AdSlot/);
-  assert.equal((page.match(/<section/g) ?? []).length, 2, "the hero and the fair paragraph; the grid is its own section");
+  // The minimal look (2026-11-13): no paragraph on how stores are ranked (the footer of every page says it and links /about), no
+  // "Coming soon" block, no Halloween dressing in the hero.
+  assert.doesNotMatch(page, /ComingSoon|fair-h|How it works|HalloweenDecor|InnistradComing/);
+  assert.match(render(React.createElement(Footer, { region: null })), /No store pays to be listed or to rank\./, "the footer still says how stores are ranked");
+  for (const f of ["components/ComingSoon.tsx", "components/ComingSoonSwitch.tsx", "lib/coming-soon.ts", "lib/coming-soon-data.ts"]) assert.ok(!existsSync(new URL(`../src/${f}`, import.meta.url)), `${f} is gone`);
+  assert.equal((page.match(/<section/g) ?? []).length, 0, "the hero and the grid are their own components' sections");
+  assert.match(src("components/home/Hero.tsx"), /<section className="hero">/);
+  // The hero's ways in and the search move to the visitor's region in the browser (components/home/SoftWaysIn.tsx).
+  const soft = src("components/home/SoftWaysIn.tsx");
+  assert.match(soft, /^"use client";/);
+  assert.doesNotMatch(soft, /> Continue to \{|Choose your region <span/);
+  assert.match(soft, /setAttribute\("action", `\/\$\{region\}\/sealed`\)/);
+  assert.match(soft, /retargetHref\(l\.href, region\)/);
   const suggest = src("components/RegionSuggest.tsx");
   assert.doesNotMatch(suggest, /> Continue to \{|Choose your region <span/);
-  assert.match(suggest, /setAttribute\("action", `\/\$\{region\}\/sealed`\)/);
-  assert.match(suggest, /retargetHref\(l\.href, region\)/);
   assert.match(suggest, /href=\{`\/\$\{to\}\/type\/\$\{t\.slug\}`\}/);
 });
 
@@ -347,47 +395,69 @@ const card = (o: Partial<ProductCardData> = {}): ProductCardData => ({
   ...o,
 });
 
-test("ProductCard: photo on a plate, short type pill, sentence-case 'From' before the price, stock with its unit, the compare line", () => {
+test("ProductCard: a photo on its plate, the name, one stock line and the price; one badge at most; no pill, cue or second line", () => {
+  // The minimal card (owner, 2026-11-13: "cull … all the display aesthetics"). Short classes (globals.css .pc-*); the CSS is pinned below.
   const html = render(React.createElement(ProductCard, { p: card(), region: "us" }));
-  // The card's cells are short classes (globals.css .pc-*, site review X1 2026-11-10); the CSS is pinned below.
+  assert.match(html, /^<div class="flex flex-col"><a [^>]*class="group pc-link" href="\/us\/p\/edge-of-eternities-collector-booster-box">/, "the whole card is one link to the product page");
+  // A plain click opens the quick view: every attribute it reads is still on the link.
+  assert.match(html, /<a data-qv="edge-of-eternities-collector-booster-box" data-qv-region="us" data-qv-name="Edge of Eternities Collector Booster Box" data-qv-sub="Collector Booster Box" data-qv-img="[^"]+"/);
   assert.match(html, /class="plate pc-plate"/);
   assert.match(html, /class="pc-img"/);
-  const css = readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
-  assert.match(css, /\.pc-img \{\s*@apply [^;]*mix-blend-multiply/);
-  assert.match(css, /\.pc-cue \{\s*@apply [^;]*lg:opacity-0[^;]*lg:group-hover:opacity-100[^;]*lg:group-focus-visible:opacity-100/);
-  assert.match(html, /class="pc-type">Collector box<\/span>/);
+  assert.match(html, /<h3 class="pc-name">Edge of Eternities Collector Booster Box<\/h3>/);
   assert.match(html, /<span class="text-xs font-medium text-muted">From<\/span><span class="pc-price">\$57\.50<\/span>/);
-  // stock first: the pill comes before the price in the markup
-  assert.ok(html.indexOf("In stock at 12 of 19") < html.indexOf("$57.50"), "stock before price");
   assert.doesNotMatch(html, /uppercase tracking-wide text-faint">From|Last listed/);
-  assert.match(html, />In stock at 12 of 19<span class="stock-unit"> stores<\/span><\/span>/);
-  assert.match(html, /\+ TCGplayer/);
-  assert.match(html, /Compare 20 prices&nbsp;→|Compare 20 prices →/);
-  assert.match(html, /class="pc-cue"/);
+  // One stock line: where it can be bought and at how many stores. The whole sentence is the line's title.
+  assert.match(html, />In stock · 12<span class="stock-unit"> stores<\/span><\/span>/);
+  assert.match(html, /<p class="pc-stock" title="In stock at 12 of 19 stores and on TCGplayer">/);
+  // stock first: the pill comes before the price in the markup
+  assert.ok(html.indexOf("In stock · 12") < html.indexOf(">From<"), "stock before price");
+  // The price per pack, where the product line fixes a pack count (a Collector Booster Box holds 12).
+  assert.match(html, /<span class="pc-per">\$4\.79 \/ pack<\/span>/);
+  // What the card no longer carries: the type pill (the name says the type), "+ TCGplayer" and the "Compare N prices" cue.
+  assert.doesNotMatch(html, /pc-type|pc-cue|pc-save|pc-msrp|pc-tcg|Compare \d+ prices|See the offer|See alternatives|>\+ TCGplayer</);
+  // One badge at most, on the photo, and only for a real signal: none here (no median, and Wizards published no MSRP for this box).
+  assert.equal((html.match(/pc-badge/g) ?? []).length, 0, "no badge without a real signal");
+  // The saving against the median of the stores that have it (10% or more, three stores or more).
+  const deal = render(React.createElement(ProductCard, { p: card({ medianOpenCents: 7000 }), region: "us" }));
+  assert.match(deal, /<span class="pc-badge" title="18% below the median of 12 stores">−18%<\/span>/);
+  assert.equal((deal.match(/pc-badge/g) ?? []).length, 1);
+  // US only: under Wizards' published MSRP (lib/rrp.ts: a Star Trek Bundle is $69.99). Elsewhere, and at or over MSRP, none.
+  const bundle = { slug: "star-trek-bundle", name: "Star Trek Bundle", productType: "Bundle", setCode: "trk" };
+  assert.match(render(React.createElement(ProductCard, { p: card(bundle), region: "us" })), /<span class="pc-badge">Below MSRP<\/span>/);
+  assert.equal((render(React.createElement(ProductCard, { p: card(bundle), region: "au" })).match(/pc-badge/g) ?? []).length, 0, "no MSRP outside the US");
+  assert.equal((render(React.createElement(ProductCard, { p: card({ ...bundle, lowestPriceCents: 7999 }), region: "us" })).match(/pc-badge/g) ?? []).length, 0, "over MSRP is not a badge");
+  // The median saving comes before the MSRP badge: still one badge.
+  const both = render(React.createElement(ProductCard, { p: card({ ...bundle, medianOpenCents: 7000 }), region: "us" }));
+  assert.match(both, /<span class="pc-badge" title="18% below the median of 12 stores">−18%<\/span>/);
+  assert.equal((both.match(/pc-badge/g) ?? []).length, 1);
+  const css = src("app/globals.css");
+  assert.match(css, /\.pc-plate \{\s*@apply relative aspect-square rounded-2xl /, "a square plate, no frame around the card");
+  assert.match(css, /\.pc-img \{\s*@apply [^;]*mix-blend-multiply/);
+  // A phone's two-column card stacks the price and the price per pack (side by side they ran into each other); from sm they share a line.
+  assert.match(css, /\.pc-row \{\s*@apply [^;]*\bflex-col\b[^;]*\bsm:flex-row\b[^;]*\bsm:flex-wrap\b/);
+  assert.doesNotMatch(css, /\.pc-cue|\.pc-type|\.pc-save|\.pc-msrp|\.pc-tcg/);
   assert.doesNotMatch(html, /ebay|tcgplayer\.com|data-ad/i, "no paid link inside a card");
   assert.equal(findBannedCopy(html.replace(/<[^>]+>/g, " ")), null);
 });
 
-test("ProductCard labels: short types, stock in words, and what the click opens", () => {
-  assert.equal(shortTypeLabel("Collector Booster Box"), "Collector box");
-  assert.equal(shortTypeLabel("Play Booster Box"), "Play box");
-  assert.equal(shortTypeLabel("Collector Booster Box Case"), "Collector case");
-  assert.equal(shortTypeLabel("Play Booster Pack"), "Play Booster");
-  assert.equal(shortTypeLabel("Secret Lair Drop"), "Secret Lair");
-  assert.equal(shortTypeLabel("Bundle"), "Bundle");
-  assert.equal(shortTypeLabel("Commander Deck"), "Commander Deck");
+test("ProductCard labels: the short stock line, and the whole sentence it stands for", () => {
+  assert.deepEqual(cardStockShort(card(), false), ["In stock · 12", " stores"]);
+  assert.deepEqual(cardStockShort(card({ inStockStores: 1 }), false), ["In stock · 1", " store"]);
+  assert.deepEqual(cardStockShort(card(), true), ["Pre-order · 12", " stores"]);
+  assert.deepEqual(cardStockShort(card({ inStockStores: 0 }), false), ["On TCGplayer", ""]);
+  assert.deepEqual(cardStockShort(card({ inStockStores: 0, marketplaceOpen: false, listedStores: 3 }), false), ["Sold out", ""]);
+  assert.deepEqual(cardStockShort(card({ inStockStores: 0, marketplaceOpen: false, listedStores: 0 }), false), ["Not in stock", ""]);
+  // The line's title: the sentence the old card printed.
   assert.deepEqual(cardStockLabel(card({ inStockStores: 1 }), false), ["In stock at 1 of 19", " stores"]);
   assert.deepEqual(cardStockLabel(card(), true), ["Pre-order at 12 of 19", " stores"]);
   assert.deepEqual(cardStockLabel(card({ inStockStores: 0 }), false), ["On TCGplayer", ""]);
   assert.deepEqual(cardStockLabel(card({ inStockStores: 0, marketplaceOpen: false, listedStores: 3 }), false), ["Sold out at all 3", " stores"]);
   assert.deepEqual(cardStockLabel(card({ inStockStores: 0, marketplaceOpen: false, listedStores: 0 }), false), ["Not in stock", ""]);
-  assert.equal(cardCompareLabel(card({ marketplaceOpen: false })), "Compare 19 prices");
-  assert.equal(cardCompareLabel(card({ inStockStores: 1, listedStores: 1, marketplaceOpen: false })), "See the offer");
-  assert.equal(cardCompareLabel(card({ inStockStores: 0, marketplaceOpen: false })), "See alternatives");
-  const sold = render(React.createElement(ProductCard, { p: card({ inStockStores: 0, marketplaceOpen: false, listedStores: 3 }), region: "au" }));
-  assert.match(sold, />Sold out at all 3<span class="stock-unit"> stores/);
-  assert.match(sold, /No price while sold out/);
   assert.deepEqual(cardStockLabel(card({ inStockStores: 0, marketplaceOpen: false, listedStores: 1 }), false), ["Sold out at 1", " store"]);
+  const sold = render(React.createElement(ProductCard, { p: card({ inStockStores: 0, marketplaceOpen: false, listedStores: 3 }), region: "au" }));
+  assert.match(sold, /<p class="pc-stock" title="Sold out at all 3 stores">/);
+  assert.match(sold, />Sold out<\/span>/);
+  assert.match(sold, /No price while sold out/);
   assert.doesNotMatch(sold, />From</);
 });
 

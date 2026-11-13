@@ -1,13 +1,15 @@
 import Link from "@/components/Link";
 import type { SetCount } from "@/lib/hub-data";
 import type { RegionInfo } from "@/lib/regions";
+import { Fold } from "./Fold";
 import { PRODUCT_TYPES } from "@/lib/sealed-title";
 import { SETS } from "@/lib/sets";
 
 /**
  * Every set the region lists, by series, newest first: plain links on the region home (the indexing round, 2026-10-25). The region home
  * is one click from the landing page, so every set page is two and every product in a set three (a set page lists all of its
- * products). Only sets with something listed here: an empty set page is a 404. Server-rendered, no script.
+ * products). Only sets with something listed here: an empty set page is a 404. Server-rendered, no script. A fold since 2026-11-13
+ * (components/Fold.tsx): one line of the page until opened, every link in the HTML either way.
  */
 export function SetIndex({ r, counts, types }: { r: RegionInfo; counts: ReadonlyMap<string, SetCount>; types: ReadonlySet<string> }) {
   const bySeries = new Map<string, { slug: string; name: string; products: number }[]>();
@@ -19,11 +21,8 @@ export function SetIndex({ r, counts, types }: { r: RegionInfo; counts: Readonly
   const series = [...bySeries].map(([name, sets]) => ({ name, sets }));
   if (!series.length) return null;
   return (
-    <section aria-labelledby="every-set-h" className="mt-16">
-      <h2 id="every-set-h" className="font-display text-2xl font-bold tracking-tight">
-        Every set and product type in {r.inName}
-      </h2>
-      <p className="mt-2 max-w-2xl text-sm text-muted">Each set&rsquo;s sealed products at {r.adjective} stores, with how many are listed here today.</p>
+    <Fold id="every-set-h" title={`Every set and product type in ${r.inName}`}>
+      <p className="max-w-2xl text-sm text-muted">Each set&rsquo;s sealed products at {r.adjective} stores, with how many are listed here today.</p>
       {/* Every product type listed here too: a type page indexes the type's products no set page lists (decks, tins, collections). */}
       <ul className="mt-4 flex flex-wrap gap-2" aria-label={`Product types in ${r.inName}`}>
         {PRODUCT_TYPES.filter((t) => types.has(t.label)).map((t) => (
@@ -51,6 +50,6 @@ export function SetIndex({ r, counts, types }: { r: RegionInfo; counts: Readonly
           </div>
         ))}
       </div>
-    </section>
+    </Fold>
   );
 }

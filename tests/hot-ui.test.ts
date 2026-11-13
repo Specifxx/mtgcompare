@@ -180,14 +180,15 @@ test("the marketplace panel: eBay's row is always eBay's blue button (every prod
 test("the pages pass the highlight where the owner asked, and add no unit for it", () => {
   const src = (p: string) => readFileSync(new URL(`../src/app/[region]/${p}`, import.meta.url), "utf8");
   const home = src("page.tsx");
-  assert.match(home, /placement="listings-home-sealed"[^\n]*highlight=\{hotHighlight\}/, "the home page's sealed strip");
-  assert.doesNotMatch(home, /placement="listings-home" [^\n]*highlight=/, "not the high-end (chase) strip under the stats");
-  assert.match(home, /hotSetHighlight\(firstHotSet\(\)\)/);
+  // The region home has no eBay strip since 2026-11-13 (DECISIONS.md, "the minimal look"): one ad block a page (InlineAds), so
+  // the hot set's highlight has no unit to sit in there. It stays where a visitor is choosing: the set page and the product page.
+  assert.doesNotMatch(home, /hotSetHighlight|highlight=/, "no highlight on the home page");
   assert.match(src("sets/[set]/page.tsx"), /highlight=\{setSealedHighlight\(s\)\}/, "every released set's page: hot sets keep hot-set, the others get set-sealed");
   const product = src("p/[slug]/page.tsx");
   assert.match(product, /const hot = isHotReleased\(p\.setCode\)/);
   assert.doesNotMatch(product, /ebayPrimary/, "the panel's eBay row is a button on every product now");
   assert.match(product, /highlight=\{hot \? hotProductHighlight\(p\.name, ebayQ\) : undefined\}/);
   assert.equal((product.match(/<EbayStrip/g) ?? []).length, 1, "still one strip on a product page");
-  assert.equal((home.match(/<EbayStrip/g) ?? []).length, 2, "still two strips on the home page");
+  assert.equal((home.match(/<EbayStrip/g) ?? []).length, 0, "no strip on the home page");
+  assert.equal((home.match(/<InlineAds/g) ?? []).length, 1, "the home page's one ad block");
 });

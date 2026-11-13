@@ -16,7 +16,7 @@ export interface Pick {
   /** Independent stores that list it (in stock or not): "in stock at 12 of 15 stores". */
   listed: number;
   tcg: boolean;
-  /** The median open store price (null under two stores): the hero card's "Save N%" (components/home/HeroCards.tsx). */
+  /** The median open store price (null under two stores). */
   median: number | null;
 }
 

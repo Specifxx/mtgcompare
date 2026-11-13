@@ -81,6 +81,16 @@ body {
   overflow-x: clip;
 }
 
+/* A row that scrolls sideways is the containing block of what is in it. A visually hidden label (.sr-only) is absolutely
+   positioned, and inside a scroller that is not positioned it is not clipped by the scroll box: each tile's label then counts
+   toward the PAGE's width, which the safety net above cannot catch (the body's overflow belongs to the viewport). Measured
+   2026-11-13 on a 390px phone: the layout was 962px wide on every region page once the ad block's tiles loaded, and 658px on a
+   product page from its first paint (the strip under the buy block), so the page slid sideways and the buy bar and the dock,
+   which are as wide as the layout, had their buttons off the screen. :where() keeps this weaker than any position utility. */
+:where(.scroller, .overflow-x-auto, .overflow-x-scroll) {
+  position: relative;
+}
+
 .tabular {
   font-variant-numeric: tabular-nums;
 }
@@ -128,45 +138,45 @@ body {
   .sp-stale::before {
     @apply bg-stale;
   }
-  /* ProductCard (components/ProductCard.tsx). */
+  /* ProductCard (components/ProductCard.tsx), the minimal card (owner, 2026-11-13: "cull … all the display aesthetics"): the photo on
+     its plate, then the name, one stock line and the price, on the page's own ground. No frame around the card: the plate is the
+     card. It lifts on hover, with the photo. */
   .pc-link {
-    @apply flex flex-1 flex-col overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lift;
+    @apply flex flex-1 flex-col rounded-2xl outline-offset-4;
   }
   .pc-plate {
-    @apply relative m-2 aspect-square lg:mb-0 lg:aspect-[8/7];
+    @apply relative aspect-square rounded-2xl transition-[transform,box-shadow] duration-300 ease-out group-hover:-translate-y-1 group-hover:shadow-lift;
   }
   .pc-img {
-    @apply absolute inset-0 h-full w-full object-contain p-3 mix-blend-multiply transition-transform duration-300 group-hover:scale-[1.03];
+    @apply absolute inset-0 h-full w-full object-contain p-4 mix-blend-multiply transition-transform duration-500 ease-out group-hover:scale-[1.04];
   }
   .pc-noimg {
     @apply flex h-full items-center justify-center p-6 text-center text-sm font-semibold text-[#5c606c];
   }
-  .pc-type {
-    @apply absolute left-2 top-2 max-w-[calc(100%-1.5rem)] truncate rounded-full bg-surface/90 px-2 py-0.5 text-[11px] font-semibold text-muted shadow-card backdrop-blur;
+  /* The one badge a photo may carry: the saving against the median, in the money green (calm palette). */
+  .pc-badge {
+    @apply absolute left-2.5 top-2.5 rounded-full bg-open px-2 py-0.5 text-[11px] font-bold leading-4 text-surface;
   }
   .pc-body {
-    @apply flex flex-1 flex-col gap-2 px-3 pb-3 pt-1 sm:px-4 sm:pb-4 lg:pt-3;
+    @apply flex flex-1 flex-col px-1 pb-1 pt-3;
   }
   .pc-name {
-    @apply line-clamp-2 text-sm font-semibold leading-snug group-hover:text-brand sm:text-[15px];
-  }
-  .pc-save {
-    @apply flex flex-wrap gap-1.5 text-[11px] font-semibold leading-4 text-open;
-  }
-  .pc-msrp {
-    @apply rounded-full border border-open/40 px-1.5;
+    @apply line-clamp-2 text-[15px] font-semibold leading-snug transition-colors group-hover:text-brand;
   }
   .pc-stock {
-    @apply flex flex-wrap items-center gap-x-1.5 gap-y-0.5;
+    @apply mt-1.5 flex min-h-4 flex-wrap items-center gap-x-1.5 gap-y-0.5;
   }
-  .pc-tcg {
-    @apply text-[11px] font-medium leading-4 text-muted;
+  /* The price, then the price per pack: side by side where the card has the room, one under the other on a phone's two-column
+     grid (a 170px card has no room for "From $164.99" beside "$4.58 / pack": they ran into each other). The phone's row is two
+     lines tall with or without a pack price, so the prices of two cards side by side sit on one line. */
+  .pc-row {
+    @apply mt-1 flex min-h-[2.875rem] flex-col gap-0.5 sm:min-h-0 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between sm:gap-x-2;
   }
   .pc-price {
-    @apply font-display text-lg font-bold tabular-nums;
+    @apply font-display text-lg font-bold tabular-nums sm:text-xl;
   }
-  .pc-cue {
-    @apply h-4 truncate text-[11px] font-semibold leading-4 text-muted group-hover:text-ink lg:h-5 lg:text-xs lg:leading-5 lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100 lg:group-focus-visible:opacity-100;
+  .pc-per {
+    @apply shrink-0 text-xs tabular-nums text-muted;
   }
   .or-row {
     @apply grid grid-cols-[1fr_auto] items-center gap-x-3 px-4 py-3 sm:grid-cols-[1fr_auto_10rem_auto] sm:gap-x-4 sm:px-5 sm:py-3.5;
@@ -720,40 +730,6 @@ html[data-geo="pending"] main { visibility: hidden; }
   --srv-field: rgb(var(--raised));
 }
 
-/* ── The full-width layout and the featured-product hero (owner, 2026-11-08: "how they feature some products on the hero and how it
-   uses the full screen", KaeYoung and ScentCompare's) ─────────────────────────────────────────────────────────────────────────────
-   From 1280px the shell takes the whole width (the side rails are gone, 2026-11-13). The header keeps its full width (its own
-   xl:max-w-shell is a different class). */
-@media (min-width: 1280px) {
-  .max-w-shell {
-    max-width: none;
-    width: auto;
-    margin-left: 0;
-    margin-right: 0;
-  }
-}
-/* The hero's stat line, as chips. */
-.hero-stat {
-  @apply inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 text-sm text-muted;
-}
-.hero-stat b {
-  @apply font-bold text-ink;
-}
-/* A featured product card (components/home/HeroCards.tsx): photo on the plate, then type, name, price and stores. */
-.hc-card {
-  @apply card flex h-full flex-col overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lift;
-}
-.hc-art {
-  @apply relative flex aspect-square items-center justify-center rounded-none ring-0;
-}
-.hc-save {
-  @apply absolute left-2 top-2 rounded-full bg-open-soft px-2 py-0.5 text-xs font-bold text-open;
-}
-@media (prefers-reduced-motion: reduce) {
-  .hc-card { transition: none; }
-  .hc-card:hover { transform: none; }
-}
-
 /* components/Flag.tsx: a flag image the height of the text beside it. */
 .flag {
   width: 1.35em;
@@ -763,4 +739,329 @@ html[data-geo="pending"] main { visibility: hidden; }
   vertical-align: -0.1em;
   border-radius: 2px;
   box-shadow: 0 0 0 1px rgba(127, 127, 127, 0.35);
+}
+
+/* ── The minimal look (owner, 2026-11-13: "we're making things too complicated … minimalistic, dynamic, aesthetic and smooth
+   without having everything there"). One navigation (the header), a hero of words, search and a few ways in (never products),
+   products before text, and motion that is CSS only: transforms and opacity, nothing that moves the layout, all of it off for
+   prefers-reduced-motion. DECISIONS.md, 2026-11-13. ─────────────────────────────────────────────────────────────────────────── */
+
+/* The hero. Its ground is two soft glows in the brand colour and a dot grid that fades out: gradients only, no canvas, no image. */
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+}
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(rgb(var(--ink) / 0.09) 1px, transparent 1.5px);
+  background-size: 26px 26px;
+  -webkit-mask-image: radial-gradient(70% 85% at 50% 0%, #000 20%, transparent 78%);
+  mask-image: radial-gradient(70% 85% at 50% 0%, #000 20%, transparent 78%);
+}
+.hero-bg::before,
+.hero-bg::after {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  will-change: transform;
+}
+.hero-bg::before {
+  left: 50%;
+  top: -18rem;
+  width: 62rem;
+  height: 34rem;
+  margin-left: -31rem;
+  background: radial-gradient(closest-side, rgb(var(--brand) / 0.2), transparent);
+}
+.hero-bg::after {
+  left: 50%;
+  top: -8rem;
+  width: 34rem;
+  height: 22rem;
+  margin-left: 4rem;
+  background: radial-gradient(closest-side, rgb(var(--brand) / 0.1), transparent);
+}
+:root[data-theme="light"] .hero-bg::before {
+  background: radial-gradient(closest-side, rgb(var(--brand) / 0.13), transparent);
+}
+.hero-in {
+  @apply page relative flex flex-col items-center text-center;
+  padding-top: clamp(3.5rem, 7vw, 6rem);
+  padding-bottom: clamp(2.5rem, 5vw, 4.5rem);
+}
+/* Where the page sits (a region home's breadcrumb, with its BreadcrumbList): the hero's top left corner, out of the centred column's way. */
+.hero-crumbs {
+  @apply absolute inset-x-4 top-1.5 text-left sm:inset-x-6 sm:top-4;
+}
+.hero-crumbs > nav {
+  @apply mb-0 text-[13px];
+}
+.hero-h1 {
+  @apply max-w-4xl text-balance font-display font-bold;
+  font-size: clamp(2.4rem, 6.4vw, 4.6rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+/* A long headline (both home pages': "MTG booster box, bundle & Commander deck prices, …"): the same voice, a size down, on a measure
+   wide enough to set it in two lines on a desktop, so the hero ends above the fold and the first products show under it. */
+.hero-h1-long {
+  max-width: 68rem;
+  font-size: clamp(2rem, 4.6vw, 3.5rem);
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+}
+.hero-sub {
+  @apply mt-4 max-w-2xl text-pretty text-base leading-7 text-muted sm:mt-5 sm:text-lg;
+}
+/* The hero's one small line above the headline: the single most timely link, or where the prices are for. */
+.hero-pill {
+  @apply mb-5 inline-flex min-h-9 max-w-full items-center gap-2 rounded-full border border-line bg-surface/70 px-3.5 py-1 text-[13px] font-medium text-muted backdrop-blur transition-colors;
+}
+a.hero-pill:hover {
+  @apply border-ink/30 text-ink;
+}
+.hero-pill b {
+  @apply font-semibold text-ink;
+}
+.hero-pill-dot {
+  @apply h-1.5 w-1.5 shrink-0 rounded-full bg-brand;
+}
+/* The search: the page's main action, so it is the biggest thing after the headline. */
+.hero-search {
+  @apply mt-7 w-full max-w-2xl sm:mt-9;
+}
+.hero-search form[role="search"] {
+  @apply min-h-14 rounded-full border-line bg-surface pl-5 shadow-lift transition-[border-color,box-shadow] duration-200;
+}
+.hero-search form[role="search"]:focus-within {
+  border-color: rgb(var(--brand) / 0.7);
+  box-shadow: 0 0 0 4px rgb(var(--brand) / 0.14), 0 18px 40px -18px rgb(var(--brand) / 0.35);
+}
+.hero-search input {
+  @apply text-base;
+}
+/* The ways in: a few big, quiet tiles (never products). A row of six on a desktop, two columns of rows on a phone. */
+.ways {
+  @apply mt-7 grid w-full max-w-4xl grid-cols-2 gap-2.5 sm:mt-9 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6;
+}
+.way {
+  @apply flex min-h-14 items-center gap-3 rounded-2xl border border-line bg-surface/60 px-3.5 py-2.5 text-left text-sm font-semibold leading-5 text-ink backdrop-blur transition-[transform,border-color,background-color,box-shadow] duration-200 ease-out lg:min-h-[6.5rem] lg:flex-col lg:justify-center lg:gap-2.5 lg:px-2 lg:py-4 lg:text-center;
+}
+.way:hover {
+  @apply -translate-y-0.5 border-ink/25 bg-surface shadow-lift;
+}
+.way-icon {
+  @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-raised text-muted ring-1 ring-inset ring-line transition-colors duration-200;
+}
+.way:hover .way-icon {
+  @apply bg-brand-soft text-brand-strong ring-transparent;
+}
+.hero-meta {
+  @apply mt-7 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-muted;
+}
+.hero-meta b {
+  @apply font-semibold tabular-nums text-ink;
+}
+.hero-meta .live {
+  @apply mr-0.5 inline-block h-1.5 w-1.5 rounded-full bg-open align-middle;
+}
+
+/* The hero's Christmas line is its pill, not a card (xmas-common above keeps its own rules; these only reshape the gift guide's
+   link here: a round hairline pill with a small tree, its second sentence left to the guide itself). */
+:root[data-season="christmas"][data-festive] .hero .xmas-pill-row {
+  margin-bottom: 1.25rem;
+  justify-content: center;
+}
+:root[data-season="christmas"][data-festive] .hero .xmas-guide {
+  flex: 0 1 auto;
+  max-width: 100%;
+  min-height: 2.25rem;
+  border-radius: 9999px;
+  border-left-width: 1px;
+  border-left-color: rgb(var(--line));
+  padding: 0.3rem 0.9rem 0.3rem 0.7rem;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+}
+:root[data-season="christmas"][data-festive] .hero .xmas-guide:hover,
+:root[data-season="christmas"][data-festive] .hero .xmas-guide:focus-visible {
+  border-color: rgb(var(--xmas-pine));
+}
+:root[data-season="christmas"][data-festive] .hero .xmas-guide-icon {
+  width: 1rem;
+  height: 1rem;
+}
+:root[data-season="christmas"][data-festive] .hero .xmas-guide-more {
+  display: none;
+}
+
+/* A latest set, as one tile (app/[region]/page.tsx SetTile): its logo or box, its name and date, what it costs today. */
+.set-tile {
+  @apply flex min-h-[5.5rem] min-w-0 flex-1 items-center gap-3.5 rounded-2xl border border-line bg-surface/60 p-3.5 transition-[transform,border-color,background-color,box-shadow] duration-200 ease-out;
+}
+.set-tile:hover {
+  @apply -translate-y-0.5 border-ink/25 bg-surface shadow-lift;
+}
+.set-tile-art {
+  @apply flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl;
+}
+
+/* The landing page's ten (components/HomeRegionGrid.tsx): a row each on a phone, the product card's shape from md. Every slot is the
+   same size whatever it holds (the plate is square, the words' box a fixed height), so filling or swapping the list moves nothing. */
+.hg-slot {
+  @apply h-[5.5rem] md:h-auto;
+}
+.hg-link {
+  @apply flex h-full items-center gap-3 md:block;
+}
+.hg-plate {
+  @apply relative h-[4.5rem] w-[4.5rem] shrink-0 rounded-xl md:aspect-square md:h-auto md:w-auto md:rounded-2xl md:transition-[transform,box-shadow] md:duration-300 md:ease-out md:group-hover:-translate-y-1 md:group-hover:shadow-lift;
+}
+.hg-text {
+  @apply flex min-w-0 flex-1 flex-col justify-center md:h-[6.75rem] md:justify-start md:px-1 md:pt-3;
+}
+
+/* Tabs (components/Tabs.tsx): a row of quiet labels, an ink underline that slides to the chosen one, and a panel that fades in. */
+.tabs-list {
+  @apply relative flex gap-1 overflow-x-auto border-b border-line;
+  scrollbar-width: none;
+}
+.tabs-list::-webkit-scrollbar {
+  display: none;
+}
+.tab {
+  @apply relative -mb-px min-h-11 shrink-0 whitespace-nowrap border-b-2 border-transparent px-3 pb-2.5 pt-2 text-[15px] font-semibold text-muted transition-colors duration-200 hover:text-ink sm:px-4;
+}
+.tab[aria-selected="true"] {
+  @apply border-ink text-ink;
+}
+.tab-count {
+  @apply ml-1.5 text-xs font-medium tabular-nums text-faint;
+}
+.tab-panel {
+  animation: tab-in 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@keyframes tab-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* Fold (components/Fold.tsx): reading matter that stays in the HTML but out of the way, one line each until opened. */
+.fold {
+  @apply border-b border-line;
+}
+.fold > summary {
+  @apply flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-3 transition-colors hover:text-brand;
+}
+.fold > summary::-webkit-details-marker {
+  display: none;
+}
+.fold > summary h2 {
+  @apply font-display text-base font-semibold tracking-tight sm:text-lg;
+}
+.fold-mark {
+  @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-line text-muted transition-transform duration-200;
+}
+.fold[open] > summary .fold-mark {
+  transform: rotate(45deg);
+}
+.fold-body {
+  @apply pb-8 pt-1;
+}
+.fold[open] > .fold-body {
+  animation: tab-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Motion. The hero's parts rise in one after another on load (--i is each part's place in line); the headline moves but is never
+   hidden, so the largest paint is not held back. Sections below rise as they scroll into view where the browser can tie an
+   animation to the scroll position (animation-timeline); elsewhere they are simply there. Screen only: a printed page shows all. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .rise {
+    animation: rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: calc(var(--i, 0) * 70ms);
+  }
+  .rise-solid {
+    animation: rise-solid 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .hero-bg::before {
+    animation: drift-a 16s ease-in-out infinite alternate;
+  }
+  .hero-bg::after {
+    animation: drift-b 21s ease-in-out infinite alternate;
+  }
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 220px;
+    }
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+@keyframes rise-solid {
+  from {
+    transform: translateY(10px);
+  }
+}
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+}
+@keyframes drift-a {
+  to {
+    transform: translate3d(-5rem, 1.5rem, 0) scale(1.08);
+  }
+}
+@keyframes drift-b {
+  to {
+    transform: translate3d(6rem, 2.5rem, 0) scale(1.15);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tab-panel,
+  .fold[open] > .fold-body {
+    animation: none;
+  }
+  .pc-plate,
+  .pc-img,
+  .hg-plate,
+  .set-tile,
+  .way {
+    transition: none;
+  }
+  .group:hover .pc-plate,
+  .group:hover .pc-img,
+  .group:hover .hg-plate,
+  .set-tile:hover,
+  .way:hover {
+    transform: none;
+  }
+}
+
+/* The header rests on the page and takes its line once the page has moved under it (where the browser can tie it to the scroll). */
+@supports (animation-timeline: scroll()) {
+  .hdr {
+    animation: hdr-line linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 96px;
+  }
+}
+@keyframes hdr-line {
+  from {
+    border-bottom-color: transparent;
+    background-color: rgb(var(--bg) / 0);
+  }
 }

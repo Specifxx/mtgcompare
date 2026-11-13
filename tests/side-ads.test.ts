@@ -25,6 +25,9 @@ test("the in-page block: eBay and TCGplayer tiles taking turns, eBay first, six 
   assert.match(s, /<span className="ad-pill">Ad<\/span>/, "labelled Ad");
   assert.match(s, /rel=\{REL_SPONSORED\}/, "sponsored links");
   assert.match(s, /className="scroller/, "scrolls sideways when narrow");
+  // A sideways scroller is the containing block of its tiles' hidden labels (globals.css). Without it each tile's sr-only label
+  // counted toward the page's width: 962px on a 390px phone once this block loaded (measured 2026-11-13), so the page slid sideways.
+  assert.match(src("app/globals.css"), /:where\(\.scroller, \.overflow-x-auto, \.overflow-x-scroll\) \{\s*position: relative;/, "a scroller holds its own hidden labels");
   assert.match(s, /EbayMark/, "each eBay tile carries its logo word");
   assert.match(s, /aria-label="TCGplayer"/, "each TCGplayer tile carries its logo word");
   assert.doesNotMatch(s, /amazon/i, "never Amazon on a TCG site");
@@ -45,7 +48,10 @@ test("the block is placed once a page: the layout's copy skips the pages that pl
   assert.ok(!existsSync(new URL("../src/components/TcgplayerStrip.tsx", import.meta.url)) && !existsSync(new URL("../src/components/PreFooterTcgplayer.tsx", import.meta.url)));
   assert.doesNotMatch(src("components/SideAds.tsx"), /fixed z-30|SIDE_RAILS|EbayRail|TcgRail|listings-side|tcgplayer-strip-side/, "no rail code");
   assert.ok(!(PLACEMENTS as readonly string[]).includes("listings-side") && !(PLACEMENTS as readonly string[]).includes("tcgplayer-strip-side"));
-  assert.match(src("app/globals.css"), /\.max-w-shell \{\s*max-width: none;\s*width: auto;\s*margin-left: 0;\s*margin-right: 0;/, "the page column keeps the whole width");
+  // The page is ONE centred column since 2026-11-13 (the minimal look: no sidebar, so no shell around the sidebar and the page).
+  assert.match(src("app/globals.css"), /\.page \{\s*@apply mx-auto w-full max-w-page px-4 sm:px-6;/, "the page column is centred");
+  assert.match(readFileSync(new URL("../tailwind.config.ts", import.meta.url), "utf8"), /maxWidth: \{ page: "1200px" \}/, "and 1200px wide");
+  assert.doesNotMatch(src("app/globals.css") + src("app/[region]/layout.tsx") + src("app/(site)/layout.tsx") + src("components/Header.tsx"), /max-w-shell/, "no shell width left");
 });
 
 test("the dock's tiles: up to ten, popular sealed first, no listing twice", () => {

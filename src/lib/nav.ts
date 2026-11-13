@@ -11,8 +11,8 @@ export type NavGroup = { title: string; links: NavItem[] };
 
 /**
  * Every place the site goes, grouped the way a buyer looks for it: what kind of product, which set, where the value is, and the rest.
- * The desktop sidebar (components/SideNav.tsx, xl and up) and the phone menu (components/MobileMenu.tsx) both draw this one list, so
- * the two never disagree. Static (sets from lib/sets.ts, newest released first by release.ts featureOrder, never a pre-order first):
+ * The phone menu (components/MobileMenu.tsx) draws this list; the desktop sidebar that drew it too is gone (2026-11-13: the header is
+ * the one navigation, and its menus are in components/ShopMenu.tsx). Static (sets from lib/sets.ts, newest released first by release.ts featureOrder, never a pre-order first):
  * no read, no page that doesn't exist. Owner, 2026-10-28: navigation from the first page, no "Continue to <region>" step first.
  */
 export function navGroups(region: Region, today: string = new Date().toISOString().slice(0, 10), listed?: ReadonlySet<string> | null): NavGroup[] {

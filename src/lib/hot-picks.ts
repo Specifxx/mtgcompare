@@ -1,4 +1,6 @@
 // The region home's "Hot right now" (desktop hero): pure, so tests/stock.test.ts checks the featuring rule without a render.
+// No page draws it since 2026-11-13 (the minimal look: no products on the hero); the rule and its test stay for the next shelf that
+// wants a featured order.
 import { cardOpen } from "./compact";
 import type { ProductCardData } from "./data";
 import { featureRank } from "./popular";

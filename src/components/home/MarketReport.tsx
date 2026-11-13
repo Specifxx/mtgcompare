@@ -1,8 +1,12 @@
-// The landing page's written market report: what Magic sealed costs today, what is cheapest, how the seven regions differ and how
+// The region home's written market report: what Magic sealed costs today, what is cheapest, how the seven regions differ and how
 // stock looks, every number from lib/home-report.ts (the public data files, read at render) and every sentence built from it. No
 // template text without a number behind it; when a read is empty the sentence says so. Server-rendered: nothing waits on a script.
 // The words follow lib/copy-rules.ts: "today", never a history claim the files cannot back.
+// Four folds since 2026-11-13 (components/Fold.tsx; owner: fewer things on a page): each part's heading is one line of the page,
+// still an <h2> in its outline, and the part opens under it. Closed or open, a crawler reads all of it. Rendered inside the region
+// home's <Folds> list, after the products.
 import Link from "@/components/Link";
+import { Fold } from "@/components/Fold";
 import { COUNTRY_GUIDE } from "@/content/guides/country-prices";
 import { guideHref } from "@/content/guides/kit";
 import type { ProductCardData } from "@/lib/data";
@@ -12,6 +16,8 @@ import { REGIONS, type RegionInfo } from "@/lib/regions";
 import { TYPE_BY_LABEL } from "@/lib/sealed-title";
 
 const A = "font-semibold text-brand underline-offset-2 hover:underline";
+/** A part's reading column, inside its fold. */
+const BODY = "max-w-3xl text-[15px] leading-7 text-muted";
 
 const WORDS: Record<ReportType, { many: string; one: string; note: string }> = {
   "Play Booster Box": {
@@ -86,13 +92,10 @@ export function MarketReport({ report }: { report: HomeReport }) {
   const moves = [...report.wrap.lower, ...report.wrap.higher].filter((m) => wrapBy.has(m.slug)).slice(0, 6);
   if (!lines.length && !report.ranges.length) return null;
   return (
-    <section className="page mt-14" aria-labelledby="report-h">
-      <div className="mx-auto max-w-3xl space-y-10 text-[15px] leading-7 text-muted">
-        <div>
-          <h2 id="report-h" className="font-display text-2xl font-bold tracking-tight text-ink">
-            Magic sealed prices today: booster boxes, bundles and Commander decks
-          </h2>
-          <p className="mt-3">
+    <>
+      <Fold id="report-h" title="Magic sealed prices today: booster boxes, bundles and Commander decks" data-market-report={r.region}>
+        <div className={BODY}>
+          <p>
             What Magic: The Gathering sealed product costs right now, from the listings we read today. Prices below are for {r.inName}, in {r.currency} before shipping; the
             region table further down gives every region its own figures in its own currency.
           </p>
@@ -102,11 +105,12 @@ export function MarketReport({ report }: { report: HomeReport }) {
             ))}
           </div>
         </div>
+      </Fold>
 
-        {cheapToday.length > 0 && (
-          <div>
-            <h2 className="font-display text-2xl font-bold tracking-tight text-ink">What’s cheapest this week</h2>
-            <p className="mt-3">
+      {cheapToday.length > 0 && (
+        <Fold id="cheapest-h" title="What’s cheapest this week">
+          <div className={BODY}>
+            <p>
               The lowest open price of each kind of product in {r.inName} today. A low price on an older set often means only one or two stores still hold it, so check the
               store count on the product page before you decide.
             </p>
@@ -142,12 +146,13 @@ export function MarketReport({ report }: { report: HomeReport }) {
               </p>
             )}
           </div>
-        )}
+        </Fold>
+      )}
 
-        {lines.length > 0 && (
-          <div>
-            <h2 className="font-display text-2xl font-bold tracking-tight text-ink">How prices differ by region</h2>
-            <p className="mt-3">
+      {lines.length > 0 && (
+        <Fold id="regions-compared-h" title="How prices differ by region" data-regions-compared="">
+          <div className={BODY}>
+            <p>
               Each region compares only stores that charge in its own currency, and we never convert a price: an Australian dollar figure and a US dollar figure are two
               different shelves, not one price in two currencies. What changes between regions is how many stores we read, how much of the catalogue they carry and where
               the cheapest box sits.
@@ -222,12 +227,13 @@ export function MarketReport({ report }: { report: HomeReport }) {
               guide lines up the same box in all seven.
             </p>
           </div>
-        )}
+        </Fold>
+      )}
 
-        {lines.length > 0 && (
-          <div>
-            <h2 className="font-display text-2xl font-bold tracking-tight text-ink">Stock: what is on the shelf, and when it changes</h2>
-            <p className="mt-3">
+      {lines.length > 0 && (
+        <Fold id="stock-h" title="Stock: what is on the shelf, and when it changes">
+          <div className={BODY}>
+            <p>
               We keep a product listed after it sells out, so its page shows which stores had it and when we last read them. Of the products we list in each region, this
               many are open (in stock somewhere, or on pre-order) today:{" "}
               {lines
@@ -255,8 +261,8 @@ export function MarketReport({ report }: { report: HomeReport }) {
               list who takes orders and when it ships.
             </p>
           </div>
-        )}
-      </div>
-    </section>
+        </Fold>
+      )}
+    </>
   );
 }
