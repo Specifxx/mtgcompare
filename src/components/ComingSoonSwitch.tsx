@@ -1,8 +1,8 @@
 "use client";
 
 // The landing page's "Coming soon" block: every region's data worked out on the server (seven small lists), the default region's in
-// the server HTML, then the visitor's suggested region (RegionSuggest.tsx useSuggestedRegion) in the browser, with no fetch. The list
-// keeps the height of the longest region's, so the swap moves nothing below it.
+// the server HTML, then the visitor's suggested region (RegionSuggest.tsx useSuggestedRegion) in the browser, with no fetch. The products
+// are one sideways row of fixed height (ComingSoon.tsx), so the swap moves nothing below it.
 import type { Featured } from "@/lib/coming-soon";
 import { REGIONS, X_DEFAULT_REGION, type Region } from "@/lib/regions";
 import { ComingSoon } from "./ComingSoon";

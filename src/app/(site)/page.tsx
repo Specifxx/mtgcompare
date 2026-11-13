@@ -57,7 +57,7 @@ const HERO_LINKS = [
 export default async function Landing() {
   // The side rails' TCGplayer tiles, as on the region pages (this page is force-dynamic: read per request, never at build).
   const railTiles = await landingRailTiles().catch(() => []);
-  // The default region's five, from the public data files: the server HTML is already filled.
+  // The default region's ten, from the public data files: the server HTML is already filled.
   const today = new Date().toISOString().slice(0, 10);
   // The next set's block, every region's (seven small lists): the server HTML has the default region's, the browser the visitor's.
   // The banner's TCGplayer half (the newest sets' sealed products, from the public data files); its eBay half is fetched in the browser.
@@ -152,7 +152,7 @@ export default async function Landing() {
       {/* The next set (lib/coming-soon.ts, by sets.ts dates): gone on its release day. It carries the pre-order hub link, so the hot
           buttons below keep their Commander decks button. */}
       {hasFeatured && (
-        <div className="page mt-10 max-w-3xl">
+        <div className="page mt-8">
           <ComingSoonSwitch byRegion={featured} today={today} />
         </div>
       )}

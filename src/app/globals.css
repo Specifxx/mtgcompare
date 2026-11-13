@@ -108,6 +108,11 @@ body {
   }
   /* Calm palette (2026-11-12): the words are grey, only the 6px dot carries the state's colour, and nothing pulses. A grid of
      sixteen cards or an 80-row table was sixteen or eighty green pills. */
+  /* Owner, 2026-11-13: "in stock … at X stores, make the text colour a bit different": the open line's words are the stock green
+     too (money and availability are the palette's green; 5.7:1 on the surface), semibold; every other state stays grey. */
+  .sp-open {
+    @apply font-semibold text-open;
+  }
   .sp-open::before {
     @apply bg-open;
   }

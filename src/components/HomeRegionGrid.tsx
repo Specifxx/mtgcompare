@@ -18,7 +18,7 @@ import { Icon, type IconName } from "./Icon";
 import { pickRegion, useSuggestedRegion, type RegionSource } from "./RegionSuggest";
 import { Flag } from "@/components/Flag";
 
-const SLOTS = 5;
+const SLOTS = 10;
 
 const cache = new Map<Region, Promise<Pick[]>>();
 function picksFor(region: Region): Promise<Pick[]> {
@@ -107,7 +107,7 @@ export function HomeRegionGrid({ initial, preorder = null }: { initial: Pick[]; 
           </li>
         ))}
       </ul>
-      {/* Phones: five rows of fixed height; from sm, five cards in a row. */}
+      {/* Phones: ten rows of fixed height; from sm, two rows of five cards (owner, 2026-11-13: more products here). */}
       <ol className="mt-4 grid gap-2 sm:grid-cols-5 sm:gap-3" aria-busy={list ? undefined : true}>
         {Array.from({ length: SLOTS }, (_, i) => {
           const p = list?.[i];
@@ -117,7 +117,7 @@ export function HomeRegionGrid({ initial, preorder = null }: { initial: Pick[]; 
                 <Link href={`/${r.region}/p/${p.slug}`} prefetch={false} className="group flex h-full items-center sm:flex-col sm:items-stretch">
                   <div className="plate m-2 flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center p-1.5 sm:h-36 sm:w-auto sm:p-3">
                     {p.img ? (
-                      <img src={thumb(p.img, 240)!} alt={p.name} width={140} height={140} loading="eager" decoding="async" className="h-full w-full object-contain mix-blend-multiply" />
+                      <img src={thumb(p.img, 240)!} alt={p.name} width={140} height={140} loading={i < 5 ? "eager" : "lazy"} decoding="async" className="h-full w-full object-contain mix-blend-multiply" />
                     ) : (
                       <span className="text-[10px] font-semibold text-faint">{p.type}</span>
                     )}
@@ -129,7 +129,7 @@ export function HomeRegionGrid({ initial, preorder = null }: { initial: Pick[]; 
                     </span>
                     {/* Stock first, then the price (owner, 2026-10-25). */}
                     <span className="mt-1 flex items-baseline gap-2 sm:mt-auto sm:block sm:pt-1.5">
-                      <span className="block truncate text-xs font-medium text-muted">
+                      <span className="block truncate text-xs font-semibold text-open">
                         {p.stores > 0 ? `In stock at ${p.stores} of ${plural(p.listed ?? p.stores, "store")}` : "In stock"}
                         {p.tcg && r.market === "US" ? <span className="font-medium text-muted"> + TCGplayer</span> : null}
                       </span>
