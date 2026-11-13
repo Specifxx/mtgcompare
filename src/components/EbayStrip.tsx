@@ -1,6 +1,5 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import { Fragment, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { AFFILIATE_NOTE_SHORT, ebayLabel, ebayRetailer, ebayRetailerForHref, ebaySearchUrl, REL_SPONSORED, type Placement } from "@/lib/affiliate";
 import {
@@ -19,7 +18,7 @@ import {
   type AcceptedItem,
   type FeedKind,
 } from "@/lib/ebay-context";
-import { FEED_FIRST_INDEX, preFooterPlan } from "@/lib/ebay-ads";
+import { FEED_FIRST_INDEX } from "@/lib/ebay-ads";
 import { listingCents, pickListing, type PriceFloor } from "@/lib/ebay-offer-row";
 import { money } from "@/lib/format";
 import { isRegion, REGIONS, type Region } from "@/lib/regions";
@@ -611,20 +610,6 @@ export function EbayStrip({ region, context, placement, variant = "full", headin
       {body(items, heading, formatAge(now - a.fetchedAtMs), a.feed, a.maxAgeMs, fitN)}
     </div>
   );
-}
-
-// ─── Above the footer ──────────────────────────────────────────────────────────
-
-/**
- * The slim strip above every content page's footer (4 tiles). Which feed depends on the page (lib/ebay-ads.ts preFooterPlan):
- * the one the page's own strip is not. A region's home page has none.
- */
-export function PreFooterStrip({ region }: { region: Region }) {
-  const path = usePathname() || "";
-  const plan = preFooterPlan(path, region);
-  if (!plan) return null; // a region's home page: it has two strips of its own and renders <NoPreFooter/>
-  // Keyed by page: a soft navigation starts a fresh unit instead of showing the previous page's tiles until the new fetch answers.
-  return <EbayStrip key={`${region}|${path}|${plan.context}`} region={region} context={plan.context} placement="listings-footer" variant="slim" search={{ kind: "sealed", query: "" }} />;
 }
 
 // ─── The in-feed tiles (product grids) ─────────────────────────────────────────

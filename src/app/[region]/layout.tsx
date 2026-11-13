@@ -1,5 +1,4 @@
-import { PreFooterStrip } from "@/components/EbayStrip";
-import { PreFooterTcgplayer } from "@/components/PreFooterTcgplayer";
+import { LayoutInlineAds } from "@/components/InlineAds";
 import { listedSetCodes, tcgplayerTiles, type TcgplayerTile } from "@/lib/data";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
@@ -31,20 +30,18 @@ export default async function RegionLayout({ children, params }: { children: Rea
         <SideNav region={r.region} groups={navGroups(r.region, undefined, listed)} />
         <main id="main" className="min-w-0 flex-1">
         {children}
-        {/* Every region page ends with a slim eBay listing strip (four tiles), directly above the site
-            footer (inside <main>: it is page content, not a landmark of its own). With nothing to list it
-            is the compact CTA row. A page too short to fit it beside its own units renders <NoPreFooter/>,
-            and globals.css hides this wrapper. The legal pages are not under [region], so they never get one. */}
+        {/* Every region page without a spot of its own for the in-page ad block (the region home, a product page and a set page place it themselves)
+            ends with it, directly above the site footer (inside <main>: it is page content). Browser only: the server HTML holds an empty box of its
+            height (components/InlineAds.tsx). A page too short to fit it beside its own units renders <NoPreFooter/>, and globals.css hides
+            this wrapper. The legal pages are not under [region], so they never get one. */}
         <div className="page mt-16" data-ebay-prefooter>
-          <PreFooterStrip region={r.region} />
-          <PreFooterTcgplayer region={r.region} tiles={tcg} />
+          <LayoutInlineAds region={r.region} tiles={tcg} />
         </div>
         </main>
       </div>
       <Footer region={r.region} listed={listed} />
-      {/* From 1280px (every regular 16:9 and 16:10 screen; owner, 2026-11-06), drawn in the browser: an eBay rail down the far left and
-          a TCGplayer rail down the far right, fixed beside the shell, ten tiles that scroll (components/SideAds.tsx). Nothing in the
-          server HTML, nothing on smaller screens. */}
+      {/* Narrow screens only, drawn in the browser after a scroll: the phone dock (components/SideAds.tsx, AdDock.tsx). The side rails are gone
+          (2026-11-13). Nothing in the server HTML. */}
       <SideAds region={r.region} tiles={tcg} />
     </>
   );

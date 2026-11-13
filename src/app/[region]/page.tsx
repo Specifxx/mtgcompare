@@ -22,7 +22,7 @@ import { RegionChips } from "@/components/RegionChips";
 import { Empty, Section } from "@/components/Section";
 import { StockPill } from "@/components/StockPill";
 import { homeRails, regionOverview, tcgplayerTiles, type ProductCardData } from "@/lib/data";
-import { TcgplayerStrip } from "@/components/TcgplayerStrip";
+import { InlineAds } from "@/components/InlineAds";
 import { dealsCopy, dealsInMarket, nearestRegion, stockLabel } from "@/lib/deals";
 import { cardOpen } from "@/lib/compact";
 import { money, plural, timeAgo } from "@/lib/format";
@@ -306,7 +306,7 @@ export default async function RegionHome({ params }: { params: { region: string 
         </Section>
 
         {/* Real sealed products on TCGplayer (2026-10-28), after the Collector rail: well below the comparison above it. */}
-        <TcgplayerStrip tiles={tcgTiles} region={r.region} placement="tcgplayer-strip-home" title="Magic sealed on TCGplayer" className="mt-14" />
+        <InlineAds region={r.region} tiles={tcgTiles} className="mt-14" />
 
         {older.length > 0 && (
           <Section title="Older sets still in stock" kicker="Released 18+ months ago" href={`/${r.region}/out-of-print`} linkLabel="All older sets in stock">

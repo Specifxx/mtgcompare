@@ -127,22 +127,6 @@ export function tileSource(_surface: FeedSurface, nth: number): { context: "seal
 
 // ─── The pre-footer strip ──────────────────────────────────────────────────────
 
-/**
- * Which feed the slim strip above the footer shows: the one the page's own strip is NOT, so a page never shows the same
- * listings twice. A region's home page has none (null): it already carries two strips (high-end sealed under the stats, sealed after
- * the first rail), and a feed holds only 8 listings (the six of its strip and two to spare), too few for a third unit of four
- * different tiles; the home page renders <NoPreFooter/> so the layout's wrapper goes with it.
- */
-export function preFooterPlan(pathname: string, region: Region): { context: "chase" | "sealed" } | null {
-  const p = pathname.replace(/\/+$/, "");
-  const base = `/${region}`;
-  if (p === base) return null;
-  const rest = p.startsWith(`${base}/`) ? p.slice(base.length + 1).split("/")[0] : "";
-  // Pages whose own strip is the chase one (set pages cascade to it, stores and releases use it): the slim strip is sealed.
-  if (rest === "sets" || rest === "stores" || rest === "releases") return { context: "sealed" };
-  return { context: "chase" };
-}
-
 // ─── Page budgets ──────────────────────────────────────────────────────────────
 // Where a page's own units leave too little room for the strip above the footer, the page asks for it to be
 // dropped (components/Ebay.tsx NoPreFooter). Heights are phone-width estimates in px, checked by the screenshot sweep.
