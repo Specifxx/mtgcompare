@@ -10,6 +10,7 @@ import type { PriceFloor } from "@/lib/ebay-offer-row";
 import type { Region } from "@/lib/regions";
 import { OfferRowsWithEbay } from "./EbayStrip";
 import type { StoreRowData } from "./OfferRows";
+import { PriceAlertForm } from "./PriceAlertForm";
 import { ShareButton } from "./ShareButton";
 import { closeQuickViewUrl, onQuickViewHistory, openQuickViewUrl } from "@/lib/quick-view-url";
 
@@ -31,6 +32,8 @@ interface Data {
   amazon: StoreRowData | null;
   ebay: { slug: string; query: string; floor: PriceFloor | null; packs: number | null };
   preorder: boolean;
+  /** The product page's price alert (2026-11-13); absent in a response the CDN kept from before. */
+  alert?: { site: string; id: string; cents: number | null; market: string };
   name: string;
   sub: string;
   img: string | null;
@@ -182,6 +185,21 @@ export function QuickView() {
           )}
         </div>
         <div className="border-t border-line p-4 sm:px-5">
+          {/* The product page's price alert (2026-11-13): most buy clicks start in this panel and most visitors never open the product
+              page, where the only alert button was. A button; the form opens in place on a tap, never by itself. */}
+          {got?.alert && (
+            <PriceAlertForm
+              key={got.alert.id}
+              site={got.alert.site}
+              productId={got.alert.id}
+              region={got.alert.market}
+              priceCents={got.alert.cents}
+              className="mb-3"
+              buttonClassName="btn-ghost flex w-full items-center justify-center px-5 py-2.5 text-[15px]"
+              prominent
+              summary={got.alert.cents == null ? "Email me when a store has it at my price" : "Email me when the price drops"}
+            />
+          )}
           <Link href={head.href} prefetch={false} onClick={hide} className="btn-ghost flex w-full justify-center px-5 py-2.5 text-[15px]">
             See price history and details <span aria-hidden>→</span>
           </Link>

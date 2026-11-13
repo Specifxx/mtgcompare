@@ -1569,3 +1569,7 @@ turns, eBay first, scrolling sideways when the column is narrower (`.scroller`).
   drawn when it nears the viewport; under three tiles the box is removed. The phone dock stays and yields to the block (`[data-ad]`).
 - **Paid links:** eBay and TCGplayer only, never Amazon; `rel` sponsored; placements `listings-inline` and `tcgplayer-strip-inline` (the side placements
   are removed). Never a store row, best price, deal or alert. `tests/side-ads.test.ts` pins it. The rail code (`SIDE_RAILS`, the two rails) is deleted.
+
+## 2026-11-13: the price alert button is in the quick view too
+
+Ported from DexCompare the same day (its DECISIONS.md has the measurement: over half of Dex's buy clicks start in the quick view, and the alert button, on the product page only, had no taps in its first day and a half). The quick route sends `alert` (the service's site key, the product id, the region's lowest in-stock store price and its market) and `QuickView` draws the same `PriceAlertForm` above its footer link: a button, the form opens in place on a tap, never by itself. A response the CDN kept from before has no `alert` and draws nothing. `QuickView` takes the site key from the route, never from `lib/alert-feed.ts`, which reads files. `tests/quick-view-alert.test.ts`.
