@@ -12,6 +12,7 @@ import { amazonLiveFor } from "@/lib/amazon-live";
 import { priceGap, shareText } from "@/lib/share-link";
 import { money } from "@/lib/format";
 import { TYPE_BY_LABEL } from "@/lib/sealed-title";
+import { ALERT_SITE_KEY } from "@/lib/alert-feed";
 
 // GET /api/quick/<region>/<slug>: a product card's quick view (components/QuickView.tsx), the product page's price table as data: the same
 // rows (OfferTable.tsx offerRowsData), the same eBay pick arguments, so the same rows in the same order (eBay first, then TCGplayer and
@@ -55,6 +56,8 @@ export async function GET(_req: Request, { params }: { params: { region: string;
       amazon,
       ebay: { slug: p.slug, query: ebayQuery(p.name, tcgplayer), floor, packs: rowPacks(type?.key, packs) },
       preorder: pre,
+      // The price alert button under the rows (2026-11-13): the product page's own alert, with the same id and lowest in-stock store price.
+      alert: { site: ALERT_SITE_KEY, id: p.id, cents: here?.lowestPriceCents ?? null, market: r.market },
       // For a quick view opened from a plain link, which knows only the slug.
       name: p.name,
       sub: p.productType,
