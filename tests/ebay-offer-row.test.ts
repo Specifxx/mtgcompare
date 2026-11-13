@@ -132,7 +132,7 @@ test("pinned TCGplayer: third, under eBay and Amazon (owner, 2026-11-06), its ow
   assert.match(rows[1], /data-row="tcgplayer"/, "TCGplayer right under eBay");
   assert.match(rows[1], /or-hl/, "cheapest of the whole table: highlighted");
   assert.match(us, /data-best="tcg"/);
-  assert.match(us, />Best store price</, "the cheapest store says so");
+  assert.doesNotMatch(us, /Best store price/, "no store badge when eBay or TCGplayer is cheaper (owner, 2026-11-13)");
   assert.equal([...us.matchAll(/class="btn-primary/g)].length, 2, "eBay wears the filled button (owner, 2026-11-12)");
   assert.equal([...us.matchAll(/class="btn-tcg/g)].length, 1, "TCGplayer wears the blue button (owner, 2026-11-12)");
   assert.match(us, /View deal <span aria-hidden="true">↗<\/span><span class="sr-only"> on TCGplayer<\/span>/, "a store row's label; only the colour differs");
