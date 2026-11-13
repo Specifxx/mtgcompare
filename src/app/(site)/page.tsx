@@ -1,21 +1,16 @@
-import Link from "@/components/Link";
 import type { Metadata } from "next";
 import { Icon } from "@/components/Icon";
-import { RegionSuggest } from "@/components/RegionSuggest";
 import { SoftSideAds } from "@/components/SideAds";
 import { HomeRegionGrid } from "@/components/HomeRegionGrid";
 import { RegionChips } from "@/components/RegionChips";
 import { regionPicks } from "@/lib/picks";
-import { ComingSoonSwitch } from "@/components/ComingSoonSwitch";
-import { loadFeaturedAll } from "@/lib/coming-soon-data";
 import { REGION_LIST, X_DEFAULT_REGION } from "@/lib/regions";
 import { DEFAULT_OG_IMAGE, breadcrumbJsonLd, jsonLd } from "@/lib/seo";
 import { SITE_NAME, SITE_URL, sectionHref } from "@/lib/site";
 import { STORES } from "@/lib/stores";
-import { HalloweenDecor } from "@/components/home/HalloweenDecor";
-import { InnistradComing } from "@/components/home/InnistradComing";
 import { ChristmasGifts } from "@/components/home/ChristmasGifts";
-import { SoftHeroCards } from "@/components/home/SoftHeroCards";
+import { Hero, riseAt, type Way } from "@/components/home/Hero";
+import { SoftWaysIn } from "@/components/home/SoftWaysIn";
 import { LandingAds } from "@/components/home/LandingAds";
 import { landingRailTiles, landingTcgTiles } from "@/lib/landing-ads";
 
@@ -45,123 +40,69 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
 };
 
-// The hero's shortcuts, built for the default region (RegionSuggest moves them to the visitor's).
-const HERO_LINKS = [
-  { href: sectionHref(X_DEFAULT_REGION, "boosterBoxes"), label: "Play booster boxes" },
-  { href: sectionHref(X_DEFAULT_REGION, "collectorBoxes"), label: "Collector boxes" },
-  { href: sectionHref(X_DEFAULT_REGION, "commanderDecks"), label: "Commander decks" },
-  { href: sectionHref(X_DEFAULT_REGION, "bundles"), label: "Bundles" },
-  { href: sectionHref(X_DEFAULT_REGION, "deals"), label: "Deals" },
+// The hero's ways in, built for the default region (SoftWaysIn moves them to the visitor's): six tiles, never products. The sixth
+// is Pre-orders (the release calendar, with what stores have open for pre-order): the "Coming soon" block that sat on this page until
+// 2026-11-13 is gone, and the owner wanted it short, not unreachable, so pre-orders stay one tap from the hero. Every set is in the
+// header's Sets menu on this same page.
+const HERO_LINKS: Way[] = [
+  { href: sectionHref(X_DEFAULT_REGION, "boosterBoxes"), label: "Play booster boxes", icon: "box" },
+  { href: sectionHref(X_DEFAULT_REGION, "collectorBoxes"), label: "Collector boxes", icon: "collector" },
+  { href: sectionHref(X_DEFAULT_REGION, "commanderDecks"), label: "Commander decks", icon: "deck" },
+  { href: sectionHref(X_DEFAULT_REGION, "bundles"), label: "Bundles", icon: "bundle" },
+  { href: sectionHref(X_DEFAULT_REGION, "deals"), label: "Deals", icon: "tag" },
+  { href: sectionHref(X_DEFAULT_REGION, "releases"), label: "Pre-orders", icon: "calendar" },
 ];
 
 export default async function Landing() {
-  // The side rails' TCGplayer tiles, as on the region pages (this page is force-dynamic: read per request, never at build).
+  // The phone dock's TCGplayer tiles, as on the region pages (this page is force-dynamic: read per request, never at build).
   const railTiles = await landingRailTiles().catch(() => []);
-  // The default region's ten, from the public data files: the server HTML is already filled.
-  const today = new Date().toISOString().slice(0, 10);
-  // The next set's block, every region's (seven small lists): the server HTML has the default region's, the browser the visitor's.
-  // The banner's TCGplayer half (the newest sets' sealed products, from the public data files); its eBay half is fetched in the browser.
-  const [initialPicks, featured, tcgTiles] = await Promise.all([
-    regionPicks(X_DEFAULT_REGION).catch(() => []),
-    loadFeaturedAll(today).catch(() => ({})),
-    landingTcgTiles().catch(() => []),
-  ]);
-  const hasFeatured = Object.keys(featured).length > 0;
+  // The default region's ten, from the public data files: the server HTML is already filled. The banner's TCGplayer half (the
+  // newest sets' sealed products, from the same files); its eBay half is fetched in the browser.
+  const [initialPicks, tcgTiles] = await Promise.all([regionPicks(X_DEFAULT_REGION).catch(() => []), landingTcgTiles().catch(() => [])]);
   return (
     <div>
-      {/* The full-width hero (owner, 2026-11-08: KaeYoung and ScentCompare's, "feature some products on the hero"): the words, region
-          row, search and shortcuts on the left, two popular products on the right (under the words on a phone), in the visitor's
-          region. Same h1, same links. */}
-      <section className="mc-hero relative">
-        <HalloweenDecor />
-        <div className="page mc-hero-content grid gap-8 pb-10 pt-8 sm:pb-14 sm:pt-12 lg:grid-cols-[minmax(0,1fr)_minmax(340px,480px)] lg:items-center lg:gap-10">
-          <div className="min-w-0">
-            <InnistradComing />
-            <ChristmasGifts />
-            <h1 className="max-w-3xl font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
-              MTG booster box, bundle &amp; Commander deck prices, <span className="text-brand">cheapest first.</span>
-            </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-muted sm:mt-5 sm:text-lg">
-              {STORES.length} independent stores in {REGION_LIST.length} regions, read about twice a day. Free, no sign-up.
-            </p>
-            {/* The region row, with flags (owner, 2026-11-02): picks in place, like the header's switcher. */}
-            <RegionChips className="mt-6" />
-            {/* The 404's search markup: a plain GET form, so it works without script. RegionSuggest points it at the visitor's region. */}
-            <form
-              id="landing-search"
-              action={`/${X_DEFAULT_REGION}/sealed`}
-              method="get"
-              role="search"
-              className="mt-5 flex max-w-xl items-center gap-2 rounded-full border border-line bg-surface p-1.5 pl-4 shadow-card focus-within:border-ink/40"
-            >
-              <Icon name="search" size={18} className="text-faint" />
-              <input
-                name="q"
-                type="search"
-                placeholder="Search a set or product"
-                aria-label="Search sealed products"
-                className="min-w-0 flex-1 bg-transparent py-1.5 text-base outline-none placeholder:text-faint sm:text-sm"
-              />
-              <button type="submit" className="btn-primary min-h-11 px-5">
-                Search
-              </button>
-            </form>
-            {/* The shortcuts (owner, 2026-10-28): the most-used pages straight from the hero, in the visitor's region, instead of a
-                "Continue to <region>" step before any navigation. */}
-            <div className="mt-4 max-w-2xl">
-              <RegionSuggest formId="landing-search" links={HERO_LINKS} />
-            </div>
-            <div className="mt-5 flex flex-wrap items-center gap-2 text-sm">
-              <span className="hero-stat"><b className="tabular">{STORES.length}</b> stores</span>
-              <span className="hero-stat"><b className="tabular">{REGION_LIST.length}</b> regions</span>
-              {/* The creators page's one way in from the homepage (owner, 2026-11-03: "just have it as a button on the hero"). */}
-              <Link href="/creators" className="hero-stat hover:border-ink/40">
-                <span aria-hidden="true" className="text-[#c13584]">✦</span> Creators
-              </Link>
-            </div>
-          </div>
-          <SoftHeroCards initial={initialPicks} />
+      {/* The hero (owner, 2026-11-13: "get rid of the products on the hero"; it reverses the 2026-11-08 featured cards): the words,
+          the search, the region row and six ways in, centred. Same h1, same search form. Nothing else lives here: no stat chips, no
+          creators button (it is in the Guides menu), no product. The Christmas gift guide is its one small line, in season. */}
+      <Hero>
+        <ChristmasGifts />
+        <h1 className="hero-h1 hero-h1-long rise-solid">
+          MTG booster box, bundle &amp; Commander deck prices, <span className="text-brand">cheapest first.</span>
+        </h1>
+        <p className="hero-sub rise" style={riseAt(1)}>
+          {STORES.length} independent stores in {REGION_LIST.length} regions, read about twice a day. Free, no sign-up.
+        </p>
+        {/* The 404's search markup: a plain GET form, so it works without script. SoftWaysIn points it at the visitor's region. */}
+        <div className="hero-search rise" style={riseAt(2)}>
+          <form id="landing-search" action={`/${X_DEFAULT_REGION}/sealed`} method="get" role="search" className="flex items-center gap-2 border p-1.5">
+            <Icon name="search" size={20} className="shrink-0 text-faint" />
+            <input name="q" type="search" placeholder="Search a set or product" aria-label="Search sealed products" className="min-w-0 flex-1 bg-transparent py-1.5 outline-none placeholder:text-faint" />
+            <button type="submit" className="btn-primary min-h-11 px-6">
+              Search
+            </button>
+          </form>
         </div>
-      </section>
+        {/* The region row, with flags (owner, 2026-11-02): picks in place, like the header's switcher. */}
+        <RegionChips className="rise mt-6 justify-center" style={riseAt(3)} />
+        <SoftWaysIn formId="landing-search" links={HERO_LINKS} />
+      </Hero>
 
-      {/* The eBay + TCGplayer banner (owner, 2026-11-03), side by side straight under the hero (the featured-creators strip sat under the paragraph below
-          (2026-10-30 to 2026-11-03; /creators is now the hero's button). Real listings and products, labelled Ad; nothing moves when
-          the eBay half arrives or the region changes. */}
-      <div className="page mt-8 max-w-5xl">
-        <LandingAds tcg={tcgTiles} />
-      </div>
-
-      {/* The owner's short landing page (2026-10-25, DECISIONS.md): one paragraph on how it is fair, the region's five, the hot
-          buttons, the footer. The long text, the FAQ, the regions and what we compare live on /about; the guides on each region's
-          guides index; the market report on each region home. Everything here is server-rendered. */}
-      <section className="page" aria-labelledby="fair-h">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 id="fair-h" className="sr-only">
-            How {SITE_NAME} ranks stores
-          </h2>
-          <p className="text-[15px] leading-7 text-muted">
-            Every product&rsquo;s stores are ranked by price and stock only: in stock first, cheapest first, each store&rsquo;s own price in your currency.
-            No store pays to be listed or to rank, and every affiliate link is marked.{" "}
-            <Link href="/about" className="inline-flex min-h-11 items-center font-semibold text-ink underline underline-offset-2 hover:text-brand sm:min-h-0">
-              How it works
-            </Link>
-          </p>
-        </div>
-      </section>
-
-      {/* The next set (lib/coming-soon.ts, by sets.ts dates): gone on its release day. It carries the pre-order hub link, so the hot
-          buttons below keep their Commander decks button. */}
-      {hasFeatured && (
-        <div className="page mt-8">
-          <ComingSoonSwitch byRegion={featured} today={today} />
-        </div>
-      )}
-
-      <div className="mb-10 mt-10">
+      {/* The products, straight under the hero (owner, 2026-11-13: "the product's very easy to access"): ten of the region's most
+          stocked. The paragraph on how stores are ranked and the "Coming soon" block that sat above them are gone: the footer says
+          how the ranking works and links /about; pre-orders are the hero's sixth tile, and the next set's hub is in the Deals menu on
+          every page and is the region home's pill and tab. Everything here is server-rendered. */}
+      <div className="reveal mt-6 sm:mt-10">
         <HomeRegionGrid initial={initialPicks} />
       </div>
+
+      {/* The page's one ad block: the eBay + TCGplayer banner (owner, 2026-11-03), under the products since 2026-11-13 (it sat between
+          the hero and them). Real listings and products, labelled Ad; nothing moves when the eBay half arrives or the region changes. */}
+      <div className="page reveal mb-16 mt-16 max-w-5xl sm:mt-24">
+        <LandingAds tcg={tcgTiles} />
+      </div>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbJsonLd([{ href: "/", label: SITE_NAME }])) }} />
-      {/* The side rails from 1280px, browser-only, in the visitor's region (components/SideAds.tsx; owner 2026-11-06: "the home page must have this as well"). */}
+      {/* The phone dock (below 1280px, after a scroll), browser-only, in the visitor's region (components/SideAds.tsx; the side rails
+          that shared the file were removed 2026-11-13; owner 2026-11-06: "the home page must have this as well"). */}
       <SoftSideAds tiles={railTiles} />
     </div>
   );

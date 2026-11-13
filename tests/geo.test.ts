@@ -8,6 +8,7 @@ import * as React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { regionFromAcceptLanguage, regionFromCountry, REGION_LIST } from "../src/lib/regions";
 import { GET } from "../src/app/api/geo/route";
+import { headerNavItems } from "../src/components/Header";
 
 (globalThis as unknown as { React: typeof React }).React = React;
 
@@ -49,12 +50,17 @@ test("the landing page: the region grid's server HTML has every region link and 
   assert.match(html, /data-home-grid=""/);
   for (const r of REGION_LIST) assert.match(html, new RegExp(`href="/${r.region}"`), r.region);
   const grid = html.slice(html.indexOf("data-home-grid"));
-  assert.equal((grid.match(/class="card h-\[5\.5rem\] overflow-hidden sm:h-\[18\.5rem\]"/g) ?? []).length, 10, "ten slots of fixed height (five until 2026-11-13): filling them moves nothing");
+  assert.equal((grid.match(/<li class="hg-slot">/g) ?? []).length, 10, "ten slots of one size (globals.css .hg-slot; five until 2026-11-13): filling them moves nothing");
+  assert.match(readFileSync("src/app/globals.css", "utf8"), /\.hg-slot \{\s*@apply h-\[5\.5rem\] md:h-auto;/, "a phone's slot is a fixed row");
   assert.match(grid, /Most stocked in the US today/);
-  const hot = grid.match(/data-hot-button=""/g) ?? [];
-  assert.ok(hot.length >= 4 && hot.length <= 8, `${hot.length} hot buttons`);
-  for (const k of ["/us/back-in-stock", "/us/out-of-print"]) assert.match(grid, new RegExp(`href="${k}"`), k);
-  for (const k of ["/us/deals", "/us/type/play-booster-boxes", "/us/type/collector-booster-boxes", "/us/guides", "/us/stores"]) assert.match(grid, new RegExp(`href="${k}"`), k);
+  // The minimal look (2026-11-13): this block is the products and nothing else. Its "Jump to" shortcuts and its second region row
+  // are gone; the hero has the region row and six ways in, and what is not there is one click away in the header on the same page.
+  assert.doesNotMatch(grid, /data-hot-button|Jump to/);
+  // The hero's six: four product types, deals and pre-orders (the release calendar: the "Coming soon" block left this page, pre-orders
+  // stay one tap from its hero). Every set is in the header's Sets menu, on this page too.
+  for (const k of ["/us/deals", "/us/type/play-booster-boxes", "/us/type/collector-booster-boxes", "/us/type/commander-decks", "/us/type/bundles", "/us/releases"]) assert.match(html, new RegExp(`href="${k}"`), k);
+  const header = headerNavItems("us").flatMap((n) => [n.href, ...(n.menu ?? []).flatMap((c) => c.links.map((l) => l.href))]);
+  for (const k of ["/us/sets", "/us/back-in-stock", "/us/out-of-print", "/us/guides", "/us/stores", "/us/guides/mtg-booster-box-prices"]) assert.ok(header.includes(k), `${k} is in the header's menus`);
   for (const f of ["src/middleware.ts", "src/app/api/geo/route.ts", "src/components/HomeRegionGrid.tsx", "src/components/RegionSuggest.tsx"])
     assert.doesNotMatch(readFileSync(f, "utf8"), /NextResponse\.redirect\([^)]*geo|location\.(assign|replace|href\s*=)/, `${f}: no geo redirect`);
 });

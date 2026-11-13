@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "@/components/Link";
+import type { CSSProperties } from "react";
 import { REGION_LIST, type Region } from "@/lib/regions";
 import { gaEvent } from "@/lib/gtag";
 import { Flag } from "./Flag";
@@ -12,11 +13,11 @@ import { pickRegion, useSoftRegion } from "./RegionSuggest";
 // a click picks the region in place, as the header's soft switcher does (RegionSuggest.tsx pickRegion); without script the links
 // still go to each region's home. Flag and code (seven full names wrap even on a
 // wide screen); the name is the chip's title.
-export function RegionChips({ region = null, className = "" }: { region?: Region | null; className?: string }) {
+export function RegionChips({ region = null, className = "", style }: { region?: Region | null; className?: string; style?: CSSProperties }) {
   const soft = useSoftRegion();
   const current = region ?? soft;
   return (
-    <nav aria-label="Choose your region" className={`flex flex-wrap items-center gap-2 ${className}`}>
+    <nav aria-label="Choose your region" className={`flex flex-wrap items-center gap-2 ${className}`} style={style}>
       <span className="text-sm font-semibold text-muted">Prices for</span>
       {REGION_LIST.map((r) => {
         const on = r.region === current;

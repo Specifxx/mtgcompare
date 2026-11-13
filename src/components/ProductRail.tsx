@@ -18,7 +18,7 @@ export function ProductRail({ products, region, eager = 0, label, bleed = true, 
     <ul
       role="list"
       aria-label={label}
-      className={`scroller gap-3 sm:grid sm:grid-cols-4 sm:gap-4 sm:overflow-visible sm:[-webkit-mask-image:none] sm:[mask-image:none] ${bleed ? "-mx-4 px-4 scroll-px-4 sm:mx-0 sm:px-0" : ""} ${className}`}
+      className={`scroller gap-3 sm:grid sm:grid-cols-4 sm:gap-5 sm:overflow-visible sm:[-webkit-mask-image:none] sm:[mask-image:none] ${bleed ? "-mx-4 px-4 scroll-px-4 sm:mx-0 sm:px-0" : ""} ${className}`}
     >
       {products.map((p, i) => (
         // flex-col + the card's root at flex-1: every card in the row is as tall as the tallest (as in a grid)

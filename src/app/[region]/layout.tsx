@@ -4,8 +4,6 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { HolidayStrip } from "@/components/HolidayStrip";
 import { SideAds } from "@/components/SideAds";
-import { SideNav } from "@/components/SideNav";
-import { navGroups } from "@/lib/nav";
 import { regionOrNotFound } from "@/lib/regions";
 
 // Nothing here is prerendered at build: every region page is force-dynamic and kept by Vercel's CDN
@@ -25,10 +23,9 @@ export default async function RegionLayout({ children, params }: { children: Rea
     <>
       <Header region={r.region} listed={listed} />
       <HolidayStrip region={r.region} />
-      {/* From xl, the sidebar (components/SideNav.tsx) fills the wide screen's left side; the page keeps its own width beside it. */}
-      <div className="mx-auto flex w-full max-w-shell flex-1">
-        <SideNav region={r.region} groups={navGroups(r.region, undefined, listed)} />
-        <main id="main" className="min-w-0 flex-1">
+      {/* ONE navigation since 2026-11-13 (owner: "we're making things too complicated"): the header. The sidebar that repeated its
+          menus down the left of every desktop page is gone; the page is one centred column. */}
+      <main id="main" className="min-w-0 flex-1">
         {children}
         {/* Every region page without a spot of its own for the in-page ad block (the region home, a product page and a set page place it themselves)
             ends with it, directly above the site footer (inside <main>: it is page content). Browser only: the server HTML holds an empty box of its
@@ -37,8 +34,7 @@ export default async function RegionLayout({ children, params }: { children: Rea
         <div className="page mt-16" data-ebay-prefooter>
           <LayoutInlineAds region={r.region} tiles={tcg} />
         </div>
-        </main>
-      </div>
+      </main>
       <Footer region={r.region} listed={listed} />
       {/* Narrow screens only, drawn in the browser after a scroll: the phone dock (components/SideAds.tsx, AdDock.tsx). The side rails are gone
           (2026-11-13). Nothing in the server HTML. */}

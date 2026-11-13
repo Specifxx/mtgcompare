@@ -35,7 +35,7 @@ export function SideAds({ region, tiles }: { region: Region; tiles: TcgplayerTil
 
 /**
  * The same dock on the pages with no region of their own (the home page, the blog, About…; owner 2026-11-06: "the home page must
- * have this as well"), in the visitor's suggested or picked region (RegionSuggest.tsx), like their header and sidebar.
+ * have this as well"), in the visitor's suggested or picked region (RegionSuggest.tsx), like their header.
  */
 export function SoftSideAds({ tiles }: { tiles: TcgplayerTile[] }) {
   return <SideAds region={useSoftRegion()} tiles={tiles} />;

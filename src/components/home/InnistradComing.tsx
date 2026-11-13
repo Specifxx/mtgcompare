@@ -5,7 +5,7 @@ import { X_DEFAULT_REGION } from "@/lib/regions";
 // Halloween (until 31 October): an Innistrad-flavoured line above the landing hero's eyebrow, to the store search for
 // Innistrad sealed product (the plain GET search the hero's own form uses; no new data read). Its own component so the whole
 // season comes out by deleting it and its call. Same gating as HalloweenDecor: in the HTML around the season, shown only while
-// <html> carries data-season="halloween" (globals.css .mc-moon).
+// <html> carries data-season="halloween" (globals.css .mc-moon). Not placed on the page since 2026-11-13, with HalloweenDecor.
 export function InnistradComing() {
   if (!seasonMarkupLive("halloween")) return null;
   return (

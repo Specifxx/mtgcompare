@@ -5,6 +5,8 @@ import { seasonMarkupLive } from "@/lib/season";
 // (which sits above it), never over a control. In the HTML only around the season (seasonMarkupLive, a day of slack for the CDN
 // copy) and shown only while <html> carries data-season="halloween" (lib/season.ts, globals.css .mc-decor), so it goes at the
 // visitor's own midnight on 1 November with no deploy. Reduced motion: the bats stay home and nothing flickers.
+// Not placed on the page since 2026-11-13 (the minimal look: the hero is words, the search and six ways in); the dressing and its
+// CSS (.mc-*) stay for next October's decision.
 export function HalloweenDecor() {
   if (!seasonMarkupLive("halloween")) return null;
   return (

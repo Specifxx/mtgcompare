@@ -160,7 +160,7 @@ function SoftMenuSheet({ groups, built, pathname, onClose }: { groups: NavGroup[
 }
 
 /**
- * The sheet: everything the site has, grouped as the desktop sidebar is (lib/nav.ts: product types, sets, deals and stock, the rest),
+ * The sheet: everything the site has, in lib/nav.ts's groups (product types, sets, deals and stock, the rest),
  * then the seven regions (the same page in each; on a `soft` page, a pick that switches the page in place), then About and Contact.
  */
 export function MenuSheet({

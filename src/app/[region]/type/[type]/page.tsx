@@ -6,6 +6,7 @@ import { Ago } from "@/components/Ago";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { NoPreFooter } from "@/components/Ebay";
 import { EbayStrip } from "@/components/EbayStrip";
+import { Fold, Folds } from "@/components/Fold";
 import { Icon } from "@/components/Icon";
 import { StockFilter } from "@/components/StockFilter";
 import { ProductGrid } from "@/components/ProductGrid";
@@ -105,41 +106,13 @@ export default async function TypePage({ params }: { params: { region: string; t
     <div className="page py-8">
       {!(gridPageHasRoomForFooter(open.length + sold.length) && open.length + sold.length >= FOOTER_STRIP_MIN) && <NoPreFooter />}
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { label: t.plural }]} />
-      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-5xl">
         {name} in {r.inName}
       </h1>
 
-
-      {/* The intro, two lines; "More about" opens the rest of it (the clamp lifts while the details are open) and the facts below. */}
-      <div className="mt-3 max-w-3xl [&:has(details[open])>p]:line-clamp-none">
-        <p className="line-clamp-2 leading-7 text-muted">{TYPE_ABOUT[t.slug]}</p>
-        <details className="group mt-1">
-          <summary className="inline-flex min-h-10 cursor-pointer list-none items-center gap-1 text-sm font-semibold text-brand-strong hover:underline [&::-webkit-details-marker]:hidden">
-            <span className="group-open:hidden">More about {t.plural}</span>
-            <span className="hidden group-open:inline">Less about {t.plural}</span>
-            <Icon name="arrow-right" size={16} className="rotate-90 transition-transform group-open:-rotate-90" />
-          </summary>
-          <dl className="mt-2 grid gap-x-6 gap-y-2 rounded-xl border border-line bg-surface p-4 text-sm sm:grid-cols-[auto_minmax(0,1fr)]">
-            <dt className="text-muted">Booster packs inside</dt>
-            <dd className="font-semibold">{packs ?? "Varies by product"}</dd>
-            {msrp && (
-              <>
-                <dt className="text-muted">US MSRP</dt>
-                <dd className="font-semibold">
-                  {msrp}
-                  <span className="block text-xs font-normal text-muted">{RRP_NOTE}</span>
-                </dd>
-              </>
-            )}
-            <dt className="text-muted">Listed in {r.inName}</dt>
-            <dd className="font-semibold">
-              {plural(total, "product")}, {openCount} in stock today
-            </dd>
-          </dl>
-        </details>
-      </div>
-
-      <p className="mt-2 text-sm text-muted">
+      {/* One line of facts, then the products (the minimal look, 2026-11-13): the intro and the facts sat between the headline
+          and the grid; they are under it now, one line until opened (the fold at the end of the page). */}
+      <p className="mt-3 text-sm text-muted">
         <b className="text-ink">{openCount}</b> in stock
         {from != null && <> from {money(from, r.market)}</>} · {byStores} listed by {r.adjective} stores
         {tcgOnly > 0 && <>, {tcgOnly} more only on TCGplayer</>}
@@ -150,22 +123,8 @@ export default async function TypePage({ params }: { params: { region: string; t
           </>
         )}
       </p>
-      <ul className="mt-1 flex flex-wrap gap-x-5">
-        {more && (
-          <li>
-            <Link href={seeAll} prefetch={false} className="inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-brand-strong hover:underline">
-              See all {openCount} in stock <Icon name="arrow-right" size={16} />
-            </Link>
-          </li>
-        )}
-        <li>
-          <Link href={`/${r.region}/deals#${dealsAnchor(t.slug)}`} prefetch={false} className="inline-flex min-h-10 items-center gap-1 text-sm font-semibold text-brand-strong hover:underline">
-            See deals on {t.plural} today <Icon name="arrow-right" size={16} />
-          </Link>
-        </li>
-      </ul>
 
-      <nav aria-label="Other product types" className="mt-3">
+      <nav aria-label="Other product types" className="mt-5">
         {/* One row that scrolls sideways at every width: a wrapping row changes its line count when the web font arrives. */}
         <ul className="scroller -mx-4 gap-2 px-4 scroll-px-4 sm:mx-0 sm:px-0">
           {siblings.map((x) => (
@@ -195,17 +154,20 @@ export default async function TypePage({ params }: { params: { region: string; t
           ) : null
         }
       >
-      <Section id="in-stock" title="In stock now" kicker={more ? `Cheapest first · ${open.length} of ${openCount}` : "Cheapest first"}>
+      <Section id="in-stock" title="In stock now" kicker={more ? `Cheapest first · ${open.length} of ${openCount}` : "Cheapest first"} className="mt-8 sm:mt-10">
         {open.length ? (
           <>
             <ProductGrid products={open} region={r.region} eager={4} tiles="type" strip={strip} />
-            {more && (
-              <div className="mt-6 flex justify-center">
+            <div className="mt-8 flex flex-wrap justify-center gap-3 sm:mt-10">
+              {more && (
                 <Link href={seeAll} prefetch={false} className="btn-ghost min-h-11 px-6">
                   See all {openCount} in stock <Icon name="arrow-right" size={18} />
                 </Link>
-              </div>
-            )}
+              )}
+              <Link href={`/${r.region}/deals#${dealsAnchor(t.slug)}`} prefetch={false} className="btn-ghost min-h-11 px-6">
+                Deals on {t.plural} today <Icon name="arrow-right" size={18} />
+              </Link>
+            </div>
           </>
         ) : (
           <>
@@ -264,7 +226,7 @@ export default async function TypePage({ params }: { params: { region: string; t
       )}
 
       {index.length > 0 && (
-        <section aria-labelledby="type-index-h" className="mt-14">
+        <section aria-labelledby="type-index-h" className="mt-16 sm:mt-20">
           <h2 id="type-index-h" className="font-display text-2xl font-bold tracking-tight">
             More {t.plural.toLowerCase()} in {r.inName}, A to Z
           </h2>
@@ -281,6 +243,29 @@ export default async function TypePage({ params }: { params: { region: string; t
           </ul>
         </section>
       )}
+      {/* The reading matter, under the products: in the HTML either way, one line until opened (components/Fold.tsx). */}
+      <Folds label={`About ${t.plural}`}>
+        <Fold id="about-h" title={`About ${t.plural}`}>
+          <p className="max-w-3xl leading-7 text-muted">{TYPE_ABOUT[t.slug]}</p>
+          <dl className="mt-4 grid max-w-3xl gap-x-6 gap-y-2 text-sm sm:grid-cols-[auto_minmax(0,1fr)]">
+            <dt className="text-muted">Booster packs inside</dt>
+            <dd className="font-semibold">{packs ?? "Varies by product"}</dd>
+            {msrp && (
+              <>
+                <dt className="text-muted">US MSRP</dt>
+                <dd className="font-semibold">
+                  {msrp}
+                  <span className="block text-xs font-normal text-muted">{RRP_NOTE}</span>
+                </dd>
+              </>
+            )}
+            <dt className="text-muted">Listed in {r.inName}</dt>
+            <dd className="font-semibold">
+              {plural(total, "product")}, {openCount} in stock today
+            </dd>
+          </dl>
+        </Fold>
+      </Folds>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />
     </div>
   );

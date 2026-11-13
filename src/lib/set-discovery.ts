@@ -1,7 +1,7 @@
 // NEW SETS FIND THEMSELVES (2026-11-03). Every sealed import first reads Scryfall's set list (scripts/discover-sets.ts) and
 // keeps the English paper releases due in the next DISCOVER_AHEAD_DAYS days in data/sets/discovered.json. lib/sets.ts adds
 // those to SETS, so from that import on the importer files the new set's store pre-orders under it, and the pages that already
-// follow SETS (the pre-order page, the homepage's Coming soon block, the release calendar, the set page, the sitemap) appear by
+// follow SETS (the pre-order page, the region home's pre-order pill and tab, the release calendar, the set page, the sitemap) appear by
 // themselves on the next release. A set hand-written into lib/sets.ts always wins: its row replaces the discovered one.
 //
 // Facts only, and refuse rather than guess:

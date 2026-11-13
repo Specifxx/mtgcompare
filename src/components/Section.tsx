@@ -7,6 +7,7 @@ export function Section({
   kicker,
   href,
   linkLabel = "See all",
+  className = "mt-16 sm:mt-20",
   children,
 }: {
   /** An anchor for in-page links ("Compare all prices ↓" → #prices). html's scroll-padding-top keeps it clear of the sticky header. */
@@ -15,18 +16,20 @@ export function Section({
   kicker?: string;
   href?: string;
   linkLabel?: string;
+  /** The section's own spacing (and "reveal", to rise in as it scrolls into view); the default is the page's rhythm. */
+  className?: string;
   children: React.ReactNode;
 }) {
   return (
-    <section id={id} className="mt-14">
+    <section id={id} className={className}>
       {/* wraps: a long "All … →" link drops under the title on a phone instead of widening the page */}
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
         <div className="min-w-0">
           {kicker && <div className="eyebrow mb-1">{kicker}</div>}
-          <h2 className="font-display text-2xl font-bold tracking-tight sm:text-[28px]">{title}</h2>
+          <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">{title}</h2>
         </div>
         {href && (
-          <Link href={href} prefetch={false} className="shrink-0 text-sm font-semibold text-brand hover:underline">
+          <Link href={href} prefetch={false} className="shrink-0 text-sm font-semibold text-muted transition-colors hover:text-ink">
             {linkLabel} →
           </Link>
         )}

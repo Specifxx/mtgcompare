@@ -1,22 +1,19 @@
 "use client";
 
-// The landing page's region block (ported from DexCompare, 2026-10-23; cut to the owner's short shape 2026-10-25): a switcher for
-// the seven regions, "Most stocked in <region> today" (five in-stock products, lib/picks.ts: the newest Play and Collector Booster
-// Boxes ordered by how many of the region's stores have them in stock), then the hot buttons, the region's most-used pages. The
-// server HTML is the same for everyone, crawlers included, and already filled with the default region's (the US) picks; in the
-// browser it moves to the visitor's region (RegionSuggest.tsx useSuggestedRegion: saved, language, time zone, then /api/geo) through
-// the CDN-cached /api/picks/<region>. The slots and the buttons are fixed-size, so the swap moves nothing.
+// The landing page's product block (ported from DexCompare, 2026-10-23): "Most stocked in <region> today" (ten in-stock products,
+// lib/picks.ts: the newest Play and Collector Booster Boxes ordered by how many of the region's stores have them in stock). Nothing else since 2026-11-13
+// (owner: "cull the features that we show"): the region row and the shortcuts are the hero's (RegionChips, SoftWaysIn), so this
+// block no longer repeats a second switcher and a "Jump to" list. The server HTML is the same for everyone, crawlers included,
+// and already filled with the default region's (the US) picks; in the browser it moves to the visitor's region (RegionSuggest.tsx
+// useSuggestedRegion: saved, language, time zone, then /api/geo; a pick in the hero or the header moves it too) through the
+// CDN-cached /api/picks/<region>. The slots are fixed-size, so the swap moves nothing.
 import Link from "@/components/Link";
 import { useEffect, useState } from "react";
-import { gaEvent } from "@/lib/gtag";
 import { money, plural } from "@/lib/format";
 import { thumb } from "@/lib/images";
-import { REGION_LIST, REGIONS, X_DEFAULT_REGION, type Region } from "@/lib/regions";
-import { sectionHref, type SectionKey } from "@/lib/site";
+import { REGIONS, X_DEFAULT_REGION, type Region } from "@/lib/regions";
 import type { Pick } from "@/lib/picks";
-import { Icon, type IconName } from "./Icon";
-import { pickRegion, useSuggestedRegion, type RegionSource } from "./RegionSuggest";
-import { Flag } from "@/components/Flag";
+import { useSuggestedRegion, type RegionSource } from "./RegionSuggest";
 
 const SLOTS = 10;
 
@@ -33,26 +30,7 @@ function picksFor(region: Region): Promise<Pick[]> {
   return p;
 }
 
-/** A set on pre-order (lib/preorder-guides.ts openPreorderGuides), worked out on the server; its hub is /<region>/preorders/<slug>. */
-export interface HotPreorder {
-  slug: string;
-  name: string;
-}
-
-// The pages people come for, in this order. With a set on pre-order its hub takes the Commander decks' place, so there are always eight
-// (two rows of four on a desktop).
-const HOT: { key: SectionKey; label: string; icon?: IconName }[] = [
-  { key: "deals", label: "Deals", icon: "tag" },
-  { key: "boosterBoxes", label: "Play Booster Boxes" },
-  { key: "collectorBoxes", label: "Collector Booster Boxes" },
-  { key: "commanderDecks", label: "Commander decks" },
-  { key: "backInStock", label: "Back in stock", icon: "check" },
-  { key: "outOfPrint", label: "Older sets in stock", icon: "clock" },
-  { key: "guides", label: "Buying guides", icon: "info" },
-  { key: "stores", label: "Stores", icon: "store" },
-];
-
-export function HomeRegionGrid({ initial, preorder = null }: { initial: Pick[]; preorder?: HotPreorder | null }) {
+export function HomeRegionGrid({ initial }: { initial: Pick[] }) {
   // The default region until the suggestion is known (the server HTML's), so the first paint is a full grid, never skeletons. A pick
   // here, in the header or in the phone menu is the same one (RegionSuggest.tsx pickRegion): the whole page moves together.
   const suggested = useSuggestedRegion();
@@ -75,100 +53,55 @@ export function HomeRegionGrid({ initial, preorder = null }: { initial: Pick[]; 
 
   const r = REGIONS[region];
   const list = picks.region === region ? picks.list : null;
-  const hot = HOT.map((h) =>
-    h.key === "commanderDecks" && preorder
-      ? { href: `/${r.region}/preorders/${preorder.slug}`, label: `${preorder.name} pre-orders`, icon: "calendar" as IconName, pre: true }
-      : { href: sectionHref(r.region, h.key), label: h.label, icon: h.icon, pre: false },
-  );
-
   return (
     <section id="regions" aria-labelledby="home-grid-h" className="page scroll-mt-20" data-home-grid="">
-      <h2 id="home-grid-h" className="font-display text-2xl font-bold tracking-tight">
+      <h2 id="home-grid-h" className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
         Most stocked in {r.inName} today
       </h2>
-      {/* The region switcher: real links (they work without script, and crawl to every region home); with script, a click
-          swaps the grid and the buttons in place and remembers the choice, as the header's switcher does. */}
-      <ul className="mt-3 flex flex-wrap gap-2" aria-label="Choose your region">
-        {REGION_LIST.map((x) => (
-          <li key={x.region}>
-            <a
-              href={`/${x.region}`}
-              aria-current={x.region === region ? "true" : undefined}
-              onClick={(e) => {
-                if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-                e.preventDefault();
-                gaEvent("region_select", { region: x.region, from: region, placement: "landing-grid" });
-                pickRegion(x.region);
-              }}
-              className={`chip min-h-11 ${x.region === region ? "chip-on" : ""}`}
-            >
-              <Flag code={x.short} /> {x.short}
-            </a>
-          </li>
-        ))}
-      </ul>
-      {/* Phones: ten rows of fixed height; from sm, two rows of five cards (owner, 2026-11-13: more products here). */}
-      <ol className="mt-4 grid gap-2 sm:grid-cols-5 sm:gap-3" aria-busy={list ? undefined : true}>
+      {/* Ten slots (owner, 2026-11-13: more products here), each the same size whatever it holds (globals.css .hg-*): a row on a
+          phone, two columns of rows on a tablet, the product card's shape (a square plate, the name, stock and price) from md. */}
+      <ol className="mt-6 grid divide-y divide-line sm:grid-cols-2 sm:gap-x-6 md:grid-cols-5 md:gap-x-5 md:gap-y-8 md:divide-y-0" aria-busy={list ? undefined : true}>
         {Array.from({ length: SLOTS }, (_, i) => {
           const p = list?.[i];
           return (
-            <li key={i} className="card h-[5.5rem] overflow-hidden sm:h-[18.5rem]">
+            <li key={i} className="hg-slot">
               {p ? (
-                <Link href={`/${r.region}/p/${p.slug}`} prefetch={false} className="group flex h-full items-center sm:flex-col sm:items-stretch">
-                  <div className="plate m-2 flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center p-1.5 sm:h-36 sm:w-auto sm:p-3">
+                <Link href={`/${r.region}/p/${p.slug}`} prefetch={false} className="group hg-link">
+                  <div className="plate hg-plate">
                     {p.img ? (
-                      <img src={thumb(p.img, 240)!} alt={p.name} width={140} height={140} loading={i < 5 ? "eager" : "lazy"} decoding="async" className="h-full w-full object-contain mix-blend-multiply" />
+                      <img src={thumb(p.img, 240)!} alt={p.name} width={240} height={240} loading={i < 5 ? "eager" : "lazy"} decoding="async" className="absolute inset-0 h-full w-full object-contain p-1.5 mix-blend-multiply md:p-3" />
                     ) : (
-                      <span className="text-[10px] font-semibold text-faint">{p.type}</span>
+                      <span className="flex h-full items-center justify-center p-1 text-center text-[10px] font-semibold text-[#5c606c]">{p.type}</span>
                     )}
                   </div>
-                  <div className="flex min-w-0 flex-1 flex-col justify-center py-2 pr-3 sm:items-stretch sm:p-3">
-                    <span className="min-w-0">
-                      <span className="hidden text-[11px] sm:block font-semibold uppercase tracking-wide text-muted">{p.type}</span>
-                      <span className="line-clamp-1 text-sm font-semibold leading-5 group-hover:text-brand sm:mt-0.5 sm:line-clamp-2">{p.name}</span>
-                    </span>
+                  <div className="hg-text">
+                    <span className="line-clamp-1 text-sm font-semibold leading-5 transition-colors group-hover:text-brand md:line-clamp-2">{p.name}</span>
                     {/* Stock first, then the price (owner, 2026-10-25). */}
-                    <span className="mt-1 flex items-baseline gap-2 sm:mt-auto sm:block sm:pt-1.5">
-                      <span className="block truncate text-xs font-semibold text-open">
-                        {p.stores > 0 ? `In stock at ${p.stores} of ${plural(p.listed ?? p.stores, "store")}` : "In stock"}
-                        {p.tcg && r.market === "US" ? <span className="font-medium text-muted"> + TCGplayer</span> : null}
+                    <span className="mt-1 flex items-baseline justify-between gap-2 md:mt-auto md:block">
+                      <span className="sp sp-sm sp-open min-w-0" title={`In stock at ${p.stores} of ${plural(p.listed ?? p.stores, "store")}${p.tcg && r.market === "US" ? " and on TCGplayer" : ""}`}>
+                        <span className="truncate">{p.stores > 0 ? `In stock · ${plural(p.stores, "store")}` : "In stock"}</span>
                       </span>
-                      <span className="tabular block font-display text-lg font-extrabold">{p.cents != null ? money(p.cents, r.market) : "—"}</span>
+                      <span className="tabular block shrink-0 font-display text-lg font-bold md:mt-0.5">{p.cents != null ? money(p.cents, r.market) : "—"}</span>
                     </span>
                   </div>
                 </Link>
-              ) : list ? (
-                i === 0 ? (
-                  <div className="flex h-full items-center justify-center p-4 text-center text-sm text-muted">Nothing in stock to show here right now.</div>
-                ) : null
+              ) : list && i === 0 ? (
+                <div className="flex h-full items-center justify-center p-4 text-center text-sm text-muted">Nothing in stock to show here right now.</div>
               ) : (
-                <div className="h-full animate-pulse bg-raised/60" aria-hidden="true" />
+                // An empty or loading slot keeps a filled one's size: the plate and the words' box, with nothing in them.
+                <div className={`hg-link ${list ? "invisible" : "animate-pulse"}`} aria-hidden="true">
+                  <div className="hg-plate bg-raised" />
+                  <div className="hg-text" />
+                </div>
               )}
             </li>
           );
         })}
       </ol>
-      <p className="mt-2 text-xs leading-5 text-muted">
+      <p className="mt-6 max-w-3xl text-xs leading-5 text-muted">
         The newest Play and Collector Booster Boxes, by how many {r.adjective} stores have them in stock (of the stores that list them; TCGplayer is never counted as a store). Cheapest in-stock price in {r.currency}, before shipping.{" "}
         {source === "geo" || source === "language" ? "Region suggested from your location." : null}
       </p>
-
-      <h2 className="mt-10 font-display text-xl font-bold tracking-tight">Jump to</h2>
-      <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4" aria-label={`Popular pages in ${r.inName}`}>
-        {hot.map((h) => (
-          <li key={h.label} className="flex">
-            <Link
-              href={h.href}
-              prefetch={false}
-              data-hot-button=""
-              className={`card flex min-h-14 flex-1 items-center gap-2 px-4 py-3 text-[15px] font-semibold leading-5 transition-shadow hover:shadow-lift hover:text-brand`}
-            >
-              {h.icon && <Icon name={h.icon} size={18} className="shrink-0" />}
-              <span className="min-w-0">{h.label}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }

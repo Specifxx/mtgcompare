@@ -13,7 +13,7 @@ export function formatRelease(iso: string): string {
 }
 
 // ─── Featuring balance (owner's creator feedback, 2026-10-25: "Reality Fracture just came out but Star Trek is popping up") ──────
-// Wherever a page leads with a set (the region home's "Hot right now" and latest sets, the landing picks, the hot-set eBay button),
+// Wherever a page leads with a set (the region home's latest sets, the landing picks, the hot-set eBay button),
 // the newest RELEASED set leads; the next set on pre-order comes second (or only in its own pre-order slot). A rule by date, so it
 // moves on by itself on each release day: no set name is written here.
 
@@ -47,7 +47,7 @@ export function featureSort<T extends { setCode: string | null }>(items: readonl
 }
 
 /**
- * The newest `n` sets for a menu (the footer's "Latest sets", the shop dropdown, the sidebar and phone menu), in featureOrder.
+ * The newest `n` sets for a menu (the footer's "Latest sets", the shop dropdown and the phone menu), in featureOrder.
  * `listed` is the set of codes with at least one product in the region (lib/data.ts listedSetCodes): a set no store lists yet
  * has no page (its set page is a real 404), so linking it from every page was a dead link site-wide (2026-11-03: Flowing
  * Fists, announced 21 October for 5 February, in the footer and both menus). Without `listed` (a page outside a region, the

@@ -121,7 +121,9 @@ export default async function SetPage({ params }: { params: { region: string; se
       {!(gridPageHasRoomForFooter(products.length) && products.length >= FOOTER_STRIP_MIN) && <NoPreFooter />}
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { href: `/${r.region}/sets`, label: "Sets" }, { label: s.name }]} />
 
-      <section aria-labelledby="set-title" className="card p-5 sm:p-7">
+      {/* The set's header, on the page's own ground (no box around it since 2026-11-13), then the products: the sentence that sat
+          here opens "About" below. */}
+      <section aria-labelledby="set-title">
         {/* Phone: the picture beside the title, the chips under both. From sm: the picture spans the title and the chips. */}
         <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-4 sm:gap-x-7 sm:gap-y-3">
           <div className="sm:row-span-2">
@@ -140,13 +142,10 @@ export default async function SetPage({ params }: { params: { region: string; se
             <SetChips s={s} pre={pre} open={open.length} total={products.length} />
           </ul>
         </div>
-        {/* The page's answer in a sentence, above the grid (the longer "About" sits below it). */}
-        <p className="mt-4 max-w-3xl text-[15px] leading-7 text-muted">{setDescription(s, r, products)}</p>
-
         {(way || pre || us) && (
           // Two fixed columns from sm (the cheapest pack; then the calendar and the labelled TCGplayer link stacked), so no line
           // wraps differently when the web font arrives and nothing below moves.
-          <div className="mt-5 grid gap-3 border-t border-line pt-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-x-6">
+          <div className="mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-x-6">
             {way ? (
               <Link
                 href={`/${r.region}/p/${way.p.slug}`}
@@ -198,17 +197,7 @@ export default async function SetPage({ params }: { params: { region: string; se
           <span className="shrink-0 text-sm font-semibold text-pre">Compare pre-orders →</span>
         </Link>
       )}
-      {perPack.length > 0 && (
-        <Section id="per-pack" title={perPackHeading(perPack)} kicker={`Per booster pack, ${pre ? "cheapest pre-order" : "in stock now"}`}>
-          <PerPackStrip r={r} items={perPack} />
-          <p className="mt-3 text-xs text-muted">
-            The lowest {pre ? "pre-order" : "in-stock"} price of each product type in {r.inName}, divided by the booster packs it holds. Extras (promos, sleeves, dice)
-            aren&rsquo;t priced in.
-          </p>
-        </Section>
-      )}
-
-      <Section id="products" title={`${s.name} sealed products`} kicker={products.length ? `${products.length} listed in ${r.inName}` : undefined}>
+      <Section id="products" title={`${s.name} sealed products`} kicker={products.length ? `${products.length} listed in ${r.inName}` : undefined} className="mt-10 sm:mt-12">
         {products.length ? (
           // "In stock only", on by default (components/StockFilter): in stock first; the sold-out ones are in the HTML, hidden until
           // the filter is off. With nothing in stock, the whole list shows (there is nothing to filter to).
@@ -233,18 +222,30 @@ export default async function SetPage({ params }: { params: { region: string; se
           </>
         )}
       </Section>
+      {perPack.length > 0 && (
+        <Section id="per-pack" title={perPackHeading(perPack)} kicker={`Per booster pack, ${pre ? "cheapest pre-order" : "in stock now"}`}>
+          <PerPackStrip r={r} items={perPack} />
+          <p className="mt-3 text-xs text-muted">
+            The lowest {pre ? "pre-order" : "in-stock"} price of each product type in {r.inName}, divided by the booster packs it holds. Extras (promos, sleeves, dice)
+            aren&rsquo;t priced in.
+          </p>
+        </Section>
+      )}
+
       {/* The weekly price-drops email, one field (components/WeeklyDropsBox.tsx, 2026-11-12). */}
       {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="set" className="mt-10 max-w-2xl" buttonClassName="btn-primary" />}
 
       {/* Real sealed products on TCGplayer (2026-10-28), after this page's own comparison. */}
-      <InlineAds region={r.region} tiles={tcgTiles} className="mt-14" />
+      <InlineAds region={r.region} tiles={tcgTiles} className="mt-16 sm:mt-20" />
 
-      <section aria-labelledby="about-set" className="mt-14 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10">
+      <section aria-labelledby="about-set" className="mt-16 grid gap-6 sm:mt-20 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10">
         <div>
-          <h2 id="about-set" className="font-display text-2xl font-bold tracking-tight sm:text-[28px]">
+          <h2 id="about-set" className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
             About {name}
           </h2>
           <div className="mt-4 max-w-2xl space-y-3 leading-7 text-muted">
+            {/* The page's answer in a sentence (it was above the grid until 2026-11-13). */}
+            <p>{setDescription(s, r, products)}</p>
             {setIntro(s, r, products).map((t) => (
               <p key={t}>{t}</p>
             ))}

@@ -2,14 +2,13 @@
 
 import Link from "@/components/Link";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { retargetHref, type NavItem } from "@/lib/nav";
 import { REGIONS, X_DEFAULT_REGION, isRegion, regionFromAcceptLanguage, regionFromTimeZone, type Region } from "@/lib/regions";
 
 /** Where the guess came from: a region the visitor browsed before, the browser's language, its time zone, /api/geo, or a click. */
 export type RegionSource = "saved" | "geo" | "language" | "timezone" | "picked";
 
 // A region the visitor picks on a page with no region of its own (the landing page's switcher, the header's, the phone menu's): one
-// value for the whole page, so the nav, the sidebar and the landing grid all move together, and remembered as RegionSwitcher does.
+// value for the whole page, so the nav, the hero's shortcuts and the landing grid all move together, and remembered as RegionSwitcher does.
 let pickedRegion: Region | null = null;
 const pickListeners = new Set<() => void>();
 function subscribePick(fn: () => void) {
@@ -96,31 +95,8 @@ export function useSoftRegion(): Region {
   return region ?? X_DEFAULT_REGION;
 }
 
-/**
- * The hero's shortcuts (owner, 2026-10-28: no "Continue to <region>" step before the navigation): the landing page's most-used
- * pages, as links in the visitor's region. The server's HTML has the default region's (`links`, built for it), so they work without
- * script and crawl; in the browser they move to the suggested or picked region with the same labels, so nothing reflows.
- *
- * It also points the hero's plain GET search form (`formId`, server markup) at that region's search, by changing its action
- * attribute only: the US until then, and when no region is suggested.
- */
-export function RegionSuggest({ formId, links }: { formId?: string; links: NavItem[] }) {
-  const region = useSoftRegion();
-  useEffect(() => {
-    if (formId) document.getElementById(formId)?.setAttribute("action", `/${region}/sealed`);
-  }, [formId, region]);
-  return (
-    <ul className="flex flex-wrap gap-2" aria-label={`Popular pages in ${REGIONS[region].inName}`}>
-      {links.map((l, i) => (
-        <li key={l.label}>
-          <Link href={retargetHref(l.href, region)} prefetch={false} className={i === 0 ? "chip chip-on min-h-11 font-semibold" : "chip min-h-11"}>
-            {l.label}
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
-}
+// The landing hero's shortcuts in the visitor's region, and its search form's action, are components/home/SoftWaysIn.tsx
+// (2026-11-13: six tiles, not a chip row).
 
 /** /about's "What we compare": each type is a link to its page in the suggested region (the US in the server's HTML and with no suggestion). */
 export function SuggestedTypeLinks({ types, align = "center" }: { types: { slug: string; label: string }[]; align?: "center" | "start" }) {

@@ -38,7 +38,7 @@ export function ProductGrid({
   const entries = withFeed(products, tiles);
   const at = strip ? Math.min(stripAfter, entries.length) : -1;
   return (
-    <div className={`grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 ${strip ? "grid-flow-dense" : ""}`}>
+    <div className={`grid grid-cols-2 gap-x-3 gap-y-7 sm:gap-x-5 sm:gap-y-10 md:grid-cols-3 lg:grid-cols-4 ${strip ? "grid-flow-dense" : ""}`}>
       {entries.flatMap((e, i) => {
         const cell =
           e.kind === "feed" ? (

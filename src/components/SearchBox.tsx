@@ -446,7 +446,7 @@ export function SearchBox({ region, size = "sm", autoFocus = false }: { region: 
         aria-expanded={visible}
         aria-controls={visible ? listId : undefined}
         aria-activedescendant={visible && act >= 0 ? optionId(act) : undefined}
-        placeholder={big ? "Search a set or product — “Edge of Eternities bundle”" : "Search sets & products"}
+        placeholder={big ? "Search a set or product" : "Search sets & products"}
         aria-label="Search sealed products"
         className={`min-w-0 flex-1 bg-transparent outline-none placeholder:text-faint focus-visible:outline-none ${big ? "py-2 text-base" : "text-base lg:text-sm"}`}
       />
