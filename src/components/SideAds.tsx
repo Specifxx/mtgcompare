@@ -50,6 +50,13 @@ export function railFits(innerHeight: number): boolean {
   return innerHeight - TOP - HEAD - NOTE - PAD >= TILE_H;
 }
 
+/**
+ * The side rails are OFF (owner, 2026-11-13: "banner ads on the side … doesn't look as good … fill in that space on the side again").
+ * The ads are the horizontal strips inside the page (and the phone dock on small screens). The rail code below stays so a rail can
+ * be tried again; nothing renders it while this is false, and globals.css gives the page column the whole width.
+ */
+export const SIDE_RAILS = false;
+
 export function SideAds({ region, tiles }: { region: Region; tiles: TcgplayerTile[] }) {
   const [fit, setFit] = useState(false);
   const [narrow, setNarrow] = useState(false);
@@ -69,7 +76,7 @@ export function SideAds({ region, tiles }: { region: Region; tiles: TcgplayerTil
   }, []);
   // Too narrow for the rails (phones, tablets, a small window): the same tiles in the phone dock (AdDock.tsx).
   if (narrow) return <PhoneDock region={region} tiles={tiles} />;
-  if (!fit) return null;
+  if (!SIDE_RAILS || !fit) return null;
   return (
     <>
       <EbayRail region={region} />
