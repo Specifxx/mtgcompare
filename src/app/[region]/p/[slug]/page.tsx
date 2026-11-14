@@ -35,7 +35,7 @@ import { RecentTracker } from "@/components/Recent";
 import { ebaySearchUrl, offerLink, offerRetailer, tcgplayerAffiliateUrl, tcgplayerSearchUrl } from "@/lib/affiliate";
 import { productAdPlan, soldOutAdPlan } from "@/lib/ebay-ads";
 import { ebayFloorFor, rowPacks, tableShape } from "@/lib/ebay-offer-row";
-import { productPage, setTcgplayerTiles, type ProductCardData } from "@/lib/data";
+import { productPage, setTcgplayerTiles, toCard, type ProductCardData } from "@/lib/data";
 import { InlineAds } from "@/components/InlineAds";
 import { money, plural, timeAgo } from "@/lib/format";
 import { thumb } from "@/lib/images";
@@ -47,7 +47,7 @@ import { toolHref } from "@/content/tools";
 import { prevNextSet } from "@/lib/hub-copy";
 import { setCountsGrouped } from "@/lib/hub-data";
 import { TYPE_ABOUT } from "@/lib/type-about";
-import { inStockAlternatives, relatedWithFormats } from "@/lib/product-data";
+import { inStockAlternatives, relatedWithFormats, setNeighbours, typeNeighbours } from "@/lib/product-data";
 import { detailIndexed, productNoindex } from "@/lib/index-tiers";
 import { productFaq } from "@/lib/product-faq";
 import { isPreorderSet } from "@/lib/release";
@@ -226,14 +226,17 @@ export default async function ProductPage({ params }: { params: { region: string
       : `Prices on TCGplayer in ${r.name}`;
   // TCGplayer: in the US one of the offers; elsewhere the separate US$ offer.
   const tcgplayer = p.offers.find((o) => o.marketplace) ?? p.usMarketplace;
-  // The same-set read, all of it (take 40): the value check reads every format, the grid shows eight.
+  // The same-set read, all of it (take 40): the value check reads every format.
   const related = p.setCode ? await getRelated(r.market, p.setCode, p.slug) : [];
-  const grid = set ? related.slice(0, 8) : [];
+  // Eight of them: the ones after this product in the set's own order (setNeighbours), so a big set's pages link every product.
+  const grid = set ? setNeighbours(related, toCard({ ...(here ?? { lowestPriceCents: null, inStockStores: 0, listedStores: 0, marketplaceOpen: false, medianOpenCents: null }), product: { slug: p.slug, name: p.name, productType: p.productType, setCode: p.setCode, imageUrl: p.imageUrl } })) : [];
   // The TCGplayer strip's tiles (2026-10-28): this set's products on TCGplayer, topped up with the newest sets', never this product.
   const tcgTiles = await setTcgplayerTiles(p.setCode, p.slug).catch(() => []);
   // In-stock products of the type: "In stock instead" on a sold-out page, "More <type> in <region>" on an in-stock one with no set.
-  // The page's one new read (LIMIT 4; the headline types' cheapest when the type has none open).
-  const alternatives = !best || !p.setCode ? await inStockAlternatives(r.market, p.productType, p.setCode, p.slug) : [];
+  // The page's one new read (LIMIT 4; the headline types' cheapest when the type has none open). Sold out: the cheapest in stock, same
+  // set first. In stock with no set: its four neighbours in the type's name order (typeNeighbours), so these pages link each other
+  // instead of all linking the same four.
+  const alternatives = !best ? await inStockAlternatives(r.market, p.productType, p.setCode, p.slug) : !p.setCode ? await typeNeighbours(r.market, p.productType, p) : [];
   const elsewhere = REGION_LIST.filter((x) => x.region !== r.region)
     .map((x) => ({ x, s: p.stats.find((s) => s.market === x.market) }))
     .filter((e) => !!e.s); // a stat row exists only where a store or TCGplayer lists it

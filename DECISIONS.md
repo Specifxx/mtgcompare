@@ -1706,3 +1706,52 @@ them. No deploy marker: it rides the next release.
 joined it, and so did `alert_open`, `alert_created` and `weekly_signup`: the sign-up work of 2026-11-12 sends them, but they were
 never listed, so every one was dropped and the 19 November sign-up recheck would have read zero for MTG Compare whatever happened.
 They count from the next release. `tests/track.test.ts` pins the whole list.
+
+## 2026-11-14: Every sitemap product is linked from its siblings; lastmod is the day a page changed
+
+The owner's Search Console check (14 November): 3 of 20 sampled sitemap URLs indexed, most of the rest "URL is unknown to Google",
+and the sitemap still counted at 41,703 URLs. Audited on a production build of the 14 November data, every page of the US and AU
+sitemaps fetched and read (965 and 372 pages), then every page reachable from `/us` by links (2,001 pages).
+
+**What was already right, so nothing changed.** All 2,672 sitemap URLs answer 200, are indexable and are their own canonical; no
+noindex page is listed; one `h1` each; no duplicate description; product pages carry Product + AggregateOffer with the real low and
+high price and offer count (801 of 801 in the US; a sold-out page carries none, on purpose), list pages ItemList, every page
+BreadcrumbList; hreflang names only the regions where the page is indexable. The old site's URLs redirect in one hop. **The old
+sitemap is not being served anywhere:** the singles site's index was `/sitemap.xml` too, with children at `/sitemaps/<kind>-<n>.xml`
+and a `/news-sitemap.xml`; the children and the news sitemap answer 404 and nothing redirects them. So the 41,703 is the count from
+Google's last read of the old index at the same URL, and it changes when Google reads the index again (the one resubmission is
+the owner's, MTG-1). `tests/internal-links.test.ts` pins that no route or redirect brings those files back.
+
+**1. Internal links (`lib/ring.ts`, `lib/product-data.ts`, the product page).** 255 of the US sitemap's 801 product pages were
+linked from two indexable pages or fewer: their type page and the sealed list. 220 were Secret Lair drops. The cause: a product
+page's "More <type>" block showed the same cheapest four on every page of the type, and "More from <set>" the same cheapest eight on
+every page of the set (41 of the 73 sets the US lists have more than nine products; Star Trek has 59). Both blocks now show the
+products that FOLLOW this one in the list, wrapping at the end (`ringAfter`), so every product is picked by as many siblings as the
+block holds:
+
+- no set (`typeNeighbours`): the four after it by name among the type's in-stock products whose page is indexable. Name order keeps
+  a line together (a From the Vault box shows the other From the Vault boxes, where it showed three Signature Spellbooks).
+- in a set (`setNeighbours`): the eight after it in the set's own order (in stock, cheapest first), so the ones priced next above
+  it. A sold-out product, and a set with eight or fewer in-stock indexable products, keep the first eight as before. The sold-out
+  page's "In stock instead" is unchanged.
+
+After: 1 of 801 at two links or fewer; the median product has 11 indexable pages linking it (it was 6), the tenth percentile 6
+(it was 2). AU: 1 of 223. Same block sizes, same cards, same markup: the average product page is 340,448 bytes (340,797). No new
+query: both read what the page already read.
+
+**2. Sitemap lastmod (`lib/sitemap.ts` `sitemapChanges`, `app/sitemap.ts`).** Every product, set and type URL carried the import's
+time, so all of them said "changed today" twice a day: 889 of 889 US URLs on one date. A date that is never false is the only one a
+crawler uses. A product's lastmod is now the day of its last change-point in the daily price history (its cheapest in-stock price
+or its count of stores with stock: what the page leads with); a set's or type's is the latest of its products'. On the 14 November
+data the US file has 22 different dates and 309 URLs dated today. A product with no history yet, the section pages (deals, this
+week) and `PUBLIC_DATA_MODE=db` keep the import time. The URL list is the same, line for line.
+
+**3. Two links that were 404s**, found by the crawl: the release calendar's chip to a Pokémon guide left from the DexCompare port
+(now the sealed-products guide), and the pre-order guide's link to `/<region>/preorders`, which has no page (now the release
+calendar). The test walks `src` for both kinds.
+
+Not done, on purpose: titles (three Warhammer 40,000 Collector's Edition decks share one shortened title in the US; a title rule
+change needs its own look), old `/sets/<code>` URLs to today's set pages (the old codes are not today's slugs), the sitemap index
+getting a lastmod, and the blog's "More from the blog" (the three newest posts are the ones Google sends visitors to; every post is
+one click from `/blog`). URLs, titles, descriptions, canonicals, robots, hreflang, h1s and JSON-LD are unchanged. No deploy marker:
+it rides the next release.

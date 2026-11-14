@@ -130,16 +130,60 @@ export interface RegionSitemapData {
   setCodes: Iterable<string>;
   /** Slugs of the market's comparable products (data.ts COMPARABLE). */
   productSlugs: Iterable<string>;
+  /** The market's last import: the lastmod of a page `changed` has no date for. */
   lastmod: Date | null;
+  /**
+   * When each page last really changed (sitemapChanges below), from the daily price history. A page it has no date for carries the
+   * import time, as every page did until 2026-11-14.
+   */
+  changed?: SitemapChanges;
+}
+
+/** The day each page's headline last changed, as dates at 00:00 UTC. */
+export interface SitemapChanges {
+  /** Product slug → the day its cheapest in-stock price or its count of stores with stock last changed. */
+  products: ReadonlyMap<string, Date>;
+  /** Set code → the latest such day among the set's products in the market. */
+  sets: ReadonlyMap<string, Date>;
+  /** Product type label → the latest such day among the type's products in the market. */
+  types: ReadonlyMap<string, Date>;
+}
+
+/**
+ * Real lastmod dates for one market (2026-11-14). Until then every product, set and type URL carried the import's own time, so all
+ * ~2,650 URLs said "changed today" twice a day whether or not a price had moved: a date a crawler learns to ignore. The price history
+ * (lib/price-history.ts) is change-points: a product's last point is the day its cheapest in-stock price or its in-stock store count
+ * last changed, which is what its page leads with. A set or type page lists its products with those two numbers, so it changed on
+ * the latest of their days. Pure: the rows are the market's (slug, set, type) and the series are the history's for that market.
+ * A slug with no series gets no date here (the caller falls back to the import time).
+ */
+export function sitemapChanges(rows: Iterable<{ slug: string; setCode: string | null; productType: string }>, series: Record<string, readonly (readonly [number, ...unknown[]])[]> | undefined): SitemapChanges {
+  const products = new Map<string, Date>();
+  const sets = new Map<string, Date>();
+  const types = new Map<string, Date>();
+  const later = (m: Map<string, Date>, k: string, d: Date) => {
+    const cur = m.get(k);
+    if (!cur || cur < d) m.set(k, d);
+  };
+  for (const r of rows) {
+    const points = series?.[r.slug];
+    const day = points?.length ? points[points.length - 1][0] : null;
+    if (typeof day !== "number" || !Number.isFinite(day)) continue;
+    const d = new Date(day * 86_400_000);
+    products.set(r.slug, d);
+    if (r.setCode) later(sets, r.setCode, d);
+    later(types, r.productType, d);
+  }
+  return { products, sets, types };
 }
 
 /** One region's type, set and product pages. Unknown labels and codes are skipped, never guessed. */
 export function regionSitemap(r: RegionInfo, d: RegionSitemapData): MetadataRoute.Sitemap {
   const out: MetadataRoute.Sitemap = [];
   const labels = new Set(d.typeLabels);
-  for (const t of PRODUCT_TYPES) if (labels.has(t.label)) out.push(url(`/${r.region}/type/${t.slug}`, d.lastmod, "daily", 0.7));
+  for (const t of PRODUCT_TYPES) if (labels.has(t.label)) out.push(url(`/${r.region}/type/${t.slug}`, d.changed?.types.get(t.label) ?? d.lastmod, "daily", 0.7));
   const codes = new Set(d.setCodes);
-  for (const s of SETS) if (codes.has(s.code)) out.push(url(`/${r.region}/sets/${s.slug}`, d.lastmod, "daily", 0.6));
-  for (const slug of d.productSlugs) out.push(url(`/${r.region}/p/${slug}`, d.lastmod, "daily", 0.7));
+  for (const s of SETS) if (codes.has(s.code)) out.push(url(`/${r.region}/sets/${s.slug}`, d.changed?.sets.get(s.code) ?? d.lastmod, "daily", 0.6));
+  for (const slug of d.productSlugs) out.push(url(`/${r.region}/p/${slug}`, d.changed?.products.get(slug) ?? d.lastmod, "daily", 0.7));
   return out;
 }

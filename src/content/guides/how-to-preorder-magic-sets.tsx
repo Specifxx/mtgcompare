@@ -81,7 +81,7 @@ export function outline(r: RegionInfo, data: GuideData): GuideOutline {
           />
         ),
       },
-      whereToBuy(r, { tcg: { query: "Magic Star Trek", label: "Star Trek product" }, links: [{ href: `/${r.region}/preorders`, label: "Pre-orders" }] }),
+      whereToBuy(r, { tcg: { query: "Magic Star Trek", label: "Star Trek product" }, links: [{ href: `/${r.region}/releases`, label: "Pre-orders" }] }),
     ],
   };
 }

@@ -199,8 +199,8 @@ export default async function ReleasesPage({ params }: { params: { region: strin
       </p>
       <ul role="list" className="mt-4 flex flex-wrap gap-2 text-sm">
         <li>
-          <Link href={`/${r.region}/guides/pokemon-build-and-battle-box`} prefetch={false} className="chip min-h-10">
-            Prerelease kits: the Build &amp; Battle Box
+          <Link href={`/${r.region}/guides/magic-sealed-products-explained`} prefetch={false} className="chip min-h-10">
+            Prerelease packs and every other product, explained
           </Link>
         </li>
         <li>
