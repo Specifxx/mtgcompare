@@ -1166,3 +1166,31 @@ a.hero-pill:hover {
     background-color: rgb(var(--bg) / 0);
   }
 }
+
+/* Phones (owner, 2026-11-14): with "Add to cart" beside the store's button, the second column took the store's name down to one
+   letter ("T  BEST PRICE"). Below 640px a full row is four lines: name and stock, price, host, then its two buttons side by side
+   at full width, so the name keeps the row's width and the cart button says "Add to cart" in full. Placed by position (name,
+   host, stock, price, actions is every full row's order). Lean rows are unchanged. */
+@media (max-width: 639.98px) {
+  .or-row:not(.or-lean) > :nth-child(1) {
+    grid-area: 1 / 1 / 2 / 2;
+  }
+  .or-row:not(.or-lean) > :nth-child(2) {
+    grid-area: 3 / 1 / 4 / 3;
+  }
+  .or-row:not(.or-lean) > :nth-child(4) {
+    grid-area: 2 / 1 / 3 / 3;
+  }
+  .or-row:not(.or-lean) > .or-act {
+    grid-area: 4 / 1 / 5 / 3;
+    justify-self: stretch;
+    margin-top: 0.625rem;
+  }
+  .or-row:not(.or-lean) > .or-act > * {
+    flex: 1 1 0%;
+    justify-content: center;
+  }
+  .or-row:not(.or-lean) > .or-act .ce-cart-more {
+    display: inline;
+  }
+}

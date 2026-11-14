@@ -1897,3 +1897,10 @@ buy button and every placement are unchanged. A caller can still ask for the bar
 The quick view gets the same labelled button (owner, 2026-11-14: "there needs to be [one] on the quick view pop-ups"),
 over the A/B freeze on his say-so. Its tests (20 November to 3 December) start after this ships and the button is the same in
 every arm, so the arms still differ only in what each test changes; the paid rows' order and wording are untouched.
+
+### 2026-11-14 — On a phone, a price row's two buttons get their own line
+
+With "Add to cart" beside the store's button, a phone row's second column took the store's name down to one letter ("T  BEST
+PRICE" on the cheapest row). Below 640px a full row is now name and stock, price, host, then the cart button and the store's
+button side by side at full width (`globals.css`, after `.or-act`). The name keeps the whole row and the cart button says "Add to
+cart" in full. Lean rows, the order of rows and every paid row's wording are unchanged.
