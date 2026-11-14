@@ -188,8 +188,7 @@ export function QuickView() {
           {data === "loading" ? (
             <Skeleton />
           ) : data ? (
-            // qv-cart-icon: the quick view keeps its icon-only cart button through the A/B tests (cart.css).
-            <div className="card qv-cart-icon shrink-0 overflow-hidden">
+            <div className="card shrink-0 overflow-hidden">
               <OfferRowsWithEbay rows={data.rows} tcg={data.tcg} amazon={data.amazon} region={head.region} slug={data.ebay.slug} query={data.ebay.query} floor={data.ebay.floor} packs={data.ebay.packs} allowBest={!data.preorder} preorder={data.preorder} />
             </div>
           ) : (

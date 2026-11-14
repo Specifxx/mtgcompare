@@ -1894,5 +1894,6 @@ filled action and the calm three-colour rule holds. Nothing else moved: which ro
 Amazon with a live price; never a marketplace or a search row), the line's buy link and its affiliate tag, the row order, the
 buy button and every placement are unchanged. A caller can still ask for the bare icon (`label={false}`).
 
-The quick view keeps its icon-only cart button while its A/B tests run (20 November to 3 December): its rows sit in
-`.qv-cart-icon`, which hides the words and restores the old border, so the tests read the same panel.
+The quick view gets the same labelled button (owner, 2026-11-14: "there needs to be [one] on the quick view pop-ups"),
+over the A/B freeze on his say-so. Its tests (20 November to 3 December) start after this ships and the button is the same in
+every arm, so the arms still differ only in what each test changes; the paid rows' order and wording are untouched.

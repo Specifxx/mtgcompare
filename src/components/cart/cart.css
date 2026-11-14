@@ -119,6 +119,3 @@
 .ce-cart-add.has-label { padding: 0 0.8rem; border-color: color-mix(in srgb, currentColor 45%, transparent); white-space: nowrap; }
 .ce-cart-inline { min-height: 2rem; padding: 0 0.65rem; border: 1px solid color-mix(in srgb, currentColor 45%, transparent); border-radius: 0.5rem; white-space: nowrap; }
 @media (max-width: 639.98px) { .ce-cart-add .ce-cart-more { display: none; } }
-/* The quick view keeps its icon-only button while the quick-view A/B tests run (20 Nov to 3 Dec): `.qv-cart-icon` on its rows. */
-.qv-cart-icon .ce-cart-add.has-label { padding: 0 0.6rem; border-color: color-mix(in srgb, currentColor 28%, transparent); }
-.qv-cart-icon .ce-cart-add .ce-cart-label { display: none; }
