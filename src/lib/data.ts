@@ -272,6 +272,12 @@ function toOfferView(o: { store: string; title: string; url: string; priceCents:
   };
 }
 
+/**
+ * The most store rows a product page reads in one market: above every product today (the most listed has 146), so the page shows
+ * every store that lists it. tests/product-offers-cap.test.ts checks it on the committed data.
+ */
+export const PRODUCT_OFFERS_TAKE = 200;
+
 export async function productPage(slug: string, market: Market): Promise<ProductPageData | null> {
   const p = await prisma.product.findUnique({
     where: { slug },
@@ -284,7 +290,10 @@ export async function productPage(slug: string, market: Market): Promise<Product
       imageUrl: true,
       offers: {
         where: { market },
-        take: 80,
+        // In stock first, cheapest first, BEFORE the cap (2026-11-14, ported from DexCompare): the read had no order, so on the
+        // 48 product pages more than 80 stores list it kept 80 arbitrary stores and could lose the cheapest in-stock one.
+        orderBy: [{ inStock: "desc" }, { priceCents: "asc" }, { store: "asc" }],
+        take: PRODUCT_OFFERS_TAKE,
         select: offerSelect,
       },
       stats: { select: { market: true, lowestPriceCents: true, inStockStores: true, listedStores: true, marketplaceOpen: true, medianOpenCents: true } },
@@ -394,7 +403,7 @@ export async function setOfferGroups(market: Market, setCode: string): Promise<S
     take: SET_GROUPS_TAKE,
     select: {
       ...cardSelect,
-      product: { select: { ...cardSelect.product.select, offers: { where: { market }, take: SET_GROUP_OFFERS_TAKE, select: offerSelect } } },
+      product: { select: { ...cardSelect.product.select, offers: { where: { market }, orderBy: [{ inStock: "desc" }, { priceCents: "asc" }, { store: "asc" }], take: SET_GROUP_OFFERS_TAKE, select: offerSelect } } },
     },
   });
   return rows
