@@ -60,12 +60,12 @@ export function WeeklyDropsBox({
           <p role="status" style={{ margin: 0, minHeight: 76 }}>
             <strong>{state.confirm ? "Check your inbox to confirm." : "Done. You're on the weekly email."}</strong>
             <span style={{ display: "block", fontSize: 13, opacity: 0.8, marginTop: 4 }}>
-              {state.confirm ? "One click in the email we just sent and the weekly price drops come to you." : "The next edition comes within about a week."}
+              {state.confirm ? "One click in the email we just sent and the weekly price moves come to you." : "The next edition comes within about a week."}
             </span>
           </p>
         ) : (
           <form onSubmit={submit} style={{ minHeight: 76 }}>
-            <p style={{ margin: 0, fontWeight: 700, fontSize: 16 }}>This week&rsquo;s biggest price drops, by email</p>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: 16 }}>This week&rsquo;s biggest price moves, by email</p>
             <p style={{ margin: "2px 0 10px", fontSize: 13, opacity: 0.8 }}>
               One email a week from {siteName}: the products that fell most at {region} stores. Free, no account.
             </p>
