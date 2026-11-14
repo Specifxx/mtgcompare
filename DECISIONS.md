@@ -1680,3 +1680,29 @@ better on the page's ground in both themes.
 alone: its add button is an icon, where the lost padding and size show nothing, and its class's weight would out-rank the
 `text-muted` the price rows put on it. DexCompare and YGO Compare took the same fix the same day; the file is also on Gundam, Bandai, Lorcana,
 Cyberpunk and SportsCardCompare, which this change did not touch (reported). No deploy marker: it rides the next release.
+
+## 2026-11-14: A/B tests in the quick view: two 50/50 splits, 20 November to 3 December
+
+The owner (2026-11-14): "we need to do some A/B testing to determine what is the best way for us to earn more revenue". The same
+build as DexCompare's (its DECISIONS.md, 2026-11-14, has the full reasoning). Measured here, 7-13 November: 1,364 visitors, 1,143
+buy clicks, 591 of them (52%) inside the quick view; TCGplayer 184 clicks, eBay 84, Amazon 65.
+
+**Where: the quick view only** (`src/lib/ab.ts`, `src/lib/ab-client.tsx`). The panel is drawn in the browser after a tap and is
+in no page's server HTML: no cookie on the server, no second URL, no cache key, nothing a crawler reads changes. The product
+page's own table always draws the control (`tests/ab.test.ts`). The visitor's coin tosses live in their own `localStorage` (`ab1`).
+
+- `order` (US only): eBay's row then TCGplayer's (the control), against TCGplayer's priced row first, eBay's under it. Both stay
+  pinned above the stores; "Best price" and the stores' order do not move.
+- `cta` (everyone): TCGplayer's priced row's button says "View deal" (the control), against "Buy now".
+- DexCompare's third test, `mini`, moves a small ad pair this quick view does not have: every visit here carries `-` for it.
+
+**Counted** once a visit each: `ab_seen`, `ab_paid`, `ab_tcg`, `ab_ebay`, `ab_amazon`, `ab_store`, one property `k`
+(`us:a-b`). Fixed dates, decided before any number is seen: nothing before 20 November 00:00 UTC (the 19 November rechecks read an
+untouched site), nothing from 4 December 00:00 UTC, no stopping early; two-sided two-proportion test on the share of visits with a
+TCGplayer click, p under 0.05, else the control stays. RiftCompare's earnings refresh reads the events and the Monday report shows
+them. No deploy marker: it rides the next release.
+
+**The event list grew (`src/lib/track.ts`, owner's rule of 2026-10-25: only listed names reach Vercel).** The tests' eight names
+joined it, and so did `alert_open`, `alert_created` and `weekly_signup`: the sign-up work of 2026-11-12 sends them, but they were
+never listed, so every one was dropped and the 19 November sign-up recheck would have read zero for MTG Compare whatever happened.
+They count from the next release. `tests/track.test.ts` pins the whole list.

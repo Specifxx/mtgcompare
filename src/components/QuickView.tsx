@@ -4,7 +4,7 @@
 // price rows from /api/quick/<region>/<slug> (CDN-cached for a day), drawn by the table's own OfferRowsWithEbay: eBay first, then
 // TCGplayer and Amazon, then the stores, as on the page. The card stays a real link: crawlers, new tabs and modified clicks go to the
 // product page, whose server HTML keeps every price.
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "@/components/Link";
 import type { PriceFloor } from "@/lib/ebay-offer-row";
 import type { Region } from "@/lib/regions";
@@ -13,6 +13,7 @@ import type { StoreRowData } from "./OfferRows";
 import { PriceAlertForm } from "./PriceAlertForm";
 import { ShareButton } from "./ShareButton";
 import { closeQuickViewUrl, onQuickViewHistory, openQuickViewUrl } from "@/lib/quick-view-url";
+import { AbContext, abSeen, abVisit } from "@/lib/ab-client";
 
 interface Head {
   api: string;
@@ -137,12 +138,22 @@ export function QuickView() {
     };
   }, [head, close]);
 
+  // The A/B tests (lib/ab.ts): this visitor's arms for a quick view in this region, null outside the test's dates. The panel exists
+  // only in the browser, after a tap, so the split changes nothing in any page's HTML.
+  const region = head?.region;
+  const ab = useMemo(() => (region ? abVisit(region) : null), [region]);
+  const shown = !!head && !!data && data !== "loading";
+  useEffect(() => {
+    if (shown) abSeen(ab);
+  }, [shown, ab]);
+
   if (!head) return null;
   const got = data && data !== "loading" ? data : null;
   const name = got?.name || head.name;
   const sub = got?.sub || head.sub;
   const img = head.img || got?.img || null;
   return (
+    <AbContext.Provider value={ab}>
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={name}>
       <button type="button" aria-label="Close" tabIndex={-1} className="qv-backdrop absolute inset-0 bg-black/50 backdrop-blur-[2px]" onClick={close} />
       <div className="qv-panel relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl border border-line bg-surface shadow-2xl sm:rounded-2xl">
@@ -206,6 +217,7 @@ export function QuickView() {
         </div>
       </div>
     </div>
+    </AbContext.Provider>
   );
 }
 

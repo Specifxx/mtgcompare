@@ -26,6 +26,7 @@ import type { EbayHighlight } from "./Ebay";
 import { EbayMark } from "./EbayMark";
 import { Icon } from "./Icon";
 import { OutboundLink } from "./OutboundLink";
+import { useAb } from "@/lib/ab-client";
 
 // The eBay listing strips: real listings from eBay's Browse API as image banners (the look of Rift Compare's
 // "High-end sealed on eBay" strip), read from OUR database: a daily GitHub Actions import stores them, the route
@@ -771,10 +772,15 @@ export function OfferRowsWithEbay({
   if (byPrice && allowGiven && bestable && cents != null && cents < low) top = "ebay";
   const ebayRow = <EbayOfferRow key={EBAY_ROW_KEY} region={region} placement={placement} query={query} item={item} cents={cents} age={age} best={top === "ebay"} />;
   type Slot = { key: string; open: boolean; node: ReactNode };
+  // The quick view's `order` test (lib/ab.ts; US only): arm b pins TCGplayer's row above eBay's when it is a real offer you can buy
+  // now in the region's currency. Still two pinned paid rows above the stores; the best price and every store row are untouched.
+  const tcgFirst = useAb()?.order === "b" && !!tcg && tcg.open && !tcg.search && tcg.comparable !== false;
+  const tcgSlot: Slot[] = tcg ? [{ key: tcg.key, open: tcg.open, node: <StoreRow key={tcg.key} d={tcg} preorder={preorder} top={top === "tcg"} /> }] : [];
   const slots: Slot[] = [
+    ...(tcgFirst ? tcgSlot : []),
     { key: EBAY_ROW_KEY, open: true, node: ebayRow },
     ...(amazon ? [{ key: amazon.key, open: true, node: <StoreRow key={amazon.key} d={amazon} preorder={preorder} top={false} /> }] : []),
-    ...(tcg ? [{ key: tcg.key, open: tcg.open, node: <StoreRow key={tcg.key} d={tcg} preorder={preorder} top={top === "tcg"} /> }] : []),
+    ...(tcgFirst ? [] : tcgSlot),
     ...rows.map((d) => ({ key: d.key, open: d.open, node: <StoreRow key={d.key} d={d} preorder={preorder} top={top === "store" && d === store} /> })),
   ];
   const { shown, moreOpen, moreClosed } = splitRows(slots);
