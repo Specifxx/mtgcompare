@@ -218,6 +218,9 @@ export default async function RegionHome({ params }: { params: { region: string 
           </Section>
         )}
 
+        {/* The page's one ad block (owner, 2026-11-13): real eBay listings and TCGplayer products, labelled, right under the shelf (owner, 2026-11-14: eBay clicks fell once it sat at the bottom). The two eBay strips that sat between the lists are gone with the lists' own sections. */}
+        <InlineAds region={r.region} tiles={tcgTiles} className="reveal mt-10 sm:mt-14" />
+
         {latestSets.length > 0 && (
           <Section title="Latest sets" href={`/${r.region}/sets`} linkLabel="All sets" className="reveal mt-16 sm:mt-24">
             {/* Two columns, not four: a Magic set's name and its "Play Booster Box from $179.99" line need the width. */}
@@ -234,9 +237,6 @@ export default async function RegionHome({ params }: { params: { region: string 
         {/* The weekly price-drops email, one field (components/WeeklyDropsBox.tsx, 2026-11-12). */}
         {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="home" className="reveal mx-auto mt-16 max-w-2xl sm:mt-24" buttonClassName="btn-primary min-h-11" />}
 
-        {/* The page's one ad block (owner, 2026-11-13): real eBay listings and TCGplayer products, labelled, under everything the
-            visitor came for. The two eBay strips that sat between the lists are gone with the lists' own sections. */}
-        <InlineAds region={r.region} tiles={tcgTiles} className="reveal mt-16 sm:mt-24" />
 
         {/* The reading matter: in the HTML for a crawler and for find-in-page, one line each until opened (components/Fold.tsx). */}
         <Folds label={`More about Magic sealed prices in ${r.inName}`}>
