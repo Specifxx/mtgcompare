@@ -95,10 +95,14 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Focus that's visible on every surface. */
+/* Focus that's visible on every surface. The ring follows the element's own corners (a pill stays a pill): this rule is outside
+   the layers, so a radius here would out-rank every rounded-* class and square a round button off the moment it took focus. */
 :focus-visible {
   outline: 2px solid rgb(var(--brand));
   outline-offset: 2px;
+}
+/* A bare text link has no corners of its own: its ring gets soft ones. :where() weighs nothing, so any rounded-* class wins. */
+:where(a, summary):focus-visible {
   border-radius: 6px;
 }
 
@@ -160,8 +164,10 @@ body {
   .pc-body {
     @apply flex flex-1 flex-col px-1 pb-1 pt-3;
   }
+  /* Three lines on a phone's two-column grid, where two cut the product type off a long set's name ("Teenage Mutant Ninja Turtles
+     Play Booster…": a box or a pack?); two from sm. The stock line and the price sit at the card's foot either way (mt-auto). */
   .pc-name {
-    @apply line-clamp-2 text-[15px] font-semibold leading-snug transition-colors group-hover:text-brand;
+    @apply line-clamp-3 text-[15px] font-semibold leading-snug transition-colors group-hover:text-brand sm:line-clamp-2;
   }
   .pc-stock {
     @apply mt-1.5 flex min-h-4 flex-wrap items-center gap-x-1.5 gap-y-0.5;
@@ -248,8 +254,11 @@ body {
   .btn-soft {
     @apply btn border border-line bg-raised text-ink hover:border-ink/40;
   }
+  /* A chip gives a little when pressed, so a tap is felt before the page answers (transform only, 150ms, off under
+     prefers-reduced-motion at the end of this file). Chips are the site's own navigation and filters; the buttons (.btn-*) are left
+     exactly as they were, because every one of them is also a paid row's button somewhere. */
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:border-ink/30;
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink transition-[color,background-color,border-color,transform] duration-150 ease-out hover:border-ink/30 active:scale-[0.97];
   }
   .chip-on {
     @apply border-ink bg-ink text-surface hover:border-ink;
@@ -333,6 +342,12 @@ body {
 @media (max-width: 639.98px) {
   .hdr-search input {
     font-size: 16px;
+  }
+  /* While the visitor types on a phone the box takes the room of the theme switch and the region flag beside it (it showed about
+     seven letters); both are back the moment the box loses focus. The cart and the menu stay where they are. */
+  .hdr-search:focus-within ~ button.chip,
+  .hdr-search:focus-within ~ details {
+    display: none;
   }
 }
 @media (min-width: 1024px) {
@@ -819,7 +834,7 @@ html[data-geo="pending"] main { visibility: hidden; }
 }
 /* The hero's one small line above the headline: the single most timely link, or where the prices are for. */
 .hero-pill {
-  @apply mb-5 inline-flex min-h-9 max-w-full items-center gap-2 rounded-full border border-line bg-surface/70 px-3.5 py-1 text-[13px] font-medium text-muted backdrop-blur transition-colors;
+  @apply mb-5 inline-flex min-h-10 max-w-full items-center gap-2 rounded-full border border-line bg-surface/70 px-3.5 py-1 text-[13px] font-medium text-muted backdrop-blur transition-colors;
 }
 a.hero-pill:hover {
   @apply border-ink/30 text-ink;
@@ -879,7 +894,7 @@ a.hero-pill:hover {
 :root[data-season="christmas"][data-festive] .hero .xmas-guide {
   flex: 0 1 auto;
   max-width: 100%;
-  min-height: 2.25rem;
+  min-height: 2.5rem;
   border-radius: 9999px;
   border-left-width: 1px;
   border-left-color: rgb(var(--line));
@@ -1047,6 +1062,9 @@ a.hero-pill:hover {
   .group:hover .hg-plate,
   .set-tile:hover,
   .way:hover {
+    transform: none;
+  }
+  .chip:active {
     transform: none;
   }
 }

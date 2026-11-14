@@ -183,8 +183,13 @@ export function MenuSheet({
     <div className="page pb-5">
       <div className="flex h-[var(--hdr)] items-center gap-3 border-b border-line">
         <LogoMark className="h-8 w-8 shrink-0" />
-        <span className="min-w-0 flex-1 truncate font-display text-lg font-bold tracking-tight">
-          <Flag code={current.short} /> MTG Compare {current.name}
+        {/* The name, then the region as the footer shows it (flag and code): "MTG Compare United Sta…" was cut on a phone. */}
+        <span className="flex min-w-0 flex-1 items-center gap-2 font-display text-lg font-bold tracking-tight">
+          <span className="truncate">MTG Compare</span>
+          <span className="shrink-0 rounded-full border border-line px-2 py-0.5 font-sans text-xs font-semibold text-muted" title={current.name}>
+            <Flag code={current.short} /> {current.short}
+            <span className="sr-only"> ({current.name})</span>
+          </span>
         </span>
         <button
           type="button"

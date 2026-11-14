@@ -595,7 +595,7 @@ export default async function ProductPage({ params }: { params: { region: string
             region={r.market}
             priceCents={here?.lowestPriceCents ?? null}
             className="mt-3"
-            buttonClassName="btn-ghost"
+            buttonClassName="btn-ghost min-h-10"
             prominent
             summary={here?.lowestPriceCents == null ? "Email me when a store has it at my price" : "Email me when the price drops"}
           />
@@ -635,7 +635,7 @@ export default async function ProductPage({ params }: { params: { region: string
         <ReportPrice
           product={p.name}
           region={r.short}
-          buttonClassName="btn-ghost"
+          buttonClassName="btn-ghost min-h-10"
           stores={p.offers.filter((o) => !o.marketplace).map((o) => ({ name: o.storeName, price: money(o.priceCents, r.market) }))}
         />
         {riftHref && (

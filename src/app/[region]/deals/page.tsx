@@ -210,7 +210,7 @@ export default async function DealsPage({ params }: { params: { region: string }
       )}
 
       {/* The weekly price-drops email, one field (components/WeeklyDropsBox.tsx, 2026-11-12). */}
-      {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="deals" className="mt-12 max-w-2xl" buttonClassName="btn-primary" />}
+      {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="deals" className="mt-12 max-w-2xl" buttonClassName="btn-primary min-h-11" />}
       <FamilyCluster kind="deal" region={r.region} />
 
       <aside className="mt-14 rounded-xl border border-line bg-raised p-5 text-sm leading-6 text-muted sm:p-6" aria-labelledby="how-deals">

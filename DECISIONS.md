@@ -1768,3 +1768,51 @@ Now both capped offer reads (`productPage`, `setOfferGroups`) order first: in st
 page's cap is `PRODUCT_OFFERS_TAKE` (200), above today's largest product. Past the cap the dearest sold-out rows are the ones left
 out, never an in-stock one. `tests/product-offers-cap.test.ts` pins it on the committed data. No deploy marker: it rides the next
 release.
+
+## 2026-11-14: a polish pass: the faults a first-time visitor meets, fixed in the shared styles
+
+The owner asked for the sites to look significantly better and feel friendlier. The minimal look of 13 November stands; this pass
+adds no block, banner, badge or section. It walks the home, list, set, product, search and 404 pages on a 390px phone and at 1440px
+(both themes), measures them, and fixes what a careful first visit trips on. Before and after screenshots:
+`/mnt/project-files/redesign/2026-11-14-polish/mtg/`.
+
+**No paid link, ad block, placement, pinned row, URL, title, description, canonical, robots, Open Graph, JSON-LD, h1 or h2 changed.**
+Checked on ten pages of the build before and the build after, scripts off: the metadata, the heading outline, the set of links, every
+`rel="sponsored"` link and every price-table row (198 across the three table pages) are the same text, byte for byte. The 19 November
+clicks-per-placement recheck and the quick view's A/B test (20 November to 3 December) read the same placements. The quick view, the
+price table's rows and every `.btn-*` rule are untouched: each of those buttons is a paid row's button somewhere.
+
+- **Every page scrolled sideways on a tablet or a small laptop.** The widest header dropdown (four columns, 46rem) hangs from the
+  third nav item and ran 94px past the window from 1024px to 1117px wide; a closed panel is only invisible, so the whole page was
+  1118px wide there. Below xl it sits 10rem to the left (`HeaderNav.tsx`); measured at 320, 360, 390, 768, 1024, 1100, 1180 and
+  1440px on nine pages: none is wider than its window. A set page was 15px too wide at 320px (the previous/next set tiles): fixed.
+- **The footer.** A link that wraps keeps 6px above and below it (two long guide titles read as one paragraph). The guides, twenty
+  sentence-long titles, were one of four narrow columns: a ribbon 1,000px tall on a phone and 1,500px on a desktop, with the last
+  column pushed onto a row of its own under it. They have their own row now, in one, two or three columns by width, and the short
+  column moves up beside the others (dense flow; the HTML's order and every link are unchanged). A desktop page is about 700px
+  shorter (the region home 5,620px to 4,928px).
+- **A product's name is not cut on a phone.** Two lines cut the product type off a long set ("Teenage Mutant Ninja Turtles Play
+  Booster…": a box or a pack?). Three lines on the phone's two-column grid, two from sm; the stock line and price stay at the foot.
+- **Searching from a phone's header.** The box showed about seven letters. While it has focus it takes the room of the theme
+  switch and the region flag beside it (CSS, `:focus-within`); both return when it loses focus, and the cart and menu do not move.
+- **The phone menu's title** read "MTG Compare United Sta…". It is the name and the region's flag and code, as the footer shows it
+  (the whole name is still read out).
+- **A search that finds nothing** said "Nothing matches those filters" to someone who typed a word. It names the words ("No sealed
+  product matches "…""), says what to try, and its button says "See every product". The marketplaces' box under it is unchanged.
+- **The 404 page** kept the dark default for a visitor who had chosen light: React draws that page whole in the browser, so the
+  boot script in `<head>` never runs. `ThemeToggle` stamps the saved choice when `<html>` has none. Its sixteen tiles fill four
+  columns from md (three left one alone on a sixth row).
+- **Keyboard focus squared round buttons off.** The focus rule sits outside the layers and set a 6px radius, which out-ranked
+  every `rounded-*` class. The ring follows the element's own corners now; a bare text link keeps soft ones (`:where()`).
+- **Small things.** The region home's facts line no longer ends a row on a hanging dot. "Cheapest per pack": the name and the line
+  under it sit together whether the name takes one line or two, and the whole cell is the link's target. 40px targets for the theme
+  switch, a section's "All … →" link, the hero's pill, the weekly email's button (44px, beside its 44px field) and "Send report".
+  A chip gives a little when pressed (transform, 150ms, off under `prefers-reduced-motion`).
+
+**Seen and left.** In the price table on a phone a store's name, its per-pack price and its shipping are cut short ("MinM…",
+"≈ $…"): the row's grid gives the name the width the buttons leave. Those rows are shared with the pinned eBay, TCGplayer and Amazon
+rows and with the quick view, which are frozen until the A/B test ends on 3 December; fix it after that. The store thumbs (20×16px)
+and the "Price / Price + shipping" switch (36px) are in the same table. `ReportForms.tsx` and `WeeklyDropsBox.tsx` are files shared
+across the sites with their own inline styles, left as they are apart from the two button classes the pages pass in.
+
+`tests/polish.test.ts` pins each cause (11 tests). No deploy marker: it rides the next release.

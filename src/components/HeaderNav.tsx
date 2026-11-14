@@ -27,9 +27,12 @@ export interface HeaderNavItem {
  * the phone menu lists the same places.
  */
 export function ShopMenuPanel({ columns, kind = "shop" }: { columns: MenuColumn[]; kind?: NonNullable<HeaderNavItem["menuKind"]> }) {
+  // The widest panel (four columns, 46rem) hangs from the third nav item: from 1024px to 1117px it ran 94px past the window's edge,
+  // and a closed panel is only invisible, so EVERY page scrolled sideways there (a tablet on its side, a small laptop). Below xl it
+  // sits 10rem to the left of its label; the margin also narrows the box it hangs in, so nothing is left outside the window.
   return (
     <>
-      <div className={`grid max-w-[calc(100vw-2rem)] gap-6 rounded-2xl border border-line bg-surface p-5 shadow-lg ${columns.length > 3 ? "w-[46rem]" : columns.length > 2 ? "w-[40rem]" : columns.length > 1 ? "w-[28rem]" : "w-[15rem]"}`} style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }} data-menu={kind}>
+      <div className={`grid max-w-[calc(100vw-2rem)] gap-6 rounded-2xl border border-line bg-surface p-5 shadow-lg ${columns.length > 3 ? "w-[46rem] lg:max-xl:-ml-40" : columns.length > 2 ? "w-[40rem]" : columns.length > 1 ? "w-[28rem]" : "w-[15rem]"}`} style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }} data-menu={kind}>
         {columns.map((col) => (
           <div key={col.title}>
             {col.href ? (
