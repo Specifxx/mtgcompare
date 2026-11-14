@@ -111,3 +111,11 @@
   .ce-cart-qty { grid-row: 1 / 3; grid-column: 3; }
   .ce-cart-store-foot .ce-cart-btn { width: 100%; }
 }
+
+/* A real "Add to cart" button on every price row (owner, 2026-11-14: "there needs to be an add to cart button, like literally").
+   The row's cart button carries its words, not a bare icon; on a phone it says "Add" beside the icon where the row has no room
+   for more, and the phone's text button (`inline`) is drawn as a button. Neutral (currentColor), so it never outshouts the buy
+   button: the calm three-colour rule. */
+.ce-cart-add.has-label { padding: 0 0.8rem; border-color: color-mix(in srgb, currentColor 45%, transparent); white-space: nowrap; }
+.ce-cart-inline { min-height: 2rem; padding: 0 0.65rem; border: 1px solid color-mix(in srgb, currentColor 45%, transparent); border-radius: 0.5rem; white-space: nowrap; }
+@media (max-width: 639.98px) { .ce-cart-add .ce-cart-more { display: none; } }
