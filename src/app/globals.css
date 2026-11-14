@@ -1138,18 +1138,26 @@ a.hero-pill:hover {
 
 /* An icon that leads a link card (a guide's "Related", the tools): the home tiles' quiet square, the brand only on hover. */
 .tile-icon {
-  @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-raised text-muted ring-1 ring-inset ring-line transition-colors duration-200;
+  @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-raised text-muted ring-1 ring-inset ring-line;
 }
 .group:hover .tile-icon {
   @apply bg-brand-soft text-brand-strong ring-transparent;
 }
-/* A link card's lift on hover, the home tiles' (transform and shadow only; the rise only with prefers-reduced-motion: no-preference, the transition off in "Motion." above). */
+/* A link card's lift on hover, the home tiles' (transform and shadow only). The rise and every transition live only under
+   prefers-reduced-motion: no-preference: these rules come after the "Motion." block above, so a transition set out here would win
+   over its "transition: none" and still animate for a visitor who turned motion off. */
 .lift {
-  @apply transition-[transform,box-shadow,border-color] duration-200 ease-out hover:border-ink/25 hover:shadow-lift;
+  @apply hover:border-ink/25 hover:shadow-lift;
 }
 @media (prefers-reduced-motion: no-preference) {
   .lift:hover {
     transform: translateY(-2px);
+  }
+  .lift {
+    transition: transform 200ms ease-out, box-shadow 200ms ease-out, border-color 200ms ease-out;
+  }
+  .tile-icon {
+    transition: color 200ms, background-color 200ms, box-shadow 200ms;
   }
 }
 /* The header rests on the page and takes its line once the page has moved under it (where the browser can tie it to the scroll). */

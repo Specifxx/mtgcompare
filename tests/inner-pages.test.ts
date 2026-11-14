@@ -66,3 +66,11 @@ test("link cards rise only when motion is welcome", () => {
   assert.match(css, /@media \(prefers-reduced-motion: no-preference\) \{\s*\.lift:hover \{\s*transform: translateY\(-2px\);/);
   assert.doesNotMatch(css, /\.lift \{[^}]*translate/, "no transform outside the media query");
 });
+
+test("link cards and their icons animate nothing for a visitor who turned motion off", () => {
+  // .lift and .tile-icon come after the "Motion." reduce block, so a transition declared outside a no-preference query would
+  // beat its "transition: none" (same weight, later in the file) and still fade for that visitor.
+  assert.doesNotMatch(css, /^\.lift \{[^}]*transition/m, ".lift's transition only under no-preference");
+  assert.doesNotMatch(css, /^\.tile-icon \{[^}]*transition/m, ".tile-icon's transition only under no-preference");
+  assert.match(css, /@media \(prefers-reduced-motion: no-preference\) \{\s*\.lift:hover \{[^}]*\}\s*\.lift \{\s*transition: transform 200ms/);
+});
