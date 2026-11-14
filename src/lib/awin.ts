@@ -107,6 +107,36 @@ export function awinProgrammeFor(url: string, joined: AwinProgramme[] = JOINED):
   return null;
 }
 
+/**
+ * Store referral programmes run by the store itself (GoAffPro and the like), for stores that approved us directly:
+ * a link to the store's own domain gains our referral parameter, and goes to the same page. An Awin or Impact
+ * programme for the same store wins. Never a re-rank: this decides the href, not the order.
+ * Cardboard Hero (GoAffPro, approved "Compare Empire" 2026-11-13).
+ */
+export interface DirectReferral {
+  name: string;
+  domains: string[];
+  param: string;
+  code: string;
+}
+
+export const DIRECT_REFERRALS: DirectReferral[] = [{ name: "Cardboard Hero", domains: ["cardboardhero.com"], param: "ref", code: "apthvqnu" }];
+
+/** The link with the store's referral code added, or null when no direct programme covers its host. */
+export function directReferralUrl(url: string, list: DirectReferral[] = DIRECT_REFERRALS): string | null {
+  const h = hostOf(url);
+  if (!h) return null;
+  const r = list.find((x) => x.code && x.domains.some((d) => h === d || h.endsWith("." + d)));
+  if (!r) return null;
+  try {
+    const u = new URL(url);
+    if (!u.searchParams.has(r.param)) u.searchParams.set(r.param, r.code);
+    return u.toString();
+  } catch {
+    return null;
+  }
+}
+
 /** Awin's clickref allows letters, digits, "-" and "_" (max 50). */
 export function clickref(...parts: (string | number | null | undefined)[]): string {
   return parts
@@ -144,7 +174,7 @@ export function awinUrl(url: string, ref: string, joined: AwinProgramme[] = JOIN
     }
   }
   const p = awinProgrammeFor(url, joined);
-  if (!p) return null;
+  if (!p) return directReferralUrl(url);
   return p.link ? impactDeepLink(p.link, url, ref) : awinDeepLink(p.id, url, ref);
 }
 
