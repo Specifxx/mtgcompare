@@ -1930,3 +1930,7 @@ pages differ only by the owner's "Add to cart" words (#148, his request), which 
 19 November clicks-per-placement recheck is unaffected. Sitemap: 8 files, 2,672 URLs, no duplicates; 79 sampled all 200, indexable
 and self-canonical. robots.txt blocks only `/api/` and query strings. Unknown pages return 404. No deploy marker: it rides the next
 release.
+
+## 2026-11-14: the one ad block moves up under the shelf
+
+Owner: eBay clicks dropped right after the minimal redesign and he asked for eBay ads back on the home page. The home pages' one native ad block (eBay and TCGplayer, labelled Ad) had been pushed to the very bottom, under the sets. It now sits directly under the product shelf. Still one block a page, still browser-only with its height reserved, no pop-up, no rail, quick view untouched, same placements and customid tags. Click numbers by placement were not readable from the build container; the 19 November recheck stands.

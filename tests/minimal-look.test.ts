@@ -120,7 +120,7 @@ test("Fold: reading matter stays in the HTML as a closed <details>, its heading 
 });
 
 test("the region home in order: hero, the shelf, the sets, the weekly email, one ad block, the folds; nothing the owner cut", () => {
-  const page = inOrder("app/[region]/page.tsx", ["<Hero>", "</Hero>", "<Tabs tabs={shelf}", 'title="Latest sets"', "<WeeklyDropsBox", "<InlineAds", "<Folds", "<MarketReport", "<SetIndex", "</Folds>", "<RecentlyViewed"]);
+  const page = inOrder("app/[region]/page.tsx", ["<Hero>", "</Hero>", "<Tabs tabs={shelf}", "<InlineAds", 'title="Latest sets"', "<WeeklyDropsBox", "<Folds", "<MarketReport", "<SetIndex", "</Folds>", "<RecentlyViewed"]);
   const hero = page.slice(page.indexOf("<Hero>"), page.indexOf("</Hero>"));
   assert.doesNotMatch(hero, /ProductCard|ProductGrid|HeroCards|<img|ComingSoon|EbayStrip|InlineAds/, "words, a search and ways in: no product and no ad in the hero");
   assert.match(hero, /<h1 className="hero-h1 hero-h1-long rise-solid">\s*Compare MTG booster box, bundle &amp; Commander deck prices in <span className="text-brand">\{r\.inName\}<\/span>/, "the same headline");
