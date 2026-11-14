@@ -1904,3 +1904,29 @@ With "Add to cart" beside the store's button, a phone row's second column took t
 PRICE" on the cheapest row). Below 640px a full row is now name and stock, price, host, then the cart button and the store's
 button side by side at full width (`globals.css`, after `.or-act`). The name keeps the whole row and the cart button says "Add to
 cart" in full. Lean rows, the order of rows and every paid row's wording are unchanged.
+
+## 2026-11-14: Review of the day's design work; the link cards stop fading for visitors who turned motion off
+
+A second, sceptical pass over today's design merges (#145 polish, #147 the other pages in the home page's voice), building the
+commit before them (e72be8f) and main side by side and comparing 16 page types at 390 and 1440px in both themes, plus server HTML
+with scripts off on 24 URLs.
+
+What it found, per page type:
+
+- **Guides index, guide "Related", blog index, a post's "More from the blog" (the `.lift` link cards) and the tools' and
+  Related icons (`.tile-icon`):** the hover transition still ran for a visitor who asked for reduced motion (measured 0.2s with
+  `prefers-reduced-motion: reduce`). Both rules come after the "Motion." reduce block in `globals.css`, so their own transition
+  beat its `transition: none` (same weight, later in the file). The transitions now live only inside the
+  `prefers-reduced-motion: no-preference` query beside the lift itself: 0s with motion off, 200ms and the 2px rise with it on.
+  `tests/inner-pages.test.ts` pins it. Nothing else about the cards changed.
+- **Every other page type (home, landing, product, type, set, sets, release calendar, stores, store, about, deals, 404):** no
+  fault found. No page wider than its window, no console or hydration error, no layout shift over 0.01, focus visible on the first
+  six tab stops, and no text under 4.5:1 that was not already there (the TCGplayer wordmark's blue "player" on the dark theme,
+  3.5:1, is a paid row's logo and frozen).
+
+**Nothing paid or crawled changed.** No paid link, ad block, pinned row, placement, button word, URL, title, description,
+canonical, robots, Open Graph, JSON-LD, h1 or h2. Server HTML before against after: identical on 21 of 24 URLs; the three product
+pages differ only by the owner's "Add to cart" words (#148, his request), which removed leave the text identical. So the
+19 November clicks-per-placement recheck is unaffected. Sitemap: 8 files, 2,672 URLs, no duplicates; 79 sampled all 200, indexable
+and self-canonical. robots.txt blocks only `/api/` and query strings. Unknown pages return 404. No deploy marker: it rides the next
+release.
