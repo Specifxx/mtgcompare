@@ -1755,3 +1755,16 @@ change needs its own look), old `/sets/<code>` URLs to today's set pages (the ol
 getting a lastmod, and the blog's "More from the blog" (the three newest posts are the ones Google sends visitors to; every post is
 one click from `/blog`). URLs, titles, descriptions, canonicals, robots, hreflang, h1s and JSON-LD are unchanged. No deploy marker:
 it rides the next release.
+
+## 2026-11-14: The product page reads every store (ported from DexCompare)
+
+`productPage` read a product's offers with `take: 80` and no order. The file store returns rows in file order, so on a product more
+than 80 stores list the page kept 80 arbitrary ones. On the 14 November data that is 48 of 5,872 product-market pairs (146 stores at
+most). Such a page could drop its cheapest in-stock store, and then its title, best price, quick view and Product JSON-LD stated a
+dearer price than the list card beside it. DexCompare had the same read (its 2026-11-14 entry: 89 pages, 23 with a dearer
+"cheapest").
+
+Now both capped offer reads (`productPage`, `setOfferGroups`) order first: in stock, then cheapest, then store name, and the product
+page's cap is `PRODUCT_OFFERS_TAKE` (200), above today's largest product. Past the cap the dearest sold-out rows are the ones left
+out, never an in-stock one. `tests/product-offers-cap.test.ts` pins it on the committed data. No deploy marker: it rides the next
+release.
