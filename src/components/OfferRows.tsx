@@ -7,6 +7,7 @@ import { AmazonPrice, type AmazonLiveCell } from "./AmazonPrice";
 import { moreClosedLabel, moreOpenLabel, splitRows } from "@/lib/ebay-offer-row";
 import { useShipMode, setShipMode } from "@/lib/ship-mode";
 import { rankRows, type ShipMode } from "@/lib/shipping-rank";
+import { useAb } from "@/lib/ab-client";
 import type { Placement } from "@/lib/affiliate";
 import { offerStockLabel, type OfferStock } from "@/lib/sealed-offers";
 import { SHIP_UNKNOWN, type ShipCell } from "@/lib/shipping-quote";
@@ -182,6 +183,9 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
   const pinned = top !== undefined;
   const highlight = pinned ? top : d.best;
   const tcg = d.kind === "tcgplayer";
+  // The quick view's `cta` test (lib/ab.ts): in arm b TCGplayer's priced, open row says "Buy now" where it says "View deal". No
+  // longer than the control's words: a wider button squeezes the store's name off a phone's row (seen with "View on TCGplayer").
+  const buyNow = useAb()?.cta === "b" && tcg && d.open && !d.search;
   const badge = "or-badge";
   if (d.lean && !highlight) return <LeanRow d={d} preorder={preorder} />;
   return (
@@ -263,7 +267,7 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
           amazon={d.amazon}
           className={`${d.kind === "tcgplayer" && d.open ? "btn-tcg" : d.best || (d.open && d.marketplace) ? "btn-primary" : d.open ? "btn-soft" : "btn-ghost"} ${ROW_BUTTON_LINK}`}
         >
-          {d.kind === "amazon" ? (d.live ? "View deal" : "Check Amazon") : d.search ? "Search" : d.open ? "View deal" : "View"} <span aria-hidden="true">↗</span>
+          {buyNow ? "Buy now" : d.kind === "amazon" ? (d.live ? "View deal" : "Check Amazon") : d.search ? "Search" : d.open ? "View deal" : "View"} <span aria-hidden="true">↗</span>
           {tcg && <span className="sr-only"> on TCGplayer</span>}
           {d.kind === "amazon" && <span className="sr-only"> on {d.name}</span>}
         </OutboundLink>

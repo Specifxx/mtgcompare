@@ -1,5 +1,6 @@
 "use client";
 
+import { abClick, useAb } from "@/lib/ab-client";
 import { track } from "@/lib/track";
 import { isCheckoutLink } from "@/lib/checkout-link";
 import { gaEvent } from "@/lib/gtag";
@@ -52,7 +53,10 @@ export function OutboundLink({
   /** An Amazon AU link (lib/amazon.ts): also GA4's amazon_click {product, region, page}. Vercel still gets only buy_click. */
   amazon?: { product: string; region: string; page: string };
 }) {
+  // Inside the quick view during an A/B test (lib/ab.ts): the click also counts for the visitor's arms. Null everywhere else.
+  const ab = useAb();
   function record() {
+    abClick(ab, retailer, placement, rel);
     try {
       track("buy_click", { retailer: retailer.slice(0, 255), placement: placement.slice(0, 255), link_type: isCheckoutLink(href) ? "checkout" : "product" });
       // GA4 (lib/gtag.ts, a no-op without NEXT_PUBLIC_GA_ID): a paid link (eBay, TCGplayer: rel "sponsored") is affiliate_click.
