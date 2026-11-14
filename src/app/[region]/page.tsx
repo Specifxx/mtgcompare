@@ -197,8 +197,11 @@ export default async function RegionHome({ params }: { params: { region: string 
           <span>
             <b>{overview.inStock.toLocaleString("en")}</b> in stock
           </span>
-          <span aria-hidden="true">·</span>
-          <span>checked {overview.lastChecked ? <Ago iso={overview.lastChecked.toISOString()} initial={timeAgo(overview.lastChecked)} /> : "twice a day"}</span>
+          {/* On a phone the line breaks here: the dot would hang at the end of the first line, so it is only drawn where all three fit. */}
+          <span aria-hidden="true" className="max-[479px]:hidden">
+            ·
+          </span>
+          <span className="max-[479px]:basis-full">checked {overview.lastChecked ? <Ago iso={overview.lastChecked.toISOString()} initial={timeAgo(overview.lastChecked)} /> : "twice a day"}</span>
         </p>
       </Hero>
 
@@ -229,7 +232,7 @@ export default async function RegionHome({ params }: { params: { region: string 
         )}
 
         {/* The weekly price-drops email, one field (components/WeeklyDropsBox.tsx, 2026-11-12). */}
-        {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="home" className="reveal mx-auto mt-16 max-w-2xl sm:mt-24" buttonClassName="btn-primary" />}
+        {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="home" className="reveal mx-auto mt-16 max-w-2xl sm:mt-24" buttonClassName="btn-primary min-h-11" />}
 
         {/* The page's one ad block (owner, 2026-11-13): real eBay listings and TCGplayer products, labelled, under everything the
             visitor came for. The two eBay strips that sat between the lists are gone with the lists' own sections. */}

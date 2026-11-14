@@ -91,7 +91,7 @@ export default async function PriceMovesPage({ params }: { params: { region: str
         </>
       )}
       {/* The weekly price-drops email, one field (components/WeeklyDropsBox.tsx, 2026-11-12). */}
-      {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="price-moves" className="mt-10 max-w-2xl" buttonClassName="btn-primary" />}
+      {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="price-moves" className="mt-10 max-w-2xl" buttonClassName="btn-primary min-h-11" />}
       <p className="mt-10 max-w-3xl text-sm text-muted">
         Prices exclude shipping. A week of snapshots is a short window: one store listing or selling out moves the cheapest price. See also{" "}
         <Link href={`/${r.region}/guides`} prefetch={false} className="font-semibold text-brand-strong hover:underline">

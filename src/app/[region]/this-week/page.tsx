@@ -110,7 +110,7 @@ export default async function ThisWeekPage({ params }: { params: { region: strin
       </Section>
 
       {/* The weekly price-drops email, one field (components/WeeklyDropsBox.tsx, 2026-11-12). */}
-      {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="this-week" className="mt-10 max-w-2xl" buttonClassName="btn-primary" />}
+      {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="this-week" className="mt-10 max-w-2xl" buttonClassName="btn-primary min-h-11" />}
       <EbayStrip region={r.region} context="sealed" placement="listings-digest" className="mt-10" search={{ kind: "sealed", query: "" }} />
 
       <Section id="just-released" title="Just released" kicker={`Out in the last ${JUST_RELEASED_DAYS} days`} href={`/${r.region}/sets`} linkLabel="All sets">

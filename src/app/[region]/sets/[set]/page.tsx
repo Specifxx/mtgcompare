@@ -233,7 +233,7 @@ export default async function SetPage({ params }: { params: { region: string; se
       )}
 
       {/* The weekly price-drops email, one field (components/WeeklyDropsBox.tsx, 2026-11-12). */}
-      {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="set" className="mt-10 max-w-2xl" buttonClassName="btn-primary" />}
+      {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="set" className="mt-10 max-w-2xl" buttonClassName="btn-primary min-h-11" />}
 
       {/* Real sealed products on TCGplayer (2026-10-28), after this page's own comparison. */}
       <InlineAds region={r.region} tiles={tcgTiles} className="mt-16 sm:mt-20" />
@@ -403,7 +403,7 @@ function SetLink({ r, s, dir }: { r: RegionInfo; s: MtgSet; dir: "prev" | "next"
     <Link
       href={`/${r.region}/sets/${s.slug}`}
       prefetch={false}
-      className={`card group flex min-h-16 items-center gap-3 p-4 transition-shadow hover:shadow-lift ${dir === "next" ? "flex-row-reverse text-right" : ""}`}
+      className={`card group flex min-h-16 min-w-0 items-center gap-3 p-4 transition-shadow hover:shadow-lift ${dir === "next" ? "flex-row-reverse text-right" : ""}`}
     >
       <Icon name="arrow-right" size={20} className={`text-muted transition-transform group-hover:text-brand ${dir === "prev" ? "rotate-180 group-hover:-translate-x-0.5" : "group-hover:translate-x-0.5"}`} />
       <span className="min-w-0">

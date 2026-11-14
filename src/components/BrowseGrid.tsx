@@ -468,10 +468,15 @@ export function BrowseGrid({ rows, total, region, base, page = 1, strip }: { row
         ) : (
           <div className="card px-6 py-12 text-center text-muted">
             <NoPreFooter />
-            <p className="font-display text-lg font-bold text-ink">Nothing matches those filters.</p>
-            <p className="mt-1 text-sm">Try fewer words, another set, or every type.</p>
+            {/* Said for what the visitor did: a search that found nothing names the words; filters alone name the filters. */}
+            <p className="text-balance font-display text-lg font-bold text-ink">
+              {qOn ? <>No sealed product matches &ldquo;{q.trim()}&rdquo;.</> : "Nothing matches those filters."}
+            </p>
+            <p className="mx-auto mt-1 max-w-sm text-pretty text-sm">
+              {qOn ? "Check the spelling, or try just the set’s name or the product type, such as “bundle”." : "Try another set, every type, or include sold-out products."}
+            </p>
             <button type="button" onClick={clearAll} className="chip mt-4 min-h-10">
-              Clear filters <Icon name="close" size={14} />
+              {qOn ? "See every product" : <>Clear filters <Icon name="close" size={14} /></>}
             </button>
             {elsewhere && <MarketplaceSearch region={region} query={elsewhere} placement="browse-empty" />}
           </div>

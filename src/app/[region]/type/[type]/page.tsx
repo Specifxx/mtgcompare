@@ -202,12 +202,14 @@ export default async function TypePage({ params }: { params: { region: string; t
               <tbody className="divide-y divide-line">
                 {perPack.map(({ p, packs: n, perPack: each }) => (
                   <tr key={p.slug} className="hover:bg-raised">
-                    <td className="px-4 py-3">
-                      {/* One product per set for a set type (a booster box, an ETB): the set names it. Otherwise the product's own name. */}
-                      <Link href={`/${r.region}/p/${p.slug}`} prefetch={false} className="-my-1 flex min-h-11 items-center font-semibold hover:text-brand">
+                    <td className="relative px-4 py-3">
+                      {/* One product per set for a set type (a booster box, an ETB): the set names it. Otherwise the product's own name.
+                          The link's target is the whole cell (::after), so the name and the line under it sit together whether the
+                          name takes one line or two: a 44px box around the name alone left a gap under short names and none under long ones. */}
+                      <Link href={`/${r.region}/p/${p.slug}`} prefetch={false} className="block font-semibold leading-snug after:absolute after:inset-0 after:content-[''] hover:text-brand">
                         <span className="line-clamp-2">{t.kind === "set" && setOf(p.setCode) ? setOf(p.setCode)!.name : p.name}</span>
                       </Link>
-                      <span className="block text-xs text-muted">
+                      <span className="mt-0.5 block text-xs text-muted">
                         {t.kind === "set" && setOf(p.setCode) ? `${setOf(p.setCode)!.series} · ${shortDate(setOf(p.setCode)!.releaseDate)}` : (setOf(p.setCode)?.name ?? "")}
                       </span>
                     </td>

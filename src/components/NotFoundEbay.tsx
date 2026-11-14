@@ -59,7 +59,8 @@ export function NotFoundSearch() {
         <Flag code={r.short} /> Searches stores in {r.inName}
       </p>
       <h2 className="eyebrow mt-10">Where to next</h2>
-      <ul className="mx-auto mt-3 grid max-w-3xl grid-cols-2 gap-2 text-left sm:grid-cols-3">
+      {/* Two columns on a phone, four from md: the sixteen places fill their rows (three columns left one tile alone on a sixth row). */}
+      <ul className="mx-auto mt-3 grid max-w-3xl grid-cols-2 gap-2 text-left md:grid-cols-4">
         {MENU_ROWS.map((row) => (
           <li key={row.key} className="flex">
             <Link

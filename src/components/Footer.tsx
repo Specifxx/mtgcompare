@@ -61,6 +61,15 @@ export function footerColumns(region: Region | null, listed?: ReadonlySet<string
  * The address (CONTACT_EMAIL, compareempire@gmail.com) is shown on every page beside a link to /contact (owner, 2026-10-30 and
  * 2026-11-01: contact information "really clear", the sites without their own inbox on compareempire@gmail.com).
  */
+// A footer link: a 40px row on a phone (32px from sm), and a title that wraps keeps 6px above and below it, so two long guide titles
+// one under the other read as two links, not one paragraph.
+const FOOT_LINK = "flex min-h-10 items-center py-1.5 leading-5 text-muted transition-colors hover:text-ink sm:min-h-8";
+// The guides (twenty sentence-long titles) get a row of their own under the short columns, set in one, two or three columns as the
+// width allows, so most titles fit on a line. As one of four narrow columns they were a ribbon 1,000px tall on a phone and 1,500px on
+// a desktop, with the last column pushed onto a row of its own beneath it. The short column after them moves up beside the others
+// (dense flow); the HTML's order is unchanged.
+const WIDE_COLUMN = "Guides";
+
 export function Footer({ region, listed }: { region: Region | null; listed?: ReadonlySet<string> | null }) {
   const r = region ? REGIONS[region] : null;
   const cols = footerColumns(region, listed);
@@ -105,21 +114,21 @@ export function Footer({ region, listed }: { region: Region | null; listed?: Rea
           </p>
         </div>
 
-        <div className={`grid grid-cols-2 gap-x-6 gap-y-8 ${r ? "sm:grid-cols-4" : ""}`}>
+        <div className={`grid grid-cols-2 gap-x-6 gap-y-8 grid-flow-row-dense ${r ? "sm:grid-cols-4" : ""}`}>
           {cols.map((c) => (
-            <nav key={c.title} aria-label={`Footer: ${c.title}`}>
+            <nav key={c.title} aria-label={`Footer: ${c.title}`} className={c.title === WIDE_COLUMN ? "col-span-2 sm:col-span-4" : undefined}>
               <h2 className="eyebrow mb-2">{c.title}</h2>
-              <ul className="text-sm">
+              <ul className={c.title === WIDE_COLUMN ? "gap-x-6 text-sm sm:columns-2 lg:columns-3" : "text-sm"}>
                 {c.links.map((l) => (
-                  <li key={l.href}>
-                    <Link href={l.href} prefetch={false} className="flex min-h-10 items-center text-muted transition-colors hover:text-ink sm:min-h-8">
+                  <li key={l.href} className="break-inside-avoid">
+                    <Link href={l.href} prefetch={false} className={FOOT_LINK}>
                       {l.label}
                     </Link>
                   </li>
                 ))}
                 {c.links.some((l) => l.href === "/contact") && (
                   <li>
-                    <RateUsLink className="flex min-h-10 items-center text-muted transition-colors hover:text-ink sm:min-h-8">Rate us</RateUsLink>
+                    <RateUsLink className={FOOT_LINK}>Rate us</RateUsLink>
                   </li>
                 )}
               </ul>
