@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-14T01:20:33.542Z",
+ "generatedAt": "2026-11-14T15:34:13.027Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -92,7 +92,7 @@
    "currency": "AUD",
    "store": "Pro Gamers",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/657849_in_1000x1000.jpg",
-   "refCents": 24000,
+   "refCents": 23999,
    "refLabel": "median store price",
    "savingPct": 44
   },
@@ -232,7 +232,7 @@
    "currency": "USD",
    "store": "Video Game Trader LLC",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/619676_in_1000x1000.jpg",
-   "refCents": 5242,
+   "refCents": 5256,
    "refLabel": "median store price",
    "savingPct": 49
   },
@@ -240,29 +240,15 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "Marvel Super Heroes Commander Deck - Wakanda Forever (Collector's Edition)",
-   "url": "https://mtgcompare.app/us/p/marvel-super-heroes-commander-deck-wakanda-forever-collectors-edition",
-   "cents": 7800,
+   "title": "Marvel Super Heroes Commander Deck - The Fantastic Four (Collector's Edition)",
+   "url": "https://mtgcompare.app/us/p/marvel-super-heroes-commander-deck-the-fantastic-four-collectors-edition",
+   "cents": 7500,
    "currency": "USD",
-   "store": "Cards N MO",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675628_in_1000x1000.jpg",
+   "store": "Littleroot Games - Dublin",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675629_in_1000x1000.jpg",
    "refCents": 13999,
    "refLabel": "median store price",
-   "savingPct": 44
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "US",
-   "title": "Marvel Super Heroes Commander Deck - Avengers Assemble (Collector's Edition)",
-   "url": "https://mtgcompare.app/us/p/marvel-super-heroes-commander-deck-avengers-assemble-collectors-edition",
-   "cents": 9999,
-   "currency": "USD",
-   "store": "Capes and Crepes Board Game Cafe",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675627_in_1000x1000.jpg",
-   "refCents": 15999,
-   "refLabel": "median store price",
-   "savingPct": 38
+   "savingPct": 46
   },
   {
    "kind": "deal",
@@ -281,16 +267,16 @@
   {
    "kind": "deal",
    "cluster": "cards",
-   "region": "UK",
-   "title": "Secrets of Strixhaven Theme Decks",
-   "url": "https://mtgcompare.app/uk/p/secrets-of-strixhaven-theme-decks",
-   "cents": 1200,
-   "currency": "GBP",
-   "store": "Thistle Tavern",
-   "image": "https://cdn.shopify.com/s/files/1/0928/1270/6076/files/Secrets_of_Strixhaven_Eerie_60_Card_Theme_Deck.png?v=1775236465",
-   "refCents": 2399,
+   "region": "US",
+   "title": "Secret Lair Drop: Secret Lair x Masters of the Universe: Allies and Enemies of Eternia - Non-Foil Edition",
+   "url": "https://mtgcompare.app/us/p/secret-lair-drop-secret-lair-x-masters-of-the-universe-allies-and-enemies-of-eternia-non-f",
+   "cents": 6997,
+   "currency": "USD",
+   "store": "Larry's Game Store",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/715717_in_1000x1000.jpg",
+   "refCents": 8147,
    "refLabel": "median store price",
-   "savingPct": 50
+   "savingPct": 14
   },
   {
    "kind": "deal",
@@ -359,6 +345,20 @@
    "store": "Roll N Play",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/658346_in_1000x1000.jpg",
    "refCents": 4995,
+   "refLabel": "median store price",
+   "savingPct": 40
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "UK",
+   "title": "Marvel Super Heroes Draft Night",
+   "url": "https://mtgcompare.app/uk/p/marvel-super-heroes-draft-night",
+   "cents": 6000,
+   "currency": "GBP",
+   "store": "Thistle Tavern",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675625_in_1000x1000.jpg",
+   "refCents": 9995,
    "refLabel": "median store price",
    "savingPct": 40
   },
@@ -536,13 +536,13 @@
    "region": "SG",
    "title": "Marvel Super Heroes Play Booster Box",
    "url": "https://mtgcompare.app/sg/p/marvel-super-heroes-play-booster-box",
-   "cents": 12650,
+   "cents": 12350,
    "currency": "SGD",
    "store": "Tefuda Games",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/675603_in_1000x1000.jpg",
    "refCents": 21000,
    "refLabel": "median store price",
-   "savingPct": 40
+   "savingPct": 41
   },
   {
    "kind": "deal",
