@@ -208,6 +208,7 @@ export default async function RegionHome({ params }: { params: { region: string 
       {/* The page places its own ad block (below): none above the footer. */}
       <NoPreFooter />
       <div className="page">
+        <InlineAds region={r.region} tiles={tcgTiles} className="mt-6 sm:mt-8" />
         {overview.products === 0 ? (
           <div className="mt-10">
             <Empty actions={[{ href: `/${other.region}`, label: `MTG Compare ${other.name}` }]}>We&rsquo;re still reading {r.adjective} stores for the first time. Check back shortly.</Empty>
@@ -218,8 +219,6 @@ export default async function RegionHome({ params }: { params: { region: string 
           </Section>
         )}
 
-        {/* The page's one ad block (owner, 2026-11-13): real eBay listings and TCGplayer products, labelled, right under the shelf (owner, 2026-11-14: eBay clicks fell once it sat at the bottom). The two eBay strips that sat between the lists are gone with the lists' own sections. */}
-        <InlineAds region={r.region} tiles={tcgTiles} className="reveal mt-10 sm:mt-14" />
 
         {latestSets.length > 0 && (
           <Section title="Latest sets" href={`/${r.region}/sets`} linkLabel="All sets" className="reveal mt-16 sm:mt-24">

@@ -19,17 +19,18 @@ test("the in-page block: eBay and TCGplayer tiles taking turns, eBay first, six 
   for (const p of ["listings-inline", "tcgplayer-strip-inline"]) assert.ok((PLACEMENTS as readonly string[]).includes(p), `${p} is a placement`);
   const s = src("components/InlineAds.tsx");
   assert.match(s, /^"use client";/);
-  assert.match(s, /const \[mounted, setMounted\] = useState\(false\);/, "drawn after hydration: no tiles in the server HTML");
-  assert.match(s, /style=\{\{ minHeight: INLINE_H \}\}/, "the box keeps its height in every state (CLS 0)");
+  assert.match(s, /const \[mounted, setMounted\] = useState\(false\);/, "drawn after hydration: no ad unit in the server HTML");
+  assert.match(s, /TCGplayer[\s\S]*Shop eBay|Shop TCGplayer[\s\S]*Shop eBay/, "two separate banners, TCGplayer's and eBay's");
+  assert.match(s, /h-\[286px\] sm:h-\[300px\]/, "the boxes keep their banners' height in every state (CLS 0)");
   assert.ok(INLINE_H >= 300);
   assert.match(s, /<span className="ad-pill">Ad<\/span>/, "labelled Ad");
   assert.match(s, /rel=\{REL_SPONSORED\}/, "sponsored links");
-  assert.match(s, /className="scroller/, "scrolls sideways when narrow");
+  assert.match(s, /scroller/, "scrolls sideways when narrow");
   // A sideways scroller is the containing block of its tiles' hidden labels (globals.css). Without it each tile's sr-only label
   // counted toward the page's width: 962px on a 390px phone once this block loaded (measured 2026-11-13), so the page slid sideways.
   assert.match(src("app/globals.css"), /:where\(\.scroller, \.overflow-x-auto, \.overflow-x-scroll\) \{\s*position: relative;/, "a scroller holds its own hidden labels");
-  assert.match(s, /EbayMark/, "each eBay tile carries its logo word");
-  assert.match(s, /aria-label="TCGplayer"/, "each TCGplayer tile carries its logo word");
+  assert.match(s, /EbayMark/, "the eBay banner carries its logo word");
+  assert.match(s, /aria-label="TCGplayer"/, "the TCGplayer banner carries its logo word");
   assert.doesNotMatch(s, /amazon/i, "never Amazon on a TCG site");
   assert.doesNotMatch(s, /\bfixed\b|\bsticky\b/, "nothing fixed or floating");
 });
