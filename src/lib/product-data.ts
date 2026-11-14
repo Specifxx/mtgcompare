@@ -3,12 +3,17 @@
 //
 //   • inStockAlternatives: "In stock instead" on a sold-out page, and "More <type> in <region>" on an in-stock product with no set.
 //     ONE $queryRaw, LIMIT 4; only when it finds nothing, the existing cheapestInStock() of the headline types (one capped findMany).
+//   • typeNeighbours: "More <type> in <region>" on an in-stock product with no set (2026-11-14): the four products that follow it in the
+//     type's name order, so every such page is linked from four sibling pages instead of all of them linking the same four.
 //   • relatedWithFormats: the same-set read the page always made (take 40), returned whole: the page's value check reads every format
-//     of the set from it, and the "More from <set>" grid shows the first eight. No new query.
+//     of the set from it, and the "More from <set>" grid shows eight of them (setNeighbours). No new query.
 import { prisma } from "./db";
 import { ascNullsLast, cardRow, isOpen, positionIn, statsInMarket } from "./public-data/joins";
 import { routeRaw } from "./public-data/route";
-import { cheapestInStock, HEADLINE_TYPES, relatedProducts, toCard, type ProductCardData } from "./data";
+import { ringAfter } from "./ring";
+import { cardOpen } from "./compact";
+import { cheapestInStock, HEADLINE_TYPES, relatedProducts, sortCards, toCard, type ProductCardData } from "./data";
+import { productNoindex } from "./index-tiers";
 import type { Market } from "./regions";
 import { SETS } from "./sets";
 
@@ -88,6 +93,46 @@ export async function inStockAlternatives(
   if (rows.length) return rows.map(altToCard);
   const fallback = deps.fallback ?? cheapestInStock;
   return (await fallback(market, HEADLINE_TYPES, limit)).filter((c) => c.slug !== excludeSlug);
+}
+
+/**
+ * The `take` rows that follow `self` in name order (ringAfter). A slug that is not among the rows takes the rows after where its
+ * name would sort. Name order keeps a line together ("From the Vault: Lore" beside the other From the Vault boxes).
+ */
+export function neighboursByName<T extends { slug: string; name: string }>(rows: readonly T[], self: { slug: string; name: string }, take = 4): T[] {
+  const key = (r: { slug: string; name: string }) => `${r.name.toLowerCase()}\u0000${r.slug}`;
+  const sorted = [...rows.filter((r) => r.slug !== self.slug), self as T].sort((x, y) => (key(x) < key(y) ? -1 : key(x) > key(y) ? 1 : 0));
+  return ringAfter(sorted, self.slug, take);
+}
+
+/**
+ * "More from <set>" on a product page: eight of the set's other products in the market (`related`, in stock first and cheapest first:
+ * data.ts sortCards). Until 2026-11-14 it was the first eight for every page, so a set with more than nine products (41 of the 73 the
+ * US lists; Star Trek has 59) linked its eight cheapest from every page and the rest from none. Now, for a product that is in stock, it
+ * is the eight after this one in that order among the set's in-stock products whose own page is indexable (lib/index-tiers.ts): the
+ * products priced nearest above it, wrapping to the cheapest. A sold-out product, or a set with eight or fewer such products, keeps
+ * the first eight as before. Pure.
+ */
+export function setNeighbours(related: readonly ProductCardData[], self: ProductCardData, take = 8): ProductCardData[] {
+  const pool = related.filter((c) => c.slug !== self.slug && cardOpen(c) && !productNoindex(c, c.productType));
+  if (!cardOpen(self) || pool.length <= take) return related.slice(0, take);
+  return ringAfter(sortCards([...pool, self]), self.slug, take);
+}
+
+/**
+ * "More <type> in <region>" on an in-stock product page with no set (Secret Lair drops, decks, collections): the four products after
+ * this one in the type's name order, among those open in the market whose own page is indexable (lib/index-tiers.ts), so a link never
+ * points at a noindex page. Measured 2026-11-14 on the US sitemap: 255 of 801 product pages were linked from one page only (220 Secret
+ * Lair drops, from their type page), because every such page showed the same cheapest four. From the public data files; with the
+ * database (PUBLIC_DATA_MODE "db") or nothing else of the type, the cheapest in stock as before (inStockAlternatives).
+ */
+export async function typeNeighbours(market: Market, productType: string, self: { slug: string; name: string }, take = 4): Promise<ProductCardData[]> {
+  const before = () => inStockAlternatives(market, productType, null, self.slug, take);
+  const rows = await routeRaw<AltRow[] | null>(
+    () => neighboursByName(statsInMarket(market).filter(({ s, p }) => p.productType === productType && isOpen(s)).map(cardRow).filter((r) => !productNoindex(r, productType)), self, take),
+    async () => null,
+  );
+  return rows && rows.length ? rows.map(altToCard) : before();
 }
 
 /**

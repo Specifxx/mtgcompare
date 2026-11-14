@@ -410,7 +410,7 @@ test("the page wires it all: one strip, the anchors the buy bar uses, no compare
   assert.ok(src.indexOf('<div id="soldout"') > prices && src.indexOf("<SoldOutCallout") > prices, "the sold-out callout too");
   assert.match(src, /fetchPriority="high"/);
   assert.match(src, /hidden aspect-square[^"]*lg:sticky lg:top-\[calc\(var\(--hdr\)\+1\.5rem\)\] lg:flex/);
-  assert.match(src, /const alternatives = !best \|\| !p\.setCode \? await inStockAlternatives\(/);
+  assert.match(src, /const alternatives = !best \? await inStockAlternatives\(r\.market, p\.productType, p\.setCode, p\.slug\) : !p\.setCode \? await typeNeighbours\(r\.market, p\.productType, p\) : \[\];/);
   assert.equal((src.match(/<h1/g) ?? []).length, 1, "one H1");
   assert.doesNotMatch(src, /unstable_cache|searchParams|headers\(\)|cookies\(\)/);
 });
