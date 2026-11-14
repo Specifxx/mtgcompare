@@ -7,9 +7,13 @@
 //     type's name order, so every such page is linked from four sibling pages instead of all of them linking the same four.
 //   • relatedWithFormats: the same-set read the page always made (take 40), returned whole: the page's value check reads every format
 //     of the set from it, and the "More from <set>" grid shows eight of them (setNeighbours). No new query.
+//   • titleSiblings: the names of the set's products, in this market and in all, for the <title> (seo-titles.ts productTitle). From
+//     the public data files already in memory; with the database ("db" mode) nothing, and the title is the plain one. No query.
 import { prisma } from "./db";
 import { ascNullsLast, cardRow, isOpen, positionIn, statsInMarket } from "./public-data/joins";
 import { routeRaw } from "./public-data/route";
+import { publicRows } from "./public-data/store";
+import type { TitleSibling } from "./seo-titles";
 import { ringAfter } from "./ring";
 import { cardOpen } from "./compact";
 import { cheapestInStock, HEADLINE_TYPES, relatedProducts, sortCards, toCard, type ProductCardData } from "./data";
@@ -141,4 +145,22 @@ export async function typeNeighbours(market: Market, productType: string, self: 
  */
 export async function relatedWithFormats(market: Market, setCode: string, excludeSlug: string): Promise<ProductCardData[]> {
   return relatedProducts(market, setCode, excludeSlug, 40);
+}
+
+/**
+ * The names a product's <title> is told apart from (seo-titles.ts productTitle, 2026-11-14): `here`, the products of its set (or, with
+ * no set, every set-less product) this market lists; `all`, the same in every market, so the words a title keeps are chosen against
+ * the whole set and stay the same from one region to the next. From the files; nothing in "db" mode (the title is then the plain one).
+ */
+export async function titleSiblings(market: Market, setCode: string | null): Promise<{ here: TitleSibling[]; all: TitleSibling[] }> {
+  const same = (p: { setCode?: unknown }) => ((p.setCode as string | null | undefined) ?? null) === setCode;
+  const row = (p: { name?: unknown; productType?: unknown; setCode?: unknown }): TitleSibling => ({
+    name: String(p.name),
+    productType: String(p.productType),
+    setCode: (p.setCode as string | null | undefined) ?? null,
+  });
+  return routeRaw(
+    () => ({ here: statsInMarket(market).filter(({ p }) => same(p)).map(({ p }) => row(p)), all: publicRows("Product").filter(same).map(row) }),
+    async () => ({ here: [], all: [] }),
+  );
 }

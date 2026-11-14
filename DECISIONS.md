@@ -1816,3 +1816,34 @@ and the "Price / Price + shipping" switch (36px) are in the same table. `ReportF
 across the sites with their own inline styles, left as they are apart from the two button classes the pages pass in.
 
 `tests/polish.test.ts` pins each cause (11 tests). No deploy marker: it rides the next release.
+
+## 2026-11-14: Product titles a region's pages shared keep the words that tell them apart; the old singles URLs keep their redirects
+
+**Titles.** Computed for every product page of every region on the 14 November data (5,872 pages): 51 pages shared their `<title>`
+with another page of the same region. The four Warhammer 40,000 Collector's Edition Commander decks were all "MTG 40K … Commander
+Deck (Collector's Edition) price, US" (and the same in the UK, Canada and the EU), the three March of the Machine Halo Foil Secret Lair
+volumes one title, three Secret Lair Non-Foil drops one title, Star Trek's Collector Commander decks the same as the plain deck of the
+same name in Australia, and so on. The cause: a name too long for 60 characters is cut to "MTG <SET CODE> … <its last words>", and
+in these names the words that tell them apart (the deck's name, "Collector", "Vol. 1") are in the middle.
+
+Now `seoCopy.productTitle` takes the set's other products (`titleSiblings` in `lib/product-data.ts`: this region's and every
+region's, from the data files already in memory; no query, and in `db` mode none, so the title is the plain one). Only when the
+plain title is also a sibling's in this region does it change (`distinctTitle`): within the same 60 characters it keeps the name's own
+words, in order, in one to three runs joined by "…", choosing the words rarest among the set's products, and only a choice whose words
+are not all in another product's name, so it cannot describe a sibling. "MTG 40K Necron Dynasties Commander … (Collector's) price, US",
+"MTG 40K Forces of the Imperium … (Collector's) price, US", "MTG Secret Lair … the Machine Vol. 2 - Halo Foil price, US". The words are
+chosen against the whole set so a product reads the same in every region.
+
+37 titles change (all of them shared before), none passes 60, and no other title changes. Left shared: three pairs of products whose
+names are the same word for word ("Reality Fracture - Secret Lair Bundle" in the US and Canada, "Star Trek - Beam Me Up Bundle" in
+Canada): the name holds nothing that tells them apart, and the name is the store's. `tests/product-titles-unique.test.ts` pins on the
+committed data that no two product pages of a region share a title except such pairs, and that only shared titles change.
+
+**The old singles URLs (investigated, not changed).** The retired singles site's paths (`/card/*`, `/cards/*`, `/sets/*` and the rest)
+are `redirects()` in `next.config.js`, which Vercel answers in its routing layer before any function runs: a redirect costs no
+invocation. A 410 has no such free form in Next.js: `redirects()` only redirects, a 410 from middleware or a route handler is a function
+call on every hit, and the one static way (a legacy `routes` entry in `vercel.json` with `"status": 410`) changes how Vercel routes the
+whole Next.js app and cannot be tried here, with previews off. Taking the redirects out instead would make `/card/<x>` land on
+`/[region]` and render a 404 in a function. And the 41,703 Search Console counts are the old sitemap index's list, which changes when
+Google next reads `/sitemap.xml` (the 2026-11-14 entry above), not how the old URLs answer. So the redirects stay, and old links keep
+landing on the sealed list. No deploy marker: it rides the next release.

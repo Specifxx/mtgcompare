@@ -47,7 +47,7 @@ import { toolHref } from "@/content/tools";
 import { prevNextSet } from "@/lib/hub-copy";
 import { setCountsGrouped } from "@/lib/hub-data";
 import { TYPE_ABOUT } from "@/lib/type-about";
-import { inStockAlternatives, relatedWithFormats, setNeighbours, typeNeighbours } from "@/lib/product-data";
+import { inStockAlternatives, relatedWithFormats, setNeighbours, titleSiblings, typeNeighbours } from "@/lib/product-data";
 import { detailIndexed, productNoindex } from "@/lib/index-tiers";
 import { productFaq } from "@/lib/product-faq";
 import { isPreorderSet } from "@/lib/release";
@@ -154,7 +154,9 @@ export async function generateMetadata({ params }: { params: { region: string; s
     return detailIndexed(x.region) && !productNoindex(p.stats.find((st) => st.market === x.market), p.productType);
   });
   const image = thumb(p.imageUrl, 1200);
-  const title = seoCopy.productTitle({ name: p.name, market: r.market, inName: r.inName, cheapestCents: cheapest?.priceCents ?? null, productType: p.productType, setCode: p.setCode });
+  // The set's other products: a short title another product of the region shares keeps the words that tell this one apart.
+  const siblings = await titleSiblings(r.market, p.setCode ?? null);
+  const title = seoCopy.productTitle({ name: p.name, market: r.market, inName: r.inName, cheapestCents: cheapest?.priceCents ?? null, productType: p.productType, setCode: p.setCode }, siblings.here, siblings.all);
   const plainTitle = typeof title === "string" ? title : title.absolute;
   const meta = pageMeta({
     title: plainTitle,
