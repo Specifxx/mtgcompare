@@ -120,6 +120,7 @@ export default async function SetPage({ params }: { params: { region: string; se
     <div className="page py-8">
       {!(gridPageHasRoomForFooter(products.length) && products.length >= FOOTER_STRIP_MIN) && <NoPreFooter />}
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { href: `/${r.region}/sets`, label: "Sets" }, { label: s.name }]} />
+      <InlineAds region={r.region} tiles={tcgTiles} className="mt-4 sm:mt-6" />
 
       {/* The set's header, on the page's own ground (no box around it since 2026-11-13), then the products: the sentence that sat
           here opens "About" below. */}
@@ -235,8 +236,6 @@ export default async function SetPage({ params }: { params: { region: string; se
       {/* The weekly price-drops email, one field (components/WeeklyDropsBox.tsx, 2026-11-12). */}
       {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="set" className="mt-10 max-w-2xl" buttonClassName="btn-primary min-h-11" />}
 
-      {/* Real sealed products on TCGplayer (2026-10-28), after this page's own comparison. */}
-      <InlineAds region={r.region} tiles={tcgTiles} className="mt-16 sm:mt-20" />
 
       <section aria-labelledby="about-set" className="mt-16 grid gap-6 sm:mt-20 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10">
         <div>

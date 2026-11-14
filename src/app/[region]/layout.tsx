@@ -26,14 +26,13 @@ export default async function RegionLayout({ children, params }: { children: Rea
       {/* ONE navigation since 2026-11-13 (owner: "we're making things too complicated"): the header. The sidebar that repeated its
           menus down the left of every desktop page is gone; the page is one centred column. */}
       <main id="main" className="min-w-0 flex-1">
-        {children}
-        {/* Every region page without a spot of its own for the in-page ad block (the region home, a product page and a set page place it themselves)
-            ends with it, directly above the site footer (inside <main>: it is page content). Browser only: the server HTML holds an empty box of its
-            height (components/InlineAds.tsx). A page too short to fit it beside its own units renders <NoPreFooter/>, and globals.css hides
-            this wrapper. The legal pages are not under [region], so they never get one. */}
-        <div className="page mt-16" data-ebay-prefooter>
+        {/* The two big ad banners (owner, 2026-11-14) sit at the TOP of every region page without a spot of its own (the region home, a
+            product page and a set page place them themselves, under their own hero or breadcrumbs): the top of <main>. The server HTML
+            holds the banners at their final height (components/InlineAds.tsx). The legal pages are not under [region]. */}
+        <div className="page">
           <LayoutInlineAds region={r.region} tiles={tcg} />
         </div>
+        {children}
       </main>
       <Footer region={r.region} listed={listed} />
       {/* Narrow screens only, drawn in the browser after a scroll: the phone dock (components/SideAds.tsx, AdDock.tsx). The side rails are gone

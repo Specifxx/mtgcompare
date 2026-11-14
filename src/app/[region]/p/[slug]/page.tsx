@@ -476,6 +476,7 @@ export default async function ProductPage({ params }: { params: { region: string
           { label: p.name },
         ]}
       />
+      <InlineAds region={r.region} tiles={tcgTiles} className="mt-4 sm:mt-6" />
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-8">
         {/* The big photo: desktops only (a phone gets the thumbnail beside the name, so the price is in the first screen). */}
@@ -743,8 +744,6 @@ export default async function ProductPage({ params }: { params: { region: string
         </Section>
       )}
 
-      {/* Real sealed products on TCGplayer: after the price table, the chart and "More from <set>", never between a buyer and a price. */}
-      <InlineAds region={r.region} tiles={tcgTiles} className="mt-14" />
 
       {best && !p.setCode && alternatives.length > 0 && (
         <Section title={`More ${type ? type.plural : "sealed products"} in ${r.inName}`} href={typeLink.href} linkLabel="See all">
