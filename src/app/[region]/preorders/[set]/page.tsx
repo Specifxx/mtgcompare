@@ -170,7 +170,7 @@ export default async function PreorderPage({ params }: Params) {
       <span className="inline-flex rounded-full bg-pre-soft px-3 py-1 text-xs font-bold uppercase tracking-wide text-pre">
         {pre ? `Pre-order · releases ${formatRelease(set.releaseDate)}` : `Released ${formatRelease(set.releaseDate)}`}
       </span>
-      <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
+      <h1 className="page-title mt-3">
         MTG {set.name} pre-order prices in {r.name}
       </h1>
       {pre ? (

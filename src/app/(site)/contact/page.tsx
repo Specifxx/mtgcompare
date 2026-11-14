@@ -17,7 +17,7 @@ export default function Contact() {
   return (
     <div className="page max-w-3xl py-12">
       <Breadcrumbs items={[{ href: "/", label: "MTG Compare" }, { label: "Contact" }]} />
-      <h1 className="font-display text-4xl font-extrabold tracking-tight">Contact</h1>
+      <h1 className="page-title">Contact</h1>
       <div className="prose-dex mt-6">
         <p>
           One address for everything: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. It is read by a person, usually within two

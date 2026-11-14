@@ -13,8 +13,8 @@ export default function Error({ reset }: { error: Error; reset: () => void }) {
     <>
       <Header region={region?.region ?? null} />
       <main id="main" className="page flex-1 py-24 text-center">
-        <h1 className="font-display text-3xl font-bold">Something went wrong.</h1>
-        <p className="mt-3 text-muted">It&rsquo;s probably temporary. Try again in a moment.</p>
+        <h1 className="page-title">Something went wrong.</h1>
+        <p className="page-lead mx-auto mt-3">It&rsquo;s probably temporary. Try again in a moment.</p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">
           <button onClick={reset} className="btn-primary min-h-11 px-5">
             Try again

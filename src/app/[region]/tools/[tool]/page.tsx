@@ -70,8 +70,8 @@ export default function ToolPage({ params }: { params: { region: string; tool: s
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { href: `/${r.region}/tools`, label: "Tools" }, { label: t.title }]} />
       <header className="max-w-3xl">
         <div className="eyebrow">{t.kicker}</div>
-        <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">{t.title}</h1>
-        <p className="mt-3 text-lg leading-8 text-muted">{t.lede}</p>
+        <h1 className="mt-2 page-title">{t.title}</h1>
+        <p className="page-lead mt-3">{t.lede}</p>
       </header>
 
       {t.slug === "is-this-a-good-price" && <LinkChecker region={r.region} />}

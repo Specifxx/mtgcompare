@@ -17,8 +17,8 @@ export default function OurSites() {
   return (
     <div className="page max-w-3xl py-12">
       <Breadcrumbs items={[{ href: "/", label: SITE_NAME }, { label: "Our other sites" }]} />
-      <h1 className="mt-6 text-3xl font-bold text-ink">Our other sites</h1>
-      <p className="mt-3 text-muted">
+      <h1 className="page-title mt-6">Our other sites</h1>
+      <p className="page-lead mt-3">
         {SITE_NAME} is one of the Compare Empire sites: independent price comparison, the same rules on every site, no paid ranking.
       </p>
       <ul className="mt-8 divide-y divide-line rounded-xl border border-line">

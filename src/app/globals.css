@@ -1067,8 +1067,91 @@ a.hero-pill:hover {
   .chip:active {
     transform: none;
   }
+  /* The link cards and icons of the other pages (below: .lift, .tile-icon). */
+  .lift,
+  .tile-icon {
+    transition: none;
+  }
 }
 
+/* ── Every page that is not a home page, in the home page's voice (2026-11-14). The home is the spec: one display face set tight
+   and balanced, a muted lead on a short measure, quiet hairline cards, the brand colour only on what is pressed. ──────────────── */
+
+/* The page header: every h1 but the home pages' hero and the product page's own (a long product name is set a size down). One size
+   everywhere, from about 30px on a phone to 42px on a desktop: before, the h1s were 24, 30, 36, 40 or 48px by page. */
+.page-title {
+  font-family: var(--font-display), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.875rem, 1.35rem + 2.2vw, 2.625rem);
+  line-height: 1.1;
+  letter-spacing: -0.028em;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+/* The one line under it: muted, on a reading measure. */
+.page-lead {
+  @apply text-pretty text-base leading-7 text-muted sm:text-lg sm:leading-8;
+  max-width: 65ch;
+}
+/* The home hero's ground, a size down: one soft glow of the brand colour at the top of the page, behind the header's words. A
+   background, not an element: nothing is added to the page and nothing moves. The home pages draw their own (.hero-bg). */
+#main:not(:has(.hero)) {
+  background-image: radial-gradient(56rem 20rem at 50% -7rem, rgb(var(--brand) / 0.11), transparent 72%);
+  background-repeat: no-repeat;
+}
+:root[data-theme="light"] #main:not(:has(.hero)) {
+  background-image: radial-gradient(56rem 20rem at 50% -7rem, rgb(var(--brand) / 0.07), transparent 72%);
+}
+
+/* An article (the guides, the blog, /about and the other static pages): a reading measure of about 65 characters, a heading
+   scale of two steps, lists with quiet markers and a table that scrolls inside its own box instead of widening the page. */
+.prose-dex > :where(p, ul, ol, h2, h3, blockquote) {
+  max-width: 68ch;
+}
+.prose-dex h2 {
+  @apply mb-3 mt-10 text-xl tracking-tight sm:text-2xl;
+}
+.prose-dex > h2:first-child {
+  @apply mt-0;
+}
+.prose-dex h3 {
+  @apply mb-2 mt-7 font-display text-lg font-semibold tracking-tight text-ink;
+}
+.prose-dex :where(b, strong) {
+  @apply font-semibold text-ink;
+}
+.prose-dex li::marker {
+  color: rgb(var(--faint));
+}
+.prose-dex li {
+  @apply pl-1 leading-7;
+}
+.prose-dex a {
+  @apply decoration-brand/40 transition-colors hover:decoration-brand;
+}
+.prose-dex blockquote {
+  @apply my-6 rounded-xl border border-line bg-raised px-5 py-4 text-muted;
+}
+.prose-dex table {
+  @apply mb-6 block max-w-full overflow-x-auto text-sm;
+}
+
+/* An icon that leads a link card (a guide's "Related", the tools): the home tiles' quiet square, the brand only on hover. */
+.tile-icon {
+  @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-raised text-muted ring-1 ring-inset ring-line transition-colors duration-200;
+}
+.group:hover .tile-icon {
+  @apply bg-brand-soft text-brand-strong ring-transparent;
+}
+/* A link card's lift on hover, the home tiles' (transform and shadow only; the rise only with prefers-reduced-motion: no-preference, the transition off in "Motion." above). */
+.lift {
+  @apply transition-[transform,box-shadow,border-color] duration-200 ease-out hover:border-ink/25 hover:shadow-lift;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lift:hover {
+    transform: translateY(-2px);
+  }
+}
 /* The header rests on the page and takes its line once the page has moved under it (where the browser can tie it to the scroll). */
 @supports (animation-timeline: scroll()) {
   .hdr {

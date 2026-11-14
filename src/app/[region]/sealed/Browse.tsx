@@ -56,8 +56,8 @@ export async function BrowsePage({ r, page }: { r: RegionInfo; page: number }) {
   return (
     <div className="page py-8">
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, page > 1 ? { href: base, label: "All sealed" } : { label: "All sealed" }, ...(page > 1 ? [{ label: `Page ${page}` }] : [])]} />
-      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">All Magic sealed in {r.inName}</h1>
-      <p className="mt-2 max-w-2xl text-muted">
+      <h1 className="page-title">All Magic sealed in {r.inName}</h1>
+      <p className="page-lead mt-2">
         {total.toLocaleString("en")} products across {storesInMarket(r.market).length} {r.adjective} stores
         {r.market === "US" && " and TCGplayer"}. Prices are in {r.currency} and exclude shipping.
       </p>

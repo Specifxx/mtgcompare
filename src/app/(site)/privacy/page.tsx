@@ -17,7 +17,7 @@ export default function Privacy() {
   return (
     <div className="page max-w-3xl py-12">
       <Breadcrumbs items={[{ href: "/", label: "MTG Compare" }, { label: "Privacy" }]} />
-      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Privacy</h1>
+      <h1 className="page-title">Privacy</h1>
       <p className="mt-2 text-sm text-faint">Last updated {LAST_UPDATED}</p>
       <div className="prose-dex mt-6">
         <p>

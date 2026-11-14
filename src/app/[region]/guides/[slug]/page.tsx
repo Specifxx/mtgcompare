@@ -69,7 +69,7 @@ export default async function GuidePage({ params }: { params: { region: string; 
         <article className="min-w-0 max-w-[68ch]">
           <header>
             <div className="eyebrow">{g.kicker}</div>
-            <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">{title}</h1>
+            <h1 className="mt-2 page-title">{title}</h1>
             <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
               <span className="font-medium text-ink">By MTG Compare</span>
               <span aria-hidden="true">·</span>
@@ -103,8 +103,8 @@ export default async function GuidePage({ params }: { params: { region: string; 
         <ul role="list" className="mt-5 grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
           {related.map((l) => (
             <li key={l.href}>
-              <Link href={l.href} prefetch={false} className="card group flex h-full flex-col items-start gap-2 p-3.5 transition-shadow hover:shadow-lift sm:flex-row sm:gap-3 sm:p-4">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand-strong">
+              <Link href={l.href} prefetch={false} className="card lift group flex h-full flex-col items-start gap-2 p-3.5 sm:flex-row sm:gap-3 sm:p-4">
+                <span className="tile-icon">
                   <Icon name={l.icon} size={18} />
                 </span>
                 <span className="min-w-0">

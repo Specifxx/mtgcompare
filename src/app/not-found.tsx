@@ -10,7 +10,7 @@ export default function NotFound() {
       <Header region={null} />
       <main id="main" className="page flex-1 py-16 text-center sm:py-20">
         <div className="font-display text-7xl font-bold tracking-tight text-brand">404</div>
-        <h1 className="mt-4 font-display text-3xl font-bold tracking-tight sm:text-4xl">This page sold out.</h1>
+        <h1 className="mt-4 page-title">This page sold out.</h1>
         <p className="mx-auto mt-3 max-w-md text-muted">
           We couldn&rsquo;t find it. MTG Compare covers Magic: The Gathering <b>sealed</b> product only — single-card pages from the old site are gone.
         </p>

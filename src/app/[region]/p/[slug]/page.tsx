@@ -412,7 +412,7 @@ export default async function ProductPage({ params }: { params: { region: string
           Quick facts
         </h2>
         {value && (
-          <p className="flex gap-2.5 border-b border-line bg-open-soft/50 px-5 py-3.5 text-sm leading-6 sm:px-6">
+          <p className="flex gap-2.5 border-b border-line px-5 py-3.5 text-sm leading-6 sm:px-6">
             <Icon name="tag" size={16} className="mt-1 shrink-0 text-open" />
             <span>
               <b className="font-semibold text-open">Value check: </b>
@@ -518,7 +518,7 @@ export default async function ProductPage({ params }: { params: { region: string
               </div>
               <div className="mt-2">
                 <ShareButton title={heading} path={`/${r.region}/p/${p.slug}`} kind="product" text={shareText(heading, priceGap(open.filter((o) => !o.marketplace).map((o) => ({ priceCents: o.priceCents, storeName: o.storeName }))), (c) => money(c, r.market))} className="float-right -mt-1 ml-2" />
-                <h1 className="font-display text-2xl font-bold leading-tight sm:text-3xl">{heading}</h1>
+                <h1 className="text-balance font-display text-2xl font-bold leading-tight tracking-[-0.02em] sm:text-3xl">{heading}</h1>
               </div>
               {/* My collection (lib/vault.ts): valued in this region from /prices.json, kept in the browser only. */}
               <VaultAddButton id={p.id} name={heading} href={`/${r.region}/p/${p.slug}`} image={img?.small ?? null} market={r.market} currency={r.currency} addedCents={here?.lowestPriceCents ?? 0} className="mt-3" />
