@@ -149,8 +149,8 @@ export default async function ReleasesPage({ params }: { params: { region: strin
   return (
     <div className="page py-8">
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { label: "Releases" }]} />
-      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Magic: The Gathering release dates {year}</h1>
-      <p className="mt-3 max-w-2xl leading-7 text-muted">
+      <h1 className="page-title">Magic: The Gathering release dates {year}</h1>
+      <p className="page-lead mt-3">
         {/* One text node, so nothing in it moves when the web font arrives. */}
         {`The release calendar for ${r.inName}: upcoming sets and the ones out in the last ${RECENT_DAYS} days, with what ${r.adjective} stores have in stock or open for pre-order today, then every set of ${year} and ${year - 1}. Dates are the English-language release dates; stores may ship pre-orders a few days either side.`}
       </p>
@@ -228,15 +228,15 @@ function NextSetBox({ r, next, c, today }: { r: RegionInfo; next: MtgSet | null;
   if (!next) return null;
   const path = `/${r.region}/sets/${next.slug}`;
   return (
-    <section aria-labelledby="next-set" className="mt-6 rounded-2xl border border-pre/25 bg-pre-soft p-5 sm:p-6">
-      <div className="text-xs font-semibold uppercase tracking-[0.12em] text-pre">Next set</div>
+    <section aria-labelledby="next-set" className="card mt-6 p-5 sm:p-6">
+      <div className="eyebrow">Next set</div>
       <p id="next-set" className="mt-1 font-display text-2xl font-bold leading-tight text-ink sm:text-3xl">
         <Link href={path} prefetch={false} className="hover:underline">
           {withMtg(next.name)}
         </Link>
-        : <time dateTime={next.releaseDate}>{formatRelease(next.releaseDate)}</time> <span className="text-pre">({relativeDay(next.releaseDate, today)})</span>
+        : <time dateTime={next.releaseDate}>{formatRelease(next.releaseDate)}</time> <span className="text-muted">({relativeDay(next.releaseDate, today)})</span>
       </p>
-      <p className="mt-2 text-sm text-ink/80">
+      <p className="mt-2 text-sm text-muted">
         {next.series} series ·{" "}
         {c ? (
           <>

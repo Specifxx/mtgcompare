@@ -101,11 +101,11 @@ export async function HolidaySalePage({ event, params }: { event: SaleEvent } & 
       {deals.length < 12 && <NoPreFooter />}
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { href: `/${r.region}/deals`, label: "Deals" }, { label: name }]} />
       <header className="max-w-3xl">
-        <div className="eyebrow flex items-center gap-1.5 text-brand-strong">
+        <div className="eyebrow flex items-center gap-1.5">
           <Icon name="tag" size={14} /> {name} {year} · {r.name}
         </div>
-        <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">{copy.h1(r)}</h1>
-        <p className="mt-3 leading-7 text-muted">
+        <h1 className="mt-2 page-title">{copy.h1(r)}</h1>
+        <p className="page-lead mt-3">
           {when} Stores set their own prices, so this page doesn’t guess at sales: it ranks the Magic sealed products whose cheapest in-stock price sits furthest under the median of the{" "}
           {r.adjective} stores that have them, from the prices we checked{" "}
           {checked ? <Ago iso={checked.toISOString()} initial={timeAgo(checked)} /> : "twice a day"}. Every listing is read about twice a day through the season. Under the deals, the{" "}

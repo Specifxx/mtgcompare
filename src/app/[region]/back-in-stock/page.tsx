@@ -39,8 +39,8 @@ export default async function BackInStockPage({ params }: { params: { region: st
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { label: "Back in stock" }]} />
       <header className="max-w-3xl">
         <div className="eyebrow">Stock · {r.name}</div>
-        <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">Back in stock in {r.inName}</h1>
-        <p className="mt-3 leading-7 text-muted">
+        <h1 className="mt-2 page-title">Back in stock in {r.inName}</h1>
+        <p className="page-lead mt-3">
           Magic sealed product that no {r.adjective} store we track had in stock in one daily check, and that a store has in stock again in a later one (in the last {BACK_DAYS} days), most recent first.
           Store counts are independent stores; TCGplayer is shown apart. Stock moves fast: the store&rsquo;s own page is final.
         </p>

@@ -98,7 +98,7 @@ export async function StorePage({ r, s, page }: { r: RegionInfo; s: StoreConfig;
           <div className="eyebrow">
             <Flag code={r.short} /> {r.name} · prices in {r.currency}
           </div>
-          <h1 className="mt-1 font-display text-3xl font-extrabold tracking-tight">{s.name}</h1>
+          <h1 className="page-title mt-1">{s.name}</h1>
           <p className="mt-1 text-sm text-muted">
             {st?.inStock ?? 0} Magic sealed products in stock · {listed} listed · last read{" "}
             {st?.lastOkAt ? <Ago iso={st.lastOkAt.toISOString()} initial={timeAgo(st.lastOkAt)} /> : "not yet"}

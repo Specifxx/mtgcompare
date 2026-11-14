@@ -43,7 +43,7 @@ export default async function PostPage({ params }: Params) {
         <article className="min-w-0 max-w-[68ch]">
           <header>
             <div className="eyebrow">{p.kicker}</div>
-            <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">{p.title}</h1>
+            <h1 className="mt-2 page-title">{p.title}</h1>
             <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
               <span className="font-medium text-ink">By MTG Compare</span>
               <span aria-hidden="true">·</span>
@@ -84,7 +84,7 @@ export default async function PostPage({ params }: Params) {
         <ul role="list" className="mt-4 grid gap-4 sm:grid-cols-3">
           {more.map((x) => (
             <li key={x.slug}>
-              <Link href={postPath(x.slug)} prefetch={false} className="card group block h-full overflow-hidden hover:shadow-lift">
+              <Link href={postPath(x.slug)} prefetch={false} className="card lift group block h-full overflow-hidden">
                 <PostCover post={x} index={POSTS.indexOf(x)} />
                 <span className="block p-5">
                   <span className="eyebrow">{x.kicker}</span>

@@ -18,8 +18,8 @@ export const metadata: Metadata = {
 export default function CartPage() {
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:py-10">
-      <h1 className="text-2xl font-bold sm:text-3xl">Your cart</h1>
-      <p className="mt-2 text-sm opacity-75">
+      <h1 className="page-title">Your cart</h1>
+      <p className="mt-2 text-sm text-muted">
         Add store prices from any product page, then check out store by store. Your cart stays in this browser.
       </p>
       <CartListView />

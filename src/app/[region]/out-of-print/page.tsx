@@ -47,8 +47,8 @@ export default async function OutOfPrintPage({ params }: { params: { region: str
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { label: "Older sets in stock" }]} />
       <header className="max-w-3xl">
         <div className="eyebrow">Stock · {r.name}</div>
-        <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">Older MTG sets still in stock in {r.inName}</h1>
-        <p className="mt-3 leading-7 text-muted">
+        <h1 className="mt-2 page-title">Older MTG sets still in stock in {r.inName}</h1>
+        <p className="page-lead mt-3">
           Booster boxes, bundles and Commander decks from sets released more than {OLDER_MONTHS} months ago (before {formatRelease(olderCutoff(today))}) that {r.adjective} stores, often local game
           stores, still have on the shelf today. Sets most stores carry come first. Older product is usually at only a few stores and its prices can move a lot; we show today&rsquo;s stock and
           price, and say nothing about where they will go.

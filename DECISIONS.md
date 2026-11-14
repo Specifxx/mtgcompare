@@ -1847,3 +1847,38 @@ whole Next.js app and cannot be tried here, with previews off. Taking the redire
 `/[region]` and render a 404 in a function. And the 41,703 Search Console counts are the old sitemap index's list, which changes when
 Google next reads `/sitemap.xml` (the 2026-11-14 entry above), not how the old URLs answer. So the redirects stay, and old links keep
 landing on the sealed list. No deploy marker: it rides the next release.
+
+## 2026-11-14: The other pages in the home page's voice
+
+The owner (14 November): "I like how all our compare websites are more aesthetic on the homepage now but can we make all the other
+pages more aesthetic as well". The home pages of 13 November are the spec; this pass brings every other page type to them with shared
+classes, and adds no block, banner, badge or section. Before and after screenshots (390px and 1440px, dark and light):
+`/mnt/project-files/redesign/2026-11-14-polish/mtg/r2-before-*` and `r2-after-*`.
+
+- **One page header everywhere.** The h1s were 24, 30, 36, 40 or 48px by page, bold or extra-bold, some without the display face.
+  Every h1 but the two home heroes and the product page's is now `.page-title` (the display face, 30px on a phone to 42px on a
+  desktop, set tight and balanced like the hero), and the line under it `.page-lead` (muted, a 65-character measure). On the list,
+  set, type, sets, deals and the sale pages, releases, stores and a store, guides and a guide, the blog and a post, tools, about and the
+  static pages, cart, collection, 404 and the error page. The product page's h1 keeps its smaller size (long names) and gains the
+  same tracking and balance. Eyebrows are grey everywhere (the deals and sale pages' were brand).
+- **The home hero's ground, a size down.** One soft glow of the brand colour at the top of every other page: a background on
+  `<main>` (`#main:not(:has(.hero))`), not an element, so nothing is added and nothing moves.
+- **Calm palette, finished on the inner pages.** The tinted boxes left over are plain cards: a set page's "Cheapest way in" (the
+  per-pack price is the green, as money) and its pre-order link, the sets index's "Next set" pill, the release calendar's "Next set"
+  card (its one filled button stays: the thing to press), the product page's "Value check" row, and a guide table's picked row (marked
+  like the price table's best row: a raised ground and a 3px green edge).
+- **Articles.** `.prose-dex` (about, terms, privacy, contact, disclosure, list your store, the guides' prose) reads on a 68-character
+  measure, with two heading steps (h2, h3), grey list markers, ink bold words and a table that scrolls in its own box.
+- **Indexes.** A guide card's cover shows from sm up: on a phone the guides index is a list of words and the page is 13,228px tall,
+  not 18,299 (a guide page's "More guides" 18,247, not 23,112); the covers are lazy, so a phone no longer downloads them. Link cards
+  (guides, the blog, a guide's "Related") lift on hover like the home tiles (transform and shadow, 200ms, the rise only under
+  `prefers-reduced-motion: no-preference`), and "Related" leads with the home tiles' quiet icon square.
+
+**Nothing paid or crawled changed.** No paid link, ad block, pinned row, placement, button word or order; no URL, title,
+description, canonical, robots, Open Graph, JSON-LD, h1 or h2 text. Checked on 16 URLs, server HTML of the build before against the
+build after with scripts off (two product pages in the US and one in AU, a type, a set, the sets, guides and stores indexes, a guide,
+the blog and a post, a store, about, deals, the release calendar and a search): the title, every meta and alternate link, the h1s and
+h2s, the JSON-LD, the set of internal links, every `rel="sponsored"` link in order and the page's whole text are identical. So the
+19 November clicks-per-placement recheck and the quick view's A/B test (20 November to 3 December; the quick view is untouched) read
+the same placements. Measured on the build: no page wider than its window at 390 or 1440px, no console or hydration error, layout
+shift 0 on the five pages measured. `tests/inner-pages.test.ts` pins each rule. No deploy marker: it rides the next release.

@@ -29,7 +29,7 @@ export default async function EmbedPage() {
     <div className="mx-auto flex max-w-3xl flex-col gap-8 px-4 py-8">
       <Breadcrumbs items={[{ href: "/", label: SITE_NAME }, { label: "Free widgets" }]} />
       <header className="flex flex-col gap-2">
-        <h1 className="text-3xl font-extrabold">Free MTG sealed price widgets</h1>
+        <h1 className="page-title">Free MTG sealed price widgets</h1>
         <p className="text-muted">
           Put a live booster box or bundle price on any page with one line of HTML. It shows the cheapest in-stock store price in your readers&apos; region and
           updates itself every day. Free, no signup, no tracking. The widget is noindex, so it never competes with your own pages in search.

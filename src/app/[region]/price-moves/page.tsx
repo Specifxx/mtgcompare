@@ -62,8 +62,8 @@ export default async function PriceMovesPage({ params }: { params: { region: str
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { label: "Price moves" }]} />
       <header className="max-w-3xl">
         <div className="eyebrow">Prices · {r.name}</div>
-        <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">Biggest price moves this week in {r.inName}</h1>
-        <p className="mt-3 leading-7 text-muted">
+        <h1 className="mt-2 page-title">Biggest price moves this week in {r.inName}</h1>
+        <p className="page-lead mt-3">
           The cheapest in-stock price at {r.adjective} stores{r.market === "US" ? " and TCGplayer" : ""} today against the same product&rsquo;s {MOVE_DAYS} days ago, for the booster boxes, bundles
           and Commander decks of popular sets only. A move counts at {MOVE_MIN_PCT}% or more and at least {money(MOVE_MIN_CENTS, r.market)}. Prices move when the cheapest store sells out
           or another lists it; this is what the shelves did, not where they are going.

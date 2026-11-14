@@ -36,10 +36,10 @@ export default function BlogIndex() {
       />
       <header className="max-w-3xl">
         <div className="eyebrow">Blog</div>
-        <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">
+        <h1 className="mt-2 page-title">
           The MTG Compare blog
         </h1>
-        <p className="mt-3 text-lg leading-8 text-muted">
+        <p className="page-lead mt-3">
           New Magic releases and sealed prices across the seven markets we
           compare, built from today’s listings at real stores.
         </p>
@@ -53,7 +53,7 @@ export default function BlogIndex() {
             <Link
               href={postPath(p.slug)}
               prefetch={false}
-              className="card group flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lift"
+              className="card lift group flex h-full flex-col overflow-hidden"
             >
               <PostCover post={p} index={i} eager={i < 3} />
               <div className="flex flex-1 flex-col p-5 sm:p-6">

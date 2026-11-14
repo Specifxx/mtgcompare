@@ -172,8 +172,8 @@ export default function CreatorsPage() {
       <Breadcrumbs items={crumbs} />
       <header className="max-w-2xl">
         <div className="eyebrow">Creators</div>
-        <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-5xl">Magic creators we love</h1>
-        <p className="mt-3 text-lg leading-8 text-muted">
+        <h1 className="page-title mt-2">Magic creators we love</h1>
+        <p className="page-lead mt-3">
           The artists and players who make Magic fun to follow. Have a look at their work, follow them, and tell them {SITE_NAME} sent you.
         </p>
       </header>

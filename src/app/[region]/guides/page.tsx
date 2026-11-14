@@ -45,8 +45,8 @@ export default function GuidesIndex({ params }: { params: { region: string } }) 
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { label: "Guides" }]} />
       <header className="max-w-3xl">
         <div className="eyebrow">Guides</div>
-        <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">MTG booster box, bundle &amp; Commander deck price guides</h1>
-        <p className="mt-3 text-lg leading-8 text-muted">
+        <h1 className="mt-2 page-title">MTG booster box, bundle &amp; Commander deck price guides</h1>
+        <p className="page-lead mt-3">
           Plain-English answers to what people ask before they buy Magic: The Gathering sealed product in {r.inName}, with prices from today’s listings at the stores
           we compare.
         </p>
@@ -81,7 +81,7 @@ export default function GuidesIndex({ params }: { params: { region: string } }) 
         ))}
         {/* The one guide that compares every market: the same page from every region's index. */}
         <li>
-          <Link href={COUNTRY_GUIDE.path} prefetch={false} className="card group flex h-full flex-col p-5 transition-shadow hover:shadow-lift sm:p-6">
+          <Link href={COUNTRY_GUIDE.path} prefetch={false} className="card lift group flex h-full flex-col p-5 sm:p-6">
             <span className="eyebrow">{COUNTRY_GUIDE.kicker}</span>
             <h2 className="mt-2 font-display text-xl font-bold leading-snug tracking-tight group-hover:text-brand">{COUNTRY_GUIDE.h1}</h2>
             <p className="mt-2 flex-1 text-[15px] leading-6 text-muted">{COUNTRY_GUIDE.description}</p>

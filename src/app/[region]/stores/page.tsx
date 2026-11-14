@@ -47,8 +47,8 @@ export default async function StoresPage({ params }: { params: { region: string 
   return (
     <div className="page py-8">
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { label: "Stores" }]} />
-      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Where to buy Magic sealed online in {r.inName}</h1>
-      <p className="mt-3 max-w-2xl leading-7 text-muted">
+      <h1 className="page-title">Where to buy Magic sealed online in {r.inName}</h1>
+      <p className="page-lead mt-3">
         {/* One text node: a sentence split around {values} moves its later pieces when the web font arrives (a layout shift). */}
         {`${plural(stores.length, "independent game and card store")} that sell Magic: The Gathering sealed product online in ${r.currency}, compared in one place. We read their public product listings about twice a day; every product page ranks them by price and stock, and no store pays to be listed or to rank higher.`}
       </p>

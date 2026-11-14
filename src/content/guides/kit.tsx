@@ -237,7 +237,7 @@ export function StackTable({ caption, head, rows, align = "right", compact = fal
             <tr
               key={row.key}
               data-type={row.type}
-              className={`grid ${grid} items-start gap-x-3 gap-y-2 border-b border-line px-2 py-3 last:border-0 sm:table-row sm:px-0 ${row.highlight ? "rounded-lg bg-open-soft/50 sm:rounded-none" : ""}`}
+              className={`grid ${grid} items-start gap-x-3 gap-y-2 border-b border-line px-2 py-3 last:border-0 sm:table-row sm:px-0 ${row.highlight ? "bg-raised shadow-[inset_3px_0_0_rgb(var(--open))] sm:shadow-none sm:[&>th]:shadow-[inset_3px_0_0_rgb(var(--open))]" : ""}`}
             >
               <th scope="row" className={`${span} text-left align-top font-normal sm:py-3 sm:pl-2 sm:pr-3`}>
                 {row.th}
@@ -503,7 +503,7 @@ export function TocDisclosure({ sections }: { sections: readonly Pick<GuideSecti
 export function GuideCard({ r, guide, headingLevel = 2, thumbnail = true }: { r: RegionInfo; guide: Guide; headingLevel?: 2 | 3; thumbnail?: boolean }) {
   const H = headingLevel === 2 ? "h2" : "h3";
   return (
-    <Link href={guideHref(r, guide.slug)} prefetch={false} className="card group flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lift">
+    <Link href={guideHref(r, guide.slug)} prefetch={false} className="card lift group flex h-full flex-col overflow-hidden">
       {thumbnail && (
         // The guide's own share card (app/og/guides/[slug], a static PNG), as its thumbnail (2026-11-09).
         <img
@@ -513,7 +513,7 @@ export function GuideCard({ r, guide, headingLevel = 2, thumbnail = true }: { r:
           height={630}
           loading="lazy"
           decoding="async"
-          className="aspect-[1200/630] w-full border-b border-line bg-raised object-cover"
+          className="hidden aspect-[1200/630] w-full border-b border-line bg-raised object-cover sm:block"
         />
       )}
       <div className="flex flex-1 flex-col p-5 sm:p-6">

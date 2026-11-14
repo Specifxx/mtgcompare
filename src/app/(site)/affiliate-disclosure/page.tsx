@@ -18,7 +18,7 @@ export default function AffiliateDisclosure() {
   return (
     <div className="page max-w-3xl py-12">
       <Breadcrumbs items={[{ href: "/", label: "MTG Compare" }, { label: "Affiliate disclosure" }]} />
-      <h1 className="font-display text-4xl font-extrabold tracking-tight">Affiliate disclosure</h1>
+      <h1 className="page-title">Affiliate disclosure</h1>
       <p className="mt-2 text-sm text-faint">Last updated {LAST_UPDATED}</p>
       <div className="prose-dex mt-6">
         <p>

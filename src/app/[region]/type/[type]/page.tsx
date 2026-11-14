@@ -106,7 +106,7 @@ export default async function TypePage({ params }: { params: { region: string; t
     <div className="page py-8">
       {!(gridPageHasRoomForFooter(open.length + sold.length) && open.length + sold.length >= FOOTER_STRIP_MIN) && <NoPreFooter />}
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { label: t.plural }]} />
-      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-5xl">
+      <h1 className="page-title">
         {name} in {r.inName}
       </h1>
 

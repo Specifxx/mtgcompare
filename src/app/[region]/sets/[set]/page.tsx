@@ -132,7 +132,7 @@ export default async function SetPage({ params }: { params: { region: string; se
           <div className="min-w-0 sm:self-end">
             <div className="eyebrow">{s.series} series</div>
             <div className="mt-1 flex items-start justify-between gap-3">
-              <h1 id="set-title" className="min-w-0 break-words font-display text-3xl font-bold tracking-tight sm:text-4xl">
+              <h1 id="set-title" className="page-title min-w-0">
                 {name}
               </h1>
               <ShareButton title={name} path={`/${r.region}/sets/${s.slug}`} kind="set" />
@@ -150,14 +150,14 @@ export default async function SetPage({ params }: { params: { region: string; se
               <Link
                 href={`/${r.region}/p/${way.p.slug}`}
                 prefetch={false}
-                className="group flex min-h-11 items-center gap-3 rounded-xl bg-open-soft px-4 py-2.5 text-sm text-ink transition-colors hover:bg-open-soft/70 sm:justify-self-start"
+                className="group flex min-h-11 items-center gap-3 rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-ink transition-colors hover:border-ink/30 sm:justify-self-start"
               >
                 <Icon name="tag" size={18} className="text-open" />
                 <span className="min-w-0">
                   <span className="text-muted">{pre ? "Cheapest pre-order per pack:" : "Cheapest way in:"}</span> <span className="font-semibold">{way.p.productType}</span> at{" "}
-                  <span className="tabular font-bold">{money(way.perPack, r.market)}</span> a pack
+                  <span className="tabular font-bold text-open">{money(way.perPack, r.market)}</span> a pack
                 </span>
-                <Icon name="arrow-right" size={18} className="ml-auto text-open transition-transform group-hover:translate-x-0.5" />
+                <Icon name="arrow-right" size={18} className="ml-auto text-muted transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none" />
               </Link>
             ) : (
               <span className="hidden sm:block" />
@@ -188,13 +188,13 @@ export default async function SetPage({ params }: { params: { region: string; se
         <Link
           href={preorderPath(r.region, s.code)!}
           prefetch={false}
-          className="card mt-4 flex flex-wrap items-center justify-between gap-3 border-pre/40 bg-pre-soft/40 px-5 py-4 transition-shadow hover:shadow-lift"
+          className="card lift mt-4 flex flex-wrap items-center justify-between gap-3 px-5 py-4"
         >
           <span>
             <span className="font-semibold">{s.name} pre-orders, store by store</span>
             <span className="block text-sm text-muted">Every {r.adjective} store taking pre-orders, cheapest first, with what is in each box and the key dates.</span>
           </span>
-          <span className="shrink-0 text-sm font-semibold text-pre">Compare pre-orders →</span>
+          <span className="shrink-0 text-sm font-semibold text-brand">Compare pre-orders →</span>
         </Link>
       )}
       <Section id="products" title={`${s.name} sealed products`} kicker={products.length ? `${products.length} listed in ${r.inName}` : undefined} className="mt-10 sm:mt-12">

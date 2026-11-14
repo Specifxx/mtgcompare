@@ -42,15 +42,15 @@ export default async function SetsPage({ params }: { params: { region: string } 
   return (
     <div className="page py-8">
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { label: "Sets" }]} />
-      <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Magic: The Gathering sets in order</h1>
-      <p className="mt-3 max-w-2xl leading-7 text-muted">
+      <h1 className="page-title">Magic: The Gathering sets in order</h1>
+      <p className="page-lead mt-3">
         Every English-language set from XY ({firstSetYear()}) on, newest first, with its English release date and how much of its sealed product{" "}
         {r.adjective} stores have in stock today. A set links to its price comparison once a store we track lists it.
       </p>
       {next && (
         <p className="mt-4">
-          <Link href={`/${r.region}/releases`} prefetch={false} className="inline-flex min-h-10 items-center gap-2 rounded-2xl bg-pre-soft px-4 py-2 text-sm font-semibold text-pre hover:underline">
-            <Icon name="calendar" size={16} />
+          <Link href={`/${r.region}/releases`} prefetch={false} className="group inline-flex min-h-10 items-center gap-2 rounded-full border border-line bg-surface px-4 py-2 text-sm font-semibold text-ink transition-colors hover:border-ink/30">
+            <Icon name="calendar" size={16} className="text-muted" />
             <span>
               Next set: {next.name} · {shortDate(next.releaseDate)}
             </span>

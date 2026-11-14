@@ -70,7 +70,7 @@ export default async function ThisWeekPage({ params }: { params: { region: strin
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { label: "This week" }]} />
       <header className="max-w-3xl">
         <div className="eyebrow">Weekly digest · {r.name}</div>
-        <h1 className="mt-2 font-display text-3xl font-bold tracking-tight sm:text-4xl">{digestCopy.h1(r)}</h1>
+        <h1 className="mt-2 page-title">{digestCopy.h1(r)}</h1>
         <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-muted">
           <Icon name="clock" size={16} />
           <span>
