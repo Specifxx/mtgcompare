@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-15T00:33:35.838Z",
+ "generatedAt": "2026-11-15T16:05:58.631Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -100,15 +100,15 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "AU",
-   "title": "Marvel's Spider-Man - Prerelease Pack",
-   "url": "https://mtgcompare.app/au/p/marvels-spider-man-prerelease-pack",
-   "cents": 3500,
+   "title": "Avatar: The Last Airbender - Scene Box (The Black Sun Invasion)",
+   "url": "https://mtgcompare.app/au/p/avatar-the-last-airbender-scene-box-the-black-sun-invasion",
+   "cents": 5000,
    "currency": "AUD",
-   "store": "Tabernacle Games",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/621112_in_1000x1000.jpg",
-   "refCents": 6000,
+   "store": "Raptor Games",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/648713_in_1000x1000.jpg",
+   "refCents": 8000,
    "refLabel": "median store price",
-   "savingPct": 42
+   "savingPct": 38
   },
   {
    "kind": "deal",
@@ -226,20 +226,6 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "Edge of Eternities Commander Deck - World Shaper",
-   "url": "https://mtgcompare.app/us/p/edge-of-eternities-commander-deck-world-shaper",
-   "cents": 2699,
-   "currency": "USD",
-   "store": "Video Game Trader LLC",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/619676_in_1000x1000.jpg",
-   "refCents": 5123,
-   "refLabel": "median store price",
-   "savingPct": 47
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "US",
    "title": "Marvel Super Heroes Commander Deck - The Fantastic Four (Collector's Edition)",
    "url": "https://mtgcompare.app/us/p/marvel-super-heroes-commander-deck-the-fantastic-four-collectors-edition",
    "cents": 7500,
@@ -277,6 +263,20 @@
    "refCents": 4500,
    "refLabel": "median store price",
    "savingPct": 39
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "US",
+   "title": "Secret Lair Drop: Secret Lair x Marvel: Earth's Mightiest Pets - Traditional Foil Edition",
+   "url": "https://mtgcompare.app/us/p/secret-lair-drop-secret-lair-x-marvel-earths-mightiest-pets-traditional-foil-edition",
+   "cents": 4500,
+   "currency": "USD",
+   "store": "Black Vault Gaming",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/713524_in_1000x1000.jpg",
+   "refCents": 5699,
+   "refLabel": "median store price",
+   "savingPct": 21
   },
   {
    "kind": "deal",
@@ -536,7 +536,7 @@
    "region": "SG",
    "title": "Marvel Super Heroes Play Booster Box",
    "url": "https://mtgcompare.app/sg/p/marvel-super-heroes-play-booster-box",
-   "cents": 12350,
+   "cents": 12450,
    "currency": "SGD",
    "store": "Tefuda Games",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/675603_in_1000x1000.jpg",
