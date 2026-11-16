@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { demoteSuspectStores, distrustRead, dormantStores, dropHighOutliers, dropLowOutliers, offerRef, pickName, planMoves, priceOf, rankImages, rowsFromReads, sourcesFor, type StoreRead } from "../src/lib/importer";
+import { demotePlaceholderPrices, demoteSuspectStores, distrustRead, dormantStores, dropHighOutliers, dropLowOutliers, offerRef, pickName, planMoves, priceOf, rankImages, rowsFromReads, sourcesFor, type StoreRead } from "../src/lib/importer";
 import { readShopifyCollection } from "../src/lib/feeds";
 import { headlineOffer, offerStock, openStoreCount, rankOffers, OFFER_STALE_MS } from "../src/lib/sealed-offers";
 import type { FeedProduct } from "../src/lib/feeds";
@@ -443,4 +443,21 @@ test.skip("(Pokémon fixture; Beaches TCG is not in the MTG registry — rewrite
     // Mega Charizard X or Y: one of two products.
     "Mega Charizard Tin - Assorted": "vague",
   });
+});
+
+test("an in-stock all-nines placeholder price is written as sold out; a real ask near the market is kept", () => {
+  const reads = [
+    readOf("a", [{ title: "Magic: The Gathering - Reality Fracture Play Booster Box", cents: 27000 }, { title: "Magic: The Gathering - Kaldheim Collector Booster Box", cents: 90000 }]),
+    readOf("b", [{ title: "Magic: The Gathering - Reality Fracture Play Booster Box", cents: 28000 }, { title: "Magic: The Gathering - Kaldheim Collector Booster Box", cents: 95000 }]),
+    readOf("c", [{ title: "Magic: The Gathering - Reality Fracture Play Booster Box", cents: 29000 }, { title: "Magic: The Gathering - Kaldheim Collector Booster Box", cents: 100000 }]),
+    readOf("d", [{ title: "Magic: The Gathering - Reality Fracture Play Booster Box", cents: 99999 }, { title: "Magic: The Gathering - Kaldheim Collector Booster Box", cents: 99999 }]), // 3.5x the box: demoted; a Kaldheim box at $999.99 is near its market: kept
+    readOf("e", [{ title: "Magic: The Gathering - Reality Fracture Play Booster Box", cents: 99999, inStock: false }]), // already sold out: untouched
+    readOf("alone", [{ title: "Magic: The Gathering - Final Fantasy Play Booster Box", cents: 99999 }]), // no market to judge $999.99 by: kept
+    readOf("big", [{ title: "Magic: The Gathering - Final Fantasy Play Booster Box", cents: 999999 }]), // US$9,999.99: demoted
+  ];
+  assert.equal(demotePlaceholderPrices(reads), 2);
+  assert.ok(!reads[3].rows[0].inStock, "its row stays, as sold out");
+  assert.ok(reads[3].rows[1].inStock);
+  assert.ok(reads[5].rows[0].inStock);
+  assert.ok(!reads[6].rows[0].inStock);
 });
