@@ -105,7 +105,8 @@ export function NavMenu({ label, link, children, align = "left", xl = false }: {
         if (!suppressed.current && !(e.target as HTMLElement).closest("[data-nav-trigger]")) show();
       }}
       onBlur={(e) => {
-        if (!root.current?.contains(e.relatedTarget as Node | null)) {
+        const next = e.relatedTarget as Node | null;
+        if (next && !root.current?.contains(next)) {
           suppressed.current = false;
           setOpen(false);
         }
@@ -135,6 +136,9 @@ export function NavMenu({ label, link, children, align = "left", xl = false }: {
       <div
         id={panelId}
         data-nav-panel
+        // Safari and Firefox on macOS do not focus a link on mousedown, so onBlur (relatedTarget null) closed the panel before the
+        // click landed and its links could not be clicked (owner, 2026-11-16). Keep focus where it is; the click still navigates.
+        onMouseDown={(e) => e.preventDefault()}
         className={`absolute top-full z-50 pt-2 transition duration-150 motion-reduce:transition-none ${align === "right" ? "right-0" : "left-0"} ${
           open ? "visible translate-y-0 opacity-100" : "invisible -translate-y-1 opacity-0"
         }`}
