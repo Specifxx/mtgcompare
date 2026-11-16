@@ -1,13 +1,13 @@
 {
  "format": 1,
- "generatedAt": "2026-11-16T00:35:27.370Z",
+ "generatedAt": "2026-11-16T18:59:37.075Z",
  "source": "DATABASE_URL",
  "counts": {
   "Product": 2022,
   "Offer": 55401,
   "ProductStat": 5878,
   "StoreStat": 810,
-  "EbayListing": 12973
+  "EbayListing": 12989
  },
  "seen": {
   "151collectables": "2026-11-16T00:24:30.931Z",
