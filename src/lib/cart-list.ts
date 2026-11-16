@@ -115,10 +115,10 @@ export function storeHost(input: { href: string; productUrl?: string | null }): 
 }
 
 /**
- * TCGplayer and Cardmarket are references, never a cart line. eBay and Amazon rows are
- * (manual lines on their tagged links, owner 2026-11-06), still never counted as a store.
+ * Cardmarket is a reference, never a cart line. TCGplayer, eBay, Amazon and Fetch TCG rows are
+ * (manual lines on their tagged links; owner 2026-11-06 for eBay and Amazon, 2026-11-16 for TCGplayer and Fetch), still never counted as a store.
  */
-const MARKETPLACE = /(?:^|\.)(?:tcgplayer|cardmarket)(?:\.|$)/i;
+const MARKETPLACE = /(?:^|\.)cardmarket(?:\.|$)/i;
 
 export function isMarketplace(host: string | null | undefined): boolean {
   return !!host && MARKETPLACE.test(host);
