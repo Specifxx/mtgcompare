@@ -5,7 +5,7 @@
 // - tcgsynergy (TCG Synergy, tcgsynergy.myshopify.com, CA): owner, 2026-10-31, "it's a scam site".
 // - hbtcollectables (HBT Collectables, hbtcollectables.com, AU): asked not to be linked, legal notice to the
 //   owner, 2026-11-04. Not a scam; a store that does not want the traffic.
-export const BLOCKED_STORES: readonly string[] = ["tcgsynergy", "hbtcollectables"];
+export const BLOCKED_STORES: readonly string[] = ["tcgsynergy", "hbtcollectables", "tcgshopuk", "tcgcardshopuk"];
 
 function squash(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]/g, "");

@@ -5385,17 +5385,6 @@
     ]
   },
   {
-    "key": "tcgshopuk",
-    "name": "TCGShopUK",
-    "base": "https://tcgshopuk.co.uk",
-    "market": "UK",
-    "platform": "woocommerce",
-    "country": "GB",
-    "collections": [
-      "magic-the-gathering-booster-box"
-    ]
-  },
-  {
     "key": "theboardgamehut",
     "name": "The Board Game Hut",
     "base": "https://theboardgamehut.co.uk",
