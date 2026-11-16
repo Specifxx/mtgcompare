@@ -1945,3 +1945,7 @@ The 2026-11-12 rule (Amazon row only with a real price) took Amazon buy clicks t
 line under the product page's price table, only where Amazon sells the item (a known ASIN, else a type Amazon carries), unpriced and labelled
 paid, hidden when the priced row shows. Never the quick view (A/B window 20 Nov-3 Dec), never pinned, best, a deal or an alert; the region's
 shared tag, placement `amazon-below-table`. Read clicks per day against 7-12 Nov. `tests/paid-rows.test.ts` pins it.
+
+## 2026-11-16: urgent release of the "Also on Amazon" line
+
+Amazon clicks were about 0 a day since 13 Nov. The owner approved one urgent production build (subject carries the urgent marker) so the unpriced matched line goes live now instead of waiting for the next daily release. One build, no previews.
