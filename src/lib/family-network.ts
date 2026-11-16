@@ -31,6 +31,7 @@ export type FamilySiteId =
   | "ygo"
   | "cyberpunk"
   | "bandai"
+  | "sealed"
   | "wargame"
   | "figure"
   | "empire"
@@ -66,6 +67,7 @@ export const FAMILY_SITES: readonly FamilySite[] = [
   { id: "ygo", name: "YGO Compare", url: "https://ygocompare.com", label: "Yu-Gi-Oh! card prices", topic: "Yu-Gi-Oh!", clusters: ["cards"], feed: `${RAW}/ygocompare/main/data/public/family/family-feed.json`, report: "/price-report" },
   { id: "cyberpunk", name: "Cyberpunk Compare", url: "https://cyberpunkcompare.com", label: "Cyberpunk TCG prices", topic: "Cyberpunk TCG", clusters: ["cards"], feed: `${RAW}/cyberpunkcompare/main/data/public/family/family-feed.json`, report: "/price-report" },
   { id: "bandai", name: "BandaiCompare", url: "https://bandaicompare.com", label: "Union Arena, DBS and Digimon prices", topic: "Bandai card games", clusters: ["cards"], feed: `${RAW}/bandaicompare/main/data/public/family/family-feed.json`, report: "/price-report" },
+  { id: "sealed", name: "TCG Prices", url: "https://tcgprices.app", label: "Sealed prices for every card game", topic: "Every TCG", clusters: ["cards"], feed: `${RAW}/tcgcompare/main/data/public/family/family-feed.json`, report: "/price-report" },
   { id: "wargame", name: "WargameCompare", url: "https://wargamecompare.com", label: "Miniature wargame prices", topic: "Wargames", clusters: ["hobby"], feed: `${RAW}/wargamecompare/main/data/family/family-feed.json`, report: "/price-report" },
   { id: "figure", name: "FigureCompare", url: "https://figurecompare.com", label: "Anime figure prices", topic: "Anime figures", clusters: ["hobby"], feed: `${RAW}/figurecompare/main/data/family/family-feed.json` },
   { id: "empire", name: "Compare Empire", url: "https://compareempire.com", label: "Tech and appliance prices", topic: "Tech", clusters: ["tech"], feed: `${RAW}/compareempiretake2/claude/admiring-newton-5xtu2p/data/family/family-feed.json` },
