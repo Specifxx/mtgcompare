@@ -164,7 +164,7 @@ export interface StoreRowData {
   comparable?: boolean;
   /** A few words after the host line's "checked …" (TCGplayer outside the US: "US$, ships from the US"). */
   note?: string;
-  /** The cart list (components/cart, owner 2026-11-06): a store row's own product URL and currency. Never on a marketplace row. */
+  /** The cart list (components/cart, owner 2026-11-06): a store row's own product URL and currency. TCGplayer and eBay rows too since 2026-11-16 (owner). */
   cart?: { productUrl: string; currency: string };
   /** Past FULL_ROWS in the server's order: drawn lean (store, stock, price, button), and its data carries no title, cart or shipping text. */
   lean?: boolean;
@@ -256,7 +256,7 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
       </div>
       {/* The row's button, and beside it the cart list's "Add to cart" (components/cart) on an open store row. */}
       <div className={ROW_ACTIONS}>
-        {d.cart && d.open && (d.kind === "amazon" ? Boolean(d.live) : !d.search && !d.kind && !d.marketplace) && (
+        {d.cart && d.open && (d.kind === "amazon" ? Boolean(d.live) : !d.search) && (
           <CartAddButton href={d.href} productUrl={d.cart.productUrl} storeName={d.name} title={d.title} priceCents={d.cents} currency={d.cart.currency} className="text-muted" />
         )}
         <OutboundLink

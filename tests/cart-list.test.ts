@@ -46,11 +46,13 @@ test("an Awin or partner link stays a manual line with that link, so the commiss
   assert.equal(l.href, awin);
 });
 
-test("TCGplayer and Cardmarket never become a line", () => {
-  for (const href of ["https://tcgplayer.pxf.io/c/1/2?u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F1", "https://www.cardmarket.com/en/Magic/Products/1"]) {
-    assert.equal(makeLine({ ...row, href, productUrl: null }), null, href);
-  }
-  assert.equal(makeLine({ ...row, href: "https://tcgplayer.pxf.io/c/1", productUrl: "https://www.tcgplayer.com/product/1" }), null);
+test("Cardmarket never becomes a line; TCGplayer is a manual line on its tagged link", () => {
+  assert.equal(makeLine({ ...row, href: "https://www.cardmarket.com/en/Magic/Products/1", productUrl: null }), null);
+  const href = "https://tcgplayer.pxf.io/c/1/2?u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F1";
+  const l = makeLine({ ...row, href, productUrl: "https://www.tcgplayer.com/product/1" })!;
+  assert.equal(l.store, "tcgplayer.com");
+  assert.equal(l.href, href);
+  assert.equal(l.variantId, null);
 });
 
 // eBay and Amazon rows are full price rows (owner, 2026-11-06): manual lines on their tagged links.
