@@ -415,6 +415,36 @@ export function demoteSuspectStores(reads: StoreRead[]): { store: string; low: n
   return demoted;
 }
 
+// A store that hides a product it cannot sell by pricing it at "$999.99" or "$9,999.00" and leaving it available: the feed says
+// in stock, the price is the platform's all-nines placeholder (measured 2026-11-16: 24 such in-stock rows on the live data, a
+// A$9,999 Battle Partners box next to A$155 ones). A genuine ask of this size sits near the other stores', so the rule needs a
+// median to disagree with, or a price no sealed product asks (US$9,999 and up).
+const PLACEHOLDER_PRICES = new Set([99999, 999999, 9999999]);
+const PLACEHOLDER_MEDIAN_MULTIPLE = 3;
+
+/**
+ * Write an in-stock store row priced at an all-nines placeholder as sold out: the listing stays, it is no longer "in stock" and
+ * can no longer be the market's high end or a count of stores that have it. Runs before dropLowOutliers so the medians the other
+ * rules read no longer include it. Returns the rows it demoted.
+ */
+export function demotePlaceholderPrices(reads: StoreRead[]): number {
+  const medians = inStockMedians(reads);
+  let demoted = 0;
+  for (const r of reads) {
+    if (isMarketplace(r.store)) continue;
+    for (const row of r.rows) {
+      if (!row.inStock || !PLACEHOLDER_PRICES.has(row.priceCents)) continue;
+      const m = medians.get(`${r.store.market}|${row.identity.groupKey}`);
+      if (m != null && row.priceCents <= m * PLACEHOLDER_MEDIAN_MULTIPLE) continue;
+      if (m == null && row.priceCents < 999999) continue; // $999.99 alone: no market to judge it by
+      row.inStock = false;
+      demoted++;
+      console.warn(`  placeholder price: ${r.store.key} "${row.title}" ${row.priceCents} written as sold out`);
+    }
+  }
+  return demoted;
+}
+
 /**
  * Drop a marketplace's (TCGplayer's) placeholder asks. tcgplayer.ts skips an
  * ask over three times TCGplayer's own market price, but most older products
@@ -993,6 +1023,7 @@ export interface ImportSummary {
   outliers: number; // store rows dropped as far below the market (dropLowOutliers)
   highOutliers: number; // …and far above it (dropHighOutliers)
   suspectStores: { store: string; low: number }[]; // stores whose rows were written as sold out (demoteSuspectStores)
+  placeholderPrices: number; // in-stock rows at an all-nines placeholder price written as sold out (demotePlaceholderPrices)
   placeholders: number; // marketplace placeholder asks dropped
   dormant: string[]; // store keys (dormantStores)
   renamed: number; // products renamed on a full run
@@ -1034,6 +1065,7 @@ export async function runImport(opts: { only?: string[]; concurrency?: number } 
   });
 
   const suspectStores = demoteSuspectStores(reads);
+  const placeholderPrices = demotePlaceholderPrices(reads);
   const outliers = dropLowOutliers(reads);
   const highOutliers = dropHighOutliers(reads, now);
   const placeholders = dropPlaceholderAsks(reads, now);
@@ -1082,6 +1114,7 @@ export async function runImport(opts: { only?: string[]; concurrency?: number } 
     outliers,
     highOutliers,
     suspectStores,
+    placeholderPrices,
     placeholders,
     dormant: [...dormant].sort(),
     renamed,

@@ -1934,3 +1934,7 @@ release.
 ## 2026-11-14: the one ad block moves up under the shelf
 
 Owner: eBay clicks dropped right after the minimal redesign and he asked for eBay ads back on the home page. The home pages' one native ad block (eBay and TCGplayer, labelled Ad) had been pushed to the very bottom, under the sets. It now sits directly under the product shelf. Still one block a page, still browser-only with its height reserved, no pop-up, no rail, quick view untouched, same placements and customid tags. Click numbers by placement were not readable from the build container; the 19 November recheck stands.
+
+## 2026-11-16: An all-nines placeholder price is not "in stock" (Data Quality audit)
+
+Audit of the committed public data (offers.json, 16 Nov): 24 in-stock store rows sat at US$999.99 or US$9,999 (a store hiding a product it cannot sell: a Collector Booster at CA$999.99, a Commander deck at A$9,999). The high-outlier rule skips old sets on purpose, so they survived. `demotePlaceholderPrices` (importer.ts, ported from DexCompare) writes a store row at 99999, 999999 or 9999999 cents as sold out when the market median is under a third of it, or, with no median, when it is US$9,999.99 or more. The row and its price stay, as sold out; a real ask near the market's, or a lone US$999.99, is kept. Rows from stores unread for 72 hours are left to the page's "Not checked recently" (6 stores on 16 Nov).
