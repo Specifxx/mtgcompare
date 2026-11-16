@@ -89,6 +89,7 @@ export const PLACEMENTS = [
   "set-sealed",
   // Amazon Australia (lib/amazon.ts): AU, NZ and SG only, a marketplace link, never a store row. Its buy_click carries one of these.
   "amazon-table", // product page, in stock: the Amazon search row pinned in the price table under eBay and TCGplayer (2026-10-29)
+  "amazon-below-table", // product page, in stock: the small unpriced "Also on Amazon" line under the table (2026-11-16)
   "amazon-product", // product page, sold out: the Amazon row under the sold-out callout
   "amazon-type", // type page: the one "Also check Amazon AU" line under the hero
   "amazon-set", // set page: the same line

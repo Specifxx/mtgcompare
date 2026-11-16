@@ -10,3 +10,11 @@ test("the Amazon row needs a real price: no price, no row", () => {
   assert.match(read("components/OfferTable.tsx"), /if \(!live\?\.cents \|\| !live\.at \|\| !clock\) return null;/);
   assert.doesNotMatch(read("app/[region]/p/[slug]/page.tsx"), /AmazonProductRow/);
 });
+
+test("Amazon below the table: an unpriced link on the product page only, never a row, never the quick view", () => {
+  const c = readFileSync(new URL("../src/components/AmazonBelowTable.tsx", import.meta.url), "utf8");
+  assert.match(c, /if \(live\?\.cents\) return null;/);
+  assert.match(c, /amazonCarries\(typeKey, !!live\)/);
+  const t = readFileSync(new URL("../src/components/OfferTable.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(t, /amazon-below-table/);
+});
