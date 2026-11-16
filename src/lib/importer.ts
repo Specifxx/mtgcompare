@@ -41,6 +41,7 @@ import { readHtmlCategory, type HtmlPlatform } from "./storefront-html";
 import { usMsrpCents } from "./rrp";
 import { canonicalName, cleanName, floorCents, identify, isIdentity, roughUsdCents, slugify, type SealedIdentity, type TypeKey } from "./sealed-title";
 import { headlineOffer, offerStock } from "./sealed-offers";
+import { hostOf, loadDenylist } from "./denylist";
 import { SOURCES, STORE_BY_KEY, isMarketplace, storeCurrency, type StoreConfig } from "./stores";
 import { isTcgImage, readTcgplayerCatalogue, tcgFeedProducts, tcgImageExists } from "./tcgplayer";
 
@@ -910,7 +911,7 @@ async function writeOffers(reads: StoreRead[], ids: Map<string, string>, now: Da
   }
   // Stores that left the registry, and rows no successful read has confirmed in
   // weeks. SOURCES, not STORES: TCGplayer is not a store but its rows stay.
-  const registered = SOURCES.map((s) => s.key);
+  const registered = SOURCES.filter((s) => !DENIED.has(s.key)).map((s) => s.key);
   const gone = await prisma.offer.deleteMany({
     where: { OR: [{ store: { notIn: registered } }, { lastSeen: { lt: new Date(now.getTime() - OFFER_TTL_DAYS * 86400_000) } }] },
   });
@@ -1010,7 +1011,7 @@ async function writeStoreStats(reads: StoreRead[], now: Date, counts: ReadonlyMa
   // rows age out or the flag's threshold changes.
   await prisma.storeStat.updateMany({ where: { store: { in: [...dormant] }, dormant: false }, data: { dormant: true } });
   await prisma.storeStat.updateMany({ where: { store: { notIn: [...dormant] }, dormant: true }, data: { dormant: false } });
-  await prisma.storeStat.deleteMany({ where: { store: { notIn: SOURCES.map((s) => s.key) } } });
+  await prisma.storeStat.deleteMany({ where: { store: { notIn: SOURCES.filter((s) => !DENIED.has(s.key)).map((s) => s.key) } } });
 }
 
 export interface ImportSummary {
@@ -1039,14 +1040,22 @@ export interface ImportSummary {
  * Marketplaces first: TCGplayer is one long read (~60 pages, one a second),
  * so it runs alongside the stores instead of after them.
  */
+// Stores on the shared scam denylist (TCGEmpire scam sweep, owner 2026-11-16): set at the start of a run, skipped, and
+// their offers pruned (they are left out of `registered`). Best-effort: a failed fetch denies nothing.
+let DENIED = new Set<string>();
+
 export function sourcesFor(only?: string[]): StoreConfig[] {
-  const picked = only?.length ? SOURCES.filter((s) => only.includes(s.key) || only.includes(s.market)) : SOURCES;
+  const live = SOURCES.filter((s) => !DENIED.has(s.key));
+  const picked = only?.length ? live.filter((s) => only.includes(s.key) || only.includes(s.market)) : live;
   return [...picked.filter(isMarketplace), ...picked.filter((s) => !isMarketplace(s))];
 }
 
 export async function runImport(opts: { only?: string[]; concurrency?: number } = {}): Promise<ImportSummary> {
   const t0 = Date.now();
   const now = new Date();
+  const deny = await loadDenylist();
+  DENIED = new Set(SOURCES.filter((s) => deny.has(hostOf(s.base))).map((s) => s.key));
+  if (DENIED.size) console.log(`shared scam denylist: skipping ${[...DENIED].join(", ")}`);
   const sources = sourcesFor(opts.only);
   const nStores = sources.filter((s) => !isMarketplace(s)).length;
   console.log(`reading ${nStores} stores${sources.length > nStores ? ` and ${sources.length - nStores} marketplace` : ""}…`);
