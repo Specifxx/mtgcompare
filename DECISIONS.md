@@ -1945,3 +1945,9 @@ The 2026-11-12 rule (Amazon row only with a real price) took Amazon buy clicks t
 line under the product page's price table, only where Amazon sells the item (a known ASIN, else a type Amazon carries), unpriced and labelled
 paid, hidden when the priced row shows. Never the quick view (A/B window 20 Nov-3 Dec), never pinned, best, a deal or an alert; the region's
 shared tag, placement `amazon-below-table`. Read clicks per day against 7-12 Nov. `tests/paid-rows.test.ts` pins it.
+
+## 2026-11-16: Seasons get an event layer (data-event), Black Friday week first (UI/UX squad)
+
+Ported from TCG Prices (tcgcompare PR 34). `data-event="blackfriday"` (Black Friday minus 7 days to Cyber Monday, 20 to 30 Nov 2026)
+stacks on the season; its only effect is the 3px top hairline turning one amber instead of cranberry and pine. No new colour, no
+markup, no motion, no layout shift; `?event=blackfriday` previews, `?event=off` hides. Quick-view rows and wording are untouched.
