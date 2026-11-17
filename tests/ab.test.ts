@@ -82,11 +82,9 @@ test("only the quick view provides the test: the product page's own table and ev
   assert.match(src("lib/ab-client.tsx"), /return visitOf\(arms, region, false\);/, "no small ad pair in this quick view: the mini test applies to nobody");
 });
 
-test("arm b of `order` still pins both paid rows above the stores, and only for a real TCGplayer offer", () => {
+test("the `order` test is retired: paid rows go by price (owner, 2026-11-17), still above the stores", () => {
   const s = src("components/EbayStrip.tsx");
-  assert.match(s, /const tcgFirst = useAb\(\)\?\.order === "b" && !!tcg && tcg\.open && !tcg\.search && tcg\.comparable !== false;/);
-  const slots = s.slice(s.indexOf("const slots: Slot[] = ["), s.indexOf("const { shown, moreOpen, moreClosed } = splitRows(slots);"));
-  const order = ["...(tcgFirst ? tcgSlot : [])", "{ key: EBAY_ROW_KEY", "...(amazon?.live ?", "...(tcgFirst ? [] : tcgSlot)", "...rows.map("].map((x) => slots.indexOf(x));
-  assert.ok(order.every((i) => i >= 0), "every slot is there");
-  assert.deepEqual([...order].sort((a, b) => a - b), order, "paid rows first, stores after");
+  assert.doesNotMatch(s, /useAb\(\)\?\.order/);
+  const slots = s.slice(s.indexOf("const slots: Slot[] = ["), s.indexOf("const split = splitRows(slots);"));
+  assert.ok(slots.indexOf("...pinSlots") >= 0 && slots.indexOf("...pinSlots") < slots.indexOf("...rows.map("), "paid rows first, stores after");
 });
