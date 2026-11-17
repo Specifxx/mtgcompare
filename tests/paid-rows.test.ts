@@ -6,10 +6,11 @@ import { readFileSync } from "node:fs";
 
 const read = (f: string) => readFileSync(new URL(`../src/${f}`, import.meta.url), "utf8");
 
-test("the unpriced Amazon row is an ordinary last row (owner, 2026-11-17); a priced one stays pinned", () => {
+test("Amazon (priced or the unpriced Check row) is an affiliated row at the top (owner, 2026-11-17)", () => {
   assert.doesNotMatch(read("components/OfferTable.tsx"), /if \(!live\?\.cents \|\| !live\.at \|\| !clock\) return null;/);
   assert.match(read("components/OfferTable.tsx"), /Check on Amazon/);
-  assert.match(read("components/EbayStrip.tsx"), /amazon\?\.live \? \[\{ key: amazon\.key/);
-  assert.match(read("components/EbayStrip.tsx"), /amazon && !amazon\.live &&/);
+  assert.match(read("components/EbayStrip.tsx"), /\.\.\.\(amazon \? \[\{ key: amazon\.key/);
+  assert.doesNotMatch(read("components/EbayStrip.tsx"), /amazon && !amazon\.live &&/);
+  assert.match(read("components/EbayStrip.tsx"), /const pinSlots: Slot\[\] = \[\s+\{ key: EBAY_ROW_KEY/);
   assert.doesNotMatch(read("app/[region]/p/[slug]/page.tsx"), /AmazonProductRow|AmazonBelowTable/);
 });
