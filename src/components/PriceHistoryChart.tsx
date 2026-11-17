@@ -31,7 +31,7 @@ export function PriceHistoryChart({ values, market, compact = false }: { values:
   const wrapRef = useRef<HTMLDivElement>(null);
   const [measuredW, setMeasuredW] = useState<number | null>(null);
   const W = measuredW ?? FALLBACK_W;
-  const H = compact ? 120 : 160;
+  const H = compact ? 104 : 160;
   const ok = values.length >= MIN_DAYS && priced0.length >= 2;
 
   useEffect(() => {
@@ -165,13 +165,13 @@ export function PriceHistoryChart({ values, market, compact = false }: { values:
         <div>
           <dt className="text-xs text-muted">Lowest in this period</dt>
           <dd className="tabular font-semibold">
-            {money(lo, market)} <span className={`text-xs font-normal text-muted ${compact ? "block" : ""}`}>{formatRelease(isoOfDay(low.day))}</span>
+            {money(lo, market)} <span className={`text-xs font-normal text-muted ${compact ? "hidden sm:block" : ""}`}>{formatRelease(isoOfDay(low.day))}</span>
           </dd>
         </div>
         <div>
           <dt className="text-xs text-muted">Highest in this period</dt>
           <dd className="tabular font-semibold">
-            {money(hi, market)} <span className={`text-xs font-normal text-muted ${compact ? "block" : ""}`}>{formatRelease(isoOfDay(high.day))}</span>
+            {money(hi, market)} <span className={`text-xs font-normal text-muted ${compact ? "hidden sm:block" : ""}`}>{formatRelease(isoOfDay(high.day))}</span>
           </dd>
         </div>
         <div>
