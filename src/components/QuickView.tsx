@@ -210,7 +210,7 @@ export function QuickView() {
         </div>
         {/* Prices first on a phone (calm palette, 2026-11-12): the ad pair sat above the rows and pushed every store's price off the
             first screen of the sheet. Below sm it follows the price table; from sm, where the rows are in view either way, it leads. */}
-        <div className="flex min-w-0 flex-1 flex-col overflow-y-auto p-4 sm:p-5">
+        <div className="flex min-w-0 flex-1 flex-col overflow-y-auto p-4 sm:p-5 sm:pt-14">
           {/* The price history leads the panel (owner, 2026-11-17): with dozens of stores listed it was below a long scroll. Before the paid
               pair and the rows in every arm, so their order and wording are untouched. */}
           {chart && <div className="mb-4 shrink-0 sm:hidden">{chart}</div>}
