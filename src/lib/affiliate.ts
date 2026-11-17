@@ -11,6 +11,7 @@
 //
 // Pure (no database, no store registry): BrowseGrid imports this in the browser.
 import { REGIONS, type Region } from "./regions";
+import { SITE_URL } from "./site";
 import { awinUrl, clickref } from "./awin";
 import { shopifyCartUrl } from "./checkout-link";
 
@@ -426,7 +427,17 @@ export function tcgplayerAffiliateUrl(url: string, region: Region, placement: Pl
   const host = u.hostname.toLowerCase();
   if (u.protocol !== "https:" || !/(?:^|\.)tcgplayer\.com$/.test(host)) return url;
   if (host === impactHost()) return url; // partner.tcgplayer.com: already wrapped
-  return `${TCGPLAYER_IMPACT_LINK}?u=${encodeURIComponent(url)}&sharedid=${encodeURIComponent(subId(region, placement))}`;
+  // Our own /out/tcgplayer, never Impact itself: a crawler that follows a link would otherwise reach the network as our click
+  // (2026-11-17, "Bot clicks on TCGplayer" in DECISIONS.md). The route sends a person on to Impact and a bot to TCGplayer, untagged.
+  return `${SITE_URL}${OUT_TCGPLAYER_PATH}?u=${encodeURIComponent(url)}&sharedid=${encodeURIComponent(subId(region, placement))}`;
+}
+
+/** Our own redirect to TCGplayer through Impact (src/app/out/tcgplayer/route.ts). */
+export const OUT_TCGPLAYER_PATH = "/out/tcgplayer";
+
+/** The Impact deep link to a tcgplayer.com URL: what /out/tcgplayer sends a person to. */
+export function impactUrl(plainTcgplayerUrl: string, sharedId: string): string {
+  return `${TCGPLAYER_IMPACT_LINK}?u=${encodeURIComponent(plainTcgplayerUrl)}&sharedid=${encodeURIComponent(sharedId)}`;
 }
 
 /**

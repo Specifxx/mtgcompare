@@ -94,10 +94,10 @@ test("sub-ids are a safe slug, capped at 60 characters", () => {
 test("TCGplayer: a tcgplayer.com URL is wrapped in the Impact deep link, and u decodes to the original", () => {
   const target = "https://www.tcgplayer.com/product/541181/magic-bloomburrow-bloomburrow-play-booster-box";
   const wrapped = tcgplayerAffiliateUrl(target, "us", "product-best");
-  assert.ok(wrapped.startsWith(`${TCGPLAYER_IMPACT_LINK}?u=`));
   assert.equal(TCGPLAYER_IMPACT_LINK, "https://partner.tcgplayer.com/c/7385758/1780961/21018");
+  // Our own redirect, which sends a person on to Impact and a bot to TCGplayer untagged (src/app/out/tcgplayer/route.ts).
   const u = new URL(wrapped);
-  assert.equal(u.hostname, "partner.tcgplayer.com");
+  assert.equal(u.pathname, "/out/tcgplayer");
   assert.equal(u.searchParams.get("u"), target);
   assert.equal(u.searchParams.get("sharedid"), "mtg-us-product-best");
   // Subdomains are TCGplayer too.
@@ -122,7 +122,7 @@ test("TCGplayer: never double-wrapped, and never wraps a look-alike, http, relat
 
 test("TCGplayer: the search link is a wrapped Magic sealed search", () => {
   const u = new URL(tcgplayerSearchUrl("MTG Bloomburrow Play Booster Box", "au", "listings-set"));
-  assert.equal(u.origin + u.pathname, TCGPLAYER_IMPACT_LINK);
+  assert.equal(u.pathname, "/out/tcgplayer");
   assert.equal(u.searchParams.get("sharedid"), "mtg-au-listings-set");
   const target = new URL(u.searchParams.get("u")!);
   assert.equal(target.origin + target.pathname, "https://www.tcgplayer.com/search/magic/product");

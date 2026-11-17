@@ -1998,3 +1998,16 @@ no mass path change without a redirect map, agents never flip hosts, no pop-unde
 ## 2026-11-17: TCGplayer data notice in the footer
 
 Grok growth report (2026-11-17), item 8 ("plain not-affiliated footer lines"), and the image-licence report (`/mnt/project-files/seo/grok-2026-11-17/image-licence-report.md`, item 11): TCGplayer's API terms ask for the notice "This product uses TCGplayer data but is not endorsed or certified by TCGplayer.", and no footer carried it. It is now one plain line in the footer, beside the existing not-affiliated lines (which are unchanged). Nothing else changed: no price, link, order or cache rule.
+
+## 2026-11-17: Bot clicks on TCGplayer (every TCGplayer link goes through /out/tcgplayer)
+
+Owner (2026-11-17): Impact showed 700 to 800 TCGplayer clicks a day, largely bots. Vercel's browser-side `buy_click` events for 10 to 17 November counted about 1,150
+TCGplayer clicks across all the TCG sites (about 165 a day; MTG Compare's own: 301 in the week). This site put the Impact URL straight in the page HTML, so a crawler that
+follows links reached Impact as our click and we could neither see nor stop it. `tcgplayerAffiliateUrl()` now returns `/out/tcgplayer?u=<tcgplayer url>&sharedid=<sub id>`, and
+`src/app/out/tcgplayer/route.ts` sends a person on to Impact and a bot (`lib/bot-click.ts`: bot User-Agent, no Accept-Language, no Sec-Fetch-Mode, or a Sec-Fetch-Site that is
+not same-origin or same-site) to TCGplayer's own page, untagged, so Impact never counts it. https on tcgplayer.com only (no open redirect); `no-store`,
+`X-Robots-Tag: noindex, nofollow`, disallowed in robots.txt; the anchors keep `rel="sponsored nofollow"`. A bot and a person read the same HTML. A bot that clicks a link in a
+real browser on our page is same-origin and still passes; that needs a Vercel Firewall rate limit on `/out/*`.
+## 2026-11-17: Quick view: price history at the very bottom, at most 10 rows (owner)
+
+Owner, 2026-11-17: the price-history chart at the top of the quick view is "not even that valuable". It now sits at the very bottom of the panel, below the rows and the ad pair, and the quick view lists at most 10 rows (`maxRows`): the pinned eBay and TCGplayer rows first, then the cheapest others, with "N more listings on the full page" (the page and "See price history and details" still show everything). The Cheapest price box and the Add to cart buttons are unchanged. Paid rows, their order and wording are untouched in every A/B arm (Dex and MTG tests, 20 Nov to 3 Dec).

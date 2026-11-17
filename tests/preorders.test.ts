@@ -296,7 +296,7 @@ test("marketplace rows: eBay first (the region's search, eBay blue, Ad, not a pr
     assert.match(t, /not a price we checked/, "labelled a search, not a price");
     assert.match(html, /btn-ad/);
     assert.match(t, /\bAd\b/);
-    assert.match(tcg.href, /^https:\/\/partner\.tcgplayer\.com\//);
+    assert.match(tcg.href, /\/out\/tcgplayer\?u=/);
     assert.match(decodeURIComponent(tcg.href), new RegExp(`sharedid=mtg-${c.region}-preorders-tcgplayer`));
     for (const a of [ebay, tcg]) assert.match(a.rel, /^sponsored /, "a paid link");
     assert.ok(html.indexOf("ebay.") < html.indexOf("tcgplayer.com"), "eBay first");
