@@ -277,8 +277,8 @@ function amazonRow(productName: string, region: Region, now: number, live: Amazo
   if (!a) return null;
   const l = amazonLabel(region);
   const clock = AMAZON_CLOCK[region];
-  // Amazon only with a real price (owner, 2026-11-12): no price, no row.
-  if (!live?.cents || !live.at || !clock) return null;
+  // With no price the row is the unpriced "Check on Amazon" search row (owner, 2026-11-17, after the priced-only rule of 2026-11-12 took
+  // Amazon clicks to about nothing): an ordinary row at the end of the list, never pinned, ranked or the best price.
   // The item's own listing when the daily import matched one, and its price when this build fetched it under 24 hours ago (2026-11-05).
   const priced = live?.cents && live.at && clock ? { price: money(live.cents, REGIONS[region].market), at: live.at, timeZone: clock.timeZone, zoneLabel: clock.label } : null;
   return {
@@ -307,7 +307,7 @@ function amazonRow(productName: string, region: Region, now: number, live: Amazo
     lastSeen: new Date(now).toISOString(),
     ago: "",
     search: true,
-    searchText: "Also check on Amazon",
+    searchText: "Check on Amazon",
     ...(priced ? { live: priced } : {}),
     ...(region === "nz" || region === "sg" ? { note: "check delivery" } : {}),
   };
