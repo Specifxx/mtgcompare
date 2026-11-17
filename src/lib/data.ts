@@ -158,9 +158,13 @@ export async function homeRails(market: Market, today = new Date().toISOString()
       .map(toCard)
       .sort(newestFirst)
       .slice(0, 8);
-  const [boxes, etbs, preorders, latest] = await Promise.all([
+  const [boxes, etbs, playPacks, collectorPacks, setPacks, draftPacks, preorders, latest] = await Promise.all([
     inStockOfType("Play Booster Box"),
     inStockOfType("Collector Booster Box"),
+    inStockOfType("Play Booster Pack"),
+    inStockOfType("Collector Booster Pack"),
+    inStockOfType("Set Booster Pack"),
+    inStockOfType("Draft Booster Pack"),
     upcoming.length
       ? prisma.productStat.findMany({ where: { market, ...OPEN, product: { setCode: { in: upcoming } } }, take: 60, select: cardSelect })
       : Promise.resolve([]),
@@ -171,7 +175,12 @@ export async function homeRails(market: Market, today = new Date().toISOString()
   ]);
   const bySet = new Map<string, ProductCardData[]>();
   for (const p of latest.map(toCard)) (bySet.get(p.setCode!) ?? bySet.set(p.setCode!, []).get(p.setCode!)!).push(p);
-  return { boxes, etbs, preorders: sortCards(preorders.map(toCard)).slice(0, 8), latestSets: bySet };
+  // Single booster packs (owner, 2026-11-17: the front page sold only boxes): the kinds taking turns, newest set first in each, at most
+  // eight, so Play and Collector packs both show. The price on a pack is the pack's own.
+  const packs: ProductCardData[] = [];
+  const lists = [playPacks, collectorPacks, setPacks, draftPacks];
+  for (let i = 0; packs.length < 8 && lists.some((l) => i < l.length); i++) for (const l of lists) if (i < l.length && packs.length < 8) packs.push(l[i]);
+  return { boxes, etbs, packs, preorders: sortCards(preorders.map(toCard)).slice(0, 8), latestSets: bySet };
 }
 
 export interface RegionOverview {

@@ -1957,6 +1957,13 @@ The below-table line of 2026-11-16 is removed (it would duplicate the row).
 
 Amazon clicks were about 0 a day since 13 Nov. The owner approved one urgent production build (subject carries the urgent marker) so the unpriced matched line goes live now instead of waiting for the next daily release. One build, no previews.
 
+## 2026-11-17: booster packs on the region home
+
+Owner: the front page "feels like it's just the booster boxes". The shelf gains a "Booster packs" tab (Play, Collector, Set and Draft
+packs taking turns, newest set first, up to eight, each at its own per-pack price; `homeRails().packs`), and the hero's sixth way in
+is "Booster packs" (`/type/play-booster-packs`) in place of Bundles, which stays in the header menus. No pack count is claimed and no
+box price is divided. The pack type pages, `/cheapest-packs` and their sitemap entries already existed; nothing about them changed.
+Homepage only: the quick view, its paid rows and wording (A/B freeze 20 Nov to 3 Dec) are untouched.
 ## 2026-11-17: Quick view always shows the store's name; "Add to cart" is smaller (owner: "you can't even see the store name"; "add to cart seems too big")
 
 From sm up the price row's badges wrap under the name instead of squeezing it (`.or-top` wraps, `.or-name` keeps 4.5rem), and the eBay row uses the same classes (it had its own copy, which let "eBay" and "TCGplayer" shrink to nothing beside the Ad / Best price / Marketplace badges). The cart button is 36px tall at 12px text with a thinner border (`.ce-cart-add.has-label`). Layout and sizing only: no wording, paid-row order or A/B arm changed.
