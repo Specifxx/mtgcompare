@@ -144,6 +144,17 @@ jobs:
           AMAZON_CREATORS_US_CLIENT_ID: ${{ secrets.AMAZON_CREATORS_US_CLIENT_ID }}
           AMAZON_CREATORS_US_CLIENT_SECRET: ${{ secrets.AMAZON_CREATORS_US_CLIENT_SECRET }}
           AMAZON_CREATORS_US_VERSION: ${{ secrets.AMAZON_CREATORS_US_VERSION }}
+          # Canada, the UK and the EU each need their own account's credentials (an AU or US one is refused for their tags, status-<region>.json
+          # "InvalidAssociate"); unset, they fall back to AU's and stay refused. Wired 2026-11-17 as on DexCompare.
+          AMAZON_CREATORS_CA_CLIENT_ID: ${{ secrets.AMAZON_CREATORS_CA_CLIENT_ID }}
+          AMAZON_CREATORS_CA_CLIENT_SECRET: ${{ secrets.AMAZON_CREATORS_CA_CLIENT_SECRET }}
+          AMAZON_CREATORS_CA_VERSION: ${{ secrets.AMAZON_CREATORS_CA_VERSION }}
+          AMAZON_CREATORS_UK_CLIENT_ID: ${{ secrets.AMAZON_CREATORS_UK_CLIENT_ID }}
+          AMAZON_CREATORS_UK_CLIENT_SECRET: ${{ secrets.AMAZON_CREATORS_UK_CLIENT_SECRET }}
+          AMAZON_CREATORS_UK_VERSION: ${{ secrets.AMAZON_CREATORS_UK_VERSION }}
+          AMAZON_CREATORS_EU_CLIENT_ID: ${{ secrets.AMAZON_CREATORS_EU_CLIENT_ID }}
+          AMAZON_CREATORS_EU_CLIENT_SECRET: ${{ secrets.AMAZON_CREATORS_EU_CLIENT_SECRET }}
+          AMAZON_CREATORS_EU_VERSION: ${{ secrets.AMAZON_CREATORS_EU_VERSION }}
         run: npx tsx scripts/amazon-asins.ts
 
       # The Compare Empire network (DECISIONS.md "Sites that grow each other"): this site's best deals for the sister
