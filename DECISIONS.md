@@ -2050,6 +2050,12 @@ June card pages collapsed the same way.
 - **Not yet:** spare eBay calls on the top cards (this keyset's sealed pass comes first; revisit after 7 Dec), Pokémon cards on
   DexCompare (after its 25 Nov index check on dexcompare.io), price history for cards.
 
+## 2026-11-17: the ASIN pass gets the UK, Canada and EU credentials
+
+The Amazon audit found `status-uk.json` "InvalidAssociate" here while DexCompare, KaeYoung, Scent, Figure and Wargame read the UK as ok: the
+import workflow passed only the AU and US credentials. It now passes the CA, UK and EU ones too (each from its own Associates account; a
+region with no secret stays refused, as before). No secrets are handled here: they are set by the owner's PowerShell script.
+
 ## 2026-11-17: Card prices: every card (owner: "we want all the cards")
 
 Supersedes the cap of the entry above (1,000 cards, +100 a day, ceiling 5,000). The owner wants every Magic card; the risk the cap
