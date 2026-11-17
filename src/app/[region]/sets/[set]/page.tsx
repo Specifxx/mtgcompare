@@ -37,7 +37,7 @@ import { setCountsGrouped } from "@/lib/hub-data";
 import { SITE_URL } from "@/lib/site";
 import { CardTiles } from "@/components/CardTiles";
 import { NewCardsStrip } from "@/components/NewCardsStrip";
-import { CARDS_HUB, cardIndexable, cardsOfSet } from "@/lib/cards";
+import { CARDS_HUB, readTop } from "@/lib/cards";
 import { toolHref } from "@/content/tools";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js, CDN_PAGES), never ISR: an ISR write
@@ -114,7 +114,7 @@ export default async function SetPage({ params }: { params: { region: string; se
       highlight={setSealedHighlight(s)}
     />
   );
-  const topSetCards = cardsOfSet(s.code).filter(cardIndexable).slice(0, 5);
+  const topSetCards = readTop().bySealed[s.code] ?? [];
   const ld = itemListJsonLd({
     name: `${name} sealed products in ${r.inName}`,
     path,
@@ -240,7 +240,7 @@ export default async function SetPage({ params }: { params: { region: string; se
 
       {/* The set's most valuable single cards (lib/cards.ts, DECISIONS.md 2026-11-17 "Card prices"): TCGplayer's US$ market price. */}
       {topSetCards.length > 0 && (
-        <Section id="top-cards" title={`Most valuable ${s.name} cards`} kicker="TCGplayer market price, US$" href={`${CARDS_HUB}/${s.slug}`} linkLabel="Every card price">
+        <Section id="top-cards" title={`Most valuable ${s.name} cards`} kicker="TCGplayer market price, US$" href={`${CARDS_HUB}/${topSetCards[0].set}`} linkLabel="Every card price">
           <CardTiles cards={topSetCards} />
         </Section>
       )}

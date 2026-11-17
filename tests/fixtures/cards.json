@@ -1,4 +1,0 @@
-{"generatedAt":"2026-11-18T19:20:00.000Z","source":"test fixture","cards":[
-{"id":1001,"slug":"fixture-mythic-101","name":"Fixture Mythic","number":"101","rarity":"M","set":"fdn","imageUrl":"https://tcgplayer-cdn.tcgplayer.com/product/1001_200w.jpg","url":"https://www.tcgplayer.com/product/1001/fixture","normal":4250,"foil":6100,"etched":null,"since":"2026-11-18"},
-{"id":1002,"slug":"fixture-rare-202","name":"Fixture Rare","number":"202","rarity":"R","set":"fdn","imageUrl":null,"url":"https://www.tcgplayer.com/product/1002/fixture","normal":300,"foil":null,"etched":null,"since":"2026-11-18"}
-]}

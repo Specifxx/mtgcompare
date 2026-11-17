@@ -2055,3 +2055,29 @@ June card pages collapsed the same way.
 The Amazon audit found `status-uk.json` "InvalidAssociate" here while DexCompare, KaeYoung, Scent, Figure and Wargame read the UK as ok: the
 import workflow passed only the AU and US credentials. It now passes the CA, UK and EU ones too (each from its own Associates account; a
 region with no secret stays refused, as before). No secrets are handled here: they are set by the owner's PowerShell script.
+
+## 2026-11-17: Card prices: every card (owner: "we want all the cards")
+
+Supersedes the cap of the entry above (1,000 cards, +100 a day, ceiling 5,000). The owner wants every Magic card; the risk the cap
+answered (Google rejecting a site of thin card pages, as it did MTG's old singles site and Dex's June card pages) is now handled by
+what Google is shown, not by what exists.
+
+- **Every card has a page.** `scripts/card-import.ts` reads every TCGplayer Magic group (art series, tokens, substitute cards and
+  memorabilia skipped; tokens, emblems, art cards and checklists dropped inside a set) and writes `data/cards/`: `sets.json`,
+  `sets/<set>.json` (one file per set, read only by that set's pages), `search.json` (the search index) and `top.json` (the hub's
+  and the sealed set pages' top cards). One page per card, `/card-prices/<set>/<card>`, the set list `/card-prices/<set>`, the
+  hub, and `/card-prices/search` (noindex). A card keeps its slug, its first day and its release by TCGplayer product id forever;
+  the first run migrated the 1,000 cards live since 17 Nov under the same URLs. A card TCGplayer drops 308s to its set's list.
+- **Google sees cards in a ramp, the 100-a-day idea kept as an indexing schedule.** A page is indexable (and in the sitemap) only
+  once released (`ix`): 2,000 at the start, then `CARD_INDEX_GROWTH` (repository variable, default 500, `0` pauses) a day, most
+  valuable first, only at US$1 or more (`MIN_INDEX_CENTS`); a released card that falls under US$1 loses its release. Unreleased
+  cards are live pages with `noindex, follow`. Sitemaps: `/sitemap/8.xml` is the hub and every set with a released card;
+  `/sitemap/9.xml` on hold released cards 10,000 a file (12 files, room for 120,000). A set with nothing released is noindex.
+- **Search** (`searchCards`, pure, shared by the search page and `/api/cards/search`): a name (all words, any order), a set code
+  ("FDN"), a collector number ("227", "#227", "227/281") or set-name words, in any order; exact names first, then value. The header
+  search asks the API from three characters after 300 ms and shows up to four cards under the products; each distinct query is
+  held six hours by the CDN, so keystrokes rarely reach a function. `Æ`/`Œ` fold to ae/oe in slugs and queries.
+- **Size:** `data/cards/` is about 25 MB and is traced into every function (`data/cards/**/*.json`); a page reads only its own set
+  file and memoises it.
+- **Tripwires unchanged:** under 30% of released cards indexed three weeks in, set `CARD_INDEX_GROWTH=0`; MTG sealed Google clicks
+  down 15% week on week with no other cause, noindex the cards.

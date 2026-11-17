@@ -7,8 +7,7 @@ import { routeRaw } from "@/lib/public-data/route";
 import { activeStoreKeys } from "@/lib/hub-data";
 import { detailIndexed, MIN_HUB_PRODUCTS, productInSitemap } from "@/lib/index-tiers";
 import { readPriceHistory } from "@/lib/price-history";
-import { readCards } from "@/lib/cards";
-import { SET_BY_CODE } from "@/lib/sets";
+import { cardIndexable, readSet, readSets } from "@/lib/cards";
 import { cardsSitemap, CARDS_SITEMAP_ID, regionOfSitemapId, SITEMAP_IDS, STATIC_SITEMAP_ID, regionSitemap, sitemapChanges, staticSitemap, type SitemapChanges } from "@/lib/sitemap";
 import { REGION_LIST, type Market } from "@/lib/regions";
 import { thinSections } from "@/lib/section-thin";
@@ -43,9 +42,10 @@ export default async function sitemap({ id }: { id: number }): Promise<MetadataR
       ]);
       return staticSitemap(lastmod, active, undefined, Object.fromEntries(thin));
     }
-    if (n === CARDS_SITEMAP_ID) {
-      const { rows, generatedAt } = readCards();
-      return cardsSitemap(rows, generatedAt, (code) => SET_BY_CODE.get(code)?.slug);
+    if (n >= CARDS_SITEMAP_ID) {
+      const { sets, generatedAt } = readSets();
+      const day = generatedAt ? new Date(`${generatedAt.slice(0, 10)}T00:00:00Z`) : null;
+      return cardsSitemap(n, sets, (set) => readSet(set).filter(cardIndexable).map((c) => c.s), day);
     }
     const r = regionOfSitemapId(n);
     if (!r) return [];

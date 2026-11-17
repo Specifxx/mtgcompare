@@ -1,5 +1,6 @@
 "use client";
 
+import { cardImage, usd } from "@/lib/cards-client";
 import { track } from "@/lib/track";
 import { gaEvent } from "@/lib/gtag";
 import Link from "@/components/Link";
@@ -9,7 +10,7 @@ import { createPortal } from "react-dom";
 import type { ProductCardData } from "@/lib/data";
 import { money, plural } from "@/lib/format";
 import { thumb } from "@/lib/images";
-import { BROWSE_QUERY_EVENT, isBrowsePath, loadIndex, peekIndex, searchHref, searchOptions, type LoadedIndex, type SearchOption } from "@/lib/index-client";
+import { BROWSE_QUERY_EVENT, isBrowsePath, loadIndex, peekIndex, searchHref, searchOptions, type CardHit, type LoadedIndex, type SearchOption } from "@/lib/index-client";
 import { REGIONS, type Region } from "@/lib/regions";
 import { Icon } from "./Icon";
 import { StockPill } from "./StockPill";
@@ -36,7 +37,7 @@ const LIMIT = 8;
 const MIN_FIT = 3;
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-function trackSelect(kind: "product" | "all") {
+function trackSelect(kind: "product" | "card" | "all") {
   try {
     track("search_select", { kind });
   } catch {
@@ -138,7 +139,28 @@ export function SearchBox({ region, size = "sm", autoFocus = false }: { region: 
 
   const term = q.trim();
   const ranked = useMemo(() => (engine && ix && term ? engine.rankSearch(ix.cards, term, LIMIT) : { products: [], total: 0 }), [engine, ix, term]);
-  const options = useMemo(() => searchOptions(region, term, { products: ranked.products.slice(0, fit), total: ranked.total }), [region, term, ranked, fit]);
+  // Single cards (DECISIONS.md "Card prices: every card"): asked from three characters, 300 ms after the last keystroke, from the
+  // CDN-cached /api/cards/search; up to four, under the products. A stale answer (the words changed since) is dropped.
+  const [cardHits, setCardHits] = useState<{ q: string; hits: CardHit[] }>({ q: "", hits: [] });
+  useEffect(() => {
+    if (!open || term.length < 3) return;
+    const ctl = new AbortController();
+    const t = setTimeout(() => {
+      fetch(`/api/cards/search?q=${encodeURIComponent(term.toLowerCase())}`, { signal: ctl.signal })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((j: { hits?: CardHit[] } | null) => {
+          if (j && Array.isArray(j.hits)) setCardHits({ q: term, hits: j.hits.slice(0, 4) });
+        })
+        .catch(() => {});
+    }, 300);
+    return () => {
+      clearTimeout(t);
+      ctl.abort();
+    };
+  }, [open, term]);
+  const cards = useMemo(() => (cardHits.q === term ? cardHits.hits : []), [cardHits, term]);
+  const productRoom = cards.length ? Math.max(MIN_FIT, fit - cards.length) : fit;
+  const options = useMemo(() => searchOptions(region, term, { products: ranked.products.slice(0, productRoom), total: ranked.total }, cards), [region, term, ranked, productRoom, cards]);
   const visible = mounted && open && !!term;
   const act = active < options.length ? active : -1;
 
@@ -318,7 +340,7 @@ export function SearchBox({ region, size = "sm", autoFocus = false }: { region: 
           </p>
         )}
         {load === "error" && <p className="px-4 pt-3 text-xs text-muted">Suggestions aren&rsquo;t available right now. Press Enter to search.</p>}
-        {load === "ready" && ranked.total === 0 && (
+        {load === "ready" && ranked.total === 0 && cards.length === 0 && (
           <p className="px-4 pt-3 text-sm text-muted">
             No product names match &ldquo;{term}&rdquo; in {REGIONS[region].inName}. Try a set name, or a type like &ldquo;bundle&rdquo;.
           </p>
@@ -349,6 +371,36 @@ export function SearchBox({ region, size = "sm", autoFocus = false }: { region: 
                       </span>
                     )}
                     <Icon name="arrow-right" size={16} />
+                  </span>
+                </Link>
+              );
+            }
+            if (o.kind === "card") {
+              const h = o.hit;
+              return (
+                <Link
+                  key={o.key}
+                  href={o.href}
+                  prefetch={false}
+                  role="option"
+                  id={optionId(i)}
+                  aria-selected={selected}
+                  tabIndex={-1}
+                  data-option="card"
+                  onClick={(e) => choose(o, "click", e)}
+                  onMouseMove={() => setActive(i)}
+                  className={`flex items-center gap-3 px-3 py-2 sm:px-4 ${selected ? "bg-raised" : ""} ${i > 0 && options[i - 1].kind !== "card" ? "border-t border-line" : ""}`}
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded bg-raised">
+                    <img src={cardImage(h.id)} alt={h.n} width={29} height={40} loading="lazy" decoding="async" className="h-10 w-auto object-contain" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="line-clamp-1 text-sm leading-snug text-ink">{h.n}</span>
+                    <span className="mt-0.5 block truncate text-xs text-muted">
+                      Card · {h.setName}
+                      {h.no ? ` #${h.no}` : ""}
+                      {h.v > 0 ? ` · ${usd(h.v)}` : ""}
+                    </span>
                   </span>
                 </Link>
               );
