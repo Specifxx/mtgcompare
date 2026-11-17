@@ -313,10 +313,10 @@ test("landing page: per request behind the CDN, short: a hero of words and a sea
       ["releases", "Pre-orders", "calendar"],
     ],
   );
-  // The products straight under the hero, then the page's ONE ad block (the eBay + TCGplayer banner sat between the hero and them).
+  // The page's ONE ad block (the eBay + TCGplayer banner pair) directly under the hero, then the products.
   assert.match(page, /<HomeRegionGrid initial=\{initialPicks\} \/>/);
   assert.ok(page.indexOf("</Hero>") < page.indexOf("<HomeRegionGrid"), "the products come after the hero, not in it");
-  assert.ok(page.indexOf("<HomeRegionGrid") < page.indexOf("<LandingAds"), "the ad block is under the products");
+  assert.ok(page.indexOf("</Hero>") < page.indexOf("<LandingAds") && page.indexOf("<LandingAds") < page.indexOf("<HomeRegionGrid"), "the ad block is directly under the hero (owner, 2026-11-17)");
   assert.equal((page.match(/<LandingAds/g) ?? []).length, 1, "one ad block");
   // What moved to /about, the guides index and the region homes stays off the landing page.
   assert.doesNotMatch(page, /FAQPage|faqJsonLd|GuideCard|MarketReport|SuggestedTypeLinks|EbayStrip|AdSlot/);

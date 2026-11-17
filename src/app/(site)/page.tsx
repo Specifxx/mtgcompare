@@ -91,15 +91,16 @@ export default async function Landing() {
           stocked. The paragraph on how stores are ranked and the "Coming soon" block that sat above them are gone: the footer says
           how the ranking works and links /about; pre-orders are the hero's sixth tile, and the next set's hub is in the Deals menu on
           every page and is the region home's pill and tab. Everything here is server-rendered. */}
+      {/* The page's one ad block, directly under the hero again (owner, 2026-11-17): the big eBay + TCGplayer banner pair the region homes carry,
+          labelled Ad, browser-only with its height reserved, so nothing moves when the eBay half arrives or the region changes. */}
+      <div className="page mt-6 max-w-5xl sm:mt-8">
+        <LandingAds tcg={tcgTiles} />
+      </div>
+
       <div className="reveal mt-6 sm:mt-10">
         <HomeRegionGrid initial={initialPicks} />
       </div>
 
-      {/* The page's one ad block: the eBay + TCGplayer banner (owner, 2026-11-03), under the products since 2026-11-13 (it sat between
-          the hero and them). Real listings and products, labelled Ad; nothing moves when the eBay half arrives or the region changes. */}
-      <div className="page reveal mb-16 mt-16 max-w-5xl sm:mt-24">
-        <LandingAds tcg={tcgTiles} />
-      </div>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbJsonLd([{ href: "/", label: SITE_NAME }])) }} />
       {/* The phone dock (below 1280px, after a scroll), browser-only, in the visitor's region (components/SideAds.tsx; the side rails
           that shared the file were removed 2026-11-13; owner 2026-11-06: "the home page must have this as well"). */}
