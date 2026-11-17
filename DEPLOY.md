@@ -304,7 +304,8 @@ placement). There are no text-only banners, chip rows or "Still deciding?" rows 
   project → **Analytics** → Enable). **Hobby records page views only**; the
   events are simply dropped, and nothing breaks.
 - Pro keeps **two properties per event** (extra ones are dropped), which is
-  why `buy_click` has exactly `retailer` and `placement`. Don't add a third.
+  why `buy_click` has exactly `retailer` and `placement`. Don't add a third. The click log's extra fields (paid, page, region, pos, rank,
+  gap_pct; DECISIONS 2026-11-17) go to GA4 only.
 - To see them: Vercel project → **Analytics** → **Events** → `buy_click`,
   then break down by `retailer` or `placement`.
 - Money is reported by the networks, not Vercel: eBay Partner Network reports

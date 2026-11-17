@@ -219,6 +219,8 @@ export default async function ProductPage({ params }: { params: { region: string
   const totalBest = byTotal?.ship ? byTotal : null;
   const totalLink = totalBest ? offerLink(totalBest.o.store, totalBest.o.url, r.region, "product-best") : null;
   const stores = p.offers.filter((o) => !o.marketplace);
+  // When the newest listing on this page was read (the page's "Prices checked" line).
+  const newestCheck = p.offers.reduce<string | null>((m, o) => (m == null || o.lastSeen > m ? o.lastSeen : m), null);
   const openStores = open.filter((o) => !o.marketplace).length;
   const tcgOpen = open.some((o) => o.marketplace);
   const tableTitle = !p.offers.length
@@ -620,6 +622,13 @@ export default async function ProductPage({ params }: { params: { region: string
       </div>
 
       <Section id="prices" title={tableTitle}>
+        {newestCheck && (
+          // One visible line for the whole table (growth report item 7, 2026-11-17): when the newest of these prices was read. Each row
+          // still says its own age. Ago corrects the server's "3 hours ago" in the browser.
+          <p className="mb-3 text-sm text-muted" data-prices-checked="">
+            Prices checked <Ago iso={newestCheck} initial={timeAgo(newestCheck, now)} />
+          </p>
+        )}
         {p.offers.length ? (
           // eBay and TCGplayer are pinned at the top of the table, eBay first, TCGplayer second, then the stores cheapest first; each is an
           // ordinary row with its own button colour, and the cheapest row of the whole table is highlighted (owner, 2026-10-26).
