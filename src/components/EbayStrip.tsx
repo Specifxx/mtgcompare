@@ -742,6 +742,7 @@ export function OfferRowsWithEbay({
   packs = null,
   allowBest: allowGiven = true,
   preorder = false,
+  maxRows,
 }: {
   rows: StoreRowData[];
   /** The TCGplayer row, pinned third, under eBay and Amazon (owner, 2026-11-06; OfferTable builds it); null = none. */
@@ -755,6 +756,8 @@ export function OfferRowsWithEbay({
   packs?: number | null;
   allowBest?: boolean;
   preorder?: boolean;
+  /** The quick view lists at most this many rows (owner, 2026-11-17: 10), the paid rows first and then the cheapest; the product page lists all. */
+  maxRows?: number;
 }) {
   const placement: Placement = "listings-offer-row";
   const { ref, item, cents, bestable, age } = useEbayPick({ region, slug, floor, packs, placement });
@@ -783,7 +786,13 @@ export function OfferRowsWithEbay({
     ...(tcgFirst ? [] : tcgSlot),
     ...rows.map((d) => ({ key: d.key, open: d.open, node: <StoreRow key={d.key} d={d} preorder={preorder} top={top === "store" && d === store} /> })),
   ];
-  const { shown, moreOpen, moreClosed } = splitRows(slots);
+  const split = splitRows(slots);
+  // maxRows: the first N slots, no folded groups; the rest is on the full page.
+  const capped = maxRows != null && slots.length > maxRows;
+  const shown = capped ? slots.slice(0, maxRows) : split.shown;
+  const moreOpen = capped ? [] : split.moreOpen;
+  const moreClosed = capped ? [] : split.moreClosed;
+  const hiddenRows = capped ? slots.length - maxRows : 0;
   const list = (part: Slot[]) => part.map((r) => r.node);
   const more = (label: string, part: Slot[]) => (
     <details className="group/more px-4 py-1 sm:px-5">
@@ -804,6 +813,7 @@ export function OfferRowsWithEbay({
         <ul className="divide-y divide-line">{list(shown)}</ul>
         {moreOpen.length > 0 && more(moreOpenLabel(moreOpen, preorder), moreOpen)}
         {moreClosed.length > 0 && more(moreClosedLabel(moreClosed.length, shown.some((r) => !r.open)), moreClosed)}
+        {hiddenRows > 0 && <p className="px-4 py-2.5 text-xs text-muted sm:px-5">{hiddenRows} more listing{hiddenRows === 1 ? "" : "s"} on the full page</p>}
         {/* No Amazon price: the unpriced "Check on Amazon" row, an ordinary last row (owner, 2026-11-17), never pinned and always shown */}
         {amazon && !amazon.live && <ul className="divide-y divide-line border-t border-line"><StoreRow key={amazon.key} d={amazon} preorder={preorder} top={false} /></ul>}
       </div>
