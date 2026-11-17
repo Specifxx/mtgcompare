@@ -86,7 +86,7 @@ test("arm b of `order` still pins both paid rows above the stores, and only for 
   const s = src("components/EbayStrip.tsx");
   assert.match(s, /const tcgFirst = useAb\(\)\?\.order === "b" && !!tcg && tcg\.open && !tcg\.search && tcg\.comparable !== false;/);
   const slots = s.slice(s.indexOf("const slots: Slot[] = ["), s.indexOf("const { shown, moreOpen, moreClosed } = splitRows(slots);"));
-  const order = ["...(tcgFirst ? tcgSlot : [])", "{ key: EBAY_ROW_KEY", "...(amazon ?", "...(tcgFirst ? [] : tcgSlot)", "...rows.map("].map((x) => slots.indexOf(x));
+  const order = ["...(tcgFirst ? tcgSlot : [])", "{ key: EBAY_ROW_KEY", "...(amazon?.live ?", "...(tcgFirst ? [] : tcgSlot)", "...rows.map("].map((x) => slots.indexOf(x));
   assert.ok(order.every((i) => i >= 0), "every slot is there");
   assert.deepEqual([...order].sort((a, b) => a - b), order, "paid rows first, stores after");
 });

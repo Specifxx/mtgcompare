@@ -6,15 +6,10 @@ import { readFileSync } from "node:fs";
 
 const read = (f: string) => readFileSync(new URL(`../src/${f}`, import.meta.url), "utf8");
 
-test("the Amazon row needs a real price: no price, no row", () => {
-  assert.match(read("components/OfferTable.tsx"), /if \(!live\?\.cents \|\| !live\.at \|\| !clock\) return null;/);
-  assert.doesNotMatch(read("app/[region]/p/[slug]/page.tsx"), /AmazonProductRow/);
-});
-
-test("Amazon below the table: an unpriced link on the product page only, never a row, never the quick view", () => {
-  const c = readFileSync(new URL("../src/components/AmazonBelowTable.tsx", import.meta.url), "utf8");
-  assert.match(c, /if \(live\?\.cents\) return null;/);
-  assert.match(c, /amazonCarries\(typeKey, !!live\)/);
-  const t = readFileSync(new URL("../src/components/OfferTable.tsx", import.meta.url), "utf8");
-  assert.doesNotMatch(t, /amazon-below-table/);
+test("the unpriced Amazon row is an ordinary last row (owner, 2026-11-17); a priced one stays pinned", () => {
+  assert.doesNotMatch(read("components/OfferTable.tsx"), /if \(!live\?\.cents \|\| !live\.at \|\| !clock\) return null;/);
+  assert.match(read("components/OfferTable.tsx"), /Check on Amazon/);
+  assert.match(read("components/EbayStrip.tsx"), /amazon\?\.live \? \[\{ key: amazon\.key/);
+  assert.match(read("components/EbayStrip.tsx"), /amazon && !amazon\.live &&/);
+  assert.doesNotMatch(read("app/[region]/p/[slug]/page.tsx"), /AmazonProductRow|AmazonBelowTable/);
 });

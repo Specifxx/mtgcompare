@@ -1946,6 +1946,13 @@ line under the product page's price table, only where Amazon sells the item (a k
 paid, hidden when the priced row shows. Never the quick view (A/B window 20 Nov-3 Dec), never pinned, best, a deal or an alert; the region's
 shared tag, placement `amazon-below-table`. Read clicks per day against 7-12 Nov. `tests/paid-rows.test.ts` pins it.
 
+## 2026-11-17: "Check on Amazon" is a row again, an ordinary last one
+
+Owner: "even if there are no Amazon prices available, we should have an option to check on Amazon in our price rows." The unpriced
+search row (the item's own page where an ASIN is known, else a search) returns whenever the region has an Amazon tag and the type is
+one Amazon carries: an ordinary row at the END of the list, product page and quick view (before the A/B freeze of 20 Nov), labelled
+"Check on Amazon", shared region tag, never pinned above the stores, never ranked, never the best price. A priced Amazon row still pins.
+The below-table line of 2026-11-16 is removed (it would duplicate the row).
 ## 2026-11-16: urgent release of the "Also on Amazon" line
 
 Amazon clicks were about 0 a day since 13 Nov. The owner approved one urgent production build (subject carries the urgent marker) so the unpriced matched line goes live now instead of waiting for the next daily release. One build, no previews.
