@@ -12,6 +12,7 @@ import { amazonLiveFor } from "@/lib/amazon-live";
 import { priceGap, shareText } from "@/lib/share-link";
 import { money } from "@/lib/format";
 import { TYPE_BY_LABEL } from "@/lib/sealed-title";
+import { daysOfHistory, MIN_DAYS, readPriceHistory } from "@/lib/price-history";
 import { ALERT_SITE_KEY } from "@/lib/alert-feed";
 
 // GET /api/quick/<region>/<slug>: a product card's quick view (components/QuickView.tsx), the product page's price table as data: the same
@@ -46,9 +47,13 @@ export async function GET(_req: Request, { params }: { params: { region: string;
   const amazonLink = found ? { asin: found.asin, url: found.url } : null;
   const { rows, tcg, amazon, storeOffers } = offerRowsData({ offers: p.offers, region, packs, placement: "quickview-table", pinned: { productName: p.name, tcgplayer, amazon: amazonLink, noAmazon: !amazonCarries(type?.key, !!found) } });
   const stores = storeOffers.filter((o) => !o.marketplace);
+  // The price history chart under the rows (2026-11-17): the product page's own series as change-points, the same MIN_DAYS rule.
+  const hist = readPriceHistory();
+  const pts = hist && daysOfHistory(hist, r.market, p.slug) >= MIN_DAYS ? hist.series[r.market]?.[p.slug] : undefined;
   return Response.json(
     {
       slug: p.slug,
+      history: pts ? { through: hist!.through, pts } : null,
       stores: stores.length,
       inStock: stores.filter((o) => offerStock(o) === "open").length,
       rows,
