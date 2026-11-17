@@ -1953,3 +1953,15 @@ search row (the item's own page where an ASIN is known, else a search) returns w
 one Amazon carries: an ordinary row at the END of the list, product page and quick view (before the A/B freeze of 20 Nov), labelled
 "Check on Amazon", shared region tag, never pinned above the stores, never ranked, never the best price. A priced Amazon row still pins.
 The below-table line of 2026-11-16 is removed (it would duplicate the row).
+## 2026-11-16: urgent release of the "Also on Amazon" line
+
+Amazon clicks were about 0 a day since 13 Nov. The owner approved one urgent production build (subject carries the urgent marker) so the unpriced matched line goes live now instead of waiting for the next daily release. One build, no previews.
+
+## 2026-11-17: Quick view always shows the store's name; "Add to cart" is smaller (owner: "you can't even see the store name"; "add to cart seems too big")
+
+From sm up the price row's badges wrap under the name instead of squeezing it (`.or-top` wraps, `.or-name` keeps 4.5rem), and the eBay row uses the same classes (it had its own copy, which let "eBay" and "TCGplayer" shrink to nothing beside the Ad / Best price / Marketplace badges). The cart button is 36px tall at 12px text with a thinner border (`.ce-cart-add.has-label`). Layout and sizing only: no wording, paid-row order or A/B arm changed.
+## 2026-11-16: Seasons get an event layer (data-event), Black Friday week first (UI/UX squad)
+
+Ported from TCG Prices (tcgcompare PR 34). `data-event="blackfriday"` (Black Friday minus 7 days to Cyber Monday, 20 to 30 Nov 2026)
+stacks on the season; its only effect is the 3px top hairline turning one amber instead of cranberry and pine. No new colour, no
+markup, no motion, no layout shift; `?event=blackfriday` previews, `?event=off` hides. Quick-view rows and wording are untouched.
