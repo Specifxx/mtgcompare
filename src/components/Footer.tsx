@@ -25,6 +25,7 @@ export function footerColumns(region: Region | null, listed?: ReadonlySet<string
     { href: "/contact", label: "Contact" },
     { href: "/list-your-store", label: "List your store" },
     { href: "/how-we-pick-stores", label: "How we pick stores" },
+    { href: "/methodology", label: "Methodology" },
     { href: "/affiliate-disclosure", label: "Affiliate disclosure" },
     { href: "/terms", label: "Terms" },
     { href: "/privacy", label: "Privacy" },
@@ -172,7 +173,9 @@ export function Footer({ region, listed }: { region: Region | null; listed?: Rea
             Prices and stock are read from each store about twice a day; the store&rsquo;s own page is final.
             {OPERATOR !== SITE_NAME && ` Operated by ${OPERATOR}.`}
           </p>
-          <p>{FAN_CONTENT_DISCLAIMER}</p>
+          <p>
+            {SITE_NAME} is an independent site, not affiliated with Wizards of the Coast, Hasbro or any store it lists. {FAN_CONTENT_DISCLAIMER}
+          </p>
         </div>
       </div>
     </footer>

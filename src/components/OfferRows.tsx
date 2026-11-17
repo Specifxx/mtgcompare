@@ -171,6 +171,14 @@ export interface StoreRowData {
 }
 
 /**
+ * The row's item price for the click log (OutboundLink `rowContext`): only an open row with a real price in the region's own
+ * currency. A search row, a sold-out row and TCGplayer's US$ price outside the US carry none, so they never set a rank or a gap.
+ */
+function priceAttr(d: StoreRowData): number | undefined {
+  return d.open && !d.search && d.comparable !== false && d.cents > 0 ? d.cents : undefined;
+}
+
+/**
  * One store row: a grid whose cells are placed by grid-area (short enough to repeat on 30 rows). On a phone, two columns: the store
  * and its stock pill [1/2]; the price [2/1]; the host line; the button [2/2/4], 44 px, beside the last two (88 px a row). From sm one
  * line: the store over the host line, then the pill, the price, the button. The store and host cells take the free cells in order (grid
@@ -189,7 +197,7 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
   const badge = "or-badge";
   if (d.lean && !highlight) return <LeanRow d={d} preorder={preorder} />;
   return (
-    <li data-offer-row="" data-row={d.kind} className={highlight ? "or-row or-hl" : d.kind === "amazon" ? "or-row or-amz" : "or-row"}>
+    <li data-offer-row="" data-row={d.kind} data-cents={priceAttr(d)} className={highlight ? "or-row or-hl" : d.kind === "amazon" ? "or-row or-amz" : "or-row"}>
       <div className="or-top">
         {d.rank != null && (
           <span className="tabular -mr-0.5 shrink-0 text-sm font-bold text-muted" aria-label={`Number ${d.rank} by price`}>
@@ -296,7 +304,7 @@ function ShipLine({ ship }: { ship: ShipCell | null }) {
  */
 function LeanRow({ d, preorder }: { d: StoreRowData; preorder: boolean }) {
   return (
-    <li data-offer-row="" data-lean="" data-open={d.open ? "" : undefined} className="or-row or-lean">
+    <li data-offer-row="" data-lean="" data-open={d.open ? "" : undefined} data-cents={priceAttr(d)} className="or-row or-lean">
       <span className="or-name">{d.name}</span>
       <div className="or-stock">
         <StockPill state={d.state} preorder={preorder}>
