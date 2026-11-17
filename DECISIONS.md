@@ -1994,3 +1994,7 @@ no mass path change without a redirect map, agents never flip hosts, no pop-unde
 - **Methodology (item 8).** `/methodology` (static, in the footer and the sitemap): what we track and do not, how the table is ordered, how the site earns (links to /affiliate-disclosure), independence. No editor is named: none is public on this site (`OPERATOR` shows only when set). The footer says in plain words that the site is not affiliated with Wizards of the Coast, Hasbro or any store, before the Fan Content line.
 - **Price alert (item 6)** was already an inline form on the product page (target price and email, opens in place under the best price, no pop-up); unchanged.
 - **Paid alternative line (item 2)**: this site has no such second line (OP Compare does), so nothing changed here.
+
+## 2026-11-17: TCGplayer data notice in the footer
+
+Grok growth report (2026-11-17), item 8 ("plain not-affiliated footer lines"), and the image-licence report (`/mnt/project-files/seo/grok-2026-11-17/image-licence-report.md`, item 11): TCGplayer's API terms ask for the notice "This product uses TCGplayer data but is not endorsed or certified by TCGplayer.", and no footer carried it. It is now one plain line in the footer, beside the existing not-affiliated lines (which are unchanged). Nothing else changed: no price, link, order or cache rule.
