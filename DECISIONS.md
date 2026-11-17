@@ -2049,3 +2049,9 @@ June card pages collapsed the same way.
   set page also shows its five most valuable cards, linking to the list.
 - **Not yet:** spare eBay calls on the top cards (this keyset's sealed pass comes first; revisit after 7 Dec), Pokémon cards on
   DexCompare (after its 25 Nov index check on dexcompare.io), price history for cards.
+
+## 2026-11-17: the ASIN pass gets the UK, Canada and EU credentials
+
+The Amazon audit found `status-uk.json` "InvalidAssociate" here while DexCompare, KaeYoung, Scent, Figure and Wargame read the UK as ok: the
+import workflow passed only the AU and US credentials. It now passes the CA, UK and EU ones too (each from its own Associates account; a
+region with no secret stays refused, as before). No secrets are handled here: they are set by the owner's PowerShell script.
