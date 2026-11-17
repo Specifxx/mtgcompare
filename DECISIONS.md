@@ -1949,3 +1949,11 @@ shared tag, placement `amazon-below-table`. Read clicks per day against 7-12 Nov
 ## 2026-11-16: urgent release of the "Also on Amazon" line
 
 Amazon clicks were about 0 a day since 13 Nov. The owner approved one urgent production build (subject carries the urgent marker) so the unpriced matched line goes live now instead of waiting for the next daily release. One build, no previews.
+
+## 2026-11-17: booster packs on the region home
+
+Owner: the front page "feels like it's just the booster boxes". The shelf gains a "Booster packs" tab (Play, Collector, Set and Draft
+packs taking turns, newest set first, up to eight, each at its own per-pack price; `homeRails().packs`), and the hero's sixth way in
+is "Booster packs" (`/type/play-booster-packs`) in place of Bundles, which stays in the header menus. No pack count is claimed and no
+box price is divided. The pack type pages, `/cheapest-packs` and their sitemap entries already existed; nothing about them changed.
+Homepage only: the quick view, its paid rows and wording (A/B freeze 20 Nov to 3 Dec) are untouched.

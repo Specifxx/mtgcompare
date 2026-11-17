@@ -145,7 +145,7 @@ test("the region home as a crawler reads it: one h1, every shelf list and every 
     const hero = html.slice(0, html.indexOf("</section>"));
     assert.doesNotMatch(hero, new RegExp(`href="/${region}/p/|pc-link|data-ad`), `${region}: no product and no ad in the hero`);
     assert.match(hero, /role="search"/);
-    for (const k of ["/type/play-booster-boxes", "/type/collector-booster-boxes", "/type/commander-decks", "/type/bundles", "/deals", "/sets"]) assert.match(hero, new RegExp(`class="way flex-1" href="/${region}${k}"`), `${region}: ${k} is a way in`);
+    for (const k of ["/type/play-booster-boxes", "/type/collector-booster-boxes", "/type/commander-decks", "/type/play-booster-packs", "/deals", "/sets"]) assert.match(hero, new RegExp(`class="way flex-1" href="/${region}${k}"`), `${region}: ${k} is a way in`);
     // The shelf: at least the two product lines, all of their products in the HTML whichever tab is chosen.
     const tabs = [...html.matchAll(/role="tab"[^>]*>([^<]+)/g)].map((m) => m[1]);
     assert.deepEqual(tabs.slice(0, 2), ["Play booster boxes", "Collector boxes"], region);
@@ -259,4 +259,12 @@ test("the phone layout: a sideways scroller is the containing block of what it h
   // 658px from its first paint): a visually hidden label (.sr-only is position: absolute) inside a sideways scroller that is not
   // positioned is laid out against the page, as far right as the scroller's content runs. Measured 2026-11-13; DECISIONS.md.
   assert.match(css, /:where\(\.scroller, \.overflow-x-auto, \.overflow-x-scroll\) \{\s*position: relative;\s*\}/);
+});
+
+test("the shelf has a Booster packs tab, per pack, and the rail takes turns across pack kinds (owner, 2026-11-17)", () => {
+  const page = src("app/[region]/page.tsx");
+  assert.match(page, /label: "Booster packs"/);
+  assert.match(page, /href=\{`\/\$\{r\.region\}\/type\/play-booster-packs`\}/);
+  const data = src("lib/data.ts");
+  for (const t of ["Play Booster Pack", "Collector Booster Pack", "Set Booster Pack", "Draft Booster Pack"]) assert.ok(data.includes(`inStockOfType("${t}")`), t);
 });
