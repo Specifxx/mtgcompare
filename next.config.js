@@ -35,7 +35,7 @@ const securityHeaders = [
 // browser. The data only changes with a release, and a release empties the CDN. Safe because no page reads a cookie, a header or
 // the session: one copy is right for every visitor (tests/cache-ttl.test.ts walks them).
 const CDN_CACHE = "public, s-maxage=86400, stale-while-revalidate=86400";
-const CDN_PAGES = ["/", "/:region(au|us|uk|ca|nz|eu|sg)", "/:region(au|us|uk|ca|nz|eu|sg)/:path*", "/guides/:slug", "/blog", "/blog/:slug", "/forum", "/forum/:path*", "/widgets", "/widgets/:path*"];
+const CDN_PAGES = ["/", "/:region(au|us|uk|ca|nz|eu|sg)", "/:region(au|us|uk|ca|nz|eu|sg)/:path*", "/guides/:slug", "/blog", "/blog/:slug", "/forum", "/forum/:path*", "/widgets", "/widgets/:path*", "/card-prices", "/card-prices/:path*"];
 
 const nextConfig = {
   reactStrictMode: true,
@@ -47,6 +47,8 @@ const nextConfig = {
         ...((process.env.PUBLIC_DATA_MODE || "files").trim().toLowerCase() === "db" ? [] : ["./data/public/**/*.json"]),
         // The product page's Amazon row: ASINs from the daily import, and the prices this build fetched (lib/amazon-live.ts).
         "./data/amazon/*.json",
+        // The card prices (lib/cards.ts, scripts/card-import.ts): one file, ~1-2 MB.
+        "./data/cards/*.json",
         "./data/amazon-live/*.json",
       ],
     },

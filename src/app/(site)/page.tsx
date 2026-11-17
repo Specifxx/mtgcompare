@@ -12,6 +12,7 @@ import { ChristmasGifts } from "@/components/home/ChristmasGifts";
 import { Hero, riseAt, type Way } from "@/components/home/Hero";
 import { SoftWaysIn } from "@/components/home/SoftWaysIn";
 import { LandingAds } from "@/components/home/LandingAds";
+import { NewCardsStrip } from "@/components/NewCardsStrip";
 import { landingRailTiles, landingTcgTiles } from "@/lib/landing-ads";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js CDN_PAGES, "/"), like the region pages, never ISR and never
@@ -61,6 +62,9 @@ export default async function Landing() {
   const [initialPicks, tcgTiles] = await Promise.all([regionPicks(X_DEFAULT_REGION).catch(() => []), landingTcgTiles().catch(() => [])]);
   return (
     <div>
+      <div className="page pt-4">
+        <NewCardsStrip />
+      </div>
       {/* The hero (owner, 2026-11-13: "get rid of the products on the hero"; it reverses the 2026-11-08 featured cards): the words,
           the search, the region row and six ways in, centred. Same h1, same search form. Nothing else lives here: no stat chips, no
           creators button (it is in the Guides menu), no product. The Christmas gift guide is its one small line, in season. */}

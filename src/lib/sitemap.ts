@@ -29,7 +29,27 @@ export function regionOfSitemapId(id: number): RegionInfo | null {
   return REGION_LIST[id - 1] ?? null;
 }
 
-export const SITEMAP_IDS: { id: number }[] = [{ id: STATIC_SITEMAP_ID }, ...REGION_LIST.map((r) => ({ id: sitemapIdOf(r.region) }))];
+/** /sitemap/<id>.xml of the card prices (lib/cards.ts): after the regions. */
+export const CARDS_SITEMAP_ID = REGION_LIST.length + 1;
+
+export const SITEMAP_IDS: { id: number }[] = [{ id: STATIC_SITEMAP_ID }, ...REGION_LIST.map((r) => ({ id: sitemapIdOf(r.region) })), { id: CARDS_SITEMAP_ID }];
+
+/**
+ * The card prices: the hub, each set's list with an indexable card, and every indexable card (US$5 or more today). lastmod is the
+ * card file's day for the prices; a card under the gate is noindex and never listed.
+ */
+export function cardsSitemap(cards: readonly { set: string; slug: string; normal: number | null; foil: number | null; etched: number | null }[], generatedAt: string | null, setSlug: (code: string) => string | undefined): MetadataRoute.Sitemap {
+  if (!cards.length) return [];
+  const day = generatedAt ? new Date(`${generatedAt.slice(0, 10)}T00:00:00Z`) : null;
+  const value = (c: (typeof cards)[number]) => Math.max(c.normal ?? 0, c.foil ?? 0, c.etched ?? 0);
+  const live = cards.filter((c) => value(c) >= 500 && setSlug(c.set));
+  const sets = [...new Set(live.map((c) => setSlug(c.set)!))];
+  return [
+    url("/card-prices", day, "daily", 0.6),
+    ...sets.map((s) => url(`/card-prices/${s}`, day, "daily", 0.5)),
+    ...live.map((c) => url(`/card-prices/${setSlug(c.set)}/${c.slug}`, day, "daily", 0.5)),
+  ];
+}
 
 const url = (path: string, lastModified: Date | null | undefined, changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"], priority: number): MetadataRoute.Sitemap[number] => ({
   url: `${SITE_URL}${path}`,

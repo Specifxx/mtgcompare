@@ -2011,3 +2011,38 @@ real browser on our page is same-origin and still passes; that needs a Vercel Fi
 ## 2026-11-17: Quick view: price history at the very bottom, at most 10 rows (owner)
 
 Owner, 2026-11-17: the price-history chart at the top of the quick view is "not even that valuable". It now sits at the very bottom of the panel, below the rows and the ad pair, and the quick view lists at most 10 rows (`maxRows`): the pinned eBay and TCGplayer rows first, then the cheapest others, with "N more listings on the full page" (the page and "See price history and details" still show everything). The Cheapest price box and the Add to cart buttons are unchanged. Paid rows, their order and wording are untouched in every A/B arm (Dex and MTG tests, 20 Nov to 3 Dec).
+
+## 2026-11-17: Card prices: the most valuable cards of each set
+
+**Owner:** with Dex and MTG Compare growing, bring back single-card prices, earning through TCGplayer and a "Check on eBay" row, with no
+sealed eBay quota spent on them, and every card page found on Google by its name and number, as MTGStocks is. Evaluated first
+(`/mnt/project-files/ops/singles-plan-2026-11-17.html` in the project files): yes, but capped, because this site's own singles
+catalogue (99,079 products, ~42,000 sitemap URLs) had only its homepage indexed after a week (2026-10-19, above) and DexCompare's
+June card pages collapsed the same way.
+
+- **What gets a page:** the cards of the sets this site lists sealed product for, at TCGplayer's market price of US$5 or more
+  (`MIN_VALUE_CENTS`), most valuable first. The list starts at 1,000 (`START_CARDS`), grows by at most 100 a day (`DAILY_GROWTH`)
+  and stops at 5,000 (`CEILING`), all in `src/lib/cards.ts`. Stop widening (lower `CEILING` to the current size) if under 30% of
+  card pages are indexed three weeks after launch, or if sealed Google clicks fall more than 15% week on week with no other cause.
+- **One page per card, not per region:** `/card-prices/<set>/<card>` (slug = name + collector number, frozen once given), with the
+  set's list at `/card-prices/<set>` and the hub at `/card-prices`. TCGplayer is a US marketplace and its price is one figure for
+  everyone, so seven regional copies would be seven duplicates. The title carries the set and number ("Sheoldred, the Apocalypse
+  (DMU #107) Price") so a search for a printing lands on it.
+- **URLs never 404:** a card keeps its page once it has one; under the gate it stays, noindex and out of the sitemap. A card
+  TCGplayer stops listing redirects (308) to its set's list; an unknown set is a 404.
+- **The price is TCGplayer's market price only** (recent sales, per finish: normal, foil, etched), never a seller's ask, as the
+  sister sites' 2026-11-03 rule. No store prices for singles.
+- **Rows:** "Check on eBay" first (a tagged EPN search: no eBay API call, so no sealed quota spent), then TCGplayer through
+  `/out/tcgplayer` (placements `card-ebay`, `card-tcgplayer`). The quick view is untouched (A/B test 20 Nov to 3 Dec); card tiles or
+  ad banners there wait for the verdict.
+- **Data:** `scripts/card-import.ts` (`card-prices.yml`, 19:17 UTC daily) reads TCGCSV's mirror of TCGplayer's public price files
+  (category 1: the groups list, then products + prices per set, a quarter of a second apart, no key) and commits
+  `data/cards/mtg-cards.json` to main with NO deploy marker: it rides the evening sealed import's release. No database, no eBay.
+  A set that fails to read keeps yesterday's cards; a run that cannot read the groups keeps yesterday's file.
+- **Pages** are force-dynamic and cached by the CDN for a day (`CDN_PAGES`), read no request data, and are listed in their own
+  sitemap file, `/sitemap/8.xml` (`CARDS_SITEMAP_ID`), indexable cards only.
+- **Current visitors** see a slim "New: Card prices" line (`NewCardsStrip`) on the landing page, under each region home's hero
+  and on set pages, closed for good with its ×. Never a pop-up or overlay; hidden before paint once closed, so nothing shifts. Each
+  set page also shows its five most valuable cards, linking to the list.
+- **Not yet:** spare eBay calls on the top cards (this keyset's sealed pass comes first; revisit after 7 Dec), Pokémon cards on
+  DexCompare (after its 25 Nov index check on dexcompare.io), price history for cards.
