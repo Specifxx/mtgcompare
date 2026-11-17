@@ -7,12 +7,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "@/components/Link";
 import type { PriceFloor } from "@/lib/ebay-offer-row";
-import type { Region } from "@/lib/regions";
+import { REGIONS, type Region } from "@/lib/regions";
 import { OfferRowsWithEbay } from "./EbayStrip";
 import type { StoreRowData } from "./OfferRows";
 import { PriceAlertForm } from "./PriceAlertForm";
 import { ShareButton } from "./ShareButton";
 import { closeQuickViewUrl, onQuickViewHistory, openQuickViewUrl } from "@/lib/quick-view-url";
+import dynamic from "next/dynamic";
+import { expandPoints } from "@/lib/price-history-days";
 import { AbContext, abSeen, abVisit } from "@/lib/ab-client";
 
 interface Head {
@@ -33,12 +35,17 @@ interface Data {
   amazon: StoreRowData | null;
   ebay: { slug: string; query: string; floor: PriceFloor | null; packs: number | null };
   preorder: boolean;
+  /** The price history (change-points) when the product has MIN_DAYS of it here; absent in a response the CDN kept from before. */
+  history?: { through: number; pts: [number, number | null, number][] } | null;
   /** The product page's price alert (2026-11-13); absent in a response the CDN kept from before. */
   alert?: { site: string; id: string; cents: number | null; market: string };
   name: string;
   sub: string;
   img: string | null;
 }
+
+// Loaded only when a panel has a series to draw: the chart's code is not in the page's first load.
+const PriceHistoryChart = dynamic(() => import("./PriceHistoryChart").then((m) => m.PriceHistoryChart), { ssr: false });
 
 const cache = new Map<string, Promise<Data | null>>();
 function load(api: string): Promise<Data | null> {
@@ -152,6 +159,8 @@ export function QuickView() {
   const name = got?.name || head.name;
   const sub = got?.sub || head.sub;
   const img = head.img || got?.img || null;
+  // The cheapest open row (stores and TCGplayer, the rows the table crowns from); none on a pre-order, where the table crowns no best price.
+  const cheapest = got && !got.preorder ? [...got.rows, got.tcg].filter((r): r is StoreRowData => !!r && r.open).sort((x, y) => x.cents - y.cents)[0] ?? null : null;
   return (
     <AbContext.Provider value={ab}>
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={name}>
@@ -184,6 +193,20 @@ export function QuickView() {
         {/* Prices first on a phone (calm palette, 2026-11-12): the ad pair sat above the rows and pushed every store's price off the
             first screen of the sheet. Below sm it follows the price table; from sm, where the rows are in view either way, it leads. */}
         <div className="flex flex-1 flex-col overflow-y-auto p-4 sm:p-5">
+          {/* The price history leads the panel (owner, 2026-11-17): with dozens of stores listed it was below a long scroll. Before the paid
+              pair and the rows in every arm, so their order and wording are untouched. */}
+          {cheapest && (
+            <div className="mb-4 shrink-0 rounded-xl border border-line p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Cheapest price</p>
+              <p className="tabular text-2xl font-extrabold">{cheapest.price}</p>
+              <p className="truncate text-xs text-muted">{cheapest.name}</p>
+            </div>
+          )}
+          {got?.history && (
+            <div className="mb-4 shrink-0 [min-height:13.5rem]">
+              <PriceHistoryChart values={expandPoints(got.history.pts, got.history.through, 400)} market={REGIONS[head.region].market} compact />
+            </div>
+          )}
           <h3 className="mb-3 text-sm font-semibold">Every store&rsquo;s price</h3>
           {data === "loading" ? (
             <Skeleton />

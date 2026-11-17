@@ -779,7 +779,7 @@ export function OfferRowsWithEbay({
   const slots: Slot[] = [
     ...(tcgFirst ? tcgSlot : []),
     { key: EBAY_ROW_KEY, open: true, node: ebayRow },
-    ...(amazon ? [{ key: amazon.key, open: true, node: <StoreRow key={amazon.key} d={amazon} preorder={preorder} top={false} /> }] : []),
+    ...(amazon?.live ? [{ key: amazon.key, open: true, node: <StoreRow key={amazon.key} d={amazon} preorder={preorder} top={false} /> }] : []),
     ...(tcgFirst ? [] : tcgSlot),
     ...rows.map((d) => ({ key: d.key, open: d.open, node: <StoreRow key={d.key} d={d} preorder={preorder} top={top === "store" && d === store} /> })),
   ];
@@ -804,6 +804,8 @@ export function OfferRowsWithEbay({
         <ul className="divide-y divide-line">{list(shown)}</ul>
         {moreOpen.length > 0 && more(moreOpenLabel(moreOpen, preorder), moreOpen)}
         {moreClosed.length > 0 && more(moreClosedLabel(moreClosed.length, shown.some((r) => !r.open)), moreClosed)}
+        {/* No Amazon price: the unpriced "Check on Amazon" row, an ordinary last row (owner, 2026-11-17), never pinned and always shown */}
+        {amazon && !amazon.live && <ul className="divide-y divide-line border-t border-line"><StoreRow key={amazon.key} d={amazon} preorder={preorder} top={false} /></ul>}
       </div>
     </div>
   );
@@ -830,8 +832,8 @@ function EbayOfferRow({ region, placement, query, item, cents, age, best }: { re
   const q = query.trim();
   return (
     <li data-offer-row="" data-ad={placement} data-state={item ? "listing" : "search"} className={`${ROW_GRID} ${best ? PIN_OUTLINE.cheapest : PIN_OUTLINE.ebay}`}>
-      <div className="flex h-5 min-w-0 items-center gap-2 overflow-hidden sm:h-6">
-        <span className="truncate text-[15px] font-semibold sm:text-base">eBay</span>
+      <div className="or-top min-w-0">
+        <span className="or-name">eBay</span>
         <span className="ad-pill">Ad</span>
         {best && <span className="shrink-0 rounded-full bg-open px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-surface">Best price</span>}
         {cond && <span className="min-w-0 max-w-[9rem] truncate rounded-full border border-line bg-surface px-2 py-0.5 text-[10px] font-bold uppercase leading-3 tracking-wide text-muted">{cond}</span>}
