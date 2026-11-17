@@ -264,8 +264,9 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
       </div>
       {/* The row's button, and beside it the cart list's "Add to cart" (components/cart) on an open store row. */}
       <div className={ROW_ACTIONS}>
-        {d.cart && d.open && (d.kind === "amazon" ? Boolean(d.live) : !d.search) && (
-          <CartAddButton href={d.href} productUrl={d.cart.productUrl} storeName={d.name} title={d.title} priceCents={d.cents} currency={d.cart.currency} className="text-muted" />
+        {/* Every open row has one (owner, 2026-11-17), a search row too: its line opens the row's own tagged link and says "See today's price" (priceCents 0). */}
+        {d.open && (
+          <CartAddButton href={d.href} productUrl={d.cart?.productUrl ?? d.href} storeName={d.name} title={d.title} priceCents={d.search && !d.live ? 0 : d.cents} currency={d.cart?.currency ?? "USD"} className="text-muted" />
         )}
         <OutboundLink
           href={d.href}

@@ -126,10 +126,13 @@ export function isMarketplace(host: string | null | undefined): boolean {
   return !!host && MARKETPLACE.test(host);
 }
 
-/** Build the line a row adds, or null when the row has no usable link or price. */
+/**
+ * Build the line a row adds, or null when the row has no usable link. A priceCents of 0 is a row with no price (an eBay or TCGplayer
+ * search row, an Amazon link): the line opens that row's own tagged link and says "See today's price" (owner, 2026-11-17: every row gets Add to cart).
+ */
 export function makeLine(input: CartAddInput, now = new Date()): CartLine | null {
   const store = storeHost(input);
-  if (!store || isMarketplace(store) || isMarketplace(hostOf(input.href)) || !input.title || !Number.isFinite(input.priceCents) || input.priceCents <= 0) return null;
+  if (!store || isMarketplace(store) || isMarketplace(hostOf(input.href)) || !input.title || !Number.isFinite(input.priceCents) || input.priceCents < 0) return null;
   // eBay and Amazon are never a Shopify checkout, whatever the link looks like.
   const cart = /^(?:ebay|amazon)\./.test(store) ? null : cartTarget(input.href);
   const id = cart ? `${store}:v:${cart.variantId}` : `${store}:u:${input.productUrl || input.href}`;

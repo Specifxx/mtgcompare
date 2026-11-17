@@ -120,9 +120,9 @@ export function CartListView() {
       <p className="ce-cart-summary">
         <b>
           {groups.length} store{groups.length === 1 ? "" : "s"} · {items} item{items === 1 ? "" : "s"} ·{" "}
-          {[...totals.entries()].map(([c, v]) => formatMoney(v, c)).join(" + ")}
+          {[...totals.entries()].filter(([, v]) => v > 0).map(([c, v]) => formatMoney(v, c)).join(" + ") || "price at each store"}
         </b>{" "}
-        before postage
+        {[...totals.values()].some((v) => v > 0) ? "before postage" : ""}
       </p>
       <p className="ce-cart-note">
         {checking
@@ -147,7 +147,7 @@ export function CartListView() {
             <header className="ce-cart-store-head">
               <h2>{g.storeName}</h2>
               <span className="ce-cart-sub">
-                Subtotal <b>{formatMoney(subtotal, g.currency)}</b> + postage
+                {subtotal > 0 ? <>Subtotal <b>{formatMoney(subtotal, g.currency)}</b> + postage</> : <b>Price at the store</b>}
               </span>
             </header>
             <ul>

@@ -880,9 +880,12 @@ function EbayOfferRow({ region, placement, query, item, cents, age, best }: { re
         )}
       </div>
       <div className={ROW_ACTIONS}>
-        {item && cents != null && (
-          <CartAddButton href={item.href} productUrl={item.href} storeName="eBay" title={item.title} priceCents={cents} currency={r.currency} image={item.imageUrl} className="text-muted" />
-        )}
+        {/* Every row has one (owner, 2026-11-17): the search row's line opens the tagged eBay search and says "See today's price". */}
+        {item ? (
+          cents != null && <CartAddButton href={item.href} productUrl={item.href} storeName="eBay" title={item.title} priceCents={cents} currency={r.currency} image={item.imageUrl} className="text-muted" />
+        ) : q ? (
+          <CartAddButton href={ebaySearchUrl(q, region, placement)} productUrl={ebaySearchUrl(q, region, placement)} storeName="eBay" title={`Search eBay for ${q}`} priceCents={0} currency={r.currency} className="text-muted" />
+        ) : null}
         <OutboundLink
           href={item ? item.href : ebaySearchUrl(q, region, placement)}
           rel={REL_SPONSORED}

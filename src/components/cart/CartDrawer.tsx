@@ -111,6 +111,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
   const price = (l: CartLine) => checks[l.id]?.priceCents ?? l.priceCents;
   const totals = new Map<string, number>();
   for (const l of lines) if (!isGone(checks[l.id])) totals.set(l.currency, (totals.get(l.currency) ?? 0) + price(l) * l.qty);
+  const unpriced = lines.some((l) => !isGone(checks[l.id]) && !price(l));
   const units = lines.filter((l) => !isGone(checks[l.id])).reduce((s, l) => s + l.qty, 0);
 
   // Only stores still in the cart count; a cart that changes keeps the stores already opened ticked.
@@ -182,7 +183,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                     <header>
                       <h3>{g.storeName}</h3>
                       <span>
-                        <b>{formatMoney(sub, g.currency)}</b> + postage
+                        {sub > 0 ? <><b>{formatMoney(sub, g.currency)}</b> + postage</> : <b>Price at the store</b>}
                       </span>
                     </header>
                     {one && one.units > 1 && <p className="cd-note">{one.units} items, one checkout at {g.storeName}</p>}
@@ -260,7 +261,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
             <footer className="cd-foot">
               <div className="cd-total">
                 <span>Total before postage</span>
-                <b>{[...totals.entries()].map(([c, v]) => formatMoney(v, c)).join(" + ")}</b>
+                <b>{[...totals.entries()].filter(([, v]) => v > 0).map(([c, v]) => formatMoney(v, c)).join(" + ") || "See each store"}{unpriced && [...totals.values()].some((v) => v > 0) ? " + unpriced" : ""}</b>
               </div>
               {items.length === 1 ? (
                 <a
