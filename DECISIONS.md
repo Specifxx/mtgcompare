@@ -2011,3 +2011,7 @@ real browser on our page is same-origin and still passes; that needs a Vercel Fi
 ## 2026-11-17: Quick view: price history at the very bottom, at most 10 rows (owner)
 
 Owner, 2026-11-17: the price-history chart at the top of the quick view is "not even that valuable". It now sits at the very bottom of the panel, below the rows and the ad pair, and the quick view lists at most 10 rows (`maxRows`): the pinned eBay and TCGplayer rows first, then the cheapest others, with "N more listings on the full page" (the page and "See price history and details" still show everything). The Cheapest price box and the Add to cart buttons are unchanged. Paid rows, their order and wording are untouched in every A/B arm (Dex and MTG tests, 20 Nov to 3 Dec).
+
+## 2026-11-17: AI assistants: ChatGPT's utm_source survives the page-view query strip
+
+`VercelPageViews` dropped the whole query string, which also dropped `utm_source=chatgpt.com`, the one marker ChatGPT leaves (it sends no referrer). It now keeps `utm_source` only when it names an AI assistant (chatgpt, perplexity, claude, gemini, copilot); nothing a visitor typed is sent. Visits from answers show under Vercel → Analytics → UTM Parameters; no custom event, so no extra billing (`track` stays a no-op).
