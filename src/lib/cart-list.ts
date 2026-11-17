@@ -29,6 +29,8 @@
 export const CART_KEY = "ce_cart_v1";
 export const CART_EVENT = "ce-cart-change";
 export const CART_ADDED_EVENT = "ce-cart-added";
+export const CART_OPEN_EVENT = "ce-cart-open";
+export const CART_CLOSE_EVENT = "ce-cart-close";
 export const CART_MAX_LINES = 100;
 export const CART_MAX_QTY = 20;
 
