@@ -664,6 +664,22 @@ body:has([data-ebay-no-prefooter]) [data-ebay-prefooter] {
   height: 3px;
   background: linear-gradient(to right, rgb(var(--xmas-red)) 50%, rgb(var(--xmas-pine)) 50%);
 }
+/* Event layer (UI/UX squad, 2026-11-16): Black Friday week to Cyber Monday (lib/season.ts eventAt, data-event on <html>) swaps the
+   hairline's two festive colours for ONE amber, the colour of the Black Friday strip. Calm three-colour rule: no new colour, no motion. */
+:root[data-event="blackfriday"] {
+  --event-amber: 183 121 31; /* #b7791f: 4.6:1 on white */
+}
+:root[data-event="blackfriday"]:not([data-theme="light"]) {
+  --event-amber: 232 176 74; /* 8:1 on the dark page */
+}
+:root[data-event="blackfriday"][data-festive] body::before,
+:root[data-event="blackfriday"] body::before {
+  content: "";
+  display: block;
+  flex: none;
+  height: 3px;
+  background: rgb(var(--event-amber));
+}
 .xmas-guide {
   display: flex;
   flex: 0 1 44rem;
