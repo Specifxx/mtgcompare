@@ -35,6 +35,9 @@ import { PRODUCT_TYPES } from "@/lib/sealed-title";
 import { SET_BY_SLUG, type MtgSet } from "@/lib/sets";
 import { setCountsGrouped } from "@/lib/hub-data";
 import { SITE_URL } from "@/lib/site";
+import { CardTiles } from "@/components/CardTiles";
+import { NewCardsStrip } from "@/components/NewCardsStrip";
+import { CARDS_HUB, cardIndexable, cardsOfSet } from "@/lib/cards";
 import { toolHref } from "@/content/tools";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js, CDN_PAGES), never ISR: an ISR write
@@ -111,6 +114,7 @@ export default async function SetPage({ params }: { params: { region: string; se
       highlight={setSealedHighlight(s)}
     />
   );
+  const topSetCards = cardsOfSet(s.code).filter(cardIndexable).slice(0, 5);
   const ld = itemListJsonLd({
     name: `${name} sealed products in ${r.inName}`,
     path,
@@ -120,6 +124,7 @@ export default async function SetPage({ params }: { params: { region: string; se
     <div className="page py-8">
       {!(gridPageHasRoomForFooter(products.length) && products.length >= FOOTER_STRIP_MIN) && <NoPreFooter />}
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { href: `/${r.region}/sets`, label: "Sets" }, { label: s.name }]} />
+      <NewCardsStrip className="mt-2" />
       <InlineAds region={r.region} tiles={tcgTiles} className="mt-4 sm:mt-6" />
 
       {/* The set's header, on the page's own ground (no box around it since 2026-11-13), then the products: the sentence that sat
@@ -230,6 +235,13 @@ export default async function SetPage({ params }: { params: { region: string; se
             The lowest {pre ? "pre-order" : "in-stock"} price of each product type in {r.inName}, divided by the booster packs it holds. Extras (promos, sleeves, dice)
             aren&rsquo;t priced in.
           </p>
+        </Section>
+      )}
+
+      {/* The set's most valuable single cards (lib/cards.ts, DECISIONS.md 2026-11-17 "Card prices"): TCGplayer's US$ market price. */}
+      {topSetCards.length > 0 && (
+        <Section id="top-cards" title={`Most valuable ${s.name} cards`} kicker="TCGplayer market price, US$" href={`${CARDS_HUB}/${s.slug}`} linkLabel="Every card price">
+          <CardTiles cards={topSetCards} />
         </Section>
       )}
 

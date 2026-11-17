@@ -20,10 +20,10 @@ test("SITE_URL has no trailing slash and defaults to mtgcompare.app", () => {
   if (!process.env.NEXT_PUBLIC_SITE_URL) assert.equal(SITE_URL, "https://mtgcompare.app");
 });
 
-test("sitemap ids: 0 = static, 1..7 = REGION_LIST order", () => {
+test("sitemap ids: 0 = static, 1..7 = REGION_LIST order, 8 = card prices", () => {
   assert.deepEqual(
     SITEMAP_IDS.map((s) => s.id),
-    [0, 1, 2, 3, 4, 5, 6, 7],
+    [0, 1, 2, 3, 4, 5, 6, 7, 8],
   );
   assert.equal(STATIC_SITEMAP_ID, 0);
   assert.equal(sitemapIdOf("au"), 1);

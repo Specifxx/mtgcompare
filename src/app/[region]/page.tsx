@@ -1,4 +1,5 @@
 import { WeeklyDropsBox } from "@/components/WeeklyDropsBox";
+import { NewCardsStrip } from "@/components/NewCardsStrip";
 import { weeklyBoxLive } from "@/lib/weekly-box";
 import { ALERT_SITE_KEY } from "@/lib/alert-feed";
 import Link from "@/components/Link";
@@ -226,6 +227,7 @@ export default async function RegionHome({ params }: { params: { region: string 
       {/* The page places its own ad block (below): none above the footer. */}
       <NoPreFooter />
       <div className="page">
+        <NewCardsStrip className="mt-6" />
         <InlineAds region={r.region} tiles={tcgTiles} className="mt-6 sm:mt-8" />
         {overview.products === 0 ? (
           <div className="mt-10">

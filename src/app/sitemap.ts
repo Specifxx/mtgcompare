@@ -7,7 +7,9 @@ import { routeRaw } from "@/lib/public-data/route";
 import { activeStoreKeys } from "@/lib/hub-data";
 import { detailIndexed, MIN_HUB_PRODUCTS, productInSitemap } from "@/lib/index-tiers";
 import { readPriceHistory } from "@/lib/price-history";
-import { regionOfSitemapId, SITEMAP_IDS, STATIC_SITEMAP_ID, regionSitemap, sitemapChanges, staticSitemap, type SitemapChanges } from "@/lib/sitemap";
+import { readCards } from "@/lib/cards";
+import { SET_BY_CODE } from "@/lib/sets";
+import { cardsSitemap, CARDS_SITEMAP_ID, regionOfSitemapId, SITEMAP_IDS, STATIC_SITEMAP_ID, regionSitemap, sitemapChanges, staticSitemap, type SitemapChanges } from "@/lib/sitemap";
 import { REGION_LIST, type Market } from "@/lib/regions";
 import { thinSections } from "@/lib/section-thin";
 
@@ -40,6 +42,10 @@ export default async function sitemap({ id }: { id: number }): Promise<MetadataR
         Promise.all(REGION_LIST.map(async (r) => [r.region, await thinSections(r.market)] as const)),
       ]);
       return staticSitemap(lastmod, active, undefined, Object.fromEntries(thin));
+    }
+    if (n === CARDS_SITEMAP_ID) {
+      const { rows, generatedAt } = readCards();
+      return cardsSitemap(rows, generatedAt, (code) => SET_BY_CODE.get(code)?.slug);
     }
     const r = regionOfSitemapId(n);
     if (!r) return [];
