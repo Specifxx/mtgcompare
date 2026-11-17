@@ -3,57 +3,70 @@ import { notFound } from "next/navigation";
 import Link from "@/components/Link";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { CardTiles } from "@/components/CardTiles";
+import { CardSearchForm } from "@/components/CardSearchForm";
 import { Section } from "@/components/Section";
-import { CARDS_HUB, readCards, setsWithCards, topCards } from "@/lib/cards";
+import { CARDS_HUB, readSets, readTop } from "@/lib/cards";
 import { shortDate } from "@/lib/hub-copy";
 import { breadcrumbJsonLd, jsonLd, pageMeta } from "@/lib/seo";
-import { SET_BY_CODE } from "@/lib/sets";
 import { SITE_NAME } from "@/lib/site";
 
-// The card prices hub (DECISIONS.md, 2026-11-17 "Card prices"): the most valuable cards across every set, then every set's list.
-// Rendered per request and kept by Vercel's CDN for a day (next.config.js CDN_PAGES); reads only data/cards/mtg-cards.json.
+// The card prices hub (DECISIONS.md "Card prices: every card"): a card search, the most valuable cards, then every set by year.
+// Rendered per request and kept by Vercel's CDN for a day (next.config.js CDN_PAGES); reads only data/cards/.
 export const dynamic = "force-dynamic";
 
 export function generateMetadata(): Metadata {
   return pageMeta({
-    title: "MTG Card Prices: the Most Valuable Cards by Set",
-    description: "Magic: The Gathering card prices for the most valuable cards of every current set: TCGplayer market price, normal and foil, updated daily.",
+    title: "MTG Card Prices: Every Magic Card by Set",
+    description: "Magic: The Gathering card prices for every card in every set: TCGplayer market price, normal and foil, updated daily. Search by name, set or card number.",
     path: CARDS_HUB,
   });
 }
 
 export default function CardPricesHub() {
-  const { rows, generatedAt } = readCards();
-  if (!rows.length) notFound();
-  const top = topCards(40);
-  const sets = setsWithCards()
-    .map(({ code, count }) => ({ s: SET_BY_CODE.get(code), count }))
-    .filter((x): x is { s: NonNullable<typeof x.s>; count: number } => !!x.s)
-    .sort((a, b) => b.s.releaseDate.localeCompare(a.s.releaseDate));
+  const { sets, generatedAt } = readSets();
+  const top = readTop().hub;
+  if (!sets.length) notFound();
+  const names = new Map(sets.map((s) => [s.slug, s.name]));
+  const byYear = new Map<string, typeof sets>();
+  for (const s of sets) {
+    const y = s.released?.slice(0, 4) ?? "Other";
+    (byYear.get(y) ?? byYear.set(y, []).get(y)!).push(s);
+  }
+  const total = sets.reduce((n, s) => n + s.cards, 0);
+  const crumbs = [{ href: "/", label: SITE_NAME }, { label: "Card prices" }];
   return (
     <div className="page py-8">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbJsonLd([{ href: "/", label: SITE_NAME }, { label: "Card prices" }])) }} />
-      <Breadcrumbs items={[{ href: "/", label: SITE_NAME }, { label: "Card prices" }]} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbJsonLd(crumbs)) }} />
+      <Breadcrumbs items={crumbs} />
       <h1 className="page-title">MTG card prices</h1>
       <p className="mt-3 max-w-3xl text-muted">
-        The most valuable cards of every set we compare sealed prices for, at TCGplayer&rsquo;s market price (what each card has recently sold
-        for on TCGplayer, in US dollars), normal and foil.{generatedAt ? ` Updated ${shortDate(generatedAt.slice(0, 10))}.` : ""} Each card links
-        to eBay and TCGplayer, and to its set&rsquo;s sealed boxes, compared store by store.
+        {total.toLocaleString("en-US")} Magic cards in {sets.length} sets at TCGplayer&rsquo;s market price: what each card has recently sold for on
+        TCGplayer, in US dollars, normal and foil.{generatedAt ? ` Updated ${shortDate(generatedAt.slice(0, 10))}.` : ""}
       </p>
-      <Section id="top" title="The most valuable cards right now" className="mt-10">
-        <CardTiles cards={top} showSet eager={10} />
-      </Section>
+      <CardSearchForm className="mt-5 max-w-xl" />
+      {top.length > 0 && (
+        <Section id="top" title="The most valuable cards right now" className="mt-10">
+          <CardTiles cards={top.map((c) => ({ ...c, setName: names.get(c.set) }))} eager={10} />
+        </Section>
+      )}
       <Section id="sets" title="Card prices by set">
-        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {sets.map(({ s, count }) => (
-            <li key={s.code}>
-              <Link href={`${CARDS_HUB}/${s.slug}`} prefetch={false} className="card flex min-h-12 items-center justify-between gap-3 px-4 py-3 hover:shadow-lift">
-                <span className="font-semibold">{s.name}</span>
-                <span className="shrink-0 text-xs text-muted">{count} cards</span>
-              </Link>
-            </li>
+        <div className="grid gap-8">
+          {[...byYear].map(([year, list]) => (
+            <div key={year}>
+              <h3 className="mb-3 font-display text-lg font-bold">{year}</h3>
+              <ul className="grid gap-x-6 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
+                {list.map((s) => (
+                  <li key={s.slug}>
+                    <Link href={`${CARDS_HUB}/${s.slug}`} prefetch={false} className="flex min-h-10 items-center justify-between gap-3 border-b border-line py-1.5 hover:text-brand">
+                      <span className="min-w-0 truncate">{s.name}</span>
+                      <span className="shrink-0 text-xs text-muted">{s.cards} cards</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
       </Section>
     </div>
   );

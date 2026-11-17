@@ -13,7 +13,7 @@ export function NewCardsStrip({ className = "" }: { className?: string }) {
       <div id="new-cards-strip" className={`flex items-center gap-3 rounded-xl border border-line bg-surface px-4 py-2.5 text-sm ${className}`}>
         <span className="shrink-0 rounded-full bg-brand px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">New</span>
         <Link href={CARDS_HUB} prefetch={false} className="min-w-0 flex-1 font-semibold hover:text-brand">
-          Card prices: the most valuable cards of every set, updated daily <span aria-hidden="true">→</span>
+          Card prices: every Magic card, by name, set or number <span aria-hidden="true">→</span>
         </Link>
         <button
           type="button"

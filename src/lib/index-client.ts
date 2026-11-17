@@ -96,19 +96,33 @@ export function searchHref(region: Region, q: string): string {
   return term ? `/${region}/sealed?q=${encodeURIComponent(term)}` : `/${region}/sealed`;
 }
 
+/** A single card from the card search (/api/cards/search, lib/cards.ts): DECISIONS.md "Card prices: every card". */
+export interface CardHit {
+  set: string;
+  setName: string;
+  s: string;
+  n: string;
+  no: string;
+  v: number;
+  id: number;
+}
+
 export type SearchOption =
   | { kind: "product"; key: string; href: string; card: ProductCardData }
+  | { kind: "card"; key: string; href: string; hit: CardHit }
   | { kind: "all"; key: string; href: string; label: string; total: number };
 
 /**
- * The typeahead's options: the ranked products (lib/search-index.ts rankSearch; none yet while it loads), then always "See all
+ * The typeahead's options: the ranked products (lib/search-index.ts rankSearch; none yet while it loads), the single cards the card
+ * search found (up to four, fetched after a pause), then always "See all
  * results for “q”" (the browse page, filtered). Empty for an empty query.
  */
-export function searchOptions(region: Region, q: string, ranked: { products: ProductCardData[]; total: number }): SearchOption[] {
+export function searchOptions(region: Region, q: string, ranked: { products: ProductCardData[]; total: number }, cards: readonly CardHit[] = []): SearchOption[] {
   const term = q.trim();
   if (!term) return [];
   return [
     ...ranked.products.map((card): SearchOption => ({ kind: "product", key: card.slug, href: `/${region}/p/${card.slug}`, card })),
+    ...cards.map((hit): SearchOption => ({ kind: "card", key: `card:${hit.set}/${hit.s}`, href: `/card-prices/${hit.set}/${hit.s}`, hit })),
     { kind: "all", key: "all", href: searchHref(region, term), label: `See all results for “${term}”`, total: ranked.total },
   ];
 }

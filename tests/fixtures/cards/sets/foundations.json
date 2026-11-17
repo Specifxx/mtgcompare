@@ -1,0 +1,5 @@
+{"slug":"foundations","cards":[
+{"id":1001,"s":"fixture-mythic-101","n":"Fixture Mythic","no":"101","r":"M","p":[4250,6100,null],"ix":1,"since":"2026-11-17"},
+{"id":1002,"s":"fixture-rare-202","n":"Fixture Rare","no":"202","r":"R","p":[300,null,null],"ix":0,"since":"2026-11-18"},
+{"id":1003,"s":"pack-rat-203","n":"Pack Rat","no":"203","r":"R","p":[null,null,null],"ix":0,"since":"2026-11-18"}
+]}

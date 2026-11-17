@@ -29,26 +29,47 @@ export function regionOfSitemapId(id: number): RegionInfo | null {
   return REGION_LIST[id - 1] ?? null;
 }
 
-/** /sitemap/<id>.xml of the card prices (lib/cards.ts): after the regions. */
-export const CARDS_SITEMAP_ID = REGION_LIST.length + 1;
-
-export const SITEMAP_IDS: { id: number }[] = [{ id: STATIC_SITEMAP_ID }, ...REGION_LIST.map((r) => ({ id: sitemapIdOf(r.region) })), { id: CARDS_SITEMAP_ID }];
-
 /**
- * The card prices: the hub, each set's list with an indexable card, and every indexable card (US$5 or more today). lastmod is the
- * card file's day for the prices; a card under the gate is noindex and never listed.
+ * The card prices' sitemap files come after the regions: /sitemap/8.xml is the hub and every set list with a released card, then
+ * /sitemap/9.xml … one per CARDS_PER_SITEMAP released cards (lib/cards.ts: a card is listed only once the import has released it to
+ * Google), in set order so a set's cards sit together. CARD_SITEMAP_FILES files are always declared; the ones beyond today's
+ * cards are empty.
  */
-export function cardsSitemap(cards: readonly { set: string; slug: string; normal: number | null; foil: number | null; etched: number | null }[], generatedAt: string | null, setSlug: (code: string) => string | undefined): MetadataRoute.Sitemap {
-  if (!cards.length) return [];
-  const day = generatedAt ? new Date(`${generatedAt.slice(0, 10)}T00:00:00Z`) : null;
-  const value = (c: (typeof cards)[number]) => Math.max(c.normal ?? 0, c.foil ?? 0, c.etched ?? 0);
-  const live = cards.filter((c) => value(c) >= 500 && setSlug(c.set));
-  const sets = [...new Set(live.map((c) => setSlug(c.set)!))];
-  return [
-    url("/card-prices", day, "daily", 0.6),
-    ...sets.map((s) => url(`/card-prices/${s}`, day, "daily", 0.5)),
-    ...live.map((c) => url(`/card-prices/${setSlug(c.set)}/${c.slug}`, day, "daily", 0.5)),
-  ];
+export const CARDS_SITEMAP_ID = REGION_LIST.length + 1;
+export const CARDS_PER_SITEMAP = 10_000;
+export const CARD_SITEMAP_FILES = 12;
+
+export const SITEMAP_IDS: { id: number }[] = [
+  { id: STATIC_SITEMAP_ID },
+  ...REGION_LIST.map((r) => ({ id: sitemapIdOf(r.region) })),
+  ...Array.from({ length: CARD_SITEMAP_FILES + 1 }, (_, i) => ({ id: CARDS_SITEMAP_ID + i })),
+];
+
+/** The URLs of card sitemap file `id` (CARDS_SITEMAP_ID and up), from the released cards in set order. */
+export function cardsSitemap(id: number, sets: readonly { slug: string; indexed: number }[], releasedOf: (set: string) => string[], day: Date | null): MetadataRoute.Sitemap {
+  const listed = sets.filter((s) => s.indexed > 0);
+  if (id === CARDS_SITEMAP_ID) {
+    if (!listed.length) return [];
+    return [url("/card-prices", day, "daily", 0.6), ...listed.map((s) => url(`/card-prices/${s.slug}`, day, "daily", 0.5))];
+  }
+  const n = id - CARDS_SITEMAP_ID - 1;
+  if (n < 0 || n >= CARD_SITEMAP_FILES) return [];
+  const out: MetadataRoute.Sitemap = [];
+  let i = 0;
+  const from = n * CARDS_PER_SITEMAP;
+  const to = from + CARDS_PER_SITEMAP;
+  for (const s of listed) {
+    if (i + s.indexed <= from) {
+      i += s.indexed;
+      continue;
+    }
+    for (const slug of releasedOf(s.slug)) {
+      if (i >= from && i < to) out.push(url(`/card-prices/${s.slug}/${slug}`, day, "daily", 0.5));
+      i++;
+      if (i >= to) return out;
+    }
+  }
+  return out;
 }
 
 const url = (path: string, lastModified: Date | null | undefined, changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"], priority: number): MetadataRoute.Sitemap[number] => ({

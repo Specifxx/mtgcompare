@@ -114,7 +114,7 @@ async function main(): Promise<void> {
   const { slugByGroup, cardsByGroup } = previousState(groupsBySealed);
 
   // Set slugs: kept once given; a sealed set takes its sealed page's slug; others their name's (a clash adds the abbreviation).
-  const used = new Set(slugByGroup.values());
+  const used = new Set([...slugByGroup.values(), "search"]); // /card-prices/search is the search page
   const ordered = [...groups].filter((g) => !skipGroup(g)).sort((a, b) => Number(sealedOfGroup.has(b.groupId)) - Number(sealedOfGroup.has(a.groupId)) || a.groupId - b.groupId);
   for (const g of ordered) {
     if (slugByGroup.has(g.groupId)) continue;
@@ -160,7 +160,9 @@ async function main(): Promise<void> {
   }
   if (failed.length > ordered.length / 4) throw new Error(`${failed.length} of ${ordered.length} groups failed: ${failed.slice(0, 5).join(", ")}`);
 
-  const growth = Math.max(0, Number(process.env.CARD_INDEX_GROWTH ?? INDEX_GROWTH) || 0);
+  // An unset repository variable arrives as "": the default. "0" pauses the release.
+  const raw = (process.env.CARD_INDEX_GROWTH ?? "").trim();
+  const growth = raw === "" || !Number.isFinite(Number(raw)) ? INDEX_GROWTH : Math.max(0, Math.floor(Number(raw)));
   const flat = all.flatMap((x) => x.cards);
   const releasedToday = releaseForIndexing(flat, growth);
   for (const x of all) x.set.indexed = x.cards.filter(cardIndexable).length;
@@ -172,7 +174,7 @@ async function main(): Promise<void> {
   for (const { set, cards } of all) fs.writeFileSync(path.join(tmp, "sets", `${set.slug}.json`), JSON.stringify({ slug: set.slug, cards } satisfies SetFile));
   sets.sort((a, b) => (b.released ?? "").localeCompare(a.released ?? "") || a.name.localeCompare(b.name));
   fs.writeFileSync(path.join(tmp, "sets.json"), JSON.stringify({ generatedAt: new Date().toISOString(), source: "TCGplayer market prices via tcgcsv.com", sets } satisfies SetsFile));
-  const search: SearchRow[] = all.flatMap(({ set, cards }) => cards.map((c): SearchRow => [set.slug, c.s, c.n, c.no, cardValue(c.p) ?? 0, cardIndexable(c) ? 1 : 0]));
+  const search: SearchRow[] = all.flatMap(({ set, cards }) => cards.map((c): SearchRow => [set.slug, c.s, c.n, c.no, cardValue(c.p) ?? 0, cardIndexable(c) ? 1 : 0, c.id]));
   fs.writeFileSync(path.join(tmp, "search.json"), JSON.stringify(search));
   const lite = (set: string, c: CardRow): CardLite => ({ set, s: c.s, n: c.n, no: c.no, r: c.r, id: c.id, v: cardValue(c.p) ?? 0 });
   const indexed = all.flatMap(({ set, cards }) => cards.filter(cardIndexable).map((c) => lite(set.slug, c))).sort((a, b) => b.v - a.v || a.id - b.id);

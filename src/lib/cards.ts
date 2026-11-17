@@ -71,8 +71,8 @@ export interface SetFile {
   cards: CardRow[];
 }
 
-/** search.json: one tuple per card. [setSlug, cardSlug, name, number, valueCents|0, ix]. */
-export type SearchRow = [string, string, string, string, number, 0 | 1];
+/** search.json: one tuple per card. [setSlug, cardSlug, name, number, valueCents|0, indexable 0|1, TCGplayer id]. */
+export type SearchRow = [string, string, string, string, number, 0 | 1, number];
 
 /** A small card for tiles: what top.json holds. */
 export interface CardLite {
@@ -103,6 +103,7 @@ export function cardIndexable(c: Pick<CardRow, "p" | "ix">): boolean {
 
 export function slugify(s: string): string {
   return s
+    .replace(/æ/gi, "ae").replace(/œ/gi, "oe")
     .normalize("NFKD")
     .replace(/[̀-ͯ]/g, "")
     .toLowerCase()
@@ -166,12 +167,12 @@ export function numberOrder(a: string, b: string): number {
 /**
  * Today's release to Google, in place: a released card stays released while it is worth MIN_INDEX_CENTS (it loses `ix` under it, so
  * climbing back means waiting its turn again); then the most valuable unreleased cards at or over the gate, up to `growth` of them
- * (INDEX_START on the first run, when nothing is released yet). Returns how many it released.
+ * (enough to reach INDEX_START while fewer are released). Returns how many it released.
  */
 export function releaseForIndexing(all: CardRow[], growth: number): number {
   for (const c of all) if (c.ix && (cardValue(c.p) ?? 0) < MIN_INDEX_CENTS) c.ix = 0;
   const released = all.filter((c) => c.ix).length;
-  const room = released === 0 ? Math.max(INDEX_START, growth) : growth;
+  const room = released < INDEX_START ? Math.max(INDEX_START - released, growth) : growth;
   const next = all
     .filter((c) => !c.ix && (cardValue(c.p) ?? 0) >= MIN_INDEX_CENTS)
     .sort((a, b) => (cardValue(b.p) ?? 0) - (cardValue(a.p) ?? 0) || a.id - b.id)
@@ -241,9 +242,7 @@ export function rarityName(r: string | null): string | null {
   return r ? RARITY[r] ?? r : null;
 }
 
-export function usd(cents: number): string {
-  return `US$${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
+export { usd, cardImage } from "./cards-client";
 
 /**
  * The page title, at most 60 characters with " | MTG Compare": the name, the set and number (what a collector types to find one
@@ -263,10 +262,6 @@ export function cardTitle(c: { n: string; no: string }, set: { name: string; abb
   return candidates.find((t) => t.length <= MAX) ?? c.n;
 }
 
-/** TCGplayer's own photo of the product (its CDN, hotlinked, never resized by us). */
-export function cardImage(id: number, size: 400 | 1000 = 400): string {
-  return `https://tcgplayer-cdn.tcgplayer.com/product/${id}_in_${size}x${size}.jpg`;
-}
 
 export function tcgplayerCardUrl(id: number): string {
   return `https://www.tcgplayer.com/product/${id}`;
@@ -279,6 +274,7 @@ export const cardPath = (setSlug: string, cardSlug: string) => `${CARDS_HUB}/${s
 
 export function normalise(s: string): string {
   return s
+    .replace(/æ/gi, "ae").replace(/œ/gi, "oe")
     .normalize("NFKD")
     .replace(/[̀-ͯ]/g, "")
     .toLowerCase()
@@ -293,6 +289,7 @@ export interface SearchHit {
   n: string;
   no: string;
   v: number;
+  id: number;
 }
 
 /**
@@ -344,7 +341,7 @@ export function searchCards(rows: readonly SearchRow[], sets: ReadonlyMap<string
     scored.push({ r, score });
   }
   scored.sort((a, b) => b.score - a.score || b.r[4] - a.r[4] || a.r[2].localeCompare(b.r[2]));
-  return { hits: scored.slice(0, limit).map(({ r }) => ({ set: r[0], s: r[1], n: r[2], no: r[3], v: r[4] })), total: scored.length };
+  return { hits: scored.slice(0, limit).map(({ r }) => ({ set: r[0], s: r[1], n: r[2], no: r[3], v: r[4], id: r[6] })), total: scored.length };
 }
 
 // ─── Reading the files (server only) ───────────────────────────────────────────

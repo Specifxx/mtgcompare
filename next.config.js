@@ -48,7 +48,7 @@ const nextConfig = {
         // The product page's Amazon row: ASINs from the daily import, and the prices this build fetched (lib/amazon-live.ts).
         "./data/amazon/*.json",
         // The card prices (lib/cards.ts, scripts/card-import.ts): one file, ~1-2 MB.
-        "./data/cards/*.json",
+        "./data/cards/**/*.json",
         "./data/amazon-live/*.json",
       ],
     },
