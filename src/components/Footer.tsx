@@ -176,6 +176,7 @@ export function Footer({ region, listed }: { region: Region | null; listed?: Rea
           <p>
             {SITE_NAME} is an independent site, not affiliated with Wizards of the Coast, Hasbro or any store it lists. {FAN_CONTENT_DISCLAIMER}
           </p>
+          <p>This product uses TCGplayer data but is not endorsed or certified by TCGplayer.</p>
         </div>
       </div>
     </footer>

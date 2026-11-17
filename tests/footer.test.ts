@@ -15,3 +15,7 @@ test("footer: one link to /our-sites, which lists every other site once by name 
   assert.doesNotMatch(page, /nofollow|sponsored/);
   assert.ok(footerSisters("mtg").length > 0, "the shared helper still exists for the other sites");
 });
+
+test("footer: TCGplayer data notice (TCGplayer API terms, image-licence report 2026-11-17)", () => {
+  assert.match(src("src/components/Footer.tsx"), /This product uses TCGplayer data but is not endorsed or certified by TCGplayer\./);
+});
