@@ -16,13 +16,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import { publicDataDir } from "./public-data/format";
+import { expandPoints, MIN_DAYS, type DayValue } from "./price-history-days";
 
 export const HISTORY_FILE = "price-history.json";
 export const HISTORY_VERSION = 1;
 /** Snapshots kept. */
 export const KEEP_DAYS = 400;
-/** A chart (and any statement from the history) needs this many days of snapshots for the product. */
-export const MIN_DAYS = 7;
 
 /** [day (UTC days since 1970), cheapest in-stock price in cents or null, stores with it in stock]. */
 export type Point = [day: number, cents: number | null, stores: number];
@@ -37,8 +36,9 @@ export interface PriceHistory {
   series: Record<string, Record<string, Point[]>>;
 }
 
+export { isoOfDay, MIN_DAYS, expandPoints } from "./price-history-days";
+export type { DayValue } from "./price-history-days";
 export const dayOf = (isoOrDate: string | Date): number => Math.floor((typeof isoOrDate === "string" ? Date.parse(isoOrDate.length === 10 ? `${isoOrDate}T00:00:00Z` : isoOrDate) : isoOrDate.getTime()) / 86_400_000);
-export const isoOfDay = (day: number): string => new Date(day * 86_400_000).toISOString().slice(0, 10);
 
 /** One product in one market today, as ProductStat has it. */
 export interface TodayRow {
@@ -93,26 +93,10 @@ export function updatePriceHistory(prev: PriceHistory | null, rows: readonly Tod
   return { v: HISTORY_VERSION, since: prev ? Math.min(prev.since, today) : today, through: Math.max(prev?.through ?? today, today), series };
 }
 
-/** One day of a series: the value that held on `day`. */
-export interface DayValue {
-  day: number;
-  cents: number | null;
-  stores: number;
-}
 
 /** A product's daily values from its first snapshot (or `days` back, whichever is later) to the history's last day. */
 export function dailySeries(h: PriceHistory, market: string, slug: string, days = 90): DayValue[] {
-  const pts = h.series[market]?.[slug];
-  if (!pts?.length) return [];
-  const from = Math.max(pts[0][0], h.through - days + 1);
-  const out: DayValue[] = [];
-  let i = 0;
-  for (let d = from; d <= h.through; d++) {
-    while (i + 1 < pts.length && pts[i + 1][0] <= d) i++;
-    if (pts[i][0] > d) continue;
-    out.push({ day: d, cents: pts[i][1], stores: pts[i][2] });
-  }
-  return out;
+  return expandPoints(h.series[market]?.[slug], h.through, days);
 }
 
 /** Days of snapshots the product has (its first point to the last day folded in). */

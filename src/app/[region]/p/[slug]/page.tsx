@@ -3,7 +3,7 @@ import { Flag } from "@/components/Flag";
 import Link from "@/components/Link";
 import { PriceHistoryChart } from "@/components/PriceHistoryChart";
 import { PreorderBanner } from "@/components/PreorderBanner";
-import { dailySeries, daysOfHistory, MIN_DAYS, readPriceHistory } from "@/lib/price-history";
+import { dailySeries, daysOfHistory, KEEP_DAYS, MIN_DAYS, readPriceHistory } from "@/lib/price-history";
 import { preorderPath } from "@/lib/preorder-guides";
 import { notFound, permanentRedirect } from "next/navigation";
 import { culledTarget } from "@/lib/culled";
@@ -351,6 +351,8 @@ export default async function ProductPage({ params }: { params: { region: string
   // The daily price history (lib/price-history.ts): a chart once the product has MIN_DAYS of snapshots here, nothing before.
   const history = readPriceHistory();
   const historyDays = history && daysOfHistory(history, r.market, p.slug) >= MIN_DAYS ? dailySeries(history, r.market, p.slug, 90) : [];
+  // The chart's own series reaches further back, for its 30D / 90D / All pills.
+  const chartDays = historyDays.length >= MIN_DAYS && history ? dailySeries(history, r.market, p.slug, KEEP_DAYS) : [];
   // Questions answered from the page's own data (lib/product-faq.ts): stock here, per pack, the last 30 days of snapshots, the other regions.
   const faq = productFaq({
     heading,
@@ -692,7 +694,7 @@ export default async function ProductPage({ params }: { params: { region: string
 
       {historyDays.length >= MIN_DAYS && (
         <Section id="history" title="Price history" kicker={`Cheapest in-stock price in ${r.inName}`}>
-          <PriceHistoryChart values={historyDays} market={r.market} />
+          <PriceHistoryChart values={chartDays} market={r.market} />
         </Section>
       )}
 
