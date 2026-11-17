@@ -1973,6 +1973,20 @@ Ported from TCG Prices (tcgcompare PR 34). `data-event="blackfriday"` (Black Fri
 stacks on the season; its only effect is the 3px top hairline turning one amber instead of cranberry and pine. No new colour, no
 markup, no motion, no layout shift; `?event=blackfriday` previews, `?event=off` hides. Quick-view rows and wording are untouched.
 
+## 2026-11-17: URL freeze, and two sides of the network, one footer link
+
+Owner, from the Grok growth report (items 5 and 9): stop the sitewide cross-links between the sites, and freeze URLs.
+The network now has two sides (`TCG_SIDE`, `sameSide`, `isTcgSide` in `src/lib/family-network.ts`, the same file in every repo): the
+card-game and wargame sites on one, perfume, K-beauty, car parts, cameras, figures, sports cards and tech on the other. `clusterSisters`
+and `footerSisters` return same-side sites only, so deal and pre-order tiles, the data jobs' copied feeds and the `/our-sites` (or
+`/network`) list never cross. The footer keeps its single link to `/our-sites`; the "Every Compare Empire site" link to
+compareempire.com is gone from the card sites. SportsCardCompare is on the other side from the card sites (its search results no
+longer offer their searches). Where this repo had a repeated block of sister links (a blog "Also from us" aside, "Compare other TCGs"
+on every card page, non-card sisters in `SITE.sisterSites`) it is removed. A contextual link from a guide to another game stays.
+DexCompare's links read dexcompare.io (the old host is still accepted in a feed until Dex republishes). Not changed: price alerts,
+`alert-feed.json`, the family feeds and the sister data reads: they are data, not links. Also a "URL freeze" rule in CLAUDE.md:
+no mass path change without a redirect map, agents never flip hosts, no pop-unders or surprise navigation (this repo had none).
+
 ## 2026-11-17: Click log fields, "Prices checked", /methodology and the footer's not-affiliated line (Grok growth report items 1, 7, 8)
 
 - **Click log (item 1).** Outbound clicks were already one event each (`OutboundLink`: Vercel `buy_click {retailer, placement, link_type}`, GA4 `affiliate_click` / `outbound_store_click`). Vercel Pro keeps few custom-event properties (DEPLOY.md: two, and the event already sends three), and it records the page path and the visitor's country on every event itself, so Vercel's event is NOT widened. GA4 (no such limit) now also gets `paid` (rel sponsored), `page`, `region` (the market in the path), `pos` (the row's place among its list's rows), `rank` (item-price rank among the list's priced rows, ties share) and `gap_pct` (item price above the cheapest, one decimal). `store` is the existing `retailer`. Read at click time from `data-cents` on a row (open, priced, in the region's own currency only, so a search row, a sold-out row and TCGplayer's US$ outside the US carry none): item price only, never converted, never postage. Nothing stored, fetched or sent to our own server; no database. `rowContext` in `OutboundLink.tsx`, `tests/click-context.test.ts`. The quick view's A/B events and rows are untouched (the quick view's links gain the same inert attributes and GA4 fields, nothing visible).

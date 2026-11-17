@@ -7,8 +7,10 @@ import {
   clusterSisters,
   familyMoney,
   footerSisters,
+  isTcgSide,
   modelKey,
   pickTiles,
+  sameSide,
   sameProduct,
   tileNote,
   toFamilyRegion,
@@ -46,12 +48,12 @@ test("KaeYoung is never in the network, and every label is region-neutral", () =
 });
 
 test("clusters: cards, hobby (Gundam's Gunpla too) and tech", () => {
-  assert.deepEqual(clusterSisters("figure", "hobby").map((s) => s.id), ["gundam", "wargame"]);
+  assert.deepEqual(clusterSisters("figure", "hobby").map((s) => s.id), [], "figures meet no card or wargame site");
   assert.deepEqual(clusterSisters("empire", "tech").map((s) => s.id), ["cam"]);
-  assert.equal(clusterSisters("rift", "cards").length, 10);
+  assert.equal(clusterSisters("rift", "cards").length, 9);
   // Card sites list only card sites (Gundam's Gunpla side does not pull hobby sites into its footer).
-  assert.deepEqual(footerSisters("gundam").map((s) => s.id), ["rift", "op", "dex", "mtg", "wax", "lorcana", "ygo", "cyberpunk", "bandai", "sealed"]);
-  for (const id of ["rift", "op", "dex", "mtg", "wax", "gundam", "lorcana", "ygo", "cyberpunk", "bandai"] as const) {
+  assert.deepEqual(footerSisters("gundam").map((s) => s.id), ["rift", "op", "dex", "mtg", "lorcana", "ygo", "cyberpunk", "bandai", "sealed"]);
+  for (const id of ["rift", "op", "dex", "mtg", "gundam", "lorcana", "ygo", "cyberpunk", "bandai"] as const) {
     assert.ok(footerSisters(id).every((s) => s.clusters.includes("cards") && s.id !== id), id);
   }
   // Non-card sites list no sisters in their footers (owner, 2026-11-03).
@@ -141,4 +143,21 @@ test("pickTiles: several per sister when asked, preferred category first", () =>
   const t = pickTiles([feed("empire", items)], { self: "cam", cluster: "tech", kind: "deal", region: "US", perSite: 3, prefer: "cameras" });
   assert.equal(t.length, 3);
   assert.deepEqual(t.map((x) => x.item.category), ["cameras", "cameras", "laptops"]);
+});
+
+// The two sides of the network (owner, 2026-11-17, Grok growth report item 9): a card or wargame site never lists, tiles or links
+// a perfume, K-beauty, car-parts, camera, figure, sports-card or tech site, and the other way round.
+test("sides: no site is a sister of a site on the other side", () => {
+  const tcg = ["rift", "op", "dex", "mtg", "gundam", "lorcana", "ygo", "cyberpunk", "bandai", "sealed", "wargame"];
+  for (const a of FAMILY_SITES) {
+    for (const cluster of ["cards", "hobby", "tech"] as const) {
+      for (const b of clusterSisters(a.id, cluster)) assert.equal(tcg.includes(a.id), tcg.includes(b.id), `${a.id} / ${b.id}`);
+    }
+    for (const b of footerSisters(a.id)) assert.equal(tcg.includes(a.id), tcg.includes(b.id), `footer ${a.id} / ${b.id}`);
+  }
+  assert.equal(sameSide("op", "gundam"), true);
+  assert.equal(sameSide("op", "figure"), false);
+  assert.equal(sameSide("wax", "mtg"), false);
+  assert.equal(sameSide("cam", "empire"), true);
+  assert.equal(isTcgSide("scent"), false);
 });

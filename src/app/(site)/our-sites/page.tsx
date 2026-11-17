@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { FAMILY_SITES, NETWORK_PAGE } from "@/lib/family-network";
+import { FAMILY_SITES, sameSide } from "@/lib/family-network";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 // The one page that links the owner's other sites (2026-11-08). The footer used to carry eight keyword-titled links to them on
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default function OurSites() {
-  const sites = FAMILY_SITES.filter((s) => s.id !== "mtg");
+  const sites = FAMILY_SITES.filter((s) => s.id !== "mtg" && sameSide("mtg", s.id));
   return (
     <div className="page max-w-3xl py-12">
       <Breadcrumbs items={[{ href: "/", label: SITE_NAME }, { label: "Our other sites" }]} />
@@ -31,11 +31,6 @@ export default function OurSites() {
           </li>
         ))}
       </ul>
-      <p className="mt-6 text-sm text-muted">
-        <a href={NETWORK_PAGE} rel="noopener" className="hover:text-ink">
-          Every Compare Empire site →
-        </a>
-      </p>
     </div>
   );
 }

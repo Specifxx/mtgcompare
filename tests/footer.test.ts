@@ -10,7 +10,7 @@ test("footer: one link to /our-sites, which lists every other site once by name 
   assert.match(footer, /href="\/our-sites"/);
   assert.doesNotMatch(footer, /footerSisters|NETWORK_PAGE|https?:\/\//, "no external site links in the footer");
   const page = src("src/app/(site)/our-sites/page.tsx");
-  assert.match(page, /FAMILY_SITES\.filter\(\(s\) => s\.id !== "mtg"\)/);
+  assert.match(page, /FAMILY_SITES\.filter\(\(s\) => s\.id !== "mtg" && sameSide\("mtg", s\.id\)\)/);
   assert.match(page, /rel="noopener"/);
   assert.doesNotMatch(page, /nofollow|sponsored/);
   assert.ok(footerSisters("mtg").length > 0, "the shared helper still exists for the other sites");
