@@ -831,7 +831,7 @@ function EbayOfferRow({ region, placement, query, item, cents, age, best }: { re
   const cond = item ? conditionLabel(item.condition) : "";
   const q = query.trim();
   return (
-    <li data-offer-row="" data-ad={placement} data-state={item ? "listing" : "search"} className={`${ROW_GRID} ${best ? PIN_OUTLINE.cheapest : PIN_OUTLINE.ebay}`}>
+    <li data-offer-row="" data-ad={placement} data-state={item ? "listing" : "search"} data-cents={item && cents != null && cents > 0 ? cents : undefined} className={`${ROW_GRID} ${best ? PIN_OUTLINE.cheapest : PIN_OUTLINE.ebay}`}>
       <div className="or-top min-w-0">
         <span className="or-name">eBay</span>
         <span className="ad-pill">Ad</span>
