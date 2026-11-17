@@ -1,13 +1,16 @@
 import Link from "@/components/Link";
 import { CHRISTMAS_FESTIVE_LAYER, seasonMarkupLive } from "@/lib/season";
 import { REGIONS, X_DEFAULT_REGION } from "@/lib/regions";
+import { saleStrip } from "@/lib/black-friday";
 import { guideHref } from "@/content/guides/kit";
 
 // Christmas (until Boxing Day): one festive line in the hero that sends gift
 // shoppers to the sealed prices. In the HTML only around the season, shown
 // only while <html> carries data-season="christmas" (globals.css .xmas-pill-row).
-export function ChristmasGifts() {
+export function ChristmasGifts({ today = new Date().toISOString().slice(0, 10) }: { today?: string } = {}) {
   if (!seasonMarkupLive("christmas")) return null;
+  // One promo line at a time (Fiverr review F10, 2026-11-17): the gift-guide line waits until the sale strip's window is over.
+  if (saleStrip(today)) return null;
   // The festive layer (owner, 2026-11-12; lib/season.ts CHRISTMAS_FESTIVE_LAYER, the one off switch): a one-line gift-guide card
   // to the existing page, server HTML, not a heading. Off, the quiet pill below is what is left.
   if (CHRISTMAS_FESTIVE_LAYER)

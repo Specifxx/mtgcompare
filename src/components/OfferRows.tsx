@@ -292,10 +292,14 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
 function ShipLine({ ship }: { ship: ShipCell | null }) {
   if (!ship) return <span className="or-sub text-faint">{SHIP_UNKNOWN}</span>;
   return (
-    <span className={ship.max === 0 ? "or-sub font-semibold text-ink" : "or-sub text-muted"}>
-      {ship.text}
-      {ship.hint && <span className="hidden sm:inline">{ship.hint}</span>}
-    </span>
+    <>
+      <span className={ship.max === 0 ? "or-sub font-semibold text-ink" : "or-sub text-muted"}>
+        {ship.text}
+        {ship.hint && <span className="hidden sm:inline">{ship.hint}</span>}
+      </span>
+      {/* Price + postage in words on every row that charges postage (Fiverr review F2, 2026-11-17): the shopper compares totals. */}
+      {ship.total && <span className="or-sub font-semibold text-ink">{ship.total}</span>}
+    </>
   );
 }
 

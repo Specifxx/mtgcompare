@@ -34,7 +34,9 @@ const EBAY: Placement = "listings-inline";
 const TCG: Placement = "tcgplayer-strip-inline";
 
 // Pages with their own spot for the banners (the region home, a product page, a set page): the layout's copy skips them.
-const OWN = [/^\/[a-z]{2}\/?$/, /^\/[a-z]{2}\/p\//, /^\/[a-z]{2}\/sets\/[^/]+\/?$/];
+// The sealed list (search and filter results) too (Fiverr review F4, 2026-11-17: two big banners pushed the results below the fold and
+// ignored the search): its results lead, and its own listing strip / query box (BrowseGrid) follow them.
+const OWN = [/^\/[a-z]{2}\/?$/, /^\/[a-z]{2}\/p\//, /^\/[a-z]{2}\/sets\/[^/]+\/?$/, /^\/[a-z]{2}\/sealed\/?$/];
 export function layoutInlineAdsAllowed(path: string): boolean {
   return !OWN.some((r) => r.test(path));
 }

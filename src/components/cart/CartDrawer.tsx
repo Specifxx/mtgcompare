@@ -167,7 +167,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
           <div className="cd-empty">
             <CartIcon size={34} />
             <p className="cd-strong">Your cart is empty</p>
-            <p>Tap Add to cart beside any store&apos;s price. Add from as many stores as you like and check out all of them in one go.</p>
+            <p>Tap Add to cart beside any store&apos;s price (you pay each store on its own site, never us). Add from as many stores as you like and check out all of them in one go.</p>
             <button type="button" className="cd-btn" onClick={onClose}>
               Keep browsing
             </button>
@@ -175,6 +175,10 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
         ) : (
           <>
             <div className="cd-body">
+              <div className="cd-handoff" role="note">
+                <p className="cd-handoff-lead">You pay each store on its own site. We never take payment.</p>
+                <p>{checking ? "Checking prices and stock at each store… " : ""}Each store adds its own postage. Opening a Shopify store&apos;s checkout replaces anything already in your cart there.</p>
+              </div>
               {groups.map((g) => {
                 const sub = g.lines.filter((l) => !isGone(checks[l.id])).reduce((s, l) => s + price(l) * l.qty, 0);
                 const one = items.find((i) => i.key === `${g.key}#store`);
@@ -236,9 +240,6 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                   </section>
                 );
               })}
-              <p className="cd-fine">
-                {checking ? "Checking prices and stock at each store… " : ""}Each store takes payment on its own site, never us, and adds its own postage. Opening a Shopify store&apos;s checkout replaces anything already in your cart there.
-              </p>
               {items.length > 1 && !showHelp && !started && <p className="cd-steps-note">Each store opens in its own tab. If your browser asks, allow pop-ups for this site.</p>}
               {items.length > 1 && showHelp && (
                 <section ref={steps} aria-label="Allow pop-ups">
@@ -260,7 +261,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
             </div>
             <footer className="cd-foot">
               <div className="cd-total">
-                <span>Total before postage</span>
+                <span>Estimated total (before postage)</span>
                 <b>{[...totals.entries()].filter(([, v]) => v > 0).map(([c, v]) => formatMoney(v, c)).join(" + ") || "See each store"}{unpriced && [...totals.values()].some((v) => v > 0) ? " + unpriced" : ""}</b>
               </div>
               {items.length === 1 ? (

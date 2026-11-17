@@ -181,7 +181,7 @@ export function offerRowsData({
         perPack: null,
         lastSeen: "",
         ago: "",
-        ship: ship && { min: ship.min, max: ship.max, text: "", hint: "", title: "" },
+        ship: ship && { min: ship.min, max: ship.max, text: "", hint: "", title: "", total: "" },
         lean: true,
       };
     }

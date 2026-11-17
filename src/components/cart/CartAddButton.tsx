@@ -65,7 +65,7 @@ export function CartAddButton({
       onClick={toggle}
       aria-pressed={inList}
       aria-label={text}
-      title={inList ? "In your cart (tap to remove)" : "Add to cart"}
+      title={inList ? "In your cart (tap to remove)" : "Add to cart. You pay at the store, not here."}
       className={`ce-cart-add${inList ? " is-in" : ""}${label ? " has-label" : ""} ${className}`}
     >
       {inList ? (

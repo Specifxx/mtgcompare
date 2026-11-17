@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ebayRetailer, ebayRetailerForHref, REL_SPONSORED, type Placement } from "@/lib/affiliate";
 import { shipLabel } from "@/lib/ebay-context";
-import type { PriceFloor } from "@/lib/ebay-offer-row";
+import { EBAY_CAN_BE_BEST, type PriceFloor } from "@/lib/ebay-offer-row";
 import { money } from "@/lib/format";
 import { REGIONS, type Region } from "@/lib/regions";
 import { useEbayPick } from "./EbayStrip";
@@ -63,7 +63,7 @@ function WithPick(props: StickyBuyBarProps & { pick: BarPick }) {
   const { region, pick, store } = props;
   const { item, cents, bestable, age } = useEbayPick({ region, slug: pick.slug, floor: pick.floor, packs: pick.packs, placement });
   // In stock: BestPriceCard's rule to the letter (the bar repeats the card). Sold out: the callout's (any new listing of its own).
-  const show = store ? bestable && item != null && cents != null && cents < store.cents : bestable && item != null && cents != null;
+  const show = store ? EBAY_CAN_BE_BEST && bestable && item != null && cents != null && cents < store.cents : bestable && item != null && cents != null;
   const content = show && item && cents != null ? listingContent(region, item, cents, age, !store) : staticContent(props);
   return <Bar {...props} content={content} />;
 }

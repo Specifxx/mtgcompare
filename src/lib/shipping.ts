@@ -28,5 +28,5 @@ export function shippingQuote(storeKey: string, market: string, priceCents: numb
 
 export function shippingCell(storeKey: string, market: string, priceCents: number, fmt: (cents: number) => string): ShipCell | null {
   const r = regionOfMarket(market);
-  return shipCell(shippingQuote(storeKey, market, priceCents), fmt, r?.inName ?? market);
+  return shipCell(shippingQuote(storeKey, market, priceCents), fmt, r?.inName ?? market, priceCents);
 }
