@@ -300,6 +300,15 @@ export interface SearchHit {
 export function searchCards(rows: readonly SearchRow[], sets: ReadonlyMap<string, { name: string; abbr: string | null }>, query: string, limit = 12): { hits: SearchHit[]; total: number } {
   const q = normalise(query);
   if (q.length < 2) return { hits: [], total: 0 };
+  // A set code can also be a word of a name ("ONE" in "The One Ring"): read the query both ways, and keep the name reading when it
+  // matches a card name whole or from its start and the set reading does no better.
+  const withSet = scoreCards(rows, sets, q, true);
+  const plain = withSet.setUsed ? scoreCards(rows, sets, q, false) : null;
+  const pick = plain && plain.best >= 3 && plain.best > withSet.best ? plain : withSet;
+  return { hits: pick.scored.slice(0, limit).map(({ r }) => ({ set: r[0], s: r[1], n: r[2], no: r[3], v: r[4], id: r[6] })), total: pick.scored.length };
+}
+
+function scoreCards(rows: readonly SearchRow[], sets: ReadonlyMap<string, { name: string; abbr: string | null }>, q: string, useSet: boolean): { scored: { r: SearchRow; score: number }[]; best: number; setUsed: boolean } {
   let words = q.split(" ").filter(Boolean);
   // A number: "#101", "101/281", or a bare token with a digit that is not part of the name.
   let num: string | null = null;
@@ -312,7 +321,7 @@ export function searchCards(rows: readonly SearchRow[], sets: ReadonlyMap<string
   const abbrToSet = new Map<string, string>();
   for (const [slug, s] of sets) if (s.abbr) abbrToSet.set(s.abbr.toLowerCase(), slug);
   let set: string | null = null;
-  const setIdx = words.findIndex((w) => abbrToSet.has(w));
+  const setIdx = useSet ? words.findIndex((w) => abbrToSet.has(w)) : -1;
   if (setIdx >= 0) {
     set = abbrToSet.get(words[setIdx])!;
     words = words.filter((_, i) => i !== setIdx);
@@ -341,7 +350,7 @@ export function searchCards(rows: readonly SearchRow[], sets: ReadonlyMap<string
     scored.push({ r, score });
   }
   scored.sort((a, b) => b.score - a.score || b.r[4] - a.r[4] || a.r[2].localeCompare(b.r[2]));
-  return { hits: scored.slice(0, limit).map(({ r }) => ({ set: r[0], s: r[1], n: r[2], no: r[3], v: r[4], id: r[6] })), total: scored.length };
+  return { scored, best: scored[0]?.score ?? 0, setUsed: set != null };
 }
 
 // ─── Reading the files (server only) ───────────────────────────────────────────

@@ -11,8 +11,18 @@ import { SET_BY_CODE } from "@/lib/sets";
 import { SITE_NAME } from "@/lib/site";
 
 // One set's cards (DECISIONS.md "Card prices: every card"): the most valuable as tiles, then every card in collector-number order.
-// Indexable while it has a card released to Google. CDN-cached a day like every page; no request data read.
+// Indexable while it has a card released to Google. CDN-cached a day like every page; no cookie, header or session read. The
+// table shows SET_PAGE cards a page (`?page=2`…, noindex, follow): The List alone has 5,700 cards, 6 MB of HTML on one page.
 export const dynamic = "force-dynamic";
+
+const SET_PAGE = 300;
+type Props = { params: { set: string }; searchParams?: { page?: string | string[] } };
+function pageOf(sp: Props["searchParams"], cards: number): number | null {
+  const raw = Array.isArray(sp?.page) ? sp?.page[0] : sp?.page;
+  if (raw == null) return 1;
+  const n = /^[1-9]\d{0,3}$/.test(raw) ? Number(raw) : NaN;
+  return n >= 1 && n <= Math.max(1, Math.ceil(cards / SET_PAGE)) ? n : null;
+}
 
 function load(slug: string) {
   const set = setBySlug(slug);
@@ -21,9 +31,10 @@ function load(slug: string) {
   return cards.length ? { set, cards } : null;
 }
 
-export function generateMetadata({ params }: { params: { set: string } }): Metadata {
+export function generateMetadata({ params, searchParams }: Props): Metadata {
   const x = load(params.set);
   if (!x) return {};
+  const page = pageOf(searchParams, x.cards.length) ?? 1;
   const ranked = [...x.cards].sort((a, b) => (cardValue(b.p) ?? 0) - (cardValue(a.p) ?? 0));
   const top = ranked[0];
   const full = `${withMtg(x.set.name)} Card Prices`;
@@ -32,15 +43,19 @@ export function generateMetadata({ params }: { params: { set: string } }): Metad
   return pageMeta({
     title: full.length <= 46 ? full : `${x.set.name} Card Prices`.length <= 46 ? `${x.set.name} Card Prices` : x.set.name,
     description: d.length <= 160 ? d : `${withMtg(x.set.name)} card prices: all ${x.cards.length} cards at TCGplayer's market price, normal and foil.`.slice(0, 160),
-    path: `${CARDS_HUB}/${x.set.slug}`,
-    noindex: !x.cards.some(cardIndexable),
+    path: `${CARDS_HUB}/${x.set.slug}${page > 1 ? `?page=${page}` : ""}`,
+    noindex: page > 1 || !x.cards.some(cardIndexable),
   });
 }
 
-export default function SetCardPrices({ params }: { params: { set: string } }) {
+export default function SetCardPrices({ params, searchParams }: Props) {
   const x = load(params.set);
   if (!x) notFound();
   const { set, cards } = x;
+  const page = pageOf(searchParams, cards.length);
+  if (page == null) notFound();
+  const pages = Math.ceil(cards.length / SET_PAGE);
+  const shown = cards.slice((page - 1) * SET_PAGE, page * SET_PAGE);
   const { generatedAt } = readSets();
   const sealed = set.sealed ? SET_BY_CODE.get(set.sealed) : null;
   const path = `${CARDS_HUB}/${set.slug}`;
@@ -74,7 +89,7 @@ export default function SetCardPrices({ params }: { params: { set: string } }) {
           <CardTiles cards={top.map((c) => ({ set: set.slug, s: c.s, n: c.n, no: c.no, r: c.r, id: c.id, v: cardValue(c.p) ?? 0 }))} eager={5} />
         </Section>
       )}
-      <Section id="all" title={`Every ${set.name} card`} kicker="In collector-number order">
+      <Section id="all" title={`Every ${set.name} card`} kicker={pages > 1 ? `In collector-number order · page ${page} of ${pages}` : "In collector-number order"}>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[32rem] text-sm">
             <thead>
@@ -87,7 +102,7 @@ export default function SetCardPrices({ params }: { params: { set: string } }) {
               </tr>
             </thead>
             <tbody>
-              {cards.map((c) => (
+              {shown.map((c) => (
                 <tr key={c.id} className="border-b border-line">
                   <td className="tabular py-1.5 pr-3 text-muted">{c.no}</td>
                   <td className="py-1.5 pr-3">
@@ -103,6 +118,21 @@ export default function SetCardPrices({ params }: { params: { set: string } }) {
             </tbody>
           </table>
         </div>
+        {pages > 1 && (
+          <nav aria-label="Pages" className="mt-4 flex flex-wrap gap-2 text-sm">
+            {Array.from({ length: pages }, (_, i) => i + 1).map((n) =>
+              n === page ? (
+                <span key={n} aria-current="page" className="chip font-semibold">
+                  {(n - 1) * SET_PAGE + 1}–{Math.min(n * SET_PAGE, cards.length)}
+                </span>
+              ) : (
+                <Link key={n} href={n === 1 ? path : `${path}?page=${n}`} prefetch={false} className="chip hover:text-brand">
+                  {(n - 1) * SET_PAGE + 1}–{Math.min(n * SET_PAGE, cards.length)}
+                </Link>
+              ),
+            )}
+          </nav>
+        )}
       </Section>
     </div>
   );

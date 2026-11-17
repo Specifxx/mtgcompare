@@ -127,10 +127,13 @@ test("the title fits 60 characters with the site's suffix and keeps the name and
 // ─── Search ────────────────────────────────────────────────────────────────────
 
 const SETS = new Map([
+  ["phyrexia-all-will-be-one", { name: "Phyrexia: All Will Be One", abbr: "ONE" }],
   ["foundations", { name: "Foundations", abbr: "FDN" }],
   ["dominaria-united", { name: "Dominaria United", abbr: "DMU" }],
 ]);
 const ROWS: SearchRow[] = [
+  ["the-lord-of-the-rings", "the-one-ring-246", "The One Ring", "246", 8000, 1, 7],
+  ["phyrexia-all-will-be-one", "bring-the-ending-44", "Bring the Ending", "44", 34, 0, 8],
   ["foundations", "llanowar-elves-227", "Llanowar Elves", "227", 30, 0, 1],
   ["foundations", "llanowar-elves-showcase-401", "Llanowar Elves (Showcase)", "401", 900, 1, 2],
   ["dominaria-united", "llanowar-elves-168", "Llanowar Elves", "168", 25, 0, 3],
@@ -153,6 +156,12 @@ test("search by set code and collector number, in any order and spelling", () =>
   assert.deepEqual(ids("sheoldred 415"), [5]);
   assert.deepEqual(ids("llanowar dmu"), [3]);
   assert.deepEqual(ids("DMU"), [5, 4, 3]);
+});
+
+test("a set code that is also a name word does not hijack a card name", () => {
+  assert.deepEqual(ids("the one ring"), [7]);
+  assert.deepEqual(ids("ONE 44"), [8]);
+  assert.deepEqual(ids("bring one"), [8]);
 });
 
 test("search by name and set words", () => {
@@ -289,6 +298,10 @@ test("the set list shows every card in number order; a set with nothing released
   assert.ok(a > 0 && b > a && c > b, "number order");
   assert.equal(set.generateMetadata({ params: { set: "foundations" } }).robots, undefined);
   assert.deepEqual(set.generateMetadata({ params: { set: "fnm-promos" } }).robots, { index: false, follow: true });
+  const nf = (e: unknown) => /NEXT_NOT_FOUND|NEXT_HTTP_ERROR_FALLBACK/.test(`${(e as Error).message ?? ""} ${(e as { digest?: string }).digest ?? ""}`);
+  assert.throws(() => set.default({ params: { set: "foundations" }, searchParams: { page: "2" } }), nf, "past the last page: 404");
+  assert.throws(() => set.default({ params: { set: "foundations" }, searchParams: { page: "x" } }), nf);
+  assert.doesNotMatch(html, /aria-label="Pages"/, "one page: no page links");
   const hub = await import("../src/app/(site)/card-prices/page");
   const h = render(hub.default() as React.ReactElement);
   assert.match(h, /href="\/card-prices\/foundations"/);
