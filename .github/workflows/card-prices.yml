@@ -1,8 +1,9 @@
 name: MTG Compare card prices
 
-# The most valuable single cards of each set we sell sealed for (DECISIONS.md, 2026-11-17 "Card prices"): scripts/card-import.ts
-# reads TCGplayer's public Magic price files (TCGCSV, no key), picks today's list and commits data/cards/mtg-cards.json to main.
-# The commit carries NO deploy marker: it rides the evening sealed import's release (20:47 UTC). No eBay call, no database.
+# Every Magic card's TCGplayer market price (DECISIONS.md "Card prices: every card"): scripts/card-import.ts reads TCGplayer's
+# public Magic price files (TCGCSV, no key) and commits data/cards/ to the branch it ran on (main on schedule). The commit carries
+# NO deploy marker: it rides the evening sealed import's release (20:47 UTC). No eBay call, no database.
+# Variable: CARD_INDEX_GROWTH (default 500): cards released to Google per day; 0 pauses the release (the pages stay).
 on:
   schedule:
     - cron: "17 19 * * *"
@@ -29,21 +30,25 @@ jobs:
       - name: Install
         run: npm ci --no-audit --no-fund --ignore-scripts
       - name: Read card prices
+        env:
+          CARD_INDEX_GROWTH: ${{ vars.CARD_INDEX_GROWTH }}
         run: npx tsx scripts/card-import.ts
-      - name: Commit to main
+      - name: Commit to the branch it ran on
+        env:
+          BRANCH: ${{ github.ref_name }}
         run: |
           git config user.name "mtgcompare-data[bot]"
           git config user.email "mtgcompare-data@users.noreply.github.com"
-          cp data/cards/mtg-cards.json "$RUNNER_TEMP/cards.json" 2>/dev/null || { echo "No card file."; exit 0; }
+          [ -f data/cards/sets.json ] || { echo "No card files."; exit 0; }
+          rm -rf "$RUNNER_TEMP/cards" && cp -r data/cards "$RUNNER_TEMP/cards"
           for attempt in 1 2 3 4 5; do
-            git fetch -q origin main
-            git reset -q --hard origin/main
-            mkdir -p data/cards
-            cp "$RUNNER_TEMP/cards.json" data/cards/mtg-cards.json
-            git add data/cards/mtg-cards.json
+            git fetch -q origin "$BRANCH"
+            git reset -q --hard "origin/$BRANCH"
+            rm -rf data/cards && cp -r "$RUNNER_TEMP/cards" data/cards
+            git add -A data/cards
             if git diff --cached --quiet; then echo "Unchanged."; exit 0; fi
             git commit -q -m "MTG Compare card prices: $(date -u +%Y-%m-%dT%H:%MZ) (card-prices.yml run ${{ github.run_id }})"
-            if git push -q origin HEAD:main; then echo "Pushed on attempt $attempt."; exit 0; fi
+            if git push -q origin "HEAD:$BRANCH"; then echo "Pushed on attempt $attempt."; exit 0; fi
             sleep $((attempt * 5))
           done
           echo "Could not push after 5 attempts." >&2
