@@ -77,9 +77,15 @@ export interface ShipCell {
   hint: string;
   /** The full sentence (the cell's tooltip). */
   title: string;
+  /**
+   * Price + the cheapest measured postage, as words ("≈ $366.94 total", "from $366.94 total" when postage varies), for every row whose
+   * postage is not free: the total a shopper compares (Fiverr review F2, 2026-11-17). "" when postage is free (the price is the total) or
+   * the row's price is not passed.
+   */
+  total: string;
 }
 
-export function shipCell(q: ShipQuote | null, fmt: (cents: number) => string, where: string): ShipCell | null {
+export function shipCell(q: ShipQuote | null, fmt: (cents: number) => string, where: string, priceCents = 0): ShipCell | null {
   if (!q) return null;
   const range = q.minCents === q.maxCents;
   const text =
@@ -96,7 +102,8 @@ export function shipCell(q: ShipQuote | null, fmt: (cents: number) => string, wh
     `Shipping for one item around this price, measured from the store's own checkout to ${q.addresses} ${q.addresses === 1 ? "address" : "addresses"} in ${where}: ${span}.` +
     (q.freeAtCents != null ? ` Free at ${fmt(q.freeAtCents)} and over.` : "") +
     " The store's checkout is final.";
-  return { min: q.minCents, max: q.maxCents, text, hint, title };
+  const total = priceCents > 0 && q.maxCents > 0 ? `${range ? "≈" : "from"} ${fmt(priceCents + q.minCents)} total` : "";
+  return { min: q.minCents, max: q.maxCents, text, hint, title, total };
 }
 
 export const SHIP_UNKNOWN = "Shipping at checkout";

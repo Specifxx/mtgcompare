@@ -36,8 +36,8 @@ test("the in-page block: eBay and TCGplayer tiles taking turns, eBay first, six 
 });
 
 test("the block is placed once a page: the layout's copy skips the pages that place it themselves; the side rails and pre-footer strips are gone", () => {
-  for (const p of ["/us", "/us/", "/au/p/some-product", "/uk/sets/pitch-black"]) assert.ok(!layoutInlineAdsAllowed(p), `${p} places its own`);
-  for (const p of ["/us/deals", "/us/sealed", "/au/type/secret-lair", "/us/sets", "/uk/stores/foo"]) assert.ok(layoutInlineAdsAllowed(p), `${p} gets the layout's block`);
+  for (const p of ["/us", "/us/", "/au/p/some-product", "/uk/sets/pitch-black", "/us/sealed"]) assert.ok(!layoutInlineAdsAllowed(p), `${p} places its own`);
+  for (const p of ["/us/deals", "/au/type/secret-lair", "/us/sets", "/uk/stores/foo"]) assert.ok(layoutInlineAdsAllowed(p), `${p} gets the layout's block`);
   const layout = src("app/[region]/layout.tsx");
   assert.equal(layout.match(/<LayoutInlineAds /g)?.length, 1);
   assert.doesNotMatch(layout, /PreFooterStrip|PreFooterTcgplayer/);

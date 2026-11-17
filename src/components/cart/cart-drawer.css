@@ -33,6 +33,9 @@
 .cd-qty > span { min-width: 1.4rem; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
 .cd-rm { border: 0; background: none; color: inherit; opacity: 0.65; font: inherit; font-size: 0.78rem; text-decoration: underline; cursor: pointer; min-height: 2.2rem; }
 .cd-price { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; }
+.cd-handoff { border: 1px solid var(--cd-line); border-radius: 0.7rem; padding: 0.7rem 0.85rem; display: grid; gap: 0.3rem; }
+.cd-handoff p { margin: 0; font-size: 0.88rem; }
+.cd-handoff-lead { font-weight: 700; font-size: 0.95rem !important; }
 .cd-fine { margin: 0; font-size: 0.76rem; opacity: 0.7; }
 .cd-blocked { border: 1px solid var(--cart-accent); border-radius: 0.7rem; padding: 0.7rem 0.8rem; font-size: 0.85rem; }
 .cd-blocked p { margin: 0 0 0.4rem; }

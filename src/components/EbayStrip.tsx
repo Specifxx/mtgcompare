@@ -709,7 +709,7 @@ export function useEbayPick({ region, slug, floor, packs, placement }: { region:
 
 // The price table's split into visible rows and collapsed groups, and its store rows (imported here, beside the two functions that use
 // them; OfferTable.tsx imports this module too, which is fine: neither uses the other while the modules load).
-import { EBAY_ROW_KEY, ebayMayBeBest, moreClosedLabel, moreOpenLabel, splitRows } from "@/lib/ebay-offer-row";
+import { EBAY_CAN_BE_BEST, EBAY_ROW_KEY, ebayMayBeBest, moreClosedLabel, moreOpenLabel, splitRows } from "@/lib/ebay-offer-row";
 import { PIN_OUTLINE, ROW_ACTIONS, ROW_BUTTON_LINK, ROW_GRID, StoreRow, useRankedRows, type StoreRowData } from "./OfferRows";
 import { StockPill } from "./StockPill";
 import { StoreVote } from "./StoreVote";
@@ -772,7 +772,7 @@ export function OfferRowsWithEbay({
     top = "tcg";
     low = tcg.cents;
   }
-  if (byPrice && allowGiven && bestable && cents != null && cents < low) top = "ebay";
+  if (EBAY_CAN_BE_BEST && byPrice && allowGiven && bestable && cents != null && cents < low) top = "ebay";
   const ebayRow = <EbayOfferRow key={EBAY_ROW_KEY} region={region} placement={placement} query={query} item={item} cents={cents} age={age} best={top === "ebay"} />;
   type Slot = { key: string; open: boolean; node: ReactNode };
   // The quick view's `order` test (lib/ab.ts; US only): arm b pins TCGplayer's row above eBay's when it is a real offer you can buy
@@ -821,8 +821,9 @@ export function OfferRowsWithEbay({
   );
 }
 
-// The stores' own button (owner, 2026-11-01: eBay and Amazon rows "blend in and look exactly the same as the other price rows").
-const EBAY_BUTTON = "btn-primary";
+// The ad's own button (Fiverr review F7, 2026-11-17: "View on eBay" in the store orange made the ad read as a store). The row keeps its place and
+// layout; only its button is the ink one, as the "Shop eBay" banners', so the filled orange belongs to real stores.
+const EBAY_BUTTON = "btn-ad";
 
 /**
  * Since 2026-11-06 (owner: "eBay prices and Amazon prices should function exactly like a normal store price row. So you can also add
@@ -946,10 +947,13 @@ export function MiniSealedAds({
   tcgPlacement,
   ebayQuery,
   tcgSearchHref,
+  floor = null,
   className = "",
 }: {
   region: Region;
   context: string;
+  /** The product's price floor (ebayFloorFor): a listing priced far under the stores' median is left out of the strip, not shown beside it. */
+  floor?: PriceFloor | null;
   tcg: MiniTcgTile[];
   ebayPlacement: Placement;
   tcgPlacement: Placement;
@@ -958,7 +962,13 @@ export function MiniSealedAds({
   className?: string;
 }) {
   const { ref, state } = useListings({ region, context, placement: ebayPlacement, min: 1 });
-  const items = state.status === "ready" ? state.a.items.slice(0, 10) : null;
+  // Price sanity (Fiverr review F6, 2026-11-17: a US$130 listing beside a US$360 box "looks suspicious"): under the same bar that keeps a
+  // listing from being "Best price" (ebayMayBeBest: 75% of the stores' median) a listing in the stores' currency is not drawn as a tile.
+  const sane = (i: AcceptedItem) => {
+    const c = i.price.currency === REGIONS[region]?.currency ? listingCents(i.price.value) : null;
+    return c == null || ebayMayBeBest(c, floor);
+  };
+  const items = state.status === "ready" ? state.a.items.filter(sane).slice(0, 10) : null;
   const usd = (cents: number) => (region === "us" ? money(cents, "US") : `US${money(cents, "US")}`);
   const searchAll = ebaySearchUrl(ebayQuery, region, ebayPlacement);
   return (

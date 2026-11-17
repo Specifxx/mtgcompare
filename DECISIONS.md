@@ -2081,3 +2081,19 @@ what Google is shown, not by what exists.
   file and memoises it.
 - **Tripwires unchanged:** under 30% of released cards indexed three weeks in, set `CARD_INDEX_GROWTH=0`; MTG sealed Google clicks
   down 15% week on week with no other cause, noindex the cards.
+
+## 2026-11-17: Fiverr first-time-shopper review of DexCompare, applied here (owner)
+
+The owner bought a professional first-time-shopper QA review of DexCompare (the engine this site shares) and asked for every finding to
+reach every site. Applied here, as on Dex (full reasoning in DexCompare's DECISIONS.md, same date):
+
+- **An eBay ad is never "Best price".** `EBAY_CAN_BE_BEST = false` (`lib/ebay-offer-row.ts`): the table badge, the best-price card and the sticky bar
+  name the cheapest store (or TCGplayer when cheaper); eBay stays at the top as a labelled ad with its real price. Reverses the 2026-10-11
+  call that eBay's price counts as the cheapest when it is; set the constant true to roll back.
+- **A total on every row that charges postage:** `ShipCell.total` ("≈ $X total" / "from $X total"), also under the quick view headline.
+- **Cart hand-off:** the drawer opens with "You pay each store on its own site. We never take payment."; "Estimated total (before postage)".
+  The label stays "Add to cart" (owner, 2026-11-14).
+- **No banner pair above the sealed list's results** (`OWN` in `InlineAds.tsx`); the mini eBay strip drops listings under 75% of the stores'
+  median; the eBay button is the ink `btn-ad`; the quick view sets the tab title and description while open; the Christmas line waits for the
+  Black Friday strip to end; CSP (report-only) frame-src gained the Google ad-quality hosts.
+- Quick view: these touch it before the 20 Nov A/B window opens; no arm logic changed.

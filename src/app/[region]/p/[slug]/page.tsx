@@ -323,7 +323,6 @@ export default async function ProductPage({ params }: { params: { region: string
     p.offers.some((o) => o.marketplace)
       ? "Prices exclude shipping (each row shows the store’s measured shipping where we have it). TCGplayer’s is one seller’s listing when we last checked; check it, or the store, before you buy."
       : "Store prices exclude shipping (each row shows the store’s measured shipping where we have it); check the store before you buy.",
-    ...(ebayBest && best ? ["An eBay listing shown as the best price is one seller’s, imported from eBay on a schedule; its shipping is beside its price, and eBay’s page is final."] : []),
     ...(packs != null ? ["Per-pack prices are the listed price divided by the packs the product holds."] : []),
     ...(msrp != null ? [RRP_NOTE] : []),
   ];
@@ -615,6 +614,7 @@ export default async function ProductPage({ params }: { params: { region: string
             ebayPlacement="listings-product-mini"
             tcgPlacement="tcgplayer-strip-mini"
             ebayQuery={ebayQ}
+            floor={ebayFloor}
             tcgSearchHref={tcgplayerSearchUrl(set?.name ?? "", r.region, "tcgplayer-strip-mini")}
             className="mt-4"
           />

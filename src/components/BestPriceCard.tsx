@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { ebayRetailerForHref, ebaySearchUrl, REL_SPONSORED, type Placement } from "@/lib/affiliate";
 import { shipLabel } from "@/lib/ebay-context";
-import type { PriceFloor } from "@/lib/ebay-offer-row";
+import { EBAY_CAN_BE_BEST, type PriceFloor } from "@/lib/ebay-offer-row";
 import { medianSaving, money, msrpBadge, pctOf, plural, timeAgo, type MsrpBadge } from "@/lib/format";
 import { RRP_NOTE } from "@/lib/rrp-note";
 import { Ago } from "./Ago";
@@ -127,7 +127,7 @@ function MsrpPill({ b }: { b: MsrpBadge }) {
 function WithEbay(props: BestPriceCardProps & { ebay: NonNullable<BestPriceCardProps["ebay"]> }) {
   const { region, ebay, store } = props;
   const { ref, item, cents, bestable, age } = useEbayPick({ region, slug: ebay.slug, floor: ebay.floor, packs: ebay.packs, placement });
-  const cheaper = bestable && item != null && cents != null && cents < store.cents;
+  const cheaper = EBAY_CAN_BE_BEST && bestable && item != null && cents != null && cents < store.cents;
   // eBay gets one more line under the headline (the owner, 2026-10-28: "promote eBay more"). When a store is the best price, the
   // listing's REAL price ("Also on eBay"); with no listing, or when the listing is already the headline, a labelled search. Never an
   // estimate, never presented as the best. Always one line once the server sent one, so nothing moves when the listing arrives.

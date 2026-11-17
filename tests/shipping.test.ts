@@ -104,6 +104,14 @@ test("shipCell: the row's words", () => {
   assert.equal(shipCell(null, fmt, "Canada"), null);
 });
 
+test("shipCell total: price + the cheapest measured postage on every row that charges postage (Fiverr review F2, 2026-11-17)", () => {
+  assert.equal(shipCell(quoteAt(games401, ca, 5000), fmt, "Canada", 5000)!.total, "from $60.95 total", "postage varies: the low end, said as 'from'");
+  const flat: StoreShipping = { ...games401, points: [{ subtotalCents: 1000, rates: { tor: 995 } }] };
+  assert.equal(shipCell(quoteAt(flat, ca, 5000), fmt, "Canada", 5000)!.total, "≈ $59.95 total");
+  assert.equal(shipCell(quoteAt(games401, ca, 20000), fmt, "Canada", 20000)!.total, "", "free postage: the price is the total");
+  assert.equal(shipCell(quoteAt(games401, ca, 5000), fmt, "Canada")!.total, "", "no price passed: no total");
+});
+
 test("rankRows: price keeps the server's order; total ranks known shipping by price + cheapest shipping, unknown after, closed last", () => {
   const row = (key: string, cents: number, ship: number | null, open = true) => ({ key, cents, open, ship: ship == null ? null : { min: ship } });
   const rows = [row("a", 5000, 2000), row("b", 5500, 0), row("c", 5600, null), row("d", 6000, 500), row("e", 4000, 0, false)];
