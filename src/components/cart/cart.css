@@ -116,6 +116,8 @@
    The row's cart button carries its words, not a bare icon; on a phone it says "Add" beside the icon where the row has no room
    for more, and the phone's text button (`inline`) is drawn as a button. Neutral (currentColor), so it never outshouts the buy
    button: the calm three-colour rule. */
-.ce-cart-add.has-label { padding: 0 0.8rem; border-color: color-mix(in srgb, currentColor 45%, transparent); white-space: nowrap; }
+/* Quieter, smaller (owner, 2026-11-17: "add to cart seems too big of a button"): 36px tall, 12px text, a thinner border, so the store's name keeps the room. */
+.ce-cart-add.has-label { height: 2.25rem; min-width: 0; padding: 0 0.6rem; gap: 0.3rem; font-size: 0.75rem; font-weight: 500; border-color: color-mix(in srgb, currentColor 30%, transparent); white-space: nowrap; }
+.ce-cart-add.has-label svg { width: 15px; height: 15px; }
 .ce-cart-inline { min-height: 2rem; padding: 0 0.65rem; border: 1px solid color-mix(in srgb, currentColor 45%, transparent); border-radius: 0.5rem; white-space: nowrap; }
 @media (max-width: 639.98px) { .ce-cart-add .ce-cart-more { display: none; } }

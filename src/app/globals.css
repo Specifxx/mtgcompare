@@ -200,11 +200,13 @@ body {
   .or-hl {
     @apply bg-raised shadow-[inset_3px_0_0_rgb(var(--open))];
   }
+  /* The store's name always shows (owner, 2026-11-17: quick view cut "eBay" and "TCGplayer" to nothing): from sm the badges wrap under
+     the name instead of squeezing it, and the name keeps at least 4.5rem. */
   .or-top {
-    @apply flex h-5 items-center gap-2 overflow-hidden sm:h-6;
+    @apply flex h-5 items-center gap-2 overflow-hidden sm:h-auto sm:min-h-6 sm:flex-wrap sm:gap-y-0.5;
   }
   .or-name {
-    @apply truncate text-[15px] font-semibold sm:text-base;
+    @apply min-w-[4.5rem] max-w-full truncate text-[15px] font-semibold sm:text-base;
   }
   .or-badge {
     @apply shrink-0 rounded-full bg-open px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-surface;
@@ -661,6 +663,22 @@ body:has([data-ebay-no-prefooter]) [data-ebay-prefooter] {
   flex: none;
   height: 3px;
   background: linear-gradient(to right, rgb(var(--xmas-red)) 50%, rgb(var(--xmas-pine)) 50%);
+}
+/* Event layer (UI/UX squad, 2026-11-16): Black Friday week to Cyber Monday (lib/season.ts eventAt, data-event on <html>) swaps the
+   hairline's two festive colours for ONE amber, the colour of the Black Friday strip. Calm three-colour rule: no new colour, no motion. */
+:root[data-event="blackfriday"] {
+  --event-amber: 183 121 31; /* #b7791f: 4.6:1 on white */
+}
+:root[data-event="blackfriday"]:not([data-theme="light"]) {
+  --event-amber: 232 176 74; /* 8:1 on the dark page */
+}
+:root[data-event="blackfriday"][data-festive] body::before,
+:root[data-event="blackfriday"] body::before {
+  content: "";
+  display: block;
+  flex: none;
+  height: 3px;
+  background: rgb(var(--event-amber));
 }
 .xmas-guide {
   display: flex;
