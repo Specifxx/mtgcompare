@@ -159,24 +159,15 @@ export function QuickView() {
   const name = got?.name || head.name;
   const sub = got?.sub || head.sub;
   const img = head.img || got?.img || null;
-  const chart = got?.history ? (
-    <div className="[min-height:13.5rem]">
-      <PriceHistoryChart values={expandPoints(got.history.pts, got.history.through, 400)} market={REGIONS[head.region].market} compact />
-    </div>
-  ) : null;
-  // The cheapest open row's price (stores and TCGplayer, the rows the table crowns from), for the desktop price box (not shown on a pre-order: the table crowns no best price there).
+  // The cheapest open row (stores and TCGplayer, the rows the table crowns from); none on a pre-order, where the table crowns no best price.
   const cheapest = got && !got.preorder ? [...got.rows, got.tcg].filter((r): r is StoreRowData => !!r && r.open).sort((x, y) => x.cents - y.cents)[0] ?? null : null;
   return (
     <AbContext.Provider value={ab}>
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={name}>
       <button type="button" aria-label="Close" tabIndex={-1} className="qv-backdrop absolute inset-0 bg-black/50 backdrop-blur-[2px]" onClick={close} />
-      <div className="qv-panel relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden sm:max-w-5xl rounded-t-2xl border border-line bg-surface shadow-2xl sm:rounded-2xl">
-        {/* Desktop (owner, 2026-11-17: Rift's quick view is better): the product on the left, with its cheapest-price box and the price
-            history; the store rows on the right. A phone keeps the stacked sheet. Paid rows, order and wording are not touched. */}
-        <div className="flex min-h-0 flex-1 flex-col sm:flex-row">
-        <div className="flex shrink-0 flex-col sm:w-[320px] sm:overflow-y-auto sm:border-r sm:border-line">
-        <div className="flex items-start gap-4 border-b border-line p-4 sm:flex-col sm:gap-3 sm:border-b-0 sm:p-5">
-          <div className="plate relative h-24 w-24 shrink-0 sm:h-40 sm:w-40 sm:self-center">
+      <div className="qv-panel relative flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-2xl border border-line bg-surface shadow-2xl sm:rounded-2xl">
+        <div className="flex items-start gap-4 border-b border-line p-4 sm:p-5">
+          <div className="plate relative h-24 w-24 shrink-0">
             {img ? (
               <img src={img} alt="" className="absolute inset-0 h-full w-full object-contain p-1.5 mix-blend-multiply" />
             ) : (
@@ -193,27 +184,29 @@ export function QuickView() {
             )}
             {got && <ShareButton title={name} path={head.href} kind="product" text={got.share} className="mt-2" />}
           </div>
-          <button ref={closeRef} type="button" onClick={close} aria-label="Close" className="-mr-1 -mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted hover:bg-raised hover:text-ink sm:absolute sm:right-3 sm:top-3 sm:z-10 sm:m-0">
+          <button ref={closeRef} type="button" onClick={close} aria-label="Close" className="-mr-1 -mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted hover:bg-raised hover:text-ink">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
               <path d="M6 6l12 12M18 6 6 18" />
             </svg>
           </button>
         </div>
-        {cheapest && (
-          <div className="mx-5 mb-4 hidden rounded-xl border border-line p-3 sm:block">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Cheapest price</p>
-            <p className="tabular text-2xl font-extrabold">{cheapest.price}</p>
-            <p className="truncate text-xs text-muted">{cheapest.name}</p>
-          </div>
-        )}
-        {chart && <div className="mx-5 mb-5 hidden sm:block">{chart}</div>}
-        </div>
         {/* Prices first on a phone (calm palette, 2026-11-12): the ad pair sat above the rows and pushed every store's price off the
             first screen of the sheet. Below sm it follows the price table; from sm, where the rows are in view either way, it leads. */}
-        <div className="flex min-w-0 flex-1 flex-col overflow-y-auto p-4 sm:p-5 sm:pt-14">
+        <div className="flex flex-1 flex-col overflow-y-auto p-4 sm:p-5">
           {/* The price history leads the panel (owner, 2026-11-17): with dozens of stores listed it was below a long scroll. Before the paid
               pair and the rows in every arm, so their order and wording are untouched. */}
-          {chart && <div className="mb-4 shrink-0 sm:hidden">{chart}</div>}
+          {cheapest && (
+            <div className="mb-4 shrink-0 rounded-xl border border-line p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Cheapest price</p>
+              <p className="tabular text-2xl font-extrabold">{cheapest.price}</p>
+              <p className="truncate text-xs text-muted">{cheapest.name}</p>
+            </div>
+          )}
+          {got?.history && (
+            <div className="mb-4 shrink-0 [min-height:13.5rem]">
+              <PriceHistoryChart values={expandPoints(got.history.pts, got.history.through, 400)} market={REGIONS[head.region].market} compact />
+            </div>
+          )}
           <h3 className="mb-3 text-sm font-semibold">Every store&rsquo;s price</h3>
           {data === "loading" ? (
             <Skeleton />
@@ -224,7 +217,6 @@ export function QuickView() {
           ) : (
             <p className="rounded-xl border border-line p-4 text-sm text-muted">Prices did not load. The full page has every store&rsquo;s price.</p>
           )}
-        </div>
         </div>
         <div className="border-t border-line p-4 sm:px-5">
           {/* The product page's price alert (2026-11-13): most buy clicks start in this panel and most visitors never open the product
