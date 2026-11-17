@@ -127,11 +127,11 @@ test("pinned TCGplayer: third, under eBay and Amazon (owner, 2026-11-06), its ow
   const us = render(React.createElement(OfferTable, { offers, region: "us", preorder: false, ebay: { slug: "x", query: "X", floor: null, packs: null }, pinned: { productName: "X", tcgplayer: null } }));
   const rows = [...us.matchAll(/<li data-offer-row=""([^>]*)>/g)].map((m) => m[1]);
   assert.equal(rows.length, 5, "eBay, Check on Amazon, TCGplayer and two stores");
-  // Owner, 2026-11-17: affiliated rows at the top by price; the priced TCGplayer offer first, then the unpriced eBay and Check Amazon rows.
-  assert.match(rows[0], /data-row="tcgplayer"/, "the priced TCGplayer offer leads the affiliated rows");
-  assert.match(rows[1], /data-ad="listings-offer-row"/);
-  assert.match(rows[2], /data-row="amazon"/);
-  assert.match(rows[0], /or-hl/, "cheapest of the whole table: highlighted");
+  // Owner, 2026-11-17 (final): eBay, then TCGplayer, then Amazon (the unpriced Check row), then the stores.
+  assert.match(rows[0], /data-ad="listings-offer-row"/);
+  assert.match(rows[1], /data-row="tcgplayer"/, "TCGplayer right under eBay");
+  assert.match(rows[2], /data-row="amazon"/, "Amazon right under TCGplayer");
+  assert.match(rows[1], /or-hl/, "cheapest of the whole table: highlighted");
   assert.match(us, /data-best="tcg"/);
   assert.doesNotMatch(us, /Best store price/, "no store badge when eBay or TCGplayer is cheaper (owner, 2026-11-13)");
   assert.equal([...us.matchAll(/class="btn-primary/g)].length, 3, "eBay, the cheapest store and the Check on Amazon row wear the filled button (owner, 2026-11-12, 11-17)");

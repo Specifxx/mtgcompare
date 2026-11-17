@@ -11,6 +11,6 @@ test("Amazon (priced or the unpriced Check row) is an affiliated row at the top 
   assert.match(read("components/OfferTable.tsx"), /Check on Amazon/);
   assert.match(read("components/EbayStrip.tsx"), /\.\.\.\(amazon \? \[\{ key: amazon\.key/);
   assert.doesNotMatch(read("components/EbayStrip.tsx"), /amazon && !amazon\.live &&/);
-  assert.match(read("components/EbayStrip.tsx"), /\.\.\.pins\.filter\(\(x\) => x\.cents !== null\)\.sort\(\(x, y\) => x\.cents! - y\.cents!\)/);
+  assert.match(read("components/EbayStrip.tsx"), /const pinSlots: Slot\[\] = \[\s+\{ key: EBAY_ROW_KEY/);
   assert.doesNotMatch(read("app/[region]/p/[slug]/page.tsx"), /AmazonProductRow|AmazonBelowTable/);
 });
