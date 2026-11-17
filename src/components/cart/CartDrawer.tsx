@@ -5,13 +5,17 @@
 // or the add button on a price row (a pop-up for a new visitor never opens it; nothing can add a
 // line but a click). "Check out" opens every store's checkout in its own tab from that click,
 // each with the row's own affiliate-tagged link; lines from one Shopify store share ONE checkout
-// (src/lib/cart-checkout.ts). A browser that blocks the extra tabs gets the same links as a list.
+// (src/lib/cart-checkout.ts). A browser gives one click one tab (Chrome, Safari), so the click
+// opens the first store and the drawer walks the rest as steps: one big "Open next store (2 of 5)"
+// button, each store ticked off, never a "blocked" message and never a plain link in place of the
+// tagged one. Where the browser allows several tabs (Firefox) the one click opens them all.
 // The cart lives in this browser only (src/lib/cart-list.ts); /cart stays as the no-script page.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { cartRef, formatMoney, groupByStore, onCartChange, readCart, setQty, writeCart, type CartLine } from "@/lib/cart-list";
 import { buildCheckout, checkLines, isGone, openAll, type CheckoutItem, type Checks } from "@/lib/cart-checkout";
 import { CART_SITE } from "./cart-config";
+import { CartThumb } from "./CartThumb";
 import { CartIcon } from "./CartIcon";
 
 function track(name: string, params: Record<string, unknown>) {
@@ -28,8 +32,8 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
   const [lines, setLines] = useState<CartLine[]>([]);
   const [checks, setChecks] = useState<Checks>({});
   const [checking, setChecking] = useState(false);
-  const [blocked, setBlocked] = useState<CheckoutItem[] | null>(null);
-  const [opened, setOpened] = useState(0);
+  // Keys of the stores already opened this checkout; the drawer keeps its place while the visitor is in the store tabs.
+  const [done, setDone] = useState<string[]>([]);
   // One drawer draws, whichever header button asked (a header can mount the button twice).
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -96,8 +100,6 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
-      setBlocked(null);
-      setOpened(0);
       prevFocus?.focus?.();
     };
   }, [open, onClose]);
@@ -111,12 +113,23 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
   for (const l of lines) if (!isGone(checks[l.id])) totals.set(l.currency, (totals.get(l.currency) ?? 0) + price(l) * l.qty);
   const units = lines.filter((l) => !isGone(checks[l.id])).reduce((s, l) => s + l.qty, 0);
 
+  // Only stores still in the cart count; a cart that changes keeps the stores already opened ticked.
+  const doneKeys = done.filter((k) => items.some((i) => i.key === k));
+  const todo = items.filter((i) => !doneKeys.includes(i.key));
+  const started = doneKeys.length > 0;
+  // After the first tab opens, bring the steps into view so the visitor sees where they are on return.
+  const steps = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (started) steps.current?.scrollIntoView({ block: "nearest" });
+  }, [started]);
+  const markDone = (it: CheckoutItem, via: string) => {
+    setDone((d) => (d.includes(it.key) ? d : [...d, it.key]));
+    track("cart_checkout", { store: it.storeName, value: it.cents / 100, currency: it.currency, items: it.units, via });
+  };
   const checkout = () => {
-    // Everything is opened from this one click, so a popup blocker has the click to go on.
-    const r = openAll(items);
-    setOpened(r.opened.length);
-    setBlocked(r.blocked.length ? r.blocked : null);
-    for (const it of r.opened) track("cart_checkout", { store: it.storeName, value: it.cents / 100, currency: it.currency, items: it.units, via: "drawer" });
+    // The first tab opens from this click; more only while the browser still counts the click as live.
+    const r = openAll(todo);
+    for (const it of r.opened) markDone(it, "drawer");
   };
 
   // Portalled to <body>: the header has a backdrop-filter, which would otherwise become the containing block of a fixed drawer.
@@ -165,8 +178,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                         const changed = c?.priceCents != null && c.priceCents !== l.priceCents;
                         return (
                           <li key={l.id} className={gone ? "is-out" : undefined}>
-                            {/* eslint-disable-next-line @next/next/no-img-element -- store and card photos are hotlinked, never optimised */}
-                            {l.image ? <img src={l.image} alt={l.title} loading="lazy" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.visibility = "hidden")} /> : <span className="cd-noimg" />}
+                            <CartThumb image={l.image} alt={l.title} noimgClass="cd-noimg" />
                             <div className="cd-main">
                               <a href={l.page || l.href} className="cd-title" onClick={onClose}>
                                 {l.title}
@@ -211,35 +223,34 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
               <p className="cd-fine">
                 {checking ? "Checking prices and stock at each store… " : ""}Each store takes payment on its own site, never us, and adds its own postage. Opening a Shopify store&apos;s checkout replaces anything already in your cart there.
               </p>
-              {blocked && (
-                <div className="cd-blocked" role="alert">
+              {items.length > 1 && (
+                <section ref={steps} className="cd-steps" aria-label="Checkout steps">
                   <p className="cd-strong">
-                    {opened ? `Opened ${opened} tab${opened === 1 ? "" : "s"}. ` : ""}Your browser blocked {blocked.length} more. Open {blocked.length === 1 ? "it" : "them"} here:
+                    {!started ? `${items.length} stores, one tab each` : todo.length ? `Opened ${doneKeys.length} of ${items.length} stores` : `All ${items.length} stores opened`}
                   </p>
-                  <ul>
-                    {blocked.map((b) => (
-                      <li key={b.key}>
-                        <a href={b.url} target="_blank" rel={b.rel} onClick={() => track("cart_checkout", { store: b.storeName, value: b.cents / 100, currency: b.currency, items: b.units, via: "drawer-fallback" })}>
-                          {b.label} ↗
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {items.length > 1 && !blocked && (
-                <details className="cd-links">
-                  <summary>Open stores one at a time</summary>
-                  <ul>
-                    {items.map((b) => (
-                      <li key={b.key}>
-                        <a href={b.url} target="_blank" rel={b.rel} onClick={() => track("cart_checkout", { store: b.storeName, value: b.cents / 100, currency: b.currency, items: b.units, via: "drawer-single" })}>
-                          {b.label} ↗
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </details>
+                  {!started && <p className="cd-steps-note">Your browser opens one tab per tap, so after the first we&apos;ll keep your place and open the rest one tap at a time.</p>}
+                  <ol>
+                    {items.map((b) => {
+                      const isDone = doneKeys.includes(b.key);
+                      return (
+                        <li key={b.key} className={isDone ? "is-done" : undefined}>
+                          <span className="cd-step-name">
+                            {isDone ? "✓ " : ""}
+                            {b.label}
+                          </span>
+                          <a href={b.url} target="_blank" rel={b.rel} onClick={() => markDone(b, isDone ? "drawer-again" : "drawer-step")}>
+                            {isDone ? "Open again" : "Open"} ↗
+                          </a>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                  {started && (
+                    <button type="button" className="cd-steps-reset" onClick={() => setDone([])}>
+                      Start over
+                    </button>
+                  )}
+                </section>
               )}
             </div>
             <footer className="cd-foot">
@@ -257,9 +268,15 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                 >
                   Check out at {items[0].storeName} ↗
                 </a>
+              ) : started && todo.length ? (
+                <a className="cd-btn" href={todo[0].url} target="_blank" rel={todo[0].rel} onClick={() => markDone(todo[0], "drawer-step")}>
+                  Open next: {todo[0].storeName} ({doneKeys.length + 1} of {items.length}) ↗
+                </a>
+              ) : started ? (
+                <p className="cd-alldone">All {items.length} stores are open. Finish paying in each tab.</p>
               ) : (
                 <button type="button" className="cd-btn" onClick={checkout} disabled={!items.length}>
-                  Check out {items.length} stores ({items.length} tabs)
+                  Check out {items.length} stores
                 </button>
               )}
               <div className="cd-links2">
