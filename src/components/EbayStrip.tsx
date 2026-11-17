@@ -830,8 +830,8 @@ function EbayOfferRow({ region, placement, query, item, cents, age, best }: { re
   const q = query.trim();
   return (
     <li data-offer-row="" data-ad={placement} data-state={item ? "listing" : "search"} className={`${ROW_GRID} ${best ? PIN_OUTLINE.cheapest : PIN_OUTLINE.ebay}`}>
-      <div className="flex h-5 min-w-0 items-center gap-2 overflow-hidden sm:h-6">
-        <span className="truncate text-[15px] font-semibold sm:text-base">eBay</span>
+      <div className="or-top min-w-0">
+        <span className="or-name">eBay</span>
         <span className="ad-pill">Ad</span>
         {best && <span className="shrink-0 rounded-full bg-open px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-surface">Best price</span>}
         {cond && <span className="min-w-0 max-w-[9rem] truncate rounded-full border border-line bg-surface px-2 py-0.5 text-[10px] font-bold uppercase leading-3 tracking-wide text-muted">{cond}</span>}
