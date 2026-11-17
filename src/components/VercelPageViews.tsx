@@ -8,7 +8,13 @@ import { Analytics, type BeforeSendEvent } from "@vercel/analytics/react";
 function stripQuery(event: BeforeSendEvent): BeforeSendEvent | null {
   try {
     const u = new URL(event.url);
-    if (u.search) return { ...event, url: `${u.origin}${u.pathname}` };
+    if (u.search) {
+      // Keep one thing: an AI assistant's utm_source (ChatGPT adds utm_source=chatgpt.com), so Vercel → Analytics → UTM
+      // shows visits from answers (2026-11-17). Nothing a visitor typed is ever sent.
+      const src = u.searchParams.get("utm_source")?.toLowerCase();
+      const ai = src && /^(chatgpt\.com|chatgpt|perplexity|perplexity\.ai|claude|gemini|copilot)$/.test(src) ? `?utm_source=${src}` : "";
+      return { ...event, url: `${u.origin}${u.pathname}${ai}` };
+    }
   } catch {
     /* not a URL we can parse: send as-is */
   }
