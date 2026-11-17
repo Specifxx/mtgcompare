@@ -193,8 +193,8 @@ export function QuickView() {
         {/* Prices first on a phone (calm palette, 2026-11-12): the ad pair sat above the rows and pushed every store's price off the
             first screen of the sheet. Below sm it follows the price table; from sm, where the rows are in view either way, it leads. */}
         <div className="flex flex-1 flex-col overflow-y-auto p-4 sm:p-5">
-          {/* The price history leads the panel (owner, 2026-11-17): with dozens of stores listed it was below a long scroll. Before the paid
-              pair and the rows in every arm, so their order and wording are untouched. */}
+          {/* The cheapest-price box leads; the price history now sits below the rows (owner, 2026-11-17). The paid
+              pair and the rows are in every arm untouched. */}
           {cheapest && (
             <div className="mb-4 shrink-0 rounded-xl border border-line p-3">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-muted">Cheapest price</p>
@@ -202,20 +202,21 @@ export function QuickView() {
               <p className="truncate text-xs text-muted">{cheapest.name}</p>
             </div>
           )}
-          {got?.history && (
-            <div className="mb-4 shrink-0 [min-height:13.5rem]">
-              <PriceHistoryChart values={expandPoints(got.history.pts, got.history.through, 400)} market={REGIONS[head.region].market} compact />
-            </div>
-          )}
           <h3 className="mb-3 text-sm font-semibold">Every store&rsquo;s price</h3>
           {data === "loading" ? (
             <Skeleton />
           ) : data ? (
             <div className="card shrink-0 overflow-hidden">
-              <OfferRowsWithEbay rows={data.rows} tcg={data.tcg} amazon={data.amazon} region={head.region} slug={data.ebay.slug} query={data.ebay.query} floor={data.ebay.floor} packs={data.ebay.packs} allowBest={!data.preorder} preorder={data.preorder} />
+              <OfferRowsWithEbay rows={data.rows} tcg={data.tcg} amazon={data.amazon} region={head.region} slug={data.ebay.slug} query={data.ebay.query} floor={data.ebay.floor} packs={data.ebay.packs} allowBest={!data.preorder} preorder={data.preorder} maxRows={10} />
             </div>
           ) : (
             <p className="rounded-xl border border-line p-4 text-sm text-muted">Prices did not load. The full page has every store&rsquo;s price.</p>
+          )}
+          {/* The price history sits below the rows (owner, 2026-11-17: moved from the top). */}
+          {got?.history && (
+            <div className="mt-4 shrink-0 [min-height:13.5rem]">
+              <PriceHistoryChart values={expandPoints(got.history.pts, got.history.through, 400)} market={REGIONS[head.region].market} compact />
+            </div>
           )}
         </div>
         <div className="border-t border-line p-4 sm:px-5">

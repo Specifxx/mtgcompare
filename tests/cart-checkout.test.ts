@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { makeLine, addLine, type CartLine } from "../src/lib/cart-list";
-import { buildCheckout, openAll } from "../src/lib/cart-checkout";
+import { browserKind, buildCheckout, openAll, popupSteps } from "../src/lib/cart-checkout";
 
 const mk = (href: string, store: string, title: string, productUrl: string): CartLine =>
   makeLine({ href, productUrl, storeName: store, title, priceCents: 5000, currency: "USD" })!;
@@ -26,19 +26,29 @@ test("sold-out lines are left out; one click opens what the browser allows and t
   const l = mk("https://shop.example/cart/11111111:1", "Shop", "Box A", "https://shop.example/products/a?variant=11111111");
   assert.equal(buildCheckout([l], { [l.id]: { status: "soldout", priceCents: null } }, "s", "r").length, 0);
   const items = [1, 2, 3].map((n) => ({ key: String(n), storeName: "s", label: "s", url: `https://x/${n}`, kind: "line" as const, units: 1, cents: 1, currency: "USD", rel: "" }));
-  // Chrome / Safari: the click is spent on the first tab, so the rest wait for the steps, and nothing blocked is ever attempted.
+  // Chrome / Safari / Firefox with pop-ups blocked: the first tab opens, every other try is refused and comes back pending.
   const urls: string[] = [];
-  let spent = false;
-  const r = openAll(items, (u) => (urls.push(u), spent = true, { opener: 1 }), () => !spent);
-  assert.deepEqual(urls, ["https://x/1"]);
+  const r = openAll(items, (u) => (urls.push(u), urls.length === 1 ? { opener: 1 } : null));
+  assert.equal(urls.length, 3, "every store is tried, so the browser shows its blocked-pop-up control");
   assert.equal(r.opened.length, 1);
-  assert.equal(r.pending.length, 2);
-  // Firefox with its tab allowance: every tab opens from the one click.
-  const all = openAll(items, () => ({ opener: 1 }), () => true);
+  assert.deepEqual(r.pending.map((i) => i.key), ["2", "3"]);
+  // Pop-ups allowed: every tab opens from the one click.
+  const all = openAll(items, () => ({ opener: 1 }));
   assert.equal(all.opened.length, 3);
   assert.equal(all.pending.length, 0);
-  // A blocker that refuses mid-way: the rest are pending, in order.
-  let n = 0;
-  const part = openAll(items, () => (++n === 1 ? { opener: 1 } : null), () => true);
-  assert.deepEqual(part.pending.map((i) => i.key), ["2", "3"]);
+  // A throwing open is a refusal.
+  assert.equal(openAll(items, () => { throw new Error("x"); }).pending.length, 3);
+});
+
+test("pop-up help names the right browser and the site", () => {
+  assert.equal(browserKind("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36"), "chrome");
+  assert.equal(browserKind("Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 Chrome/157.0 Safari/537.36 Edg/157.0"), "chrome");
+  assert.equal(browserKind("Mozilla/5.0 (Windows NT 10.0; rv:130.0) Gecko/20100101 Firefox/130.0"), "firefox");
+  assert.equal(browserKind("Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"), "safari");
+  assert.equal(browserKind("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1"), "ios");
+  assert.equal(browserKind("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 CriOS/120.0 Mobile/15E148 Safari/604.1"), "ios");
+  assert.equal(browserKind("Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/120.0 Mobile Safari/537.36"), "android");
+  assert.match(popupSteps("chrome", "tcgprices.app").join(" "), /Always allow pop-ups and redirects from tcgprices\.app/);
+  assert.match(popupSteps("firefox", "tcgprices.app").join(" "), /Allow pop-ups for tcgprices\.app/);
+  assert.match(popupSteps("safari", "x.app").join(" "), /Pop-up Windows to Allow/);
 });

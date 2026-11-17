@@ -2008,3 +2008,6 @@ follows links reached Impact as our click and we could neither see nor stop it. 
 not same-origin or same-site) to TCGplayer's own page, untagged, so Impact never counts it. https on tcgplayer.com only (no open redirect); `no-store`,
 `X-Robots-Tag: noindex, nofollow`, disallowed in robots.txt; the anchors keep `rel="sponsored nofollow"`. A bot and a person read the same HTML. A bot that clicks a link in a
 real browser on our page is same-origin and still passes; that needs a Vercel Firewall rate limit on `/out/*`.
+## 2026-11-17: Quick view: price history at the very bottom, at most 10 rows (owner)
+
+Owner, 2026-11-17: the price-history chart at the top of the quick view is "not even that valuable". It now sits at the very bottom of the panel, below the rows and the ad pair, and the quick view lists at most 10 rows (`maxRows`): the pinned eBay and TCGplayer rows first, then the cheapest others, with "N more listings on the full page" (the page and "See price history and details" still show everything). The Cheapest price box and the Add to cart buttons are unchanged. Paid rows, their order and wording are untouched in every A/B arm (Dex and MTG tests, 20 Nov to 3 Dec).
