@@ -71,30 +71,37 @@ export function buildCheckout(lines: CartLine[], checks: Checks, site: string, r
 }
 
 /**
- * Open every item in its own tab, from inside the click that asked for it (a browser only lets
- * a tab open from a click). Returns the items a popup blocker refused so the drawer can list them
- * as one-click links. `open` is injectable for tests.
+ * Open stores in their own tabs from the click that asked for it. A browser lets ONE click open
+ * ONE tab (Chrome and Safari spend the click on the first; Firefox allows a few), so this opens
+ * the first, then goes on only while the browser still counts the click as live
+ * (`navigator.userActivation.isActive`) and the last open worked. It never fires a second open
+ * the browser is going to block, so nobody sees a "blocked" warning. Whatever is left comes back
+ * as `pending`, for the drawer's one-tap-per-store steps. `open` and `live` are injectable for tests.
  */
-export function openAll(items: CheckoutItem[], open: (url: string) => { opener: unknown } | null = (u) => window.open(u, "_blank")): { opened: CheckoutItem[]; blocked: CheckoutItem[] } {
+export function openAll(
+  items: CheckoutItem[],
+  open: (url: string) => { opener: unknown } | null = (u) => window.open(u, "_blank"),
+  live: () => boolean = () => (typeof navigator !== "undefined" ? (navigator as Navigator & { userActivation?: { isActive: boolean } }).userActivation?.isActive ?? true : true),
+): { opened: CheckoutItem[]; pending: CheckoutItem[] } {
   const opened: CheckoutItem[] = [];
-  const blocked: CheckoutItem[] = [];
-  for (const it of items) {
+  let i = 0;
+  for (; i < items.length; i++) {
+    if (i > 0 && !live()) break;
     let w: { opener: unknown } | null = null;
     try {
-      w = open(it.url);
+      w = open(items[i].url);
     } catch {
       w = null;
     }
-    if (w) {
-      try {
-        w.opener = null; // the store never gets a handle on our page
-      } catch {
-        /* cross-origin: fine */
-      }
-      opened.push(it);
-    } else blocked.push(it);
+    if (!w) break;
+    try {
+      w.opener = null; // the store never gets a handle on our page
+    } catch {
+      /* cross-origin: fine */
+    }
+    opened.push(items[i]);
   }
-  return { opened, blocked };
+  return { opened, pending: items.slice(i) };
 }
 
 /** Re-check each Shopify line's live price and stock from the store itself (CORS-open, no function of ours). */

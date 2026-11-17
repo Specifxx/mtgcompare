@@ -21,6 +21,7 @@ import {
   type LiveCheck,
 } from "@/lib/cart-list";
 import { CART_SITE } from "./cart-config";
+import { CartThumb } from "./CartThumb";
 import { CartIcon } from "./CartIcon";
 
 type Checks = Record<string, LiveCheck>;
@@ -156,8 +157,7 @@ export function CartListView() {
                 const changed = c?.priceCents != null && c.priceCents !== l.priceCents;
                 return (
                   <li key={l.id} className={out ? "is-out" : undefined}>
-                    {/* eslint-disable-next-line @next/next/no-img-element -- store and card photos are hotlinked, never optimised */}
-                    {l.image ? <img src={l.image} alt={l.title} loading="lazy" referrerPolicy="no-referrer" onError={(e) => (e.currentTarget.style.visibility = "hidden")} /> : <span className="ce-cart-noimg" />}
+                    <CartThumb image={l.image} alt={l.title} noimgClass="ce-cart-noimg" />
                     <div className="ce-cart-main">
                       <a href={l.page || l.href} className="ce-cart-title">
                         {l.title}
