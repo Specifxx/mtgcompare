@@ -1,4 +1,6 @@
 import { Flag } from "@/components/Flag";
+import { barcodeOf, tcgplayerIdOf } from "@/lib/barcodes";
+import { gtinLabel } from "@/lib/gtin";
 import Link from "@/components/Link";
 import { PriceHistoryChart } from "@/components/PriceHistoryChart";
 import { PreorderBanner } from "@/components/PreorderBanner";
@@ -231,6 +233,9 @@ export default async function ProductPage({ params }: { params: { region: string
       : `Prices on TCGplayer in ${r.name}`;
   // TCGplayer: in the US one of the offers; elsewhere the separate US$ offer.
   const tcgplayer = p.offers.find((o) => o.marketplace) ?? p.usMarketplace;
+  // TCGplayer's id and barcode for this product (lib/barcodes.ts): Quick facts and the Product markup.
+  const tcgId = tcgplayerIdOf(tcgplayer?.url);
+  const barcode = barcodeOf(tcgId);
   // The same-set read, all of it (take 40): the value check reads every format.
   const related = p.setCode ? await getRelated(r.market, p.setCode, p.slug) : [];
   // Eight of them: the ones after this product in the set's own order (setNeighbours), so a big set's pages link every product.
@@ -319,6 +324,12 @@ export default async function ProductPage({ params }: { params: { region: string
     msrp,
     elsewhere: elsewhere.map(({ x, s }) => ({ region: x.region, name: x.inName.replace(/^the /, ""), flag: x.flag, inName: x.inName, market: x.market, lowestPriceCents: s!.lowestPriceCents, open: s!.inStockStores > 0 || s!.marketplaceOpen })),
   });
+  // The codes people search by (owner, 2026-11-18): the box's barcode and TCGplayer's id, short facts before the long ones.
+  const idFacts = [
+    ...(barcode ? [{ term: `Barcode (${gtinLabel(barcode)})`, text: barcode, short: true }] : []),
+    ...(tcgId ? [{ term: "TCGplayer ID", text: String(tcgId), short: true }] : []),
+  ];
+  facts.splice(facts.findIndex((f) => !f.short) === -1 ? facts.length : facts.findIndex((f) => !f.short), 0, ...idFacts);
   // The explanations that used to sit under the card, now first in the table's "How these prices work".
   const notes = [
     p.offers.some((o) => o.marketplace)
@@ -340,6 +351,8 @@ export default async function ProductPage({ params }: { params: { region: string
         highCents: open[open.length - 1].priceCents,
         offerCount: open.length,
         preorder: pre,
+        tcgplayerId: tcgId,
+        barcode,
         // the value check's own sentence when it is about this product; else the page's description (facts only, never eBay's)
         description:
           value && !value.href
