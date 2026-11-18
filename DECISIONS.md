@@ -2243,3 +2243,8 @@ visitor count is the denominator), so it costs at most one event per returning v
 social, ai, other), plus the arm of each live 50/50 test (`rn`, `ln`, `share`, `cart`, `watch`) so every retention lever reads its
 return rate on against off. No id, date or URL leaves the browser. The identical file is in every Compare repo; read weekly by the
 retention thread. Rollback: remove `<ReturnBeacon />` from the layout.
+
+## 2026-11-18: the return-visit beacon also carries the `since` arm
+
+Retention lever 2 ("Since your last visit", on the sister sites) is a 50/50 test under `since-arm`; `ARM_KEYS` in
+`lib/return-visit.ts` gains `since` so the file stays the same in every repo. Nothing changes on this site until it runs the lever.
