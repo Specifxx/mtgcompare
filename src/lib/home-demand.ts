@@ -6,7 +6,9 @@ import raw from "../../data/demand.json";
 import type { ProductCardData } from "./data";
 import { rankItems, type DemandFile, type RankFacts } from "./home-rank";
 
-export const HOME_DEMAND = raw as DemandFile;
+// Through unknown: JSON imports type each pair as number[], not [number, number], so the first non-empty file (2026-11-18)
+// failed the typecheck, and with it the next release's build.
+export const HOME_DEMAND = raw as unknown as DemandFile;
 
 /** What the ranking reads of a product card: any region's page of it, its buy clicks, stock, price, TCGplayer, release. */
 export function cardFacts(p: ProductCardData, o: { preorder?: boolean } = {}): RankFacts {
