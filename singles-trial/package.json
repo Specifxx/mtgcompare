@@ -1,0 +1,31 @@
+{
+  "name": "tcgsinglesdb",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TCG Singles DB: single-card prices, price history and movers for trading card games.",
+  "scripts": {
+    "dev": "next dev -p 3020",
+    "build": "next build",
+    "start": "next start -p 3020",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "import": "tsx scripts/import.ts"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^1.6.1",
+    "next": "14.2.35",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.35",
+    "tsx": "^4.16.2",
+    "typescript": "^5.9.3"
+  },
+  "engines": { "node": ">=20" }
+}
