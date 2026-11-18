@@ -2167,6 +2167,9 @@ the visitor's pick (`mtg-region`), else the US.
 - Found on the way, not changed: the closed cart drawer is always in the DOM with `aria-modal="true"` (inert and aria-hidden), and the
   ad dock's "a dialog is open" check matches it, so the dock may never show here. Same as on TCG Prices; reported to the ads thread.
 
+## 2026-11-18: llms.txt points AI agents at the free price file
+
+`/prices.json` already existed, but nothing an agent reads said so. `llms.txt` now has a "Free price data and citing" block: the file, that it is free and open to every origin, the date to quote and a suggested credit line. No new route, no spend.
 ## 2026-11-18: Creator and social campaigns on page views (owner)
 
 Custom events stay off (cost), so MTG Compare cannot send a buy click per campaign. Page views now also keep `utm_source`,
