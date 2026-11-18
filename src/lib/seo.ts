@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { gtinLd } from "./gtin";
 import { REGION_LIST, REGIONS, X_DEFAULT_REGION, xDefaultRegion, isRegion, type Region, type RegionInfo } from "./regions";
 import { CONTACT_EMAIL_SET, SITE_NAME, SITE_TAGLINE, SITE_URL, SOCIAL_LINKS } from "./site";
 
@@ -188,6 +189,9 @@ export function productJsonLd(p: {
   preorder?: boolean;
   /** One sentence of the page's own facts (the product page's value check), never eBay's data or a claim about the past. */
   description?: string | null;
+  /** TCGplayer's product id and barcode for it (lib/barcodes.ts), when known. */
+  tcgplayerId?: number | null;
+  barcode?: string | null;
 }) {
   return {
     "@context": "https://schema.org",
@@ -196,6 +200,8 @@ export function productJsonLd(p: {
     ...(p.description ? { description: p.description } : {}),
     ...(p.image ? { image: p.image } : {}),
     brand: { "@type": "Brand", name: "Magic: The Gathering" },
+    ...(p.tcgplayerId ? { productID: `tcgplayer:${p.tcgplayerId}` } : {}),
+    ...gtinLd(p.barcode),
     category: `Magic: The Gathering ${p.productType}`,
     ...(p.setName ? { isRelatedTo: { "@type": "Thing", name: p.setName } } : {}),
     url: `${SITE_URL}${p.path}`,
