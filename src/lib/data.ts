@@ -10,6 +10,7 @@ import { cardOpen } from "./compact";
 import type { Market } from "./regions";
 import { publicRowsBy } from "./public-data/store";
 import { routeRaw } from "./public-data/route";
+import { rankCards } from "./home-demand";
 
 export interface ProductCardData {
   slug: string;
@@ -148,16 +149,19 @@ export async function homeRails(market: Market, today = new Date().toISOString()
   const newestFirst = (a: ProductCardData, b: ProductCardData) =>
     (b.releaseDate ?? "").localeCompare(a.releaseDate ?? "") || (a.lowestPriceCents ?? 0) - (b.lowestPriceCents ?? 0);
   const inStockOfType = async (type: string) =>
-    (
-      await prisma.productStat.findMany({
-        where: { market, ...OPEN, product: { productType: type, OR: [{ setCode: null }, { setCode: { notIn: upcoming } }] } },
+    rankCards(
+      (
+        await prisma.productStat.findMany({
+          where: { market, ...OPEN, product: { productType: type, OR: [{ setCode: null }, { setCode: { notIn: upcoming } }] } },
         take: 150,
-        select: cardSelect,
-      })
-    )
-      .map(toCard)
-      .sort(newestFirst)
-      .slice(0, 8);
+          select: cardSelect,
+        })
+      )
+        .map(toCard)
+        .sort(newestFirst),
+      // Most likely to earn first (owner, 2026-11-18; lib/home-rank.ts): demand × value, newest first among equals.
+      { today },
+    ).slice(0, 8);
   const [boxes, etbs, playPacks, collectorPacks, setPacks, draftPacks, preorders, latest] = await Promise.all([
     inStockOfType("Play Booster Box"),
     inStockOfType("Collector Booster Box"),
@@ -180,7 +184,7 @@ export async function homeRails(market: Market, today = new Date().toISOString()
   const packs: ProductCardData[] = [];
   const lists = [playPacks, collectorPacks, setPacks, draftPacks];
   for (let i = 0; packs.length < 8 && lists.some((l) => i < l.length); i++) for (const l of lists) if (i < l.length && packs.length < 8) packs.push(l[i]);
-  return { boxes, etbs, packs, preorders: sortCards(preorders.map(toCard)).slice(0, 8), latestSets: bySet };
+  return { boxes, etbs, packs, preorders: rankCards(sortCards(preorders.map(toCard)), { preorder: true, today }).slice(0, 8), latestSets: bySet };
 }
 
 export interface RegionOverview {

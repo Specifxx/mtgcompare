@@ -163,6 +163,13 @@ jobs:
         if: steps.db.outputs.found == 'true'
         run: PUBLIC_DATA_MODE=files npx tsx scripts/family-sync.ts
 
+      # The home pages' ranking input (src/lib/home-rank.ts, DECISIONS.md 2026-11-18): product page views and buy clicks per
+      # item, last 28 and 7 days, from RiftCompare's /api/demand/mtg, committed with no deploy marker before the release so the
+      # release bundles it. Never fatal: a failed fetch keeps yesterday's file and the home page keeps its order.
+      - name: Home page demand
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        run: bash scripts/pull-demand.sh mtg data/demand.json
       - name: Publish it to main
         if: steps.db.outputs.found == 'true'
         # ONE RELEASE A DAY (owner, 2026-10-17: "reduce the cost"). The 20:47 UTC run (early morning in Australia,

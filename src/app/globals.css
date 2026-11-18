@@ -283,6 +283,10 @@ body {
   .ad-chip {
     @apply inline-flex items-center gap-1.5 rounded-full border border-dashed border-ad-line bg-surface px-3 py-1 text-xs font-medium text-ink transition-colors hover:border-ink;
   }
+  /* Premium members (lib/premium-member.ts): no banner ads. Only the banners and the phone dock go; price tables are untouched. */
+  html[data-adfree] [data-inline-ad] {
+    display: none;
+  }
   .ad-pill {
     @apply inline-flex shrink-0 items-center rounded border border-ad-line px-1.5 text-[11px] font-bold leading-[18px] text-muted;
   }

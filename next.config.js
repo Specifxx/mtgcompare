@@ -84,8 +84,11 @@ const nextConfig = {
       // The old singles site's tools, but never today's /<region>/tools pages (src/content/tools): until 2026-11-08 this rule also
       // sent /au/tools and every tool page outside the US and NZ to the sealed list.
       { source: "/:region(au|uk|ca|eu|sg)/tools/:rest((?!value-checker$|selling-fee-calculator$|is-this-a-good-price$).+)", destination: "/:region/sealed", permanent: true },
-      { source: "/:path(premium|login|account|profile|dashboard|portfolio|watching|watchlist|alerts|newsletter|unsubscribe|support|feedback|learn|methodology|editorial-policy|authors|admin)", destination: "/about", permanent: true },
-      { source: "/:path(premium|login|account|profile|dashboard|portfolio|watching|watchlist|alerts|newsletter|unsubscribe|support|feedback|learn|methodology|editorial-policy|authors|admin)/:rest*", destination: "/about", permanent: true },
+      // /premium and /account are live again (accounts, 2026-11-18): the old singles site's deeper URLs under them still 301, to the new page.
+      { source: "/:path(login|profile|dashboard|portfolio|watching|watchlist|alerts|newsletter|unsubscribe|support|feedback|learn|methodology|editorial-policy|authors|admin)", destination: "/about", permanent: true },
+      { source: "/:path(login|profile|dashboard|portfolio|watching|watchlist|alerts|newsletter|unsubscribe|support|feedback|learn|methodology|editorial-policy|authors|admin)/:rest*", destination: "/about", permanent: true },
+      { source: "/premium/:rest((?!return$).+)", destination: "/premium", permanent: true },
+      { source: "/account/:rest((?!verify$).+)", destination: "/account", permanent: true },
       // The old singles site's creator pages: /creators is the creators hub again (2026-10-30); anything under it goes there.
       { source: "/creators/:rest+", destination: "/creators", permanent: true },
       // Blog and guide redirects (old slugs that no longer exist) go below this line.

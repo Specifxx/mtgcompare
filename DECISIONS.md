@@ -2112,6 +2112,42 @@ per eligible return at most), GA4's `affiliate_click` carries `nudge_arm`. Lift 
 
 Checkout (`openAll`, `src/lib/cart-checkout.ts`) opens one blank tab per store inside the click, and only when every one opens does it send each to its store's own tagged link. If the browser refuses any, it closes the ones that opened, visits nothing, and the drawer shows the allow-pop-ups steps and a "Try again" button. Before, the first store opened and the rest were refused, which left the visitor with one tab. Chrome 157 on dexcompare.io and on url-opener.com (the owner's model, which does the same close-and-ask) both give one tab until pop-ups are allowed for the site; with them allowed, all open. No browser API grants that permission from a click, so the steps stay.
 
+## 2026-11-18 — Accounts on MTG Compare (one network account, ported from DexCompare)
+
+Owner (18 Nov): accounts lived only on RiftCompare and OP Compare; expand them, team decides. RiftCompare is already the network's
+account service (DexCompare signs in on its own pages through `/api/sister-premium/*`, 2026-11-10), so MTG Compare gets the same
+client, not a new system: `/account` (emailed 20-minute link; a Google button appears once `NEXT_PUBLIC_MTG_GOOGLE_CLIENT_ID` holds
+MTG Compare's own client), `/watches` (every price alert set with that email, on any device, with a stop button), `/premium`
+(the same RiftCompare Premium: no banner ads, back-in-stock alerts, 200 alerts), a back-in-stock line on sold-out product pages,
+and a quiet account icon in the header (sm and up) plus "Sign in / My watches" in the phone menu. No pop-up, no corner card:
+DexCompare's PremiumCorner and PremiumSlides were not ported. The browser keeps one token (`mtg_premium_v1`); pages stay one CDN copy.
+The old singles site's `/premium` and `/account` redirects to /about are lifted; anything deeper under them still 301s to the new page.
+Sign-ups are counted on RiftCompare's admin Accounts › MTG Compare tab.
+
+## 2026-11-18: Home pages rank items by demand (owner: "the most popular items should be on the homepage in that order")
+
+The owner wants every site's home page to lead with the items most likely to earn a click, revenue and a purchase. Each home list
+(shelf, grid, picks, deals, pre-orders, popular cards) is now ordered by `src/lib/home-rank.ts`, the same pure file in every repo:
+
+- **Demand**, real numbers only: each item's product page views and buy clicks, last 28 days plus the last 7 again (recent counts
+  twice), from Vercel Web Analytics through RiftCompare's public `/api/demand/<site>` (`src/lib/analytics/item-demand.ts` there; top
+  100 product pages a window, `buy_product` events by product where a site sends them). A buy click weighs 20 views. Log scale, so
+  one runaway item cannot take the list.
+- **Value**, from the item's own facts: in stock and at how many stores, a paid row with a price, the price (commission is a share of
+  it, on a soft curve), a release in the last 30/90 days or an open pre-order, a price under its usual.
+- `score = value × (1 + log(1 + views + 20 × clicks))`.
+- **Safe fallback:** under 30 views and clicks across a list, demand is ignored and value alone decides; equal scores keep the list's
+  old order. `NEXT_PUBLIC_HOME_RANK=off` (Vercel variable) turns it off without a code change.
+- **No feedback loop:** the 4th slot, and every 8th after, goes to the best-valued item with no demand yet, so a new item is seen
+  before it can be clicked; the 7-day weight lets a leader fall when it stops being clicked.
+- **Data path, no database:** the daily data job runs `scripts/pull-demand.sh <site> <file>`, which commits the demand file to
+  `main` with no deploy marker (it rides the release). That file's git history is the log of what the ranking saw each day.
+- Heroes stay words, search and ways in (owner, 2026-11-13): the ranking orders the lists, it adds no product to a hero.
+- Measure: buy clicks per visitor sitewide and on home pages, the week before (11-18 Nov) against the two weeks after the release;
+  a demand file under 30 views for a list means that list ran on the fallback and is read apart.
+
+Here: the region home shelf (play and collector boxes, packs: the 150 in stock of each type ranked, eight shown), its deals and pre-orders, and the landing page's ten picks (feature floor first). MTG Compare sends no per-product click yet, so demand is product page views. `data/demand.json`, pulled by `sealed-import.yml`. The quick view is untouched (A/B tests 20 Nov to 3 Dec).
+
 ## 2026-11-18: The phone bottom nav, ported from TCG Prices (owner)
 
 Owner tried TCG Prices' bottom bar on his phone ("looks good … a bit of lag"; the smoother version is in) and wants it on every site.

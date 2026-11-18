@@ -12,6 +12,7 @@ import { dealsMenuColumns, guidesMenuColumns, setsMenuColumns, shopMenuColumns }
 import { ThemeToggle } from "./ThemeToggle";
 import { CartHeaderLink } from "./cart/CartHeaderLink";
 import { SearchBox } from "./SearchBox";
+import { AccountHeaderLink } from "./premium/AccountHeaderLink";
 
 /**
  * The desktop nav (lg and up), in order. `also`: other paths (under the region) that count as the section, for its current
@@ -77,6 +78,8 @@ export function Header({ region, listed }: { region: Region | null; listed?: Rea
         <div className="hdr-search min-w-0 flex-1 lg:ml-auto lg:min-w-[7rem] lg:max-w-sm">{region ? <SearchBox region={region} size="sm" /> : <SoftSearchBox />}</div>
         <ThemeToggle />
         {region ? <RegionSwitcher region={region} compact /> : <SoftRegionSwitcher />}
+        {/* Accounts (2026-11-18): one quiet icon from sm up; phones get Sign in in the menu. */}
+        <AccountHeaderLink className="hidden sm:inline-flex" />
         {/* The cart list (components/cart, owner 2026-11-06): every width, with its count. */}
         <CartHeaderLink />
         <MobileMenu region={region} groups={groups} built={built} className="lg:hidden" />

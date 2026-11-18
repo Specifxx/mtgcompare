@@ -4,6 +4,8 @@ import { SiteAnalytics } from "@/components/SiteAnalytics";
 import { ShareArrival } from "@/components/ShareArrival";
 import { QuickView } from "@/components/QuickView";
 import { ReturnNudge } from "@/components/ReturnNudge";
+import { AdFreeSync } from "@/components/premium/AdFreeSync";
+import { ADFREE_BOOT_SCRIPT } from "@/lib/premium-member";
 import { BottomNav } from "@/components/BottomNav";
 import { RateCard } from "@/components/site-reviews/RateCard";
 import { IMPACT_SITE_VERIFICATIONS } from "@/lib/affiliate";
@@ -57,6 +59,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
         {/* The visitor's own region (owner, 2026-11-01): a person, never a crawler, on another region's page goes to theirs. lib/region-boot.ts. */}
         <script dangerouslySetInnerHTML={{ __html: REGION_BOOT_SCRIPT }} />
+        {/* Premium members: data-adfree on <html> before first paint hides the banner ads (lib/premium-member.ts). */}
+        <script dangerouslySetInnerHTML={{ __html: ADFREE_BOOT_SCRIPT }} />
         {/* Product photos: 96% are on Shopify's CDN, most of the rest on TCGplayer's.
             Warming those two connections is the cheapest LCP win there is. */}
         <link rel="preconnect" href="https://cdn.shopify.com" />
@@ -88,6 +92,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Rate us (owner, 2026-11-03): the corner card, asking only after real use; RiftCompare keeps the ratings. */}
         <RateCard />
         <ReturnNudge />
+        <AdFreeSync />
         {/* The phone bottom nav (DECISIONS.md 2026-11-18): outside the quick view, browser only, BOTTOM_NAV is its rollback. */}
         {BOTTOM_NAV !== "off" && <BottomNav mode={BOTTOM_NAV} />}
         <SiteAnalytics />
