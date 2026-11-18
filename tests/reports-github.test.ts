@@ -113,3 +113,26 @@ test("the reports branch never deploys from this repo's own config", () => {
   const d = v.git?.deploymentEnabled;
   assert.ok(d === false || (typeof d === "object" && d.reports === false), "vercel.json: git.deploymentEnabled.reports = false");
 });
+
+// Feedback (owner, 2026-11-18): components/FeedbackAsk.tsx files "Was this page useful?" and /feedback notes here too.
+test("a bare 'Was this page useful?' vote is kept, filed under votes/ and named by the vote", () => {
+  const c = cleanReport({ kind: "feedback", vote: "down", page: "/card/x?y=1" }, "testsite", now);
+  assert.ok(c.ok);
+  assert.equal(c.report.vote, "down");
+  assert.equal(c.report.page, "/card/x");
+  assert.equal(reportPath(c.report, "abc123"), "votes/testsite/2026-10-31/030405-down-abc123.json");
+});
+
+test("a feedback note goes to the inbox like a report, redacted, with its topic", () => {
+  const c = cleanReport({ kind: "feedback", issue: "idea", note: "sort by % gain please, mail jo@x.com" }, "testsite", now);
+  assert.ok(c.ok);
+  assert.equal(c.report.vote, null);
+  assert.equal(c.report.issue, "idea");
+  assert.ok(!/jo@x/.test(c.report.note!));
+  assert.equal(reportPath(c.report, "abc123"), "inbox/testsite/2026-10-31/030405-feedback-abc123.json");
+});
+
+test("feedback with neither a vote nor a note is refused; an unknown vote counts as none", () => {
+  assert.equal(cleanReport({ kind: "feedback" }, "t").ok, false);
+  assert.equal(cleanReport({ kind: "feedback", vote: "maybe" }, "t").ok, false);
+});

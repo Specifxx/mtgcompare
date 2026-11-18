@@ -25,8 +25,10 @@
 // [preview], and the branch's own vercel.json turns deploys off. (A PUT is
 // never cached by Next, so no cache option is needed.)
 
-export type ReportKind = "wrong-price" | "suggest-store" | "other";
-export const REPORT_KINDS: readonly ReportKind[] = ["wrong-price", "suggest-store", "other"];
+// "feedback" (owner, 2026-11-18): components/FeedbackAsk.tsx. A one-tap "Was this page useful?" vote, the optional note after it
+// (issue "after-up" / "after-down") or the /feedback form (issue "idea" | "problem" | "missing" | "other").
+export type ReportKind = "wrong-price" | "suggest-store" | "other" | "feedback";
+export const REPORT_KINDS: readonly ReportKind[] = ["wrong-price", "suggest-store", "other", "feedback"];
 
 export interface Report {
   v: 1;
@@ -52,6 +54,8 @@ export interface Report {
   /** short reason code, e.g. "wrong-price", "out-of-stock", "wrong-product" */
   issue: string | null;
   note: string | null;
+  /** kind "feedback": the one-tap answer to "Was this page useful?" */
+  vote?: "up" | "down" | null;
 }
 
 export const LIMITS = { note: 1000, field: 160, page: 300 } as const;
@@ -73,6 +77,12 @@ export const SITE_REPOS: Record<string, string> = {
   wargamecompare: "Specifxx/wargamecompare",
   figurecompare: "Specifxx/figurecompare",
   kaeyoung: "Specifxx/Kaeyoung",
+  // These four have no `reports` branch of their own (and the sites' write token may not reach their repos): they file on
+  // RiftCompare's, under their own inbox/<site>/ folder, where the daily triage reads them (2026-11-18).
+  tcgpricescompare: "Specifxx/TCGEmpire",
+  scentcompare: "Specifxx/TCGEmpire",
+  waxcompare: "Specifxx/TCGEmpire",
+  motorcompare: "Specifxx/TCGEmpire",
 };
 export const reportsRepo = (site: string) => (process.env.REPORTS_REPO || SITE_REPOS[site] || "").trim();
 export const reportsBranch = () => (process.env.REPORTS_BRANCH || "reports").trim();
@@ -143,6 +153,11 @@ export function cleanReport(body: unknown, site: string, now = new Date()): Clea
     issue: text(b.issue, 40),
     note: text(b.note, LIMITS.note, true),
   };
+  if (kind === "feedback") {
+    report.vote = b.vote === "up" || b.vote === "down" ? b.vote : null;
+    if (!report.vote && !report.note) return { ok: false, error: "Tell us a little more." };
+    return { ok: true, report };
+  }
   if (kind === "suggest-store") {
     if (!report.store && !report.storeUrl) return { ok: false, error: "Tell us the store's name or website." };
     if (typeof b.storeUrl === "string" && b.storeUrl.trim() && !report.storeUrl) return { ok: false, error: "That website address doesn't look right." };
@@ -155,11 +170,14 @@ export function cleanReport(body: unknown, site: string, now = new Date()): Clea
   return { ok: true, report };
 }
 
-/** inbox/<site>/<day>/<HHMMSS>-<kind>-<random>.json */
+/** inbox/<site>/<day>/<HHMMSS>-<kind>-<random>.json (a bare vote: votes/<site>/...) */
 export function reportPath(r: Report, rand = Math.random().toString(36).slice(2, 8)): string {
   const day = r.at.slice(0, 10);
   const time = r.at.slice(11, 19).replace(/:/g, "");
   const site = r.site.replace(/[^a-z0-9-]/gi, "").toLowerCase() || "site";
+  // A bare "Was this page useful?" tap needs no one to act on it: votes/<site>/<day>/<time>-up|down-<rand>.json, counted by the
+  // daily triage from the file names alone. A vote with a note is an inbox item like any report.
+  if (r.kind === "feedback" && !r.note) return `votes/${site}/${day}/${time}-${r.vote === "down" ? "down" : "up"}-${rand}.json`;
   return `inbox/${site}/${day}/${time}-${r.kind}-${rand}.json`;
 }
 
