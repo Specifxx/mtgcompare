@@ -259,6 +259,9 @@ export function MenuSheet({
       </div>
 
       <p className="mt-4 flex flex-wrap gap-x-5 gap-y-1 px-2 text-sm">
+        <a href="/account" onClick={close} className="inline-flex min-h-10 items-center font-semibold text-ink hover:underline">
+          Sign in / My watches
+        </a>
         <Link href="/about" prefetch={false} onClick={close} className="inline-flex min-h-10 items-center text-muted hover:text-ink">
           About &amp; how it works
         </Link>

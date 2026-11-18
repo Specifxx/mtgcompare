@@ -2111,3 +2111,15 @@ per eligible return at most), GA4's `affiliate_click` carries `nudge_arm`. Lift 
 ## 2026-11-18: cart checkout opens every store or none (owner)
 
 Checkout (`openAll`, `src/lib/cart-checkout.ts`) opens one blank tab per store inside the click, and only when every one opens does it send each to its store's own tagged link. If the browser refuses any, it closes the ones that opened, visits nothing, and the drawer shows the allow-pop-ups steps and a "Try again" button. Before, the first store opened and the rest were refused, which left the visitor with one tab. Chrome 157 on dexcompare.io and on url-opener.com (the owner's model, which does the same close-and-ask) both give one tab until pop-ups are allowed for the site; with them allowed, all open. No browser API grants that permission from a click, so the steps stay.
+
+## 2026-11-18 — Accounts on MTG Compare (one network account, ported from DexCompare)
+
+Owner (18 Nov): accounts lived only on RiftCompare and OP Compare; expand them, team decides. RiftCompare is already the network's
+account service (DexCompare signs in on its own pages through `/api/sister-premium/*`, 2026-11-10), so MTG Compare gets the same
+client, not a new system: `/account` (emailed 20-minute link; a Google button appears once `NEXT_PUBLIC_MTG_GOOGLE_CLIENT_ID` holds
+MTG Compare's own client), `/watches` (every price alert set with that email, on any device, with a stop button), `/premium`
+(the same RiftCompare Premium: no banner ads, back-in-stock alerts, 200 alerts), a back-in-stock line on sold-out product pages,
+and a quiet account icon in the header (sm and up) plus "Sign in / My watches" in the phone menu. No pop-up, no corner card:
+DexCompare's PremiumCorner and PremiumSlides were not ported. The browser keeps one token (`mtg_premium_v1`); pages stay one CDN copy.
+The old singles site's `/premium` and `/account` redirects to /about are lifted; anything deeper under them still 301s to the new page.
+Sign-ups are counted on RiftCompare's admin Accounts › MTG Compare tab.
