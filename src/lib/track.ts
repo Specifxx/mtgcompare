@@ -10,6 +10,7 @@ const SENT: ReadonlySet<string> = new Set([
   "buy_click",
   "share",
   "share_visit",
+  "share_unlock", // the share-for-a-deal test (2026-11-18)
   "alert_open",
   "alert_created",
   "weekly_signup",
