@@ -2166,3 +2166,11 @@ the visitor's pick (`mtg-region`), else the US.
   over an Add to cart button or the buy bar, CLS 0); "off" is the rollback.
 - Found on the way, not changed: the closed cart drawer is always in the DOM with `aria-modal="true"` (inert and aria-hidden), and the
   ad dock's "a dialog is open" check matches it, so the dock may never show here. Same as on TCG Prices; reported to the ads thread.
+
+## 2026-11-18: Creator and social campaigns on page views (owner)
+
+Custom events stay off (cost), so MTG Compare cannot send a buy click per campaign. Page views now also keep `utm_source`,
+`utm_medium` and `utm_campaign` when the medium is `creator` or `social` (a safe tag: letters, digits, dash, underscore, dot,
+40 characters), so Vercel counts the VISITORS each creator or post brought; the AI-assistant `utm_source` rule is unchanged and
+nothing a visitor typed is sent. Convention for every link we hand out:
+`?utm_source=<platform>&utm_medium=creator|social&utm_campaign=<handle or post>`.
