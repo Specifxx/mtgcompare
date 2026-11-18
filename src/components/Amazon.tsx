@@ -63,7 +63,7 @@ export function AmazonProductRow({ region, name, slug }: { region: Region; name:
         <span className="min-w-0">
           <b>{l.name}</b> <span className="text-muted">— marketplace, not one of the stores compared above</span>
         </span>
-        <AmazonLink region={region} name={name} slug={slug} placement="amazon-product" page={`/${region}/p/${slug}`} className="btn-ghost ml-auto min-h-11 shrink-0 whitespace-nowrap px-4 sm:min-h-10" />
+        <AmazonLink region={region} name={name} slug={slug} placement="amazon-product" page={`/${region}/p/${slug}`} className="btn-amazon ml-auto min-h-11 shrink-0 whitespace-nowrap px-4 sm:min-h-10" />
       </div>
       <div className="border-t border-line px-5 py-2.5">
         <p className={NOTE}>{l.note}</p>
