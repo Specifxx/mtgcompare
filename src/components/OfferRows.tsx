@@ -14,6 +14,8 @@ import { SHIP_UNKNOWN, type ShipCell } from "@/lib/shipping-quote";
 import { Ago } from "./Ago";
 import { OutboundLink } from "./OutboundLink";
 import { StockPill } from "./StockPill";
+import { BestHint, useBestHint } from "./BestHint";
+import { isPlainBest } from "@/lib/best-tag";
 
 // The price table's rows (OfferTable.tsx decides them on the server, as data): a client module because the visitor's "Price + shipping"
 // choice re-ranks them in the browser. Nothing here may import the stores' data or the shipping snapshot (they would join the bundle).
@@ -184,7 +186,7 @@ function priceAttr(d: StoreRowData): number | undefined {
  * line: the store over the host line, then the pill, the price, the button. The store and host cells take the free cells in order (grid
  * auto-placement) and clip, so `1fr` columns cannot overflow. Rendered on the server (no eBay row) and in the browser (OfferRowsWithEbay).
  */
-export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: boolean; top?: boolean }) {
+export function StoreRow({ d, preorder, top, hint }: { d: StoreRowData; preorder: boolean; top?: boolean; hint?: string | null }) {
   // `top` (the pinned table, OfferRowsWithEbay): the cheapest row of the whole table, eBay and TCGplayer included: the tint and "Best
   // price". The cheapest store (`d.best`) keeps the red button either way, and carries no badge when another row is cheaper (owner, 2026-11-13: no "Best store price").
   // Without `top` (the store-only table) the cheapest store is the best price, as before.
@@ -194,10 +196,14 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
   // The quick view's `cta` test (lib/ab.ts): in arm b TCGplayer's priced, open row says "Buy now" where it says "View deal". No
   // longer than the control's words: a wider button squeezes the store's name off a phone's row (seen with "View on TCGplayer").
   const buyNow = useAb()?.cta === "b" && tcg && d.open && !d.search;
-  const badge = "or-badge";
+  // A plain store that is the cheapest (no affiliate link, not eBay/TCGplayer/Amazon) gets a small neutral chip, no marked row (owner,
+  // 2026-11-18, lib/best-tag.ts); a paid row keeps the full treatment. `hint` (OfferRowsWithEbay: only where an eBay or TCGplayer row exists).
+  const plain = highlight && isPlainBest(d);
+  const badge = plain ? "or-tag" : "or-badge";
+  const tip = useBestHint();
   if (d.lean && !highlight) return <LeanRow d={d} preorder={preorder} />;
   return (
-    <li data-offer-row="" data-row={d.kind} data-cents={priceAttr(d)} className={highlight ? "or-row or-hl" : d.kind === "amazon" ? "or-row or-amz" : "or-row"}>
+    <li data-offer-row="" data-row={d.kind} data-cents={priceAttr(d)} className={highlight && !plain ? "or-row or-hl" : d.kind === "amazon" ? "or-row or-amz" : "or-row"}>
       <div className="or-top">
         {d.rank != null && (
           <span className="tabular -mr-0.5 shrink-0 text-sm font-bold text-muted" aria-label={`Number ${d.rank} by price`}>
@@ -223,6 +229,7 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
             </span>
           ))
         )}
+        {plain && hint && <BestHint text={hint} open={tip.open} onToggle={tip.toggle} />}
       </div>
       <div className="or-host" title={d.title || undefined}>
         {(!d.search || d.kind === "amazon") && d.host && <StoreVote url={d.host} name={d.name} className="-ml-1 mr-1 text-muted" />}
@@ -281,6 +288,7 @@ export function StoreRow({ d, preorder, top }: { d: StoreRowData; preorder: bool
           {d.kind === "amazon" && <span className="sr-only"> on {d.name}</span>}
         </OutboundLink>
       </div>
+      {plain && hint && tip.open && <p role="note" className="col-span-full mt-1 text-[11px] leading-4 text-muted sm:text-xs">{hint}</p>}
     </li>
   );
 }

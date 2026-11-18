@@ -2303,3 +2303,11 @@ now shows visitors one email field (kind `restock` on RiftCompare's alert servic
 members keep the one-tap button and their watch list. The Premium pages no longer sell it as a perk: Premium is no banner ads,
 200 alerts, the watch list and a year of collection history. Event `restock_signup` {member, region}; read on 2 Dec. Needs the
 service side (TCGEmpire, same day) live first, or a visitor's form answers "for Premium members".
+
+## 2026-11-18: A plain best price on a plain store (owner)
+
+**Decision (owner, Bill).** When the row that carries "Best price" is a plain store (no affiliate link; not eBay, TCGplayer, Amazon or a partner row), it is no longer the marked row: no raised ground and green edge (`.or-hl`), no green badge. It gets a small neutral "Best price" chip (`.or-tag`: hairline border, muted text, no fill) with its price fully visible, and, only where the list has an eBay row and/or a TCGplayer row, a small "i" with the words "Prices and stock change: also check eBay and TCGplayer" (only the rows that exist are named; a tap shows the line under the row on a phone). When the best price IS one of our paid rows, it keeps the full existing treatment. Applies to the price table (`StoreRow`, `lib/best-tag.ts`) on the product page and in the quick view (the same `OfferRowsWithEbay`). Sort order, the red button, `rel="sponsored"`, tracking, labels, JSON-LD, feeds and alerts are untouched. The quick view's "Cheapest price" box and the best-price card were already neutral and are unchanged.
+
+**Why.** The loud green on a store that pays us nothing pulled clicks away from our paid eBay and TCGplayer rows. We do not claim eBay is cheaper: the hint says only that prices and stock change.
+
+**Measure.** Paid clicks per 100 buy clicks (eBay + TCGplayer + Amazon + affiliate rows against all outbound clicks, by `placement`) for the week before and after the release. `tests/best-tag.test.ts` pins it.

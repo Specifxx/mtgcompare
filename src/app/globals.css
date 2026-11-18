@@ -211,6 +211,10 @@ body {
   .or-badge {
     @apply shrink-0 rounded-full bg-open px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-surface;
   }
+  /* A plain store's "Best price" (owner, 2026-11-18): a small neutral chip, no fill, so a store that pays us nothing is not the loudest row. */
+  .or-tag {
+    @apply shrink-0 rounded-full border border-line bg-surface px-2 py-0.5 text-[10px] font-semibold uppercase leading-3 tracking-wide text-muted;
+  }
   .or-host {
     @apply truncate text-[11px] leading-4 text-faint sm:text-xs;
   }
