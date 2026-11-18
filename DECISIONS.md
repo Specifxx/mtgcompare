@@ -2311,3 +2311,4 @@ service side (TCGEmpire, same day) live first, or a visitor's form answers "for 
 **Why.** The loud green on a store that pays us nothing pulled clicks away from our paid eBay and TCGplayer rows. We do not claim eBay is cheaper: the hint says only that prices and stock change.
 
 **Measure.** Paid clicks per 100 buy clicks (eBay + TCGplayer + Amazon + affiliate rows against all outbound clicks, by `placement`) for the week before and after the release. `tests/best-tag.test.ts` pins it.
+
