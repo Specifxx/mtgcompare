@@ -2111,3 +2111,22 @@ per eligible return at most), GA4's `affiliate_click` carries `nudge_arm`. Lift 
 ## 2026-11-18: cart checkout opens every store or none (owner)
 
 Checkout (`openAll`, `src/lib/cart-checkout.ts`) opens one blank tab per store inside the click, and only when every one opens does it send each to its store's own tagged link. If the browser refuses any, it closes the ones that opened, visits nothing, and the drawer shows the allow-pop-ups steps and a "Try again" button. Before, the first store opened and the rest were refused, which left the visitor with one tab. Chrome 157 on dexcompare.io and on url-opener.com (the owner's model, which does the same close-and-ask) both give one tab until pop-ups are allowed for the site; with them allowed, all open. No browser API grants that permission from a click, so the steps stay.
+
+## 2026-11-18: The phone bottom nav, ported from TCG Prices (owner)
+
+Owner tried TCG Prices' bottom bar on his phone ("looks good … a bit of lag"; the smoother version is in) and wants it on every site.
+`components/BottomNav.tsx` is tcgcompare's controller unchanged (no position arithmetic, `transform` only, browser only, below 768px,
+hidden while zoomed, typing, any dialog is open, an Add to cart button is under it, or the buy bar is SHOWN), with MTG Compare's own tabs:
+Home, Deals, Sets, Cart (opens the drawer), Menu (the header's menu sheet). No Search tab: the sticky header already holds the search
+box on every phone screen, so it would only repeat it; Sets is the next most used way in. Every tab links into the page's region, else
+the visitor's pick (`mtg-region`), else the US.
+
+- Mounted in the root layout, OUTSIDE the quick view, and hidden while its `aria-modal` dialog is open: the quick-view A/B test sees
+  the same bar in every arm. `tests/bottom-nav.test.ts` pins both.
+- MTG's product page always holds the buy bar's element (`data-buybar="hidden"` until it slides in), so the bar yields only to a shown
+  one (`[data-buybar='shown']`); a product page gets the bar at its top, which the dock never had.
+- The ad dock yields to `html[data-bottomnav]`, one bar at a time. `BOTTOM_NAV` in `lib/site.ts` is the switch: shipped "optin"
+  (`?bn=1`), flipped to "on" after the phone harness (five phone sizes, the quick view, two product pages swept top to bottom: never
+  over an Add to cart button or the buy bar, CLS 0); "off" is the rollback.
+- Found on the way, not changed: the closed cart drawer is always in the DOM with `aria-modal="true"` (inert and aria-hidden), and the
+  ad dock's "a dialog is open" check matches it, so the dock may never show here. Same as on TCG Prices; reported to the ads thread.

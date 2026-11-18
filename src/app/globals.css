@@ -1011,6 +1011,26 @@ a.hero-pill:hover {
   animation: tab-in 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
+/* The phone bottom nav (components/BottomNav.tsx): the return nudge sits above it, not under it, while it shows. */
+html[data-bottomnav] [data-return-nudge] { bottom: calc(env(safe-area-inset-bottom) + 72px); }
+
+/* The phone bottom nav (components/BottomNav.tsx). Moves on transform only, opaque (a backdrop blur on a fixed bar repaints every
+   scroll frame on a phone), hides AFTER its slide so it never pops out. */
+.bn { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: rgb(var(--surface)); border-top: 1px solid rgb(var(--line)); padding-bottom: env(safe-area-inset-bottom); contain: layout paint; will-change: transform; transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 0s; transform: translateY(0); }
+.bn[data-bottomnav-bar="hidden"] { transform: translateY(100%); visibility: hidden; transition: transform 0.22s cubic-bezier(0.4, 0, 1, 1), visibility 0s linear 0.22s; }
+.bn-row { display: flex; align-items: stretch; margin: 0 auto; max-width: 640px; padding: 0; list-style: none; }
+.bn-cell { display: flex; flex: 1 1 0; min-width: 0; }
+.bn-tab { position: relative; display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 2px; height: 56px; min-width: 0; font-size: 11px; font-weight: 600; line-height: 1; color: rgb(var(--muted)); background: transparent; border: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; outline-offset: -3px; }
+.bn-ico { position: relative; display: inline-flex; transition: transform 0.12s ease-out; }
+.bn-tab:active { color: rgb(var(--ink)); background: rgb(var(--raised)); }
+.bn-tab:active .bn-ico { transform: scale(0.88); }
+.bn-tab[aria-current="page"] { color: rgb(var(--ink)); }
+.bn-tab[aria-current="page"]::before { content: ""; position: absolute; top: 0; left: 24%; right: 24%; height: 2px; border-radius: 0 0 2px 2px; background: rgb(var(--ink)); }
+.bn-tab[aria-current="page"] .bn-ico { transform: translateY(-1px); }
+.bn-badge { position: absolute; right: -10px; top: -6px; min-width: 16px; padding: 0 4px; border-radius: 999px; background: rgb(var(--ink)); color: rgb(var(--bg)); font-size: 10px; font-weight: 700; line-height: 16px; text-align: center; }
+@media (prefers-reduced-motion: reduce) { .bn, .bn[data-bottomnav-bar="hidden"], .bn-ico { transition: none; } }
+
+
 /* Motion. The hero's parts rise in one after another on load (--i is each part's place in line); the headline moves but is never
    hidden, so the largest paint is not held back. Sections below rise as they scroll into view where the browser can tie an
    animation to the scroll position (animation-timeline); elsewhere they are simply there. Screen only: a printed page shows all. */
