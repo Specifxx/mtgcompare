@@ -12,6 +12,7 @@
 // The cart lives in this browser only (src/lib/cart-list.ts); /cart stays as the no-script page.
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { track as vaTrack } from "@vercel/analytics";
 import { cartRef, formatMoney, groupByStore, onCartChange, readCart, setQty, writeCart, type CartLine } from "@/lib/cart-list";
 import { browserKind, buildCheckout, checkLines, isGone, openAll, popupSteps, readPopupMemory, writePopupMemory, type CheckoutItem, type Checks } from "@/lib/cart-checkout";
 import { CART_SITE } from "./cart-config";
@@ -20,6 +21,8 @@ import { CartIcon } from "./CartIcon";
 
 function track(name: string, params: Record<string, unknown>) {
   try {
+    // Vercel too (2026-11-18), where the buy clicks are read: strings, numbers and booleans only.
+    vaTrack(name, Object.fromEntries(Object.entries(params).filter(([, v]) => ["string", "number", "boolean"].includes(typeof v))) as Record<string, string | number | boolean>);
     (window as unknown as { gtag?: (...a: unknown[]) => void }).gtag?.("event", name, params);
   } catch {
     /* analytics is best-effort */
@@ -125,7 +128,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
   }, [started]);
   const markDone = (it: CheckoutItem, via: string) => {
     setDone((d) => (d.includes(it.key) ? d : [...d, it.key]));
-    track("cart_checkout", { store: it.storeName, value: it.cents / 100, currency: it.currency, items: it.units, via });
+    track("cart_checkout", { store: it.storeName, value: it.cents / 100, currency: it.currency, items: it.units, via, kind: it.kind, paid: /ebay|tcgplayer|amazon|[?&]s=(ebay|tcgplayer|amazon)/i.test(it.url) });
   };
   // One click tries every store. A browser that allows one tab per click opens the first and refuses the rest;
   // then the drawer says how to allow pop-ups for this site once, and the same button opens the rest.

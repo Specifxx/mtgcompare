@@ -4,6 +4,7 @@
 // the row's OWN buy link: a cart permalink there makes the line cartable, anything
 // else (an affiliate or partner link) stays a manual line with that link.
 import { useEffect, useState } from "react";
+import { track as vaTrack } from "@vercel/analytics";
 import { CART_ADDED_EVENT, addLine, makeLine, onCartChange, readCart, setQty, writeCart, type CartAddInput } from "@/lib/cart-list";
 import { CartIcon } from "./CartIcon";
 
@@ -44,6 +45,8 @@ export function CartAddButton({
         currency: line.currency,
         cartable: Boolean(line.variantId),
       });
+      // Vercel too (2026-11-18): the cart had no count where the buy clicks are read, so its effect on them was invisible.
+      vaTrack("cart_add", { store: line.store, cartable: Boolean(line.variantId), paid: /ebay|tcgplayer|amazon/i.test(line.store) });
     } catch {
       /* analytics is best-effort */
     }
