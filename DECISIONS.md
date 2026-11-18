@@ -2248,3 +2248,12 @@ retention thread. Rollback: remove `<ReturnBeacon />` from the layout.
 
 Retention lever 2 ("Since your last visit", on the sister sites) is a 50/50 test under `since-arm`; `ARM_KEYS` in
 `lib/return-visit.ts` gains `since` so the file stays the same in every repo. Nothing changes on this site until it runs the lever.
+
+## 2026-11-18: The weekly price-drops box on guides, pre-order and release pages (retention)
+
+GA4, last 28 days: people who land on a guide, a pre-order page or the release calendar are among our largest groups of new
+visitors and the least likely to come back (MTG: pre-orders 7% returning, guides 4–10%; Dex: guides 5%, releases 6%, against
+15–34% for home and sealed). Those pages offered no way to hear from us again. They now carry the same one-field weekly
+price-drops box as home, deals and set pages (`WeeklyDropsBox`, placements `guide`, `preorder`, `releases`): inline, below the
+content, server-rendered at a fixed height, never a pop-up. Read: `weekly_signup` by placement, and the census's sister
+weekly-digest counts, at the retention read of 2 Dec.

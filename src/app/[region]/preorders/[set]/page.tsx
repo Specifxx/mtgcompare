@@ -1,3 +1,6 @@
+import { WeeklyDropsBox } from "@/components/WeeklyDropsBox";
+import { weeklyBoxLive } from "@/lib/weekly-box";
+import { ALERT_SITE_KEY } from "@/lib/alert-feed";
 import Link from "@/components/Link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { cache } from "react";
@@ -347,6 +350,8 @@ export default async function PreorderPage({ params }: Params) {
         </Link>
       </div>
 
+      {/* The weekly price-drops email on a page that brings in new visitors (retention, 2026-11-18; components/WeeklyDropsBox.tsx). */}
+      {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="preorder" className="mt-12 max-w-2xl" buttonClassName="btn-primary min-h-11" />}
       <section className="mt-14 max-w-3xl" aria-labelledby="faq">
         <h2 id="faq" className="font-display text-2xl font-bold tracking-tight sm:text-[28px]">
           Frequently asked questions
