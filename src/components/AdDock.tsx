@@ -122,7 +122,8 @@ export function AdDock({ label, sides, placement, minWidth, yieldTo = "[data-ad]
     const blockers = new Set<Element>();
     let typing = false;
     const modal = () =>
-      !!document.querySelector("dialog[open], [aria-modal='true']") || document.body.style.overflow === "hidden" || document.documentElement.style.overflow === "hidden";
+      // The cart drawer is always in the DOM, aria-modal but inert and aria-hidden while closed (it kept the dock from ever showing): only an open one counts.
+      [...document.querySelectorAll("dialog[open], [aria-modal='true']")].some((d) => !d.closest("[inert], [aria-hidden='true']")) || document.body.style.overflow === "hidden" || document.documentElement.style.overflow === "hidden";
     const update = () =>
       setShown(
         dockShows({
