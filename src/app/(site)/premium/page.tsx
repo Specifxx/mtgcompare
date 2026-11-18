@@ -5,9 +5,9 @@ import { CONTACT_EMAIL, SITE_NAME, SITE_URL } from "@/lib/site";
 import { PREMIUM_PRICE_LINE } from "@/lib/premium-member";
 
 // MTG Compare Premium (owner, 2026-11-10): a RiftCompare Premium account works here. Static; the browser asks RiftCompare.
-const DESCRIPTION = `Premium for ${SITE_NAME}: no banner ads, an email when a sold-out Magic sealed product is back in stock, up to 200 price alerts and a watch list. ${PREMIUM_PRICE_LINE}. Comparing prices stays free.`;
+const DESCRIPTION = `Premium for ${SITE_NAME}: no banner ads, up to 200 price alerts, a watch list and a year of collection history. Back-in-stock emails are free for everyone. ${PREMIUM_PRICE_LINE}. Comparing prices stays free.`;
 export const metadata: Metadata = {
-  title: `${SITE_NAME} Premium: back-in-stock alerts`,
+  title: `${SITE_NAME} Premium: no ads, 200 alerts`,
   description: DESCRIPTION,
   alternates: { canonical: `${SITE_URL}/premium` },
 };
@@ -32,7 +32,7 @@ export default function PremiumPage() {
         <h2>What you get</h2>
         <ul>
           <li><strong>No banner ads.</strong> The sponsored banners and the phone dock disappear while you are signed in. Price tables, the stores in them and their order do not change.</li>
-          <li><strong>Back-in-stock alerts.</strong> On a product no store has in stock, tap once and we email you when a store has it again (checked after each daily price update).</li>
+          <li><strong>One-tap back-in-stock alerts.</strong> Back-in-stock emails are free for everyone; signed in, you set one with a single tap and see it in your watch list.</li>
           <li><strong>Up to 200 price alerts</strong> instead of 25.</li>
           <li><strong>A watch list</strong> at <a href="/watches">My watches</a>: every alert you have set, with the lowest in-stock price now, and a button to stop each.</li>
         </ul>

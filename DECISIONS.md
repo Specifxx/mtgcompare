@@ -2286,3 +2286,20 @@ misfiled listing). A short week is the Hot 37, never padded (RiftCompare's Hot 4
 **Why.** Owner, 2026-11-18: RiftCompare's Hot chart works on Reddit as a plain link and title; every site gets one stable URL to post
 once a week (tagged `utm_source=reddit&utm_medium=social&utm_campaign=hot100-<site>-<date>`). The dated Sunday chart stays where it
 exists. Shipped with `[deploy] [urgent]` on the owner's ask for today's links. `tests/hot100.test.ts`.
+## 2026-11-18: The weekly price-drops box on guides, pre-order and release pages (retention)
+
+GA4, last 28 days: people who land on a guide, a pre-order page or the release calendar are among our largest groups of new
+visitors and the least likely to come back (MTG: pre-orders 7% returning, guides 4–10%; Dex: guides 5%, releases 6%, against
+15–34% for home and sealed). Those pages offered no way to hear from us again. They now carry the same one-field weekly
+price-drops box as home, deals and set pages (`WeeklyDropsBox`, placements `guide`, `preorder`, `releases`): inline, below the
+content, server-rendered at a fixed height, never a pop-up. Read: `weekly_signup` by placement, and the census's sister
+weekly-digest counts, at the retention read of 2 Dec.
+
+## 2026-11-18: Back-in-stock emails are free for everyone (owner)
+
+The owner chose "Free for everyone" for back-in-stock alerts (retention thread, 18 Nov): accounts with an alert came back after
+week one at 56% against 25% without one, and accounts given Premium came back at only 23%. `RestockAlert` on a sold-out product
+now shows visitors one email field (kind `restock` on RiftCompare's alert service, the same double opt-in as a price alert);
+members keep the one-tap button and their watch list. The Premium pages no longer sell it as a perk: Premium is no banner ads,
+200 alerts, the watch list and a year of collection history. Event `restock_signup` {member, region}; read on 2 Dec. Needs the
+service side (TCGEmpire, same day) live first, or a visitor's form answers "for Premium members".

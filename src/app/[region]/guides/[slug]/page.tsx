@@ -1,3 +1,6 @@
+import { WeeklyDropsBox } from "@/components/WeeklyDropsBox";
+import { weeklyBoxLive } from "@/lib/weekly-box";
+import { ALERT_SITE_KEY } from "@/lib/alert-feed";
 import { ShareButton } from "@/components/ShareButton";
 import { detailIndexed } from "@/lib/index-tiers";
 import Link from "@/components/Link";
@@ -134,6 +137,8 @@ export default async function GuidePage({ params }: { params: { region: string; 
             })}
           </ul>
         )}
+        {/* The weekly price-drops email on a page that brings in new visitors (retention, 2026-11-18; components/WeeklyDropsBox.tsx). */}
+        {weeklyBoxLive() && <WeeklyDropsBox site={ALERT_SITE_KEY} region={r.market} siteName="MTG Compare" placement="guide" className="mt-10 max-w-2xl" buttonClassName="btn-primary min-h-11" />}
         {more.length > 0 && (
           <>
             <h2 className="mt-12 font-display text-xl font-bold tracking-tight">More guides</h2>
