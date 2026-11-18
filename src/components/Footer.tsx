@@ -9,6 +9,7 @@ import { LogoMark } from "./Logo";
 import { footerSeoSections } from "./seo/HubLinks";
 import { RateUsLink } from "./site-reviews/SiteReviews";
 import { Flag } from "@/components/Flag";
+import { FeedbackAsk } from "@/components/FeedbackAsk";
 
 type FooterLink = { href: string; label: string };
 
@@ -22,6 +23,7 @@ export function footerColumns(region: Region | null, listed?: ReadonlySet<string
     { href: "/widgets", label: "Free price widgets" },
     { href: "/about#stores", label: "For stores" },
     { href: "/forum", label: "Community forum (beta)" },
+    { href: "/feedback", label: "Send feedback" },
     { href: "/contact", label: "Contact" },
     { href: "/list-your-store", label: "List your store" },
     { href: "/how-we-pick-stores", label: "How we pick stores" },
@@ -76,6 +78,8 @@ export function Footer({ region, listed }: { region: Region | null; listed?: Rea
   const cols = footerColumns(region, listed);
   return (
     <footer className="mt-20 border-t border-line bg-surface">
+      {/* "Was this page useful?" (owner, 2026-11-18: more feedback). One inline line, never a pop-up. */}
+      <div className="page pt-8"><FeedbackAsk email={CONTACT_EMAIL} /></div>
       <div className={`page grid gap-x-6 gap-y-10 py-12 ${r ? "lg:grid-cols-[minmax(0,1.35fr)_minmax(0,3fr)]" : "md:grid-cols-[minmax(0,1.35fr)_minmax(0,1.5fr)]"}`}>
         <div className="max-w-sm">
           <Link href={r ? `/${r.region}` : "/"} className="inline-flex min-h-10 items-center gap-2 font-display text-lg font-extrabold tracking-tight">
