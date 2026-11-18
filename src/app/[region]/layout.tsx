@@ -26,13 +26,13 @@ export default async function RegionLayout({ children, params }: { children: Rea
       {/* ONE navigation since 2026-11-13 (owner: "we're making things too complicated"): the header. The sidebar that repeated its
           menus down the left of every desktop page is gone; the page is one centred column. */}
       <main id="main" className="min-w-0 flex-1">
-        {/* The two big ad banners (owner, 2026-11-14) sit at the TOP of every region page without a spot of its own (the region home, a
-            product page and a set page place them themselves, under their own hero or breadcrumbs): the top of <main>. The server HTML
-            holds the banners at their final height (components/InlineAds.tsx). The legal pages are not under [region]. */}
+        {children}
+        {/* The two ad banners sit BELOW the content of every region page without a spot of its own (owner, 2026-11-19: "all the ads
+            that can negatively impact our indexing let's remove and have more strategically placed ads"). The server HTML holds the
+            banners at their final height (components/InlineAds.tsx). The legal pages are not under [region]. */}
         <div className="page">
           <LayoutInlineAds region={r.region} tiles={tcg} />
         </div>
-        {children}
       </main>
       <Footer region={r.region} listed={listed} />
       {/* Narrow screens only, drawn in the browser after a scroll: the phone dock (components/SideAds.tsx, AdDock.tsx). The side rails are gone
