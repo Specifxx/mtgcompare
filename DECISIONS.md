@@ -2257,3 +2257,11 @@ added, item count, three most valuable items, "Track yours free at <host>") in t
 can't be shared it saves the PNG and copies the link. No server, no function, no Vercel image cost, nothing sent to us.
 Link: `/?utm_source=share&utm_medium=collection&utm_campaign=collection-card`. Counted in Vercel as `share {kind:
 collection, how: image|text|saved|copy}`, only once it really went out.
+
+## Deals page: a share button and its own share image per region (owner, 2026-11-18: "we need more shareable artefacts")
+
+`/[region]/deals` gets a share button (kind and medium `deals`, `utm_source=share&utm_medium=deals`) and
+`[region]/deals/opengraph-image.tsx`: "Today's deals in <region>, up to N% under" with the page's own count
+(`dealsBySection`, `dealPct`, `dealsCopy.summary`), drawn by `lib/og-card.tsx` (text and the logo, no product photo).
+It lists no params, so nothing reads data at build: each region's image is drawn on its first request after a release
+and kept until the next. `pageMeta` names it as the page's image. The quick view is untouched.

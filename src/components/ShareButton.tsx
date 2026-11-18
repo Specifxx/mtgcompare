@@ -13,7 +13,7 @@ import { Icon } from "./Icon";
 // A 44 px round button; the note appears beside it, absolutely placed (nothing moves), and is read out by an aria-live region.
 // Exported for the set page too (the integrator's wiring commit): <ShareButton title=… path={`/${region}/sets/${slug}`} kind="set" />.
 
-export type ShareKind = "product" | "set" | "list" | "guide";
+export type ShareKind = "product" | "set" | "list" | "guide" | "deals";
 
 export function ShareButton({ title, path, kind, text, deal, className = "" }: { title: string; path: string; kind: ShareKind; /** the message, e.g. the real price gap (lib/share-link.ts) */ text?: string; /** share-for-a-deal: the region's deals page (never passed by the quick view) */ deal?: string; className?: string }) {
   const [note, setNote] = useState("");
