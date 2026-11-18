@@ -7,7 +7,7 @@ const read = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "u
 
 test("the Amazon row's button is amber with dark ink, priced or not", () => {
   const css = read("src/app/globals.css");
-  assert.match(css, /\.btn-amazon \{[^}]*bg-\[#FFA41C\][^}]*text-\[#111\][^}]*hover:bg-\[#FA8900\]/s);
+  assert.match(css, /\.btn-amazon \{[^}]*bg-\[#F5A524\][^}]*text-\[#111\][^}]*hover:bg-\[#DC8A0B\]/s);
   const rows = read("src/components/OfferRows.tsx");
   // one button for the priced "View deal" and the unpriced "Check Amazon" row
   assert.match(rows, /d\.kind === "amazon" \? "btn-amazon"/);

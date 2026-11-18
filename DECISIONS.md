@@ -2222,8 +2222,12 @@ and `share_unlock { kind }`. Read the share rate per arm after two weeks; keep t
 ## 2026-11-18: the Amazon button is amber, and the quick view's "See full page" is a real button (owner)
 
 Owner: the Amazon row's button was the neutral `.btn-soft`, so it read like any store's. It is now `.btn-amazon` (globals.css):
-#FFA41C with #111 ink, #FA8900 on hover, a #E08A00 hairline, the same in both themes. It is the button of the priced "View deal"
+#F5A524 with #111 ink, #DC8A0B on hover, a #B7791F hairline, the same in both themes. It is the button of the priced "View deal"
 row and the unpriced "Check Amazon" row (`OfferRows`), and of the sold-out Amazon card's button (`Amazon.tsx`). `rel`, the tracking, the "Ad"/"Paid link" labels, the row order, prices and the Cheapest logic are untouched, and
 so are the TCGplayer button and the phone eBay + TCGplayer pair's position (the quick view's A/B test starts 20 Nov). The quick view's
 pinned footer link, already visible without scrolling, becomes a 44px bold bordered button reading "See full page: price history
 and details" (`data-see-full-page`); it was a 42px ghost button. `tests/amazon-button.test.ts` pins both.
+
+## 2026-11-18: the amber of the Amazon button is not Amazon's own orange
+
+The first cut used #FFA41C, which is Amazon's brand orange. Amazon's Associates agreement bars styling that could pass for Amazon, so the button is now a distinct, calmer amber (#F5A524, hover #DC8A0B, border #B7791F, dark text #111): still clearly different from the site's normal buy button, not Amazon's colour.
