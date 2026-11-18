@@ -17,15 +17,17 @@ import {
   shareText,
   sinceAdded,
   totalsByMarket,
-  track,
   valueItems,
   writeDays,
   writeVault,
   type DayTotal,
+  type MarketTotal,
   type PriceFile,
   type VaultItem,
 } from "@/lib/vault";
+import { track as trackShare } from "@/lib/track";
 import { VAULT_SITE } from "./vault-config";
+import { cardLink, cardModel, drawCard, saveBlob } from "./collection-card";
 
 function Change({ from, to, currency, label }: { from: number; to: number; currency: string; label: string }) {
   const pct = pctChange(from, to);
@@ -85,24 +87,54 @@ export function VaultView() {
       </div>
     );
 
-  const share = async (text: string) => {
-    const url = `${location.origin}/?utm_source=share&utm_medium=collection`;
-    track("share", { kind: "collection" });
+  // The collection value card (collection-card.ts): a picture of these totals drawn in this browser, shared as a file
+  // where the phone can, else saved, with the tracked link copied. Counted only when it really went out.
+  const share = async (t: MarketTotal, since: { from: number; to: number } | null) => {
+    const url = cardLink(location.origin);
+    const text = `${shareText(VAULT_SITE.name, VAULT_SITE.what, t, since)} ${url}`;
+    const pct = since ? pctChange(since.from, since.to) : null;
+    const top = valued
+      .filter((i) => i.market === t.market && i.nowCents != null)
+      .sort((a, b) => (b.nowCents ?? 0) * b.qty - (a.nowCents ?? 0) * a.qty)
+      .slice(0, 3)
+      .map((i) => ({ name: i.qty > 1 ? `${i.qty} × ${i.name}` : i.name, price: formatMoney((i.nowCents ?? 0) * i.qty, i.currency) }));
+    const blob = await drawCard(
+      cardModel({
+        site: VAULT_SITE.name,
+        what: VAULT_SITE.what,
+        host: location.host.replace(/^www\./, ""),
+        total: formatMoney(t.nowCents, t.currency),
+        change: since && pct ? { up: since.to > since.from, text: `${formatMoney(Math.abs(since.to - since.from), t.currency)} (${pct > 0 ? "+" : ""}${pct}%) since I added them` } : null,
+        units: t.units,
+        market: t.market,
+        top,
+        date: new Date(),
+      }),
+    );
+    const file = blob ? new File([blob], "my-collection.png", { type: "image/png" }) : null;
     try {
-      if (navigator.share) {
-        await navigator.share({ text, url });
+      if (file && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], text });
+        trackShare("share", { kind: "collection", how: "image" });
         return;
       }
-    } catch {
-      /* cancelled or refused: fall back to copying */
+      if (navigator.share) {
+        await navigator.share({ text });
+        trackShare("share", { kind: "collection", how: "text" });
+        return;
+      }
+    } catch (e) {
+      if ((e as Error)?.name === "AbortError") return;
     }
+    if (file) saveBlob(file, `my-collection-${new Date().toISOString().slice(0, 10)}.png`);
     try {
-      await navigator.clipboard.writeText(`${text} ${url}`);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      await navigator.clipboard.writeText(text);
     } catch {
-      /* nothing more to try */
+      /* the saved picture still carries the address */
     }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3500);
+    trackShare("share", { kind: "collection", how: file ? "saved" : "copy" });
   };
 
   return (
@@ -126,8 +158,8 @@ export function VaultView() {
                 {t.units === 1 ? "1 item" : `${t.units} items`}
                 {t.unpriced ? ` · ${t.unpriced} not in stock anywhere today, so not counted` : ""}
               </div>
-              <button type="button" className="ce-vault-btn" onClick={() => share(shareText(VAULT_SITE.name, VAULT_SITE.what, t, since))}>
-                {copied ? "Copied to share" : "Share my collection"}
+              <button type="button" className="ce-vault-btn" onClick={() => share(t, since)}>
+                {copied ? "Picture saved, link copied" : "Share my collection"}
               </button>
             </section>
           );

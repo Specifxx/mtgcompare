@@ -2248,3 +2248,12 @@ retention thread. Rollback: remove `<ReturnBeacon />` from the layout.
 
 Retention lever 2 ("Since your last visit", on the sister sites) is a 50/50 test under `since-arm`; `ARM_KEYS` in
 `lib/return-visit.ts` gains `since` so the file stays the same in every repo. Nothing changes on this site until it runs the lever.
+
+## Collection value card (owner, 2026-11-18: "we need more shareable artefacts")
+
+My collection's "Share my collection" now draws a 1200×630 picture of the visitor's own totals (value, change since
+added, item count, three most valuable items, "Track yours free at <host>") in the browser with a canvas
+(`components/vault/collection-card.ts`, ported from TCG Prices) and hands it to the share sheet as a file; where files
+can't be shared it saves the PNG and copies the link. No server, no function, no Vercel image cost, nothing sent to us.
+Link: `/?utm_source=share&utm_medium=collection&utm_campaign=collection-card`. Counted in Vercel as `share {kind:
+collection, how: image|text|saved|copy}`, only once it really went out.
