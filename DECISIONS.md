@@ -2320,3 +2320,23 @@ The `/card-prices` hub leads with "New and upcoming sets". `CARD_INDEX_GROWTH=0`
 **Why.** The loud green on a store that pays us nothing pulled clicks away from our paid eBay and TCGplayer rows. We do not claim eBay is cheaper: the hint says only that prices and stock change.
 
 **Measure.** Paid clicks per 100 buy clicks (eBay + TCGplayer + Amazon + affiliate rows against all outbound clicks, by `placement`) for the week before and after the release. `tests/best-tag.test.ts` pins it.
+
+## 2026-11-18: other-language store words no longer split one product into two pages
+
+**What.** `identify()` drops words that say a title is a pre-order or English in another language, or a catalogue label, before the
+signature: "Vorbestellung" (German pre-order), "PREVENTA"/"RESERVA" (Spanish), "PREORDINE" (Italian), "Englisch", "Inglés",
+"CCG", German "ab <date>", "Der"/"El" before The Hobbit, "Einsteigerbox", and a store SKU written into the title ("MTG-FND-STC",
+"MTG-StarTrek-BNDL"). "Terrors of the Abys" (Miniature Market) reads as the Abyss deck. A trailing "ITA"/"GER"/"SPA" is the
+foreign print, like "- DE". "Display (3 Boxes)" or "(4 Bundles)" is a store's lot, except after "Case", where it says what a case
+holds.
+
+**Why.** Job B audit (wrong prices) of the Nauctis pre-orders: one EU store's "Vorbestellung: …" titles and one US store's "Magic
+the Gathering CCG …" titles each made their own one-store page of every Nauctis Commander deck and bundle, so the real page missed a
+store and a search showed two pages. Across offers.json the change moves 188 titles: 154 join the product page they belong to (EU
+bundles and beginner boxes titled "Englisch"/"Inglés" were a separate "special bundle" page per set), 14 Italian prints and 18
+titles that name no product once the language word is gone ("Scene Box - Inglés") are refused, one 3-box display is refused, one
+new key ("Learn to Play Beginner Box Single Pack"). No two different products merged in the before/after review. The orphaned
+one-store pages lose their offers at the next import and 301 to their type page (`culled.json`), so no URL 404s.
+
+**Measure.** Products with store offers in `nau`, `mdd`, `trk` and EU bundle pages after the next import; buy clicks on the merged
+pages week on week. `tests/sealed-title.test.ts`.
