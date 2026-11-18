@@ -62,7 +62,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
   // Live price and stock from each Shopify store, each time the drawer opens or a line is added or removed.
   const key = lines.map((l) => l.id).join("|");
   useEffect(() => {
-    if (!open || !lines.some((l) => l.variantId && l.productUrl)) return;
+    if (!open || !mounted || !lines.some((l) => l.variantId && l.productUrl)) return;
     let live = true;
     setChecking(true);
     checkLines(lines).then((c) => {
@@ -74,11 +74,13 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
       live = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, key]);
+  }, [open, key, mounted]);
 
   // Escape closes; the page behind stops scrolling; focus goes in and comes back.
   useEffect(() => {
-    if (!open) return;
+    // Only the drawer that draws locks the page (owner, 2026-11-18): a header that mounts the cart button twice ran this twice, and the
+    // second copy restored the first copy's "hidden" on close, so the page stayed locked and the phone bottom nav never came back.
+    if (!open || !mounted) return;
     const prevFocus = document.activeElement as HTMLElement | null;
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -105,7 +107,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
       document.body.style.overflow = prevOverflow;
       prevFocus?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open, onClose, mounted]);
 
   const groups = useMemo(() => groupByStore(lines), [lines]);
   const items = useMemo(() => buildCheckout(lines, checks, CART_SITE, ref.current), [lines, checks]);
