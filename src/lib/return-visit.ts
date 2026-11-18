@@ -5,7 +5,7 @@
 // most one event per returning visitor per day. Nothing leaves the browser but buckets: no id, no date, no URL.
 // Read it as: returning share = return_visit / visitors; `k` = "<days since last visit>:<page type they came back to>",
 // `age` = days since first visit (the 7- and 30-day return windows), `via` = how they came back, and each live test's arm
-// (`rn`, `ln`, `share`, `cart`, `watch`) so every retention lever reads its return rate on against off.
+// (`rn`, `ln`, `share`, `cart`, `watch`, `since`) so every retention lever reads its return rate on against off.
 // Pure helpers; the component is components/ReturnBeacon.tsx. Identical file in every Compare repo.
 export const RV_KEY = "rv";
 const REGIONS = new Set(["au", "us", "uk", "gb", "ca", "nz", "eu", "sg", "jp", "de", "fr"]);
@@ -121,4 +121,5 @@ export const ARM_KEYS: Record<string, string> = {
   share: "share_arm",
   cart: "cart-arm",
   watch: "watch-arm",
+  since: "since-arm",
 };
