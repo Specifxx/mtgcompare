@@ -2249,6 +2249,43 @@ retention thread. Rollback: remove `<ReturnBeacon />` from the layout.
 Retention lever 2 ("Since your last visit", on the sister sites) is a 50/50 test under `since-arm`; `ARM_KEYS` in
 `lib/return-visit.ts` gains `since` so the file stays the same in every repo. Nothing changes on this site until it runs the lever.
 
+## Collection value card (owner, 2026-11-18: "we need more shareable artefacts")
+
+My collection's "Share my collection" now draws a 1200×630 picture of the visitor's own totals (value, change since
+added, item count, three most valuable items, "Track yours free at <host>") in the browser with a canvas
+(`components/vault/collection-card.ts`, ported from TCG Prices) and hands it to the share sheet as a file; where files
+can't be shared it saves the PNG and copies the link. No server, no function, no Vercel image cost, nothing sent to us.
+Link: `/?utm_source=share&utm_medium=collection&utm_campaign=collection-card`. Counted in Vercel as `share {kind:
+collection, how: image|text|saved|copy}`, only once it really went out.
+
+## Deals page: a share button and its own share image per region (owner, 2026-11-18: "we need more shareable artefacts")
+
+`/[region]/deals` gets a share button (kind and medium `deals`, `utm_source=share&utm_medium=deals`) and
+`[region]/deals/opengraph-image.tsx`: "Today's deals in <region>, up to N% under" with the page's own count
+(`dealsBySection`, `dealPct`, `dealsCopy.summary`), drawn by `lib/og-card.tsx` (text and the logo, no product photo).
+It lists no params, so nothing reads data at build: each region's image is drawn on its first request after a release
+and kept until the next. `pageMeta` names it as the page's image. The quick view is untouched.
+
+## 2026-11-18: "Which tool should we build here next?" (a demand test, not a promise)
+
+Owner, 18 Nov: the other sites lack RiftCompare's tools, which is why Premium only sells there (Rift's sign-ups: 24 from the tool
+gate, 11 tool previews, 9 deck tools, 6 set tracker of 152 in 30 days). Before copying any tool here, `components/ToolInterest.tsx`
+asks product-page readers, low on the page and never beside a price, a buy button or in the quick view, which of four RiftCompare
+tools they want: Best Basket, box value, pull tracker, set tracker. One tap per visitor (localStorage) sends `tool_interest
+{tool, page}`; nothing else is stored or sent. Read about 4 Dec: a tool is built on a site only if it clears 5 taps per 1,000
+product viewers. Remove the box once read. Plan: /mnt/project-files/strategy/premium-network-plan-2026-11-18.html (project files).
+
+## The weekly Hot 100 at /<region>/hot-100 — 2026-11-18
+
+**What.** A new page per region, `/<region>/hot-100`, and its share card `/og/hot-100/<region>`: every product whose cheapest
+in-stock price rose over the last seven days (up to the newest import), biggest rise first, up to 100, each with its place on
+the chart seven days earlier (▲ / ▼ / New). Pure, from `data/public/price-history.json` alone (`lib/hot100.ts`). The weekly
+chart's rules with a lower floor: two or more stores in stock on both days, a rise of 1% or more and under 50% (a bigger jump is a
+misfiled listing). A short week is the Hot 37, never padded (RiftCompare's Hot 40 rule). Noindex under five rows.
+
+**Why.** Owner, 2026-11-18: RiftCompare's Hot chart works on Reddit as a plain link and title; every site gets one stable URL to post
+once a week (tagged `utm_source=reddit&utm_medium=social&utm_campaign=hot100-<site>-<date>`). The dated Sunday chart stays where it
+exists. Shipped with `[deploy] [urgent]` on the owner's ask for today's links. `tests/hot100.test.ts`.
 ## 2026-11-18: The weekly price-drops box on guides, pre-order and release pages (retention)
 
 GA4, last 28 days: people who land on a guide, a pre-order page or the release calendar are among our largest groups of new

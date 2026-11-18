@@ -21,6 +21,7 @@ import { REGIONS, regionOrNotFound, type Market, type RegionInfo } from "@/lib/r
 import { RRP_NOTE } from "@/lib/rrp";
 import { itemListJsonLd, jsonLd, pageMeta, regionAlternates } from "@/lib/seo";
 import { fitDescription, seoCopy, seoTitleText } from "@/lib/seo-titles";
+import { ShareButton } from "@/components/ShareButton";
 
 // /[region]/deals: products whose cheapest in-stock price is at least 10% under the median of the 3+ stores that have it, today
 // (lib/deals.ts: the same bar as every card's "N% below the median" badge, so the page and the badges always agree). One section per
@@ -48,6 +49,8 @@ export async function generateMetadata({ params }: { params: { region: string } 
       title: seoTitleText(seoCopy.dealsTitle(r)),
       description: seoCopy.dealsDescription(r, deals.length, best),
       path: `/${r.region}/deals`,
+      // the region's own share image (opengraph-image.tsx beside this page: today's deal count and best gap)
+      image: `/${r.region}/deals/opengraph-image`,
       alternates: regionAlternates(r.region, "/deals"),
       noindex: dealsThin(deals.length, leaders.top10.length),
     }),
@@ -104,6 +107,7 @@ export default async function DealsPage({ params }: { params: { region: string }
           <Icon name="tag" size={14} /> Deals · {r.name}
         </div>
         <h1 className="mt-2 page-title">{dealsCopy.h1(r)}</h1>
+        <ShareButton title={dealsCopy.title(r)} path={`/${r.region}/deals`} kind="deals" className="mt-3" />
         <p className="page-lead mt-3">
           {lede.lead} {checked ? <Ago iso={checked.toISOString()} initial={timeAgo(checked)} /> : "twice a day"}
           {lede.tail}
