@@ -620,8 +620,8 @@ export default async function ProductPage({ params }: { params: { region: string
             prominent
             summary={here?.lowestPriceCents == null ? "Email me when a store has it at my price" : "Email me when the price drops"}
           />
-          {/* Back in stock (accounts, 2026-11-18, as DexCompare): Premium members tap once; others see one quiet line. */}
-          {here?.lowestPriceCents == null && <RestockAlert productId={p.id} region={r.market} />}
+          {/* Back in stock (accounts, 2026-11-18, as DexCompare): members tap once, everyone else gives an email (free since 2026-11-18). */}
+          {here?.lowestPriceCents == null && <RestockAlert site={ALERT_SITE_KEY} productId={p.id} region={r.market} />}
           {/* The small eBay + TCGplayer pair under the best price (owner, 2026-10-29: "much smaller … near the top … not
               intrusive"): the product's own eBay listings (the strip's request) and the set's TCGplayer products. */}
           <MiniSealedAds

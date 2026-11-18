@@ -2294,3 +2294,12 @@ visitors and the least likely to come back (MTG: pre-orders 7% returning, guides
 price-drops box as home, deals and set pages (`WeeklyDropsBox`, placements `guide`, `preorder`, `releases`): inline, below the
 content, server-rendered at a fixed height, never a pop-up. Read: `weekly_signup` by placement, and the census's sister
 weekly-digest counts, at the retention read of 2 Dec.
+
+## 2026-11-18: Back-in-stock emails are free for everyone (owner)
+
+The owner chose "Free for everyone" for back-in-stock alerts (retention thread, 18 Nov): accounts with an alert came back after
+week one at 56% against 25% without one, and accounts given Premium came back at only 23%. `RestockAlert` on a sold-out product
+now shows visitors one email field (kind `restock` on RiftCompare's alert service, the same double opt-in as a price alert);
+members keep the one-tap button and their watch list. The Premium pages no longer sell it as a perk: Premium is no banner ads,
+200 alerts, the watch list and a year of collection history. Event `restock_signup` {member, region}; read on 2 Dec. Needs the
+service side (TCGEmpire, same day) live first, or a visitor's form answers "for Premium members".

@@ -16,6 +16,7 @@ const SENT: ReadonlySet<string> = new Set([
   "alert_open",
   "alert_created",
   "weekly_signup",
+  "restock_signup", // back in stock, free for everyone (components/premium/RestockAlert.tsx, 2026-11-18)
   "nudge_eligible",
   "nudge_shown",
   "nudge_click",
