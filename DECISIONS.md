@@ -2123,3 +2123,27 @@ and a quiet account icon in the header (sm and up) plus "Sign in / My watches" i
 DexCompare's PremiumCorner and PremiumSlides were not ported. The browser keeps one token (`mtg_premium_v1`); pages stay one CDN copy.
 The old singles site's `/premium` and `/account` redirects to /about are lifted; anything deeper under them still 301s to the new page.
 Sign-ups are counted on RiftCompare's admin Accounts › MTG Compare tab.
+
+## 2026-11-18: Home pages rank items by demand (owner: "the most popular items should be on the homepage in that order")
+
+The owner wants every site's home page to lead with the items most likely to earn a click, revenue and a purchase. Each home list
+(shelf, grid, picks, deals, pre-orders, popular cards) is now ordered by `src/lib/home-rank.ts`, the same pure file in every repo:
+
+- **Demand**, real numbers only: each item's product page views and buy clicks, last 28 days plus the last 7 again (recent counts
+  twice), from Vercel Web Analytics through RiftCompare's public `/api/demand/<site>` (`src/lib/analytics/item-demand.ts` there; top
+  100 product pages a window, `buy_product` events by product where a site sends them). A buy click weighs 20 views. Log scale, so
+  one runaway item cannot take the list.
+- **Value**, from the item's own facts: in stock and at how many stores, a paid row with a price, the price (commission is a share of
+  it, on a soft curve), a release in the last 30/90 days or an open pre-order, a price under its usual.
+- `score = value × (1 + log(1 + views + 20 × clicks))`.
+- **Safe fallback:** under 30 views and clicks across a list, demand is ignored and value alone decides; equal scores keep the list's
+  old order. `NEXT_PUBLIC_HOME_RANK=off` (Vercel variable) turns it off without a code change.
+- **No feedback loop:** the 4th slot, and every 8th after, goes to the best-valued item with no demand yet, so a new item is seen
+  before it can be clicked; the 7-day weight lets a leader fall when it stops being clicked.
+- **Data path, no database:** the daily data job runs `scripts/pull-demand.sh <site> <file>`, which commits the demand file to
+  `main` with no deploy marker (it rides the release). That file's git history is the log of what the ranking saw each day.
+- Heroes stay words, search and ways in (owner, 2026-11-13): the ranking orders the lists, it adds no product to a hero.
+- Measure: buy clicks per visitor sitewide and on home pages, the week before (11-18 Nov) against the two weeks after the release;
+  a demand file under 30 views for a list means that list ran on the fallback and is read apart.
+
+Here: the region home shelf (play and collector boxes, packs: the 150 in stock of each type ranked, eight shown), its deals and pre-orders, and the landing page's ten picks (feature floor first). MTG Compare sends no per-product click yet, so demand is product page views. `data/demand.json`, pulled by `sealed-import.yml`. The quick view is untouched (A/B tests 20 Nov to 3 Dec).

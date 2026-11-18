@@ -4,7 +4,8 @@
 // and, for the default region, by the landing page itself, so the first paint is already filled.
 import { homeRails } from "./data";
 import { REGIONS, type Region } from "./regions";
-import { featured } from "./feature-floor";
+import { featureWorthy } from "./feature-floor";
+import { rankCards } from "./home-demand";
 
 export interface Pick {
   slug: string;
@@ -27,7 +28,10 @@ export async function regionPicks(region: Region): Promise<Pick[]> {
   const { boxes, etbs: collector } = await homeRails(REGIONS[region].market);
   // Both lists come newest set first; a stable sort keeps that order among equals. Dearest first, topped up if short.
   const market = REGIONS[region].market;
-  const pool = featured([...boxes, ...collector].sort((a, b) => b.inStockStores - a.inStockStores), market, (p) => p.lowestPriceCents, PICK_SLOTS, true).map((p) => ({ p }));
+  // Most likely to earn first (owner, 2026-11-18; lib/home-rank.ts), the feature floor still first (lib/feature-floor.ts), topped up if short.
+  const ranked = rankCards([...boxes, ...collector].sort((a, b) => b.inStockStores - a.inStockStores));
+  const good = ranked.filter((p) => featureWorthy(p.lowestPriceCents, market));
+  const pool = [...good, ...ranked.filter((p) => !good.includes(p))].slice(0, PICK_SLOTS).map((p) => ({ p }));
   return pool
     .map(({ p }) => ({ slug: p.slug, name: p.name, type: p.productType, img: p.imageUrl, cents: p.lowestPriceCents, stores: p.inStockStores, listed: Math.max(p.listedStores, p.inStockStores), tcg: p.marketplaceOpen, median: p.medianOpenCents }));
 }

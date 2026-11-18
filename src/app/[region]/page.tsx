@@ -34,6 +34,7 @@ import { emptyHomeReport, loadHomeReport } from "@/lib/home-report";
 import { MarketReport } from "@/components/home/MarketReport";
 import { SetIndex } from "@/components/SetIndex";
 import { setCountsGrouped, typeLabelsInMarket } from "@/lib/hub-data";
+import { rankCards } from "@/lib/home-demand";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js, CDN_PAGES), never ISR: an ISR write
 // costs about twenty renders, and the data only changes with a release, which empties the CDN anyway.
@@ -89,10 +90,11 @@ export default async function RegionHome({ params }: { params: { region: string 
   const latestSets = featureOrder(SETS.filter((s) => bySet.has(s.code)).slice(0, 4).map((s) => s.code)).map((c) => SET_BY_CODE.get(c)!);
   // The deals and the pre-orders feature the dearer products (lib/feature-floor.ts, owner 2026-11-12): deals by the biggest saving
   // in money, so a $40 off a Collector box leads a $3 off a pack; the pre-orders keep every one only when none clears the floor.
-  const deals = priciestFirst(allDeals.filter((p) => featureWorthy(p.lowestPriceCents, r.market)), r.market, (p) => (p.medianOpenCents ?? 0) - (p.lowestPriceCents ?? 0)).slice(0, 8);
+  // Then each list most likely to earn first (owner, 2026-11-18; lib/home-rank.ts): the saving and the price stay the tie-breaks.
+  const deals = rankCards(priciestFirst(allDeals.filter((p) => featureWorthy(p.lowestPriceCents, r.market)), r.market, (p) => (p.medianOpenCents ?? 0) - (p.lowestPriceCents ?? 0))).slice(0, 8);
   const preorderShelf = (() => {
     const top = featuredByPrice(preorders, r.market, (p) => p.lowestPriceCents, 8);
-    return top.length ? top : preorders;
+    return rankCards(top.length ? top : preorders, { preorder: true });
   })();
   const other = REGIONS[nearestRegion(r.region)];
   const preorderLink = { href: `/${r.region}/releases`, label: "Pre-orders" };
