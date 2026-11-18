@@ -239,13 +239,13 @@ test("the product page gives the best-price card the same eBay pick as the table
   const strip = readFileSync(new URL("../src/components/EbayStrip.tsx", import.meta.url), "utf8");
   assert.match(strip, /const bestable = item != null && cents != null && !conditionLabel\(item\.condition\) && ebayMayBeBest\(cents, floor\);/, "only a new listing, not far under the median, can be the best price");
   assert.match(strip, /if \(EBAY_CAN_BE_BEST && byPrice && allowGiven && bestable && cents != null && cents < low\) top = "ebay";/, "the table's badge: the same rule, switched off while an eBay ad may not be 'Best price' (Fiverr review F1, 2026-11-17)");
-  assert.equal(EBAY_CAN_BE_BEST, false, "an eBay ad is never the best price: the headline and the badge name the cheapest store");
+  assert.equal(EBAY_CAN_BE_BEST, true, "an eBay listing carries Best price when it is a new listing cheaper than every store (owner, 2026-11-18)");
   assert.ok((PLACEMENTS as readonly string[]).includes("listings-best-price"));
   const card = readFileSync(new URL("../src/components/BestPriceCard.tsx", import.meta.url), "utf8");
   assert.match(card, /useEbayPick\(/, "the table's pick, not a second rule");
   assert.match(card, /const cheaper = EBAY_CAN_BE_BEST && bestable && item != null && cents != null && cents < store\.cents;/, "only a new listing strictly cheaper than the cheapest in-stock store");
   // the note under the table: the best-price clause only where listings are compared
-  assert.match(ebayRowNote("us"), /it is never the best price, which is always a store's/);
+  assert.match(ebayRowNote("us"), /when it is a new listing cheaper than every store, it is the best price/);
   assert.doesNotMatch(ebayRowNote("nz"), /best price/);
   assert.match(ebayRowNote("sg"), /never compared with the stores'/);
 });

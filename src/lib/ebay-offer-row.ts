@@ -43,7 +43,7 @@ export function ebayFloorFor(cheapestCents: number | null, currency: string, med
  * badge, the best-price card and the sticky bar all name the cheapest STORE; the listing stays at the top as a labelled ad with its real
  * price. Reverses the owner's 2026-10-11 call ("eBay's price counts as the cheapest if it is the cheapest"); set true to roll back.
  */
-export const EBAY_CAN_BE_BEST = false;
+export const EBAY_CAN_BE_BEST = true;
 
 /** May an eBay price (cents, the stores' currency) be called the best price under this floor? */
 export function ebayMayBeBest(cents: number, floor: PriceFloor | null): boolean {
@@ -130,7 +130,7 @@ export function ebayRowNote(region: string): string {
   return (
     " The eBay row, first in the table, is an ad: the lowest-priced eBay listing we have for this product, or an eBay search when there is none" +
     // NZ and SG: A$/US$ listings, never compared, never the best price
-    (SHARED_SITE_NOTE[region] ? "." : "; it is never the best price, which is always a store's.") +
+    (SHARED_SITE_NOTE[region] ? "." : "; when it is a new listing cheaper than every store, it is the best price.") +
     " Listings are imported from eBay on a schedule (how long ago is on the row) and priced before shipping, so a price or its availability may have changed: eBay's page is final." +
     " Its link is an eBay Partner Network affiliate link: we may earn a commission, at no extra cost to you." +
     (SHARED_SITE_NOTE[region] ?? "")

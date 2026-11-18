@@ -2177,3 +2177,10 @@ Custom events stay off (cost), so MTG Compare cannot send a buy click per campai
 40 characters), so Vercel counts the VISITORS each creator or post brought; the AI-assistant `utm_source` rule is unchanged and
 nothing a visitor typed is sent. Convention for every link we hand out:
 `?utm_source=<platform>&utm_medium=creator|social&utm_campaign=<handle or post>`.
+
+## 2026-11-18: an eBay row may be "Best price" again (owner)
+
+The owner withdrew the 2026-11-17 rule that an eBay ad is never "Best price": the cheapest row is the cheapest row, and it carries the
+badge, whichever it is. `EBAY_CAN_BE_BEST = true` (`lib/ebay-offer-row.ts`): a NEW eBay listing in the stores' currency, strictly cheaper than
+every in-stock store and not more than 25% under their median (`ebayMayBeBest`), takes the table badge, the best-price card and the sticky
+bar; otherwise a store (or TCGplayer when cheaper) keeps it. The row order does not change: eBay, TCGplayer, Amazon, then the stores.
