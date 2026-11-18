@@ -12,6 +12,7 @@ import {
   cardTitle,
   cardValue,
   cardsOfGroup,
+  cleanName,
   dayIndex,
   mergeSet,
   movers,
@@ -49,6 +50,24 @@ test("the number TCGplayer appends to a name is dropped from the name", () => {
   const cards = cardsOfGroup(fx("tcgcsv/3/23237/products.json"), fx("tcgcsv/3/23237/prices.json"));
   assert.ok(cards.some((c) => c.n === "Charizard ex" && c.no === "199/165"));
   assert.ok(cards.some((c) => c.n === "Erika's Invitation"));
+});
+
+test("a number inside a name leaves it only when it is the card's own number (real TCGplayer names)", () => {
+  assert.equal(cleanName("Alolan Exeggutor - 2a/131", "002a/131"), "Alolan Exeggutor");
+  assert.equal(cleanName("Slowking - 21/122 (Cosmos Holo)", "021/122"), "Slowking (Cosmos Holo)");
+  assert.equal(cleanName("Druddigon - 70/106(Cosmos Holo)", "070/106"), "Druddigon (Cosmos Holo)");
+  assert.equal(cleanName("Rocket's Mewtwo - 8 [Winner]", "008/009"), "Rocket's Mewtwo [Winner]");
+  assert.equal(cleanName("Umbreon - 059 (Cosmos Holo)", "059/131"), "Umbreon (Cosmos Holo)");
+  assert.equal(cleanName("Professor Turo's Scenario - 171/182", "177/182"), "Professor Turo's Scenario - 171/182");
+  assert.equal(cleanName("Basic Fire Energy - Armarouge 10", "002"), "Basic Fire Energy - Armarouge 10");
+  assert.equal(cleanName("Mew ex", "151/165"), "Mew ex");
+  assert.equal(cardsOfGroup([{ productId: 1, name: "Arcanine", extendedData: [{ name: "Rarity", value: "Unconfirmed" }] }], [])[0].r, null);
+});
+
+test("a set code shared by several sets searches all of them", () => {
+  const sets = new Map([["a", { name: "Nintendo Promos", abbr: "PR" }], ["b", { name: "Alternate Art Promos", abbr: "PR" }]]);
+  const rows: SearchRow[] = [["a", "pikachu-1", "Pikachu", "001", 500, 1, 1], ["b", "eevee-1", "Eevee", "001", 400, 1, 2]];
+  assert.deepEqual(searchCards(rows, sets, "PR 1").hits.map((h) => h.s), ["pikachu-1", "eevee-1"]);
 });
 
 test("groups without cards are skipped", () => {

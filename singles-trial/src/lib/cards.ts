@@ -200,12 +200,21 @@ export function cardsOfGroup(products: readonly TcgcsvProduct[], prices: readonl
     if (rarity && /^(?:t|token|code card)$/i.test(rarity)) continue;
     if (/\b(?:token|code card)\b/i.test(p.name)) continue;
     if (!number && NOT_A_CARD.test(p.name)) continue;
-    // TCGplayer prints some names as "Name - 004/102": the number is its own field here.
-    let n = p.name.trim();
-    if (number && n.endsWith(` - ${number}`)) n = n.slice(0, -(number.length + 3)).trim();
-    out.push({ id: p.productId, n, no: number ?? "", r: rarity, p: byId.get(p.productId) ?? {} });
+    out.push({ id: p.productId, n: cleanName(p.name, number), no: number ?? "", r: rarity && !/^unconfirmed$/i.test(rarity) ? rarity : null, p: byId.get(p.productId) ?? {} });
   }
   return out;
+}
+
+/**
+ * TCGplayer prints many names as "Name - 70/106 (Cosmos Holo)": the number is its own field here, so it leaves the name, and only
+ * when it IS this card's number ("Basic Fire Energy - Armarouge 10" and a name whose number disagrees with the field stay whole).
+ */
+export function cleanName(name: string, number: string | null): string {
+  const n = name.trim();
+  if (!number) return n;
+  const m = /\s+-\s+(#?[A-Za-z]{0,4}\d+[a-z]?)(?:\/[A-Za-z]{0,4}\d+[a-z]?)?(?=\s|\(|\[|$)/.exec(n);
+  if (!m || numberKey(m[1]) !== numberKey(number)) return n;
+  return (n.slice(0, m.index) + " " + n.slice(m.index + m[0].length)).replace(/\s+/g, " ").trim();
 }
 
 /** Groups that hold no cards of their own. */
@@ -292,18 +301,23 @@ function score(rows: readonly SearchRow[], sets: SetNames, q: string, useSet: bo
       words = words.filter((_, i) => i !== idx);
     }
   }
-  const abbrToSet = new Map<string, string>();
-  for (const [slug, s] of sets) if (s.abbr) abbrToSet.set(s.abbr.toLowerCase(), slug);
-  let set: string | null = null;
-  const setIdx = useSet ? words.findIndex((w) => abbrToSet.has(w)) : -1;
+  // TCGplayer gives several sets one abbreviation ("PR" for 19 Pokémon promo sets): a code names all of them.
+  const abbrToSets = new Map<string, Set<string>>();
+  for (const [slug, s] of sets) {
+    if (!s.abbr) continue;
+    const k = s.abbr.toLowerCase();
+    (abbrToSets.get(k) ?? abbrToSets.set(k, new Set()).get(k)!).add(slug);
+  }
+  let set: Set<string> | null = null;
+  const setIdx = useSet ? words.findIndex((w) => abbrToSets.has(w)) : -1;
   if (setIdx >= 0) {
-    set = abbrToSet.get(words[setIdx])!;
+    set = abbrToSets.get(words[setIdx])!;
     words = words.filter((_, i) => i !== setIdx);
   }
   const name = words.join(" ");
   const scored: { r: SearchRow; score: number }[] = [];
   for (const r of rows) {
-    if (set && r[0] !== set) continue;
+    if (set && !set.has(r[0])) continue;
     if (num && numberKey(r[3]) !== num) continue;
     const n = normalise(r[2]);
     let sc: number;
