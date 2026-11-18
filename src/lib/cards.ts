@@ -169,16 +169,25 @@ export function numberOrder(a: string, b: string): number {
  * climbing back means waiting its turn again); then the most valuable unreleased cards at or over the gate, up to `growth` of them
  * (enough to reach INDEX_START while fewer are released). Returns how many it released.
  */
-export function releaseForIndexing(all: CardRow[], growth: number): number {
+export function releaseForIndexing(all: CardRow[], growth: number, fresh: ReadonlySet<CardRow> = new Set()): number {
   for (const c of all) if (c.ix && (cardValue(c.p) ?? 0) < MIN_INDEX_CENTS) c.ix = 0;
-  const released = all.filter((c) => c.ix).length;
+  // New sets first (owner, 18 Nov: "new sets' singles live first"): every card of a new or upcoming set at the gate is released
+  // the day it has a price, outside the daily step.
+  let first = 0;
+  for (const c of fresh) {
+    if (!c.ix && (cardValue(c.p) ?? 0) >= MIN_INDEX_CENTS) {
+      c.ix = 1;
+      first++;
+    }
+  }
+  const released = all.filter((c) => c.ix).length - first;
   const room = released < INDEX_START ? Math.max(INDEX_START - released, growth) : growth;
   const next = all
     .filter((c) => !c.ix && (cardValue(c.p) ?? 0) >= MIN_INDEX_CENTS)
     .sort((a, b) => (cardValue(b.p) ?? 0) - (cardValue(a.p) ?? 0) || a.id - b.id)
     .slice(0, Math.max(0, room));
   for (const c of next) c.ix = 1;
-  return next.length;
+  return first + next.length;
 }
 
 // ─── What the import keeps from TCGCSV ─────────────────────────────────────────
@@ -198,6 +207,25 @@ export interface TcgcsvCardPrice {
   productId: number;
   marketPrice: number | null;
   subTypeName: string;
+}
+
+/** A set counts as new for FRESH_DAYS after its release date, and from the day TCGplayer lists it before release. */
+export const FRESH_DAYS = 60;
+
+/**
+ * The sets whose cards go to Google first: a sealed set (lib/sets.ts) released in the last FRESH_DAYS or not yet released, and the
+ * groups that belong to it by name ("Commander: Star Trek", "Promo Pack: Reality Fracture", "Star Trek Stardates"). Promo groups
+ * TCGplayer keeps re-dating (FNM, Secret Lair…) have no sealed set and never count.
+ */
+export function freshSets(sets: readonly Pick<CardSet, "slug" | "name" | "released" | "sealed">[], today: string): Set<string> {
+  const from = new Date(Date.parse(today) - FRESH_DAYS * 86_400_000).toISOString().slice(0, 10);
+  const roots = sets.filter((s) => s.sealed && s.released && s.released >= from).map((s) => normalise(s.name));
+  const out = new Set<string>();
+  for (const s of sets) {
+    const n = normalise(s.name);
+    if (s.released && s.released >= from && roots.some((r) => n === r || n.includes(r))) out.add(s.slug);
+  }
+  return out;
 }
 
 /** Groups that hold no playable cards of their own. */

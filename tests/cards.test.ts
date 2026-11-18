@@ -324,3 +324,21 @@ test("the search page and the typeahead route answer from the index", async () =
   assert.equal(body.hits[0].id, 1001);
   assert.match(res.headers.get("Vercel-CDN-Cache-Control") ?? "", /s-maxage=21600/);
 });
+
+test("new sets go to Google first: a new or upcoming sealed set and its Commander/promo groups, outside the daily step", async () => {
+  const { freshSets } = await import("../src/lib/cards");
+  const sets = [
+    { slug: "star-trek", name: "Star Trek", released: "2026-11-13", sealed: "trk" },
+    { slug: "commander-star-trek", name: "Commander: Star Trek", released: "2026-11-13", sealed: null },
+    { slug: "nauctis", name: "Nauctis: The Sunken Realm", released: "2027-02-05", sealed: "nau" },
+    { slug: "fnm-promos", name: "FNM Promos", released: "2026-11-17", sealed: null },
+    { slug: "foundations", name: "Foundations", released: "2024-11-15", sealed: "fdn" },
+  ];
+  assert.deepEqual([...freshSets(sets, "2026-11-18")].sort(), ["commander-star-trek", "nauctis", "star-trek"]);
+  const old = Array.from({ length: INDEX_START }, (_, i) => row(i + 1, 5000, 1));
+  const fresh = [row(90_001, 150), row(90_002, 99), row(90_003, 400)];
+  const all = [...old, ...fresh, row(80_000, 9000)];
+  assert.equal(releaseForIndexing(all, 0, new Set(fresh)), 2, "both new-set cards at US$1+ even with the step paused");
+  assert.deepEqual(fresh.map((c) => c.ix), [1, 0, 1]);
+  assert.equal(all.at(-1)!.ix, 0, "an old card still waits for the daily step");
+});
