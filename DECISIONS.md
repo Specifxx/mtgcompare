@@ -2170,3 +2170,10 @@ the visitor's pick (`mtg-region`), else the US.
 ## 2026-11-18: llms.txt points AI agents at the free price file
 
 `/prices.json` already existed, but nothing an agent reads said so. `llms.txt` now has a "Free price data and citing" block: the file, that it is free and open to every origin, the date to quote and a suggested credit line. No new route, no spend.
+## 2026-11-18: Creator and social campaigns on page views (owner)
+
+Custom events stay off (cost), so MTG Compare cannot send a buy click per campaign. Page views now also keep `utm_source`,
+`utm_medium` and `utm_campaign` when the medium is `creator` or `social` (a safe tag: letters, digits, dash, underscore, dot,
+40 characters), so Vercel counts the VISITORS each creator or post brought; the AI-assistant `utm_source` rule is unchanged and
+nothing a visitor typed is sent. Convention for every link we hand out:
+`?utm_source=<platform>&utm_medium=creator|social&utm_campaign=<handle or post>`.
