@@ -535,7 +535,7 @@ export default async function ProductPage({ params }: { params: { region: string
                 {packs != null && <span className={`${chip} hidden sm:inline`}>{plural(packs, "booster pack")}</span>}
               </div>
               <div className="mt-2">
-                <ShareButton title={heading} path={`/${r.region}/p/${p.slug}`} kind="product" text={shareText(heading, priceGap(open.filter((o) => !o.marketplace).map((o) => ({ priceCents: o.priceCents, storeName: o.storeName }))), (c) => money(c, r.market))} className="float-right -mt-1 ml-2" />
+                <ShareButton title={heading} path={`/${r.region}/p/${p.slug}`} kind="product" deal={`/${r.region}/deals`} text={shareText(heading, priceGap(open.filter((o) => !o.marketplace).map((o) => ({ priceCents: o.priceCents, storeName: o.storeName }))), (c) => money(c, r.market))} className="float-right -mt-1 ml-2" />
                 <h1 className="text-balance font-display text-2xl font-bold leading-tight tracking-[-0.02em] sm:text-3xl">{heading}</h1>
               </div>
               {/* My collection (lib/vault.ts): valued in this region from /prices.json, kept in the browser only. */}

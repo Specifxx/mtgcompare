@@ -2193,3 +2193,12 @@ with a Number skipped) writes `data/barcodes/tcgplayer.json` (TCGplayer id -> ba
 products dropped, `src/lib/gtin.ts`); the product page joins it through its TCGplayer offer's URL (`src/lib/barcodes.ts`) and shows
 "Barcode (UPC/EAN)" and "TCGplayer ID" in Quick facts, and the Product markup carries `gtin12`/`gtin13` and `productID`. Never from a
 store title. The quick view (A/B window 20 Nov to 3 Dec) is unchanged.
+
+## 2026-11-18: Share for a deal, and guides get the share button (owner)
+
+Owner: sharing should be easy and rewarded ("if you share … you can open Deal Finder … gives incentive"). Pages that pass `deal`
+to `ShareButton` (product, set and guide pages) put half of browsers (`share_arm` in localStorage, `pickShareArm`) on
+"Share · get a deal": after a share completes, a small card under the button (the visitor's own tap, ✕ to close) points to the
+region's `/deals`. The other half is the control. The quick view never passes `deal`, so it is unchanged during its A/B test
+(20 Nov to 3 Dec; `tests/share-link.test.ts`). Nothing is gated. Events `share { kind, arm }` (two properties, Vercel's limit)
+and `share_unlock { kind }`. Read the share rate per arm after two weeks; keep the offer only if it raises sharing.
