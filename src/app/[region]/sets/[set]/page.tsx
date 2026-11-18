@@ -125,7 +125,6 @@ export default async function SetPage({ params }: { params: { region: string; se
       {!(gridPageHasRoomForFooter(products.length) && products.length >= FOOTER_STRIP_MIN) && <NoPreFooter />}
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { href: `/${r.region}/sets`, label: "Sets" }, { label: s.name }]} />
       <NewCardsStrip className="mt-2" />
-      <InlineAds region={r.region} tiles={tcgTiles} className="mt-4 sm:mt-6" />
 
       {/* The set's header, on the page's own ground (no box around it since 2026-11-13), then the products: the sentence that sat
           here opens "About" below. */}
@@ -297,6 +296,8 @@ export default async function SetPage({ params }: { params: { region: string; se
           {next && <SetLink r={r} s={next} dir="next" />}
         </nav>
       )}
+      {/* Ads sit below the page's own content, never above it (2026-11-19, core-update quality pass). */}
+      <InlineAds region={r.region} tiles={tcgTiles} className="mt-8" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />
     </div>
   );

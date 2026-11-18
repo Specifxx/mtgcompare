@@ -494,7 +494,6 @@ export default async function ProductPage({ params }: { params: { region: string
           { label: p.name },
         ]}
       />
-      <InlineAds region={r.region} tiles={tcgTiles} className="mt-4 sm:mt-6" />
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-8">
         {/* The big photo: desktops only (a phone gets the thumbnail beside the name, so the price is in the first screen). */}
@@ -802,6 +801,8 @@ export default async function ProductPage({ params }: { params: { region: string
 
       {/* Remembered in this browser only, for the region home's "Recently viewed" (components/Recent.tsx). */}
       <RecentTracker region={r.region} slug={p.slug} />
+      {/* Ads sit below the page's own content, never above it (2026-11-19, core-update quality pass). */}
+      <InlineAds region={r.region} tiles={tcgTiles} className="mt-8" />
       {ld && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />}
     </div>
   );

@@ -2357,3 +2357,14 @@ sitting on top of it.
   `var(--bn-space)` + a small gap up, and the body's bottom padding follows it. Hidden, it slides fully off-screen (transform only, CLS 0).
 - **Measured** (local build, dock stacked): Pixel 7 412×915 nav + dock take 129px (14.1%); iPhone 15 393×852 with a 34px safe area
   143px (16.8%); iPhone SE 375×667 129px (19.3%); the old flush bar took about the same plus the full safe area.
+
+## Ads below content, cross-site block off, shorter footer, who runs it (2026-11-19)
+
+Owner, 2026-11-19 (core-update quality pass): "all the ads that can negatively impact our indexing let's remove and have
+more strategically placed ads". The banner pair no longer opens any page: the `[region]` layout draws `LayoutInlineAds`
+after the page, the region home under the in-stock shelf, product and set pages last, the landing page after the region's
+ten (it sat under the hero from 2026-11-17). `FamilyCluster` is off (`CROSS_SITE_BLOCKS`); the one family link is the
+footer's `/our-sites`. The footer's MTG Compare column is 9 links (was 15), Explore 8 (was 17, seasonal pages included)
+and Guides the region's newest six. The about page says who runs it (Bill and George), how AI tools are used, and what
+the group costs (about A$790 a month, our books, 30 days to 15 Nov 2026). Kept: the phone dock (after a scroll,
+dismissible).

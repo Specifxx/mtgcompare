@@ -7,7 +7,12 @@ import { blockHeading, familyMoney, tileNote } from "@/lib/family-network";
 import type { Region } from "@/lib/regions";
 import { Section } from "./Section";
 
+// Off (2026-11-19, core-update quality pass): a block of links to our other sites on deal and release pages reads as a link
+// network. The one family link is the footer's /our-sites.
+export const CROSS_SITE_BLOCKS = false;
+
 export function FamilyCluster({ kind, region }: { kind: "deal" | "preorder"; region: Region }) {
+  if (!CROSS_SITE_BLOCKS) return null;
   const tiles = familyTiles(kind, region);
   if (!tiles.length) return null;
   return (

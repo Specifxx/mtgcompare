@@ -74,7 +74,7 @@ test("the footer: a wrapped link keeps its distance, and the guides have a row o
   const titles = [...html.matchAll(/<nav aria-label="Footer: ([^"]+)"/g)].map((m) => m[1]);
   assert.deepEqual(titles, footerColumns("us").map((c) => c.title));
   const links = [...html.matchAll(/<li class="break-inside-avoid"><a class="([^"]+)"/g)].map((m) => m[1]);
-  assert.ok(links.length > 40);
+  assert.ok(links.length > 25 && links.length <= 40, `a short footer (2026-11-19), found ${links.length}`);
   for (const c of links) assert.equal(c, "flex min-h-10 items-center py-1.5 leading-5 text-muted transition-colors hover:text-ink sm:min-h-8");
   // 20px of text and 6px above and below: a one-line link is still exactly 32px from sm, and 40px on a phone.
   assert.equal(20 + 2 * 6, 32);

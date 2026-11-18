@@ -69,9 +69,8 @@ test("the pool is in-stock store products with a photo and a price: never a sold
   assert.equal(out[0].cents, 10000);
 });
 
-test("the page is force-dynamic, in the sitemap, the menu and the footer", () => {
+test("the page is force-dynamic, in the sitemap and the menu (the footer is shorter since 2026-11-19)", () => {
   assert.match(fs.readFileSync("src/app/[region]/daily/page.tsx", "utf8"), /export const dynamic = "force-dynamic"/);
   assert.match(fs.readFileSync("src/lib/sitemap.ts", "utf8"), /\/daily`/);
   assert.match(fs.readFileSync("src/lib/nav.ts", "utf8"), /s\("daily"/);
-  assert.match(fs.readFileSync("src/components/Footer.tsx", "utf8"), /s\("daily"/);
 });

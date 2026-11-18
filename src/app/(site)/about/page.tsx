@@ -64,6 +64,17 @@ export default function About() {
           price is before you click through.
         </p>
 
+        <h2 id="who">Who runs MTG Compare</h2>
+        <p>
+          Bill and George, the two co-founders, run it and own it. It is independent: no store, distributor or publisher has a stake or
+          pays for its place in a comparison. We play Magic and buy sealed ourselves, which is why a booster box here is matched to its
+          exact set and box type, and a Collector box never gets a Play box&rsquo;s price.
+        </p>
+        <p>
+          AI tools help us write the code and draft the guides, and we check what they produce before it goes up. Prices are never typed
+          in: a program reads each store&rsquo;s own listings twice a day.
+        </p>
+
         <h2>Where the prices come from</h2>
         <p>
           About twice a day we read each store&rsquo;s public product listings (the same catalogue feed their own website uses), in the
@@ -203,6 +214,10 @@ export default function About() {
           We keep them out of your way: at most one ad on a phone screen at a time and two on a wide screen, no pop-ups or countdowns, space
           kept for every ad before it loads so nothing you are reading gets pushed aside, and no ads on this page or the Terms, Privacy or
           Contact pages.
+        </p>
+        <p>
+          What it costs: hosting, the price imports and the tools we build with come to about A$790 a month for MTG Compare and our other
+          price sites together (our own books, the 30 days to 15 November 2026). The commission above is what pays for it.
         </p>
 
         <h3 id="ebay" className="mb-2 mt-6 font-display text-base font-bold text-ink">eBay</h3>

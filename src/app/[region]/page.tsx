@@ -230,7 +230,6 @@ export default async function RegionHome({ params }: { params: { region: string 
       <NoPreFooter />
       <div className="page">
         <NewCardsStrip className="mt-6" />
-        <InlineAds region={r.region} tiles={tcgTiles} className="mt-6 sm:mt-8" />
         {overview.products === 0 ? (
           <div className="mt-10">
             <Empty actions={[{ href: `/${other.region}`, label: `MTG Compare ${other.name}` }]}>We&rsquo;re still reading {r.adjective} stores for the first time. Check back shortly.</Empty>
@@ -241,6 +240,8 @@ export default async function RegionHome({ params }: { params: { region: string 
           </Section>
         )}
 
+        {/* The ads sit under the in-stock shelf, never above the page's own content (2026-11-19, core-update quality pass). */}
+        <InlineAds region={r.region} tiles={tcgTiles} className="mt-10" />
 
         {latestSets.length > 0 && (
           <Section title="Latest sets" href={`/${r.region}/sets`} linkLabel="All sets" className="reveal mt-16 sm:mt-24">

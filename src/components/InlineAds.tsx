@@ -50,7 +50,7 @@ export function inlineOrder<E, T>(ebay: E[], tcg: T[], max = INLINE_MAX): Array<
 export function LayoutInlineAds({ region, tiles }: { region: Region; tiles: TcgplayerTile[] }) {
   const path = usePathname() || "";
   if (!layoutInlineAdsAllowed(path)) return null;
-  return <InlineAds key={`${region}|${path}`} region={region} tiles={tiles} className="mb-2 mt-4 sm:mt-6" />;
+  return <InlineAds key={`${region}|${path}`} region={region} tiles={tiles} className="mb-6 mt-8" />;
 }
 
 type Tile = { key: string; href: string; img: string; title: string; price: string };
