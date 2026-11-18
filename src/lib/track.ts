@@ -7,6 +7,7 @@ import { track as vercelTrack } from "@vercel/analytics";
 // they were dropped and the sign-up recheck would have read zero; and the quick view's A/B tests (lib/ab.ts: ab_seen and one event a
 // visit per kind of click, 20 November to 3 December) count through their own eight names.
 const SENT: ReadonlySet<string> = new Set([
+  "return_visit", // the retention programme's return beacon (lib/return-visit.ts, 2026-11-18): one per returning visitor a day
   "buy_click",
   "share",
   "share_visit",
