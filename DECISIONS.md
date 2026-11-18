@@ -2193,6 +2193,7 @@ with a Number skipped) writes `data/barcodes/tcgplayer.json` (TCGplayer id -> ba
 products dropped, `src/lib/gtin.ts`); the product page joins it through its TCGplayer offer's URL (`src/lib/barcodes.ts`) and shows
 "Barcode (UPC/EAN)" and "TCGplayer ID" in Quick facts, and the Product markup carries `gtin12`/`gtin13` and `productID`. Never from a
 store title. The quick view (A/B window 20 Nov to 3 Dec) is unchanged.
+
 ## 2026-11-18: Share for a deal, and guides get the share button (owner)
 
 Owner: sharing should be easy and rewarded ("if you share … you can open Deal Finder … gives incentive"). Pages that pass `deal`
