@@ -6,6 +6,7 @@
 // sold-out line from the checkout, and shows a changed price. Manual lines (stores
 // whose commission rides on their own product link) keep that link.
 import { useEffect, useMemo, useRef, useState } from "react";
+import { track as vaTrack } from "@vercel/analytics";
 import {
   cartRef,
   checkoutUrl,
@@ -208,6 +209,7 @@ export function CartListView() {
                         currency: g.currency,
                         items: units,
                       });
+                      vaTrack("cart_checkout", { store: g.store, items: units, via: "cart-page", kind: "store", paid: false });
                     } catch {
                       /* best-effort */
                     }

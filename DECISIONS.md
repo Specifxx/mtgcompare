@@ -2178,6 +2178,22 @@ Custom events stay off (cost), so MTG Compare cannot send a buy click per campai
 nothing a visitor typed is sent. Convention for every link we hand out:
 `?utm_source=<platform>&utm_medium=creator|social&utm_campaign=<handle or post>`.
 
+## 2026-11-18: Feedback asks: "Was this page useful?" in the footer, a /feedback page, counted by the daily triage (owner)
+
+The owner: "We need more feedback so can we find a way to get more". One RiftCompare visitor's note (sort the movers by %
+gain or loss) became a feature the same day, but across the network three weeks brought about 58 star ratings and fewer than
+ten written notes. Rift's own record also holds "too many popups asking for my opinion", so every ask here is inline.
+
+- `components/FeedbackAsk.tsx` (the same file on every site): one line at the top of the footer, "Was this page useful?
+  Yes / No". The tap is sent at once (a vote alone counts); only then does an optional "What would make it better?" box
+  open. Never a pop-up, nothing fixed or floating, hidden for the rest of the visit on a page already answered, and in no
+  quick view (the Dex / MTG quick-view A/B, 20 Nov to 3 Dec, is untouched).
+- `/feedback`: the full form (an idea, something wrong, something missing) and "You asked, we built it", the changes
+  visitors' notes have led to; add a line there when a note leads to a change. noindex, linked from the footer and the menu.
+- Both post to `/api/report` as kind `feedback` (`lib/reports-github.ts`). A note is an inbox file like any report; a bare
+  vote is `votes/<site>/<day>/<time>-up|down-<rand>.json`, counted from its file name by RiftCompare's daily *Reports
+  triage*, which now prints a 7-day feedback table per site and flags every note for a look. No email address is asked
+  for or kept: the thanks shows the site's inbox for anyone who wants a reply.
 ## 2026-11-18: an eBay row may be "Best price" again (owner)
 
 The owner withdrew the 2026-11-17 rule that an eBay ad is never "Best price": the cheapest row is the cheapest row, and it carries the
@@ -2193,3 +2209,12 @@ with a Number skipped) writes `data/barcodes/tcgplayer.json` (TCGplayer id -> ba
 products dropped, `src/lib/gtin.ts`); the product page joins it through its TCGplayer offer's URL (`src/lib/barcodes.ts`) and shows
 "Barcode (UPC/EAN)" and "TCGplayer ID" in Quick facts, and the Product markup carries `gtin12`/`gtin13` and `productID`. Never from a
 store title. The quick view (A/B window 20 Nov to 3 Dec) is unchanged.
+
+## 2026-11-18: Share for a deal, and guides get the share button (owner)
+
+Owner: sharing should be easy and rewarded ("if you share … you can open Deal Finder … gives incentive"). Pages that pass `deal`
+to `ShareButton` (product, set and guide pages) put half of browsers (`share_arm` in localStorage, `pickShareArm`) on
+"Share · get a deal": after a share completes, a small card under the button (the visitor's own tap, ✕ to close) points to the
+region's `/deals`. The other half is the control. The quick view never passes `deal`, so it is unchanged during its A/B test
+(20 Nov to 3 Dec; `tests/share-link.test.ts`). Nothing is gated. Events `share { kind, arm }` (two properties, Vercel's limit)
+and `share_unlock { kind }`. Read the share rate per arm after two weeks; keep the offer only if it raises sharing.

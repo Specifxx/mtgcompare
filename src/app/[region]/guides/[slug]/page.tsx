@@ -1,3 +1,4 @@
+import { ShareButton } from "@/components/ShareButton";
 import { detailIndexed } from "@/lib/index-tiers";
 import Link from "@/components/Link";
 import { notFound } from "next/navigation";
@@ -69,6 +70,7 @@ export default async function GuidePage({ params }: { params: { region: string; 
         <article className="min-w-0 max-w-[68ch]">
           <header>
             <div className="eyebrow">{g.kicker}</div>
+            <ShareButton title={title} path={`/${r.region}/guides/${g.slug}`} kind="guide" deal={`/${r.region}/deals`} className="float-right ml-2" />
             <h1 className="mt-2 page-title">{title}</h1>
             <p className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
               <span className="font-medium text-ink">By MTG Compare</span>

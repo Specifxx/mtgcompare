@@ -141,7 +141,7 @@ export default async function SetPage({ params }: { params: { region: string; se
               <h1 id="set-title" className="page-title min-w-0">
                 {name}
               </h1>
-              <ShareButton title={name} path={`/${r.region}/sets/${s.slug}`} kind="set" />
+              <ShareButton title={name} path={`/${r.region}/sets/${s.slug}`} kind="set" deal={`/${r.region}/deals`} />
             </div>
           </div>
           <ul className="col-span-2 flex flex-wrap gap-2 sm:col-span-1 sm:col-start-2 sm:self-start">

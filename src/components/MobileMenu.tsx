@@ -268,6 +268,9 @@ export function MenuSheet({
         <Link href="/contact" prefetch={false} onClick={close} className="inline-flex min-h-10 items-center text-muted hover:text-ink">
           Contact
         </Link>
+        <Link href="/feedback" prefetch={false} onClick={close} className="inline-flex min-h-10 items-center text-muted hover:text-ink">
+          Send feedback
+        </Link>
       </p>
     </div>
   );
