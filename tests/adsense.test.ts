@@ -32,9 +32,10 @@ test("ads.txt is Google's line for the publisher", () => {
   assert.equal(adsTxt("ca-pub-1234567890123456"), "google.com, pub-1234567890123456, DIRECT, f08c47fec0942fa0\n");
 });
 
-test("the script and the guide unit load only behind ADSENSE_CLIENT", () => {
+test("the AdSense script never loads (owner, 2026-11-18: AdSense is off), and the guide unit has no slot", () => {
   const layout = readFileSync(new URL("../src/app/layout.tsx", import.meta.url), "utf8");
-  assert.match(layout, /\{ADSENSE_CLIENT && \(/);
+  assert.doesNotMatch(layout, /adsenseScriptSrc|googlesyndication/);
+  assert.equal(ADSENSE_GUIDE_SLOT, null);
   const kit = readFileSync(new URL("../src/content/guides/kit.tsx", import.meta.url), "utf8");
   assert.match(kit, /ADSENSE_CLIENT && ADSENSE_GUIDE_SLOT \? adsenseIndex/);
 });
