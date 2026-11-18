@@ -2218,3 +2218,12 @@ to `ShareButton` (product, set and guide pages) put half of browsers (`share_arm
 region's `/deals`. The other half is the control. The quick view never passes `deal`, so it is unchanged during its A/B test
 (20 Nov to 3 Dec; `tests/share-link.test.ts`). Nothing is gated. Events `share { kind, arm }` (two properties, Vercel's limit)
 and `share_unlock { kind }`. Read the share rate per arm after two weeks; keep the offer only if it raises sharing.
+
+## 2026-11-18: the Amazon button is amber, and the quick view's "See full page" is a real button (owner)
+
+Owner: the Amazon row's button was the neutral `.btn-soft`, so it read like any store's. It is now `.btn-amazon` (globals.css):
+#FFA41C with #111 ink, #FA8900 on hover, a #E08A00 hairline, the same in both themes. It is the button of the priced "View deal"
+row and the unpriced "Check Amazon" row (`OfferRows`), and of the sold-out Amazon card's button (`Amazon.tsx`). `rel`, the tracking, the "Ad"/"Paid link" labels, the row order, prices and the Cheapest logic are untouched, and
+so are the TCGplayer button and the phone eBay + TCGplayer pair's position (the quick view's A/B test starts 20 Nov). The quick view's
+pinned footer link, already visible without scrolling, becomes a 44px bold bordered button reading "See full page: price history
+and details" (`data-see-full-page`); it was a 42px ghost button. `tests/amazon-button.test.ts` pins both.

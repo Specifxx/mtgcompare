@@ -279,6 +279,11 @@ body {
   .btn-tcg {
     @apply btn border border-transparent bg-[#1d4ed8] text-white hover:bg-[#2563eb];
   }
+  /* Amazon's button (owner, 2026-11-18): calm amber with near-black ink in BOTH themes, so the Amazon row reads apart from the site's
+     buy button and from eBay's and TCGplayer's by its button alone. Ink #111 on #FFA41C is 10:1, on the hover #FA8900 8:1. */
+  .btn-amazon {
+    @apply btn border border-[#E08A00] bg-[#FFA41C] text-[#111] hover:bg-[#FA8900];
+  }
   /* An ad's chips: outlined and cool-toned, so they never pass for the site's internal navigation chips (.chip). */
   .ad-chip {
     @apply inline-flex items-center gap-1.5 rounded-full border border-dashed border-ad-line bg-surface px-3 py-1 text-xs font-medium text-ink transition-colors hover:border-ink;

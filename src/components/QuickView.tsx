@@ -259,8 +259,8 @@ export function QuickView() {
               summary={got.alert.cents == null ? "Email me when a store has it at my price" : "Email me when the price drops"}
             />
           )}
-          <Link href={head.href} prefetch={false} onClick={hide} className="btn-ghost flex w-full justify-center px-5 py-2.5 text-[15px]">
-            See price history and details <span aria-hidden>→</span>
+          <Link href={head.href} prefetch={false} onClick={hide} data-see-full-page="" className="btn-ghost flex min-h-11 w-full justify-center border-ink/40 px-5 py-2.5 text-[15px] font-bold">
+            See full page: price history and details <span aria-hidden>→</span>
           </Link>
         </div>
       </div>
