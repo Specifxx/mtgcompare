@@ -22,6 +22,7 @@ import "@/components/cart/cart-drawer.css";
 import "@/components/store-vote.css";
 import "@/components/vault/vault.css";
 import "@/components/site-reviews/site-reviews.css";
+import { ReturnBeacon } from "@/components/ReturnBeacon";
 
 // Font display is optional, not swap: both faces are preloaded, so a warm visit renders in them from the first paint, and a slow
 // first visit keeps the size-adjusted fallback for that page instead of re-wrapping every line when the font lands (that swap
@@ -97,6 +98,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {BOTTOM_NAV !== "off" && <BottomNav mode={BOTTOM_NAV} />}
         <SiteAnalytics />
         <ShareArrival />
+        <ReturnBeacon />
       </body>
     </html>
   );
