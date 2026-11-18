@@ -2340,3 +2340,20 @@ one-store pages lose their offers at the next import and 301 to their type page 
 
 **Measure.** Products with store offers in `nau`, `mdd`, `trk` and EU bundle pages after the next import; buy clicks on the merged
 pages week on week. `tests/sealed-title.test.ts`.
+
+## 2026-11-18 — The bottom nav is a floating pill, and closing the cart gives it back
+
+Owner, 2026-11-18: "after you open the cart and then you close it, the little bottom navigation disappears", and the nav should be
+"the little football field kind of shape … floating above the bottom a little bit" (Catchback's), with the eBay / TCGplayer ad dock
+sitting on top of it.
+
+- **The bug.** A header that mounts the cart button twice (desktop and phone copies) mounted two `CartDrawer`s. Only one draws, but both
+  ran the scroll-lock effect: the second saved the first's `overflow: hidden` as "previous" and put it back on close, so the page stayed
+  locked and `BottomNav` (and the ad dock) read it as an open dialog forever. Now only the drawer that draws locks scroll or checks
+  live prices (`mounted` in both effects). Sites with one header button never hit it, but carry the same guard.
+- **The pill.** Geometry only, colours stay the site's own: 12px from each side (at most 460px wide), rounded ends, a soft shadow, and
+  `bottom: var(--bn-gap)` where `--bn-gap` is `max(8px, safe-area − 14px)`, so it floats above the home indicator without the old full
+  safe-area band. `--bn-h` (54px) and `--bn-space` (height + gap) are on `:root`; the stacked ad dock, nudges and toasts sit
+  `var(--bn-space)` + a small gap up, and the body's bottom padding follows it. Hidden, it slides fully off-screen (transform only, CLS 0).
+- **Measured** (local build, dock stacked): Pixel 7 412×915 nav + dock take 129px (14.1%); iPhone 15 393×852 with a 34px safe area
+  143px (16.8%); iPhone SE 375×667 129px (19.3%); the old flush bar took about the same plus the full safe area.

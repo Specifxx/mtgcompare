@@ -178,7 +178,7 @@ export function BottomNav({ mode = BOTTOM_NAV }: { mode?: BottomNavMode }) {
       if (show) el.removeAttribute("aria-hidden");
       else el.setAttribute("aria-hidden", "true");
       root.toggleAttribute("data-bottomnav", show);
-      root.style.scrollPaddingBottom = show ? `calc(${NAV_H}px + env(safe-area-inset-bottom))` : "";
+      root.style.scrollPaddingBottom = show ? `calc(${NAV_H}px + var(--bn-gap, env(safe-area-inset-bottom)) + 8px)` : "";
     };
     const decide = () => {
       const y = Math.max(0, window.scrollY); // iOS rubber-banding reports negative values past the top
@@ -287,7 +287,7 @@ export function BottomNav({ mode = BOTTOM_NAV }: { mode?: BottomNavMode }) {
     if (!enabled) return;
     const root = document.documentElement;
     root.setAttribute("data-bottomnav-on", "");
-    document.body.style.paddingBottom = `calc(${NAV_H}px + env(safe-area-inset-bottom))`;
+    document.body.style.paddingBottom = `calc(${NAV_H}px + var(--bn-gap, env(safe-area-inset-bottom)) + 8px)`;
     return () => {
       root.removeAttribute("data-bottomnav-on");
       document.body.style.paddingBottom = "";
