@@ -13,6 +13,9 @@ const SENT: ReadonlySet<string> = new Set([
   "alert_open",
   "alert_created",
   "weekly_signup",
+  "nudge_eligible",
+  "nudge_shown",
+  "nudge_click",
   ...["ab_seen", "ab_paid", "ab_tcg", "ab_ebay", "ab_amazon", "ab_store", "ab_mini_tcg", "ab_mini_ebay"],
 ]);
 
