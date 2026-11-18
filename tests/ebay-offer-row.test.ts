@@ -112,8 +112,11 @@ test("the server table: the eBay row FIRST as a search (labelled Ad, sponsored, 
   assert.match(ebay, /class="ad-pill">Ad</);
   assert.match(html, /Search Bloomburrow Play Booster Box on ebay\.com/);
   // no listing yet: the cheapest store is the best price (tint, badge, the one red button)
-  assert.match(rows[1], /or-hl/, "alpha, the cheapest open store, second");
+  // a plain store: the small neutral chip, not the marked row (owner, 2026-11-18, tests/best-tag.test.ts)
+  assert.doesNotMatch(rows[1], /or-hl/, "alpha, the cheapest open store, second: no marked row");
   assert.match(html, />Best price</);
+  assert.match(html, /<span class="or-tag">Best price<\/span>/);
+  assert.match(html, /aria-label="Prices and stock change: also check eBay"/, "eBay's row is in the list, TCGplayer's is not");
   assert.doesNotMatch(html, /Best store price/, "nothing cheaper than the store yet");
   assert.match(html, /data-best="store"/);
   assert.ok(html.replace(/&#x27;/g, "'").includes(ebayRowNote("us").trim()), "the note under the table");

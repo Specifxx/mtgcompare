@@ -710,6 +710,7 @@ export function useEbayPick({ region, slug, floor, packs, placement }: { region:
 // them; OfferTable.tsx imports this module too, which is fine: neither uses the other while the modules load).
 import { EBAY_CAN_BE_BEST, EBAY_ROW_KEY, ebayMayBeBest, moreClosedLabel, moreOpenLabel, splitRows } from "@/lib/ebay-offer-row";
 import { PIN_OUTLINE, ROW_ACTIONS, ROW_BUTTON_LINK, ROW_GRID, StoreRow, useRankedRows, type StoreRowData } from "./OfferRows";
+import { bestHint } from "@/lib/best-tag";
 import { StockPill } from "./StockPill";
 import { StoreVote } from "./StoreVote";
 import { CartAddButton } from "./cart/CartAddButton";
@@ -772,18 +773,20 @@ export function OfferRowsWithEbay({
     low = tcg.cents;
   }
   if (EBAY_CAN_BE_BEST && byPrice && allowGiven && bestable && cents != null && cents < low) top = "ebay";
+  // The hint beside a plain store's "Best price" chip names the paid rows this list has: eBay's is always here, TCGplayer's when pinned.
+  const hint = bestHint({ ebay: true, tcgplayer: tcg != null });
   const ebayRow = <EbayOfferRow key={EBAY_ROW_KEY} region={region} placement={placement} query={query} item={item} cents={cents} age={age} best={top === "ebay"} />;
   type Slot = { key: string; open: boolean; node: ReactNode };
   // Owner, 2026-11-17 (final): eBay first, then TCGplayer, then Amazon (priced, or the unpriced "Check on Amazon" row), all above the
   // stores, in the quick view too (they are slots, so a row cap never pushes them below "more listings on the full page").
   const pinSlots: Slot[] = [
     { key: EBAY_ROW_KEY, open: true, node: ebayRow },
-    ...(tcg ? [{ key: tcg.key, open: tcg.open, node: <StoreRow key={tcg.key} d={tcg} preorder={preorder} top={top === "tcg"} /> }] : []),
+    ...(tcg ? [{ key: tcg.key, open: tcg.open, node: <StoreRow key={tcg.key} d={tcg} preorder={preorder} top={top === "tcg"} hint={hint} /> }] : []),
     ...(amazon ? [{ key: amazon.key, open: true, node: <StoreRow key={amazon.key} d={amazon} preorder={preorder} top={false} /> }] : []),
   ];
   const slots: Slot[] = [
     ...pinSlots,
-    ...rows.map((d) => ({ key: d.key, open: d.open, node: <StoreRow key={d.key} d={d} preorder={preorder} top={top === "store" && d === store} /> })),
+    ...rows.map((d) => ({ key: d.key, open: d.open, node: <StoreRow key={d.key} d={d} preorder={preorder} top={top === "store" && d === store} hint={hint} /> })),
   ];
   const split = splitRows(slots);
   // maxRows: the first N slots, no folded groups; the rest is on the full page.
