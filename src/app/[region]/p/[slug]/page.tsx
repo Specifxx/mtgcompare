@@ -22,6 +22,7 @@ import { amazonLiveFor } from "@/lib/amazon-live";
 import { amazonCarries } from "@/lib/amazon";
 import { ReportPrice } from "@/components/ReportForms";
 import { PriceAlertForm } from "@/components/PriceAlertForm";
+import { ToolInterest } from "@/components/ToolInterest";
 import { RestockAlert } from "@/components/premium/RestockAlert";
 import { ALERT_SITE_KEY } from "@/lib/alert-feed";
 import { ProductGrid } from "@/components/ProductGrid";
@@ -668,6 +669,8 @@ export default async function ProductPage({ params }: { params: { region: string
           buttonClassName="btn-ghost min-h-10"
           stores={p.offers.filter((o) => !o.marketplace).map((o) => ({ name: o.storeName, price: money(o.priceCents, r.market) }))}
         />
+        {/* Which RiftCompare tool to build here next: a one-tap demand test under the table, never by a price or in the quick view (2026-11-18). */}
+        <ToolInterest page="product" className="mt-6" />
         {riftHref && (
           // The owner's other Pokémon site keeps what this one does not: TCGplayer's market price over time (lib/riftcompare.ts).
           <p className="mt-4 text-sm text-muted">

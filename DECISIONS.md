@@ -2265,3 +2265,12 @@ collection, how: image|text|saved|copy}`, only once it really went out.
 (`dealsBySection`, `dealPct`, `dealsCopy.summary`), drawn by `lib/og-card.tsx` (text and the logo, no product photo).
 It lists no params, so nothing reads data at build: each region's image is drawn on its first request after a release
 and kept until the next. `pageMeta` names it as the page's image. The quick view is untouched.
+
+## 2026-11-18: "Which tool should we build here next?" (a demand test, not a promise)
+
+Owner, 18 Nov: the other sites lack RiftCompare's tools, which is why Premium only sells there (Rift's sign-ups: 24 from the tool
+gate, 11 tool previews, 9 deck tools, 6 set tracker of 152 in 30 days). Before copying any tool here, `components/ToolInterest.tsx`
+asks product-page readers, low on the page and never beside a price, a buy button or in the quick view, which of four RiftCompare
+tools they want: Best Basket, box value, pull tracker, set tracker. One tap per visitor (localStorage) sends `tool_interest
+{tool, page}`; nothing else is stored or sent. Read about 4 Dec: a tool is built on a site only if it clears 5 taps per 1,000
+product viewers. Remove the box once read. Plan: /mnt/project-files/strategy/premium-network-plan-2026-11-18.html (project files).
