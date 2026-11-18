@@ -20,6 +20,7 @@ import { amazonLiveFor } from "@/lib/amazon-live";
 import { amazonCarries } from "@/lib/amazon";
 import { ReportPrice } from "@/components/ReportForms";
 import { PriceAlertForm } from "@/components/PriceAlertForm";
+import { RestockAlert } from "@/components/premium/RestockAlert";
 import { ALERT_SITE_KEY } from "@/lib/alert-feed";
 import { ProductGrid } from "@/components/ProductGrid";
 import { ProductRail } from "@/components/ProductRail";
@@ -605,6 +606,8 @@ export default async function ProductPage({ params }: { params: { region: string
             prominent
             summary={here?.lowestPriceCents == null ? "Email me when a store has it at my price" : "Email me when the price drops"}
           />
+          {/* Back in stock (accounts, 2026-11-18, as DexCompare): Premium members tap once; others see one quiet line. */}
+          {here?.lowestPriceCents == null && <RestockAlert productId={p.id} region={r.market} />}
           {/* The small eBay + TCGplayer pair under the best price (owner, 2026-10-29: "much smaller … near the top … not
               intrusive"): the product's own eBay listings (the strip's request) and the set's TCGplayer products. */}
           <MiniSealedAds
