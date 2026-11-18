@@ -5,7 +5,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { CardTiles } from "@/components/CardTiles";
 import { CardSearchForm } from "@/components/CardSearchForm";
 import { Section } from "@/components/Section";
-import { CARDS_HUB, readSets, readTop } from "@/lib/cards";
+import { CARDS_HUB, freshSets, readSets, readTop } from "@/lib/cards";
 import { shortDate } from "@/lib/hub-copy";
 import { breadcrumbJsonLd, jsonLd, pageMeta } from "@/lib/seo";
 import { SITE_NAME } from "@/lib/site";
@@ -33,6 +33,9 @@ export default function CardPricesHub() {
     (byYear.get(y) ?? byYear.set(y, []).get(y)!).push(s);
   }
   const total = sets.reduce((n, s) => n + s.cards, 0);
+  // New and upcoming sets lead (owner, 18 Nov): the sealed sets of the last FRESH_DAYS and the next releases, newest first.
+  const fresh = freshSets(sets, (generatedAt ?? "").slice(0, 10) || new Date().toISOString().slice(0, 10));
+  const newSets = sets.filter((s) => s.sealed && fresh.has(s.slug));
   const crumbs = [{ href: "/", label: SITE_NAME }, { label: "Card prices" }];
   return (
     <div className="page py-8">
@@ -44,6 +47,23 @@ export default function CardPricesHub() {
         TCGplayer, in US dollars, normal and foil.{generatedAt ? ` Updated ${shortDate(generatedAt.slice(0, 10))}.` : ""}
       </p>
       <CardSearchForm className="mt-5 max-w-xl" />
+      {newSets.length > 0 && (
+        <Section id="new" title="New and upcoming sets" className="mt-10">
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {newSets.map((s) => (
+              <li key={s.slug}>
+                <Link href={`${CARDS_HUB}/${s.slug}`} prefetch={false} className="card flex min-h-14 items-center justify-between gap-3 px-4 py-3 hover:text-brand">
+                  <span className="min-w-0">
+                    <span className="block truncate font-semibold">{s.name}</span>
+                    <span className="text-xs text-muted">{s.released && s.released > (generatedAt ?? "").slice(0, 10) ? `Out ${shortDate(s.released)} · cards so far` : `Released ${shortDate(s.released ?? "")}`}</span>
+                  </span>
+                  <span className="shrink-0 text-xs text-muted">{s.cards} cards</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
       {top.length > 0 && (
         <Section id="top" title="The most valuable cards right now" className="mt-10">
           <CardTiles cards={top.map((c) => ({ ...c, setName: names.get(c.set) }))} eager={10} />

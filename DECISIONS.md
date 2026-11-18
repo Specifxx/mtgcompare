@@ -2303,3 +2303,12 @@ now shows visitors one email field (kind `restock` on RiftCompare's alert servic
 members keep the one-tap button and their watch list. The Premium pages no longer sell it as a perk: Premium is no banner ads,
 200 alerts, the watch list and a year of collection history. Event `restock_signup` {member, region}; read on 2 Dec. Needs the
 service side (TCGEmpire, same day) live first, or a visitor's form answers "for Premium members".
+
+## 2026-11-18: Card prices: new sets' cards go to Google first (owner: new sets' singles live first)
+
+The owner's revenue plan of 18 Nov gives this work one job: a new Magic set's singles are live, priced and findable first. Every card
+of a new or upcoming set at US$1+ is released to Google the day TCGplayer prices it, outside the daily step (`freshSets`,
+`releaseForIndexing`'s third argument): a sealed set (lib/sets.ts) released in the last 60 days or not yet out, plus the groups named
+after it (Commander, Promo Pack, Stardates). Promo groups TCGplayer re-dates have no sealed set and never count. The first run adds
+about 970 cards (Star Trek, Reality Fracture and their Commander groups; Nauctis and Marvel: Darkhold Destiny as they are spoiled).
+The `/card-prices` hub leads with "New and upcoming sets". `CARD_INDEX_GROWTH=0` still pauses only the back catalogue.

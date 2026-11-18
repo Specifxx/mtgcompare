@@ -15,6 +15,7 @@ import {
   cardsOfGroup,
   mergeSet,
   releaseForIndexing,
+  freshSets,
   skipGroup,
   slugify,
   type CardLite,
@@ -164,7 +165,9 @@ async function main(): Promise<void> {
   const raw = (process.env.CARD_INDEX_GROWTH ?? "").trim();
   const growth = raw === "" || !Number.isFinite(Number(raw)) ? INDEX_GROWTH : Math.max(0, Math.floor(Number(raw)));
   const flat = all.flatMap((x) => x.cards);
-  const releasedToday = releaseForIndexing(flat, growth);
+  const fresh = freshSets(sets, day);
+  const freshCards = new Set(all.filter((x) => fresh.has(x.set.slug)).flatMap((x) => x.cards));
+  const releasedToday = releaseForIndexing(flat, growth, freshCards);
   for (const x of all) x.set.indexed = x.cards.filter(cardIndexable).length;
 
   // Write: a fresh directory, so a set that disappeared leaves no stale file.
@@ -193,6 +196,7 @@ async function main(): Promise<void> {
     `Groups read: ${ordered.length - failed.length} of ${ordered.length} (failed: ${failed.slice(0, 10).join(", ") || "none"}).`,
     `Sets: ${sets.length}; cards: ${flat.length}; with a TCGplayer market price: ${priced}; new pages today: ${flat.filter((c) => c.since === day).length}.`,
     `Released to Google: ${flat.filter(cardIndexable).length} (today +${releasedToday}, growth ${growth}).`,
+    `New sets first: ${[...fresh].join(", ") || "none"} (${[...freshCards].filter(cardIndexable).length} of ${freshCards.size} cards released).`,
   ]);
 }
 
