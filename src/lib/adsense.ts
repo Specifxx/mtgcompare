@@ -23,7 +23,8 @@ export function resolveClient(v: string | undefined): string | null {
 }
 
 /** The ad unit ID of the guides' in-article unit (AdSense → Ads → By ad unit → In-article), or null: no unit. */
-export const ADSENSE_GUIDE_SLOT: string | null = ADSENSE_CLIENT ? normaliseSlot(process.env.NEXT_PUBLIC_ADSENSE_SLOT_GUIDE) : null;
+// No unit since the AdSense script left the layout (owner, 2026-11-18: AdSense is off): an ad unit without it is an empty box.
+export const ADSENSE_GUIDE_SLOT: string | null = null;
 
 /** The adsbygoogle.js URL for the client. */
 export const adsenseScriptSrc = (client: string) => `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${client}`;
@@ -38,7 +39,3 @@ export function normaliseClient(v: string | undefined): string | null {
   return m ? `ca-pub-${m[1]}` : null;
 }
 
-function normaliseSlot(v: string | undefined): string | null {
-  const s = v?.trim() ?? "";
-  return /^\d{6,20}$/.test(s) ? s : null;
-}
