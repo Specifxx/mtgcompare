@@ -2097,3 +2097,13 @@ reach every site. Applied here, as on Dex (full reasoning in DexCompare's DECISI
   median; the eBay button is the ink `btn-ad`; the quick view sets the tab title and description while open; the Christmas line waits for the
   Black Friday strip to end; CSP (report-only) frame-src gained the Google ad-quality hosts.
 - Quick view: these touch it before the 20 Nov A/B window opens; no arm logic changed.
+
+## 2026-11-18: The return nudge, a targeted prompt for a visitor who has clicked a store (owner)
+
+Earnings fell; the owner asked for targeted, subtle ads. About 70% of buy clicks go to stores that pay nothing. After a click on a STORE row, when the
+visitor comes back to the tab (away 4 s or more, within 30 minutes), a small dismissible card ("Still comparing?", Ad) offers the page's own sponsored
+eBay and TCGplayer links, copied unchanged. Once a session, 20 s or ✕ or Esc, never Amazon, no price or "best" claim, yields to the rating card. It
+touches nothing in the quick view (the 20 Nov to 3 Dec A/B test is unaffected). **Measured:** half the visitors are the control arm (localStorage
+`rn-arm`); `nudge_eligible` {arm} fires for both, `nudge_shown` and `nudge_click` {which} for "on" (the three names join the Vercel whitelist, one event
+per eligible return at most), GA4's `affiliate_click` carries `nudge_arm`. Lift = paid clicks per eligible return, on against off. Rollback: remove
+`<ReturnNudge />` from the root layout.

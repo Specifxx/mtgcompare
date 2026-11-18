@@ -3,6 +3,7 @@ import { Bricolage_Grotesque, Inter } from "next/font/google";
 import { SiteAnalytics } from "@/components/SiteAnalytics";
 import { ShareArrival } from "@/components/ShareArrival";
 import { QuickView } from "@/components/QuickView";
+import { ReturnNudge } from "@/components/ReturnNudge";
 import { RateCard } from "@/components/site-reviews/RateCard";
 import { IMPACT_SITE_VERIFICATIONS } from "@/lib/affiliate";
 import { ADSENSE_CLIENT, adsenseScriptSrc } from "@/lib/adsense";
@@ -85,6 +86,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <QuickView />
         {/* Rate us (owner, 2026-11-03): the corner card, asking only after real use; RiftCompare keeps the ratings. */}
         <RateCard />
+        <ReturnNudge />
         <SiteAnalytics />
         <ShareArrival />
       </body>

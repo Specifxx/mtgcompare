@@ -97,6 +97,7 @@ export function OutboundLink({
         placement,
         link_domain: hostOf(href),
         paid: paid ? 1 : 0,
+        nudge_arm: (() => { try { return localStorage.getItem("rn-arm") ?? ""; } catch { return ""; } })(),
         page: typeof location !== "undefined" ? location.pathname.slice(0, 100) : "",
         region: typeof location !== "undefined" ? regionOfPath(location.pathname) : "",
         ...rowContext(el),
