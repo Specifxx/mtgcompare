@@ -245,14 +245,14 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                 <section ref={steps} aria-label="Allow pop-ups">
                   <div className="cd-popup" role="status">
                     <p className="cd-strong">
-                      {doneKeys.length ? `Opened ${doneKeys.length} of ${items.length} stores. ` : ""}
-                      {again ? "Pop-ups look blocked again for this site." : "One quick step so every store opens at once: allow pop-ups for this site."}
+                      {doneKeys.length ? `Opened ${doneKeys.length} of ${items.length} stores. ` : "Your browser blocked the extra tabs, so nothing was opened yet. "}
+                      {again ? "Pop-ups look blocked again for this site." : `One quick step so all ${items.length} stores open at once: allow pop-ups for this site.`}
                     </p>
                     <ol>
                       {popupSteps(help.kind, help.host).map((t) => (
                         <li key={t}>{t}</li>
                       ))}
-                      <li>Come back here and press “Open the other {todo.length === 1 ? "store" : `${todo.length} stores`}”.</li>
+                      <li>Come back here and press “Try again”.</li>
                     </ol>
                     <p className="cd-steps-note">You only do this once.</p>
                   </div>
@@ -278,7 +278,7 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                 <p className="cd-alldone">All {items.length} stores are open. Finish paying in each tab.</p>
               ) : (
                 <button type="button" className="cd-btn" onClick={checkout} disabled={!items.length}>
-                  {started || showHelp ? `Open the other ${todo.length === 1 ? "store" : `${todo.length} stores`}` : `Check out ${items.length} stores`}
+                  {showHelp ? `Try again: open all ${todo.length} stores` : started ? `Open the other ${todo.length === 1 ? "store" : `${todo.length} stores`}` : `Check out ${items.length} stores`}
                 </button>
               )}
               <div className="cd-links2">

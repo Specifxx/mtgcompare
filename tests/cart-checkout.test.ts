@@ -22,20 +22,29 @@ test("lines from one Shopify store become ONE permalink; others keep their own t
   assert.match(items.find((i) => i.storeName === "Awin Store")!.rel, /sponsored/);
 });
 
-test("sold-out lines are left out; one click opens what the browser allows and the rest wait", () => {
+test("sold-out lines are left out; one click opens every store or none", () => {
   const l = mk("https://shop.example/cart/11111111:1", "Shop", "Box A", "https://shop.example/products/a?variant=11111111");
   assert.equal(buildCheckout([l], { [l.id]: { status: "soldout", priceCents: null } }, "s", "r").length, 0);
   const items = [1, 2, 3].map((n) => ({ key: String(n), storeName: "s", label: "s", url: `https://x/${n}`, kind: "line" as const, units: 1, cents: 1, currency: "USD", rel: "" }));
-  // Chrome / Safari / Firefox with pop-ups blocked: the first tab opens, every other try is refused and comes back pending.
-  const urls: string[] = [];
-  const r = openAll(items, (u) => (urls.push(u), urls.length === 1 ? { opener: 1 } : null));
-  assert.equal(urls.length, 3, "every store is tried, so the browser shows its blocked-pop-up control");
-  assert.equal(r.opened.length, 1);
-  assert.deepEqual(r.pending.map((i) => i.key), ["2", "3"]);
-  // Pop-ups allowed: every tab opens from the one click.
-  const all = openAll(items, () => ({ opener: 1 }));
+  const mkWin = (log: string[], closed: string[]) => {
+    const w = { opener: 1 as unknown, closed: false, close() { closed.push("x"); }, location: { set href(u: string) { log.push(u); }, get href() { return ""; } } };
+    return w;
+  };
+  // Pop-ups blocked after the first tab: NOTHING stays open and nothing is visited; every store comes back pending.
+  const log: string[] = [];
+  const closed: string[] = [];
+  let tries = 0;
+  const r = openAll(items, () => (tries++ === 0 ? mkWin(log, closed) : null));
+  assert.equal(r.opened.length, 0);
+  assert.deepEqual(r.pending.map((i) => i.key), ["1", "2", "3"]);
+  assert.equal(closed.length, 1, "the one tab that did open is closed again");
+  assert.deepEqual(log, [], "no store was sent anywhere");
+  // Pop-ups allowed: every tab opens from the one click and goes to its own tagged link.
+  const log2: string[] = [];
+  const all = openAll(items, () => mkWin(log2, []));
   assert.equal(all.opened.length, 3);
   assert.equal(all.pending.length, 0);
+  assert.deepEqual(log2, ["https://x/1", "https://x/2", "https://x/3"]);
   // A throwing open is a refusal.
   assert.equal(openAll(items, () => { throw new Error("x"); }).pending.length, 3);
 });

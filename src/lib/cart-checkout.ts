@@ -70,37 +70,68 @@ export function buildCheckout(lines: CartLine[], checks: Checks, site: string, r
   return out;
 }
 
+/** The slice of a browser window `openAll` uses (injectable for tests). */
+export interface PopupWindow {
+  opener: unknown;
+  location: { href: string };
+  close: () => void;
+}
+
 /**
- * Open every store in its own tab from the click that asked for it. Chrome, Safari and Firefox
- * let ONE click open ONE tab unless the visitor allows pop-ups for the site (tested in Chrome 157,
- * 2026-11-17: five window.open calls, window.open followed by anchor clicks, noopener and
- * open-blank-then-navigate all gave one tab). So this tries every item (each refused try is what
- * makes the browser show its "pop-up blocked" control, where "always allow" lives) and returns what
- * the browser refused as `pending`, for the drawer's allow-pop-ups help and its retry. With
- * pop-ups allowed, every item opens from the one click. `open` is injectable for tests.
+ * ALL the stores or NONE, from the one click (owner, 2026-11-18: "it either opens all the tabs or
+ * it doesn't"; the model is url-opener.com, which also closes what it opened when the browser
+ * refuses a later tab). Chrome, Safari and Firefox give one click ONE tab until the visitor allows
+ * pop-ups for the site (tested in Chrome 157 on dexcompare.io and on url-opener.com itself,
+ * 2026-11-18: both open one tab and block the rest; with pop-ups allowed, both open every tab).
+ * So: first open one blank tab per store, all inside the click. If the browser refuses any, close the
+ * blanks and return every store as `pending` (the refused try is what makes the browser show its
+ * "pop-up blocked" control, where "always allow" lives; no store was visited, nothing was clicked).
+ * If every blank opens, send each to its store's own tagged link. `open` is injectable for tests.
  */
-export function openAll(items: CheckoutItem[], open: (url: string) => { opener: unknown } | null = (u) => window.open(u, "_blank")): { opened: CheckoutItem[]; pending: CheckoutItem[] } {
-  const opened: CheckoutItem[] = [];
-  const pending: CheckoutItem[] = [];
-  for (const it of items) {
-    let w: { opener: unknown } | null = null;
+export function openAll(
+  items: CheckoutItem[],
+  open: () => PopupWindow | null = () => window.open("about:blank", "_blank") as PopupWindow | null,
+): { opened: CheckoutItem[]; pending: CheckoutItem[] } {
+  const wins: PopupWindow[] = [];
+  for (let i = 0; i < items.length; i++) {
+    let w: PopupWindow | null = null;
     try {
-      w = open(it.url);
+      w = open();
     } catch {
       w = null;
     }
     if (!w) {
-      pending.push(it);
-      continue;
+      for (const x of wins) {
+        try {
+          x.close();
+        } catch {
+          /* already gone */
+        }
+      }
+      return { opened: [], pending: items };
     }
+    wins.push(w);
+  }
+  const opened: CheckoutItem[] = [];
+  items.forEach((it, i) => {
+    const w = wins[i];
     try {
       w.opener = null; // the store never gets a handle on our page
     } catch {
-      /* cross-origin: fine */
+      /* fine */
     }
-    opened.push(it);
-  }
-  return { opened, pending };
+    try {
+      w.location.href = it.url;
+      opened.push(it);
+    } catch {
+      try {
+        w.close();
+      } catch {
+        /* fine */
+      }
+    }
+  });
+  return { opened, pending: items.filter((it) => !opened.includes(it)) };
 }
 
 export type BrowserKind = "chrome" | "firefox" | "safari" | "ios" | "android";
