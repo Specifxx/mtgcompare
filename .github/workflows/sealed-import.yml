@@ -103,6 +103,14 @@ jobs:
         if: steps.db.outputs.found == 'true'
         run: npx tsx scripts/discover-sets.ts
 
+      # TCGplayer's barcodes for sealed product (scripts/tcg-barcodes.ts, data/barcodes/tcgplayer.json): the product page's
+      # Quick facts and Product markup. Public catalogue, no key; never fails the run.
+      - name: TCGplayer barcodes
+        if: steps.db.outputs.found == 'true'
+        continue-on-error: true
+        timeout-minutes: 15
+        run: npx tsx scripts/tcg-barcodes.ts
+
       - name: Import
         if: steps.db.outputs.found == 'true'
         env:

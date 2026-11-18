@@ -20,7 +20,9 @@ git config user.email "mtgcompare-data@users.noreply.github.com"
 SETS_DIR="data/sets"
 # data/amazon/ (scripts/amazon-asins.ts: ASINs and the run's status, never prices) rides the same commit.
 AMAZON_DIR="data/amazon"
-if git diff --quiet -- "$DIR" "$SETS_DIR" "$AMAZON_DIR" && [ -z "$(git ls-files --others --exclude-standard -- "$DIR" "$SETS_DIR" "$AMAZON_DIR")" ]; then
+# data/barcodes/ (scripts/tcg-barcodes.ts: TCGplayer's barcodes for sealed product) rides the same commit.
+BARCODE_DIR="data/barcodes"
+if git diff --quiet -- "$DIR" "$SETS_DIR" "$AMAZON_DIR" "$BARCODE_DIR" && [ -z "$(git ls-files --others --exclude-standard -- "$DIR" "$SETS_DIR" "$AMAZON_DIR" "$BARCODE_DIR")" ]; then
   echo "[publish] data/public and data/sets unchanged — nothing to commit."
   exit 0
 fi
@@ -31,6 +33,8 @@ TMP_SETS="$(mktemp -d)"
 # data/amazon/ (ASINs and status) must survive the reset below too, or every run's finds are lost (2026-11-08).
 TMP_AMAZON="$(mktemp -d)"
 [ -d "$AMAZON_DIR" ] && cp -r "$AMAZON_DIR/." "$TMP_AMAZON/"
+TMP_BARCODE="$(mktemp -d)"
+[ -d "$BARCODE_DIR" ] && cp -r "$BARCODE_DIR/." "$TMP_BARCODE/"
 for attempt in 1 2 3 4 5; do
   git fetch -q origin main
   git reset -q --hard origin/main
@@ -39,7 +43,8 @@ for attempt in 1 2 3 4 5; do
   cp -r "$TMP/." "$DIR/"
   if [ -n "$(ls -A "$TMP_SETS")" ]; then mkdir -p "$SETS_DIR"; cp -r "$TMP_SETS/." "$SETS_DIR/"; fi
   if [ -n "$(ls -A "$TMP_AMAZON")" ]; then mkdir -p "$AMAZON_DIR"; cp -r "$TMP_AMAZON/." "$AMAZON_DIR/"; fi
-  git add -A -- "$DIR" "$SETS_DIR" "$AMAZON_DIR"
+  if [ -n "$(ls -A "$TMP_BARCODE")" ]; then mkdir -p "$BARCODE_DIR"; cp -r "$TMP_BARCODE/." "$BARCODE_DIR/"; fi
+  git add -A -- "$DIR" "$SETS_DIR" "$AMAZON_DIR" "$BARCODE_DIR"
   if git diff --cached --quiet; then
     echo "[publish] main already has this snapshot."
     exit 0

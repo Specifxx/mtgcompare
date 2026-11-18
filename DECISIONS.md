@@ -2177,3 +2177,13 @@ Custom events stay off (cost), so MTG Compare cannot send a buy click per campai
 40 characters), so Vercel counts the VISITORS each creator or post brought; the AI-assistant `utm_source` rule is unchanged and
 nothing a visitor typed is sent. Convention for every link we hand out:
 `?utm_source=<platform>&utm_medium=creator|social&utm_campaign=<handle or post>`.
+
+## 2026-11-18: TCGplayer's barcode on the sealed product page
+
+Owner: "any unique identifiers … we should capture … as these are easy SEO results". Search Console (RiftCompare maintenance task
+`gsc-identifiers`, 90 days to 15 Nov): KaeYoung's every Google click came from a typed barcode; ScentCompare and Gundam kits show the same.
+Ported from DexCompare the same day: `scripts/tcg-barcodes.ts` (a never-failing step before the sealed import; TCGCSV category 1, cards
+with a Number skipped) writes `data/barcodes/tcgplayer.json` (TCGplayer id -> barcode; check digit verified, a code on two or more
+products dropped, `src/lib/gtin.ts`); the product page joins it through its TCGplayer offer's URL (`src/lib/barcodes.ts`) and shows
+"Barcode (UPC/EAN)" and "TCGplayer ID" in Quick facts, and the Product markup carries `gtin12`/`gtin13` and `productID`. Never from a
+store title. The quick view (A/B window 20 Nov to 3 Dec) is unchanged.
