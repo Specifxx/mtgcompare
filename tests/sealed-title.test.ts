@@ -447,3 +447,33 @@ test("cases: a store's other quantity is not the case", () => {
   assert.equal(classify("Teenage Mutant Ninja Turtles - Case da 6 Play Booster Box (ENG)"), "play-booster-box-case");
   assert.equal(classify("Magic the Gathering: Modern Horizons 3 Bundle Case"), "bundle-case");
 });
+
+// 2026-11-18 audit (real store titles): other-language store words and catalogue words made a second page of one product.
+test("pre-order and language words in other languages, 'CCG' and store SKUs are not part of the product", () => {
+  const same: [string, string][] = [
+    ["Vorbestellung: MTG - Nauctis: The Sunken Realm - Commander Deck - Blood in the Water (EN)", "MTG: Nauctis: The Sunken Realm - Commander Deck - Blood in the Water (Preorder)"],
+    ["Vorbestellung: MTG - Nauctis: The Sunken Realm - Premium Commander Deck - Seal the Deal (EN)", "Nauctis: The Sunken Realm - Premium Edition Commander Deck - Seal the Deal"],
+    ["Vorbestellung: MTG - Nauctis: The Sunken Realm - Fat Pack Bundle (EN)", "Nauctis: The Sunken Realm Bundle"],
+    ["Magic the Gathering CCG Nauctis The Sunken Realm Merfolk Regiment Commander Deck", "Nauctis: The Sunken Realm - Commander Deck - Merfolk Regiment"],
+    ["MTG: Nauctis: The Sunken Realm - Commander Deck - Terrors of the Abys (Preorder)", "Nauctis: The Sunken Realm - Commander Deck - Terrors of the Abyss"],
+    ["Marvel Super Heroes Beginner Box - Englisch", "Magic: The Gathering Marvel Super Heroes Beginner Box"],
+    ["Bundle Marvel Super Heroes - Inglés", "Marvel Super Heroes Bundle"],
+    ["(PREVENTA) Secret Lair Bundle Reality Fracture Inglés - Magic The Gathering", "Reality Fracture Secret Lair Bundle"],
+    ["Reality Fracture - Secret Lair Bundle - PREORDINE", "Reality Fracture Secret Lair Bundle"],
+    ["Magic: The Gathering: Star Trek Bundle - Englisch - ab 13.11.2026", "Star Trek Bundle"],
+    ["Magic the Gathering CCG Universes Beyond Star Trek Bundle MTG-StarTrek-BNDL", "Star Trek Bundle"],
+    ["Magic the Gathering CCG Foundations Starter Collection MTG-FND-STC", "Foundations Starter Collection"],
+  ];
+  for (const [a, b] of same) {
+    assert.ok(!key(a).startsWith("REJECT"), a);
+    assert.equal(key(a), key(b), a);
+  }
+  // The Premium deck stays apart from the deck, and the Collector Commander deck from both.
+  assert.notEqual(key("Vorbestellung: MTG - Nauctis: The Sunken Realm - Premium Commander Deck - Seal the Deal (EN)"), key("Nauctis: The Sunken Realm - Commander Deck - Seal the Deal"));
+  assert.notEqual(key("Vorbestellung: MTG - Marvel: Darkhold Destiny - Collector Commander Deck - Midnight Sons (EN)"), key("Marvel: Darkhold Destiny - Commander Deck - Midnight Sons"));
+  // A trailing ITA is the Italian print; a display of three Beginner Boxes is a store's lot, not one box. A case's own "(6 Boxes)" stays.
+  assert.equal(key("Magic The Gathering Star Trek Prerelease Pack ITA"), "REJECT:foreign");
+  assert.equal(key("Magic: The Gathering: Star Trek Beginner Box Display (3 Boxes) - Englisch - ab 13.11.2026"), "REJECT:multiple");
+  assert.equal(key("Bloomburrow Play Booster Case (6 Boxes)"), "blb|play-booster-box-case");
+  assert.equal(key("Final Fantasy Starter Kit (2 Decks)"), "starter|fin|kit");
+});

@@ -181,7 +181,7 @@ const FOREIGN = new RegExp(
     "\\s-\\s*(?:jp|jpn|jap|kr|cn|ru|de|fr|it|es|pt|nl|pl)\\s*$",
     // A bilingual print: "Commander Decks (DE/EN)" is the German-and-English product, not the English one.
     "[(\\[]\\s*(?:de|fr|it|es|pt|nl|pl|jp)\\s*/\\s*en\\s*[)\\]]|[(\\[]\\s*en\\s*/\\s*(?:de|fr|it|es|pt|nl|pl|jp)\\s*[)\\]]",
-    "\\s(?:jp|jpn|jap|kr|cn|ru|de|fr|pt|nl|pl)\\s*$",
+    "\\s(?:jp|jpn|jap|kr|cn|ru|de|fr|pt|nl|pl|ita|ger|spa)\\s*$",
     // Other languages' product words: a German "Spiel-Booster", a French "Booster de jeu", an Italian "busta", a Spanish "sobre".
     "\\b(?:spiel\\s*-?\\s*booster|sammler\\s*-?\\s*booster|sammelkartenspiel|vorpremiere|booster\\s*de\\s*(?:jeu|collection|extension)|boite\\s*de|coffret|busta|buste|bustine|mazzo|sobres?\\s*de|caja\\s*de|mazo|verzamel\\w*)\\b",
   ].join("|"),
@@ -201,7 +201,7 @@ const ACCESSORY =
 // Store-made multiples and lots: priced for several units, so never comparable with one. "Commander Deck - Set of 5" and
 // TCGplayer's "Commander Decks [Set of 5]" are the set's Commander Deck Set, read before this gate.
 const MULTIPLE =
-  /\(\s*pair\s*\)|\bpairs?\b|\bone\s*of\s*each\b|\bset\s*of\s*all\b|\bdisplay\s*of\s*\d|\b(?:set|bundle|lot)\s*of\s*(?:[2-9]|[1-9]\d|two|three|four|five|six)\b|\blots?\s*of\b|\bbundle\s*deal\b|\bcombo\b|\bmulti\s*-?\s*pack\b|\bbulk\b|\bjob\s*lot\b|\b(?:complete|full)\s*(?:set|collection)\b|^\s*[2-9]\d?\s*x\b|\bx\s*[2-9]\d?\s*\)?\s*$|[([]\s*[2-9]\d?\s*x\s*[)\]]|[([]\s*x\s*[2-9]\d?\s*[)\]]|\b(?:[2-9]|[1-9]\d)\s*x\s*(?:play|collector|set|draft)?\s*(?:booster\s*)?(?:packs?|boxes|bundles?|decks?)\b|\b(?:[2-9]|1\d)\s*(?:booster\s*)?packs?\s*per\s*sleeve\b|\bdeluxe\b|\bbundle\s*(?:&|and|\+)\s*(?:collector|play)\b|\s\+\s/i;
+  /\(\s*pair\s*\)|\bpairs?\b|\bone\s*of\s*each\b|\bset\s*of\s*all\b|\bdisplay\s*of\s*\d|\b(?:set|bundle|lot)\s*of\s*(?:[2-9]|[1-9]\d|two|three|four|five|six)\b|\blots?\s*of\b|\bbundle\s*deal\b|\bcombo\b|\bmulti\s*-?\s*pack\b|\bbulk\b|\bjob\s*lot\b|\b(?:complete|full)\s*(?:set|collection)\b|^\s*[2-9]\d?\s*x\b|\bx\s*[2-9]\d?\s*\)?\s*$|[([]\s*[2-9]\d?\s*x\s*[)\]]|[([]\s*x\s*[2-9]\d?\s*[)\]]|\b(?:[2-9]|[1-9]\d)\s*x\s*(?:play|collector|set|draft)?\s*(?:booster\s*)?(?:packs?|boxes|bundles?|decks?)\b|\b(?:[2-9]|1\d)\s*(?:booster\s*)?packs?\s*per\s*sleeve\b|\bdeluxe\b|\bbundle\s*(?:&|and|\+)\s*(?:collector|play)\b|\s\+\s|(?<!\bcases?\s{0,3})[([]\s*[2-9]\d?\s*(?:boxes|bundles)\s*[)\]]/i;
 
 // A single card's treatment ("Sheoldred (Borderless)", "Extended Art Foil"): never on a sealed title, except a Secret Lair drop's or a
 // Collector's Edition deck's, which name the foil they are printed in.
@@ -435,7 +435,13 @@ const NOISE = new Set(
     // "Secret Lair Bundle - delayed until after …", "Beam Me Up Bundle - releases Nov 6th").
     "delayed delay until after january february march april june july august september october november december " +
     // Release-date notes (2026-10-26 Star Trek cleanup): "(Approx 20th Nov 2026)", "(Delays Expected)"; "Collector's Editions".
-    "editions approx approximately expected delays"
+    "editions approx approximately expected delays " +
+    // Store words in other languages and catalogue words (2026-11-18 audit: "Vorbestellung: MTG - Nauctis … (EN)", "(PREVENTA) …
+    // Inglés", "RESERVA - …", "Preordine …", "… Bundle - englisch", "Magic the Gathering CCG …" each made a second page of a product
+    // other stores list). They say a title is a pre-order or English, never which product it is.
+    "ccg vorbestellung vorbestellungen preventa reserva preordine prenotazione englisch ingles anglais inglese engels " +
+    // "ab 13.11.2026" (German "from"), "Der Hobbit", "El Hobbit", "Einsteigerbox" (German for the Beginner Box).
+    "ab der el einsteigerbox"
   ).split(" "),
 );
 // Words that describe a KIND of product rather than which one it is: a title left with only these names no particular product.
@@ -458,6 +464,9 @@ const DATE_NOTE =
 
 function signatureTokens(title: string, set: MtgSet | null, type: TypeKey): string[] {
   let t = normalizeTitle(title).replace(SKU_BRACKET, " ").replace(/\*+[^*]*\*+/g, " ").toLowerCase().replace(STORE_NOTE, " ").replace(DATE_NOTE, " ");
+  // A store's own SKU written into the title ("Starter Collection MTG-FND-STC", "Bundle MTG-StarTrek-BNDL"): a catalogue code, not
+  // the product's name (2026-11-18). Removed before the set's name, which would otherwise eat "StarTrek" out of the middle of it.
+  t = t.replace(/\bmtg-[a-z0-9]+(?:-[a-z0-9]+)+\b/g, " ");
   const markers: string[] = [];
   // A Collector's Edition Commander deck (the same 100 cards in foil) is a different product from the deck.
   if (type === "commander-deck" && /\bcollector'?s?\s*edition\b|\bcollectors?\s*ed\b/.test(t)) markers.push("collector");
@@ -488,6 +497,8 @@ function signatureTokens(title: string, set: MtgSet | null, type: TypeKey): stri
   }
   // Store spellings of one name (2026-10-26): "Divergent Timelines" is the Divergent Timeline Scene Box, "We Are The Bog" the Borg deck.
   t = t.replace(/\bdivergent\s*timelines\b/g, "divergent timeline").replace(/\bwe\s*are\s*the\s*bog\b/g, "we are the borg");
+  // 2026-11-18: "Terrors of the Abys" (Miniature Market) is the Terrors of the Abyss deck.
+  t = t.replace(/\bof\s*the\s*abys\b/g, "of the abyss");
   t = t
     .replace(/\b\d{1,2}(?:st|nd|rd|th)\b/g, " ") // a date's day ("Nov 6th"), never a product's
     // Purchase limits as whole phrases ("Limit One", "One per customer"): "Limit Break VII" is a Final Fantasy deck's own name.
