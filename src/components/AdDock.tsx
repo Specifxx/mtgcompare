@@ -132,7 +132,7 @@ export function AdDock({ label, sides, placement, minWidth, yieldTo = "[data-ad]
           blockers: blockers.size,
           buybar: !!document.querySelector(buybar),
           // An ad-free visitor (Plus/Premium where a site has them) and a native app with its own banner: never.
-          modal: modal() || document.documentElement.matches("[data-adfree], .capacitor-native"),
+          modal: modal() || document.documentElement.matches("[data-adfree], .capacitor-native, [data-bottomnav]"),
           typing,
           dismissed: false,
         }),
@@ -167,6 +167,9 @@ export function AdDock({ label, sides, placement, minWidth, yieldTo = "[data-ad]
     };
     const mo = new MutationObserver(later);
     mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-ad", "data-dock-yield", "data-buybar", "class", "open", "aria-modal", "style"] });
+    // The bottom nav (BottomNav.tsx) sets html[data-bottomnav] while it shows: the dock yields to it, one bar at a time.
+    const navMo = new MutationObserver(update);
+    navMo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-bottomnav"] });
     const onFocus = (e: FocusEvent) => {
       const t = e.target as HTMLElement | null;
       typing = !!t?.matches?.("input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=submit]), textarea, select, [contenteditable='true']");
@@ -184,6 +187,7 @@ export function AdDock({ label, sides, placement, minWidth, yieldTo = "[data-ad]
     return () => {
       io.disconnect();
       mo.disconnect();
+      navMo.disconnect();
       if (frame) cancelAnimationFrame(frame);
       window.removeEventListener("scroll", later);
       window.removeEventListener("resize", later);

@@ -2147,3 +2147,22 @@ The owner wants every site's home page to lead with the items most likely to ear
   a demand file under 30 views for a list means that list ran on the fallback and is read apart.
 
 Here: the region home shelf (play and collector boxes, packs: the 150 in stock of each type ranked, eight shown), its deals and pre-orders, and the landing page's ten picks (feature floor first). MTG Compare sends no per-product click yet, so demand is product page views. `data/demand.json`, pulled by `sealed-import.yml`. The quick view is untouched (A/B tests 20 Nov to 3 Dec).
+
+## 2026-11-18: The phone bottom nav, ported from TCG Prices (owner)
+
+Owner tried TCG Prices' bottom bar on his phone ("looks good … a bit of lag"; the smoother version is in) and wants it on every site.
+`components/BottomNav.tsx` is tcgcompare's controller unchanged (no position arithmetic, `transform` only, browser only, below 768px,
+hidden while zoomed, typing, any dialog is open, an Add to cart button is under it, or the buy bar is SHOWN), with MTG Compare's own tabs:
+Home, Deals, Sets, Cart (opens the drawer), Menu (the header's menu sheet). No Search tab: the sticky header already holds the search
+box on every phone screen, so it would only repeat it; Sets is the next most used way in. Every tab links into the page's region, else
+the visitor's pick (`mtg-region`), else the US.
+
+- Mounted in the root layout, OUTSIDE the quick view, and hidden while its `aria-modal` dialog is open: the quick-view A/B test sees
+  the same bar in every arm. `tests/bottom-nav.test.ts` pins both.
+- MTG's product page always holds the buy bar's element (`data-buybar="hidden"` until it slides in), so the bar yields only to a shown
+  one (`[data-buybar='shown']`); a product page gets the bar at its top, which the dock never had.
+- The ad dock yields to `html[data-bottomnav]`, one bar at a time. `BOTTOM_NAV` in `lib/site.ts` is the switch: shipped "optin"
+  (`?bn=1`), flipped to "on" after the phone harness (five phone sizes, the quick view, two product pages swept top to bottom: never
+  over an Add to cart button or the buy bar, CLS 0); "off" is the rollback.
+- Found on the way, not changed: the closed cart drawer is always in the DOM with `aria-modal="true"` (inert and aria-hidden), and the
+  ad dock's "a dialog is open" check matches it, so the dock may never show here. Same as on TCG Prices; reported to the ads thread.

@@ -6,10 +6,11 @@ import { QuickView } from "@/components/QuickView";
 import { ReturnNudge } from "@/components/ReturnNudge";
 import { AdFreeSync } from "@/components/premium/AdFreeSync";
 import { ADFREE_BOOT_SCRIPT } from "@/lib/premium-member";
+import { BottomNav } from "@/components/BottomNav";
 import { RateCard } from "@/components/site-reviews/RateCard";
 import { IMPACT_SITE_VERIFICATIONS } from "@/lib/affiliate";
 import { ADSENSE_CLIENT, adsenseScriptSrc } from "@/lib/adsense";
-import { SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/site";
+import { BOTTOM_NAV, SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/site";
 import { jsonLd, siteJsonLd } from "@/lib/seo";
 import { CHRISTMAS_FESTIVE_LAYER, SEASON_BOOT_SCRIPT } from "@/lib/season";
 import { THEME_BOOT_SCRIPT } from "@/lib/theme";
@@ -92,6 +93,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <RateCard />
         <ReturnNudge />
         <AdFreeSync />
+        {/* The phone bottom nav (DECISIONS.md 2026-11-18): outside the quick view, browser only, BOTTOM_NAV is its rollback. */}
+        {BOTTOM_NAV !== "off" && <BottomNav mode={BOTTOM_NAV} />}
         <SiteAnalytics />
         <ShareArrival />
       </body>
