@@ -2369,6 +2369,14 @@ and Guides the region's newest six. The about page says who runs it (Bill and Ge
 the group costs (about A$790 a month, our books, 30 days to 15 Nov 2026). Kept: the phone dock (after a scroll,
 dismissible).
 
+
+## 2026-11-19: The phone ad dock sits above the bottom nav instead of yielding to it (owner)
+
+The owner, 2026-11-19: the eBay/TCGplayer strip right above the phone bottom nav, "I want it for all the sites, so people have like an
+ad on their phone right there." Since the bottom nav arrived (18 Nov) the dock hid whenever the nav showed. It now stays up, stacked
+just above the nav (`data-dock-stack`, the same geometry as the other sites: `translate` by `--bn-space`). Its own rules are unchanged:
+after a scroll, never beside the product page's buy bar, labelled "Ad", ✕ for the visit, never Amazon, never for ad-free members.
+
 ## 2026-11-19 — Collector side: cards in My collection, rising and falling cards, a collector-first Premium page, Collection in the phone bar
 
 Owner, 2026-11-19: now that the site has single cards, make it feel like a collector app (Collectr's kind, as a web app): the collection
