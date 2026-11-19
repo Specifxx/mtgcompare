@@ -2368,3 +2368,26 @@ footer's `/our-sites`. The footer's MTG Compare column is 9 links (was 15), Expl
 and Guides the region's newest six. The about page says who runs it (Bill and George), how AI tools are used, and what
 the group costs (about A$790 a month, our books, 30 days to 15 Nov 2026). Kept: the phone dock (after a scroll,
 dismissible).
+
+## 2026-11-19 — Collector side: cards in My collection, rising and falling cards, a collector-first Premium page, Collection in the phone bar
+
+Owner, 2026-11-19: now that the site has single cards, make it feel like a collector app (Collectr's kind, as a web app): the collection
+done right, rising cards, Premium "very easy to get" with a trial and a page as attractive as RiftCompare's, freemium, never paywall the
+cheapest price. And: "replace the menu with My Collection" on the bottom nav.
+
+- **Cards in My collection.** Every card page has "I own this" below the buy rows (never above a price), with a finish picker (only
+  finishes with a TCGplayer price). A card is a vault item `card:<tcgplayer id>:<finish>` with its set slug, valued in US$ at that
+  finish's TCGplayer market price. /collection asks `/api/cards/prices/<set>` once per set it holds (the committed set file, CDN six
+  hours); still no account, no database, nothing sent about the visitor. No eBay call anywhere (owner, 19 Nov: the eBay quota is for the
+  most-demanded sealed products).
+- **Members' collection history and CSV** (Dex's code, ported): the /premium page promised "a year of collection history" since 10 Nov
+  and MTG's /collection didn't keep it. `recordDay` keeps `MEMBER_HISTORY_DAYS` for a member, with a chart and a spreadsheet export.
+- **Rising and falling cards** (`/card-prices/movers`, new URL, no existing one moved). The import keeps one snapshot a day of every card
+  worth US$1+ in `data/card-history/<day>.json` (~1.2 MB; OUTSIDE `data/cards` so no function bundles it; last 8 days kept, git keeps
+  the rest) and writes `data/cards/movers.json`: one day and seven, finish by finish (a foil price appearing is not a rise), both prices
+  US$2+. Free for everyone: it is public data, so gating it would be theatre. Noindex until both seven-day lists hold 20 cards.
+- **Premium page**: collector-first, with only what ships (collection history and export, 200 alerts, watch list, no banners, one
+  account), a Free and Premium table that shows every price, the collection and rising cards as free, and the trial up front.
+- **Bottom nav**: Collection replaces Menu; the header keeps its menu button on phones, so nothing is lost.
+
+**Measure (read 9 Dec):** `vault_add` on card pages per 1,000 card viewers, `premium_view` → `premium_trial_click` → `premium_checkout_open`.

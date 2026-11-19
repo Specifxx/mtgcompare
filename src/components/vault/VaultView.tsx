@@ -5,13 +5,17 @@
 // share line with the real totals.
 import { useEffect, useMemo, useState } from "react";
 import {
+  cardSets,
   formatMoney,
+  isCardItem,
+  withCardPrices,
   itemKey,
   lastLook,
   onVaultChange,
   pctChange,
   readDays,
   readVault,
+  collectionCsv,
   recordDay,
   setItemQty,
   shareText,
@@ -28,6 +32,8 @@ import {
 import { track as trackShare } from "@/lib/track";
 import { VAULT_SITE } from "./vault-config";
 import { cardLink, cardModel, drawCard, saveBlob } from "./collection-card";
+import { usePremium } from "@/components/premium/usePremium";
+import { MEMBER_HISTORY_DAYS } from "@/lib/premium-member";
 
 function Change({ from, to, currency, label }: { from: number; to: number; currency: string; label: string }) {
   const pct = pctChange(from, to);
@@ -42,7 +48,22 @@ function Change({ from, to, currency, label }: { from: number; to: number; curre
   );
 }
 
+function Spark({ days, market }: { days: DayTotal[]; market: string }) {
+  const pts = days.filter((x) => x.m === market);
+  if (pts.length < 2) return <p className="ce-vault-muted">Your value history builds one point a day, each day you open this page. Come back tomorrow.</p>;
+  const lo = Math.min(...pts.map((p) => p.c));
+  const hi = Math.max(...pts.map((p) => p.c));
+  const span = hi - lo || 1;
+  const d = pts.map((p, n) => `${n ? "L" : "M"}${((n / (pts.length - 1)) * 300).toFixed(1)} ${(46 - ((p.c - lo) / span) * 40).toFixed(1)}`).join(" ");
+  return (
+    <svg viewBox="0 0 300 52" role="img" aria-label={`Collection value, ${pts.length} days`} className="mt-2 h-14 w-full max-w-md" preserveAspectRatio="none">
+      <path d={d} fill="none" stroke="currentColor" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
+
 export function VaultView() {
+  const member = usePremium().status === "member";
   const [items, setItems] = useState<VaultItem[] | null>(null);
   const [file, setFile] = useState<PriceFile | null>(null);
   const [failed, setFailed] = useState(false);
@@ -51,9 +72,10 @@ export function VaultView() {
   useEffect(() => {
     const sync = () => setItems(readVault());
     sync();
-    fetch("/prices.json", { credentials: "omit" })
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((j: PriceFile) => setFile(j))
+    const get = (u: string) => fetch(u, { credentials: "omit" }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))));
+    // Sealed from /prices.json; single cards from their sets' TCGplayer prices (CDN-cached, no eBay, no database).
+    Promise.all([get("/prices.json") as Promise<PriceFile>, Promise.all(cardSets(readVault()).map((s) => get(`/api/cards/prices/${s}`).catch(() => ({}))))])
+      .then(([j, sets]) => setFile(withCardPrices(j, sets)))
       .catch(() => setFailed(true));
     return onVaultChange(sync);
   }, []);
@@ -66,19 +88,19 @@ export function VaultView() {
   useEffect(() => {
     if (!file || !totals.length) return;
     let next = readDays();
-    for (const t of totals) if (t.nowCents > 0) next = recordDay(next, t.market, t.nowCents);
+    for (const t of totals) if (t.nowCents > 0) next = recordDay(next, t.market, t.nowCents, new Date(), member ? MEMBER_HISTORY_DAYS : undefined);
     writeDays(next);
     // once per load of the price file
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [file]);
+  }, [file, member]);
 
   if (items == null) return <p className="ce-vault-muted">Loading your collection…</p>;
   if (!items.length)
     return (
       <div className="ce-vault-empty">
         <p>
-          <strong>Your collection is empty.</strong> Open any product and tap <em>I own this</em>. This page then shows what everything is worth at
-          today&apos;s store prices, and how much it has moved since you added it.
+          <strong>Your collection is empty.</strong> Open any product or card and tap <em>I own this</em>. This page then shows what everything is worth at
+          today&apos;s prices, and how much it has moved since you added it.
         </p>
         <p className="ce-vault-muted">It stays in this browser: no account, no sign-up, nothing sent to us.</p>
         <a className="ce-vault-btn" href="/">
@@ -147,7 +169,7 @@ export function VaultView() {
           return (
             <section key={t.market} className="ce-vault-total" aria-label={`Collection value in ${t.market}`}>
               <div className="ce-vault-label">
-                Worth today · {t.market} store prices, {t.currency}
+                Worth today · {t.market} prices, {t.currency}
               </div>
               <div className="ce-vault-big tabular">{formatMoney(t.nowCents, t.currency)}</div>
               <div className="ce-vault-moves">
@@ -158,12 +180,33 @@ export function VaultView() {
                 {t.units === 1 ? "1 item" : `${t.units} items`}
                 {t.unpriced ? ` · ${t.unpriced} not in stock anywhere today, so not counted` : ""}
               </div>
+              {member ? <Spark days={readDays()} market={t.market} /> : (
+                <p className="ce-vault-muted">
+                  <a href="/premium">Premium</a> keeps a year of value history and exports your collection to a spreadsheet.
+                </p>
+              )}
               <button type="button" className="ce-vault-btn" onClick={() => share(t, since)}>
                 {copied ? "Picture saved, link copied" : "Share my collection"}
               </button>
             </section>
           );
         })}
+      {member && (
+        <button
+          type="button"
+          className="ce-vault-btn"
+          onClick={() => {
+            const url = URL.createObjectURL(new Blob([collectionCsv(valued)], { type: "text/csv;charset=utf-8" }));
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${VAULT_SITE.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-collection-${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+          }}
+        >
+          Export to spreadsheet (CSV)
+        </button>
+      )}
       <ul className="ce-vault-list">
         {valued.map((i) => {
           const key = itemKey(i);
@@ -178,7 +221,7 @@ export function VaultView() {
                 </div>
               </div>
               <div className="ce-vault-price tabular">
-                {i.nowCents != null ? formatMoney(i.nowCents * i.qty, i.currency) : <span className="ce-vault-muted">{file ? "Not in stock" : "…"}</span>}
+                {i.nowCents != null ? formatMoney(i.nowCents * i.qty, i.currency) : <span className="ce-vault-muted">{file ? (isCardItem(i) ? "No recent sale" : "Not in stock") : "…"}</span>}
                 {i.nowCents != null && i.addedCents > 0 && <Change from={i.addedCents * i.qty} to={i.nowCents * i.qty} currency={i.currency} label="" />}
               </div>
               <span className="ce-vault-qty" aria-label={`How many ${i.name} you own`}>
@@ -195,8 +238,9 @@ export function VaultView() {
         })}
       </ul>
       <p className="ce-vault-muted">
-        Values are the cheapest in-stock store price in each item&apos;s region today, the price you would pay to buy it again. They are not what a
-        buyer would pay you. Prices are never converted between currencies.
+        Sealed products are valued at the cheapest in-stock store price in their region today, the price you would pay to buy them again. Single
+        cards are valued at TCGplayer&apos;s market price (recent sales, US$) for the finish you own. Neither is what a buyer would pay you. Prices
+        are never converted between currencies.
       </p>
     </div>
   );

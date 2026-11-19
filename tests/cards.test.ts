@@ -342,3 +342,17 @@ test("new sets go to Google first: a new or upcoming sealed set and its Commande
   assert.deepEqual(fresh.map((c) => c.ix), [1, 0, 1]);
   assert.equal(all.at(-1)!.ix, 0, "an old card still waits for the daily step");
 });
+
+test("card movers: finish by finish, US$2 floor, one row per card, biggest first; compare days", async () => {
+  const { cardMovers, compareDays, snapshotOf } = await import("../src/lib/cards");
+  const row = (id: number, p: [number | null, number | null, number | null]) => ({ id, s: `c-${id}`, n: `Card ${id}`, no: String(id), r: "R", p, ix: 0 as const, since: "2026-11-17" });
+  const then = { "1": [1000, null, null], "2": [500, 2000, null], "3": [150, null, null], "4": [800, null, null], "5": [300, null, null] } as never;
+  const today = [{ set: "a", cards: [row(1, [1500, null, null]), row(2, [500, 4000, 999]), row(3, [900, null, null]), row(4, [400, null, null]), row(5, [300, 900, null])] }];
+  const m = cardMovers(today, then);
+  assert.deepEqual(m.up.map((x) => [x.id, x.f, x.pct]), [[2, 1, 100], [1, 0, 50]]); // 3 was under US$2 then; 5's foil is new, not a rise
+  assert.deepEqual(m.down.map((x) => [x.id, x.pct]), [[4, -50]]);
+  assert.deepEqual(cardMovers(today, null), { up: [], down: [] });
+  assert.deepEqual(compareDays(["2026-11-10", "2026-11-11", "2026-11-12", "2026-11-18", "2026-11-19"], "2026-11-19"), { d1: "2026-11-18", d7: "2026-11-12" });
+  assert.deepEqual(compareDays(["2026-11-19"], "2026-11-19"), { d1: "", d7: "" });
+  assert.deepEqual(Object.keys(snapshotOf([row(1, [99, null, null]), row(2, [100, null, null])])), ["2"]);
+});

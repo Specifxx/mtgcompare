@@ -12,10 +12,10 @@ const PLANS: Record<Plan, { price: string; per: string; note: string }> = {
 };
 
 const FEATURES = [
-  "No banner ads, on every page and on your phone",
-  "Back-in-stock email the day a sold-out product returns",
-  "Up to 200 price alerts (free: 25)",
+  "A year of collection value history, and your collection as a spreadsheet",
+  "Up to 200 price alerts (free: 25) and one-tap back-in-stock alerts",
   "Your watch list with today's lowest price",
+  "No banner ads, on every page and on your phone",
   "One account for MTG Compare, DexCompare and RiftCompare",
 ];
 

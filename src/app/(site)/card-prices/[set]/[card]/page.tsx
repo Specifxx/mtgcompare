@@ -5,6 +5,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { CardTiles } from "@/components/CardTiles";
 import { OutboundLink } from "@/components/OutboundLink";
 import { Section } from "@/components/Section";
+import { CardOwnButton } from "@/components/vault/CardOwnButton";
 import { AFFILIATE_NOTE_SHORT, REL_SPONSORED, TCGPLAYER_RETAILER, ebayCardSearchUrl, ebayRetailer, tcgplayerAffiliateUrl } from "@/lib/affiliate";
 import { CARDS_HUB, cardImage, cardIndexable, cardPath, cardTitle, cardValue, rarityName, readSet, readSets, setBySlug, tcgplayerCardUrl, usd, type CardRow, type CardSet } from "@/lib/cards";
 import { shortDate } from "@/lib/hub-copy";
@@ -140,6 +141,9 @@ export default function CardPricePage({ params }: { params: { set: string; card:
             </li>
           </ul>
           <p className="mt-2 text-xs text-muted">{AFFILIATE_NOTE_SHORT}</p>
+
+          {/* My collection (lib/vault.ts): below the buy rows, never above a price. */}
+          <CardOwnButton id={c.id} name={c.n} setSlug={set.slug} setName={set.name} href={cardPath(set.slug, c.s)} image={cardImage(c.id)} prices={c.p} />
 
           <p className="mt-6 max-w-2xl text-sm text-muted">
             {c.n} is {c.no ? `card #${c.no} in ` : "a card from "}

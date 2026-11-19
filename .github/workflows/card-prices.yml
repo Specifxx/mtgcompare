@@ -41,11 +41,13 @@ jobs:
           git config user.email "mtgcompare-data@users.noreply.github.com"
           [ -f data/cards/sets.json ] || { echo "No card files."; exit 0; }
           rm -rf "$RUNNER_TEMP/cards" && cp -r data/cards "$RUNNER_TEMP/cards"
+          rm -rf "$RUNNER_TEMP/card-history" && mkdir -p data/card-history && cp -r data/card-history "$RUNNER_TEMP/card-history"
           for attempt in 1 2 3 4 5; do
             git fetch -q origin "$BRANCH"
             git reset -q --hard "origin/$BRANCH"
             rm -rf data/cards && cp -r "$RUNNER_TEMP/cards" data/cards
-            git add -A data/cards
+            rm -rf data/card-history && cp -r "$RUNNER_TEMP/card-history" data/card-history
+            git add -A data/cards data/card-history
             if git diff --cached --quiet; then echo "Unchanged."; exit 0; fi
             git commit -q -m "MTG Compare card prices: $(date -u +%Y-%m-%dT%H:%MZ) (card-prices.yml run ${{ github.run_id }})"
             if git push -q origin "HEAD:$BRANCH"; then echo "Pushed on attempt $attempt."; exit 0; fi
