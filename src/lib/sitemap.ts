@@ -17,6 +17,7 @@ import { SETS } from "./sets";
 import { SITE_URL } from "./site";
 import { STORES } from "./stores";
 import { detailIndexed } from "./index-tiers";
+import { withoutOffSeasonSales } from "@/lib/sale-seasons";
 
 export const STATIC_SITEMAP_ID = 0;
 
@@ -126,7 +127,7 @@ export function staticSitemap(
     out.push(url(`/${r.region}/black-friday`, m, "daily", 0.7));
     out.push(url(`/${r.region}/cyber-monday`, m, "daily", 0.7));
     // The seasonal sale pages (DECISIONS.md, "Seasonal sale pages"): always listed, so they are indexed before each event.
-    for (const p of ["/boxing-day", "/january-sales", "/lunar-new-year"]) out.push(url(`/${r.region}${p}`, m, "daily", 0.6));
+    for (const p of withoutOffSeasonSales(["/boxing-day", "/january-sales"], new Date().toISOString().slice(0, 10))) out.push(url(`/${r.region}${p}`, m, "daily", 0.6));
     if (!skip.has("/cheapest-packs")) out.push(url(`/${r.region}/cheapest-packs`, m, "daily", 0.6));
     out.push(url(`/${r.region}/this-week`, m, "daily", 0.5));
     // The stock pages (lib/stock.ts): back in stock and price moves are built from the daily price history, older sets from today's
