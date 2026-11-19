@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-18T17:48:53.899Z",
+ "generatedAt": "2026-11-19T02:16:10.381Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -212,6 +212,20 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
+   "title": "Marvel Super Heroes Commander Deck - The Fantastic Four (Collector's Edition)",
+   "url": "https://mtgcompare.app/us/p/marvel-super-heroes-commander-deck-the-fantastic-four-collectors-edition",
+   "cents": 7000,
+   "currency": "USD",
+   "store": "Littleroot Games - Dublin",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675629_in_1000x1000.jpg",
+   "refCents": 13999,
+   "refLabel": "median store price",
+   "savingPct": 50
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "US",
    "title": "Phyrexia: All Will Be One Jumpstart Booster Box",
    "url": "https://mtgcompare.app/us/p/phyrexia-all-will-be-one-jumpstart-booster-box",
    "cents": 10000,
@@ -240,20 +254,6 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "The Hobbit Scene Box - Treasures of Smaug",
-   "url": "https://mtgcompare.app/us/p/the-hobbit-scene-box-treasures-of-smaug",
-   "cents": 3699,
-   "currency": "USD",
-   "store": "Common Lands",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/692969_in_1000x1000.jpg",
-   "refCents": 6999,
-   "refLabel": "median store price",
-   "savingPct": 47
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "US",
    "title": "Marvel Super Heroes Commander Deck - Wakanda Forever (Collector's Edition)",
    "url": "https://mtgcompare.app/us/p/marvel-super-heroes-commander-deck-wakanda-forever-collectors-edition",
    "cents": 7500,
@@ -268,15 +268,15 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "Marvel Super Heroes Commander Deck - Avengers Assemble (Collector's Edition)",
-   "url": "https://mtgcompare.app/us/p/marvel-super-heroes-commander-deck-avengers-assemble-collectors-edition",
-   "cents": 9000,
+   "title": "Secret Lair Drop: Secret Lair x The Hobbit: Over the Edge of the Wild - Traditional Foil Edition",
+   "url": "https://mtgcompare.app/us/p/secret-lair-drop-secret-lair-x-the-hobbit-over-the-edge-of-the-wild-traditional-foil-editi",
+   "cents": 2799,
    "currency": "USD",
-   "store": "Littleroot Games - Dublin",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675627_in_1000x1000.jpg",
-   "refCents": 15999,
+   "store": "Triad Cards and Gaming",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/711015_in_1000x1000.jpg",
+   "refCents": 4500,
    "refLabel": "median store price",
-   "savingPct": 44
+   "savingPct": 38
   },
   {
    "kind": "deal",
@@ -330,7 +330,7 @@
    "currency": "GBP",
    "store": "Thistle Tavern",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/618901_in_1000x1000.jpg",
-   "refCents": 1997,
+   "refCents": 1999,
    "refLabel": "median store price",
    "savingPct": 40
   },
