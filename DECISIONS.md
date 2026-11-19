@@ -2422,3 +2422,12 @@ first. The header carries the account link at every width ("Sign in" in words fr
 its room) and a gold "Premium" pill from md for non-members; the phone menu opens with "Sign in / Sign up" and "Premium · 14
 days free". `/account` signed in is an account hub (collection, alerts, movers, Premium trial, sign out). The check is
 browser-only, so every page keeps one CDN copy; the collection itself still lives in the browser (`ce_vault_v1`).
+
+## 2026-11-19 — Continue with Google and Discord on /account
+
+Owner, 19 Nov: Google and Discord sign-in on all our sites, accounts for retention. `/account` has "Continue with Google" and
+"Continue with Discord" (`OAuthButtons.tsx`): plain links to RiftCompare's `/api/sister-premium/oauth/<provider>`, which runs the
+provider's sign-in through RiftCompare's existing apps and comes back to `/account/verify#c=<code>&n=<path>`, the emailed link's own
+door. One account across our card sites, linked by the verified address. A site with its own Google client keeps Google's in-page
+button instead. `/account/verify` now lands on the page the visitor was headed to (or the account hub), and a failed round trip
+shows its reason on `/account`.
