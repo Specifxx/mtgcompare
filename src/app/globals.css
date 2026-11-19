@@ -1104,6 +1104,12 @@ html[data-bottomnav] [data-return-nudge] { bottom: calc(var(--bn-space) + 16px);
     transform: translate3d(6rem, 2.5rem, 0) scale(1.15);
   }
 }
+/* The phone ad dock sits just above the bottom nav while the nav shows (owner, 2026-11-19: "an ad on their phone right there"),
+   instead of yielding to it: the same geometry as the other sites (components/AdDock.tsx, data-dock-stack). */
+html [data-dock-stack] { transition: transform 0.2s ease-out, translate 0.22s cubic-bezier(0.2, 0.8, 0.2, 1); }
+html[data-bottomnav] [data-dock-stack] { translate: 0 calc(-1 * var(--bn-space) - 4px); padding-bottom: 6px; z-index: 29; }
+@media (prefers-reduced-motion: reduce) { html [data-dock-stack] { transition: none; } }
+
 @media (prefers-reduced-motion: reduce) {
   .tab-panel,
   .fold[open] > .fold-body {
