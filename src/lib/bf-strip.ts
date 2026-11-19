@@ -28,8 +28,11 @@ export interface HistoryDay {
 }
 
 export interface LowCue {
-  /** "lowest": today's price is at or under every price recorded in the window. "low": it is above the window's low. */
-  kind: "lowest" | "low";
+  /**
+   * "lowest": today's price is at or under every price recorded in the window, and some recorded day was dearer. "steady": every
+   * recorded day was today's price (no low to claim). "low": today's price is above the window's low.
+   */
+  kind: "lowest" | "steady" | "low";
   /** The window's lowest recorded price (today's when kind is "lowest"). */
   lowCents: number;
   /** The newest day that low was recorded. */
@@ -59,6 +62,7 @@ export function lowCue(days: readonly HistoryDay[], currentCents: number | null 
   const full = dayNum(sinceDay) <= start + 1;
   let low = priced[0];
   for (const d of priced) if (d.cents <= low.cents) low = d;
+  if (priced.every((d) => d.cents === currentCents)) return { kind: "steady", lowCents: currentCents, lowDay: today, sinceDay, full };
   if (currentCents <= low.cents) return { kind: "lowest", lowCents: currentCents, lowDay: today, sinceDay, full };
   return { kind: "low", lowCents: low.cents, lowDay: low.day, sinceDay, full };
 }
@@ -70,8 +74,9 @@ export function cueDate(iso: string, today: string): string {
   return `${d} ${MONTHS[m - 1]}${iso.slice(0, 4) === today.slice(0, 4) ? "" : ` ${y}`}`;
 }
 
-/** The cue in words: "Lowest price in 90 days", "Lowest price since 23 Oct", "90-day low $189.99 on 2 Nov", "Low since 23 Oct: $189.99 on 2 Nov". */
+/** The cue in words: "Same price since 23 Oct", "Lowest price in 90 days", "Lowest price since 23 Oct", "90-day low $189.99 on 2 Nov", "Low since 23 Oct: $189.99 on 2 Nov". */
 export function lowCueText(cue: LowCue, fmt: (cents: number) => string, today: string): string {
+  if (cue.kind === "steady") return `Same price since ${cueDate(cue.sinceDay, today)}`;
   if (cue.kind === "lowest") return cue.full ? "Lowest price in 90 days" : `Lowest price since ${cueDate(cue.sinceDay, today)}`;
   const at = `${fmt(cue.lowCents)} on ${cueDate(cue.lowDay, today)}`;
   return cue.full ? `90-day low ${at}` : `Low since ${cueDate(cue.sinceDay, today)}: ${at}`;

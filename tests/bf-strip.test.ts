@@ -32,7 +32,7 @@ test("a short history names its first day, never '90 days'", () => {
 });
 
 test("90 days of history may say '90 days'", () => {
-  const cue = lowCue(series("2026-08-01", Array(116).fill(12000)), 12000, "2026-11-24")!;
+  const cue = lowCue(series("2026-08-01", [...Array(100).fill(12500), ...Array(16).fill(12000)]), 12000, "2026-11-24")!;
   assert.equal(cue.kind, "lowest");
   assert.equal(cue.full, true);
   assert.equal(lowCueText(cue, fmt, "2026-11-24"), "Lowest price in 90 days");
@@ -48,13 +48,20 @@ test("above the low: the low's real price and the newest day it held", () => {
 });
 
 test("prices older than 90 days never count", () => {
-  const cue = lowCue(series("2026-07-01", [500, ...Array(146).fill(12000)]), 12000, "2026-11-24")!;
-  assert.equal(cue.kind, "lowest");
+  const cue = lowCue(series("2026-07-01", [500, 13000, ...Array(145).fill(12000)]), 12000, "2026-11-24")!;
+  assert.equal(cue.kind, "steady");
+});
+
+test("a price that never moved claims no low: 'Same price since'", () => {
+  const cue = lowCue(series("2026-10-23", Array(30).fill(12000)), 12000, "2026-11-24")!;
+  assert.equal(cue.kind, "steady");
+  assert.equal(lowCueText(cue, fmt, "2026-11-24"), "Same price since 23 Oct");
 });
 
 test("no cue text is a banned history or urgency claim", () => {
   const texts = [
-    lowCueText(lowCue(series("2026-08-01", Array(116).fill(12000)), 12000, "2026-11-24")!, fmt, "2026-11-24"),
+    lowCueText(lowCue(series("2026-08-01", [...Array(100).fill(12500), ...Array(16).fill(12000)]), 12000, "2026-11-24")!, fmt, "2026-11-24"),
+    lowCueText(lowCue(series("2026-10-23", Array(30).fill(12000)), 12000, "2026-11-24")!, fmt, "2026-11-24"),
     lowCueText(lowCue(series("2026-10-23", Array(30).fill(12000)), 11000, "2026-11-24")!, fmt, "2026-11-24"),
     lowCueText(lowCue(series("2026-08-01", [...Array(100).fill(12000), 9999, ...Array(15).fill(12500)]), 12500, "2026-11-24")!, fmt, "2026-11-24"),
   ];

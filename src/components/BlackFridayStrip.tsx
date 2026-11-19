@@ -21,10 +21,9 @@ export interface BlackFridayStripProps {
 
 export function BlackFridayStrip({ label, cheapest, shipping, checked, checkedInitial, preorder, cue }: BlackFridayStripProps) {
   if (!cheapest && !preorder && !cue) return null;
-  const sep = <span aria-hidden className="text-faint">·</span>;
   return (
     <section aria-label={`${label} price check`} data-bf-strip="" className="card mt-3 px-4 py-3 text-sm leading-6">
-      <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+      <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <span className="rounded-full bg-raised px-2.5 py-0.5 text-xs font-semibold text-ink">{label} check</span>
         {cheapest && (
           <span>
@@ -33,13 +32,11 @@ export function BlackFridayStrip({ label, cheapest, shipping, checked, checkedIn
         )}
         {shipping && (
           <>
-            {sep}
             <span className={/^free/i.test(shipping) ? "font-medium text-open" : "text-muted"}>{shipping}</span>
           </>
         )}
         {checked && (
           <>
-            {sep}
             <span className="text-muted">
               checked <Ago iso={checked} initial={checkedInitial} />
             </span>
@@ -47,13 +44,11 @@ export function BlackFridayStrip({ label, cheapest, shipping, checked, checkedIn
         )}
         {preorder && (
           <>
-            {sep}
             <span className="font-medium text-pre">{preorder}</span>
           </>
         )}
         {cue && (
           <>
-            {sep}
             <span className={cue.lowest ? "font-semibold text-open" : "text-muted"}>{cue.text}</span>
           </>
         )}
