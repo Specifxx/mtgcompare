@@ -3,13 +3,14 @@ import { COUNTRY_GUIDE } from "@/content/guides/country-prices";
 import { REGION_LIST, REGIONS, type Region } from "@/lib/regions";
 import { menuSets } from "@/lib/release";
 import { SET_BY_CODE } from "@/lib/sets";
-import { CONTACT_EMAIL, FAN_CONTENT_DISCLAIMER, OPERATOR, SITE_NAME, sectionHref, type SectionKey } from "@/lib/site";
+import { CONTACT_EMAIL, DISCORD_INVITE, FAN_CONTENT_DISCLAIMER, OPERATOR, SITE_NAME, sectionHref, type SectionKey } from "@/lib/site";
 import { AMAZON_DISCLOSURE, AMAZON_TRADEMARK } from "@/lib/amazon";
 import { LogoMark } from "./Logo";
 import { footerSeoSections } from "./seo/HubLinks";
 import { RateUsLink } from "./site-reviews/SiteReviews";
 import { Flag } from "@/components/Flag";
 import { FeedbackAsk } from "@/components/FeedbackAsk";
+import { DiscordCta } from "@/components/DiscordCta";
 
 type FooterLink = { href: string; label: string };
 
@@ -76,6 +77,7 @@ export function Footer({ region, listed }: { region: Region | null; listed?: Rea
     <footer className="mt-20 border-t border-line bg-surface">
       {/* "Was this page useful?" (owner, 2026-11-18: more feedback). One inline line, never a pop-up. */}
       <div className="page pt-8"><FeedbackAsk email={CONTACT_EMAIL} /></div>
+      <div className="page pt-6"><DiscordCta href={DISCORD_INVITE} className="max-w-2xl" /></div>
       <div className={`page grid gap-x-6 gap-y-10 py-12 ${r ? "lg:grid-cols-[minmax(0,1.35fr)_minmax(0,3fr)]" : "md:grid-cols-[minmax(0,1.35fr)_minmax(0,1.5fr)]"}`}>
         <div className="max-w-sm">
           <Link href={r ? `/${r.region}` : "/"} className="inline-flex min-h-10 items-center gap-2 font-display text-lg font-extrabold tracking-tight">
