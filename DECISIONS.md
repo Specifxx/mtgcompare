@@ -2482,3 +2482,15 @@ color change … make it stand out even more". Every visitor keeps eBay's blue b
 row that holds an eBay button eBay blue with a blue edge. Shape and colour only: no new words, no new claim (eBay is called the cheapest
 only when it is), no position change, no extra eBay API call, white on #0064d2 passes contrast. Run on Rift, Dex, MTG and OP. Read
 3 Dec: eBay buy clicks per arm, total buy clicks per arm as the check; keep the winner and roll it out to the other card sites.
+
+## 2026-11-19 — Black Friday strip on sealed pages
+
+The owner's board (19 Nov): ride Black Friday on the pages we already have, no new URLs. Every product page with an in-stock
+price shows one short card under the best price, through 1 Dec (`lib/bf-strip.ts`, `BlackFridayStrip.tsx`, labelled by
+`saleStrip`: Black Friday, then Cyber Monday): the cheapest price today and where, that store's measured shipping (`shippingCell`,
+only when measured), when that price was read, the pre-order date, and where today's price sits against the product's own
+recorded history. The history cue needs 14 priced days in the last 90; it says "Lowest price in 90 days" only when the
+recorded prices reach back 90 days, otherwise "Lowest price since <first day>", or the window's real low and its day. Never a
+"was" price, "lowest ever", a countdown or a link; no new read, no eBay call; the quick view (its A/B runs to 3 Dec) and the
+phone strip ad are untouched. Same strip on DexCompare, RiftCompare and OP Compare. Judge on buy clicks per product-page view,
+24 Nov to 1 Dec against 10 to 17 Nov.
