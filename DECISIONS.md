@@ -2498,3 +2498,66 @@ redirect. I don't want the [RiftCompare] logo to appear on any of the site signu
 - `next.config.js` rewrites `/account-service/alerts/(confirm|manage|unsubscribe)` and `/account-service/oauth/(google|discord)[/callback]`
   to the shared service, so alert emails and (once the owner registers the redirect addresses) Google and Discord sign-in keep the
   visitor on this site's own address. A rewrite is not a redirect: the address bar never changes.
+## 2026-11-19 — eBay stand-out row, 50/50
+
+The owner, the same evening eBay's blue came back: the colour change moved eBay clicks, so "we can do something even more than just a
+color change … make it stand out even more". Every visitor keeps eBay's blue button; a new 50/50 (localStorage `ebay-pop`, arm on
+`<html data-ebaypop>`, `ebay_pop` on buy_click) gives arm "pop" a bolder, larger eBay button with a soft blue halo and tints the list
+row that holds an eBay button eBay blue with a blue edge. Shape and colour only: no new words, no new claim (eBay is called the cheapest
+only when it is), no position change, no extra eBay API call, white on #0064d2 passes contrast. Run on Rift, Dex, MTG and OP. Read
+3 Dec: eBay buy clicks per arm, total buy clicks per arm as the check; keep the winner and roll it out to the other card sites.
+
+## 2026-11-19 — A tag lint that stops the build
+
+From the 19 Nov boardroom review, on the four money sites: paid rows always there, and never untagged. The product page's
+Marketplaces panel already draws eBay and TCGplayer in every region (a listing or price when there is one, else each one's tagged
+search; TCGplayer steps aside only in the US when it is already the best-price button above). New: `scripts/tag-lint.ts` runs first in
+`npm run build` (`src/lib/tag-lint.ts`, `tests/tag-lint.test.ts`). Every eBay builder in every region and placement must carry campaign
+5339155912 and a customid, every TCGplayer link must go through Impact (/out/tcgplayer), an eBay listing without our campaign must be
+refused by `listingHref`, and no component may hard-code a bare eBay or TCGplayer href. A failure stops the release: a paid link going
+out untagged costs more than a late one.
+
+## 2026-11-19: [urgent] needs eight hours too: a network ceiling of 57 builds a day
+
+[urgent] in a commit subject used to skip the 12-hour gap altogether. On 17 and 18 Nov the network built production 94
+and 137 times a day, almost all of them [urgent] (about eight builds per site per day), and Vercel reached $10.27 a day
+against the $6 cap: every build rewrites the ISR cache and burns build CPU. `scripts/vercel-ignore-build.sh` now builds an
+[urgent] commit only when production last built at least `URGENT_MIN_GAP_HOURS` (8) ago; a plain [deploy] still waits 12.
+So one site builds at most three times a day, and the 19 production projects at most 57 a day (normally about 25).
+Batch urgent changes into one release instead of one per merge. Pinned by `tests/deploy-gap.test.ts`. The same change
+went to every Compare site's gate.
+
+## Amazon API allowance: mostly ScentCompare, card sites at zero (owner, 2026-11-19)
+
+Amazon's Creators API limit is per Associates account (one a country), shared by every site on it: 1 call a second and
+8,640 a day for the first 30 days (the US until about 8 Dec 2026), then 1 a day per US$0.05 of shipped revenue the API
+referred in 30 days. The owner: "be very frugal", no Amazon calls for card sites ("people aren't buying on Amazon"), and
+half or more for ScentCompare, the best performer. Each site's daily calls (environment variables can only lower them):
+
+| Site | searchItems a day (US / other) | getItems at build (US / other) |
+|---|---|---|
+| ScentCompare | 2,000 / 600 | 200 / 100 |
+| KaeYoung | 600 / 300 | 100 / 60 |
+| DexCompare | 300 | 30 |
+| MTG Compare, WargameCompare | 100 | 20 |
+| Compare Empire | 100 | 30 |
+| CamCompare | 150 (AU only) | about 30 (AU only) |
+| Rift, OP, YGO, Lorcana, Cyberpunk, Gundam (and kits), Bandai, SportsCardCompare, TCG Prices, Figure, Motor | 0 | 0 |
+
+US total at most about 3,600 calls a day (ScentCompare about 61%, ScentCompare and KaeYoung together about 81%), against
+8,640 until about 8 Dec 2026 and a revenue-based limit after it (1 a day per US$0.05 of API-referred shipped revenue).
+
+Here the defaults are lowered to this table's numbers. Amazon clicks here were real before 13 Nov, so a small share stays.
+
+## Commander deck twins: colours, "New Arrival", misspellings, Nauctis "Collector Edition" (2026-11-19)
+
+A sweep of every Commander deck page with one or two offers found 26 store listings each holding a second, one-store page of
+a deck other stores already list: Grand J Games writes each Star Trek deck's colour identity ("(Federation Fleet
+Blue-Red-White)"), Miniature Market appends "(New Arrival)", sagaconcepts "(Single Pack)", and stores misspell "Kilngon",
+"We Are The Borgs", "Terror Of The Abyss" and "The Ruinous Power". For Commander decks `signatureTokens` now drops a
+hyphenated run of two or more colour words (never one: a deck may be named for a colour), those two notes, and folds the four
+misspellings. Lazarus Games calls Nauctis's foil decks "Collector Edition"; Wizards and TCGplayer call them "Premium Edition"
+(Lazarus's US$159.95-189.95 sits beside TCGplayer's US$189.85-219.77), so for Nauctis only "Collector Edition" reads as
+Premium. Sets before Nauctis keep the "collector" marker for their Collector's Editions, so no other page moves. Measured on
+the 19 Nov export: 26 offers rekey, every one onto an existing page of the same deck and edition; nothing else changes. The
+one-store pages they leave are orphaned and 301 through `culled.json` after the next import.
