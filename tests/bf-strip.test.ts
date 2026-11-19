@@ -58,6 +58,18 @@ test("a price that never moved claims no low: 'Same price since'", () => {
   assert.equal(lowCueText(cue, fmt, "2026-11-24"), "Same price since 23 Oct");
 });
 
+test("a one-off wrong listing far under the median never becomes the low", () => {
+  const cue = lowCue(series("2026-10-23", [...Array(10).fill(17000), 5588, ...Array(19).fill(16500)]), 16985, "2026-11-24")!;
+  assert.equal(cue.kind, "low");
+  assert.equal(cue.lowCents, 16500);
+});
+
+test("a history that swings more than 2x (weeks of a wrong product's price) gives no cue", () => {
+  const h = series("2026-09-02", [...Array(10).fill(27000), ...Array(35).fill(6000), ...Array(15).fill(21000)]);
+  assert.equal(lowCue(h, 16985, "2026-11-01"), null);
+  assert.equal(lowCue(series("2026-10-23", Array(30).fill(12000)), 5000, "2026-11-24"), null);
+});
+
 test("no cue text is a banned history or urgency claim", () => {
   const texts = [
     lowCueText(lowCue(series("2026-08-01", [...Array(100).fill(12500), ...Array(16).fill(12000)]), 12000, "2026-11-24")!, fmt, "2026-11-24"),

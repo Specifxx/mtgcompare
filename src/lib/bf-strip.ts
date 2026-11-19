@@ -17,6 +17,10 @@ export function bfStripOn(today: string): boolean {
 
 /** A history cue needs this many days with a recorded price in the window. */
 export const MIN_CUE_DAYS = 14;
+/** A recorded day under this share of the window's median is left out (a wrong listing, not a price). */
+export const OUTLIER_SHARE = 0.5;
+/** No cue when the window's recorded prices (or today's against them) differ by more than this factor. */
+export const MAX_SPREAD = 2;
 /** The window the cue reads: the last 90 days. */
 export const CUE_WINDOW_DAYS = 90;
 
@@ -56,13 +60,23 @@ export function lowCue(days: readonly HistoryDay[], currentCents: number | null 
   const priced = days
     .filter((d): d is { day: string; cents: number } => d.cents != null && d.cents > 0 && dayNum(d.day) >= start && dayNum(d.day) <= end)
     .sort((a, b) => a.day.localeCompare(b.day));
-  if (priced.length < MIN_CUE_DAYS) return null;
-  const sinceDay = priced[0].day;
+  // A day far under the window's median is a wrong listing the importer let through once (a pack read as a box), not a price
+  // anyone could buy at: it never becomes the low the strip names.
+  const sortedCents = priced.map((d) => d.cents).sort((a, b) => a - b);
+  const median = sortedCents[Math.floor(sortedCents.length / 2)] ?? 0;
+  const kept = priced.filter((d) => d.cents >= median * OUTLIER_SHARE);
+  if (kept.length < MIN_CUE_DAYS) return null;
+  // A history whose prices span more than MAX_SPREAD (weeks of a wrong product's price, a launch's swing) says nothing honest
+  // about today's price: no cue. Nor when today's price is itself far off the recorded ones.
+  const lo = Math.min(...kept.map((d) => d.cents));
+  const hi = Math.max(...kept.map((d) => d.cents));
+  if (hi > lo * MAX_SPREAD || currentCents < lo / MAX_SPREAD || currentCents > hi * MAX_SPREAD) return null;
+  const sinceDay = kept[0].day;
   // "90 days" needs a recorded price at the window's start (a day of slack): the product's history covers all of it.
   const full = dayNum(sinceDay) <= start + 1;
-  let low = priced[0];
-  for (const d of priced) if (d.cents <= low.cents) low = d;
-  if (priced.every((d) => d.cents === currentCents)) return { kind: "steady", lowCents: currentCents, lowDay: today, sinceDay, full };
+  let low = kept[0];
+  for (const d of kept) if (d.cents <= low.cents) low = d;
+  if (kept.every((d) => d.cents === currentCents)) return { kind: "steady", lowCents: currentCents, lowDay: today, sinceDay, full };
   if (currentCents <= low.cents) return { kind: "lowest", lowCents: currentCents, lowDay: today, sinceDay, full };
   return { kind: "low", lowCents: low.cents, lowDay: low.day, sinceDay, full };
 }

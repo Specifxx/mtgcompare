@@ -2491,7 +2491,8 @@ price shows one short card under the best price, through 1 Dec (`lib/bf-strip.ts
 only when measured), when that price was read, the pre-order date, and where today's price sits against the product's own
 recorded history. The history cue needs 14 priced days in the last 90; it says "Lowest price in 90 days" only when the
 recorded prices reach back 90 days, otherwise "Lowest price since <first day>"; a price that never moved says "Same price since <first day>" (no low claimed), and
-above the low it gives the window's real low and its day. Never a
+above the low it gives the window's real low and its day. A day under half the window's median is a wrong listing and never the low; a window
+whose prices (or today's against them) differ by more than 2x gets no cue at all. Never a
 "was" price, "lowest ever", a countdown or a link; no new read, no eBay call; the quick view (its A/B runs to 3 Dec) and the
 phone strip ad are untouched. Same strip on DexCompare, RiftCompare and OP Compare. Judge on buy clicks per product-page view,
 24 Nov to 1 Dec against 10 to 17 Nov.
