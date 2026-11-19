@@ -2524,3 +2524,16 @@ US total at most about 3,600 calls a day (ScentCompare about 61%, ScentCompare a
 8,640 until about 8 Dec 2026 and a revenue-based limit after it (1 a day per US$0.05 of API-referred shipped revenue).
 
 Here the defaults are lowered to this table's numbers. Amazon clicks here were real before 13 Nov, so a small share stays.
+
+## Commander deck twins: colours, "New Arrival", misspellings, Nauctis "Collector Edition" (2026-11-19)
+
+A sweep of every Commander deck page with one or two offers found 26 store listings each holding a second, one-store page of
+a deck other stores already list: Grand J Games writes each Star Trek deck's colour identity ("(Federation Fleet
+Blue-Red-White)"), Miniature Market appends "(New Arrival)", sagaconcepts "(Single Pack)", and stores misspell "Kilngon",
+"We Are The Borgs", "Terror Of The Abyss" and "The Ruinous Power". For Commander decks `signatureTokens` now drops a
+hyphenated run of two or more colour words (never one: a deck may be named for a colour), those two notes, and folds the four
+misspellings. Lazarus Games calls Nauctis's foil decks "Collector Edition"; Wizards and TCGplayer call them "Premium Edition"
+(Lazarus's US$159.95-189.95 sits beside TCGplayer's US$189.85-219.77), so for Nauctis only "Collector Edition" reads as
+Premium. Sets before Nauctis keep the "collector" marker for their Collector's Editions, so no other page moves. Measured on
+the 19 Nov export: 26 offers rekey, every one onto an existing page of the same deck and edition; nothing else changes. The
+one-store pages they leave are orphaned and 301 through `culled.json` after the next import.
