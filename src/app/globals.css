@@ -1274,3 +1274,18 @@ html[data-bottomnav] [data-dock-stack] { translate: 0 calc(-1 * var(--bn-space) 
     display: inline;
   }
 }
+
+/* The eBay stand-out A/B (lib/ebay-pop.ts, 2026-11-19): in arm "pop" eBay's button is bolder and larger with a soft blue halo, and the
+   list row holding one is tinted eBay blue with a blue edge. Shape and colour only: no words, no claim, no position. Never inside the
+   quick view ([role="dialog"]), whose own A/B runs to 3 Dec. */
+html[data-ebaypop="pop"] a.btn-ad[href*="ebay."]:not([role="dialog"] a) {
+  font-weight: 800;
+  min-height: 2.75rem;
+  padding-left: 1.1rem;
+  padding-right: 1.1rem;
+  box-shadow: 0 0 0 3px rgba(54, 101, 243, 0.3), 0 4px 14px -4px rgba(54, 101, 243, 0.6);
+}
+html[data-ebaypop="pop"] li:not([role="dialog"] li):has(a.btn-ad[href*="ebay."]) {
+  background-color: rgba(54, 101, 243, 0.09);
+  box-shadow: inset 3px 0 0 #3665f3;
+}

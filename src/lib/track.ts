@@ -9,6 +9,7 @@ import { track as vercelTrack } from "@vercel/analytics";
 const SENT: ReadonlySet<string> = new Set([
   "return_visit", // the retention programme's return beacon (lib/return-visit.ts, 2026-11-18): one per returning visitor a day
   "buy_click",
+  "ebay_pop", // the eBay stand-out A/B (lib/ebay-pop.ts, 2026-11-19 to 3 Dec): one seen a visit, one first eBay click a visit
   "share",
   "share_visit",
   "share_unlock", // the share-for-a-deal test (2026-11-18)

@@ -2473,3 +2473,12 @@ price, a deal, a sort, an alert, the feed or structured data (`lib/tcg-market.ts
 
 **The quick view keeps its old chart until 3 Dec 2026**, when the quick view A/B test ends: nothing changes there during
 it. The quick view route already sends `tcgHistory`, so the switch then is the component alone.
+
+## 2026-11-19 — eBay stand-out row, 50/50
+
+The owner, the same evening eBay's blue came back: the colour change moved eBay clicks, so "we can do something even more than just a
+color change … make it stand out even more". Every visitor keeps eBay's blue button; a new 50/50 (localStorage `ebay-pop`, arm on
+`<html data-ebaypop>`, `ebay_pop` on buy_click) gives arm "pop" a bolder, larger eBay button with a soft blue halo and tints the list
+row that holds an eBay button eBay blue with a blue edge. Shape and colour only: no new words, no new claim (eBay is called the cheapest
+only when it is), no position change, no extra eBay API call, white on #0064d2 passes contrast. Run on Rift, Dex, MTG and OP. Read
+3 Dec: eBay buy clicks per arm, total buy clicks per arm as the check; keep the winner and roll it out to the other card sites.

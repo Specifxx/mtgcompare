@@ -23,6 +23,7 @@ import "@/components/store-vote.css";
 import "@/components/vault/vault.css";
 import "@/components/site-reviews/site-reviews.css";
 import { ReturnBeacon } from "@/components/ReturnBeacon";
+import { EbayPopArm } from "@/components/EbayPopArm";
 
 // Font display is optional, not swap: both faces are preloaded, so a warm visit renders in them from the first paint, and a slow
 // first visit keeps the size-adjusted fallback for that page instead of re-wrapping every line when the font lands (that swap
@@ -93,6 +94,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SiteAnalytics />
         <ShareArrival />
         <ReturnBeacon />
+        {/* The eBay stand-out A/B (lib/ebay-pop.ts, 2026-11-19): sets <html data-ebaypop> in the browser. */}
+        <EbayPopArm />
       </body>
     </html>
   );
