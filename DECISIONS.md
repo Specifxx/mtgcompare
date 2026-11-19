@@ -2594,3 +2594,14 @@ utm_campaign to every affiliate sub-id the visitor opens (EPN `customid`, and `/
 to Impact), mounted by `PaidVisitTagger` in the layout; and `lib/campaign.ts` keeps the tab's first-touch campaign for GA4's
 `affiliate_click` / `outbound_store_click` as `campaign`, so a creator's buy clicks can be counted. Vercel's buy_click is unchanged.
 `tests/paid-visit.test.ts`.
+
+
+## 2026-11-20: The Hot 100 share card shows rises AND drops (owner)
+
+A Reddit reply to a Hot 100 link post asked for "the biggest drops. I just want to rip and play"; the owner: every snapshot
+thumbnail is half biggest rises, half biggest drops. `/og/hot-100/<region>` (`lib/og/hot100-card.tsx`) now draws the week's
+three biggest rises beside its three biggest drops, each with its photo, change and two prices; the page lists up to 20 drops under
+the chart ("Biggest drops this week"). `hotDrops` in `lib/hot100.ts` is the Hot 100's own rules mirrored (2+ stores in stock both
+days, a fall of 1% or more and under the 50% misfiled-listing cap, the same seven days), from the same history; nothing new is read.
+The og:image query gained `&v=2` so a cached rises-only picture is never served for the new one. No ▲/▼ glyphs on the card: the
+bundled font lacks them. `tests/hot100.test.ts`.

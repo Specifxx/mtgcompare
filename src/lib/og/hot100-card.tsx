@@ -1,6 +1,6 @@
 // The Hot 100's share card (owner, 2026-11-20: Reddit snapshot posts work because of the link thumbnail). A Reddit link post
-// shows only its title and this picture, so the picture is the chart itself: the #1 riser large with its photo, the next five beside it with their
-// photos, each with its real 7-day rise and price. Every figure comes from lib/hot100.ts, the same rows the page lists.
+// shows only its title and this picture, so the picture is the chart itself: since 2026-11-20 (owner, from a Reddit reply asking for the
+// biggest drops) the week's three biggest rises beside its three biggest drops, each with its photo, real 7-day change and prices. Every figure comes from lib/hot100.ts, the same rows the page lists.
 //
 // Photos are fetched when the card is drawn (about once a day per region: the route is CDN-cached), each with a timeout, and
 // only kept when they arrive as PNG or JPEG (satori draws nothing else). A photo that fails draws a plain tile, never a broken card.
@@ -73,14 +73,50 @@ export interface HotCard {
   path: string;
   /** "US stores" */
   where: string;
+  /** The week's biggest rises, biggest first (the chart's top). */
   rows: HotCardRow[];
+  /** The week's biggest drops, biggest fall first (lib/hot100.ts hotDrops); pct is negative. */
+  drops: HotCardRow[];
 }
 
-/** The card as a PNG response: photos fetched first, then drawn. */
+const DOWN = "#b42318";
+const DOWN_SOFT = "#fde8e6";
+const sign = (pct: number) => (pct > 0 ? `+${pct}%` : `−${Math.abs(pct)}%`);
+
+/** One mover: photo, name, the week's price change and its two prices. */
+function MoveRow({ r, photo, up }: { r: HotCardRow; photo: string | null; up: boolean }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "8px 14px 8px 8px", borderRadius: 16, background: "#ffffff", border: `2px solid ${LINE}`, height: 122 }}>
+      <Photo src={photo} size={104} radius={12} />
+      <div style={{ display: "flex", flexDirection: "column", width: 382, gap: 6 }}>
+        <div style={{ display: "flex", width: 382, fontSize: 21, fontWeight: 600, lineHeight: 1.15 }}>{cut(r.name, 62)}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", padding: "1px 12px", borderRadius: 999, background: up ? UP_SOFT : DOWN_SOFT, color: up ? UP : DOWN, fontSize: 30, fontWeight: 800 }}>{sign(r.pct)}</div>
+          <div style={{ display: "flex", fontSize: 19, fontWeight: 600, color: MUTED }}>{`${r.before} → ${r.after}`}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Column({ title, rows, photos, up, empty }: { title: string; rows: HotCardRow[]; photos: (string | null)[]; up: boolean; empty: string }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", width: 538, gap: 10 }}>
+      <div style={{ display: "flex", fontSize: 27, fontWeight: 800, color: up ? UP : DOWN }}>{title}</div>
+      {rows.length ? (
+        rows.map((r, i) => <MoveRow key={`${r.rank}-${r.name}`} r={r} photo={photos[i]} up={up} />)
+      ) : (
+        <div style={{ display: "flex", fontSize: 22, fontWeight: 600, color: MUTED }}>{empty}</div>
+      )}
+    </div>
+  );
+}
+
+/** The card as a PNG response: photos fetched first, then drawn. Half the week's biggest rises, half its biggest drops (owner, 2026-11-20). */
 export async function hotCard(c: HotCard): Promise<ImageResponse> {
-  const rows = c.rows.slice(0, 6);
-  const photos = await Promise.all(rows.map((r) => photoData(r.imageUrl)));
-  const [top, ...rest] = rows;
+  const ups = c.rows.slice(0, 3);
+  const downs = c.drops.slice(0, 3);
+  const photos = await Promise.all([...ups, ...downs].map((r) => photoData(r.imageUrl)));
   return new ImageResponse(
     (
       <div
@@ -91,7 +127,7 @@ export async function hotCard(c: HotCard): Promise<ImageResponse> {
           flexDirection: "column",
           background: "#f6f6f3",
           backgroundImage: "radial-gradient(circle at 0% 0%, rgba(210,48,10,0.12), rgba(210,48,10,0) 45%), radial-gradient(circle at 100% 0%, rgba(255,203,5,0.18), rgba(255,203,5,0) 40%)",
-          padding: "40px 52px 34px",
+          padding: "34px 52px 28px",
           fontFamily: "Bricolage",
           color: INK,
         }}
@@ -99,41 +135,19 @@ export async function hotCard(c: HotCard): Promise<ImageResponse> {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <BrandHeader tag={c.region} />
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-            <div style={{ display: "flex", fontSize: 40, fontWeight: 800, letterSpacing: -1, color: BRAND }}>{`Hot ${c.total}`}</div>
-            <div style={{ display: "flex", fontSize: 20, fontWeight: 600, color: MUTED }}>{`${c.noun} · week to ${c.through}`}</div>
+            <div style={{ display: "flex", fontSize: 36, fontWeight: 800, letterSpacing: -1, color: BRAND }}>{c.total ? `Hot ${c.total} · rises & drops` : "Rises & drops"}</div>
+            <div style={{ display: "flex", fontSize: 20, fontWeight: 600, color: MUTED }}>{`${c.noun} · 7 days to ${c.through}`}</div>
           </div>
         </div>
-        {top ? (
-          <div style={{ display: "flex", gap: 28, marginTop: 22, flexGrow: 1 }}>
-            <div style={{ display: "flex", flexDirection: "column", width: 270, gap: 8 }}>
-              <div style={{ display: "flex", position: "relative" }}>
-                <Photo src={photos[0]} size={240} radius={24} />
-                <div style={{ display: "flex", position: "absolute", top: 12, left: 12, padding: "4px 14px", borderRadius: 999, background: INK, color: "#ffffff", fontSize: 26, fontWeight: 800 }}>#1</div>
-              </div>
-              <div style={{ display: "flex", fontSize: 21, fontWeight: 600, lineHeight: 1.15 }}>{cut(top.name, 46)}</div>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 4 }}>
-                <div style={{ display: "flex", padding: "2px 14px", borderRadius: 999, background: UP_SOFT, fontSize: 38, fontWeight: 800, color: UP }}>{`+${top.pct}%`}</div>
-                <div style={{ display: "flex", fontSize: 20, fontWeight: 600, color: MUTED }}>{`${top.before} → ${top.after}`}</div>
-              </div>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 9, flexGrow: 1 }}>
-              {rest.map((r, i) => (
-                <div key={r.rank} style={{ display: "flex", alignItems: "center", gap: 14, padding: "7px 16px 7px 10px", borderRadius: 16, background: "#ffffff", border: `2px solid ${LINE}` }}>
-                  <div style={{ display: "flex", width: 44, justifyContent: "center", fontSize: 24, fontWeight: 800, color: MUTED }}>{`#${r.rank}`}</div>
-                  <Photo src={photos[i + 1]} size={58} radius={10} />
-                  <div style={{ display: "flex", flexDirection: "column", flexGrow: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", fontSize: 21, fontWeight: 600 }}>{cut(r.name, 40)}</div>
-                    <div style={{ display: "flex", fontSize: 17, fontWeight: 600, color: MUTED }}>{`${r.before} → ${r.after} · ${r.stores} stores in stock`}</div>
-                  </div>
-                  <div style={{ display: "flex", padding: "4px 12px", borderRadius: 999, background: UP_SOFT, color: UP, fontSize: 24, fontWeight: 800 }}>{`+${r.pct}%`}</div>
-                </div>
-              ))}
-            </div>
+        {ups.length || downs.length ? (
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 16, flexGrow: 1 }}>
+            <Column title="Biggest rises" rows={ups} photos={photos.slice(0, ups.length)} up empty="No rises of 1% or more this week." />
+            <Column title="Biggest drops" rows={downs} photos={photos.slice(ups.length)} up={false} empty="No drops of 1% or more this week." />
           </div>
         ) : (
-          <div style={{ display: "flex", flexGrow: 1, alignItems: "center", fontSize: 48, fontWeight: 800 }}>{`This week's ${c.noun} risers`}</div>
+          <div style={{ display: "flex", flexGrow: 1, alignItems: "center", fontSize: 48, fontWeight: 800 }}>{`This week's ${c.noun} rises and drops`}</div>
         )}
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10, fontSize: 18, fontWeight: 600, color: MUTED }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 18, fontWeight: 600, color: MUTED }}>
           <div style={{ display: "flex" }}>{`Cheapest in-stock price at ${c.where}, change over 7 days. Checked daily.`}</div>
           <div style={{ display: "flex", color: INK }}>{c.path}</div>
         </div>

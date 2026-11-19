@@ -5,7 +5,7 @@ import { Empty, Section } from "@/components/Section";
 import { StockRow } from "@/components/StockRow";
 import { cardsFor } from "@/content/guides/more-data";
 import { money } from "@/lib/format";
-import { hotChart, hotMove, hotName, HOT_MIN_PCT } from "@/lib/hot100";
+import { hotChart, hotDrops, hotMove, hotName, HOT_MIN_PCT } from "@/lib/hot100";
 import { readPriceHistory } from "@/lib/price-history";
 import { regionOrNotFound } from "@/lib/regions";
 import { formatRelease } from "@/lib/release";
@@ -25,19 +25,22 @@ export function generateMetadata({ params }: { params: { region: string } }): Me
   const top = c?.rows[0];
   return pageMeta({
     title: c && top ? `${SITE_NAME} ${hotName(n)}: the ${NOUN} prices that rose most this week (${r.short}, to ${formatRelease(c.through)})` : `${SITE_NAME} Hot 100 (${r.short})`,
-    description: `This week's ${NOUN} risers at ${r.adjective} stores: every product whose cheapest in-stock price rose in the last seven days, ranked, with its place on last week's chart.`,
+    description: `This week's ${NOUN} risers and biggest drops at ${r.adjective} stores: every product whose cheapest in-stock price rose in the last seven days, ranked, with its place on last week's chart, and the ones that fell most.`,
     path: `/${r.region}/hot-100`,
-    image: c ? `/og/hot-100/${r.region}?w=${c.through}` : `/og/hot-100/${r.region}`,
+    image: c ? `/og/hot-100/${r.region}?w=${c.through}&v=2` : `/og/hot-100/${r.region}`,
     noindex: n < 5,
   });
 }
 
 export default async function Hot100Page({ params }: { params: { region: string } }) {
   const r = regionOrNotFound(params.region);
-  const c = hotChart(readPriceHistory(), r.market);
-  const cards = c ? await cardsFor(r.market, c.rows.map((x) => x.slug)) : [];
+  const history = readPriceHistory();
+  const c = hotChart(history, r.market);
+  const falls = hotDrops(history, r.market);
+  const cards = c ? await cardsFor(r.market, [...c.rows, ...falls].map((x) => x.slug)) : [];
   const bySlug = new Map(cards.map((x) => [x.slug, x]));
   const rows = (c?.rows ?? []).map((row) => ({ row, card: bySlug.get(row.slug) })).filter((x) => !!x.card);
+  const drops = falls.map((row) => ({ row, card: bySlug.get(row.slug) })).filter((x) => !!x.card);
   const n = c?.rows.length ?? 0;
   const path = `/${r.region}/hot-100`;
   const ld = itemListJsonLd({ name: `${SITE_NAME} ${hotName(n)}, ${r.name}`, path, items: rows.map(({ card }) => ({ path: `/${r.region}/p/${card!.slug}`, name: card!.name, image: card!.imageUrl })) });
@@ -82,6 +85,33 @@ export default async function Hot100Page({ params }: { params: { region: string 
           <Empty actions={[{ href: `/${r.region}/price-moves`, label: "Price moves today" }]}>No product&rsquo;s price rose {HOT_MIN_PCT}% or more this week in {r.inName}.</Empty>
         )}
       </Section>
+      {drops.length > 0 && (
+        <Section id="drops" title="Biggest drops this week" kicker={c ? `Week to ${formatRelease(c.through)}` : undefined}>
+          <p className="mb-3 max-w-3xl text-sm text-muted">
+            The same seven days the other way: products whose cheapest in-stock price fell {HOT_MIN_PCT}% or more, with two or more stores in stock on both days, biggest fall first.
+          </p>
+          <ol className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-[repeat(2,minmax(0,1fr))]">
+            {drops.map(({ card, row }) => (
+              <li key={row.slug} className="flex items-stretch gap-2">
+                <div className="flex w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-surface text-center">
+                  <span className="font-display text-lg font-bold tabular">#{row.rank}</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <StockRow
+                    p={card!}
+                    r={r}
+                    extra={
+                      <span className="tabular text-[11px] font-semibold text-open">
+                        ▼ {Math.abs(row.pct)}% · {money(row.before, r.market)} → {money(row.after, r.market)}
+                      </span>
+                    }
+                  />
+                </div>
+              </li>
+            ))}
+          </ol>
+        </Section>
+      )}
       <nav className="mt-10 flex flex-wrap gap-2 text-sm" aria-label="More price moves">
         <Link href={`/${r.region}/price-moves`} prefetch={false} className="chip py-2">
           Price moves today

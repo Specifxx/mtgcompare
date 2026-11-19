@@ -46,7 +46,7 @@ function valueOn(h: PriceHistory, market: string, slug: string, day: number): { 
   return { cents: v[1], stores: v[2] };
 }
 
-function risers(h: PriceHistory, market: string, end: number, max: number): Omit<HotRow, "rank" | "lastRank">[] {
+function movers(h: PriceHistory, market: string, end: number, max: number, dir: 1 | -1): Omit<HotRow, "rank" | "lastRank">[] {
   const rows: Omit<HotRow, "rank" | "lastRank">[] = [];
   if (end - 7 < h.since) return rows;
   for (const slug of Object.keys(h.series[market] ?? {})) {
@@ -54,11 +54,13 @@ function risers(h: PriceHistory, market: string, end: number, max: number): Omit
     const b = valueOn(h, market, slug, end);
     if (!a || !b || a.cents == null || b.cents == null || a.stores < 2 || b.stores < 2) continue;
     const pct = Math.round(((b.cents - a.cents) / a.cents) * 1000) / 10;
-    if (pct < HOT_MIN_PCT || pct >= CHART_MAX_PCT) continue;
+    if (dir * pct < HOT_MIN_PCT || Math.abs(pct) >= CHART_MAX_PCT) continue;
     rows.push({ slug, before: a.cents, after: b.cents, pct, stores: b.stores });
   }
-  return rows.sort((x, y) => y.pct - x.pct || y.after - x.after || x.slug.localeCompare(y.slug)).slice(0, max);
+  return rows.sort((x, y) => dir * (y.pct - x.pct) || y.after - x.after || x.slug.localeCompare(y.slug)).slice(0, max);
 }
+
+const risers = (h: PriceHistory, market: string, end: number, max: number) => movers(h, market, end, max, 1);
 
 /** The rolling Hot chart in one market, ending on the newest day in the history; null without a week of history. */
 export function hotChart(h: PriceHistory | null, market: string, max = HOT_MAX): HotChart | null {
@@ -68,6 +70,17 @@ export function hotChart(h: PriceHistory | null, market: string, max = HOT_MAX):
   const lastRank = new Map(last.map((r, i) => [r.slug, i + 1]));
   const rows = risers(h, market, end, max).map((r, i) => ({ ...r, rank: i + 1, lastRank: lastRank.get(r.slug) ?? null }));
   return { through: iso(end), from: iso(end - 7), rows, lastWeekSize: last.length };
+}
+
+// THE BIGGEST DROPS (owner, 2026-11-20, from a Reddit reply: "show me the biggest drops. I just want to rip and play"). The same
+// week and the same rules mirrored: two or more stores in stock on both days, the price fell HOT_MIN_PCT or more and by less than
+// CHART_MAX_PCT, biggest fall first. The share card draws half rises, half drops; the page lists them under the chart.
+export const DROPS_MAX = 20;
+
+/** The week's biggest price falls in one market, over the same seven days as hotChart; empty without a week of history. */
+export function hotDrops(h: PriceHistory | null, market: string, max = DROPS_MAX): Omit<HotRow, "lastRank">[] {
+  if (!h || h.through - 7 < h.since) return [];
+  return movers(h, market, h.through, max, -1).map((r, i) => ({ ...r, rank: i + 1 }));
 }
 
 /** "▲3", "▼2", "=", "New", or "" when there was no chart a week earlier. */
