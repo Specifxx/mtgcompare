@@ -30353,6 +30353,31 @@
      }
     }
    ]
+  },
+  "forgeandfire": {
+   "market": "US",
+   "currency": "USD",
+   "measuredAt": "2026-11-20T00:05:00.000Z",
+   "points": [
+    {
+     "subtotalCents": 1495,
+     "rates": {
+      "ny": 600,
+      "sf": 600,
+      "dal": 600,
+      "chi": 600
+     }
+    },
+    {
+     "subtotalCents": 47485,
+     "rates": {
+      "ny": 600,
+      "sf": 600,
+      "dal": 600,
+      "chi": 600
+     }
+    }
+   ]
   }
  }
 }
