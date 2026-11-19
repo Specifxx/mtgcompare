@@ -2431,3 +2431,14 @@ provider's sign-in through RiftCompare's existing apps and comes back to `/accou
 door. One account across our card sites, linked by the verified address. A site with its own Google client keeps Google's in-page
 button instead. `/account/verify` now lands on the page the visitor was headed to (or the account hub), and a failed round trip
 shows its reason on `/account`.
+
+## 2026-11-19: Collection check-up test
+
+The owner's AI subscription idea is aimed at collectors (decision card, 19 Nov): a weekly "Collection Advisor" note on a
+member's own collection. Before anything is built, a two-week hand-written test runs on RiftCompare, MTG Compare, OP
+Compare and DexCompare. Here, `/collection` shows a "Free collection check-up" form (`components/vault/CheckupOffer.tsx`)
+once a visitor has 10+ items: their email, an optional question and a "save me the founder price (US$5.99 instead of
+US$7.99), no charge" tick. It posts the list (name, quantity, market, today's value, value when added) to
+`https://riftcompare.com/api/checkup`, which keeps the request privately and tells the team (RiftCompare's DECISIONS.md,
+same date). This site stores nothing and calls no AI. Read 3 Dec 2026: go if 60+ requests across the sites and 25+
+founder ticks; stop under 20.
