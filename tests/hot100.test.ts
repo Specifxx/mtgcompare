@@ -52,7 +52,9 @@ test("no week of history, no chart; caps at 100", () => {
 test("the page and its share card read the same chart (only lib/og/hot100-card.tsx fetches, for photos)", () => {
   for (const f of ["src/app/[region]/hot-100/page.tsx", "src/app/og/hot-100/[region]/route.tsx"]) {
     const src = fs.readFileSync(f, "utf8");
-    assert.match(src, /hotChart\(readPriceHistory\(\)/);
+    assert.match(src, /const history = readPriceHistory\(\);/);
+    assert.match(src, /hotChart\(history, r\.market\)/);
+    assert.match(src, /hotDrops\(history, r\.market/);
     assert.doesNotMatch(src, /fetch\(/);
   }
 });
@@ -65,4 +67,22 @@ test("the Hot 100 share card asks for small photos and draws only PNG or JPEG", 
   assert.equal(await photoData("http://example.com/x.jpg"), null);
   assert.equal(await photoData("data:image/webp;base64,AAAA"), null);
   assert.equal(await photoData("data:image/png;base64,AAAA"), "data:image/png;base64,AAAA");
+});
+
+test("the biggest drops: the same week and rules mirrored, biggest fall first (owner, 2026-11-20)", async () => {
+  const { hotDrops } = await import("../src/lib/hot100");
+  const d = hotDrops(
+    h({
+      up: [[D - 30, 1000, 3], [D, 1300, 3]],
+      down10: [[D - 30, 1000, 3], [D - 1, 900, 3]],
+      down30: [[D - 30, 1000, 3], [D, 700, 2]],
+      oneStore: [[D - 30, 1000, 1], [D, 700, 1]],
+      misfiled: [[D - 30, 2000, 3], [D, 900, 3]],
+      tiny: [[D - 30, 10000, 3], [D, 9950, 3]],
+      soldOut: [[D - 30, 1000, 3], [D, null, 0]],
+    }),
+    "US",
+  );
+  assert.deepEqual(d.map((r) => [r.slug, r.rank, r.pct]), [["down30", 1, -30], ["down10", 2, -10]]);
+  assert.deepEqual(hotDrops({ v: 1, since: D - 3, through: D, series: {} }, "US"), []);
 });
