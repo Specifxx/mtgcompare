@@ -33,6 +33,7 @@ import { track as trackShare } from "@/lib/track";
 import { VAULT_SITE } from "./vault-config";
 import { cardLink, cardModel, drawCard, saveBlob } from "./collection-card";
 import { usePremium } from "@/components/premium/usePremium";
+import { CheckupOffer } from "./CheckupOffer";
 import { MEMBER_HISTORY_DAYS } from "@/lib/premium-member";
 
 function Change({ from, to, currency, label }: { from: number; to: number; currency: string; label: string }) {
@@ -227,6 +228,7 @@ export function VaultView() {
           Export to spreadsheet (CSV)
         </button>
       )}
+      {file && <CheckupOffer items={valued} email={premium.status === "member" || premium.status === "free" ? premium.info.who : null} />}
       <ul className="ce-vault-list">
         {valued.map((i) => {
           const key = itemKey(i);
