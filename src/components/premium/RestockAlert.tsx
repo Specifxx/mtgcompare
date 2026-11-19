@@ -87,7 +87,7 @@ export function RestockAlert({ site, productId, region }: { site: string; produc
             <button type="submit" className="btn-ghost" disabled={s.t === "busy"}>{s.t === "busy" ? "Saving…" : "Email me"}</button>
           </div>
           <p className="mt-1 text-xs text-muted">
-            Free, no account. We email once to confirm; every email has a stop link. Sent by our sister site RiftCompare&rsquo;s alert service (<a className="underline" href={ALERT_PRIVACY}>privacy</a>).
+            Free, no account. We email once to confirm; every email has a stop link. Sent by our shared alert service (<a className="underline" href={ALERT_PRIVACY}>privacy</a>).
           </p>
         </form>
       )}

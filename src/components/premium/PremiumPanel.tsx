@@ -16,7 +16,7 @@ const FEATURES = [
   "Up to 200 price alerts (free: 25) and one-tap back-in-stock alerts",
   "Your watch list with today's lowest price",
   "No banner ads, on every page and on your phone",
-  "One account for MTG Compare, DexCompare and RiftCompare",
+  "One account across all our price comparison sites",
 ];
 
 /**

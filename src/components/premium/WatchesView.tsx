@@ -63,7 +63,7 @@ export function WatchesView() {
           ))}
         </ul>
       )}
-      <p className="mt-6 text-sm text-muted">Emails come from RiftCompare&rsquo;s alert service, checked once a day after the price update. Prices are the lowest in-stock store price, before postage.</p>
+      <p className="mt-6 text-sm text-muted">Emails come from our shared alert service, checked once a day after the price update. Prices are the lowest in-stock store price, before postage.</p>
     </div>
   );
 }
