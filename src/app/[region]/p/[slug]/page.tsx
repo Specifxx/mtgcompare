@@ -2,9 +2,10 @@ import { Flag } from "@/components/Flag";
 import { barcodeOf, tcgplayerIdOf } from "@/lib/barcodes";
 import { gtinLabel } from "@/lib/gtin";
 import Link from "@/components/Link";
-import { PriceHistoryChart } from "@/components/PriceHistoryChart";
+import { PriceHistoryTwoLine } from "@/components/PriceHistoryTwoLine";
 import { PreorderBanner } from "@/components/PreorderBanner";
 import { dailySeries, daysOfHistory, KEEP_DAYS, MIN_DAYS, readPriceHistory } from "@/lib/price-history";
+import { convertUsd, readTcgHistory, readTcgMarket, TCG_SERIES } from "@/lib/tcg-market";
 import { preorderPath } from "@/lib/preorder-guides";
 import { notFound, permanentRedirect } from "next/navigation";
 import { culledTarget } from "@/lib/culled";
@@ -368,6 +369,11 @@ export default async function ProductPage({ params }: { params: { region: string
   const historyDays = history && daysOfHistory(history, r.market, p.slug) >= MIN_DAYS ? dailySeries(history, r.market, p.slug, 90) : [];
   // The chart's own series reaches further back, for its 30D / 90D / All pills.
   const chartDays = historyDays.length >= MIN_DAYS && history ? dailySeries(history, r.market, p.slug, KEEP_DAYS) : [];
+  // TCGplayer's market price, converted to the region's currency (lib/tcg-market.ts): the chart's dashed line, never a price row.
+  const tcgHistory = readTcgHistory();
+  const tcgFx = readTcgMarket()?.fx;
+  const tcgDays = tcgHistory ? dailySeries(tcgHistory, TCG_SERIES, p.slug, KEEP_DAYS).map((v) => ({ ...v, cents: convertUsd(v.cents, r.currency, tcgFx) })) : [];
+  const showHistory = historyDays.length >= MIN_DAYS || tcgDays.filter((v) => v.cents != null).length >= MIN_DAYS;
   // Questions answered from the page's own data (lib/product-faq.ts): stock here, per pack, the last 30 days of snapshots, the other regions.
   const faq = productFaq({
     heading,
@@ -717,9 +723,9 @@ export default async function ProductPage({ params }: { params: { region: string
         </>
       )}
 
-      {historyDays.length >= MIN_DAYS && (
-        <Section id="history" title="Price history" kicker={`Cheapest in-stock price in ${r.inName}`}>
-          <PriceHistoryChart values={chartDays} market={r.market} />
+      {showHistory && (
+        <Section id="history" title="Price history" kicker={`Cheapest listing in ${r.inName} and TCGplayer's market price`}>
+          <PriceHistoryTwoLine values={chartDays} market={r.market} tcg={tcgDays} />
         </Section>
       )}
 

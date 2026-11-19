@@ -17,6 +17,7 @@ import { META_FILE, type PublicDataMeta } from "../src/lib/public-data/format";
 import { execFileSync } from "node:child_process";
 import { demandSlugs, focusCatalog, type FocusOffer, type FocusProduct } from "../src/lib/focus";
 import { dayOf, HISTORY_FILE, isPriceHistory, updatePriceHistory, type PriceHistory } from "../src/lib/price-history";
+import { readTcgHistory, readTcgMarket, TCG_HISTORY_FILE, tcgRows } from "../src/lib/tcg-market";
 
 const BATCH = 5000;
 
@@ -117,6 +118,16 @@ async function main() {
   const history = JSON.stringify(updatePriceHistory(prevHistory, todayRows, dayOf(new Date())));
   fs.writeFileSync(historyPath, history);
   bytes += history.length;
+  // TCGplayer's market price per product (lib/tcg-market.ts), from the import's own TCGplayer read: the chart's dashed line.
+  const tcgHistory = JSON.stringify(
+    updatePriceHistory(
+      readTcgHistory(dir),
+      tcgRows(tables.Product as unknown as { id: string; slug: string }[], tables.Offer as unknown as { productId: string; store: string; url: string }[], readTcgMarket(dir), dayOf(new Date())),
+      dayOf(new Date()),
+    ),
+  );
+  fs.writeFileSync(path.join(dir, TCG_HISTORY_FILE), tcgHistory);
+  bytes += tcgHistory.length;
   console.log(`[export] wrote ${files.size} files (${(bytes / 1e6).toFixed(1)} MB) to ${path.relative(process.cwd(), dir)}:`, Object.fromEntries(Object.entries(tables).map(([k, v]) => [k, v.length])));
   await prisma.$disconnect();
 }
