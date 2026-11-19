@@ -139,3 +139,27 @@ export const saleCopy = {
       ? `${n} Magic sealed products under the median ${r.adjective} store price today, up to ${best}% under, checked about twice a day through the ${SALE_SEASONS[slug].searchName}.`
       : `${SALE_SEASONS[slug].name} Magic sealed deals in ${r.inName}: products under the median store price, checked about twice a day.`,
 };
+
+// Search-engine-first audit (owner, 2026-11-19, after the November 2026 core update; DECISIONS.md). Google asks whether a
+// page exists to help people or to catch a search, and whether it is copied across a network of sites. Every one of our
+// sites carried these pages all year, each listing the same deals as its Black Friday page. So: Lunar New Year and
+// Valentine's Day pages are never indexed (no search demand for them on our sites), and Boxing Day and January sales
+// pages are indexed only from three weeks before the homepage starts linking them until a week after they end. The
+// pages themselves stay live and linkable all year.
+const NEVER_INDEXED: readonly SaleSlug[] = ["lunar-new-year", "valentines-day"];
+
+/** Whether the page asks to be indexed (and is in the sitemap) today. */
+export function saleIndexable(slug: SaleSlug, today: string): boolean {
+  if (NEVER_INDEXED.includes(slug)) return false;
+  const d = saleDates(slug, saleYear(slug, today));
+  if (!d) return false;
+  return today >= addDays(d.start, -(LEAD_DAYS[slug] + 21)) && today <= addDays(d.end, 7);
+}
+
+/** A sitemap path list without the sale pages that are not indexable today (any path ending in a sale slug). */
+export function withoutOffSeasonSales<T extends string>(paths: readonly T[], today: string): T[] {
+  return paths.filter((p) => {
+    const last = p.split("/").pop() as SaleSlug;
+    return !(last in SALE_SEASONS) || saleIndexable(last, today);
+  });
+}

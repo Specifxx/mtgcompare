@@ -10,7 +10,7 @@ import { Icon } from "@/components/Icon";
 import { PreorderBanner } from "@/components/PreorderBanner";
 import { ProductGrid } from "@/components/ProductGrid";
 import { Empty, Section } from "@/components/Section";
-import { saleCopy, saleDates, saleIntro, saleYear, SALE_SEASONS, type SaleSlug } from "@/lib/sale-seasons";
+import { saleCopy, saleDates, saleIntro, saleYear, SALE_SEASONS, type SaleSlug, saleIndexable } from "@/lib/sale-seasons";
 import { cardsBySlugs, lastCheckedAt, type ProductCardData } from "@/lib/data";
 import { belowMsrpUS, dealPct, dealsInMarket, fitTitle } from "@/lib/deals";
 import { money, plural, relativeDay, timeAgo } from "@/lib/format";
@@ -40,6 +40,7 @@ export async function saleMetadata(slug: SaleSlug, { params }: { params: { regio
       alternates: regionAlternates(r.region, `/${slug}`),
     }),
     title: fitTitle(saleCopy.title(slug, r, year)),
+    ...(saleIndexable(slug, new Date().toISOString().slice(0, 10)) ? {} : { robots: { index: false, follow: true } }),
   };
 }
 

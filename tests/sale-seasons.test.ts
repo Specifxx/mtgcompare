@@ -2,7 +2,7 @@ import { test } from "node:test";
 import * as React from "react";
 (globalThis as unknown as { React: typeof React }).React = React;
 import assert from "node:assert/strict";
-import { listRegions, saleDates, saleInSeason, saleIntro, salesInSeason, saleYear, zodiacAnimal, CORE_SALES } from "../src/lib/sale-seasons";
+import { listRegions, saleDates, saleInSeason, saleIntro, salesInSeason, saleYear, zodiacAnimal, CORE_SALES, saleIndexable } from "../src/lib/sale-seasons";
 
 test("event dates", () => {
   assert.deepEqual(saleDates("boxing-day", 2026), { start: "2026-12-26", end: "2026-12-26" });
@@ -73,5 +73,21 @@ test("each region's sale pages render from real data with no banned copy, in the
     for (const m of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) assert.doesNotThrow(() => JSON.parse(m[1]));
   }
   const urls = new Set(staticSitemap({}).map((u) => u.url));
-  for (const r of REGION_LIST) for (const s of CORE_SALES) assert.ok(urls.has(`${SITE_URL}/${r.region}/${s}`), `${r.region}/${s}`);
+  // Only the sale pages indexable today are listed (2026-11-19, saleIndexable); Lunar New Year never.
+  const day = new Date().toISOString().slice(0, 10);
+  for (const r of REGION_LIST) for (const s of CORE_SALES) assert.equal(urls.has(`${SITE_URL}/${r.region}/${s}`), saleIndexable(s, day), `${r.region}/${s}`);
+});
+
+test("sale pages are indexed only in season; Lunar New Year and Valentine's Day never (2026-11-19)", async () => {
+  const { saleIndexable, withoutOffSeasonSales } = await import("../src/lib/sale-seasons");
+  assert.equal(saleIndexable("lunar-new-year", "2027-02-01"), false);
+  assert.equal(saleIndexable("valentines-day", "2027-02-10"), false);
+  assert.equal(saleIndexable("boxing-day", "2026-11-19"), true); // 25 + 21 days ahead of 26 Dec starts 10 Nov
+  assert.equal(saleIndexable("boxing-day", "2026-11-05"), false);
+  assert.equal(saleIndexable("boxing-day", "2027-01-02"), true);
+  assert.equal(saleIndexable("boxing-day", "2027-01-03"), false);
+  assert.equal(saleIndexable("january-sales", "2026-11-19"), false);
+  assert.equal(saleIndexable("january-sales", "2026-12-01"), true);
+  assert.equal(saleIndexable("january-sales", "2027-02-08"), false);
+  assert.deepEqual(withoutOffSeasonSales(["/a", "/boxing-day", "/au/january-sales", "/lunar-new-year"], "2026-11-19"), ["/a", "/boxing-day"]);
 });
