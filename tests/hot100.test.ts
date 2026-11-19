@@ -49,7 +49,7 @@ test("no week of history, no chart; caps at 100", () => {
   assert.equal(hotChart(h(many), "US")!.rows.length, 100);
 });
 
-test("the page and its share card read the same chart and fetch nothing", () => {
+test("the page and its share card read the same chart (only lib/og/hot100-card.tsx fetches, for photos)", () => {
   for (const f of ["src/app/[region]/hot-100/page.tsx", "src/app/og/hot-100/[region]/route.tsx"]) {
     const src = fs.readFileSync(f, "utf8");
     assert.match(src, /hotChart\(readPriceHistory\(\)/);
