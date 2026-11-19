@@ -8,7 +8,7 @@ import path from "node:path";
 // scripts/vercel-ignore-build.sh: at most one production build every 12 hours
 // (owner, 2026-11-02, Vercel cost ceiling). A [deploy] commit within 12 hours of
 // the last production deployment (VERCEL_GIT_PREVIOUS_SHA) is skipped; [urgent]
-// overrides; an unknown last deployment builds (fail open).
+// shortens the gap to 8 hours (owner, 2026-11-19); an unknown last deployment builds (fail open).
 const SCRIPT = path.resolve("scripts/vercel-ignore-build.sh");
 
 function repo(prevAgeHours: number) {
@@ -48,7 +48,7 @@ test("a [deploy] commit within 12 hours of the last production build is skipped"
   const r = repo(3);
   try {
     assert.equal(r.builds("feat: thing [deploy]"), false);
-    assert.equal(r.builds("hotfix [deploy] [urgent]"), true, "[urgent] overrides the gap");
+    assert.equal(r.builds("hotfix [deploy] [urgent]"), false, "[urgent] still needs eight hours (owner, 2026-11-19)");
     assert.equal(r.builds("feat: thing [deploy]", { VERCEL_GIT_PREVIOUS_SHA: "" }), true, "no last deployment: build");
     assert.equal(r.builds("feat: thing [deploy]", { VERCEL_GIT_PREVIOUS_SHA: "0123456789abcdef0123456789abcdef01234567" }), true, "unreadable last deployment: build");
     assert.equal(r.builds("feat: thing"), false, "no [deploy]: still skipped");
@@ -61,6 +61,16 @@ test("a [deploy] commit 12 hours or more after the last production build builds"
   const r = repo(13);
   try {
     assert.equal(r.builds("data: daily prices [deploy]"), true);
+  } finally {
+    r.done();
+  }
+});
+
+test("[urgent] builds 8 hours or more after the last production build, a plain [deploy] still waits", () => {
+  const r = repo(9);
+  try {
+    assert.equal(r.builds("hotfix [deploy] [urgent]"), true);
+    assert.equal(r.builds("feat: thing [deploy]"), false);
   } finally {
     r.done();
   }
