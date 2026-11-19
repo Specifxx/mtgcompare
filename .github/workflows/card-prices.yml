@@ -2,11 +2,12 @@ name: MTG Compare card prices
 
 # Every Magic card's TCGplayer market price (DECISIONS.md "Card prices: every card"): scripts/card-import.ts reads TCGplayer's
 # public Magic price files (TCGCSV, no key) and commits data/cards/ to the branch it ran on (main on schedule). The commit carries
-# NO deploy marker: it rides the evening sealed import's release (20:47 UTC). No eBay call, no database.
+# NO deploy marker: it rides the evening sealed import's release (20:47 UTC). 16:23 UTC, not 19:17: GitHub started the 18 Nov 19:17 run
+# six hours late, after the release; this leaves four hours of slack. No eBay call, no database.
 # Variable: CARD_INDEX_GROWTH (default 500): cards released to Google per day; 0 pauses the release (the pages stay).
 on:
   schedule:
-    - cron: "17 19 * * *"
+    - cron: "23 16 * * *"
   workflow_dispatch:
 
 concurrency:
