@@ -27,7 +27,7 @@ export function generateMetadata({ params }: { params: { region: string } }): Me
     title: c && top ? `${SITE_NAME} ${hotName(n)}: the ${NOUN} prices that rose most this week (${r.short}, to ${formatRelease(c.through)})` : `${SITE_NAME} Hot 100 (${r.short})`,
     description: `This week's ${NOUN} risers at ${r.adjective} stores: every product whose cheapest in-stock price rose in the last seven days, ranked, with its place on last week's chart.`,
     path: `/${r.region}/hot-100`,
-    image: `/og/hot-100/${r.region}`,
+    image: c ? `/og/hot-100/${r.region}?w=${c.through}` : `/og/hot-100/${r.region}`,
     noindex: n < 5,
   });
 }

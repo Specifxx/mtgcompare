@@ -56,3 +56,13 @@ test("the page and its share card read the same chart and fetch nothing", () => 
     assert.doesNotMatch(src, /fetch\(/);
   }
 });
+
+test("the Hot 100 share card asks for small photos and draws only PNG or JPEG", async () => {
+  const { thumbUrl, photoData } = await import("../src/lib/og/hot100-card");
+  assert.equal(thumbUrl("https://tcgplayer-cdn.tcgplayer.com/product/243657_in_1000x1000.jpg"), "https://tcgplayer-cdn.tcgplayer.com/product/243657_200w.jpg");
+  assert.equal(thumbUrl("https://cdn.shopify.com/s/files/1/x.png?v=1"), "https://cdn.shopify.com/s/files/1/x.png?v=1&width=300");
+  assert.equal(await photoData(null), null);
+  assert.equal(await photoData("http://example.com/x.jpg"), null);
+  assert.equal(await photoData("data:image/webp;base64,AAAA"), null);
+  assert.equal(await photoData("data:image/png;base64,AAAA"), "data:image/png;base64,AAAA");
+});

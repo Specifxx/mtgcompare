@@ -8,10 +8,10 @@ import { ImageResponse } from "next/og";
 
 export const OG_SIZE = { width: 1200, height: 630 };
 
-const INK = "#15171c";
-const MUTED = "#5c606c";
-const BRAND = "#7a2ec4";
-const LINE = "#e4e3de";
+export const INK = "#15171c";
+export const MUTED = "#5c606c";
+export const BRAND = "#7a2ec4";
+export const LINE = "#e4e3de";
 const OPEN = "#147638";
 const OPEN_SOFT = "#e2f5e8";
 
@@ -44,6 +44,37 @@ function Row({ best = false, store, price }: { best?: boolean; store: number; pr
   );
 }
 
+/** The logo, the name and an optional label beside them: the top line of every share card. */
+export function BrandHeader({ tag }: { tag?: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+      <svg width="64" height="64" viewBox="0 0 64 64">
+        <rect width="64" height="64" rx="16" fill="#1a1030" />
+        <path d="M28.3 57.7 C17.4 50.5 12.1 41.7 8.2 36.4 C16.2 36.5 26.0 39.4 35.7 48.3 Z" fill="#e5471f" stroke="#1a1030" strokeWidth="1.1" />
+        <path d="M28.3 48.3 C38.0 39.4 47.8 36.5 55.8 36.4 C51.9 41.7 46.6 50.5 35.7 57.7 Z" fill="#e5471f" stroke="#1a1030" strokeWidth="1.1" />
+        <path d="M26.2 55.8 C18.4 42.1 16.8 30.0 15.2 22.2 C23.2 26.9 31.8 35.6 37.8 50.2 Z" fill="#f4601f" stroke="#1a1030" strokeWidth="1.1" />
+        <path d="M26.2 50.2 C32.2 35.6 40.8 26.9 48.8 22.2 C47.2 30.0 45.6 42.1 37.8 55.8 Z" fill="#f4601f" stroke="#1a1030" strokeWidth="1.1" />
+        <path d="M25.0 53.0 C24.0 35.5 28.1 22.6 32.0 14.0 C35.9 22.6 40.0 35.5 39.0 53.0 Z" fill="#ff7a24" stroke="#1a1030" strokeWidth="1.1" />
+        <circle cx="32" cy="53" r="5" fill="#ffd56a" stroke="#1a1030" strokeWidth="1.1" />
+      </svg>
+      <div style={{ display: "flex", fontSize: 42, fontWeight: 800, letterSpacing: -1 }}>
+        MTG <span style={{ color: BRAND }}>Compare</span>
+      </div>
+      {tag && (
+        <div style={{ display: "flex", marginLeft: 8, padding: "4px 14px", borderRadius: 999, background: INK, color: "#ffffff", fontSize: 22, fontWeight: 600 }}>{tag}</div>
+      )}
+    </div>
+  );
+}
+
+/** The bundled display faces every card draws with. */
+export function ogFonts() {
+  return [
+    { name: "Bricolage", data: font("BricolageGrotesque-ExtraBold.ttf"), weight: 800 as const, style: "normal" as const },
+    { name: "Bricolage", data: font("BricolageGrotesque-SemiBold.ttf"), weight: 600 as const, style: "normal" as const },
+  ];
+}
+
 export interface OgCard {
   /** The headline, one entry per line; `true` draws that line in the brand's red. */
   lines: [string, boolean][];
@@ -74,23 +105,7 @@ export function ogCard({ lines, sub, chips, tag, size = 64 }: OgCard): ImageResp
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: 650 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <svg width="64" height="64" viewBox="0 0 64 64">
-              <rect width="64" height="64" rx="16" fill="#1a1030" />
-              <path d="M28.3 57.7 C17.4 50.5 12.1 41.7 8.2 36.4 C16.2 36.5 26.0 39.4 35.7 48.3 Z" fill="#e5471f" stroke="#1a1030" strokeWidth="1.1" />
-              <path d="M28.3 48.3 C38.0 39.4 47.8 36.5 55.8 36.4 C51.9 41.7 46.6 50.5 35.7 57.7 Z" fill="#e5471f" stroke="#1a1030" strokeWidth="1.1" />
-              <path d="M26.2 55.8 C18.4 42.1 16.8 30.0 15.2 22.2 C23.2 26.9 31.8 35.6 37.8 50.2 Z" fill="#f4601f" stroke="#1a1030" strokeWidth="1.1" />
-              <path d="M26.2 50.2 C32.2 35.6 40.8 26.9 48.8 22.2 C47.2 30.0 45.6 42.1 37.8 55.8 Z" fill="#f4601f" stroke="#1a1030" strokeWidth="1.1" />
-              <path d="M25.0 53.0 C24.0 35.5 28.1 22.6 32.0 14.0 C35.9 22.6 40.0 35.5 39.0 53.0 Z" fill="#ff7a24" stroke="#1a1030" strokeWidth="1.1" />
-              <circle cx="32" cy="53" r="5" fill="#ffd56a" stroke="#1a1030" strokeWidth="1.1" />
-            </svg>
-            <div style={{ display: "flex", fontSize: 42, fontWeight: 800, letterSpacing: -1 }}>
-              MTG <span style={{ color: BRAND }}>Compare</span>
-            </div>
-            {tag && (
-              <div style={{ display: "flex", marginLeft: 8, padding: "4px 14px", borderRadius: 999, background: INK, color: "#ffffff", fontSize: 22, fontWeight: 600 }}>{tag}</div>
-            )}
-          </div>
+          <BrandHeader tag={tag} />
           <div style={{ display: "flex", flexDirection: "column", fontSize: size, fontWeight: 800, lineHeight: 1.04, letterSpacing: -2 }}>
             {lines.map(([text, accent]) => (
               <div key={text} style={{ display: "flex", color: accent ? BRAND : INK }}>
@@ -135,10 +150,7 @@ export function ogCard({ lines, sub, chips, tag, size = 64 }: OgCard): ImageResp
     ),
     {
       ...OG_SIZE,
-      fonts: [
-        { name: "Bricolage", data: font("BricolageGrotesque-ExtraBold.ttf"), weight: 800, style: "normal" },
-        { name: "Bricolage", data: font("BricolageGrotesque-SemiBold.ttf"), weight: 600, style: "normal" },
-      ],
+      fonts: [...ogFonts()],
     },
   );
 }
