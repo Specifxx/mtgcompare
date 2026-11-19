@@ -2473,3 +2473,13 @@ price, a deal, a sort, an alert, the feed or structured data (`lib/tcg-market.ts
 
 **The quick view keeps its old chart until 3 Dec 2026**, when the quick view A/B test ends: nothing changes there during
 it. The quick view route already sends `tcgHistory`, so the switch then is the component alone.
+
+## One-tap price and restock alerts for anyone signed in (2026-11-19)
+
+Boardroom, 2026-11-19: a one-tap restock and price-drop alert on sealed product pages, MTG Compare first, free for all (alerts stay
+free). Signed in with any account (free or Premium), the product page's and quick view's alert button is "Alert me under <10% below
+today's lowest in-stock price>": one tap saves it through the account's token (no email field; no confirmation when the account's
+address is verified), with "Pick my price" beside it (`components/premium/PriceAlert.tsx`, `setPriceWatch`). The back-in-stock button
+is one tap for free accounts too, not only members. Signed out, both are the ordinary forms, unchanged. Nothing saves or opens by
+itself. The shared service already accepted a free account's token for price and restock alerts; Premium only raises the limit
+from 25 to 200.

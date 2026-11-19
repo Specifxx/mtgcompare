@@ -15,6 +15,8 @@ import { usePremium } from "./usePremium";
  */
 export function RestockAlert({ site, productId, region }: { site: string; productId: string; region: string }) {
   const v = usePremium();
+  // One tap for anyone signed in, a free account too (2026-11-19: alerts stay free); the token names the address.
+  const signedIn = v.status === "member" || v.status === "free";
   const [s, setS] = useState<{ t: "idle" | "busy" } | { t: "done"; confirm: boolean } | { t: "error"; m: string }>({ t: "idle" });
   if (v.status === "loading") return null;
 
@@ -24,7 +26,7 @@ export function RestockAlert({ site, productId, region }: { site: string; produc
     setS({ t: "busy" });
     const r = await setRestockWatch(cur.t, productId, region);
     if (r.ok) {
-      track("restock_signup", { member: "yes", region });
+      track("restock_signup", { member: v.status === "member" ? "yes" : "free", region });
       setS({ t: "done", confirm: false });
     } else {
       if (/sign in again/i.test(r.message)) writeStored(null);
@@ -57,7 +59,7 @@ export function RestockAlert({ site, productId, region }: { site: string; produc
     return (
       <p className="mt-3 text-sm" aria-live="polite" data-restock>
         {s.confirm ? "Check your inbox: one click in the email we just sent and we'll tell you when it's back." : "Done. We'll email you when it's back in stock."}
-        {v.status === "member" && (
+        {signedIn && (
           <>
             {" "}
             <Link className="underline" href="/watches">My watches</Link>
@@ -69,7 +71,7 @@ export function RestockAlert({ site, productId, region }: { site: string; produc
 
   return (
     <div className="mt-3 text-sm" data-restock>
-      {v.status === "member" ? (
+      {signedIn ? (
         <button type="button" className="btn-ghost" disabled={s.t === "busy"} onClick={member}>Tell me when it&rsquo;s back in stock</button>
       ) : (
         <form onSubmit={visitor}>
