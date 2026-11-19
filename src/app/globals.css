@@ -364,6 +364,10 @@ body {
   .hdr-search:focus-within ~ details {
     display: none;
   }
+  /* The Sign in button too (owner, 2026-11-19: it shows on phones now). */
+  .hdr-search:focus-within ~ a[data-account-link] {
+    display: none;
+  }
 }
 @media (min-width: 1024px) {
   .hdr-search form[role="search"] {

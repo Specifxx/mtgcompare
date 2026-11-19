@@ -105,8 +105,8 @@ test("a phone's search box takes the room beside it while the visitor types", ()
   assert.match(css, /@media \(max-width: 639\.98px\) \{[^@]*\.hdr-search:focus-within ~ button\.chip,\s*\.hdr-search:focus-within ~ details \{\s*display: none;/);
   // What it hides are the theme switch (a .chip button) and the region switcher (a <details>), which follow the box in the header.
   const header = src("components/Header.tsx");
-  assert.ok(header.indexOf('className="hdr-search') < header.indexOf("<ThemeToggle />"));
-  assert.ok(header.indexOf("<ThemeToggle />") < header.indexOf("<RegionSwitcher"));
+  assert.ok(header.indexOf('className="hdr-search') < header.indexOf("<ThemeToggle"));
+  assert.ok(header.indexOf("<ThemeToggle") < header.indexOf("<RegionSwitcher"));
   assert.match(src("components/RegionSwitcher.tsx"), /<details ref=\{ref\} className="relative shrink-0">/);
 });
 

@@ -2412,3 +2412,13 @@ content "spread across a large network of sites" and re-dating pages to look fre
   noindex, follow and out of the sitemap (`withoutOffSeasonSales`). The URLs stay live all year (URL freeze).
 
 Black Friday and Cyber Monday pages are unchanged (in season). Judge the effect on 1 to 8 Dec against 3 to 9 Nov.
+
+## 2026-11-19 — My collection needs an account; Sign in and Premium always visible
+
+Owner, 19 Nov: "you can only use my collection if you are signed in and the login/signup button should be visible for all
+sites", "premium should also be visible". `/collection` shows a sign-in card (benefits, then `/account?next=/collection`)
+until this browser holds a RiftCompare account token; "I own this" / "Add to collection" send a signed-out visitor to sign in
+first. The header carries the account link at every width ("Sign in" in words from 400px, the icon alone below so search keeps
+its room) and a gold "Premium" pill from md for non-members; the phone menu opens with "Sign in / Sign up" and "Premium · 14
+days free". `/account` signed in is an account hub (collection, alerts, movers, Premium trial, sign out). The check is
+browser-only, so every page keeps one CDN copy; the collection itself still lives in the browser (`ce_vault_v1`).

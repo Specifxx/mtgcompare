@@ -12,7 +12,7 @@ import { dealsMenuColumns, guidesMenuColumns, setsMenuColumns, shopMenuColumns }
 import { ThemeToggle } from "./ThemeToggle";
 import { CartHeaderLink } from "./cart/CartHeaderLink";
 import { SearchBox } from "./SearchBox";
-import { AccountHeaderLink } from "./premium/AccountHeaderLink";
+import { AccountHeaderLink, PremiumHeaderLink } from "./premium/AccountHeaderLink";
 
 /**
  * The desktop nav (lg and up), in order. `also`: other paths (under the region) that count as the section, for its current
@@ -76,10 +76,12 @@ export function Header({ region, listed }: { region: Region | null; listed?: Rea
         </nav>
         {/* The search has the row's spare room (it was a 256px box beside seven nav entries): finding a product is the header's main job. */}
         <div className="hdr-search min-w-0 flex-1 lg:ml-auto lg:min-w-[7rem] lg:max-w-sm">{region ? <SearchBox region={region} size="sm" /> : <SoftSearchBox />}</div>
-        <ThemeToggle />
+        <ThemeToggle className="hidden sm:inline-flex" />
         {region ? <RegionSwitcher region={region} compact /> : <SoftRegionSwitcher />}
-        {/* Accounts (2026-11-18): one quiet icon from sm up; phones get Sign in in the menu. */}
-        <AccountHeaderLink className="hidden sm:inline-flex" />
+        {/* Premium and the account (owner, 2026-11-19: sign-in and Premium visible on every site): Premium from md up (phones: the menu and
+            /account), Sign in at every width. Phones give the theme switch's place to it; the switch is in the menu there. */}
+        <PremiumHeaderLink className="hidden md:inline-flex" />
+        <AccountHeaderLink />
         {/* The cart list (components/cart, owner 2026-11-06): every width, with its count. */}
         <CartHeaderLink />
         <MobileMenu region={region} groups={groups} built={built} className="lg:hidden" />
