@@ -2575,3 +2575,12 @@ drawn with a six-second timeout each, and kept only as PNG or JPEG (satori draws
 tile. Because it reads the product files the route is no longer prerendered: it is `force-dynamic` and kept by Vercel's CDN
 for a day, like `/og/p` (one render per region a day). The page's og:image carries the week (`?w=<through>`), so a link
 posted after a release is never shown last week's picture from a cache.
+
+## 2026-11-20: A "Join the Discord" box with a reason, linking the family's one hub
+
+The owner asked why the Discord had 9 members after five months: the only link anywhere went (from RiftCompare's menu) to
+a server the owner does not run, with two empty channels and no reason to join. The family now has ONE hub, the owner's
+server "TCG Deals & Restocks" (the sealed restock and price-drop feeds on top, a channel per game). This site links its
+own never-expiring invite code, so the server's Invites list counts the members each site brings with no tracking of
+ours. `DiscordCta` ("Restock and deal alerts, free on Discord") sits under the price table on the product page and
+in the footer: never above a price, never a pop-up. `tests/discord-cta.test.ts`.

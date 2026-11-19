@@ -1,4 +1,6 @@
 import { Flag } from "@/components/Flag";
+import { DiscordCta } from "@/components/DiscordCta";
+import { DISCORD_INVITE } from "@/lib/site";
 import { barcodeOf, tcgplayerIdOf } from "@/lib/barcodes";
 import { gtinLabel } from "@/lib/gtin";
 import Link from "@/components/Link";
@@ -705,6 +707,9 @@ export default async function ProductPage({ params }: { params: { region: string
           />
         </div>
       )}
+
+      {/* The Discord hub, under the price table (owner, 2026-11-20): this site's own invite, with the reason to join. */}
+      <DiscordCta href={DISCORD_INVITE} className="mt-6" />
 
       {!best && alternatives.length > 0 && (
         <Section id="instead" title="In stock instead" href={typeLink.href} linkLabel="See all">
