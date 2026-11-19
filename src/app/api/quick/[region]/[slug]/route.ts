@@ -13,6 +13,7 @@ import { priceGap, shareText } from "@/lib/share-link";
 import { money } from "@/lib/format";
 import { TYPE_BY_LABEL } from "@/lib/sealed-title";
 import { daysOfHistory, MIN_DAYS, readPriceHistory } from "@/lib/price-history";
+import { convertUsd, readTcgHistory, readTcgMarket, TCG_SERIES } from "@/lib/tcg-market";
 import { ALERT_SITE_KEY } from "@/lib/alert-feed";
 
 // GET /api/quick/<region>/<slug>: a product card's quick view (components/QuickView.tsx), the product page's price table as data: the same
@@ -50,10 +51,15 @@ export async function GET(_req: Request, { params }: { params: { region: string;
   // The price history chart under the rows (2026-11-17): the product page's own series as change-points, the same MIN_DAYS rule.
   const hist = readPriceHistory();
   const pts = hist && daysOfHistory(hist, r.market, p.slug) >= MIN_DAYS ? hist.series[r.market]?.[p.slug] : undefined;
+  // TCGplayer's market price (lib/tcg-market.ts), converted to the region's currency here: the chart's dashed line.
+  const tcgHist = readTcgHistory();
+  const tcgFx = readTcgMarket()?.fx;
+  const tcgPts = tcgHist?.series[TCG_SERIES]?.[p.slug]?.map(([d, c, n]) => [d, convertUsd(c, r.currency, tcgFx), n] as [number, number | null, number]);
   return Response.json(
     {
       slug: p.slug,
       history: pts ? { through: hist!.through, pts } : null,
+      tcgHistory: tcgPts?.length ? { through: tcgHist!.through, pts: tcgPts } : null,
       stores: stores.length,
       inStock: stores.filter((o) => offerStock(o) === "open").length,
       rows,

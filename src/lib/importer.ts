@@ -44,6 +44,7 @@ import { headlineOffer, offerStock } from "./sealed-offers";
 import { hostOf, loadDenylist } from "./denylist";
 import { SOURCES, STORE_BY_KEY, isMarketplace, storeCurrency, type StoreConfig } from "./stores";
 import { isTcgImage, readTcgplayerCatalogue, tcgFeedProducts, tcgImageExists } from "./tcgplayer";
+import { writeTcgMarket } from "./tcg-market";
 
 export interface ImportRow {
   identity: SealedIdentity;
@@ -270,7 +271,10 @@ async function readHtmlStore(store: StoreConfig, platform: HtmlPlatform): Promis
 async function readTcgplayer(): Promise<{ reads: CollectionRead[]; rediscovered: boolean; error: string | null }> {
   // The catalogue is TCGplayer's Pokémon product line, so its titles are read
   // like a store's Pokémon collection: they needn't say "Pokémon".
-  const products = tcgFeedProducts(await readTcgplayerCatalogue());
+  const catalogue = await readTcgplayerCatalogue();
+  // TCGplayer's market prices from the same read, for the price history chart's TCGplayer line (lib/tcg-market.ts): no extra request.
+  await writeTcgMarket(catalogue);
+  const products = tcgFeedProducts(catalogue);
   return { reads: [{ handle: "magic", ok: true, products }], rediscovered: false, error: null };
 }
 

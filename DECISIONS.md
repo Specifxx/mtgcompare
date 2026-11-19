@@ -2452,3 +2452,24 @@ TCGplayer, which kept its own blue button, rose (DexCompare 545 to 779, MTG Comp
 blue again (#3665f3, white ink, fixed in both themes) on every site; nothing else about the rows changes (no outline, tint, order or
 label), and the cheapest row keeps its mark. RiftCompare and OP Compare had started a 50/50 the same morning; it ended for
 everyone. Read: eBay buy clicks per 100 visitors, the week after release vs 12-18 Nov.
+
+## 2026-11-19: TCGplayer's market price on the price history chart, OP Compare's look (owner)
+
+Owner: "I really really like opcompare's price history where you have the tcgplayer market price as well as the cheapest
+price locally. Can we pls copy it across all our tcg websites?" The product page's chart (`PriceHistoryTwoLine.tsx`) now draws
+the cheapest in-stock listing in the region (solid red, the existing daily history) against TCGplayer's market price (dashed
+gold), with Now / Low / High / change, 7D / 30D / 90D / All tabs and a tooltip reading both lines. Either line draws alone
+once it has MIN_DAYS of snapshots.
+
+The TCGplayer line is new data, from the TCGplayer read the import already makes (no extra request): the importer writes
+today's `marketPrice` per TCGplayer product id with the day's exchange rates to `data/public/tcg-market.json`, and the export
+folds it into `data/public/tcg-history.json` (same change-point format and fold as `price-history.json`, one "US" series per
+product slug, US cents). A product is joined to TCGplayer only by the id in its own TCGplayer offer's URL, never by title; a
+market file over three days old is not folded in. It starts empty and fills from the next import.
+
+**The one conversion.** Prices are never converted for display, except this line: outside the US it is TCGplayer's US price
+at the file's rate, labelled "TCGplayer market (converted)" and said so under the chart. It is never a price row, a best
+price, a deal, a sort, an alert, the feed or structured data (`lib/tcg-market.ts`, `tests/tcg-market.test.ts`).
+
+**The quick view keeps its old chart until 3 Dec 2026**, when the quick view A/B test ends: nothing changes there during
+it. The quick view route already sends `tcgHistory`, so the switch then is the component alone.
