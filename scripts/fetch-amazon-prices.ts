@@ -2,7 +2,7 @@
 // the ASINs scripts/amazon-asins.ts found, written to data/amazon-live/<region>.json (git-ignored). Amazon's licence lets
 // a price be kept for 24 hours and shown with its time, so prices are fetched by each build and never committed; the
 // product page shows one only while under 24 hours old (lib/amazon-live.ts) and the browser hides it after that.
-// Most-compared products first, AMAZON_BUILD_CALLS getItems calls a region (ten ASINs each, one a second; 30 by default,
+// Most-compared products first, AMAZON_BUILD_CALLS getItems calls a region (ten ASINs each, one a second; 20 by default (owner, 2026-11-19: the network's Amazon API allowance is shared, mostly ScentCompare's),
 // about 35 seconds of build each). A price under 60% or over 160% of the product's in-stock store median is dropped (a
 // different count, a marketplace seller's fantasy). Without credentials, or on any error, it writes nothing and never
 // fails the build; a store whose account has no API access yet (403) is skipped and the next region still runs.
@@ -27,7 +27,7 @@ async function region(r: Region) {
   if (!creds || !existsSync(asinsFile(r))) return console.log(`Amazon prices ${r}: no credentials or no ASINs yet, skipped.`);
   const known = JSON.parse(readFileSync(asinsFile(r), "utf8")) as AsinFile;
   const wanted = regionProducts(r).filter((x) => known[x.p.slug]?.asin);
-  const todo = wanted.slice(0, Number(process.env.AMAZON_BUILD_CALLS || 30) * 10);
+  const todo = wanted.slice(0, Math.min(20, Number(process.env.AMAZON_BUILD_CALLS || 20)) * 10);
   if (!todo.length) return console.log(`Amazon prices ${r}: no ASINs for in-stock products yet.`);
   const api = await creatorsClient(r, store.tag, creds);
   const fetchedAt = new Date().toISOString();
