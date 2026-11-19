@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { GOOGLE_CLIENT_ID, emailSignInLink, readStored, signInWithGoogle } from "@/lib/premium-member";
+import { GOOGLE_CLIENT_ID, emailSignInLink, readStored, signInWithGoogle, untilLine, writeStored } from "@/lib/premium-member";
+import { usePremium } from "./usePremium";
 
 // /account: sign in ON MTG Compare (owner, 2026-11-10). "Continue with Google" is Google Identity Services: Google's own button and
 // account chooser, in this page, for MTG Compare's own client; the ID token goes to RiftCompare's API, which checks it with Google and
@@ -26,13 +27,52 @@ const GSI_SRC = "https://accounts.google.com/gsi/client";
 function nextPath(): string {
   try {
     const n = new URLSearchParams(location.search).get("next") || "";
-    return /^\/(?!\/)[\w\-/?=&.]*$/.test(n) ? n : "/watches";
+    return /^\/(?!\/)[\w\-/?=&.]*$/.test(n) ? n : "/account";
   } catch {
     return "/premium";
   }
 }
 
+/** /account once signed in (owner, 2026-11-19): the account hub. Who, Premium or not, and the way to everything an account holds. */
+function AccountHub() {
+  const v = usePremium();
+  if (v.status !== "member" && v.status !== "free") return null;
+  const member = v.status === "member";
+  return (
+    <div className="card mx-auto max-w-md p-6 sm:p-8">
+      <h1 className="page-title">My account</h1>
+      <p className="mt-1 text-sm text-muted">
+        {v.info.who ? `Signed in as ${v.info.who}` : "Signed in"}
+        {member ? ` · Premium${untilLine(v.info.until) ? ` until ${untilLine(v.info.until)}` : ""}` : " · free account"}
+      </p>
+      <ul className="mt-6 grid gap-2">
+        <li><a href="/collection" className="btn-primary w-full justify-center">My collection</a></li>
+        <li><a href="/watches" className="btn-ghost w-full justify-center">My price alerts and watches</a></li>
+        <li><a href="/card-prices/movers" className="btn-ghost w-full justify-center">Rising and falling cards</a></li>
+      </ul>
+      {member ? (
+        <p className="mt-6 text-sm"><a href="/premium" className="font-semibold underline">Premium and billing</a></p>
+      ) : (
+        <a href="/premium" className="mt-6 block rounded-xl bg-gradient-to-br from-[#7a2ec4] to-[#3b0f6b] p-4 text-white">
+          <span className="block text-xs font-bold uppercase tracking-widest text-amber-300">★ Premium · 14 days free</span>
+          <span className="mt-1 block text-sm">A year of collection history and a spreadsheet export, 200 price alerts and no banner ads. Start the free trial →</span>
+        </a>
+      )}
+      <button type="button" className="mt-6 text-sm text-muted underline" onClick={() => { writeStored(null); location.reload(); }}>
+        Sign out
+      </button>
+    </div>
+  );
+}
+
 export function SignIn() {
+  const v = usePremium();
+  if (v.status === "loading") return <div className="mx-auto min-h-[24rem] max-w-md" aria-busy="true" />;
+  if (v.status === "member" || v.status === "free") return <AccountHub />;
+  return <SignInForm />;
+}
+
+function SignInForm() {
   const btn = useRef<HTMLDivElement>(null);
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
@@ -82,8 +122,13 @@ export function SignIn() {
 
   return (
     <div className="card mx-auto max-w-md p-6 sm:p-8">
-      <h1 className="page-title">Sign in to MTG Compare</h1>
-      <p className="mt-1 text-sm text-muted">A free account keeps your price alerts in one list on every device. No password needed.</p>
+      <h1 className="page-title">Sign in or create a free account</h1>
+      <p className="mt-1 text-sm text-muted">No password needed. A free account gets you:</p>
+      <ul className="mt-3 grid gap-1.5 text-sm">
+        <li>✓ My collection: every card and box you own, valued daily</li>
+        <li>✓ Price alerts and back-in-stock emails, in one list</li>
+        <li>✓ Premium&rsquo;s 14-day free trial when you want more</li>
+      </ul>
       {signedIn && (
         <p className="mt-4 rounded-lg bg-brand-soft p-3 text-sm">
           You&rsquo;re already signed in on this device. <a className="font-semibold underline" href="/watches">My watches</a>

@@ -13,6 +13,7 @@ import { isActivePath } from "./NavLink";
 import { pickRegion, useSoftRegion } from "./RegionSuggest";
 import { regionSwitchFollow, regionSwitchHref } from "./RegionSwitcher";
 import { Flag } from "@/components/Flag";
+import { MenuAccount } from "@/components/premium/MenuAccount";
 
 // The menu's own few shapes, drawn like Icon.tsx's (24×24, 2px round strokes, currentColor) for the rows Icon has no shape for.
 // Functions, like Icon's, so no JSX runs when the module loads.
@@ -200,6 +201,8 @@ export function MenuSheet({
           <Icon name="close" size={20} />
         </button>
       </div>
+
+      <MenuAccount onNavigate={close} />
 
       <nav aria-label="Sections" className="mt-1">
         {groups.map((g) => (

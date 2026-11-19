@@ -62,8 +62,25 @@ function Spark({ days, market }: { days: DayTotal[]; market: string }) {
   );
 }
 
+/** Signed out: what the collection does, and the way in. */
+function CollectionSignIn() {
+  return (
+    <div className="ce-vault-empty">
+      <p>
+        <strong>Sign in to start your collection.</strong> Add every card and box you own with <em>I own this</em>, and see what it is worth
+        today and how much it has moved since you added it.
+      </p>
+      <p className="ce-vault-muted">A free account, no password: Google or an emailed link. Premium adds a year of value history and a spreadsheet export, 14 days free.</p>
+      <a className="ce-vault-btn" href="/account?next=/collection">
+        Sign in or create a free account
+      </a>
+    </div>
+  );
+}
+
 export function VaultView() {
-  const member = usePremium().status === "member";
+  const premium = usePremium();
+  const member = premium.status === "member";
   const [items, setItems] = useState<VaultItem[] | null>(null);
   const [file, setFile] = useState<PriceFile | null>(null);
   const [failed, setFailed] = useState(false);
@@ -94,7 +111,10 @@ export function VaultView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file, member]);
 
-  if (items == null) return <p className="ce-vault-muted">Loading your collection…</p>;
+  // My collection needs an account (owner, 2026-11-19: "you can only use my collection if you are signed in"). The list itself still
+  // lives in this browser; signing in is what opens it.
+  if (premium.status === "loading" || items == null) return <p className="ce-vault-muted">Loading your collection…</p>;
+  if (premium.status === "out") return <CollectionSignIn />;
   if (!items.length)
     return (
       <div className="ce-vault-empty">

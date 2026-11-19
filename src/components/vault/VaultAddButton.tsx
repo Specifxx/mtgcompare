@@ -3,6 +3,7 @@
 // "I own this" on a product page (src/lib/vault.ts): adds the product to the visitor's collection in this browser,
 // valued in the page's market. Nothing leaves the browser.
 import { useEffect, useState } from "react";
+import { usePremium } from "@/components/premium/usePremium";
 import { addItem, itemKey, onVaultChange, readVault, setItemQty, track, writeVault, type VaultItem } from "@/lib/vault";
 
 export function VaultAddButton({ className = "", ...item }: Omit<VaultItem, "qty" | "addedAt"> & { className?: string }) {
@@ -15,7 +16,14 @@ export function VaultAddButton({ className = "", ...item }: Omit<VaultItem, "qty
     return onVaultChange(sync);
   }, [key]);
 
+  const premium = usePremium();
   const add = () => {
+    // My collection needs an account (owner, 2026-11-19): signed out, the tap goes to sign-in and comes back to this page.
+    if (premium.status === "out") {
+      track("vault_signin", {});
+      location.href = `/account?next=${encodeURIComponent(location.pathname)}`;
+      return;
+    }
     writeVault(addItem(readVault(), item));
     track("vault_add", { market: item.market, value: item.addedCents / 100, currency: item.currency });
   };
@@ -27,7 +35,7 @@ export function VaultAddButton({ className = "", ...item }: Omit<VaultItem, "qty
         <button type="button" className="ce-vault-btn" onClick={add}>
           <span aria-hidden="true">+</span> I own this
         </button>
-        <span className="ce-vault-hint">Track what your collection is worth. Free, no sign-up, saved in this browser.</span>
+        <span className="ce-vault-hint">Track what your collection is worth. Free with an account.</span>
       </div>
     );
   return (
