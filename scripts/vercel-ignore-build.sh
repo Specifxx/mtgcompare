@@ -86,8 +86,17 @@ fi
 # VERCEL_GIT_PREVIOUS_SHA (Vercel sets it in this step); when it is unset or
 # cannot be read, build (fail open).
 MIN_GAP_HOURS="${MIN_GAP_HOURS:-12}"
+# ── [urgent] TOO HAS A FLOOR: EIGHT HOURS (owner, 2026-11-19) ────────────────
+# [urgent] used to skip the gap altogether, and on 17–18 Nov the network built
+# production 94 and 137 times a day (about eight builds per site per day, nearly
+# all [urgent]); Vercel reached $10.27 a day against the $6 cap. Now an [urgent]
+# commit builds only when production last built at least URGENT_MIN_GAP_HOURS
+# ago, so a site builds at most three times a day and the whole network (19
+# projects) at most 57, normally about 25. Batch urgent changes into one release.
+URGENT_MIN_GAP_HOURS="${URGENT_MIN_GAP_HOURS:-8}"
 recent_production_build() {
-  printf '%s' "$subject" | grep -qiF -- '[urgent]' && return 1
+  local gap_hours="$MIN_GAP_HOURS"
+  printf '%s' "$subject" | grep -qiF -- '[urgent]' && gap_hours="$URGENT_MIN_GAP_HOURS"
   local prev="${VERCEL_GIT_PREVIOUS_SHA:-}" prev_ts now
   [ -z "$prev" ] && return 1
   if ! git cat-file -e "${prev}^{commit}" 2>/dev/null; then
@@ -96,11 +105,11 @@ recent_production_build() {
   prev_ts="$(git show -s --format=%ct "$prev" 2>/dev/null || true)"
   [ -z "$prev_ts" ] && return 1
   now="${NOW_EPOCH:-$(date +%s)}"
-  [ $(( now - prev_ts )) -lt $(( MIN_GAP_HOURS * 3600 )) ]
+  [ $(( now - prev_ts )) -lt $(( gap_hours * 3600 )) ]
 }
 if [ "$env" != "preview" ] && [ "$env" != "development" ] \
   && printf '%s' "$subject" | grep -qiF -- '[deploy]' && recent_production_build; then
-  echo "[vercel-ignore-build] [deploy] in the subject, but production last built under ${MIN_GAP_HOURS}h ago (${VERCEL_GIT_PREVIOUS_SHA:0:7}) — skipping; it rides the next release. [urgent] in the subject overrides."
+  echo "[vercel-ignore-build] [deploy] in the subject, but production last built too recently (${VERCEL_GIT_PREVIOUS_SHA:0:7}) — skipping; it rides the next release. (Gap: ${MIN_GAP_HOURS}h, or ${URGENT_MIN_GAP_HOURS}h with [urgent] in the subject.)"
   exit 0
 fi
 
