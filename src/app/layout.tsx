@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
 import { SiteAnalytics } from "@/components/SiteAnalytics";
+import { PaidVisitTagger } from "@/components/PaidVisitTagger";
 import { ShareArrival } from "@/components/ShareArrival";
 import { QuickView } from "@/components/QuickView";
 import { ReturnNudge } from "@/components/ReturnNudge";
@@ -92,6 +93,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* The phone bottom nav (DECISIONS.md 2026-11-18): outside the quick view, browser only, BOTTOM_NAV is its rollback. */}
         {BOTTOM_NAV !== "off" && <BottomNav mode={BOTTOM_NAV} />}
         <SiteAnalytics />
+        <PaidVisitTagger />
         <ShareArrival />
         <ReturnBeacon />
         {/* The eBay stand-out A/B (lib/ebay-pop.ts, 2026-11-19): sets <html data-ebaypop> in the browser. */}

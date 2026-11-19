@@ -2584,3 +2584,13 @@ server "TCG Deals & Restocks" (the sealed restock and price-drop feeds on top, a
 own never-expiring invite code, so the server's Invites list counts the members each site brings with no tracking of
 ours. `DiscordCta` ("Restock and deal alerts, free on Discord") sits under the price table on the product page and
 in the footer: never above a price, never a pop-up. `tests/discord-cta.test.ts`.
+
+## 2026-11-20: Creator links tag their visitors' sales (paid creators)
+
+The owner approved paid creators (2026-11-20): paid only per tracked buy click or code, A$300 a month in all, cut on day 21 unless
+their visitors earned 1.5x. The ledger is on RiftCompare's earnings dashboard (`Specifxx/TCGEmpire` `lib/earnings/creator-deals.ts`).
+Here: `lib/paid-visit.ts` (the same file as Rift's and Dex's) adds `cr` + six letters of a `utm_medium=creator` landing's
+utm_campaign to every affiliate sub-id the visitor opens (EPN `customid`, and `/out/tcgplayer`'s `sharedid`, which the route passes
+to Impact), mounted by `PaidVisitTagger` in the layout; and `lib/campaign.ts` keeps the tab's first-touch campaign for GA4's
+`affiliate_click` / `outbound_store_click` as `campaign`, so a creator's buy clicks can be counted. Vercel's buy_click is unchanged.
+`tests/paid-visit.test.ts`.
