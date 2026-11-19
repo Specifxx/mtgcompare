@@ -90,6 +90,73 @@ export interface TopFile {
   bySealed: Record<string, CardLite[]>;
 }
 
+
+// ─── Card movers (owner, 2026-11-19: "rising cards" on the collector side) ──────────────────────────────────────
+// The import keeps one small snapshot a day of every card worth MIN_INDEX_CENTS or more (data/card-history/<day>.json, outside
+// data/cards so no page bundles it; the last HISTORY_KEEP_DAYS are kept, git keeps the rest) and writes data/cards/movers.json: the
+// biggest risers and fallers over one day and seven, compared FINISH BY FINISH (a foil price appearing is not a rise) and only
+// where both prices are MOVER_MIN_CENTS or more, so a 20-cent card doubling is not news. TCGplayer market prices only: no eBay.
+export const HISTORY_DIR = path.join("data", "card-history");
+export const HISTORY_KEEP_DAYS = 8;
+export const MOVER_MIN_CENTS = 200;
+export const MOVERS_PER_LIST = 50;
+
+/** data/card-history/<day>.json: TCGplayer id → [normal, foil, etched]. */
+export type PriceSnapshot = Record<string, Prices>;
+
+export interface CardMover extends CardLite {
+  /** The finish compared: 0 normal, 1 foil, 2 etched. */
+  f: 0 | 1 | 2;
+  from: number;
+  to: number;
+  /** Whole percent. */
+  pct: number;
+}
+
+export interface MoversFile {
+  generatedAt: string;
+  /** The snapshot days compared against ("" when there was none). */
+  since: { d1: string; d7: string };
+  d1: { up: CardMover[]; down: CardMover[] };
+  d7: { up: CardMover[]; down: CardMover[] };
+}
+
+export function snapshotOf(cards: readonly CardRow[]): PriceSnapshot {
+  const out: PriceSnapshot = {};
+  for (const c of cards) if ((cardValue(c.p) ?? 0) >= MIN_INDEX_CENTS) out[c.id] = c.p;
+  return out;
+}
+
+/** Each card's single biggest move against `then` (one row per card), risers and fallers, largest first. */
+export function cardMovers(all: readonly { set: string; cards: readonly CardRow[] }[], then: PriceSnapshot | null, n = MOVERS_PER_LIST): { up: CardMover[]; down: CardMover[] } {
+  if (!then) return { up: [], down: [] };
+  const moves: CardMover[] = [];
+  for (const { set, cards } of all)
+    for (const c of cards) {
+      const old = then[c.id];
+      if (!old) continue;
+      let best: CardMover | null = null;
+      for (const f of [0, 1, 2] as const) {
+        const a = old[f];
+        const b = c.p[f];
+        if (typeof a !== "number" || typeof b !== "number" || a < MOVER_MIN_CENTS || b < MOVER_MIN_CENTS || a === b) continue;
+        const pct = Math.round(((b - a) / a) * 100);
+        if (pct === 0) continue;
+        if (!best || Math.abs(pct) > Math.abs(best.pct)) best = { set, s: c.s, n: c.n, no: c.no, r: c.r, id: c.id, v: b, f, from: a, to: b, pct };
+      }
+      if (best) moves.push(best);
+    }
+  const order = (x: CardMover, y: CardMover) => Math.abs(y.pct) - Math.abs(x.pct) || y.to - x.to || x.id - y.id;
+  return { up: moves.filter((m) => m.pct > 0).sort(order).slice(0, n), down: moves.filter((m) => m.pct < 0).sort(order).slice(0, n) };
+}
+
+/** The snapshot day to compare with: the newest before `day` for one day, the oldest within seven days for seven. */
+export function compareDays(days: readonly string[], day: string): { d1: string; d7: string } {
+  const before = [...days].filter((d) => d < day).sort();
+  const weekAgo = new Date(Date.parse(`${day}T00:00:00Z`) - 7 * 864e5).toISOString().slice(0, 10);
+  return { d1: before[before.length - 1] ?? "", d7: before.find((d) => d >= weekAgo) ?? "" };
+}
+
 // ─── Pure rules ────────────────────────────────────────────────────────────────
 
 export function cardValue(p: Prices): number | null {
@@ -412,6 +479,10 @@ export function setBySlug(slug: string): CardSet | null {
 export function readSet(slug: string): CardRow[] {
   if (!/^[a-z0-9-]+$/.test(slug)) return [];
   return read<SetFile>(`sets/${slug}.json`, { slug, cards: [] }).cards;
+}
+export function readMovers(): MoversFile | null {
+  const m = read<MoversFile | null>("movers.json", null);
+  return m && m.d1 && m.d7 ? m : null;
 }
 export function readSearch(): SearchRow[] {
   return read<SearchRow[]>("search.json", []);

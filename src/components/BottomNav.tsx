@@ -100,7 +100,8 @@ export const tabs = (region: Region, regionPage: boolean): Tab[] => [
   { key: "deals", label: "Deals", href: `/${region}/deals`, also: ["black-friday", "cyber-monday", "price-moves", "back-in-stock", "this-week"].map((p) => `/${region}/${p}`), icon: <Icon name="tag" size={22} /> },
   { key: "sets", label: "Sets", href: `/${region}/sets`, also: [`/${region}/releases`, `/${region}/preorders`], icon: <svg {...SVG}><path d="m12 3 9 4.5-9 4.5-9-4.5z" /><path d="m3 12 9 4.5 9-4.5M3 16.5 12 21l9-4.5" /></svg> },
   { key: "cart", label: "Cart", icon: <CartIcon size={22} /> },
-  { key: "menu", label: "Menu", icon: <Icon name="menu" size={22} /> },
+  // My collection (owner, 2026-11-19: "replace the menu with My Collection"). The header keeps its menu button on phones.
+  { key: "collection", label: "Collection", href: "/collection", icon: <svg {...SVG}><rect x="7" y="3" width="13" height="17" rx="2" /><path d="M4 7v12a2 2 0 0 0 2 2h10" /></svg> },
 ];
 
 /** The region the tabs link into: the page's own (its first path segment), else the visitor's pick, else the default. */

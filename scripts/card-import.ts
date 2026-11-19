@@ -8,6 +8,13 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   CARDS_DIR,
+  HISTORY_DIR,
+  HISTORY_KEEP_DAYS,
+  cardMovers,
+  compareDays,
+  snapshotOf,
+  type MoversFile,
+  type PriceSnapshot,
   INDEX_GROWTH,
   LEGACY_FILE,
   cardValue,
@@ -115,7 +122,7 @@ async function main(): Promise<void> {
   const { slugByGroup, cardsByGroup } = previousState(groupsBySealed);
 
   // Set slugs: kept once given; a sealed set takes its sealed page's slug; others their name's (a clash adds the abbreviation).
-  const used = new Set([...slugByGroup.values(), "search"]); // /card-prices/search is the search page
+  const used = new Set([...slugByGroup.values(), "search", "movers"]); // /card-prices/search and /card-prices/movers are pages
   const ordered = [...groups].filter((g) => !skipGroup(g)).sort((a, b) => Number(sealedOfGroup.has(b.groupId)) - Number(sealedOfGroup.has(a.groupId)) || a.groupId - b.groupId);
   for (const g of ordered) {
     if (slugByGroup.has(g.groupId)) continue;
@@ -188,6 +195,25 @@ async function main(): Promise<void> {
     if (t.length) top.bySealed[set.sealed] = t;
   }
   fs.writeFileSync(path.join(tmp, "top.json"), JSON.stringify(top));
+
+  // Card movers (lib/cards.ts): today's snapshot, then today against yesterday's and last week's.
+  const histDir = path.join(process.cwd(), HISTORY_DIR);
+  fs.mkdirSync(histDir, { recursive: true });
+  fs.writeFileSync(path.join(histDir, `${day}.json`), JSON.stringify(snapshotOf(flat)));
+  const days = fs.readdirSync(histDir).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f)).map((f) => f.slice(0, 10)).sort();
+  for (const d of days.slice(0, Math.max(0, days.length - HISTORY_KEEP_DAYS))) fs.rmSync(path.join(histDir, `${d}.json`));
+  const since = compareDays(days, day);
+  const snap = (d: string): PriceSnapshot | null => {
+    if (!d) return null;
+    try {
+      return JSON.parse(fs.readFileSync(path.join(histDir, `${d}.json`), "utf8")) as PriceSnapshot;
+    } catch {
+      return null;
+    }
+  };
+  const bySet = all.map(({ set, cards }) => ({ set: set.slug, cards }));
+  const movers: MoversFile = { generatedAt: new Date().toISOString(), since, d1: cardMovers(bySet, snap(since.d1)), d7: cardMovers(bySet, snap(since.d7)) };
+  fs.writeFileSync(path.join(tmp, "movers.json"), JSON.stringify(movers));
   fs.rmSync(ROOT, { recursive: true, force: true });
   fs.renameSync(tmp, ROOT);
 

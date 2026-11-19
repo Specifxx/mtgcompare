@@ -49,12 +49,13 @@ test("stored lists are untrusted: malformed rows are dropped", () => {
   assert.equal(parseVault(JSON.stringify([{ ...base, qty: 5000, addedAt: "" }]))[0].qty, 99);
 });
 
-test("the collection page is a static, noindex shell that reads only /prices.json", () => {
+test("the collection page is a static, noindex shell that reads only /prices.json and the cards' CDN-cached set prices", () => {
   const page = fs.readFileSync("src/app/(site)/collection/page.tsx", "utf8");
   assert.match(page, /export const dynamic = "force-static";/);
   assert.match(page, /index: false/);
   const view = fs.readFileSync("src/components/vault/VaultView.tsx", "utf8");
-  assert.deepEqual(view.match(/fetch\("[^"]+"/g), ['fetch("/prices.json"']);
+  assert.deepEqual(view.match(/get\([`"][^`"]+[`"]/g), ['get("/prices.json"', "get(`/api/cards/prices/${s}`"]);
+  assert.equal(view.match(/fetch\(/g)?.length, 1);
 });
 
 // "+ I own this" drew with its words against its border (found 2026-11-13). vault.css wrote the button as
@@ -104,4 +105,19 @@ test("the collection's button and link carry their class's weight: a :where() ru
   const button = sheet.find((r) => r.selector === ".ce-vault-btn");
   assert.deepEqual(button && [button.decls.get("padding"), button.decls.get("font-size"), button.decls.get("font-weight"), button.decls.get("min-height")], ["0 0.9rem", "0.875rem", "700", "2.5rem"]);
   assert.equal(sheet.find((r) => r.selector === ".ce-vault-link")?.decls.get("color"), "var(--cart-accent)");
+});
+
+test("single cards: valued from their sets' TCGplayer prices, per finish, in US$", async () => {
+  const v = await import("../src/lib/vault");
+  const base = { name: "x", href: "/card-prices/a/b", market: "US", currency: "USD", addedCents: 100 };
+  let items = v.addItem([], { ...base, id: v.cardItemId(12565, 1), set: "9th-edition" });
+  items = v.addItem(items, { ...base, id: v.cardItemId(7, 0), set: "../etc" });
+  items = v.addItem(items, { ...base, id: "sealed-1" });
+  assert.deepEqual(v.cardSets(items), ["9th-edition"]);
+  const file = v.withCardPrices({ products: [{ id: "sealed-1", prices: { US: { cents: 5000 } } }] }, [{ p: { "12565": [14, 111, null] } }]);
+  const valued = v.valueItems(items, file);
+  assert.equal(valued.find((i) => i.id === "card:12565:1")?.nowCents, 111);
+  assert.equal(valued.find((i) => i.id === "sealed-1")?.nowCents, 5000);
+  assert.equal(valued.find((i) => i.id === "card:7:0")?.nowCents, null);
+  assert.ok(v.isCardItem({ id: "card:1:0" }) && !v.isCardItem({ id: "sealed-1" }));
 });

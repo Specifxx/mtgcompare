@@ -47,6 +47,11 @@ export default function CardPricesHub() {
         TCGplayer, in US dollars, normal and foil.{generatedAt ? ` Updated ${shortDate(generatedAt.slice(0, 10))}.` : ""}
       </p>
       <CardSearchForm className="mt-5 max-w-xl" />
+      <p className="mt-3 text-sm">
+        <Link href={`${CARDS_HUB}/movers`} prefetch={false} className="font-semibold text-brand hover:underline">
+          Rising and falling cards this week →
+        </Link>
+      </p>
       {newSets.length > 0 && (
         <Section id="new" title="New and upcoming sets" className="mt-10">
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
