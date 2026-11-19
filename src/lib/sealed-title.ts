@@ -467,6 +467,21 @@ function signatureTokens(title: string, set: MtgSet | null, type: TypeKey): stri
   // A store's own SKU written into the title ("Starter Collection MTG-FND-STC", "Bundle MTG-StarTrek-BNDL"): a catalogue code, not
   // the product's name (2026-11-18). Removed before the set's name, which would otherwise eat "StarTrek" out of the middle of it.
   t = t.replace(/\bmtg-[a-z0-9]+(?:-[a-z0-9]+)+\b/g, " ");
+  if (type === "commander-deck") {
+    // 2026-11-19 audit of one-store twins: a Commander deck's colour identity ("(Federation Fleet Blue-Red-White)"), a store note
+    // ("(New Arrival)", "(Single Pack)") and store misspellings ("Kilngon", "We Are The Borgs", "Terror Of The Abyss", "The Ruinous
+    // Power") made a second page of a deck other stores list. Colours only as a hyphenated run of two or more, never one word.
+    t = t
+      .replace(/\b(?:white|blue|black|red|green)(?:\s*-\s*(?:white|blue|black|red|green)){1,4}\b/g, " ")
+      .replace(/\bnew\s*arrivals?\b|[(\[]\s*single\s*pack\s*[)\]]/g, " ")
+      .replace(/\bkilngon\b/g, "klingon")
+      .replace(/\bthe\s*borgs\b/g, "the borg")
+      .replace(/\bterror\s*of\s*the\s*abyss?\b/g, "terrors of the abyss")
+      .replace(/\bthe\s*ruinous\s*power\b(?!s)/g, "the ruinous powers");
+    // Nauctis's foil decks are "Premium Edition" (Wizards and TCGplayer); a store calling one a "Collector Edition" names the same
+    // deck. Only for Nauctis: the sets before it call theirs Collector's Editions, keyed under the "collector" marker below.
+    if (set?.code === "nau") t = t.replace(/\bcollector'?s?\s*edition\b|\bcollectors?\s*ed\b/g, " premium ");
+  }
   const markers: string[] = [];
   // A Collector's Edition Commander deck (the same 100 cards in foil) is a different product from the deck.
   if (type === "commander-deck" && /\bcollector'?s?\s*edition\b|\bcollectors?\s*ed\b/.test(t)) markers.push("collector");
