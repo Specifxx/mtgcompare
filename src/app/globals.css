@@ -276,8 +276,11 @@ body {
   /* An ad's own button: filled with the site's ink (near-black; near-white in dark mode), the strongest neutral there is, so a paid
      link is as easy to see and tap as before without adding a hue (calm palette, 2026-11-12; it was eBay's blue). It never passes
      for the site's red action (.btn-primary) and every unit around one carries its "Ad" label. */
+  /* eBay's own blue on eBay's button again (owner, 2026-11-19: "our eBay clicks have still stagnated … I really need to increase it").
+     The calm palette (2026-11-12) made it ink; eBay buy clicks then fell 31-60% across Dex, Rift and OP while TCGplayer, which kept
+     its blue, rose. White ink on #3665f3 is 4.9:1, fixed in both themes. */
   .btn-ad {
-    @apply btn border border-transparent bg-ink text-surface hover:bg-ink/85;
+    @apply btn border border-transparent bg-[#3665f3] text-[#ffffff] hover:bg-[#2a50c8];
   }
   /* TCGplayer's button (owner, 2026-11-12): blue with white ink in both themes, so the pinned TCGplayer row reads apart by its button alone. */
   .btn-tcg {
