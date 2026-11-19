@@ -9,13 +9,18 @@ const read = (p: string) => fs.readFileSync(p, "utf8");
 
 test("the price alert is a button under the best price, once per product page, and opens only on a tap", () => {
   const page = read("src/app/[region]/p/[slug]/page.tsx");
-  assert.equal(page.match(/<PriceAlertForm/g)?.length, 1, "one form per page (its field ids are the product's)");
-  assert.ok(page.indexOf("<PriceAlertForm") < page.indexOf("<MiniSealedAds"), "above the ad pair and the price table");
-  assert.ok(page.indexOf("<PriceAlertForm") > page.indexOf('id="best"'));
-  assert.match(page.slice(page.indexOf("<PriceAlertForm")), /^<PriceAlertForm[^>]*\bprominent\b/s);
+  assert.equal(page.match(/<PriceAlert\b/g)?.length, 1, "one form per page (its field ids are the product's)");
+  assert.ok(page.indexOf("<PriceAlert") < page.indexOf("<MiniSealedAds"), "above the ad pair and the price table");
+  assert.ok(page.indexOf("<PriceAlert") > page.indexOf('id="best"'));
+  assert.match(page.slice(page.indexOf("<PriceAlert\n")), /^<PriceAlert[^>]*\bprominent\b/s);
   const form = read("src/components/PriceAlertForm.tsx");
   assert.match(form, /useState\(false\)/, "closed until the visitor opens it");
   assert.ok(!/useEffect|setTimeout|IntersectionObserver/.test(form), "nothing opens it by itself");
+  // One tap for anyone signed in (2026-11-19): a button that saves only on a tap, through the account's token, never by itself.
+  const one = read("src/components/premium/PriceAlert.tsx");
+  assert.ok(!/useEffect|setTimeout|IntersectionObserver/.test(one), "the one-tap alert never saves by itself");
+  assert.match(one, /if \(!signedIn \|\| now == null\) return <PriceAlertForm \{\.\.\.props\} \/>/, "signed out: the ordinary form");
+  assert.match(one, /onClick=\{\(\) => save\(suggested\)\}/);
 });
 
 test("the weekly-drops box asks for an address only, on the hub pages, never on a product page, and is no pop-up", () => {

@@ -39,7 +39,7 @@ export function WatchesView() {
     <div>
       {!premium && (
         <p className="card mb-4 p-4 text-sm">
-          Every price alert you set with this email is listed here, on any device. <Link className="underline" href="/premium">Premium</Link> adds back-in-stock alerts and hides the banner ads.
+          Every price alert you set with this email is listed here, on any device. <Link className="underline" href="/premium">Premium</Link> raises the limit to 200 alerts and hides the banner ads.
         </p>
       )}
       {watches.length === 0 ? (
@@ -63,7 +63,7 @@ export function WatchesView() {
           ))}
         </ul>
       )}
-      <p className="mt-6 text-sm text-muted">Emails come from RiftCompare&rsquo;s alert service, checked once a day after the price update. Prices are the lowest in-stock store price, before postage.</p>
+      <p className="mt-6 text-sm text-muted">Emails come from our shared alert service, checked once a day after the price update. Prices are the lowest in-stock store price, before postage.</p>
     </div>
   );
 }

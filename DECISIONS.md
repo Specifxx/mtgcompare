@@ -2474,6 +2474,30 @@ price, a deal, a sort, an alert, the feed or structured data (`lib/tcg-market.ts
 **The quick view keeps its old chart until 3 Dec 2026**, when the quick view A/B test ends: nothing changes there during
 it. The quick view route already sends `tcgHistory`, so the switch then is the component alone.
 
+## One-tap price and restock alerts for anyone signed in (2026-11-19)
+
+Boardroom, 2026-11-19: a one-tap restock and price-drop alert on sealed product pages, MTG Compare first, free for all (alerts stay
+free). Signed in with any account (free or Premium), the product page's and quick view's alert button is "Alert me under <10% below
+today's lowest in-stock price>": one tap saves it through the account's token (no email field; no confirmation when the account's
+address is verified), with "Pick my price" beside it (`components/premium/PriceAlert.tsx`, `setPriceWatch`). The back-in-stock button
+is one tap for free accounts too, not only members. Signed out, both are the ordinary forms, unchanged. Nothing saves or opens by
+itself. The shared service already accepted a free account's token for price and restock alerts; Premium only raises the limit
+from 25 to 200.
+
+## 2026-11-19: Sign in is a filled button at every width, and the sign-in flow never names another site
+
+Owner, 2026-11-19: "there should be a login or sign up button, very visible for new … or non-logged in users … I don't want them to
+redirect. I don't want the [RiftCompare] logo to appear on any of the site signups."
+
+- Signed out, the header's account link is a filled button in the site's own colour reading "Sign in" from 340px wide (the icon alone
+  below that). Every header was measured at 360, 390, 430, 768, 1024, 1280, 1440 and 1536px: the button is on screen with no
+  sideways scroll at each. Where the row was full, other items stepped aside (the Premium pill, a sections row or a sponsored link
+  move to a wider breakpoint; the menu carries them), never Sign in.
+- Copy on the sign-in, account, Premium, watches, alert and privacy pages says "our shared alert service" and "all our price
+  comparison sites", never the name of the site that runs the shared account service.
+- `next.config.js` rewrites `/account-service/alerts/(confirm|manage|unsubscribe)` and `/account-service/oauth/(google|discord)[/callback]`
+  to the shared service, so alert emails and (once the owner registers the redirect addresses) Google and Discord sign-in keep the
+  visitor on this site's own address. A rewrite is not a redirect: the address bar never changes.
 ## 2026-11-19 — eBay stand-out row, 50/50
 
 The owner, the same evening eBay's blue came back: the colour change moved eBay clicks, so "we can do something even more than just a

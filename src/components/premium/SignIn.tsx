@@ -175,7 +175,7 @@ function SignInForm() {
         </p>
       )}
       <p className="mt-6 text-xs text-muted">
-        Already signed up on RiftCompare or DexCompare? Use the same email: it&rsquo;s one account across our card sites. By signing in you agree to our{" "}
+        Already have an account on one of our other sites? Use the same email: it&rsquo;s one account across all our sites. By signing in you agree to our{" "}
         <a className="underline" href="/terms">terms</a> and <a className="underline" href="/privacy">privacy policy</a>.
       </p>
     </div>

@@ -22,7 +22,7 @@ import { OfferTable } from "@/components/OfferTable";
 import { amazonLiveFor } from "@/lib/amazon-live";
 import { amazonCarries } from "@/lib/amazon";
 import { ReportPrice } from "@/components/ReportForms";
-import { PriceAlertForm } from "@/components/PriceAlertForm";
+import { PriceAlert } from "@/components/premium/PriceAlert";
 import { ToolInterest } from "@/components/ToolInterest";
 import { RestockAlert } from "@/components/premium/RestockAlert";
 import { ALERT_SITE_KEY } from "@/lib/alert-feed";
@@ -615,7 +615,8 @@ export default async function ProductPage({ params }: { params: { region: string
           {/* The price alert, under the best price where people look (2026-11-12: it was a text link under the whole table and the
               service held no alerts). RiftCompare's shared alert service emails when it drops (lib/alert-feed.ts, DECISIONS.md 2026-11-02).
               A button in the server HTML; the form opens in place on a tap, never by itself. */}
-          <PriceAlertForm
+          {/* One tap for anyone signed in (2026-11-19); the ordinary form otherwise (components/premium/PriceAlert.tsx). */}
+          <PriceAlert
             site={ALERT_SITE_KEY}
             productId={p.id}
             region={r.market}
@@ -625,7 +626,7 @@ export default async function ProductPage({ params }: { params: { region: string
             prominent
             summary={here?.lowestPriceCents == null ? "Email me when a store has it at my price" : "Email me when the price drops"}
           />
-          {/* Back in stock (accounts, 2026-11-18, as DexCompare): members tap once, everyone else gives an email (free since 2026-11-18). */}
+          {/* Back in stock (accounts, 2026-11-18, as DexCompare; one tap for any signed-in account since 2026-11-19), everyone else gives an email (free since 2026-11-18). */}
           {here?.lowestPriceCents == null && <RestockAlert site={ALERT_SITE_KEY} productId={p.id} region={r.market} />}
           {/* The small eBay + TCGplayer pair under the best price (owner, 2026-10-29: "much smaller … near the top … not
               intrusive"): the product's own eBay listings (the strip's request) and the set's TCGplayer products. */}

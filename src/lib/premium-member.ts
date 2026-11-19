@@ -115,6 +115,24 @@ export async function loadWatches(token: string, remove?: string): Promise<Watch
   }
 }
 
+/** One-tap price alert for anyone signed in (free accounts too, 2026-11-19): the token names the address, so no email field and no
+ *  confirmation email when the account's address is verified. "active" or "confirm", as the service answers. */
+export async function setPriceWatch(token: string, productId: string, region: string, targetCents: number): Promise<{ ok: true; active: boolean } | { ok: false; message: string; signIn?: boolean }> {
+  try {
+    const r = await fetch("https://riftcompare.com/api/sister-alerts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ site: "mtg", productId, region, targetCents, token }),
+      credentials: "omit",
+    });
+    const j = (await r.json().catch(() => ({}))) as { ok?: boolean; status?: string; error?: string };
+    if (r.ok && j.ok) return { ok: true, active: j.status === "active" };
+    return { ok: false, message: j.error || "Couldn't save your alert. Please try again.", signIn: r.status === 401 };
+  } catch {
+    return { ok: false, message: "Couldn't save your alert. Check your connection and try again." };
+  }
+}
+
 /** Set a back-in-stock watch for the signed-in member. */
 export async function setRestockWatch(token: string, productId: string, region: string): Promise<{ ok: true } | { ok: false; message: string; premium?: boolean }> {
   try {
