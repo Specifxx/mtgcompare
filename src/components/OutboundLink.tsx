@@ -1,6 +1,7 @@
 "use client";
 
 import { abClick, useAb } from "@/lib/ab-client";
+import { ebayPopClick } from "@/lib/ebay-pop";
 import { track } from "@/lib/track";
 import { isCheckoutLink } from "@/lib/checkout-link";
 import { gaEvent } from "@/lib/gtag";
@@ -85,6 +86,7 @@ export function OutboundLink({
   const ab = useAb();
   function record(el: Element | null) {
     abClick(ab, retailer, placement, rel);
+    if (/^ebay/i.test(retailer)) ebayPopClick(el);
     try {
       track("buy_click", { retailer: retailer.slice(0, 255), placement: placement.slice(0, 255), link_type: isCheckoutLink(href) ? "checkout" : "product" });
       // GA4 (lib/gtag.ts, a no-op without NEXT_PUBLIC_GA_ID): a paid link (eBay, TCGplayer: rel "sponsored") is affiliate_click.
