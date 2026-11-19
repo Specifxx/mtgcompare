@@ -2483,6 +2483,16 @@ row that holds an eBay button eBay blue with a blue edge. Shape and colour only:
 only when it is), no position change, no extra eBay API call, white on #0064d2 passes contrast. Run on Rift, Dex, MTG and OP. Read
 3 Dec: eBay buy clicks per arm, total buy clicks per arm as the check; keep the winner and roll it out to the other card sites.
 
+## 2026-11-19 — A tag lint that stops the build
+
+From the 19 Nov boardroom review, on the four money sites: paid rows always there, and never untagged. The product page's
+Marketplaces panel already draws eBay and TCGplayer in every region (a listing or price when there is one, else each one's tagged
+search; TCGplayer steps aside only in the US when it is already the best-price button above). New: `scripts/tag-lint.ts` runs first in
+`npm run build` (`src/lib/tag-lint.ts`, `tests/tag-lint.test.ts`). Every eBay builder in every region and placement must carry campaign
+5339155912 and a customid, every TCGplayer link must go through Impact (/out/tcgplayer), an eBay listing without our campaign must be
+refused by `listingHref`, and no component may hard-code a bare eBay or TCGplayer href. A failure stops the release: a paid link going
+out untagged costs more than a late one.
+
 ## 2026-11-19: [urgent] needs eight hours too: a network ceiling of 57 builds a day
 
 [urgent] in a commit subject used to skip the 12-hour gap altogether. On 17 and 18 Nov the network built production 94
