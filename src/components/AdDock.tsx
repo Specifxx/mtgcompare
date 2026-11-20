@@ -57,13 +57,20 @@ function dismissedThisVisit(): boolean {
 }
 
 /**
+ * The phone dock is OFF (Head of Product, 2026-11-21; owner 2026-11-20: "there actually might be too many ads"). In 28 days it
+ * drew ~23 of 15,053 buy clickers across the sites (0.15%, Vercel by placement) while covering the foot of every phone screen.
+ * Off means nothing renders and nothing is fetched. `true` brings it back exactly as it was.
+ */
+export const PHONE_DOCK_ON = false;
+
+/**
  * Renders its children (the dock and the data hooks that feed it) only on a screen narrower than `minWidth`, once the visitor has
  * scrolled a third of a screen and has not hidden the dock this visit. Before that: nothing, and no request.
  */
 export function DockGate({ minWidth, children }: { minWidth: number; children: ReactNode }) {
   const [armed, setArmed] = useState(false);
   useEffect(() => {
-    if (dismissedThisVisit()) return;
+    if (!PHONE_DOCK_ON || dismissedThisVisit()) return;
     const wide = window.matchMedia(`(min-width: ${minWidth}px)`);
     const check = () => {
       if (!wide.matches && window.scrollY >= window.innerHeight * (DOCK_ARM / 2)) {
