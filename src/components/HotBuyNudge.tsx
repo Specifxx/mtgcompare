@@ -45,6 +45,9 @@ const armOf = (): HotNudgeArm => {
   }
 };
 
+// The quick view's panel (QuickView.tsx). Not any [role=dialog]: the cart panel (.cd-panel) is always in the DOM.
+const quickViewOpen = () => !!document.querySelector('[role="dialog"]:not(.cd-panel)');
+
 export function HotBuyNudge({ top, tcgHref }: { top: Top; tcgHref: string }) {
   const [open, setOpen] = useState(false);
   const visit = useRef<Visit | null>(null);
@@ -79,7 +82,7 @@ export function HotBuyNudge({ top, tcgHref }: { top: Top; tcgHref: string }) {
       const now = Date.now();
       const state = {
         arm: cur.arm, elapsedMs: now - started, scrolledPx: window.scrollY, screenPx: window.innerHeight,
-        boughtThisVisit: !!cur.bought, dialogOpen: !!document.querySelector('[role="dialog"]'), shownThisVisit: !!cur.shown,
+        boughtThisVisit: !!cur.bought, dialogOpen: quickViewOpen(), shownThisVisit: !!cur.shown,
         shownAt: shows(), now,
       };
       if (!hotNudgeShows(state)) return;

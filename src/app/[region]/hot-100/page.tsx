@@ -58,11 +58,6 @@ export default async function Hot100Page({ params }: { params: { region: string 
         <h1 className="mt-2 page-title">
           {SITE_NAME} {n ? hotName(n) : "Hot 100"}
         </h1>
-        <p className="page-lead mt-3 line-clamp-3 sm:line-clamp-none">
-          {c ? `${formatRelease(c.from)} to ${formatRelease(c.through)}. ` : ""}The {NOUN} products whose cheapest in-stock price at {r.adjective} stores rose most over the last seven days, biggest
-          rise first, with each one&rsquo;s place on last week&rsquo;s chart. A product counts when two or more stores had it in stock on both days and its price rose{" "}
-          {HOT_MIN_PCT}% or more. A short week is a shorter chart, never padded.
-        </p>
       </header>
       {rows.length > 0 && (
         // "Shop the top risers" (boardroom, 2026-11-20): the week's top three as product cards in the first screen; a click opens
@@ -77,6 +72,12 @@ export default async function Hot100Page({ params }: { params: { region: string 
           </div>
         </section>
       )}
+      {/* The method, after the shop strip so a phone's first screen reaches the prices (2026-11-20). */}
+      <p className="page-lead mt-6 max-w-3xl line-clamp-3 sm:line-clamp-none">
+        {c ? `${formatRelease(c.from)} to ${formatRelease(c.through)}. ` : ""}The {NOUN} products whose cheapest in-stock price at {r.adjective} stores rose most over the last seven days, biggest
+        rise first, with each one&rsquo;s place on last week&rsquo;s chart. A product counts when two or more stores had it in stock on both days and its price rose{" "}
+        {HOT_MIN_PCT}% or more. A short week is a shorter chart, never padded.
+      </p>
       <Section id="hot" title={n ? `The ${hotName(n)}` : "The chart"} kicker={c ? `Week to ${formatRelease(c.through)}` : undefined}>
         {rows.length ? (
           <ol className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-[repeat(2,minmax(0,1fr))]">

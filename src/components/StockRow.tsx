@@ -46,7 +46,7 @@ export function StockRow({ p, r, extra, buy = false }: { p: ProductCardData; r: 
           {extra}
         </span>
       </span>
-      <span className="shrink-0 text-right">
+      <span className="flex shrink-0 flex-col items-end text-right">
         {s.open && <span className="block text-[11px] font-medium text-muted">From</span>}
         <span className="tabular font-display text-base font-bold sm:text-lg">{s.open ? money(p.lowestPriceCents, r.market) : "—"}</span>
         {buy && <span className="btn btn-primary mt-1 min-h-0 px-3 py-1 text-xs">{s.open ? "Buy" : "Compare"}</span>}
