@@ -504,3 +504,15 @@ test("Commander deck store notes, colours and misspellings join the deck's own p
   assert.notEqual(key("MtG: Nauctis The Sunken Realm - Commander Deck, Collector Edition - Seal the Deal (presale)"), key("Nauctis: The Sunken Realm Commander Deck: Seal the Deal"));
   assert.equal(key("Warhammer 40,000 - Necron Dynasties Commander Deck (Collector's Edition)"), "commander-deck|40k|collector-dynasties-necron");
 });
+
+test("a playmat in a dropped ' | ' segment, and a store's 3-pack bundle, are refused (wrong prices found 20 Nov 2026)", () => {
+  assert.equal(identify("Edge of Eternities Commander Deck: World Shaper | Playmat for Magic: The Gathering"), "accessory");
+  assert.equal(identify("Avatar: The Last Airbender - Play Booster Pack 3 Pack Bundle"), "multiple");
+  // the real products still read
+  const deck = identify("Edge of Eternities Commander Deck: World Shaper");
+  assert.ok(typeof deck === "object" && deck.type === "commander-deck");
+  const b = identify("Magic: The Gathering: Star Trek - Bundle");
+  assert.ok(typeof b === "object" && b.type === "bundle");
+  const fat = identify("Star Trek Beam Me Up Fat Pack Bundle");
+  assert.ok(typeof fat === "object");
+});

@@ -201,7 +201,7 @@ const ACCESSORY =
 // Store-made multiples and lots: priced for several units, so never comparable with one. "Commander Deck - Set of 5" and
 // TCGplayer's "Commander Decks [Set of 5]" are the set's Commander Deck Set, read before this gate.
 const MULTIPLE =
-  /\(\s*pair\s*\)|\bpairs?\b|\bone\s*of\s*each\b|\bset\s*of\s*all\b|\bdisplay\s*of\s*\d|\b(?:set|bundle|lot)\s*of\s*(?:[2-9]|[1-9]\d|two|three|four|five|six)\b|\blots?\s*of\b|\bbundle\s*deal\b|\bcombo\b|\bmulti\s*-?\s*pack\b|\bbulk\b|\bjob\s*lot\b|\b(?:complete|full)\s*(?:set|collection)\b|^\s*[2-9]\d?\s*x\b|\bx\s*[2-9]\d?\s*\)?\s*$|[([]\s*[2-9]\d?\s*x\s*[)\]]|[([]\s*x\s*[2-9]\d?\s*[)\]]|\b(?:[2-9]|[1-9]\d)\s*x\s*(?:play|collector|set|draft)?\s*(?:booster\s*)?(?:packs?|boxes|bundles?|decks?)\b|\b(?:[2-9]|1\d)\s*(?:booster\s*)?packs?\s*per\s*sleeve\b|\bdeluxe\b|\bbundle\s*(?:&|and|\+)\s*(?:collector|play)\b|\s\+\s|(?<!\bcases?\s{0,3})[([]\s*[2-9]\d?\s*(?:boxes|bundles)\s*[)\]]/i;
+  /\b(?:[2-6]|two|three|four|five|six)\s*-?\s*(?:booster\s*)?packs?\s*bundles?\b|\(\s*pair\s*\)|\bpairs?\b|\bone\s*of\s*each\b|\bset\s*of\s*all\b|\bdisplay\s*of\s*\d|\b(?:set|bundle|lot)\s*of\s*(?:[2-9]|[1-9]\d|two|three|four|five|six)\b|\blots?\s*of\b|\bbundle\s*deal\b|\bcombo\b|\bmulti\s*-?\s*pack\b|\bbulk\b|\bjob\s*lot\b|\b(?:complete|full)\s*(?:set|collection)\b|^\s*[2-9]\d?\s*x\b|\bx\s*[2-9]\d?\s*\)?\s*$|[([]\s*[2-9]\d?\s*x\s*[)\]]|[([]\s*x\s*[2-9]\d?\s*[)\]]|\b(?:[2-9]|[1-9]\d)\s*x\s*(?:play|collector|set|draft)?\s*(?:booster\s*)?(?:packs?|boxes|bundles?|decks?)\b|\b(?:[2-9]|1\d)\s*(?:booster\s*)?packs?\s*per\s*sleeve\b|\bdeluxe\b|\bbundle\s*(?:&|and|\+)\s*(?:collector|play)\b|\s\+\s|(?<!\bcases?\s{0,3})[([]\s*[2-9]\d?\s*(?:boxes|bundles)\s*[)\]]/i;
 
 // A single card's treatment ("Sheoldred (Borderless)", "Extended Art Foil"): never on a sealed title, except a Secret Lair drop's or a
 // Collector's Edition deck's, which name the foil they are printed in.
@@ -704,6 +704,9 @@ export function identify(title: string, opts: { strict?: boolean } = {}): Sealed
   // A store's lot of singles sold as a "bundle": "Star Trek - Rare Bundle", "Uncommon Bundle", "Mythic Bundle".
   if (/\b(?:common|uncommon|rare|mythic)s?\s*bundle\b/i.test(t)) return "not-sealed";
   if (ACCESSORY.test(t)) return "accessory";
+  // A playmat named in a " | " segment stripFiller drops is still a playmat: "Edge of Eternities Commander Deck: World Shaper |
+  // Playmat for Magic: The Gathering" (videogametrader, US$26.99 against a US$51 deck, 20 Nov 2026).
+  if (/\bplay\s*-?\s*mats?\b/i.test(normalizeTitle(title))) return "accessory";
   if (SINGLE_TREATMENT.test(t) && !TREATMENT_OK.test(t)) return "not-sealed";
   if (opts.strict && !MAGIC_WORD.test(t) && !MAGIC_PRODUCT.test(t)) return "not-magic";
 

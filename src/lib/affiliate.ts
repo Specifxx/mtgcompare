@@ -48,6 +48,7 @@ export const PLACEMENTS = [
   // CARD PRICES (2026-11-17, DECISIONS.md "Card prices: the most valuable cards of each set"): the card pages and lists.
   "card-ebay", // a card page: the "Check on eBay" search row, first
   "card-tcgplayer", // a card page: the TCGplayer row with its market price
+  "tcgplayer-hot-nudge", // the Hot 100 buy prompt (components/HotBuyNudge.tsx, 2026-11-20): Reddit landings only, 50/50, its one paid link
   "header", // the "eBay" item in the site header (desktop nav, xl and up only)
   // eBay LISTING STRIPS (components/EbayStrip.tsx): real listings imported once a day (scripts/ebay-import.ts), read
   // from our database through /api/ebay/<region>. One placement per surface, so EPN's customid report and Vercel's

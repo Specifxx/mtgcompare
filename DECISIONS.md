@@ -2630,6 +2630,10 @@ and every chart row (`StockRow` with `buy`) opens the quick view on a plain clic
 cheapest price. The quick view itself is unchanged (the A/B runs to 3 Dec); the rows only link into it. Same data as
 before (`cardsFor`), no new read, caching unchanged. Read on 27 Nov and 4 Dec as buy clickers among visitors with a
 reddit.com referrer; the target is 8% or more.
+
+Same day, after the Hot 100 post drew 2,812 visitors (2,584 from Reddit, 95% phones) and 2 buy clickers on the page before
+the change above was live: the "Biggest drops this week" rows get the same `buy` (quick view + Buy). A drop is the week's
+best buying signal, and it was the one list on the page with no way to a price but the product page. Same data, same quick view.
 ## 2026-11-20: Numbered "Emblem" cards are cards
 
 The card coverage audit (TCG Singles DB's `coverage.yml`, owner 2026-11-20: every card, promos and special printings included)
@@ -2638,6 +2642,18 @@ found 22 cards TCGplayer lists that had no page here, all named "Emblem": the 19
 and Secret Lair's "Earth's Mightiest Emblem - Arcane Signet" (908). `cardsOfGroup` dropped every name with "emblem". A game
 emblem is a token: rarity T, or a letter number such as E1. Only those are left out now; a card with a plain number stays.
 
+## The Hot 100 buy prompt, 50/50 (2026-11-20)
+
+The owner, the day a Hot 100 Reddit post brought 2,596 Reddit visitors to `/us/hot-100` (95% on phones) and the page had 2 buy
+clickers: "we might need some pop up buy clicks ads to convert". `HotBuyNudge` (`lib/hot-nudge.ts`): a visit that LANDED on a Hot 100
+page from reddit.com is split 50/50 (localStorage `hot-nudge`); the "on" arm sees one small card at the foot of the screen with the
+week's #1 riser, its cheapest in-stock price, "Compare every store" (the quick view, unchanged) and one paid link, a TCGplayer search
+(placement `tcgplayer-hot-nudge`). Never on load (8 s and a scroll past the first screen), never after a buy click or over a quick
+view, once a visit and 3 times in 7 days, ✕ and Escape close it, gone after 30 s. No eBay or Amazon in a pop-up (owner rules).
+Google visitors and crawlers never see it: the server HTML has nothing, so search and the light-ads group of the heavy-ads test
+(MTG light, to 10 Dec) are untouched. Counted by ONE event `hot_nudge` {k: "<arm>:seen|shown|buy"}; buy_click is unchanged (3
+properties). Read on 22 Nov and at the next Hot 100 post: visits with a buy click per seen visit, per arm; keep at p < 0.05.
+Click metric: MTG /us/hot-100 Reddit buy clickers, 2 of 2,596 on 19-20 Nov; target 8%.
 ## 2026-11-20: A "keep up" strip on the Hot 100 (owned audience)
 
 The Hot 100 is where Reddit posts land, and Reddit visitors rarely buy (about 2.3% click a buy button, against about 19% from
