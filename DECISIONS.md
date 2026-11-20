@@ -2637,3 +2637,14 @@ found 22 cards TCGplayer lists that had no page here, all named "Emblem": the 19
 (Emblem)" foils (27-45, US$200 to US$1,300 market), Eventide's Leering Emblem (171), Future Sight's Emblem of the Warmind (112)
 and Secret Lair's "Earth's Mightiest Emblem - Arcane Signet" (908). `cardsOfGroup` dropped every name with "emblem". A game
 emblem is a token: rarity T, or a letter number such as E1. Only those are left out now; a card with a plain number stays.
+
+## 2026-11-20 — Black Friday pages: products furthest under their own 30-day price, with a buy button on every line
+
+Code red plan (20 Nov), Cyber Week buy sprint: the season's pages lead with a list a shopper can act on. `lib/real-drops.ts`: a product
+is listed only when its cheapest in-stock price today is 10% or more under the median of its OWN recorded daily prices over the
+last 30 days (today left out), with 14+ recorded days, wrong-listing days (under half the median) left out, no claim when the
+records swing more than 2x, no placeholder prices (9999.99), and a typical price of 20.00 or more. Each line carries the
+cheapest store's buy button (its own link, `offerLink`) and a tagged eBay search, placement `bf-drops`. It replaces the
+"Under their own 30-day typical price" list on the same pages (same idea, no buy button, fewer guards). Copy says "under its
+30-day typical" and "lowest since <date>", never "was", "dropped" or "ever" (BANNED_COPY). Read 3 Dec: `bf-drops` buy clicks
+28 Nov to 1 Dec against the 4 days before. The same file ships on Dex, Rift and OP.
