@@ -2674,3 +2674,15 @@ cheapest store's buy button (its own link, `offerLink`) and a tagged eBay search
 "Under their own 30-day typical price" list on the same pages (same idea, no buy button, fewer guards). Copy says "under its
 30-day typical" and "lowest since <date>", never "was", "dropped" or "ever" (BANNED_COPY). Read 3 Dec: `bf-drops` buy clicks
 28 Nov to 1 Dec against the 4 days before. The same file ships on Dex, Rift and OP.
+
+## 2026-11-20 — "Pick one" Commander deck and Scene Box listings are vague; Italian Star Trek decks are foreign
+
+The 20 Nov export had 33 store titles that each made a one-offer page: luckydice's Italian Star Trek decks ("Flotta della
+Federazione", "Furia Klingon", "Noi Siamo i Borg", "Squadra di Sbarco"), "pick one" listings where the store chooses the deck or
+box ("(Choose Your Style)", "(4 options)", "[Various]", "(Various Styles)", "(See Variants)", "(au choix)", "Pick Your Scene",
+"Choose one", "Individual Commander Decks", "1pc", "Standard Edition", "(Assorted see instore for availability)"), and store
+notes ("(New Arrival)" outside Commander decks, "(Delayed Availability)", "(DELAYED NO ETA)", "1pc"). `sealed-title.ts` now
+reads the Italian names as foreign, drops the pick-one words for Commander decks and Scene Boxes (a title naming no deck is then
+vague, one naming its deck keys onto it), and drops the notes everywhere. Replayed on every offer title: 25 refused, 8 join an
+existing page (Beam Me Up Bundle, Star Trek Bundle, Prerelease Pack, both Scene Boxes, Marvel Beginner Box, Reality Fracture
+Secret Lair Bundle), nothing else moves. Orphaned pages 301 via `culled.json`.

@@ -183,6 +183,9 @@ const FOREIGN = new RegExp(
     "[(\\[]\\s*(?:de|fr|it|es|pt|nl|pl|jp)\\s*/\\s*en\\s*[)\\]]|[(\\[]\\s*en\\s*/\\s*(?:de|fr|it|es|pt|nl|pl|jp)\\s*[)\\]]",
     "\\s(?:jp|jpn|jap|kr|cn|ru|de|fr|pt|nl|pl|ita|ger|spa)\\s*$",
     // Other languages' product words: a German "Spiel-Booster", a French "Booster de jeu", an Italian "busta", a Spanish "sobre".
+    // Italian Commander deck names (2026-11-20, luckydice): "Flotta della Federazione", "Furia Klingon", "Noi Siamo i Borg",
+    // "Squadra di Sbarco" are the Italian prints of the Star Trek decks, sold beside the English ones.
+    "\\b(?:della|flotta|furia|noi\\s*siamo|squadra\\s*di)\\b",
     "\\b(?:spiel\\s*-?\\s*booster|sammler\\s*-?\\s*booster|sammelkartenspiel|vorpremiere|booster\\s*de\\s*(?:jeu|collection|extension)|boite\\s*de|coffret|busta|buste|bustine|mazzo|sobres?\\s*de|caja\\s*de|mazo|verzamel\\w*)\\b",
   ].join("|"),
   "i",
@@ -462,18 +465,34 @@ const STORE_NOTE =
 const DATE_NOTE =
   /[(\[]\s*(?:vvk|vorverkauf|approx(?:imately)?|est(?:imated)?|expected|available|delays?\s*expected|may\s*be\s*delayed)\b[^)\]]*[)\]]|\bvvk\b|\bvorverkauf\b|\b\d{1,2}\.\d{1,2}\.(?:19|20)\d\d\b|\brelease\s*date\s*:?\s*(?:\d{1,2}(?:st|nd|rd|th)?\s*(?:of\s*)?[a-z]+|[a-z]+\s*\d{1,2}(?:st|nd|rd|th)?)\s*,?\s*(?:(?:19|20)\d\d)?/g;
 
+// A store's delay note, before STORE_NOTE takes its "ETA)" and leaves "(delayed no" behind (2026-11-20: "Beam Me Up Bundle
+// [PREORDER] (DELAYED NO ETA)", "(Delayed Availability)" each made a one-store page of the Beam Me Up Bundle).
+const DELAY_NOTE = /[(\[]\s*delayed\b[^)\]]*[)\]]/g;
+
 function signatureTokens(title: string, set: MtgSet | null, type: TypeKey): string[] {
-  let t = normalizeTitle(title).replace(SKU_BRACKET, " ").replace(/\*+[^*]*\*+/g, " ").toLowerCase().replace(STORE_NOTE, " ").replace(DATE_NOTE, " ");
+  let t = normalizeTitle(title).replace(SKU_BRACKET, " ").replace(/\*+[^*]*\*+/g, " ").toLowerCase().replace(DELAY_NOTE, " ").replace(STORE_NOTE, " ").replace(DATE_NOTE, " ");
   // A store's own SKU written into the title ("Starter Collection MTG-FND-STC", "Bundle MTG-StarTrek-BNDL"): a catalogue code, not
   // the product's name (2026-11-18). Removed before the set's name, which would otherwise eat "StarTrek" out of the middle of it.
   t = t.replace(/\bmtg-[a-z0-9]+(?:-[a-z0-9]+)+\b/g, " ");
+  // Store notes that say nothing about which product (2026-11-20 audit): "(New Arrival)" on any product, "1pc" (one of it).
+  t = t.replace(/\bnew\s*arrivals?\b|\b1\s*pcs?\b/g, " ");
+  if (PICKED_TYPES.has(type)) {
+    // "Pick one" listings of a Commander deck or Scene Box (2026-11-20 audit, each its own one-store page): "(Choose Your Style)",
+    // "(4 options)", "[Various]", "(Various Styles)", "(See Variants)", "(au choix)", "Pick Your Scene", "Choose one", "Individual
+    // Commander Decks", "(Assorted see instore for availability)", "Standard Edition". The store picks the deck, so the title names
+    // none; with these gone a title naming no deck is refused as vague, and one that does name its deck keys onto that deck.
+    t = t.replace(
+      /\b(?:choose|pick)\s*(?:your\s*)?(?:style|scene|deck|variant|one)s?\b|\bvarious(?:\s*styles?)?\b|\bsee\s*variants?\b|\b\d+\s*options?\b|\bau\s*choix\b|\bindividual\b|\bsee\s*in\s*-?\s*store\s*for\s*availability\b|\bstandard\s*edition\b/g,
+      " ",
+    );
+  }
   if (type === "commander-deck") {
     // 2026-11-19 audit of one-store twins: a Commander deck's colour identity ("(Federation Fleet Blue-Red-White)"), a store note
     // ("(New Arrival)", "(Single Pack)") and store misspellings ("Kilngon", "We Are The Borgs", "Terror Of The Abyss", "The Ruinous
     // Power") made a second page of a deck other stores list. Colours only as a hyphenated run of two or more, never one word.
     t = t
       .replace(/\b(?:white|blue|black|red|green)(?:\s*-\s*(?:white|blue|black|red|green)){1,4}\b/g, " ")
-      .replace(/\bnew\s*arrivals?\b|[(\[]\s*single\s*pack\s*[)\]]/g, " ")
+      .replace(/[(\[]\s*single\s*pack\s*[)\]]/g, " ")
       .replace(/\bkilngon\b/g, "klingon")
       .replace(/\bthe\s*borgs\b/g, "the borg")
       .replace(/\bterror\s*of\s*the\s*abyss?\b/g, "terrors of the abyss")
