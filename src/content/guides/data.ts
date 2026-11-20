@@ -91,6 +91,7 @@ const READS: Record<GuideSlug, readonly [FamilyKey, number][]> = {
   "star-trek-mtg-which-product-to-buy": [],
   "nauctis-mtg-which-product-to-buy": [],
   "marvel-darkhold-destiny-mtg-which-product-to-buy": [],
+  "how-to-identify-rare-magic-cards": [],
   "magic-black-friday-2026": [["play-box", 4], ["collector-box", 3], ["bundle", 3], ["commander", 3]],
 };
 
