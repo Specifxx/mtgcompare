@@ -516,3 +516,48 @@ test("a playmat in a dropped ' | ' segment, and a store's 3-pack bundle, are ref
   const fat = identify("Star Trek Beam Me Up Fat Pack Bundle");
   assert.ok(typeof fat === "object");
 });
+
+// 2026-11-20 audit of one-offer Star Trek and Hobbit pages (real store titles).
+test("Italian deck names are foreign; 'pick one' listings are vague; store notes join the product's own page", () => {
+  for (const t of [
+    "Magic - Star Trek: Commander Deck - Flotta della Federazione",
+    "Magic - Star Trek: Commander Deck - Furia Klingon",
+    "Magic - Star Trek: Commander Deck - Noi Siamo i Borg",
+    "Magic - Star Trek: Commander Deck - Squadra di Sbarco",
+  ]) assert.equal(identify(t), "foreign", t);
+  for (const t of [
+    "MTG STAR TREK COMMANDER DECK (CHOOSE YOUR STYLE)",
+    "MTG [TRK] Star Trek Commander Decks (4 options)",
+    "MTG [TRK] Star Trek Collector Commander Decks (4 options)",
+    "Magic The Gathering: Star Trek Commander Deck [Various]",
+    "Magic The Gathering: Star Trek (Collector's Edition) Commander Deck [Various]",
+    "MTG - Star Trek - Commander Decks (Various Styles)",
+    "Magic: The Gathering | TCG: Star Trek | Commander Decks (See Variants)",
+    "MTG · Star Trek · Commander Deck (au choix)",
+    "Star Trek Individual Commander Decks (MTG)",
+    "Magic: The Gathering Star Trek Commander Deck 1pc",
+    "Magic: The Gathering Star Trek Commander Deck Standard Edition",
+    "MTG Star Trek - Commander Deck (Assorted see instore for availability)",
+    "MTG- STAR TREK SCENE BOX- Choose one",
+    "MTG STAR TREK SCENE BOX (PICK YOUR SCENE!)",
+    "MTG - Star Trek - Scene Box (Various Styles)",
+    "Magic the Gathering: The Hobbit - Scene Box [Various]",
+    "Magic the Gathering The Hobbit Scene Box 1pc",
+  ]) assert.equal(identify(t), "vague", t);
+  const same: [string, string][] = [
+    ["Star Trek - Beam Me Up Bundle [PREORDER] (DELAYED NO ETA)", "Star Trek Beam Me Up Bundle"],
+    ["Star Trek Beam Me Up Bundle (Delayed Availability)", "Star Trek Beam Me Up Bundle"],
+    ["MTG: Star Trek - Bundle (New Arrival)", "Magic: The Gathering: Star Trek - Bundle"],
+    ["MTG: Star Trek - Scene Box - Enterprise-Q (New Arrival)", "Magic: The Gathering - Star Trek Scene Box - Enterprise-Q"],
+    ["MTG: Star Trek - Prerelease Pack (New Arrival)", "Magic: The Gathering Star Trek Prerelease Pack"],
+    ["Magic: The Gathering Star Trek Prerelease Pack 1pc", "Magic: The Gathering Star Trek Prerelease Pack"],
+    ["Magic the Gathering Marvel Super Heroes Beginner Box 1pc", "Marvel Super Heroes Beginner Box"],
+    ["MTG: Reality Fracture - Secret Lair Bundle (New Arrival)", "Reality Fracture Secret Lair Bundle"],
+  ];
+  for (const [a, b] of same) {
+    assert.ok(!key(a).startsWith("REJECT"), a);
+    assert.equal(key(a), key(b), a);
+  }
+  // A named deck sold with a pick-one note still keys onto that deck.
+  assert.equal(key("Star Trek Commander Deck - Federation Fleet Standard Edition"), key("Star Trek Commander Deck - Federation Fleet"));
+});
