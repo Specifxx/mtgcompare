@@ -1325,6 +1325,21 @@ html[data-bottomnav] [data-dock-stack] { translate: 0 calc(-1 * var(--bn-space) 
   }
 }
 
+/* Head of Product (2026-11-21; owner 2026-11-20: "the add to cart button is too intrusive"). On a phone the row used to split its
+   width 50/50 with "Add to cart" FIRST, so the cart read as the row's main action. Now the store's own button leads and takes the
+   width, and the cart is a small labelled "Add" chip after it (never an icon alone: owner 2026-11-14). Product pages only: never
+   inside the quick view ([role="dialog"]), whose A/B runs to 3 Dec. Desktop unchanged. Reverts by deleting this block. */
+@media (max-width: 639.98px) {
+  .or-row:not(.or-lean):not([role="dialog"] .or-row) > .or-act > .ce-cart-add {
+    order: 2;
+    flex: 0 0 auto;
+    padding: 0 0.7rem;
+  }
+  .or-row:not(.or-lean):not([role="dialog"] .or-row) > .or-act > .ce-cart-add .ce-cart-more {
+    display: none;
+  }
+}
+
 /* The eBay stand-out A/B (lib/ebay-pop.ts, 2026-11-19): in arm "pop" eBay's button is bolder and larger with a soft blue halo, and the
    list row holding one is tinted eBay blue with a blue edge. Shape and colour only: no words, no claim, no position. Never inside the
    quick view ([role="dialog"]), whose own A/B runs to 3 Dec. */
