@@ -1082,6 +1082,7 @@ a.hero-pill:hover {
 
 /* The phone bottom nav (components/BottomNav.tsx): the return nudge sits above it, not under it, while it shows. */
 html[data-bottomnav] [data-return-nudge] { bottom: calc(var(--bn-space) + 16px); }
+html[data-bottomnav] [data-hot-nudge] { bottom: calc(var(--bn-space) + 16px); }
 
 /* The phone bottom nav (components/BottomNav.tsx). Moves on transform only, opaque (a backdrop blur on a fixed bar repaints every
    scroll frame on a phone), hides AFTER its slide so it never pops out. */

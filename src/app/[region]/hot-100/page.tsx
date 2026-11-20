@@ -4,6 +4,10 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Empty, Section } from "@/components/Section";
 import { StockRow } from "@/components/StockRow";
 import { ProductCard } from "@/components/ProductCard";
+import { HotBuyNudge } from "@/components/HotBuyNudge";
+import { tcgplayerSearchUrl } from "@/lib/affiliate";
+import { thumb } from "@/lib/images";
+import { stockHeadline } from "@/lib/stock";
 import { cardsFor } from "@/content/guides/more-data";
 import { money } from "@/lib/format";
 import { hotChart, hotDrops, hotMove, hotName, HOT_MIN_PCT } from "@/lib/hot100";
@@ -43,6 +47,7 @@ export default async function Hot100Page({ params }: { params: { region: string 
   const rows = (c?.rows ?? []).map((row) => ({ row, card: bySlug.get(row.slug) })).filter((x) => !!x.card);
   const drops = falls.map((row) => ({ row, card: bySlug.get(row.slug) })).filter((x) => !!x.card);
   const n = c?.rows.length ?? 0;
+  const top1 = rows[0] ? { card: rows[0].card!, row: rows[0].row } : null;
   const path = `/${r.region}/hot-100`;
   const ld = itemListJsonLd({ name: `${SITE_NAME} ${hotName(n)}, ${r.name}`, path, items: rows.map(({ card }) => ({ path: `/${r.region}/p/${card!.slug}`, name: card!.name, image: card!.imageUrl })) });
   return (
@@ -115,6 +120,7 @@ export default async function Hot100Page({ params }: { params: { region: string 
                   <StockRow
                     p={card!}
                     r={r}
+                    buy
                     extra={
                       <span className="tabular text-[11px] font-semibold text-open">
                         ▼ {Math.abs(row.pct)}% · {money(row.before, r.market)} → {money(row.after, r.market)}
@@ -137,6 +143,21 @@ export default async function Hot100Page({ params }: { params: { region: string 
       </nav>
       <p className="mt-6 max-w-3xl text-sm text-muted">Prices exclude shipping. One store listing or selling out can move the cheapest price, so a single week is a short window. This is what the shelves did, not a forecast.</p>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />
+      {top1 && (
+        // The buy prompt (lib/hot-nudge.ts): drawn in the browser, Reddit landings only, 50/50; nothing in the server HTML.
+        <HotBuyNudge
+          top={{
+            slug: top1.card.slug,
+            region: r.region,
+            name: top1.card.name,
+            sub: top1.card.productType,
+            img: thumb(top1.card.imageUrl, 200) ?? null,
+            price: stockHeadline(top1.card, false).open ? money(top1.card.lowestPriceCents, r.market) : null,
+            pct: top1.row.pct,
+          }}
+          tcgHref={tcgplayerSearchUrl(top1.card.name, r.region, "tcgplayer-hot-nudge")}
+        />
+      )}
     </div>
   );
 }
