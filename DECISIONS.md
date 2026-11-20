@@ -2630,3 +2630,10 @@ and every chart row (`StockRow` with `buy`) opens the quick view on a plain clic
 cheapest price. The quick view itself is unchanged (the A/B runs to 3 Dec); the rows only link into it. Same data as
 before (`cardsFor`), no new read, caching unchanged. Read on 27 Nov and 4 Dec as buy clickers among visitors with a
 reddit.com referrer; the target is 8% or more.
+## 2026-11-20: Numbered "Emblem" cards are cards
+
+The card coverage audit (TCG Singles DB's `coverage.yml`, owner 2026-11-20: every card, promos and special printings included)
+found 22 cards TCGplayer lists that had no page here, all named "Emblem": the 19 Jurassic World Collection "(Borderless)
+(Emblem)" foils (27-45, US$200 to US$1,300 market), Eventide's Leering Emblem (171), Future Sight's Emblem of the Warmind (112)
+and Secret Lair's "Earth's Mightiest Emblem - Arcane Signet" (908). `cardsOfGroup` dropped every name with "emblem". A game
+emblem is a token: rarity T, or a letter number such as E1. Only those are left out now; a card with a plain number stays.
