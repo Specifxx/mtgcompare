@@ -6,7 +6,7 @@
 // src/app/favicon.ico; src/lib/og-card.tsx draws a flat copy for the share cards (satori has no gradients).
 export function LogoMark({ className = "h-8 w-8" }: { className?: string }) {
   return (
-    <span className="relative inline-flex shrink-0">
+    <span className="relative inline-flex shrink-0 xmas-cap">
       <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
         <defs>
           <radialGradient id="mcm-bg" cx="0.5" cy="0.3" r="0.85"><stop offset="0" stopColor="#2b1d55"/><stop offset="1" stopColor="#0b0914"/></radialGradient>
