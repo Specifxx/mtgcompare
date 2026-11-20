@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-19T17:54:53.987Z",
+ "generatedAt": "2026-11-20T02:11:15.494Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -92,9 +92,9 @@
    "currency": "AUD",
    "store": "HobbiShack",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/657860_in_1000x1000.jpg",
-   "refCents": 17450,
+   "refCents": 16950,
    "refLabel": "median store price",
-   "savingPct": 43
+   "savingPct": 41
   },
   {
    "kind": "deal",
@@ -232,7 +232,7 @@
    "currency": "USD",
    "store": "Video Game Trader LLC",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/619676_in_1000x1000.jpg",
-   "refCents": 5067,
+   "refCents": 5133,
    "refLabel": "median store price",
    "savingPct": 47
   },
@@ -270,13 +270,13 @@
    "region": "US",
    "title": "Secret Lair Drop: Secret Lair x The Hobbit: Over the Edge of the Wild - Traditional Foil Edition",
    "url": "https://mtgcompare.app/us/p/secret-lair-drop-secret-lair-x-the-hobbit-over-the-edge-of-the-wild-traditional-foil-editi",
-   "cents": 2799,
+   "cents": 2849,
    "currency": "USD",
    "store": "Triad Cards and Gaming",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/711015_in_1000x1000.jpg",
    "refCents": 4500,
    "refLabel": "median store price",
-   "savingPct": 38
+   "savingPct": 37
   },
   {
    "kind": "deal",
