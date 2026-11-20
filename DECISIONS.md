@@ -2637,3 +2637,14 @@ found 22 cards TCGplayer lists that had no page here, all named "Emblem": the 19
 (Emblem)" foils (27-45, US$200 to US$1,300 market), Eventide's Leering Emblem (171), Future Sight's Emblem of the Warmind (112)
 and Secret Lair's "Earth's Mightiest Emblem - Arcane Signet" (908). `cardsOfGroup` dropped every name with "emblem". A game
 emblem is a token: rarity T, or a letter number such as E1. Only those are left out now; a card with a plain number stays.
+
+## 2026-11-20: A "keep up" strip on the Hot 100 (owned audience)
+
+The Hot 100 is where Reddit posts land, and Reddit visitors rarely buy (about 2.3% click a buy button, against about 19% from
+Google), and a Reddit visitor who does not buy is gone. Under the first buy cards, before the chart, the page now offers two ways
+to come back: the week's biggest price drops by email (the existing weekly email on RiftCompare's shared alert service, kind
+"weekly", double opt-in; this site keeps no address) and the Discord hub through this site's own invite code
+(`components/KeepUpStrip.tsx`). Inline, never a pop-up, no heading, a fixed minimum height so nothing moves. It is not an A/B
+test: it is on for everyone. Measured as `weekly_signup` with placement `hot-100` (an existing event, no new event name) and
+the invite's uses in Discord. The email promises the week's drops, which is what the weekly email sends, not the Hot 100 chart
+itself.
