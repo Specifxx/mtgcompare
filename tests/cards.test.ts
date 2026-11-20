@@ -96,6 +96,8 @@ test("cardsOfGroup keeps cards (Pack Rat included) with each finish's market pri
     { productId: 3, name: "Goblin Token", extendedData: ext("T1", "T") },
     { productId: 4, name: "Sol Ring (Foil Etched)", extendedData: ext("400", "U") },
     { productId: 5, name: "Ajani Emblem", extendedData: ext("E1", "C") },
+    { productId: 6, name: "Leering Emblem", extendedData: ext("171", "R") },
+    { productId: 7, name: "Indoraptor, the Perfect Hybrid (Borderless) (Emblem)", extendedData: ext("40", "R") },
   ];
   const prices = [
     { productId: 1, marketPrice: 1.5, subTypeName: "Normal" },
@@ -104,7 +106,7 @@ test("cardsOfGroup keeps cards (Pack Rat included) with each finish's market pri
     { productId: 2, marketPrice: 120, subTypeName: "Normal" },
   ];
   const out = cardsOfGroup(products, prices);
-  assert.deepEqual(out.map((c) => c.id), [1, 4]);
+  assert.deepEqual(out.map((c) => c.id), [1, 4, 6, 7]);
   assert.deepEqual(out[0].p, [150, 325, null]);
   assert.deepEqual(out[1].p, [null, null, 1200]);
   assert.equal(skipGroup({ name: "Foundations Art Series" }), true);

@@ -305,7 +305,7 @@ const cents = (usd: number | null | undefined) => (typeof usd === "number" && us
 
 /**
  * The cards of one TCGplayer group: products with a rarity or a collector number (sealed products have neither), never a token, an
- * emblem, an art card or a checklist (a card named "Pack Rat" is a card: sealed products are told apart by having
+ * game emblem (a numbered card named Emblem stays), an art card or a checklist (a card named "Pack Rat" is a card: sealed products are told apart by having
  * no rarity and no number), each with TCGplayer's market price per finish (null = no recent sale).
  */
 export function cardsOfGroup(products: readonly TcgcsvCardProduct[], prices: readonly TcgcsvCardPrice[]): CardCandidate[] {
@@ -324,7 +324,10 @@ export function cardsOfGroup(products: readonly TcgcsvCardProduct[], prices: rea
     const number = ext(p, "Number");
     const rarity = ext(p, "Rarity");
     if (!number && !rarity) continue;
-    if (rarity === "T" || /\b(?:token|emblem|art card|checklist|substitute card)\b/i.test(p.name)) continue;
+    if (rarity === "T" || /\b(?:token|art card|checklist|substitute card)\b/i.test(p.name)) continue;
+    // A game emblem ("Ajani Emblem", number E1) is a token. A printed card is not: "Leering Emblem" (Eventide 171), the Jurassic
+    // World "(Emblem)" borderless foils (27-45, up to US$1,300) and Secret Lair's "Earth's Mightiest Emblem" all carry a plain number.
+    if (/\bemblem\b/i.test(p.name) && !/^\d+[a-z]?$/i.test(number ?? "")) continue;
     out.push({ id: p.productId, n: p.name, no: number ?? "", r: rarity, p: byId.get(p.productId) ?? [null, null, null] });
   }
   return out;

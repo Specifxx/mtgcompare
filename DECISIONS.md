@@ -2620,3 +2620,11 @@ asked for hats and lights by name, so they come back after the 2026-11-08 tone-d
   but two class names, so titles, metadata and structured data are untouched. Favicons and share images are unchanged.
 - Off switch: `CHRISTMAS_FESTIVE_LAYER` (`lib/season.ts`, the `data-festive` attribute on `<html>`); the Christmas window
   also ends it on 27 December by itself. Remove after New Year: delete the block and the two classes.
+
+## 2026-11-20: Numbered "Emblem" cards are cards
+
+The card coverage audit (TCG Singles DB's `coverage.yml`, owner 2026-11-20: every card, promos and special printings included)
+found 22 cards TCGplayer lists that had no page here, all named "Emblem": the 19 Jurassic World Collection "(Borderless)
+(Emblem)" foils (27-45, US$200 to US$1,300 market), Eventide's Leering Emblem (171), Future Sight's Emblem of the Warmind (112)
+and Secret Lair's "Earth's Mightiest Emblem - Arcane Signet" (908). `cardsOfGroup` dropped every name with "emblem". A game
+emblem is a token: rarity T, or a letter number such as E1. Only those are left out now; a card with a plain number stays.
