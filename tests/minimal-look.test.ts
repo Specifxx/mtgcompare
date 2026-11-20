@@ -148,7 +148,7 @@ test("the region home as a crawler reads it: one h1, every shelf list and every 
     for (const k of ["/type/play-booster-boxes", "/type/collector-booster-boxes", "/type/commander-decks", "/type/play-booster-packs", "/deals", "/sets"]) assert.match(hero, new RegExp(`class="way flex-1" href="/${region}${k}"`), `${region}: ${k} is a way in`);
     // The shelf: at least the two product lines, all of their products in the HTML whichever tab is chosen.
     const tabs = [...html.matchAll(/role="tab"[^>]*>([^<]+)/g)].map((m) => m[1]);
-    assert.deepEqual(tabs.slice(0, 2), ["Play booster boxes", "Collector boxes"], region);
+    assert.deepEqual(tabs.slice(0, 3), ["Most popular", "Play booster boxes", "Collector boxes"], region); // Most popular first (owner, 2026-11-20)
     const panels = html.split('role="tabpanel"').slice(1);
     assert.equal(panels.length, tabs.length);
     for (const [i, p] of panels.entries()) {
