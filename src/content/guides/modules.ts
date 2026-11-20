@@ -31,6 +31,7 @@ import * as tlaPrices from "./avatar-last-airbender-mtg-sealed-prices";
 import * as trkWhich from "./star-trek-mtg-which-product-to-buy";
 import * as nauWhich from "./nauctis-mtg-which-product-to-buy";
 import * as mddWhich from "./marvel-darkhold-destiny-mtg-which-product-to-buy";
+import * as identifyRare from "./how-to-identify-rare-magic-cards";
 
 export const GUIDE_MODULES: Record<GuideSlug, GuideModule> = {
   "play-booster-vs-collector-booster-vs-bundle": compare,
@@ -62,4 +63,5 @@ export const GUIDE_MODULES: Record<GuideSlug, GuideModule> = {
   "star-trek-mtg-which-product-to-buy": trkWhich,
   "nauctis-mtg-which-product-to-buy": nauWhich,
   "marvel-darkhold-destiny-mtg-which-product-to-buy": mddWhich,
+  "how-to-identify-rare-magic-cards": identifyRare,
 };
