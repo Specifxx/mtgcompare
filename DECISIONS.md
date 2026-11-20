@@ -2654,3 +2654,23 @@ Google visitors and crawlers never see it: the server HTML has nothing, so searc
 (MTG light, to 10 Dec) are untouched. Counted by ONE event `hot_nudge` {k: "<arm>:seen|shown|buy"}; buy_click is unchanged (3
 properties). Read on 22 Nov and at the next Hot 100 post: visits with a buy click per seen visit, per arm; keep at p < 0.05.
 Click metric: MTG /us/hot-100 Reddit buy clickers, 2 of 2,596 on 19-20 Nov; target 8%.
+## 2026-11-20: A "keep up" strip on the Hot 100 (owned audience)
+
+The Hot 100 is where Reddit posts land, and Reddit visitors rarely buy (about 2.3% click a buy button, against about 19% from
+Google), and a Reddit visitor who does not buy is gone. Under the first buy cards, before the chart, the page now offers two ways
+to come back: the week's biggest price drops by email (the existing weekly email on RiftCompare's shared alert service, kind
+"weekly", double opt-in; this site keeps no address) and the Discord hub through this site's own invite code
+(`components/KeepUpStrip.tsx`). Inline, never a pop-up, no heading, a fixed minimum height so nothing moves. It is not an A/B
+test: it is on for everyone. Measured as `weekly_signup` with placement `hot-100` (an existing event, no new event name) and
+the invite's uses in Discord. The email promises the week's drops, which is what the weekly email sends, not the Hot 100 chart
+itself.
+## 2026-11-20 — Black Friday pages: products furthest under their own 30-day price, with a buy button on every line
+
+Code red plan (20 Nov), Cyber Week buy sprint: the season's pages lead with a list a shopper can act on. `lib/real-drops.ts`: a product
+is listed only when its cheapest in-stock price today is 10% or more under the median of its OWN recorded daily prices over the
+last 30 days (today left out), with 14+ recorded days, wrong-listing days (under half the median) left out, no claim when the
+records swing more than 2x, no placeholder prices (9999.99), and a typical price of 20.00 or more. Each line carries the
+cheapest store's buy button (its own link, `offerLink`) and a tagged eBay search, placement `bf-drops`. It replaces the
+"Under their own 30-day typical price" list on the same pages (same idea, no buy button, fewer guards). Copy says "under its
+30-day typical" and "lowest since <date>", never "was", "dropped" or "ever" (BANNED_COPY). Read 3 Dec: `bf-drops` buy clicks
+28 Nov to 1 Dec against the 4 days before. The same file ships on Dex, Rift and OP.

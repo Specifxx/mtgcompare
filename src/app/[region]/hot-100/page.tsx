@@ -8,6 +8,8 @@ import { HotBuyNudge } from "@/components/HotBuyNudge";
 import { tcgplayerSearchUrl } from "@/lib/affiliate";
 import { thumb } from "@/lib/images";
 import { stockHeadline } from "@/lib/stock";
+import { KeepUpStrip } from "@/components/KeepUpStrip";
+import { ALERT_SITE_KEY } from "@/lib/alert-feed";
 import { cardsFor } from "@/content/guides/more-data";
 import { money } from "@/lib/format";
 import { hotChart, hotDrops, hotMove, hotName, HOT_MIN_PCT } from "@/lib/hot100";
@@ -15,7 +17,7 @@ import { readPriceHistory } from "@/lib/price-history";
 import { regionOrNotFound } from "@/lib/regions";
 import { formatRelease } from "@/lib/release";
 import { itemListJsonLd, jsonLd, pageMeta } from "@/lib/seo";
-import { SITE_NAME } from "@/lib/site";
+import { DISCORD_INVITE, SITE_NAME } from "@/lib/site";
 
 // /<region>/hot-100: the rolling weekly Hot 100 (lib/hot100.ts; owner, 2026-11-18), one stable URL a week's Reddit post links.
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js), never ISR. Its share card is /og/hot-100/<region>.
@@ -72,6 +74,8 @@ export default async function Hot100Page({ params }: { params: { region: string 
           </div>
         </section>
       )}
+      {/* Owned audience (2026-11-20): the week's drops by email or the Discord, under the first buy cards (components/KeepUpStrip.tsx). */}
+      <KeepUpStrip site={ALERT_SITE_KEY} region={r.market} siteName={SITE_NAME} discordHref={DISCORD_INVITE} className="mt-5 sm:max-w-2xl" buttonClassName="btn-primary min-h-10" />
       {/* The method, after the shop strip so a phone's first screen reaches the prices (2026-11-20). */}
       <p className="page-lead mt-6 max-w-3xl line-clamp-3 sm:line-clamp-none">
         {c ? `${formatRelease(c.from)} to ${formatRelease(c.through)}. ` : ""}The {NOUN} products whose cheapest in-stock price at {r.adjective} stores rose most over the last seven days, biggest
