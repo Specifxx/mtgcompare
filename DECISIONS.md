@@ -2621,6 +2621,15 @@ asked for hats and lights by name, so they come back after the 2026-11-08 tone-d
 - Off switch: `CHRISTMAS_FESTIVE_LAYER` (`lib/season.ts`, the `data-festive` attribute on `<html>`); the Christmas window
   also ends it on 27 December by itself. Remove after New Year: delete the block and the two classes.
 
+## The Hot 100 sells, not just ranks (2026-11-20)
+
+Reddit link posts land on `/<region>/hot-100`, and those visitors almost never clicked buy (13–19 Nov: MTG's Hot 100 had 0
+buy clickers in 732 visitors; Reddit visitors 2.9% on MTG and 0.7% on Rift, against 23% and 12% from Google; the
+buy-clicks boardroom, move 2). The page now opens with "Shop the top risers", the week's top three as `ProductCard`s,
+and every chart row (`StockRow` with `buy`) opens the quick view on a plain click and shows a Buy button beside its
+cheapest price. The quick view itself is unchanged (the A/B runs to 3 Dec); the rows only link into it. Same data as
+before (`cardsFor`), no new read, caching unchanged. Read on 27 Nov and 4 Dec as buy clickers among visitors with a
+reddit.com referrer; the target is 8% or more.
 ## 2026-11-20: Numbered "Emblem" cards are cards
 
 The card coverage audit (TCG Singles DB's `coverage.yml`, owner 2026-11-20: every card, promos and special printings included)

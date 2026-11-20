@@ -13,8 +13,11 @@ import { StockPill } from "./StockPill";
  * One product as a row of a stock list (/back-in-stock, /price-moves, /out-of-print, the region home's older-sets section): its photo,
  * name and set, then where it is in stock (independent stores, of those that list it; "+ TCGplayer" apart), then today's price.
  * `extra` is the list's own fact (when it came back, how far the price moved), printed after the stock line.
+ * `buy` (the Hot 100, boardroom 2026-11-20: Reddit visitors landed there and almost never clicked buy): a plain click opens the
+ * quick view (QuickView.tsx, unchanged) instead of the product page, and the price column carries a Buy button. The row stays a real
+ * link to the product page for crawlers, new tabs and modified clicks.
  */
-export function StockRow({ p, r, extra }: { p: ProductCardData; r: RegionInfo; extra?: ReactNode }) {
+export function StockRow({ p, r, extra, buy = false }: { p: ProductCardData; r: RegionInfo; extra?: ReactNode; buy?: boolean }) {
   const img = thumb(p.imageUrl, 200);
   const set = p.setCode ? SET_BY_CODE.get(p.setCode) : null;
   const pre = isPreorderSet(p.setCode);
@@ -23,6 +26,7 @@ export function StockRow({ p, r, extra }: { p: ProductCardData; r: RegionInfo; e
     <Link
       href={`/${r.region}/p/${p.slug}`}
       prefetch={false}
+      {...(buy ? { "data-qv": p.slug, "data-qv-region": r.region, "data-qv-name": p.name, "data-qv-sub": p.productType, "data-qv-img": img ?? undefined, "data-hot-buy": "" } : {})}
       className="group flex items-center gap-3 rounded-xl border border-line bg-surface p-2.5 pr-3 shadow-card transition-shadow hover:shadow-lift"
     >
       <span className="plate flex h-16 w-16 shrink-0 items-center justify-center">
@@ -45,6 +49,7 @@ export function StockRow({ p, r, extra }: { p: ProductCardData; r: RegionInfo; e
       <span className="shrink-0 text-right">
         {s.open && <span className="block text-[11px] font-medium text-muted">From</span>}
         <span className="tabular font-display text-base font-bold sm:text-lg">{s.open ? money(p.lowestPriceCents, r.market) : "—"}</span>
+        {buy && <span className="btn btn-primary mt-1 min-h-0 px-3 py-1 text-xs">{s.open ? "Buy" : "Compare"}</span>}
       </span>
     </Link>
   );

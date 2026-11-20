@@ -45,7 +45,8 @@ export type GuideSlug =
   | "magic-black-friday-2026"
   | "star-trek-mtg-which-product-to-buy"
   | "nauctis-mtg-which-product-to-buy"
-  | "marvel-darkhold-destiny-mtg-which-product-to-buy";
+  | "marvel-darkhold-destiny-mtg-which-product-to-buy"
+  | "how-to-identify-rare-magic-cards";
 
 export interface Guide {
   slug: GuideSlug;
@@ -415,6 +416,17 @@ export const GUIDES: readonly Guide[] = [
     regions: "all",
     topic: { types: ["play-booster-box", "collector-booster-box", "bundle", "commander-deck"] },
     ebay: { heading: "Darkhold Destiny sealed on eBay", query: "MTG Marvel Darkhold Destiny sealed" },
+  },
+  {
+    slug: "how-to-identify-rare-magic-cards",
+    title: "How to identify rare Magic: The Gathering cards",
+    description: "Set symbol colours, the collector line and the printing: how to tell a rare or mythic Magic card, with what each rarity sells for today.",
+    kicker: "Card basics",
+    published: "2026-11-20",
+    updated: "2026-11-20",
+    regions: "all",
+    topic: {},
+    ebay: { heading: "Rare Magic cards on eBay", query: "MTG mythic rare card" },
   },
 ];
 
