@@ -7,6 +7,9 @@ import { NoPreFooter } from "@/components/Ebay";
 import { EbayStrip } from "@/components/EbayStrip";
 import { Icon } from "@/components/Icon";
 import { RealDrops } from "@/components/RealDrops";
+import { KeepUpStrip } from "@/components/KeepUpStrip";
+import { ALERT_SITE_KEY } from "@/lib/alert-feed";
+import { SITE_NAME } from "@/lib/site";
 import { TcgplayerSaleBlock } from "@/components/TcgplayerSaleBlock";
 import { realDropRows } from "@/lib/real-drops-data";
 import { PreorderBanner } from "@/components/PreorderBanner";
@@ -119,6 +122,10 @@ export async function HolidaySalePage({ event, params }: { event: SaleEvent } & 
       </header>
 
       <RealDrops r={r} rows={drops} />
+
+      {/* Cyber Weekend capture (owned audience, 2026-11-21): the weekly drops email has Black Friday and Cyber Monday editions; email
+          only here, because the Discord box sits lower on this page (components/KeepUpStrip.tsx). */}
+      <KeepUpStrip site={ALERT_SITE_KEY} region={r.market} siteName={SITE_NAME} placement="black-friday" what="the Black Friday and Cyber Monday deals" className="mt-5 sm:max-w-2xl" buttonClassName="btn-primary min-h-10" />
 
       <Section id="biggest-gaps" title="Furthest under the median today" kicker="Every product type, biggest gap first">
         {deals.length ? (
