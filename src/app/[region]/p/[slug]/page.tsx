@@ -67,6 +67,10 @@ import { jsonLd, pageMeta, productJsonLd, regionAlternates, withMtg } from "@/li
 import { fitDescription, seoCopy, shortName } from "@/lib/seo-titles";
 import { SET_BY_CODE } from "@/lib/sets";
 import { shippingCell } from "@/lib/shipping";
+import { BlackFridayStrip } from "@/components/BlackFridayStrip";
+import { bfStripOn, lowCue, lowCueText } from "@/lib/bf-strip";
+import { saleStrip } from "@/lib/black-friday";
+import { isoOfDay } from "@/lib/price-history-days";
 import { rankRows } from "@/lib/shipping-rank";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js, CDN_PAGES), never ISR: an ISR write
@@ -429,6 +433,28 @@ export default async function ProductPage({ params }: { params: { region: string
     { href: toolHref(r.region, "selling-fee-calculator"), label: "Selling-fee calculator" },
   ];
 
+  // The Black Friday strip (lib/bf-strip.ts, 2026-11-19): facts this page already holds, under the best price, through 1 Dec.
+  const today = new Date(now).toISOString().slice(0, 10);
+  const sale = saleStrip(today);
+  const bf =
+    best && sale && bfStripOn(today)
+      ? (() => {
+          const ship = best.marketplace ? null : shippingCell(best.store, r.market, best.priceCents, (c) => money(c, r.market));
+          const days = history ? dailySeries(history, r.market, p.slug, 90).map((d) => ({ day: isoOfDay(d.day), cents: d.cents })) : [];
+          const cue = lowCue(days, here && (here.inStockStores > 0 || here.marketplaceOpen) ? here.lowestPriceCents : null, today);
+          return {
+            label: sale.name,
+            cheapest: `${money(best.priceCents, r.market)} ${best.marketplace ? "on" : "at"} ${best.storeName}`,
+            shipping: ship?.text ?? null,
+            checked: best.lastSeen ?? null,
+            checkedInitial: best.lastSeen ? timeAgo(best.lastSeen, now) : "",
+            preorder: pre && set ? releaseChip(set.releaseDate, true) : null,
+            cue: cue ? { text: lowCueText(cue, (c) => money(c, r.market), today), lowest: cue.kind === "lowest" } : null,
+            tcgplayerHref: tcgplayerSearchUrl(p.name, r.region, "tcgplayer-bf-strip"),
+          };
+        })()
+      : null;
+
   // "Quick facts": the value check, then short facts side by side, then the cheapest offer, the stock, and the other regions as links.
   // In stock it comes before the strip (between the panel and it); sold out, after it (the order the brief sets: strip, other regions).
   const factsCard = (
@@ -614,6 +640,7 @@ export default async function ProductPage({ params }: { params: { region: string
               </p>
             </div>
           )}
+          {bf && <BlackFridayStrip {...bf} />}
           {/* The price alert, under the best price where people look (2026-11-12: it was a text link under the whole table and the
               service held no alerts). RiftCompare's shared alert service emails when it drops (lib/alert-feed.ts, DECISIONS.md 2026-11-02).
               A button in the server HTML; the form opens in place on a tap, never by itself. */}
