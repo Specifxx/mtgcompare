@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-20T17:35:30.796Z",
+ "generatedAt": "2026-11-21T02:01:51.437Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -204,7 +204,7 @@
    "currency": "USD",
    "store": "Josh's Cards",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/706136_in_1000x1000.jpg",
-   "refCents": 698,
+   "refCents": 699,
    "refLabel": "median store price",
    "savingPct": 50
   },
@@ -408,6 +408,20 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "CA",
+   "title": "60 Card Theme Deck",
+   "url": "https://mtgcompare.app/ca/p/60-card-theme-deck",
+   "cents": 2695,
+   "currency": "CAD",
+   "store": "DéJouer",
+   "image": "https://cdn.shopify.com/s/files/1/0263/8866/0275/files/MTGECL_EN_OtrBx_Theme_01_01.png?v=1767558269",
+   "refCents": 4999,
+   "refLabel": "median store price",
+   "savingPct": 46
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "CA",
    "title": "Secret Lair Drop: Fallout Beyond Vault 33",
    "url": "https://mtgcompare.app/ca/p/secret-lair-drop-fallout-beyond-vault-33",
    "cents": 3499,
@@ -429,20 +443,6 @@
    "store": "Dungeon Comics & Cards",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/648682_in_1000x1000.jpg",
    "refCents": 3999,
-   "refLabel": "median store price",
-   "savingPct": 45
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "CA",
-   "title": "Secret Lair Drop: Secret Lair x Fallout: Beyond Vault 33 - Non-Foil Edition",
-   "url": "https://mtgcompare.app/ca/p/secret-lair-drop-secret-lair-x-fallout-beyond-vault-33-non-foil-edition",
-   "cents": 3543,
-   "currency": "CAD",
-   "store": "Lotus Petal Gaming",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/673773_in_1000x1000.jpg",
-   "refCents": 6447,
    "refLabel": "median store price",
    "savingPct": 45
   },
@@ -492,6 +492,20 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "EU",
+   "title": "Marvel's Spider-Man Play Booster Box",
+   "url": "https://mtgcompare.app/eu/p/marvels-spider-man-play-booster-box",
+   "cents": 9000,
+   "currency": "EUR",
+   "store": "Saruman Games SC",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/621107_in_1000x1000.jpg",
+   "refCents": 16245,
+   "refLabel": "median store price",
+   "savingPct": 45
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "EU",
    "title": "Marvel Super Heroes Play Booster Box",
    "url": "https://mtgcompare.app/eu/p/marvel-super-heroes-play-booster-box",
    "cents": 8999,
@@ -519,30 +533,16 @@
   {
    "kind": "deal",
    "cluster": "cards",
-   "region": "EU",
-   "title": "Star Trek Bundle",
-   "url": "https://mtgcompare.app/eu/p/star-trek-bundle",
-   "cents": 3598,
-   "currency": "EUR",
-   "store": "Mana Market EU",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/706150_in_1000x1000.jpg",
-   "refCents": 5995,
-   "refLabel": "median store price",
-   "savingPct": 40
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
    "region": "SG",
    "title": "Marvel Super Heroes Play Booster Box",
    "url": "https://mtgcompare.app/sg/p/marvel-super-heroes-play-booster-box",
-   "cents": 12500,
+   "cents": 12450,
    "currency": "SGD",
    "store": "Tefuda Games",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/675603_in_1000x1000.jpg",
    "refCents": 21000,
    "refLabel": "median store price",
-   "savingPct": 40
+   "savingPct": 41
   },
   {
    "kind": "deal",
