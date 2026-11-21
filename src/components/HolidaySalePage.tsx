@@ -125,7 +125,7 @@ export async function HolidaySalePage({ event, params }: { event: SaleEvent } & 
 
       {/* Cyber Weekend capture (owned audience, 2026-11-21): the weekly drops email has Black Friday and Cyber Monday editions; email
           only here, because the Discord box sits lower on this page (components/KeepUpStrip.tsx). */}
-      <KeepUpStrip site={ALERT_SITE_KEY} region={r.market} siteName={SITE_NAME} placement="black-friday" what="Black Friday and Cyber Monday's real price drops" className="mt-5 sm:max-w-2xl" buttonClassName="btn-primary min-h-10" />
+      <KeepUpStrip site={ALERT_SITE_KEY} region={r.market} siteName={SITE_NAME} placement="black-friday" what="the Black Friday and Cyber Monday deals" className="mt-5 sm:max-w-2xl" buttonClassName="btn-primary min-h-10" />
 
       <Section id="biggest-gaps" title="Furthest under the median today" kicker="Every product type, biggest gap first">
         {deals.length ? (
