@@ -12,6 +12,7 @@ import { IMPACT_SITE_VERIFICATIONS } from "../src/lib/affiliate";
 import { REGION_LIST } from "../src/lib/regions";
 import { SETS } from "../src/lib/sets";
 import { DISCORD_INVITE, OPERATOR, SITE_NAME, SITE_URL } from "../src/lib/site";
+import { TELEGRAM_URL } from "../src/components/DiscordCta";
 import { DEFAULT_OG_IMAGE } from "../src/lib/seo";
 import { findBannedCopy } from "../src/lib/copy-rules";
 import { Breadcrumbs, parentCrumb } from "../src/components/Breadcrumbs";
@@ -77,8 +78,8 @@ test("Footer on a region page: Shop, Latest sets, Explore and MTG Compare, then 
   for (const r of REGION_LIST) assert.ok(links.includes(`/${r.region}`), r.region);
   assert.match(html, /aria-current="true" class="chip min-h-10 chip-on" href="\/au">/);
   // every link is internal now: the sister sites are listed once on /our-sites (2026-11-08)
-  // ...except the one Discord hub invite (DiscordCta, owner 2026-11-20), which is not a sister site.
-  for (const h of links) if (h !== "mailto:compareempire@gmail.com" && h !== DISCORD_INVITE) assert.match(h, /^\//, `${h} is internal`);
+  // ...except the one Discord hub invite (DiscordCta, owner 2026-11-20) and its Telegram twin (#251), which are not sister sites.
+  for (const h of links) if (h !== "mailto:compareempire@gmail.com" && h !== DISCORD_INVITE && h !== TELEGRAM_URL) assert.match(h, /^\//, `${h} is internal`);
   assert.ok(links.includes("/our-sites"));
   assert.equal(footerColumns("au").length, 5); // Shop, Latest sets, Explore, Guides (every guide: no orphans), MTG Compare
 });

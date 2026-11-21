@@ -368,7 +368,9 @@ function classifyIn(title: string, set: MtgSet | null): TypeKey | "vague" | null
     // ($69.99, 2026-10-26), so it may be one deck picked from a carton. Only "1 of each" / "set of" says it is the set.
     if (/\bcarton\b/.test(t) && !together) return null;
     if (together || /\bset\s*of\s*(?:[2-9]|two|three|four|five)\b|\ball\s*(?:[2-9]|four|five)\b|\bcomplete\s*set\b|\bdecks\s*bundle\b/.test(t)) {
-      return /\bcollector'?s?\s*edition\b/.test(t) ? null : "commander-deck-set";
+      // The four Collector's or Premium Edition decks together are not the set's Commander Deck Set: one key per set holds only the
+      // regular decks (2026-11-21: retrogamerbros's "Premium Commander Deck - Set of 4", GBP318.95, sat on the GBP159 set's page).
+      return /\bcollector'?s?\s*edition\b|\bpremium\b/.test(t) ? null : "commander-deck-set";
     }
     return /\bstarter\s*commander\b/.test(t) ? "deck" : "commander-deck";
   }
@@ -443,6 +445,8 @@ const NOISE = new Set(
     // Inglés", "RESERVA - …", "Preordine …", "… Bundle - englisch", "Magic the Gathering CCG …" each made a second page of a product
     // other stores list). They say a title is a pre-order or English, never which product it is.
     "ccg vorbestellung vorbestellungen preventa reserva preordine prenotazione englisch ingles anglais inglese engels " +
+    // French "(PRÉCOMMANDE)" (2026-11-21 audit: gametime's four Nauctis and four Darkhold Destiny decks each had a one-store twin).
+    "precommande precommandes " +
     // "ab 13.11.2026" (German "from"), "Der Hobbit", "El Hobbit", "Einsteigerbox" (German for the Beginner Box).
     "ab der el einsteigerbox"
   ).split(" "),
@@ -452,7 +456,9 @@ const NOISE = new Set(
 // names none. Dropped for the types sold as several named products; a title left with no name is then refused as vague.
 const PICKED_WORDS = new Set(["assorted", "random", "ea"]);
 const PICKED_TYPES = new Set<TypeKey>(["commander-deck", "scene-box"]);
-const DESCRIPTORS = new Set("foil nonfoil regular collector collectors starter beginner collection gift special".split(" "));
+// "premium" is the Premium Edition marker of a deck, never its name (2026-11-21: "Nauctis … Premium Edition Commander Decks", one
+// deck picked by the store at US$80, sat on one page with a C$450 "Premium Edition Commander Deck Bundle" of all four).
+const DESCRIPTORS = new Set("foil nonfoil regular collector collectors starter beginner collection gift special premium".split(" "));
 
 // SKU brackets stores append: "[MKM]", "(BLB-PB)". Upper-case codes only, read before the title is lowercased.
 const SKU_BRACKET = /\[\s*[A-Z][A-Z0-9-]{1,7}\s*\]|\(\s*[A-Z][A-Z0-9]{1,4}(?:-[A-Z0-9]{1,4})?\s*\)/g;
