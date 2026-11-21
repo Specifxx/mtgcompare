@@ -1,3 +1,5 @@
+import { DiscordCta } from "@/components/DiscordCta";
+import { DISCORD_INVITE } from "@/lib/site";
 import Link from "@/components/Link";
 import { OutboundLink } from "@/components/OutboundLink";
 import { Section } from "@/components/Section";
@@ -42,6 +44,8 @@ export function RealDrops({ r, rows, title = "Furthest under their own 30-day pr
         a day far under the rest is left out as a wrong listing, and a product whose records swing more than twofold is not listed). It says what stores asked on those
         days, not what they will charge next. Prices exclude shipping. The eBay button is a paid link.
       </p>
+      {/* Cyber Weekend (2026-11-21): the Discord hub posts these drops as they happen. */}
+      <DiscordCta href={DISCORD_INVITE} className="mt-4" />
     </Section>
   );
 }
