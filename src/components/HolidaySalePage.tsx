@@ -11,6 +11,7 @@ import { KeepUpStrip } from "@/components/KeepUpStrip";
 import { ALERT_SITE_KEY } from "@/lib/alert-feed";
 import { SITE_NAME } from "@/lib/site";
 import { TcgplayerSaleBlock } from "@/components/TcgplayerSaleBlock";
+import { TcgplayerCyberBanner } from "@/components/TcgplayerCyberBanner";
 import { realDropRows } from "@/lib/real-drops-data";
 import { PreorderBanner } from "@/components/PreorderBanner";
 import { ProductGrid } from "@/components/ProductGrid";
@@ -20,7 +21,7 @@ import { blackFriday, cyberMonday, eventCopy, EVENT_NAMES, seasonYear, type Sale
 import { dearestInStock, GRADED_SEARCHES, olderShelf } from "@/lib/price-watch";
 import { olderInStockData, priceMovesData } from "@/lib/stock-data";
 import { OutboundLink } from "@/components/OutboundLink";
-import { ebayCardSearchUrl, ebayLabel, ebayRetailer, ebaySearchUrl, REL_SPONSORED } from "@/lib/affiliate";
+import { ebayCardSearchUrl, ebayLabel, ebayRetailer, ebaySearchUrl, REL_SPONSORED, tcgplayerSearchUrl } from "@/lib/affiliate";
 import { SET_BY_CODE } from "@/lib/sets";
 import { lastCheckedAt, type ProductCardData } from "@/lib/data";
 import { belowMsrpUS, dealPct, dealsInMarket, fitTitle } from "@/lib/deals";
@@ -251,6 +252,7 @@ export async function HolidaySalePage({ event, params }: { event: SaleEvent } & 
         </div>
       </Section>
 
+      <TcgplayerCyberBanner href={tcgplayerSearchUrl("", r.region, "tcgplayer-cyber-banner")} at={Date.now()} className="mt-14 max-w-3xl" />
       <TcgplayerSaleBlock region={r.region} name={name} />
 
       <FamilyCluster kind="deal" region={r.region} />
