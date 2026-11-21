@@ -266,6 +266,7 @@ const NEW_GUIDES: GuideSlug[] = [
   "mtg-booster-box-prices",
   "collector-booster-box-prices",
   "mtg-bundle-prices",
+  "mtg-prerelease-pack-prices",
   "best-magic-product-for-beginners",
 ];
 
@@ -343,7 +344,7 @@ test("the market wrap: real week-over-week moves only; with no history or under 
 });
 
 test("the sealed price guides say their region in the title, and every regional <title> fits 60 characters", () => {
-  for (const slug of ["mtg-booster-box-prices", "collector-booster-box-prices", "mtg-bundle-prices"] as const) {
+  for (const slug of ["mtg-booster-box-prices", "collector-booster-box-prices", "mtg-bundle-prices", "mtg-prerelease-pack-prices"] as const) {
     const g = GUIDE_BY_SLUG.get(slug)!;
     assert.ok(g.titleIn?.includes("{in}"), slug);
     for (const r of REGION_LIST) {

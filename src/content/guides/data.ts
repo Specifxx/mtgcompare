@@ -82,6 +82,7 @@ const READS: Record<GuideSlug, readonly [FamilyKey, number][]> = {
   "mtg-booster-box-prices": [],
   "collector-booster-box-prices": [],
   "mtg-bundle-prices": [],
+  "mtg-prerelease-pack-prices": [],
   "best-commander-precons-australia": [],
   "where-to-buy-mtg-booster-boxes-australia": [],
   "best-magic-product-for-beginners": [],
@@ -139,6 +140,8 @@ async function extraFor(slug: GuideSlug, market: RegionInfo["market"], today: st
     }
     case "mtg-bundle-prices":
       return { byType: await types(["Bundle", "Play Booster Box"], 80), openByType: await counts(["Bundle"]) };
+    case "mtg-prerelease-pack-prices":
+      return { byType: await types(["Prerelease Pack", "Bundle"], 80), openByType: await counts(["Prerelease Pack"]) };
     case "best-commander-precons-australia":
       return { byType: await types(["Commander Deck", "Commander Deck Set"], 15), openByType: await counts(["Commander Deck", "Commander Deck Set"]) };
     case "best-magic-product-for-beginners":

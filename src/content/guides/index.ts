@@ -36,6 +36,7 @@ export type GuideSlug =
   | "mtg-booster-box-prices"
   | "collector-booster-box-prices"
   | "mtg-bundle-prices"
+  | "mtg-prerelease-pack-prices"
   | "best-commander-precons-australia"
   | "where-to-buy-mtg-booster-boxes-australia"
   | "best-magic-product-for-beginners"
@@ -84,6 +85,7 @@ const D4 = "2026-10-25";
 const D6 = "2026-11-10";
 /** The set sealed price guides (set-sealed-prices.tsx). */
 const D5 = "2026-11-05";
+const D7 = "2026-11-21";
 const SEALED_EBAY = { heading: "Sealed Magic on eBay", query: "Magic the Gathering sealed" };
 
 export const GUIDES: readonly Guide[] = [
@@ -320,6 +322,18 @@ export const GUIDES: readonly Guide[] = [
     regions: "all",
     topic: { types: ["bundle", "play-booster-box"] },
     ebay: { heading: "Magic Bundles on eBay", query: "MTG bundle sealed" },
+  },
+  {
+    slug: "mtg-prerelease-pack-prices",
+    title: "Magic Prerelease pack prices: what a kit costs today",
+    titleIn: "MTG Prerelease pack prices in {in}",
+    description: "What a Magic Prerelease pack or take-home kit costs today at the stores we compare: the cheapest in stock and each recent set's kit beside its Bundle.",
+    kicker: "Prerelease packs",
+    published: D7,
+    updated: D7,
+    regions: "all",
+    topic: { types: ["prerelease-pack", "bundle"] },
+    ebay: { heading: "Magic Prerelease packs on eBay", query: "MTG prerelease pack sealed" },
   },
   // Australia-only guides (2026-10-25): AU stores' live prices, each product row with an Amazon AU link (lib/amazon.ts).
   {
