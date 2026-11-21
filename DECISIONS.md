@@ -2706,3 +2706,11 @@ also lift the month's rate. The strip gains ONE link, on its own line under the 
 for the product ("See Black Friday prices on TCGplayer", placement `tcgplayer-bf-strip`). It claims no price and no deal, ranks
 nothing, and never takes the cheapest badge; the rows below stay sorted by price. Counted in the 3 Dec Cyber Week read. When
 TCGplayer's own Cyber Weekend landing page is available it replaces the search.
+
+
+## 2026-11-21: A Cyber Weekend sign-up under the real drops (owned audience)
+
+The Black Friday and Cyber Monday pages carry one sign-up directly under the real-drops block: the weekly drops email (KeepUpStrip,
+placement `black-friday`, email only because the Discord box sits lower on the page) on the sister-alert sites, a free-account
+prompt on the account sites. The weekly email has its own Black Friday (27 Nov) and Cyber Monday (30 Nov) editions on RiftCompare's
+service (TCGEmpire DECISIONS, same day), so a sign-up before 26 Nov gets the Black Friday one. Inline, never a pop-up; real drops only.
