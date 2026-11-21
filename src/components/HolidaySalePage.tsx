@@ -7,6 +7,7 @@ import { NoPreFooter } from "@/components/Ebay";
 import { EbayStrip } from "@/components/EbayStrip";
 import { Icon } from "@/components/Icon";
 import { RealDrops } from "@/components/RealDrops";
+import { TcgplayerSaleBlock } from "@/components/TcgplayerSaleBlock";
 import { realDropRows } from "@/lib/real-drops-data";
 import { PreorderBanner } from "@/components/PreorderBanner";
 import { ProductGrid } from "@/components/ProductGrid";
@@ -242,6 +243,8 @@ export async function HolidaySalePage({ event, params }: { event: SaleEvent } & 
           <EbayStrip region={r.region} context="chase" placement="price-watch" search={{ kind: "card", query: "" }} />
         </div>
       </Section>
+
+      <TcgplayerSaleBlock region={r.region} name={name} />
 
       <FamilyCluster kind="deal" region={r.region} />
 
