@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PREMIUM_SERVICE } from "@/lib/premium-member";
 
 // "Continue with Google" and "Continue with Discord" (owner, 2026-11-19: "Google OAuth and Discord OAuth … we want to have those login
 // methods on basically all of our sites"). Plain links to RiftCompare's sister sign-in (/api/sister-premium/oauth/<provider>), which
@@ -18,7 +17,8 @@ export function OAuthButtons({ site, google = true, className = "" }: { site: st
       /* no next: the account hub */
     }
   }, []);
-  const href = (p: string) => `${PREMIUM_SERVICE}/api/sister-premium/oauth/${p}?site=${site}${next ? `&next=${encodeURIComponent(next)}` : ""}`;
+  // Through this site's own /account-service/oauth rewrite (2026-11-21): the provider comes back to this address, never riftcompare.com.
+  const href = (p: string) => `/account-service/oauth/${p}?site=${site}&via=site${next ? `&next=${encodeURIComponent(next)}` : ""}`;
   return (
     <div className={`grid gap-2 ${className}`}>
       {google && (
