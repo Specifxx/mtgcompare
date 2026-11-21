@@ -22,6 +22,7 @@ import * as wrap from "./magic-sealed-market-wrap";
 import * as boxPrices from "./mtg-booster-box-prices";
 import * as collectorPrices from "./collector-booster-box-prices";
 import * as bundlePrices from "./mtg-bundle-prices";
+import * as prereleasePrices from "./mtg-prerelease-pack-prices";
 import * as commanderAu from "./best-commander-precons-australia";
 import * as boxesAu from "./where-to-buy-mtg-booster-boxes-australia";
 import * as beginners from "./best-magic-product-for-beginners";
@@ -54,6 +55,7 @@ export const GUIDE_MODULES: Record<GuideSlug, GuideModule> = {
   "mtg-booster-box-prices": boxPrices,
   "collector-booster-box-prices": collectorPrices,
   "mtg-bundle-prices": bundlePrices,
+  "mtg-prerelease-pack-prices": prereleasePrices,
   "best-commander-precons-australia": commanderAu,
   "where-to-buy-mtg-booster-boxes-australia": boxesAu,
   "best-magic-product-for-beginners": beginners,
