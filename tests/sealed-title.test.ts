@@ -561,3 +561,35 @@ test("Italian deck names are foreign; 'pick one' listings are vague; store notes
   // A named deck sold with a pick-one note still keys onto that deck.
   assert.equal(key("Star Trek Commander Deck - Federation Fleet Standard Edition"), key("Star Trek Commander Deck - Federation Fleet"));
 });
+
+test("Premium Edition decks with no deck name are vague; the four Premium decks are not the Commander Deck Set; PRÉCOMMANDE joins", () => {
+  // 2026-11-21 audit of "Nauctis: The Sunken Realm - Premium Edition Commander Decks": store-picked single decks (US$80) on one page
+  // with the four decks together (C$449.95, EUR329.90).
+  for (const t of [
+    "MTG Nauctis: The Sunken Realm - Premium Commander Decks",
+    "Nauctis: The Sunken Realm - Premium Edition Commander Decks (Pre-Order)",
+    "Nauctis: The Sunken Realm - Premium Edition Commander Deck",
+    "Magic: The Gathering Nauctis: The Sunken Realm Premium Edition Commander Deck",
+    "Magic: the Gathering – Premium Commander Deck – Nauctis: The Sunken Realm",
+    "Magic: Magic the Gathering Nauctis the Sunken Realm Premium Commander Decks",
+    "(PREORDINE) PREMIUM Commander Decks - Nauctis: The Sunken Realm - Magic: The Gathering - ENG",
+  ]) assert.equal(identify(t), "vague", t);
+  assert.ok(key("MTG Nauctis: The Sunken Realm Premium Edition Commander Deck Bundle").startsWith("REJECT"));
+  assert.ok(key("Magic: The Gathering -  Nauctis: The Sunken Realm Premium Commander Deck - Set of 4").startsWith("REJECT"));
+  assert.equal(key("Nauctis: The Sunken Realm Commander Decks (Set of 4) | Magic: The Gathering"), key("Nauctis The Sunken Realm Commander Deck Set of 4"));
+  // A named Premium deck keeps its own page, apart from the regular deck.
+  assert.equal(
+    key("Nauctis: The Sunken Realm - Premium Edition Commander Deck - Seal the Deal"),
+    key("Vorbestellung: MTG - Nauctis: The Sunken Realm - Premium Commander Deck - Seal the Deal (EN)"),
+  );
+  assert.notEqual(key("Nauctis: The Sunken Realm - Premium Edition Commander Deck - Seal the Deal"), key("Nauctis: The Sunken Realm - Commander Deck - Seal the Deal"));
+  const same: [string, string][] = [
+    ["Nauctis The Sunken Realm Commander Deck Merfolk Regiment (PRÉCOMMANDE) - 2027-02-05", "Nauctis: The Sunken Realm - Commander Deck - Merfolk Regiment"],
+    ["Nauctis The Sunken Realm Commander Deck Terrors of the Abyss (PRÉCOMMANDE) - 2027-02-05", "Nauctis: The Sunken Realm - Commander Deck - Terrors of the Abyss"],
+    ["Marvel Darkhold Destiny Commander Deck Lords of Hel (PRÉCOMMANDE) - 2027-04-09", "Marvel: Darkhold Destiny - Commander Deck - Lords of Hel"],
+  ];
+  for (const [a, b] of same) {
+    assert.ok(!key(a).startsWith("REJECT"), a);
+    assert.equal(key(a), key(b), a);
+  }
+});
