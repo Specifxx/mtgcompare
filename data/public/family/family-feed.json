@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-21T02:01:51.437Z",
+ "generatedAt": "2026-11-21T16:37:36.606Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -394,6 +394,20 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "CA",
+   "title": "Secret Lair Drop: Fallout Beyond Vault 33",
+   "url": "https://mtgcompare.app/ca/p/secret-lair-drop-fallout-beyond-vault-33",
+   "cents": 3343,
+   "currency": "CAD",
+   "store": "L'Atelier TCG",
+   "image": "https://cdn.shopify.com/s/files/1/0103/3021/0367/files/magic-the-gathering-secret-lair-x-fallout-beyond-vault-33-132556_8882f.jpg?v=1776133486",
+   "refCents": 6497,
+   "refLabel": "median store price",
+   "savingPct": 49
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "CA",
    "title": "Innistrad: Double Feature Draft Booster Pack",
    "url": "https://mtgcompare.app/ca/p/innistrad-double-feature-draft-booster-pack",
    "cents": 800,
@@ -415,20 +429,6 @@
    "store": "DéJouer",
    "image": "https://cdn.shopify.com/s/files/1/0263/8866/0275/files/MTGECL_EN_OtrBx_Theme_01_01.png?v=1767558269",
    "refCents": 4999,
-   "refLabel": "median store price",
-   "savingPct": 46
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "CA",
-   "title": "Secret Lair Drop: Fallout Beyond Vault 33",
-   "url": "https://mtgcompare.app/ca/p/secret-lair-drop-fallout-beyond-vault-33",
-   "cents": 3499,
-   "currency": "CAD",
-   "store": "Face to Face Games",
-   "image": "https://cdn.shopify.com/s/files/1/0103/3021/0367/files/magic-the-gathering-secret-lair-x-fallout-beyond-vault-33-132556_8882f.jpg?v=1776133486",
-   "refCents": 6497,
    "refLabel": "median store price",
    "savingPct": 46
   },
@@ -536,13 +536,13 @@
    "region": "SG",
    "title": "Marvel Super Heroes Play Booster Box",
    "url": "https://mtgcompare.app/sg/p/marvel-super-heroes-play-booster-box",
-   "cents": 12450,
+   "cents": 12700,
    "currency": "SGD",
    "store": "Tefuda Games",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/675603_in_1000x1000.jpg",
    "refCents": 21000,
    "refLabel": "median store price",
-   "savingPct": 41
+   "savingPct": 40
   },
   {
    "kind": "deal",
@@ -590,6 +590,20 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "SG",
+   "title": "Marvel Super Heroes Commander Deck - Wakanda Forever",
+   "url": "https://mtgcompare.app/sg/p/marvel-super-heroes-commander-deck-wakanda-forever",
+   "cents": 5500,
+   "currency": "SGD",
+   "store": "Flagship Games",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675633_in_1000x1000.jpg",
+   "refCents": 7950,
+   "refLabel": "median store price",
+   "savingPct": 31
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "SG",
    "title": "Teenage Mutant Ninja Turtles - Prerelease Pack",
    "url": "https://mtgcompare.app/sg/p/teenage-mutant-ninja-turtles-prerelease-pack",
    "cents": 4000,
@@ -597,20 +611,6 @@
    "store": "Tefuda Games",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/657862_in_1000x1000.jpg",
    "refCents": 5500,
-   "refLabel": "median store price",
-   "savingPct": 27
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "SG",
-   "title": "Star Trek Commander Deck - We Are the Borg (Collector's Edition)",
-   "url": "https://mtgcompare.app/sg/p/star-trek-commander-deck-we-are-the-borg-collectors-edition",
-   "cents": 19000,
-   "currency": "SGD",
-   "store": "Flagship Games",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/706173_in_1000x1000.jpg",
-   "refCents": 26000,
    "refLabel": "median store price",
    "savingPct": 27
   }
