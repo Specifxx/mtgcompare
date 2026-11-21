@@ -9060,6 +9060,17 @@
     ]
   },
   {
+    "key": "forgeandfire",
+    "name": "Forge and Fire Gaming",
+    "base": "https://forgeandfiregaming.com",
+    "market": "US",
+    "platform": "bigcommerce",
+    "country": "US",
+    "collections": [
+      "/magic"
+    ]
+  },
+  {
     "key": "eclipsegamesau",
     "name": "Eclipse Games",
     "base": "https://eclipsegames.com.au",

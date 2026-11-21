@@ -18,7 +18,7 @@ export function PremiumReturn() {
         writeStored({ t, premium: r.premium, until: r.until, who: r.who, checkedAt: Date.now() });
         location.replace("/premium");
       } else {
-        setMsg(r.kind === "invalid" ? "Sign in again from the Premium page." : "Couldn't reach RiftCompare. Try again in a minute.");
+        setMsg(r.kind === "invalid" ? "Sign in again from the Premium page." : "Couldn't reach the sign-in service. Try again in a minute.");
       }
     });
   }, []);

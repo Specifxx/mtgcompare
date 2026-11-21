@@ -66,7 +66,7 @@ export function Header({ region, listed }: { region: Region | null; listed?: Rea
   const items = headerNavItems(built, undefined, listed);
   const groups = navGroups(built, undefined, listed);
   return (
-    <header className="hdr sticky top-0 z-40 h-[var(--hdr)] border-b border-line bg-bg/80 backdrop-blur-xl">
+    <header className="hdr sticky top-0 z-40 h-[var(--hdr)] border-b border-line bg-bg/80 backdrop-blur-xl xmas-garland">
       <div className="page flex h-full items-center gap-2 sm:gap-3 xl:gap-4">
         <Link href={home} className="flex h-11 shrink-0 items-center rounded-lg" aria-label={`MTG Compare${region ? ` ${REGIONS[region].name}` : ""} home`}>
           <Logo wordmark="hidden sm:inline" />
@@ -80,7 +80,7 @@ export function Header({ region, listed }: { region: Region | null; listed?: Rea
         {region ? <RegionSwitcher region={region} compact /> : <SoftRegionSwitcher />}
         {/* Premium and the account (owner, 2026-11-19: sign-in and Premium visible on every site): Premium from md up (phones: the menu and
             /account), Sign in at every width. Phones give the theme switch's place to it; the switch is in the menu there. */}
-        <PremiumHeaderLink className="hidden md:inline-flex" />
+        <PremiumHeaderLink className="hidden md:inline-flex lg:hidden xl:inline-flex" />
         <AccountHeaderLink />
         {/* The cart list (components/cart, owner 2026-11-06): every width, with its count. */}
         <CartHeaderLink />

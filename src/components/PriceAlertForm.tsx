@@ -16,7 +16,7 @@ import { useState, type CSSProperties, type FormEvent } from "react";
 import { track } from "@vercel/analytics";
 
 export const ALERT_SERVICE = "https://riftcompare.com/api/sister-alerts";
-export const ALERT_PRIVACY = "https://riftcompare.com/privacy#sister-alerts";
+export const ALERT_PRIVACY = "/privacy";
 
 const box: CSSProperties = { border: "1px solid rgba(127,127,127,.35)", borderRadius: 10, padding: "12px 14px", marginTop: 8 };
 const field: CSSProperties = { width: "100%", boxSizing: "border-box", padding: "8px 10px", border: "1px solid rgba(127,127,127,.45)", borderRadius: 8, background: "transparent", color: "inherit", font: "inherit", fontSize: 14 };
@@ -162,7 +162,7 @@ export function PriceAlertForm({
         </p>
       )}
       <p style={hint}>
-        Free, no account. We email you once to confirm, then only when a store reaches your price (and once a week if you ticked the box); every email has a stop link, and alerts end after six months. Sent by our sister site RiftCompare&rsquo;s alert service (<a href={ALERT_PRIVACY} style={{ color: "inherit" }}>privacy</a>).
+        Free, no account. We email you once to confirm, then only when a store reaches your price (and once a week if you ticked the box); every email has a stop link, and alerts end after six months. Sent by our shared alert service (<a href={ALERT_PRIVACY} style={{ color: "inherit" }}>privacy</a>).
       </p>
     </form>
   );

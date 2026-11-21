@@ -102,7 +102,7 @@ export function WeeklyDropsBox({
               </p>
             )}
             <p style={{ fontSize: 12, opacity: 0.7, margin: "8px 0 0" }}>
-              We email once to confirm; every email has a stop link. Sent by our sister site RiftCompare&rsquo;s alert service (
+              We email once to confirm; every email has a stop link. Sent by our shared alert service (
               <a href={ALERT_PRIVACY} style={{ color: "inherit" }}>
                 privacy
               </a>

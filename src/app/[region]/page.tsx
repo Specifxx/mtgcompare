@@ -92,6 +92,10 @@ export default async function RegionHome({ params }: { params: { region: string 
   // in money, so a $40 off a Collector box leads a $3 off a pack; the pre-orders keep every one only when none clears the floor.
   // Then each list most likely to earn first (owner, 2026-11-18; lib/home-rank.ts): the saving and the price stay the tie-breaks.
   const deals = rankCards(priciestFirst(allDeals.filter((p) => featureWorthy(p.lowestPriceCents, r.market)), r.market, (p) => (p.medianOpenCents ?? 0) - (p.lowestPriceCents ?? 0))).slice(0, 8);
+  // MOST POPULAR FIRST (owner, 2026-11-20: "just have the most popular as the first … what shows on the homepage, and this should be
+  // across all sites"): the shelf's first tab is every in-stock box, ETB/collector box and pack, ordered by what visitors here
+  // viewed and clicked (lib/home-rank.ts, data/demand.json), eight of them. The type tabs stay behind it.
+  const popular = rankCards([...boxes, ...etbs, ...packs].filter((p, i, all) => all.findIndex((q) => q.slug === p.slug) === i)).slice(0, 8);
   const preorderShelf = (() => {
     const top = featuredByPrice(preorders, r.market, (p) => p.lowestPriceCents, 8);
     return rankCards(top.length ? top : preorders, { preorder: true });
@@ -109,6 +113,23 @@ export default async function RegionHome({ params }: { params: { region: string 
   ];
   // The one shelf (components/Tabs.tsx): every list is server-rendered and stays in the HTML; a tab only chooses which is shown.
   const shelf: Tab[] = [
+    ...(popular.length
+      ? [
+          {
+            label: "Most popular",
+            panel: (
+              <Shelf
+                r={r}
+                heading={`Most popular in ${r.inName} right now`}
+                note="What shoppers here open and buy most, each at its cheapest in-stock store."
+                products={popular}
+                href={`/${r.region}/sealed`}
+                all="All sealed products"
+              />
+            ),
+          },
+        ]
+      : []),
     {
       label: "Play booster boxes",
       panel: (

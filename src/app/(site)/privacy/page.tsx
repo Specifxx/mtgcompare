@@ -27,9 +27,8 @@ export default function Privacy() {
         <h2>Price alerts</h2>
         <p>
           If you ask to be emailed when a price drops, the form sends your email address, the product, your region and your price to our
-          sister site RiftCompare&rsquo;s alert service. It keeps them only for that alert, emails you once to confirm, and deletes them when
-          you stop the alert (every email has a link) or after six months. MTG Compare itself never stores them. Details are in{" "}
-          <a href="https://riftcompare.com/privacy#sister-alerts">RiftCompare&rsquo;s privacy policy</a>.
+          shared alert service. It keeps them only for that alert, emails you once to confirm, and deletes them when
+          you stop the alert (every email has a link) or after six months. MTG Compare itself never stores them.
         </p>
         <h2>Analytics</h2>
         <p>

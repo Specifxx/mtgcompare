@@ -45,9 +45,11 @@ export const PLACEMENTS = [
   "tcgplayer-strip-dock", // every page with the rails, narrow screens only: the phone dock's TCGplayer half (components/AdDock.tsx, owner, 2026-11-06)
   "tcgplayer-strip-inline", // the in-page ad block (components/InlineAds.tsx, owner 2026-11-13): its TCGplayer tiles and links
   "tcgplayer-strip-landing", // the root landing page: the TCGplayer half of the eBay + TCGplayer banner under the hero (owner, 2026-11-03)
+  "tcgplayer-bf-strip", // product page: the Black Friday strip's labelled TCGplayer link (components/BlackFridayStrip.tsx, 2026-11-21, to 1 Dec)
   // CARD PRICES (2026-11-17, DECISIONS.md "Card prices: the most valuable cards of each set"): the card pages and lists.
   "card-ebay", // a card page: the "Check on eBay" search row, first
   "card-tcgplayer", // a card page: the TCGplayer row with its market price
+  "tcgplayer-hot-nudge", // the Hot 100 buy prompt (components/HotBuyNudge.tsx, 2026-11-20): Reddit landings only, 50/50, its one paid link
   "header", // the "eBay" item in the site header (desktop nav, xl and up only)
   // eBay LISTING STRIPS (components/EbayStrip.tsx): real listings imported once a day (scripts/ebay-import.ts), read
   // from our database through /api/ebay/<region>. One placement per surface, so EPN's customid report and Vercel's
@@ -82,6 +84,7 @@ export const PLACEMENTS = [
   "listings-dock", // every page with the rails, narrow screens only: the phone dock's eBay half (components/AdDock.tsx, owner, 2026-11-06)
   "listings-inline", // the in-page ad block (components/InlineAds.tsx, owner 2026-11-13): its eBay tiles and links
   "price-watch", // the Black Friday / Cyber Monday price watch: the eBay search beside each row and the graded chase strip
+  "bf-drops", // the Black Friday / Cyber Monday "furthest under their own price" list: each line's store buy button and its eBay search
   // The highlighted eBay button of a POPULAR product or set (lib/popular.ts HOT_SETS: 30th Celebration first): eBay's blue
   // search button inside a strip's own top line (EbayStrip `highlight`), and the compact CTA that strip becomes. One placement
   // per surface, so the owner can see which highlight earns: the region home's sealed strip, a hot set's page, a hot product's page.

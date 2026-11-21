@@ -5,6 +5,7 @@ import { ebayPopClick } from "@/lib/ebay-pop";
 import { track } from "@/lib/track";
 import { isCheckoutLink } from "@/lib/checkout-link";
 import { gaEvent } from "@/lib/gtag";
+import { readCampaign } from "@/lib/campaign";
 import type { ReactNode } from "react";
 import type { Placement } from "@/lib/affiliate";
 
@@ -97,6 +98,8 @@ export function OutboundLink({
       gaEvent(paid ? "affiliate_click" : "outbound_store_click", {
         retailer: retailer.slice(0, 100),
         placement,
+        // The tab's first-touch utm_campaign (a creator's handle), so paid creators' buy clicks can be counted (lib/campaign.ts).
+        campaign: readCampaign(),
         link_domain: hostOf(href),
         paid: paid ? 1 : 0,
         nudge_arm: (() => { try { return localStorage.getItem("rn-arm") ?? ""; } catch { return ""; } })(),

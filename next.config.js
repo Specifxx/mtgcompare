@@ -102,6 +102,15 @@ const nextConfig = {
       { source: "/guides/:path((?!magic-booster-box-prices-by-country$).*)", destination: "/us/guides", permanent: true },
     ];
   },
+  // The shared account and alert service, on THIS site's own address (owner, 2026-11-19: sign-in never sends a visitor to another
+  // site). Vercel proxies these three paths to the service; the browser's address bar never leaves this site. Only these paths.
+  async rewrites() {
+    return [
+      { source: "/account-service/alerts/:path(confirm|manage|unsubscribe)", destination: "https://riftcompare.com/api/sister-alerts/:path" },
+      { source: "/account-service/oauth/:provider(google|discord)", destination: "https://riftcompare.com/api/sister-premium/oauth/:provider" },
+      { source: "/account-service/oauth/:provider(google|discord)/callback", destination: "https://riftcompare.com/api/auth/oauth/:provider/callback" },
+    ];
+  },
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

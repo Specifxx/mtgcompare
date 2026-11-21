@@ -1,5 +1,4 @@
 import Link from "@/components/Link";
-import { readPriceHistory, underOwnTypical } from "@/lib/price-history";
 import { cache } from "react";
 import type { Metadata } from "next";
 import { Ago } from "@/components/Ago";
@@ -7,6 +6,8 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { NoPreFooter } from "@/components/Ebay";
 import { EbayStrip } from "@/components/EbayStrip";
 import { Icon } from "@/components/Icon";
+import { RealDrops } from "@/components/RealDrops";
+import { realDropRows } from "@/lib/real-drops-data";
 import { PreorderBanner } from "@/components/PreorderBanner";
 import { ProductGrid } from "@/components/ProductGrid";
 import { Empty, Section } from "@/components/Section";
@@ -17,7 +18,7 @@ import { olderInStockData, priceMovesData } from "@/lib/stock-data";
 import { OutboundLink } from "@/components/OutboundLink";
 import { ebayCardSearchUrl, ebayLabel, ebayRetailer, ebaySearchUrl, REL_SPONSORED } from "@/lib/affiliate";
 import { SET_BY_CODE } from "@/lib/sets";
-import { cardsBySlugs, lastCheckedAt, type ProductCardData } from "@/lib/data";
+import { lastCheckedAt, type ProductCardData } from "@/lib/data";
 import { belowMsrpUS, dealPct, dealsInMarket, fitTitle } from "@/lib/deals";
 import { money, plural, relativeDay, timeAgo } from "@/lib/format";
 import { formatRelease } from "@/lib/release";
@@ -66,13 +67,14 @@ export async function HolidaySalePage({ event, params }: { event: SaleEvent } & 
   const bf = blackFriday(year);
   const cm = cyberMonday(year);
   const us = r.market === "US";
-  const [deals, checked, msrp, dearest, moves, older] = await Promise.all([
+  const [deals, checked, msrp, dearest, moves, older, drops] = await Promise.all([
     getDeals(r.market),
     lastCheckedAt(r.market),
     us ? belowMsrpUS(8) : Promise.resolve([] as ProductCardData[]),
     dearestInStock(r.market).catch(() => [] as ProductCardData[]),
     priceMovesData(r.market).catch(() => null),
     olderInStockData(r.market).catch(() => []),
+    realDropRows(r.market, today).catch(() => []),
   ]);
   const down = moves?.down.slice(0, 8) ?? [];
   const shelf = olderShelf(older);
@@ -83,10 +85,6 @@ export async function HolidaySalePage({ event, params }: { event: SaleEvent } & 
     </OutboundLink>
   );
   const best = deals.length ? Math.max(...deals.map(dealPct)) : null;
-  // Under its own recent typical price (lib/price-history.ts): only products with a week or more of daily snapshots here.
-  const history = readPriceHistory();
-  const under = history ? underOwnTypical(history, r.market, { days: 30, minPct: 10, take: 12 }) : [];
-  const underCards = await cardsBySlugs(r.market, under.map((u) => u.slug));
   const when =
     today < bf
       ? `Black Friday is ${formatRelease(bf)} (${relativeDay(bf, today)}) and Cyber Monday ${formatRelease(cm)} (${relativeDay(cm, today)}).`
@@ -119,6 +117,8 @@ export async function HolidaySalePage({ event, params }: { event: SaleEvent } & 
         )}
       </header>
 
+      <RealDrops r={r} rows={drops} />
+
       <Section id="biggest-gaps" title="Furthest under the median today" kicker="Every product type, biggest gap first">
         {deals.length ? (
           <ProductGrid products={deals} region={r.region} eager={4} strip={strip} />
@@ -141,33 +141,6 @@ export async function HolidaySalePage({ event, params }: { event: SaleEvent } & 
           before you buy.
         </p>
       </Section>
-
-      {underCards.length > 0 && (
-        <Section id="under-typical" title="Under their own 30-day typical price" kicker="From our daily price snapshots">
-          <ol className="grid gap-2">
-            {under
-              .filter((u) => underCards.some((c) => c.slug === u.slug))
-              .map((u) => {
-                const c = underCards.find((x) => x.slug === u.slug)!;
-                return (
-                  <li key={u.slug} className="card flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3">
-                    <Link href={`/${r.region}/p/${u.slug}`} prefetch={false} className="min-w-0 font-semibold hover:text-brand">
-                      {c.name}
-                    </Link>
-                    <span className="tabular text-sm">
-                      <b className="font-display text-base">{money(u.cents, r.market)}</b> <span className="text-muted">vs {money(u.typical, r.market)} typical</span>{" "}
-                      <span className="font-semibold text-open">{u.pct}% under</span>
-                    </span>
-                  </li>
-                );
-              })}
-          </ol>
-          <p className="mt-3 text-sm leading-6 text-muted">
-            The typical price is the median of the product’s cheapest in-stock price over the last 30 days of our daily snapshots (a week of snapshots at
-            least). It describes what stores asked on those days, not what any store will charge next.
-          </p>
-        </Section>
-      )}
 
       {us && msrp.length > 0 && (
         <Section id="below-msrp" title="Under US MSRP today" kicker="Wizards of the Coast's announced US list price">

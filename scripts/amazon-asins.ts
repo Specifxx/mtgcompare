@@ -5,7 +5,7 @@
 // data/amazon/asins-<region>.json (ASINs may be stored; prices never are) and ride the publish commit; a miss is retried
 // after 30 days. Without credentials it does nothing; a store whose account has no API access yet (403) ends that region
 // quietly and the next still runs. data/amazon/status-<region>.json says what the last run did.
-//   npx tsx scripts/amazon-asins.ts            AMAZON_SEARCH_BUDGET=400 a region by default
+//   npx tsx scripts/amazon-asins.ts            AMAZON_SEARCH_BUDGET=100 (owner, 2026-11-19: the network's Amazon API allowance is shared, mostly ScentCompare's) a region by default
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { amazonFor } from "../src/lib/amazon";
@@ -43,7 +43,7 @@ async function region(r: Region) {
     status({ state: "off" });
     return console.log(`Amazon ASINs ${r}: no AMAZON_CREATORS_* credentials yet, skipped.`);
   }
-  const budget = Number(process.env.AMAZON_SEARCH_BUDGET || 400);
+  const budget = Math.min(100, Number(process.env.AMAZON_SEARCH_BUDGET || 100));
   const today = new Date().toISOString().slice(0, 10);
   const known: AsinFile = existsSync(FILE) ? JSON.parse(readFileSync(FILE, "utf8")) : {};
   const products = regionProducts(r);

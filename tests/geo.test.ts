@@ -52,7 +52,7 @@ test("the landing page: the region grid's server HTML has every region link and 
   const grid = html.slice(html.indexOf("data-home-grid"));
   assert.equal((grid.match(/<li class="hg-slot">/g) ?? []).length, 10, "ten slots of one size (globals.css .hg-slot; five until 2026-11-13): filling them moves nothing");
   assert.match(readFileSync("src/app/globals.css", "utf8"), /\.hg-slot \{\s*@apply h-\[5\.5rem\] md:h-auto;/, "a phone's slot is a fixed row");
-  assert.match(grid, /Most stocked in the US today/);
+  assert.match(grid, /Most popular in the US today/);
   // The minimal look (2026-11-13): this block is the products and nothing else. Its "Jump to" shortcuts and its second region row
   // are gone; the hero has the region row and six ways in, and what is not there is one click away in the header on the same page.
   assert.doesNotMatch(grid, /data-hot-button|Jump to/);

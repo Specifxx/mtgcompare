@@ -11,7 +11,7 @@ import type { ProductCardData } from "../src/lib/data";
 import { IMPACT_SITE_VERIFICATIONS } from "../src/lib/affiliate";
 import { REGION_LIST } from "../src/lib/regions";
 import { SETS } from "../src/lib/sets";
-import { OPERATOR, SITE_NAME, SITE_URL } from "../src/lib/site";
+import { DISCORD_INVITE, OPERATOR, SITE_NAME, SITE_URL } from "../src/lib/site";
 import { DEFAULT_OG_IMAGE } from "../src/lib/seo";
 import { findBannedCopy } from "../src/lib/copy-rules";
 import { Breadcrumbs, parentCrumb } from "../src/components/Breadcrumbs";
@@ -77,7 +77,8 @@ test("Footer on a region page: Shop, Latest sets, Explore and MTG Compare, then 
   for (const r of REGION_LIST) assert.ok(links.includes(`/${r.region}`), r.region);
   assert.match(html, /aria-current="true" class="chip min-h-10 chip-on" href="\/au">/);
   // every link is internal now: the sister sites are listed once on /our-sites (2026-11-08)
-  for (const h of links) if (h !== "mailto:compareempire@gmail.com") assert.match(h, /^\//, `${h} is internal`);
+  // ...except the one Discord hub invite (DiscordCta, owner 2026-11-20), which is not a sister site.
+  for (const h of links) if (h !== "mailto:compareempire@gmail.com" && h !== DISCORD_INVITE) assert.match(h, /^\//, `${h} is internal`);
   assert.ok(links.includes("/our-sites"));
   assert.equal(footerColumns("au").length, 5); // Shop, Latest sets, Explore, Guides (every guide: no orphans), MTG Compare
 });
@@ -127,7 +128,7 @@ test("the footer is drawn by each layout after its <main> (and by the 404 and er
 test("Header on a region page: search at every width (never in a hidden wrapper), the menu button, a compact region button", () => {
   const html = render(React.createElement(Header, { region: "us" }));
   // On the page's own ground, blurred; its line fades in once the page scrolls under it (globals.css .hdr).
-  assert.match(html, /^<header class="hdr sticky top-0 z-40 h-\[var\(--hdr\)\] border-b border-line bg-bg\/80 backdrop-blur-xl">/);
+  assert.match(html, /^<header class="hdr sticky top-0 z-40 h-\[var\(--hdr\)\] border-b border-line bg-bg\/80 backdrop-blur-xl xmas-garland">/);
   assert.match(html, /^<header[^>]*><div class="page flex h-full items-center gap-2 sm:gap-3 xl:gap-4">/, "the header's row is the page's column");
   const form = html.indexOf('role="search"');
   assert.ok(form > 0, "the search form is in the header");

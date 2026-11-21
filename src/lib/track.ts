@@ -21,6 +21,7 @@ const SENT: ReadonlySet<string> = new Set([
   "nudge_eligible",
   "nudge_shown",
   "nudge_click",
+  "hot_nudge", // the Hot 100 buy prompt A/B (lib/hot-nudge.ts, 2026-11-20): {k: "<arm>:seen|shown|buy"}
   ...["ab_seen", "ab_paid", "ab_tcg", "ab_ebay", "ab_amazon", "ab_store", "ab_mini_tcg", "ab_mini_ebay"],
 ]);
 

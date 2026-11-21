@@ -477,3 +477,87 @@ test("pre-order and language words in other languages, 'CCG' and store SKUs are 
   assert.equal(key("Bloomburrow Play Booster Case (6 Boxes)"), "blb|play-booster-box-case");
   assert.equal(key("Final Fantasy Starter Kit (2 Decks)"), "starter|fin|kit");
 });
+
+// 2026-11-19 audit of one-store twins (real store titles): colour identities, "(New Arrival)", "(Single Pack)", misspellings and
+// Nauctis's "Collector Edition" (Wizards' name: Premium Edition) each made a second page of a Commander deck other stores list.
+test("Commander deck store notes, colours and misspellings join the deck's own page", () => {
+  const same: [string, string][] = [
+    ["Magic the Gathering: Universes Beyond - Star Trek Collector Commander Deck (Federation Fleet Blue-Red-White)", "Star Trek - Commander Deck - Federation Fleet (Collector's Edition)"],
+    ["Magic the Gathering: Universes Beyond - Star Trek Commander Deck (We are the Borg White-Blue-Black)", "Star Trek Commander Deck - We Are the Borg"],
+    ["Magic the Gathering: Universes Beyond - Star Trek Commander Deck (Landing Party Green-White-Blue)", "Star Trek Commander Deck - Landing Party"],
+    ["MTG: Star Trek - Collector Commander Deck - Klingon Fury (New Arrival)", "Star Trek - Commander Deck - Klingon Fury (Collector's Edition)"],
+    ["MTG: Star Trek - Commander Deck - Landing Party (New Arrival)", "Star Trek Commander Deck - Landing Party"],
+    ["MTG: Star Trek Collector Commander Deck - Kilngon Fury", "Star Trek - Commander Deck - Klingon Fury (Collector's Edition)"],
+    ["Magic the Gathering - Star Trek We Are The Borgs Commander Deck", "Star Trek Commander Deck - We Are the Borg"],
+    ["Magic the Gathering Universes Beyond Marvel Darkhold Destiny Gods of Asgard Commander Deck, Collector Edition (Single Pack)", "Marvel Darkhold Destiny Commander Deck - Gods of Asgard (Collector's Edition)"],
+    ["Nauctis: The Sunken Realm Commander Deck - Terror Of The Abyss", "Nauctis: The Sunken Realm Commander Deck: Terrors of the Abyss"],
+    ["The Ruinous Power—Collector's Edition Warhammer 40,000 Commander Deck", "Warhammer 40,000 - The Ruinous Powers Commander Deck (Collector's Edition)"],
+    ["MtG: Nauctis The Sunken Realm - Commander Deck, Collector Edition - Blood in the Water (presale)", "Nauctis: The Sunken Realm Premium Edition Commander Deck: Blood in the Water"],
+    ["MtG: Nauctis The Sunken Realm - Commander Deck, Collector Edition - Terrors of the Abyss (presale)", "Nauctis: The Sunken Realm Commander Deck - Terrors of the Abyss (Premium Edition)"],
+  ];
+  for (const [a, b] of same) {
+    assert.ok(!key(a).startsWith("REJECT"), a);
+    assert.equal(key(a), key(b), a);
+  }
+  // Still apart: the plain deck from its foil edition, and before Nauctis a Collector's Edition keeps its own marker.
+  assert.notEqual(key("Magic the Gathering: Universes Beyond - Star Trek Collector Commander Deck (Federation Fleet Blue-Red-White)"), key("Star Trek Commander Deck - Federation Fleet"));
+  assert.notEqual(key("MtG: Nauctis The Sunken Realm - Commander Deck, Collector Edition - Seal the Deal (presale)"), key("Nauctis: The Sunken Realm Commander Deck: Seal the Deal"));
+  assert.equal(key("Warhammer 40,000 - Necron Dynasties Commander Deck (Collector's Edition)"), "commander-deck|40k|collector-dynasties-necron");
+});
+
+test("a playmat in a dropped ' | ' segment, and a store's 3-pack bundle, are refused (wrong prices found 20 Nov 2026)", () => {
+  assert.equal(identify("Edge of Eternities Commander Deck: World Shaper | Playmat for Magic: The Gathering"), "accessory");
+  assert.equal(identify("Avatar: The Last Airbender - Play Booster Pack 3 Pack Bundle"), "multiple");
+  // the real products still read
+  const deck = identify("Edge of Eternities Commander Deck: World Shaper");
+  assert.ok(typeof deck === "object" && deck.type === "commander-deck");
+  const b = identify("Magic: The Gathering: Star Trek - Bundle");
+  assert.ok(typeof b === "object" && b.type === "bundle");
+  const fat = identify("Star Trek Beam Me Up Fat Pack Bundle");
+  assert.ok(typeof fat === "object");
+});
+
+// 2026-11-20 audit of one-offer Star Trek and Hobbit pages (real store titles).
+test("Italian deck names are foreign; 'pick one' listings are vague; store notes join the product's own page", () => {
+  for (const t of [
+    "Magic - Star Trek: Commander Deck - Flotta della Federazione",
+    "Magic - Star Trek: Commander Deck - Furia Klingon",
+    "Magic - Star Trek: Commander Deck - Noi Siamo i Borg",
+    "Magic - Star Trek: Commander Deck - Squadra di Sbarco",
+  ]) assert.equal(identify(t), "foreign", t);
+  for (const t of [
+    "MTG STAR TREK COMMANDER DECK (CHOOSE YOUR STYLE)",
+    "MTG [TRK] Star Trek Commander Decks (4 options)",
+    "MTG [TRK] Star Trek Collector Commander Decks (4 options)",
+    "Magic The Gathering: Star Trek Commander Deck [Various]",
+    "Magic The Gathering: Star Trek (Collector's Edition) Commander Deck [Various]",
+    "MTG - Star Trek - Commander Decks (Various Styles)",
+    "Magic: The Gathering | TCG: Star Trek | Commander Decks (See Variants)",
+    "MTG · Star Trek · Commander Deck (au choix)",
+    "Star Trek Individual Commander Decks (MTG)",
+    "Magic: The Gathering Star Trek Commander Deck 1pc",
+    "Magic: The Gathering Star Trek Commander Deck Standard Edition",
+    "MTG Star Trek - Commander Deck (Assorted see instore for availability)",
+    "MTG- STAR TREK SCENE BOX- Choose one",
+    "MTG STAR TREK SCENE BOX (PICK YOUR SCENE!)",
+    "MTG - Star Trek - Scene Box (Various Styles)",
+    "Magic the Gathering: The Hobbit - Scene Box [Various]",
+    "Magic the Gathering The Hobbit Scene Box 1pc",
+  ]) assert.equal(identify(t), "vague", t);
+  const same: [string, string][] = [
+    ["Star Trek - Beam Me Up Bundle [PREORDER] (DELAYED NO ETA)", "Star Trek Beam Me Up Bundle"],
+    ["Star Trek Beam Me Up Bundle (Delayed Availability)", "Star Trek Beam Me Up Bundle"],
+    ["MTG: Star Trek - Bundle (New Arrival)", "Magic: The Gathering: Star Trek - Bundle"],
+    ["MTG: Star Trek - Scene Box - Enterprise-Q (New Arrival)", "Magic: The Gathering - Star Trek Scene Box - Enterprise-Q"],
+    ["MTG: Star Trek - Prerelease Pack (New Arrival)", "Magic: The Gathering Star Trek Prerelease Pack"],
+    ["Magic: The Gathering Star Trek Prerelease Pack 1pc", "Magic: The Gathering Star Trek Prerelease Pack"],
+    ["Magic the Gathering Marvel Super Heroes Beginner Box 1pc", "Marvel Super Heroes Beginner Box"],
+    ["MTG: Reality Fracture - Secret Lair Bundle (New Arrival)", "Reality Fracture Secret Lair Bundle"],
+  ];
+  for (const [a, b] of same) {
+    assert.ok(!key(a).startsWith("REJECT"), a);
+    assert.equal(key(a), key(b), a);
+  }
+  // A named deck sold with a pick-one note still keys onto that deck.
+  assert.equal(key("Star Trek Commander Deck - Federation Fleet Standard Edition"), key("Star Trek Commander Deck - Federation Fleet"));
+});
