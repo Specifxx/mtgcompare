@@ -5,6 +5,7 @@ import { ALERT_SITE_KEY } from "@/lib/alert-feed";
 import Link from "@/components/Link";
 import { cache } from "react";
 import type { Metadata } from "next";
+import { GiveawayHomeBanner } from "@/components/giveaway/GiveawayHomeBanner";
 import { Ago } from "@/components/Ago";
 import { RecentlyViewed } from "@/components/Recent";
 import { NoPreFooter } from "@/components/Ebay";
@@ -246,6 +247,10 @@ export default async function RegionHome({ params }: { params: { region: string 
           <span className="max-[479px]:basis-full">checked {overview.lastChecked ? <Ago iso={overview.lastChecked.toISOString()} initial={timeAgo(overview.lastChecked)} /> : "twice a day"}</span>
         </p>
       </Hero>
+      {/* The giveaway, while it is open (owner, 2026-11-22: "feature it on our homepage"). */}
+      <div className="page">
+        <GiveawayHomeBanner />
+      </div>
 
       {/* The page places its own ad block (below): none above the footer. */}
       <NoPreFooter />

@@ -186,7 +186,7 @@ test("Header with no region: the whole header, built for the default region (the
 test("the menu's groups: product types, sets, deals and the rest, every link a real region path; no sidebar draws them any more", () => {
   const groups = navGroups("au", "2026-10-28");
   assert.deepEqual(groups.map((g) => g.title), ["Shop by product", "Sets", "Sets by series", "Deals & stock", "More"]);
-  for (const l of groups.flatMap((g) => g.links)) assert.match(l.href, /^\/au\/|^\/blog$|^\/creators$|^\/forum$/, l.href);
+  for (const l of groups.flatMap((g) => g.links)) assert.match(l.href, /^\/au\/|^\/blog$|^\/creators$|^\/forum$|^\/giveaway$/, l.href);
   assert.deepEqual(groups[1].links[0], { href: "/au/preorders/star-trek", label: "Star Trek pre-orders" }, "an open pre-order hub leads the sets");
   // Every open pre-order hub leads (sets found by the import included: lib/set-discovery.ts), then the newest released set.
   const firstSet = (g: typeof groups) => g[1].links.find((l) => !l.href.includes("/preorders/"))!;

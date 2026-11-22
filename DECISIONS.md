@@ -2715,6 +2715,19 @@ placement `black-friday`, email only because the Discord box sits lower on the p
 prompt on the account sites. The weekly email has its own Black Friday (27 Nov) and Cyber Monday (30 Nov) editions on RiftCompare's
 service (TCGEmpire DECISIONS, same day), so a sign-up before 26 Nov gets the Black Friday one. Inline, never a pop-up; real drops only.
 
+## 2026-11-22: A giveaway, run by RiftCompare's points engine
+
+**Decision.** `/giveaway` (static, prerendered) shows this site's prize (two Star Trek Play Boosters, under A$20 at Australian
+stores), its points, the leaderboard and the official rules; the home pages carry `GiveawayHomeBanner` under the hero while it is
+open, and the menus list it. The entry panel (`components/giveaway/`) sends the visitor's stored RiftCompare session
+(`lib/premium-member.ts`) to `https://riftcompare.com/api/sister-giveaway`, and the board reads RiftCompare's CDN-held
+`/api/giveaway/leaderboard?site=mtg`; the draw (a public drand number), the winner's email and claim form, and the address are all
+RiftCompare's (TCGEmpire DECISIONS.md, 2026-11-22). This site still stores no address and holds no key. `lib/giveaway.ts` repeats
+the prize and dates of RiftCompare's `mtg-star-trek-2026-12` entry and must change with it; a new round every two months.
+
+**Why.** Owner, 2026-11-22: "make all of that ... for MTG Compare as well ... a less than $20 most recent booster pack ... a point
+system ... every 2 months".
+
 ## 2026-11-22: Bot rules never untag a real person
 
 The owner (22 Nov): "make sure that there are literally zero false negatives when you filter bots, and false positives are okay."

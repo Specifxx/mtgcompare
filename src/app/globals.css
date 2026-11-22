@@ -394,6 +394,34 @@ body {
     opacity: 0;
   }
 }
+/* Giveaway (owner, 2026-11-22; components/giveaway/). */
+.gw-hero {
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgb(var(--spark) / 0.16), transparent 60%),
+    radial-gradient(90% 70% at 0% 100%, rgb(var(--brand) / 0.10), transparent 60%),
+    rgb(var(--surface));
+}
+.gw-prize { transform: rotate(-2.5deg); transition: transform 0.3s ease; }
+.gw-prize:hover { transform: rotate(0deg) scale(1.02); }
+.gw-flash { animation: gw-flash 2.4s ease-out forwards; }
+@keyframes gw-flash {
+  0% { opacity: 0; transform: translateY(6px) scale(0.9); }
+  15% { opacity: 1; transform: translateY(0) scale(1.05); }
+  25% { transform: scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-8px); }
+}
+.gw-trophy {
+  background:
+    radial-gradient(80% 120% at 50% 0%, rgb(var(--spark) / 0.30), transparent 65%),
+    linear-gradient(180deg, rgb(var(--spark) / 0.10), rgb(var(--surface)));
+  box-shadow: 0 0 40px rgb(var(--spark) / 0.18) inset;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gw-flash { animation: none; }
+  .gw-prize, .gw-prize:hover { transform: none; transition: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .menu-sheet[open] {
     animation: none;
@@ -1354,3 +1382,4 @@ html[data-ebaypop="pop"] li:not([role="dialog"] li):has(a.btn-ad[href*="ebay."])
   background-color: rgba(54, 101, 243, 0.09);
   box-shadow: inset 3px 0 0 #3665f3;
 }
+
