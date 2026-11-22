@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SignInSlides } from "@/components/account/SignInSlides";
 import { GiveawayHomeBanner } from "@/components/giveaway/GiveawayHomeBanner";
 import { Icon } from "@/components/Icon";
 import { SoftSideAds } from "@/components/SideAds";
@@ -93,7 +94,7 @@ export default async function Landing() {
       </Hero>
       {/* The giveaway, while it is open (owner, 2026-11-22: "feature it on our homepage"). */}
       <div className="page">
-        <GiveawayHomeBanner />
+        <SignInSlides surface="home" variant="banner" fallback={<GiveawayHomeBanner />} />
       </div>
 
       {/* The products, straight under the hero (owner, 2026-11-13: "the product's very easy to access"): ten of the region's most

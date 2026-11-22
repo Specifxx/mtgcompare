@@ -18,7 +18,8 @@ function ref(): string | undefined {
   }
 }
 
-async function call(body: Record<string, unknown>): Promise<Me> {
+/** One call to RiftCompare's giveaway API for this browser's account (also read by the profile page, components/account/ProfileHub.tsx). */
+export async function giveawayCall(body: Record<string, unknown>): Promise<Me> {
   const stored = readStored();
   if (!stored) return { state: giveawayState(), signedIn: false };
   try {
@@ -51,9 +52,9 @@ export function GiveawayEnter({ discordUrl }: { discordUrl?: string }) {
     }
   }, []);
   const api: PanelApi = {
-    load: () => call({}),
+    load: () => giveawayCall({}),
     act: async (action, extra = {}) => {
-      const m = await call({ action, ref: action === "enter" ? ref() : undefined, ...extra });
+      const m = await giveawayCall({ action, ref: action === "enter" ? ref() : undefined, ...extra });
       if (m.entered) {
         try {
           localStorage.removeItem(REF_KEY);
@@ -70,7 +71,7 @@ export function GiveawayEnter({ discordUrl }: { discordUrl?: string }) {
       closesText="14 Dec, 11:59 pm Sydney"
       premiumHref="/premium"
       signIn={
-        <a rel="nofollow" href="/account?next=%2Fgiveaway" className="btn-primary inline-flex">
+        <a rel="nofollow" href="/account?src=giveaway&next=%2Fgiveaway" className="btn-primary inline-flex">
           Sign in free to enter
         </a>
       }

@@ -1,5 +1,7 @@
 "use client";
 
+import { promptSlotHolder } from "@/lib/prompt-slot";
+
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { SITE_REVIEWS } from "@/lib/site-reviews-config";
@@ -43,6 +45,9 @@ function sessionPages(path: string): number {
 }
 
 function askedThisVisit(): boolean {
+  // The visit's one prompt went to another (lib/prompt-slot.ts, page budget 2026-11-23): this visit counts as asked.
+  const holder = promptSlotHolder();
+  if (holder && holder !== SESSION_KEY) return true;
   try {
     return sessionStorage.getItem(SESSION_KEY) === "1";
   } catch {

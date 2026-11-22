@@ -72,7 +72,7 @@ function CollectionSignIn() {
         today and how much it has moved since you added it.
       </p>
       <p className="ce-vault-muted">A free account, no password: Google or an emailed link. Premium adds a year of value history and a spreadsheet export, 14 days free.</p>
-      <a className="ce-vault-btn" href="/account?next=/collection">
+      <a className="ce-vault-btn" href="/account?src=collection&next=/collection">
         Sign in or create a free account
       </a>
     </div>

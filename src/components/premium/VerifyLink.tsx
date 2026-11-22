@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { codeFromHash, signInWithCode } from "@/lib/premium-member";
+import { codeFromHash, signInWithCode, trackSignedIn } from "@/lib/premium-member";
 
 /** Where to land: the page the visitor was headed to (a Google or Discord sign-in carries it as &n=), else the account hub. */
 function landing(hash: string): string {
@@ -22,7 +22,10 @@ export function VerifyLink() {
       return;
     }
     signInWithCode(c).then((r) => {
-      if (r.ok) location.replace(to);
+      if (r.ok) {
+        trackSignedIn("link");
+        location.replace(to);
+      }
       else setMsg(r.message);
     });
   }, []);
