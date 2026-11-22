@@ -2738,3 +2738,19 @@ pasted URL or a translate proxy is "none" or "cross-site". "yandex" and "baidu" 
 builds, baiduboxapp). Now `looksLikeBot` (the one thing that untags) is only an empty User-Agent or a self-named crawler or
 script; the header checks moved to `suspectClick`, which at most leaves a click out of the server-side click log, never the tag.
 The 10-14 Nov crawler with full browser headers will reach the networks tagged again: accepted by the owner's rule.
+
+## 2026-11-22: One-store twins, fourth pass (starter kits, Scene Box spellings, [Prerelease] tags)
+
+An audit of every product with one offer (163 on the 22 Nov export) found more store wordings that made a second page of a
+product other stores list. `identify()` now reads: a "[Prerelease]" tag or a leading "Prerelease -" on a Commander deck or a
+Collector Booster as the store's pre-order shelf (alohacardshop's four Star Trek decks and pack), a set's Starter Kit or Starter
+Collection without its year ("Bloomburrow Starter Kit 2024"; a set-less kit keeps its year) and without "Learn to Play", "2
+Ready-to-Play Decks", "2 Player" or "Single Pack" (so the 23-store "Foundations Learn to Play Beginner Box" page joins the
+Foundations Beginner Box, both US$29.99), Scene Box spellings (Smuag, Treasure, Smaug™, Crack the Plate, "Lo Hobbit"), "Multi
+Verse"/"Multiverses Reforged", "Tales from Middle Earth", a slash colour identity ("WHITE/BLUE/BLACK"), "Limit one per customer",
+"[Special Deals]", "Universe Beyond", "Gatheing"/"Gatherigng", "Avater", "Starterset". It refuses consignment listings (a
+second-hand sale), a pick-one "(2 Varieties)" Scene Box, and Italian ("Mondi Altrove", "Mazzi") and Croatian ("Kutija za
+pocetnike") prints. Never "Karten": German stores list English packs as "(14 Karten) - Englisch". Replayed on every offer title of
+the export: 83 offers change, 74 join an existing page, 9 are refused, no offer lands on a new key and no two different products
+merge; 46 one- and two-store pages empty and 301 through culled.json. Left alone on purpose: "Reality Reforged" (not sure it is
+Multiverse Reforged), "Take Home"/"At Home" prerelease kits (some add boosters), "ITA\ENG" starter kits.

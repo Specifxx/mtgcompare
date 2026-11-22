@@ -186,7 +186,11 @@ const FOREIGN = new RegExp(
     // Italian Commander deck names (2026-11-20, luckydice): "Flotta della Federazione", "Furia Klingon", "Noi Siamo i Borg",
     // "Squadra di Sbarco" are the Italian prints of the Star Trek decks, sold beside the English ones.
     "\\b(?:della|flotta|furia|noi\\s*siamo|squadra\\s*di)\\b",
-    "\\b(?:spiel\\s*-?\\s*booster|sammler\\s*-?\\s*booster|sammelkartenspiel|vorpremiere|booster\\s*de\\s*(?:jeu|collection|extension)|boite\\s*de|coffret|busta|buste|bustine|mazzo|sobres?\\s*de|caja\\s*de|mazo|verzamel\\w*)\\b",
+    "\\b(?:spiel\\s*-?\\s*booster|sammler\\s*-?\\s*booster|sammelkartenspiel|vorpremiere|booster\\s*de\\s*(?:jeu|collection|extension)|boite\\s*de|coffret|busta|buste|bustine|mazzo|mazzi|sobres?\\s*de|caja\\s*de|mazo|verzamel\\w*)\\b",
+    // 2026-11-22 audit of one-store pages: Italian "Mondi Altrove" (Universes Beyond) and Croatian "Kutija za pocetnike" (the
+    // Beginner Box), each a print in that language sold beside the English one. Never "Karten": German stores list English packs
+    // as "Play Booster (14 Karten) - Englisch".
+    "\\b(?:altrove|kutija)\\b",
   ].join("|"),
   "i",
 );
@@ -194,7 +198,7 @@ const FOREIGN = new RegExp(
 // Singles, slabs and anything that isn't a factory-sealed product. Also a product that was sealed and isn't quite any more ("no
 // shrink", "box wear", "minor damage"), an event ticket, a box topper, a sample or omega pack, a store's break or repack.
 const NOT_SEALED =
-  /\b(?:psa|cgc|bgs|beckett|sgc|graded|slab|slabbed)\b|\bgem\s*mint\b|\bsingles\b|\bsingle\s*cards?\b|\bnear\s*mint\b|\blightly\s*played\b|\b(?:nm|lp|mp|hp)\b(?!\s*-?\s*\d)|\b\d{1,4}\s*\/\s*\d{2,4}\b|#\s*\d{1,4}\b|\bproxy\b|\bproxies\b|\b(?:prerelease|buy\s*-?\s*a\s*-?\s*box|bundle|launch|store\s*championship|stamped)\s*promos?\b|\bpromo\s*packs?\b|\bbox\s*toppers?\b|\bsample\s*packs?\b|\bomega\b|\btickets?\b|\bevent\s*entry\b|\bentry\s*fee\b|\bregistration\b|\bunshrink(?:ed)?\b|\bno\s*shrink\b|\bloose\s*wrap\b|\bbox\s*wear\b|\bimperfections?\b|\bminor\s*damage\b|\bopened\b|\bempty\b|\bbox\s*only\b|\bcase\s*only\b|\bwrappers?\b|\bdamaged\b|\bdented\b|\bcrushed\b|\b(?:torn|creased|ripped)\b|\bdent\b|\bresealed\b|\brepack(?:ed|s)?\b|\bmystery\s*(?:box|bag|pack|bundle)\b|\blucky\s*(?:dip|bag|box)\b|\bgrab\s*bag\b|\bcustom\b|\blive\s*break\b|\b(?:box|case|group|pack)\s*breaks?\b|\brip\s*(?:&|and)\s*ship\b|\bvalue\s*(?:lot|box|pack)\b|\binstant\s*collection\b|\bcodes?\b|\bonline\s*code\b|\bdigital\s*(?:code|copy)\b|\barena\s*code\b|\bmtgo\b/i;
+  /\b(?:psa|cgc|bgs|beckett|sgc|graded|slab|slabbed)\b|\bgem\s*mint\b|\bsingles\b|\bsingle\s*cards?\b|\bnear\s*mint\b|\blightly\s*played\b|\b(?:nm|lp|mp|hp)\b(?!\s*-?\s*\d)|\b\d{1,4}\s*\/\s*\d{2,4}\b|#\s*\d{1,4}\b|\bproxy\b|\bproxies\b|\b(?:prerelease|buy\s*-?\s*a\s*-?\s*box|bundle|launch|store\s*championship|stamped)\s*promos?\b|\bpromo\s*packs?\b|\bbox\s*toppers?\b|\bsample\s*packs?\b|\bomega\b|\btickets?\b|\bevent\s*entry\b|\bentry\s*fee\b|\bregistration\b|\bunshrink(?:ed)?\b|\bno\s*shrink\b|\bloose\s*wrap\b|\bbox\s*wear\b|\bimperfections?\b|\bminor\s*damage\b|\bopened\b|\bempty\b|\bbox\s*only\b|\bcase\s*only\b|\bwrappers?\b|\bdamaged\b|\bdented\b|\bcrushed\b|\b(?:torn|creased|ripped)\b|\bdent\b|\bresealed\b|\brepack(?:ed|s)?\b|\bmystery\s*(?:box|bag|pack|bundle)\b|\blucky\s*(?:dip|bag|box)\b|\bgrab\s*bag\b|\bcustom\b|\bconsignment\b|\blive\s*break\b|\b(?:box|case|group|pack)\s*breaks?\b|\brip\s*(?:&|and)\s*ship\b|\bvalue\s*(?:lot|box|pack)\b|\binstant\s*collection\b|\bcodes?\b|\bonline\s*code\b|\bdigital\s*(?:code|copy)\b|\barena\s*code\b|\bmtgo\b/i;
 
 // Accessories and merchandise: a title naming one of these is never the sealed product itself ("Bloomburrow Bundle Sleeves" is
 // sleeves; "Pre Release Playmat" is a playmat).
@@ -448,7 +452,10 @@ const NOISE = new Set(
     // French "(PRÉCOMMANDE)" (2026-11-21 audit: gametime's four Nauctis and four Darkhold Destiny decks each had a one-store twin).
     "precommande precommandes " +
     // "ab 13.11.2026" (German "from"), "Der Hobbit", "El Hobbit", "Einsteigerbox" (German for the Beginner Box).
-    "ab der el einsteigerbox"
+    "ab der el einsteigerbox " +
+    // 2026-11-22 audit: store misspellings of the game ("Magic The Gatheing", "Gatherigng"), "Universes Beyon",
+    // side7's "Starterset", "Avater the Last Airbender", Italian and French "Lo Hobbit" / "Le Hobbit" (English product, ENG).
+    "gatheing gatherigng gatherig beyon starterset avater lo le"
   ).split(" "),
 );
 // Words that describe a KIND of product rather than which one it is: a title left with only these names no particular product.
@@ -464,7 +471,7 @@ const DESCRIPTORS = new Set("foil nonfoil regular collector collectors starter b
 const SKU_BRACKET = /\[\s*[A-Z][A-Z0-9-]{1,7}\s*\]|\(\s*[A-Z][A-Z0-9]{1,4}(?:-[A-Z0-9]{1,4})?\s*\)/g;
 // Unbracketed store notes, removed before tokenising.
 const STORE_NOTE =
-  /\b(?:max(?:imum)?\s*)?\d*\s*(?:x\s*)?per\s*(?:customer|client|household|person|order|account|event)\b|\blimit(?:ed)?\s*(?:of\s*)?\d+\b|\b(?:local|in[\s-]*store)\s*pick[\s-]*ups?(?:\s*only)?\b|\bpick[\s-]*up\s*only\b|\blive\s*-?\s*stream(?:\s*only)?\b|\b\d{1,2}%\s*vat\b|\b(?:read|see)\s*(?:item\s*)?description\b|\bdate\s*tbd\b|\bmsrp\s*deal\b|\b(?:release|releases|releasing|ships?|shipping|limit|max|eta|due|arriving)\b[^)\]]*[)\]]/g;
+  /\b(?:limit(?:ed)?\s*(?:to\s*)?)?(?:max(?:imum)?\s*)?(?:\d+|one)?\s*(?:x\s*)?per\s*(?:customer|client|household|person|order|account|event)\b|\blimit(?:ed)?\s*(?:of\s*)?\d+\b|\b(?:local|in[\s-]*store)\s*pick[\s-]*ups?(?:\s*only)?\b|\bpick[\s-]*up\s*only\b|\blive\s*-?\s*stream(?:\s*only)?\b|\b\d{1,2}%\s*vat\b|\b(?:read|see)\s*(?:item\s*)?description\b|\bdate\s*tbd\b|\bmsrp\s*deal\b|\b(?:release|releases|releasing|ships?|shipping|limit|max|eta|due|arriving)\b[^)\]]*[)\]]/g;
 
 // Release-date notes, never a product's words: German pre-sale "(VVK - 06.11.2026)", "Vorverkauf", "(Approx 20th Nov 2026)",
 // "(Available November 6th)", "(Delays Expected)", "Release Date: 13th of November 2026", a bare dd.mm.yyyy.
@@ -482,13 +489,24 @@ function signatureTokens(title: string, set: MtgSet | null, type: TypeKey): stri
   t = t.replace(/\bmtg-[a-z0-9]+(?:-[a-z0-9]+)+\b/g, " ");
   // Store notes that say nothing about which product (2026-11-20 audit): "(New Arrival)" on any product, "1pc" (one of it).
   t = t.replace(/\bnew\s*arrivals?\b|\b1\s*pcs?\b/g, " ");
+  // 2026-11-22 audit of one-store twins: a "[Special Deals]" shelf label; store spellings of one name ("Treasures of Smuag",
+  // "Treasure of Smaug", "Smaug™", "Crack the Plate", "Multi Verse Reforged", "Multiverses Reforged", "Tales from Middle Earth").
+  t = t
+    .replace(/[(\[]\s*special\s*deals?\s*[)\]]/g, " ")
+    .replace(/\buniverse\s*beyond\b/g, "universes beyond")
+    .replace(/\bsmuag\b/g, "smaug")
+    .replace(/\bsmaugtm\b/g, "smaug")
+    .replace(/\btreasure\s*of\s*smaug\b/g, "treasures of smaug")
+    .replace(/\bcrack\s*the\s*plate\b/g, "crack the plates")
+    .replace(/\bmulti\s*-?\s*verses?\s*reforged\b/g, "multiverse reforged")
+    .replace(/\btales\s*from\s*middle\b/g, "tales of middle");
   if (PICKED_TYPES.has(type)) {
     // "Pick one" listings of a Commander deck or Scene Box (2026-11-20 audit, each its own one-store page): "(Choose Your Style)",
     // "(4 options)", "[Various]", "(Various Styles)", "(See Variants)", "(au choix)", "Pick Your Scene", "Choose one", "Individual
     // Commander Decks", "(Assorted see instore for availability)", "Standard Edition". The store picks the deck, so the title names
     // none; with these gone a title naming no deck is refused as vague, and one that does name its deck keys onto that deck.
     t = t.replace(
-      /\b(?:choose|pick)\s*(?:your\s*)?(?:style|scene|deck|variant|one)s?\b|\bvarious(?:\s*styles?)?\b|\bsee\s*variants?\b|\b\d+\s*options?\b|\bau\s*choix\b|\bindividual\b|\bsee\s*in\s*-?\s*store\s*for\s*availability\b|\bstandard\s*edition\b/g,
+      /\b(?:choose|pick)\s*(?:your\s*)?(?:style|scene|deck|variant|one)s?\b|\bvarious(?:\s*styles?)?\b|\bsee\s*variants?\b|\b\d+\s*options?\b|\bau\s*choix\b|\bindividual\b|\bsee\s*in\s*-?\s*store\s*for\s*availability\b|\bstandard\s*edition\b|\b\d*\s*varieties\b/g,
       " ",
     );
   }
@@ -497,7 +515,7 @@ function signatureTokens(title: string, set: MtgSet | null, type: TypeKey): stri
     // ("(New Arrival)", "(Single Pack)") and store misspellings ("Kilngon", "We Are The Borgs", "Terror Of The Abyss", "The Ruinous
     // Power") made a second page of a deck other stores list. Colours only as a hyphenated run of two or more, never one word.
     t = t
-      .replace(/\b(?:white|blue|black|red|green)(?:\s*-\s*(?:white|blue|black|red|green)){1,4}\b/g, " ")
+      .replace(/\b(?:white|blue|black|red|green)(?:\s*[-/]\s*(?:white|blue|black|red|green)){1,4}\b/g, " ")
       .replace(/[(\[]\s*single\s*pack\s*[)\]]/g, " ")
       .replace(/\bkilngon\b/g, "klingon")
       .replace(/\bthe\s*borgs\b/g, "the borg")
@@ -524,6 +542,9 @@ function signatureTokens(title: string, set: MtgSet | null, type: TypeKey): stri
     else if (/\bwelcome\b/.test(t)) markers.push("welcome");
     else markers.push("kit");
     t = t.replace(/\bbeginner\b|\bstarter\b|\bcollection\b|\bwelcome\b/g, " ");
+    // How a store describes the kit, never which one (2026-11-22): "Learn to Play", "2 Ready-to-Play Decks", "2 Player Starter Kit".
+    // "Single Pack" is one box, not another product (sagaconcepts' "… Beginner Box Single Pack").
+    t = t.replace(/\blearn\s*to\s*play\b|\bready\s*-?\s*to\s*-?\s*play\b|\b\d?\s*-?\s*players?\b|\bsingle\s*pack\b/g, " ");
   }
   if (set) {
     const own = matchers().find((x) => x.set.code === set.code);
@@ -550,7 +571,9 @@ function signatureTokens(title: string, set: MtgSet | null, type: TypeKey): stri
     // Possessives: "Marvel's" and "Marvels" tokenise alike.
     .replace(/'s\b/g, "")
     .replace(/[^a-z0-9]+/g, " ");
-  const yearly = type === "deck" || type === "secret-lair" || type === "starter";
+  // A set's own Starter Kit or Starter Collection is one product: its year ("Bloomburrow Starter Kit 2024", "2024 Foundations Starter
+  // Collection") repeats the set's. Only a set-less kit ("Starter Kit 2023") is told apart by its year.
+  const yearly = type === "deck" || type === "secret-lair" || (type === "starter" && !set);
   const words = new Set<string>();
   for (const w of t.split(" ")) {
     if (!w || NOISE.has(w)) continue;
@@ -714,8 +737,18 @@ const SETLESS_OK = new Set<TypeKey>(["secret-lair", "deck", "collection", "start
 // (2026-11-03), each missing from the real product's comparison.
 const STORE_PREFIX = /^\s*ccg\s*[:\-–—|]\s*/i;
 
+// A "[Prerelease]" tag on a Commander deck or a Collector Booster is the store's pre-order shelf, not the Prerelease Pack (2026-11-22:
+// alohacardshop's "Klingon Fury - … Star Trek Commander Deck [Prerelease]", "Star Trek - Collector Booster Pack [Prerelease]", each a
+// one-store page beside the deck's and the pack's own). Only a bracketed tag or a leading "Prerelease -", and only when the rest
+// names the deck or the pack and no other prerelease.
+const PRERELEASE_TAG = /[[(]\s*pre\s*-?\s*release\s*[\])]|^\s*pre\s*-?\s*release\s*[-:–—|]\s*/i;
+
 export function identify(title: string, opts: { strict?: boolean } = {}): SealedIdentity | Rejection {
   title = title.replace(STORE_PREFIX, "");
+  if (PRERELEASE_TAG.test(title)) {
+    const rest = title.replace(PRERELEASE_TAG, " ");
+    if (/\bcommander\s*decks?\b|\bcollector'?s?\s*booster\b/i.test(rest) && !/\bpre\s*-?\s*release\b/i.test(rest)) title = rest;
+  }
   const t = stripFiller(normalizeTitle(title));
   if (!t) return "unclassified";
   if (FOREIGN.test(t) || new RegExp(LANG_NAMES, "i").test(normalizeTitle(title))) return "foreign";
