@@ -593,3 +593,58 @@ test("Premium Edition decks with no deck name are vague; the four Premium decks 
     assert.equal(key(a), key(b), a);
   }
 });
+
+test("One-store twins of 22 Nov: [Prerelease] tags, starter-kit wording, Scene Box spellings, consignment and foreign prints", () => {
+  // 2026-11-22 audit of every product with one offer: each title below made its own page beside the product other stores list.
+  const same: [string, string][] = [
+    // alohacardshop's pre-order shelf tag is not the Prerelease Pack.
+    ["Klingon Fury - Magic: The Gathering Star Trek Commander Deck [Prerelease]", "Star Trek Commander Deck - Klingon Fury"],
+    ["Magic: The Gathering Star Trek Commander Deck - Federation Fleet [Prerelease]", "Star Trek Commander Deck - Federation Fleet"],
+    ["[PRERELEASE] Star Trek Commander Deck - We Are the Borg", "Star Trek Commander Deck - We Are the Borg"],
+    ["Magic: The Gathering Star Trek - Collector Booster Pack [Prerelease]", "Star Trek Collector Booster Pack"],
+    // A set's kit is one product, however the store describes it.
+    ["Magic: the Gathering: Foundations - Learn to Play Beginner Box", "Magic: The Gathering Foundations Beginner Box"],
+    ["Magic the Gathering CCG Foundations Learn to Play Beginner Box Single Pack MTG-FND-BGBOX", "Foundations Beginner Box"],
+    ["Magic: The Gathering - Bloomburrow Starter Kit - 2 Ready-to-Play Decks", "Bloomburrow Starter Kit"],
+    ["MTG Bloomburrow - Starter Kit 2024", "Bloomburrow Starter Kit"],
+    ["2024 Magic: The Gathering—Foundations Starter Collection", "Foundations Starter Collection"],
+    ["Magic The Gatheing: Foundations - Starter Collection", "Foundations Starter Collection"],
+    ["MTG The Lord of the Rings: Tales of Middle-Earth 2 Player Starter Kit", "The Lord of the Rings: Tales of Middle-earth Starter Kit"],
+    ["Magic: The Gathering The Lord of the Rings: Tales from Middle Earth - Starter Kit", "The Lord of the Rings: Tales of Middle-earth Starter Kit"],
+    ["MTG - Universe Beyond: Assassin's Creed - Beyond Starter Kit", "Assassin's Creed Starter Kit"],
+    ["Magic: the Gathering - Final Fantasy Starterset", "Final Fantasy Starter Kit"],
+    ["Magic the Gathering: Avater the Last Airbender Beginner Box", "Avatar: The Last Airbender Beginner Box"],
+    ["[Special Deals] Magic The Gathering - Avatar The Last Airbender Beginner Box", "Avatar: The Last Airbender Beginner Box"],
+    // Scene Box spellings and store notes.
+    ["[Magic: The Gathering] The Hobbit Treasures of Smuag Scene Box", "The Hobbit Scene Box - Treasures of Smaug"],
+    ["MTG THE HOBBIT SCENE BOX - TREASURE OF SMAUG", "The Hobbit Scene Box - Treasures of Smaug"],
+    ["MTG The Hobbit Scene Box: Treasures of Smaug™", "The Hobbit Scene Box - Treasures of Smaug"],
+    ["MTG The Hobbit: Scene Box: Crack The Plates (one per customer)", "The Hobbit Scene Box - Crack the Plates"],
+    ["Magic: The Gathering TCG: The Hobbit Scene Box - Crack The Plate", "The Hobbit Scene Box - Crack the Plates"],
+    ["Scene Box Magic: The Gathering | Lo Hobbit - Treasures of Smaug", "The Hobbit Scene Box - Treasures of Smaug"],
+    ["Lo Hobbit - Bundle (ENG)", "The Hobbit Bundle"],
+    // Commander deck names: spellings and a slash-separated colour identity.
+    ["MTG Reality Fracture Multi Verse Reforged Commander Deck", "Reality Fracture Commander Deck - Multiverse Reforged"],
+    ["Magic The Gathering: Reality Fracture - Multiverses Reforged Commander Deck", "Reality Fracture Commander Deck - Multiverse Reforged"],
+    ["Magic the Gathering Teenage Mutant Ninja Turtles Commander Deck Turtle Power WHITE/BLUE/BLACK/RED/GREEN", "Teenage Mutant Ninja Turtles Commander Deck - Turtle Power"],
+    // "Limit one per customer" is a store note (ettingames).
+    ["MtG Teenage Mutant Ninja Turtles Commander Deck - Turtle Power! Limit one per customer", "Teenage Mutant Ninja Turtles Commander Deck - Turtle Power"],
+    ["MtG Teenage Mutant Ninja Turtles Bundle Limit one per customer", "Teenage Mutant Ninja Turtles Bundle"],
+  ];
+  for (const [a, b] of same) {
+    assert.ok(!key(a).startsWith("REJECT"), a);
+    assert.equal(key(a), key(b), a);
+  }
+  // A set-less kit still keeps its year: the 2022 and 2023 Starter Kits are two products.
+  assert.notEqual(key("Starter Kit (2022)"), key("Starter Kit 2023"));
+  // "Masters of the Universe" is a Secret Lair drop's name, never "Universes Beyond".
+  assert.ok(key("Secret Lair Drop: Secret Lair x Masters of the Universe: Sold Separately - Non-Foil Edition").includes("universe"));
+  // Consignment is a second-hand sale; a pick-one Scene Box names none; Italian and Croatian prints are foreign.
+  assert.equal(identify("Starter Kit (2022) (consignment)"), "not-sealed");
+  assert.equal(identify("The Hobbit - Play Booster Pack (consignment)"), "not-sealed");
+  assert.equal(identify("The Hobbit Scene Boxes (2 Varieties) (4)"), "vague");
+  assert.equal(identify("Magic Mondi Altrove Assassin's Creed Starter Kit Mazzi"), "foreign");
+  assert.equal(identify("Kutija za početnike (Beginner Box) - Avatar: The Last Airbender"), "foreign");
+  // German stores' English packs ("14 Karten", "Englisch") stay English.
+  assert.ok(!key("Magic: The Gathering – Star Trek Play Booster (14 Karten)").startsWith("REJECT"));
+});
