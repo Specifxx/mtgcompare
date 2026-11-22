@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-21T16:37:36.606Z",
+ "generatedAt": "2026-11-22T01:00:36.078Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -324,6 +324,20 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "UK",
+   "title": "Marvel Super Heroes Commander Deck - The Fantastic Four",
+   "url": "https://mtgcompare.app/uk/p/marvel-super-heroes-commander-deck-the-fantastic-four",
+   "cents": 3795,
+   "currency": "GBP",
+   "store": "Axion Now",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675632_in_1000x1000.jpg",
+   "refCents": 6399,
+   "refLabel": "median store price",
+   "savingPct": 41
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "UK",
    "title": "FINAL FANTASY - Starter Kit",
    "url": "https://mtgcompare.app/uk/p/final-fantasy-starter-kit",
    "cents": 1200,
@@ -338,27 +352,13 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "UK",
-   "title": "Marvel Super Heroes Commander Deck - The Fantastic Four",
-   "url": "https://mtgcompare.app/uk/p/marvel-super-heroes-commander-deck-the-fantastic-four",
-   "cents": 3795,
+   "title": "Secret Lair Drop: Fallout Beyond Vault 33",
+   "url": "https://mtgcompare.app/uk/p/secret-lair-drop-fallout-beyond-vault-33",
+   "cents": 2995,
    "currency": "GBP",
-   "store": "Axion Now",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675632_in_1000x1000.jpg",
-   "refCents": 6299,
-   "refLabel": "median store price",
-   "savingPct": 40
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "UK",
-   "title": "Marvel Super Heroes Draft Night",
-   "url": "https://mtgcompare.app/uk/p/marvel-super-heroes-draft-night",
-   "cents": 6000,
-   "currency": "GBP",
-   "store": "Thistle Tavern",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675625_in_1000x1000.jpg",
-   "refCents": 9995,
+   "store": "Roll N Play",
+   "image": "https://cdn.shopify.com/s/files/1/0103/3021/0367/files/magic-the-gathering-secret-lair-x-fallout-beyond-vault-33-132556_8882f.jpg?v=1776133486",
+   "refCents": 4995,
    "refLabel": "median store price",
    "savingPct": 40
   },
@@ -375,20 +375,6 @@
    "refCents": 1499,
    "refLabel": "median store price",
    "savingPct": 53
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "CA",
-   "title": "Marvel Super Heroes Commander Deck - Wakanda Forever (Collector's Edition)",
-   "url": "https://mtgcompare.app/ca/p/marvel-super-heroes-commander-deck-wakanda-forever-collectors-edition",
-   "cents": 10999,
-   "currency": "CAD",
-   "store": "Jeux 3 Dragons",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675628_in_1000x1000.jpg",
-   "refCents": 21997,
-   "refLabel": "median store price",
-   "savingPct": 50
   },
   {
    "kind": "deal",
@@ -443,6 +429,20 @@
    "store": "Dungeon Comics & Cards",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/648682_in_1000x1000.jpg",
    "refCents": 3999,
+   "refLabel": "median store price",
+   "savingPct": 45
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "CA",
+   "title": "Secret Lair Drop: Secret Lair x Fallout: Beyond Vault 33 - Non-Foil Edition",
+   "url": "https://mtgcompare.app/ca/p/secret-lair-drop-secret-lair-x-fallout-beyond-vault-33-non-foil-edition",
+   "cents": 3543,
+   "currency": "CAD",
+   "store": "Lotus Petal Gaming",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/673773_in_1000x1000.jpg",
+   "refCents": 6447,
    "refLabel": "median store price",
    "savingPct": 45
   },
