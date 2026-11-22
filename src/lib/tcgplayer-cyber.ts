@@ -3,13 +3,15 @@
 // products (subscribers 13% or more). The banner shows from 22 Nov until the sale ends, under the price table and on the Black
 // Friday and Cyber Monday pages, never above a price, never fixed or floating, labelled Ad, and it ranks nothing.
 //
-// CYBER_CREATIVES holds TCGplayer's own creatives from Impact (Ads → "Get code": the number in partner.tcgplayer.com/c/7385758/
+// CYBER_CREATIVES holds TCGplayer's own creatives: files its affiliate manager sent (src, under public/tcgplayer-cyber/), or ones from Impact (Ads → "Get code": the number in partner.tcgplayer.com/c/7385758/
 // <adId>/21018 and the size in the <img>). Empty, the banner draws our own text version of the same facts. This file is the same
 // in every TCGplayer site (MTG, Dex, Rift, OP, YGO, TCG Prices): change one, change all.
 
 export interface CyberCreative {
-  /** Impact's ad id (the number between the publisher id and the campaign id in the "Get code" link). */
+  /** Impact's ad id (the number between the publisher id and the campaign id in the "Get code" link), 0 for a local file. */
   adId: number;
+  /** A creative TCGplayer sent us as a file (its affiliate manager's "Cyber Weekend Banners 2026.zip"), served from public/. */
+  src?: string;
   width: number;
   height: number;
   /** "bf": only before Cyber Monday; "cm": only from Cyber Monday; omitted: the whole run. */
@@ -49,9 +51,9 @@ export function pickCreatives(now: number, creatives: CyberCreative[] = CYBER_CR
   };
 }
 
-/** Impact serves the creative's image itself (its "Get code" <img>). */
-export function creativeImage(adId: number): string {
-  return `https://a.impactradius-go.com/display-ad/21018-${adId}`;
+/** A local file when TCGplayer sent it to us, else Impact serves the creative's image itself (its "Get code" <img>). */
+export function creativeImage(c: CyberCreative): string {
+  return c.src ?? `https://a.impactradius-go.com/display-ad/21018-${c.adId}`;
 }
 
 /** The banner's text, for our own version and for the image's alt text. */

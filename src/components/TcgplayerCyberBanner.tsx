@@ -29,13 +29,13 @@ export function TcgplayerCyberBanner({ href, at, className = "" }: { href: strin
           {wide &&
             link(
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={creativeImage(wide.adId)} width={wide.width} height={wide.height} alt={alt} loading="lazy" className="h-auto max-w-full" />,
+              <img src={creativeImage(wide)} width={wide.width} height={wide.height} alt={alt} loading="lazy" className="h-auto max-w-full" />,
               small ? "hidden sm:block" : "block",
             )}
           {small &&
             link(
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={creativeImage(small.adId)} width={small.width} height={small.height} alt={alt} loading="lazy" className="h-auto max-w-full" />,
+              <img src={creativeImage(small)} width={small.width} height={small.height} alt={alt} loading="lazy" className="h-auto max-w-full" />,
               wide ? "block sm:hidden" : "block",
             )}
         </div>
