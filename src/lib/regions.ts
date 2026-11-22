@@ -49,7 +49,7 @@ export const REGIONS: Record<Region, RegionInfo> = {
 // Cross-border buys (an EU store's prices are its own country's VAT; a store abroad may ship to you): one honest sentence, no numbers.
 export const DUTIES_NOTE = "Buying from a store in another country can add import duties or tax on delivery; the store's checkout or the carrier tells you.";
 
-export const REGION_LIST: RegionInfo[] = ["au", "us", "uk", "ca", "nz", "eu", "sg"].map((r) => REGIONS[r as Region]);
+export const REGION_LIST: RegionInfo[] = ["us", "au", "uk", "ca", "nz", "eu", "sg"].map((r) => REGIONS[r as Region]);
 
 // The region hreflang="x-default" points at: the one a searcher whose language
 // or country matches none of the seven should land on. US: the biggest English
