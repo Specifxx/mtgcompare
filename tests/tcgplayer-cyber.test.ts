@@ -1,7 +1,9 @@
 // TCGplayer's Cyber Weekend banner (src/lib/tcgplayer-cyber.ts): when it shows, which creative, and that its copy says no price.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { CYBER_BANNER, creativeImage, cyberBannerState, cyberBannerText, pickCreatives, type CyberCreative } from "../src/lib/tcgplayer-cyber";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import { CYBER_BANNER, CYBER_CREATIVES, creativeImage, cyberBannerState, cyberBannerText, pickCreatives, type CyberCreative } from "../src/lib/tcgplayer-cyber";
 
 const t = (iso: string) => Date.parse(iso);
 
@@ -37,4 +39,10 @@ test("the banner's own copy claims no price and no discount on a product", () =>
 test("a creative TCGplayer sent as a file is served from our own public/ folder", () => {
   assert.equal(creativeImage({ adId: 0, src: "/tcgplayer-cyber/728x90.png", width: 728, height: 90 }), "/tcgplayer-cyber/728x90.png");
   assert.equal(creativeImage({ adId: 123, width: 728, height: 90 }), "https://a.impactradius-go.com/display-ad/21018-123");
+});
+
+test("every creative TCGplayer sent is in public/, with a wide one and a phone one", () => {
+  for (const c of CYBER_CREATIVES) if (c.src) assert.ok(existsSync(join(__dirname, "..", "public", c.src)), c.src);
+  const { wide, small } = pickCreatives(CYBER_BANNER.saleStart);
+  assert.ok(wide && small);
 });

@@ -18,7 +18,11 @@ export interface CyberCreative {
   phase?: "bf" | "cm";
 }
 
-export const CYBER_CREATIVES: CyberCreative[] = [];
+// TCGplayer's own creatives, from its affiliate manager's "Cyber Weekend Banners 2026.zip" (22 Nov 2026), drawn at 2x.
+export const CYBER_CREATIVES: CyberCreative[] = [
+  { adId: 0, src: "/tcgplayer-cyber/970x90.jpg", width: 970, height: 90 },
+  { adId: 0, src: "/tcgplayer-cyber/320x100.jpg", width: 320, height: 100 },
+];
 
 export const CYBER_BANNER = {
   /** First day the banner shows: 00:00 UTC, 22 Nov 2026 (owner, 22 Nov: "put it live now"), so the weekend is known before it starts. */
