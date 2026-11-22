@@ -25,6 +25,8 @@ export const BONUS_POINTS = 40;
 export const PREMIUM_START_POINTS = ENTRY_POINTS + BONUS_POINTS;
 export const CHECKIN_POINTS = 5;
 export const REFERRAL_POINTS = 25;
+export const STAR_REFERRAL_POINTS = 100;
+export const STAR_FRIEND_CHECKINS = 3;
 export const MAX_REFERRALS = 10;
 export const GIVEAWAY_EVERY_MONTHS = 2;
 

@@ -14,6 +14,8 @@ import {
   MAX_REFERRALS,
   PREMIUM_START_POINTS,
   REFERRAL_POINTS,
+  STAR_FRIEND_CHECKINS,
+  STAR_REFERRAL_POINTS,
 } from "@/lib/giveaway";
 import { GiveawayEnter } from "@/components/giveaway/GiveawayEnter";
 import { GiveawayCountdown } from "@/components/giveaway/GiveawayCountdown";
@@ -31,7 +33,7 @@ const WAYS = [
   { pts: `+${ENTRY_POINTS}`, title: "Enter", text: "Sign in free and press Enter. That's your first 10 tickets." },
   { pts: `+${BONUS_POINTS}`, title: "Free bonus", text: "One tap for every account. Premium members get it automatically." },
   { pts: `+${CHECKIN_POINTS}`, title: "Check in daily", text: "One tap a day while the giveaway is open. It adds up fast." },
-  { pts: `+${REFERRAL_POINTS}`, title: "Invite friends", text: `Each friend who joins with your link and confirms their email, up to ${MAX_REFERRALS}.` },
+  { pts: `+${REFERRAL_POINTS}`, title: "Invite friends", text: `Each friend who joins with your link and confirms their email, up to ${MAX_REFERRALS}. ${STAR_REFERRAL_POINTS} for a friend who takes Premium or checks in on ${STAR_FRIEND_CHECKINS} days.` },
 ];
 
 export default function GiveawayPage() {
@@ -108,7 +110,7 @@ export default function GiveawayPage() {
           <li>
             <strong>No purchase necessary.</strong> Entry is free. Premium members receive a {BONUS_POINTS}-point bonus automatically; every free account
             can receive the same {BONUS_POINTS} points, free, by pressing &quot;Claim the free bonus&quot; (or by watching a price on RiftCompare).
-            Buying anything never gives more points than a free account can have.
+            Buying anything, by you or a friend you invite, never gives more points than free activity can.
           </li>
           <li>
             <strong>Who can enter.</strong> Anyone aged 18 or over (or the age of majority where they live, if that is higher), anywhere in the world,
@@ -120,7 +122,7 @@ export default function GiveawayPage() {
             address and press &quot;Enter the giveaway&quot; on this page. One account per person. Each account earns {ENTRY_POINTS} points for
             entering, a {BONUS_POINTS}-point bonus (rule 2), {CHECKIN_POINTS} points for each day it checks in on this page while the giveaway is open
             (one a day, by Sydney date), and {REFERRAL_POINTS} points for each friend who creates a new account with its invite link during the
-            giveaway and confirms their email, up to {MAX_REFERRALS} friends. Points made with more than one account by the same person, invites to your
+            giveaway and confirms their email, up to {MAX_REFERRALS} friends. A friend counts {STAR_REFERRAL_POINTS} points instead of {REFERRAL_POINTS} once they also have Premium or have checked in on {STAR_FRIEND_CHECKINS} days of this giveaway, so a friend&apos;s free activity counts exactly as much as a friend&apos;s purchase. Points made with more than one account by the same person, invites to your
             own or fake accounts, and points made by automated means are void, and we may remove them.
           </li>
           <li>

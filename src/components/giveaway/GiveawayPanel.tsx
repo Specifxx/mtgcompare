@@ -12,7 +12,7 @@ export type Me = {
   emailVerified?: boolean;
   entered?: boolean;
   points?: number;
-  breakdown?: { entry: number; bonus: number; bonusVia: string | null; checkin: number; referral: number; referralsCounted: number };
+  breakdown?: { entry: number; bonus: number; bonusVia: string | null; checkin: number; referral: number; referralsCounted: number; starCounted?: number };
   checkins?: number;
   checkedInToday?: boolean;
   streak?: number;
@@ -21,6 +21,8 @@ export type Me = {
   tickets?: { from: number; to: number; total: number } | null;
   inviteUrl?: string;
   referralPoints?: number;
+  starReferralPoints?: number;
+  starFriendCheckins?: number;
   error?: string;
 };
 
@@ -244,9 +246,14 @@ export function GiveawayPanel({
 
           {/* Invite friends */}
           <div className="rounded-xl border border-line p-3 sm:col-span-2">
-            <p className="font-semibold">Invite friends · +{me.referralPoints ?? 25} each</p>
+            <p className="font-semibold">
+              Invite friends · +{me.referralPoints ?? 25} each, <span className="text-brand-strong">+{me.starReferralPoints ?? 100}</span> for a star friend
+            </p>
             <p className="mt-0.5 text-sm opacity-80">
-              For each friend who makes a free account with your link and confirms their email (up to 10). So far: {b.referralsCounted}.
+              +{me.referralPoints ?? 25} for each friend who makes a free account with your link and confirms their email (up to 10). They become a
+              star friend, worth {me.starReferralPoints ?? 100}, when they take Premium or check in on {me.starFriendCheckins ?? 3} days. So far:{" "}
+              {b.referralsCounted} {b.referralsCounted === 1 ? "friend" : "friends"}
+              {(b.starCounted ?? 0) > 0 && <>, {b.starCounted} ⭐</>}.
             </p>
             {me.inviteUrl && (
               <div className="mt-2 flex items-center gap-2">
