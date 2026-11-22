@@ -11,7 +11,7 @@ import { COUNTRY_GUIDE } from "../content/guides/country-prices";
 import { TOOLS, toolRegions } from "../content/tools";
 import { POSTS, postPath } from "./blog";
 import { openPreorderGuides } from "./preorder-guides";
-import { REGION_LIST, regionOfMarket, type Region, type RegionInfo } from "./regions";
+import { REGION_LIST, REGIONS, regionOfMarket, type Region, type RegionInfo } from "./regions";
 import { PRODUCT_TYPES } from "./sealed-title";
 import { SETS } from "./sets";
 import { SITE_URL } from "./site";
@@ -21,13 +21,18 @@ import { withoutOffSeasonSales } from "@/lib/sale-seasons";
 
 export const STATIC_SITEMAP_ID = 0;
 
-/** /sitemap/<id>.xml per region, in REGION_LIST order: au=1, us=2, uk=3, ca=4, nz=5, eu=6, sg=7. */
+/**
+ * /sitemap/<id>.xml per region: au=1, us=2, uk=3, ca=4, nz=5, eu=6, sg=7. Frozen (submitted to Search Console), so it no longer
+ * follows REGION_LIST, which leads with the US since the US-first switch (owner, 2026-11-22).
+ */
+const SITEMAP_REGION_ORDER: readonly Region[] = ["au", "us", "uk", "ca", "nz", "eu", "sg"];
 export function sitemapIdOf(region: Region): number {
-  return REGION_LIST.findIndex((r) => r.region === region) + 1;
+  return SITEMAP_REGION_ORDER.indexOf(region) + 1;
 }
 
 export function regionOfSitemapId(id: number): RegionInfo | null {
-  return REGION_LIST[id - 1] ?? null;
+  const r = SITEMAP_REGION_ORDER[id - 1];
+  return r ? REGIONS[r] : null;
 }
 
 /**
@@ -42,7 +47,7 @@ export const CARD_SITEMAP_FILES = 12;
 
 export const SITEMAP_IDS: { id: number }[] = [
   { id: STATIC_SITEMAP_ID },
-  ...REGION_LIST.map((r) => ({ id: sitemapIdOf(r.region) })),
+  ...SITEMAP_REGION_ORDER.map((r) => ({ id: sitemapIdOf(r) })),
   ...Array.from({ length: CARD_SITEMAP_FILES + 1 }, (_, i) => ({ id: CARDS_SITEMAP_ID + i })),
 ];
 
