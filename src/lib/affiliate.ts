@@ -46,7 +46,7 @@ export const PLACEMENTS = [
   "tcgplayer-strip-inline", // the in-page ad block (components/InlineAds.tsx, owner 2026-11-13): its TCGplayer tiles and links
   "tcgplayer-strip-landing", // the root landing page: the TCGplayer half of the eBay + TCGplayer banner under the hero (owner, 2026-11-03)
   "tcgplayer-bf-strip", // product page: the Black Friday strip's labelled TCGplayer link (components/BlackFridayStrip.tsx, 2026-11-21, to 1 Dec)
-  "tcgplayer-cyber-banner", // product page under the table, and /black-friday and /cyber-monday: TCGplayer's Cyber Weekend banner (components/TcgplayerCyberBanner.tsx, 24 Nov to 1 Dec 2026)
+  "tcgplayer-cyber-banner", // product page under the table, and /black-friday and /cyber-monday: TCGplayer's Cyber Weekend banner (components/TcgplayerCyberBanner.tsx, 22 Nov to 1 Dec 2026)
   "tcgplayer-bf-page", // /black-friday and /cyber-monday: the "Ad" card of TCGplayer sealed searches (components/TcgplayerSaleBlock.tsx, 2026-11-21, to 1 Dec)
   // CARD PRICES (2026-11-17, DECISIONS.md "Card prices: the most valuable cards of each set"): the card pages and lists.
   "card-ebay", // a card page: the "Check on eBay" search row, first

@@ -1,6 +1,6 @@
 // TCGplayer's Cyber Weekend 2026 banner (owner, 2026-11-21: "have those banners on our websites"). TCGplayer's sale, from its
 // Impact affiliate email of 17 Nov 2026: 9AM New York time on 28 November to 11PM on 1 December, 10% store credit on all
-// products (subscribers 13% or more). The banner shows from 24 Nov until the sale ends, under the price table and on the Black
+// products (subscribers 13% or more). The banner shows from 22 Nov until the sale ends, under the price table and on the Black
 // Friday and Cyber Monday pages, never above a price, never fixed or floating, labelled Ad, and it ranks nothing.
 //
 // CYBER_CREATIVES holds TCGplayer's own creatives from Impact (Ads → "Get code": the number in partner.tcgplayer.com/c/7385758/
@@ -19,8 +19,8 @@ export interface CyberCreative {
 export const CYBER_CREATIVES: CyberCreative[] = [];
 
 export const CYBER_BANNER = {
-  /** First day the banner shows (00:00 UTC, 24 Nov 2026), so the weekend is known before it starts. */
-  from: Date.parse("2026-11-24T00:00:00Z"),
+  /** First day the banner shows: 00:00 UTC, 22 Nov 2026 (owner, 22 Nov: "put it live now"), so the weekend is known before it starts. */
+  from: Date.parse("2026-11-22T00:00:00Z"),
   /** TCGplayer's sale starts: 9AM New York time, 28 Nov 2026. */
   saleStart: Date.parse("2026-11-28T14:00:00Z"),
   /** Cyber Monday starts in New York (00:00 EST, 30 Nov 2026): the Cyber Monday creatives take over. */
@@ -61,6 +61,6 @@ export function cyberBannerText(state: CyberBannerState): { head: string; line: 
     line:
       state === "on"
         ? "10% store credit on all products, on now until 11PM New York time on 1 December."
-        : "10% store credit on all products, 9AM New York time on 28 November to 11PM on 1 December.",
+        : "Starts 28 November at 9AM New York time: 10% store credit on all products, until 11PM on 1 December.",
   };
 }

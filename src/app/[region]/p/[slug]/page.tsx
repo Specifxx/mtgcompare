@@ -737,7 +737,7 @@ export default async function ProductPage({ params }: { params: { region: string
       )}
 
       {/* The Discord hub, under the price table (owner, 2026-11-20): this site's own invite, with the reason to join. */}
-      {/* TCGplayer's Cyber Weekend banner (lib/tcgplayer-cyber.ts): under the price table, 24 Nov to 1 Dec, labelled Ad. */}
+      {/* TCGplayer's Cyber Weekend banner (lib/tcgplayer-cyber.ts): under the price table, 22 Nov to 1 Dec, labelled Ad. */}
       <TcgplayerCyberBanner href={tcgplayerSearchUrl(p.name, r.region, "tcgplayer-cyber-banner")} at={now} className="mt-6" />
 
       <DiscordCta href={DISCORD_INVITE} className="mt-6" />
