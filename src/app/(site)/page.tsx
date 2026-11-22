@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { GiveawayHomeBanner } from "@/components/giveaway/GiveawayHomeBanner";
 import { Icon } from "@/components/Icon";
 import { SoftSideAds } from "@/components/SideAds";
 import { HomeRegionGrid } from "@/components/HomeRegionGrid";
@@ -90,6 +91,10 @@ export default async function Landing() {
         <RegionChips className="rise mt-6 justify-center" style={riseAt(3)} />
         <SoftWaysIn formId="landing-search" links={HERO_LINKS} />
       </Hero>
+      {/* The giveaway, while it is open (owner, 2026-11-22: "feature it on our homepage"). */}
+      <div className="page">
+        <GiveawayHomeBanner />
+      </div>
 
       {/* The products, straight under the hero (owner, 2026-11-13: "the product's very easy to access"): ten of the region's most
           stocked. The paragraph on how stores are ranked and the "Coming soon" block that sat above them are gone: the footer says

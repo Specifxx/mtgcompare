@@ -21,7 +21,7 @@ function walk(dir: string, out: string[] = []): string[] {
 
 // The h1s that keep their own voice: the two home heroes, the product page (a long product name is set a size down), the forum
 // (its own stylesheet), and two components other sites share with inline styles.
-const OWN_H1 = [/^app\/\(site\)\/page\.tsx$/, /^app\/\[region\]\/page\.tsx$/, /^app\/\[region\]\/p\/\[slug\]\/page\.tsx$/, /^components\/forum\//, /^components\/(HowWePickStores|ListYourStore)\.tsx$/];
+const OWN_H1 = [/^app\/\(site\)\/page\.tsx$/, /^app\/\[region\]\/page\.tsx$/, /^app\/\[region\]\/p\/\[slug\]\/page\.tsx$/, /^components\/forum\//, /^app\/\(site\)\/giveaway\/page\.tsx$/, /^components\/(HowWePickStores|ListYourStore)\.tsx$/];
 
 test("every other page's h1 is the one page title (one size, not 24 to 48px by page)", () => {
   const files = [...walk("app"), ...walk("components")].filter((f) => !OWN_H1.some((re) => re.test(f)));
