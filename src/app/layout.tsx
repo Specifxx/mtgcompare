@@ -9,6 +9,7 @@ import { AdFreeSync } from "@/components/premium/AdFreeSync";
 import { ADFREE_BOOT_SCRIPT } from "@/lib/premium-member";
 import { BottomNav } from "@/components/BottomNav";
 import { RateCard } from "@/components/site-reviews/RateCard";
+import { SignInCorner } from "@/components/account/SignInCorner";
 import { IMPACT_SITE_VERIFICATIONS } from "@/lib/affiliate";
 import { ADSENSE_CLIENT } from "@/lib/adsense";
 import { BOTTOM_NAV, SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/site";
@@ -89,6 +90,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Rate us (owner, 2026-11-03): the corner card, asking only after real use; RiftCompare keeps the ratings. */}
         <RateCard />
         <ReturnNudge />
+        <SignInCorner />
         <AdFreeSync />
         {/* The phone bottom nav (DECISIONS.md 2026-11-18): outside the quick view, browser only, BOTTOM_NAV is its rollback. */}
         {BOTTOM_NAV !== "off" && <BottomNav mode={BOTTOM_NAV} />}

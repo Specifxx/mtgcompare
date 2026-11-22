@@ -21,7 +21,7 @@ export function VaultAddButton({ className = "", ...item }: Omit<VaultItem, "qty
     // My collection needs an account (owner, 2026-11-19): signed out, the tap goes to sign-in and comes back to this page.
     if (premium.status === "out") {
       track("vault_signin", {});
-      location.href = `/account?next=${encodeURIComponent(location.pathname)}`;
+      location.href = `/account?src=own&next=${encodeURIComponent(location.pathname)}`;
       return;
     }
     writeVault(addItem(readVault(), item));

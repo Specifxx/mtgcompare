@@ -8,6 +8,8 @@
 // checks it against this site's public client id) or an emailed link (/account/verify#c=…). Either way RiftCompare's API answers with
 // the token, kept in this browser. Checkout and billing open Stripe straight from here. Browser-only: no page here reads a cookie,
 // header or the session.
+import { track as vercelTrack } from "@vercel/analytics";
+
 export const PREMIUM_SERVICE = "https://riftcompare.com";
 /** MTG Compare's Google sign-in client (public by design; Google checks the page's origin). Empty: the Google button is hidden. */
 export const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_MTG_GOOGLE_CLIENT_ID || "";
@@ -158,6 +160,42 @@ export function untilLine(until: string | null): string {
 
 type ApiAnswer = { ok?: boolean; error?: string; token?: string; premium?: boolean; until?: string | null; who?: string; url?: string; sent?: boolean };
 
+// WHICH PROMPT SENT THEM (2026-11-22). A sign-in prompt links to /account?src=<surface>; the sign-in page keeps it for two hours (an
+// emailed link can come back in another tab) and sends it with the sign-in, so RiftCompare stamps a new account "sister:<site>:<surface>"
+// (TCGEmpire lib/sister-premium.ts sisterSignupSource). Event signin_complete {src} counts every sign-in, new or returning.
+const SRC_KEY = "signin_src_v1";
+export function rememberSignInSource(src: string | null): void {
+  if (!src || !/^[a-z][a-z_]{1,19}$/.test(src)) return;
+  try {
+    localStorage.setItem(SRC_KEY, JSON.stringify({ s: src, at: Date.now() }));
+  } catch {
+    /* private window: the sign-in is just not attributed */
+  }
+}
+export function signInSource(): string | undefined {
+  try {
+    const v = JSON.parse(localStorage.getItem(SRC_KEY) || "null") as { s?: string; at?: number } | null;
+    return v?.s && Date.now() - Number(v.at) < 2 * 3_600_000 ? v.s : undefined;
+  } catch {
+    return undefined;
+  }
+}
+/** A finished sign-in: counted once with the prompt that led to it, then forgotten. */
+export function trackSignedIn(method: string): void {
+  const src = signInSource() ?? "direct";
+  trackPremium("signin_complete", { src, method });
+  try {
+    vercelTrack("signin_complete", { src, method });
+  } catch {
+    /* analytics is best-effort */
+  }
+  try {
+    localStorage.removeItem(SRC_KEY);
+  } catch {
+    /* fine */
+  }
+}
+
 async function premiumApi(path: string, body: unknown): Promise<{ status: number; j: ApiAnswer }> {
   try {
     const r = await fetch(`${PREMIUM_SERVICE}/api/sister-premium/${path}`, {
@@ -183,7 +221,7 @@ function keep(j: ApiAnswer): SignInResult {
 
 /** "Continue with Google": Google's ID token (from Google Identity Services on this page) for a MTG Compare sign-in. */
 export async function signInWithGoogle(credential: string): Promise<SignInResult> {
-  const { j } = await premiumApi("sign-in", { method: "google", credential });
+  const { j } = await premiumApi("sign-in", { method: "google", credential, src: signInSource() });
   return keep(j);
 }
 
@@ -200,7 +238,7 @@ export function codeFromHash(hash: string): string | null {
 }
 
 export async function signInWithCode(code: string): Promise<SignInResult> {
-  const { j } = await premiumApi("sign-in", { method: "link", code });
+  const { j } = await premiumApi("sign-in", { method: "link", code, src: signInSource() });
   return keep(j);
 }
 

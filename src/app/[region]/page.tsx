@@ -5,6 +5,7 @@ import { ALERT_SITE_KEY } from "@/lib/alert-feed";
 import Link from "@/components/Link";
 import { cache } from "react";
 import type { Metadata } from "next";
+import { SignInSlides } from "@/components/account/SignInSlides";
 import { GiveawayHomeBanner } from "@/components/giveaway/GiveawayHomeBanner";
 import { Ago } from "@/components/Ago";
 import { RecentlyViewed } from "@/components/Recent";
@@ -249,7 +250,7 @@ export default async function RegionHome({ params }: { params: { region: string 
       </Hero>
       {/* The giveaway, while it is open (owner, 2026-11-22: "feature it on our homepage"). */}
       <div className="page">
-        <GiveawayHomeBanner />
+        <SignInSlides surface="home" variant="banner" fallback={<GiveawayHomeBanner />} />
       </div>
 
       {/* The page places its own ad block (below): none above the footer. */}

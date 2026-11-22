@@ -1383,3 +1383,22 @@ html[data-ebaypop="pop"] li:not([role="dialog"] li):has(a.btn-ad[href*="ebay."])
   box-shadow: inset 3px 0 0 #3665f3;
 }
 
+
+/* The sign-in slides and the profile page (components/account/*, 2026-11-23). The panel is MTG Compare's amethyst, deepened, so
+   white type sits at 7:1 or more on every part of it in both themes. */
+.signin-panel {
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgb(255 255 255 / 0.14), transparent 55%),
+    linear-gradient(150deg, #7a2ec4 0%, #3b0f6b 100%);
+}
+.signin-banner {
+  background-image: radial-gradient(80% 120% at 0% 0%, rgb(var(--brand) / 0.10), transparent 60%);
+}
+.profile-premium-pill { background: #fef3c7; color: #78350f; }
+:root:not([data-theme="light"]) .profile-premium-pill { background: rgb(180 83 9 / 0.28); color: #fde68a; }
+.profile-gold { border-color: rgb(217 119 6 / 0.55); background-image: linear-gradient(160deg, rgb(251 191 36 / 0.12), transparent 60%); }
+@keyframes premium-slide-in {
+  from { transform: translate(-50%, 120%); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+@media (prefers-reduced-motion: no-preference) { .premium-slide-in { animation: premium-slide-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; } }

@@ -2768,3 +2768,24 @@ cheapest in Canada here), but only about three came through a click we tracked: 
 chat. People share drops anyway; this makes the link they paste ours, so every store is compared and the clicks are counted.
 Owner, 2026-11-23: "how can we capture these restock chats or posts so we can get even more clicks". Read `share` kind `drop`
 and `share_visit` on 25 Nov and 30 Nov; remove it if fewer than 5 shares in a week and buy clicks on product pages fall.
+
+## 2026-11-23: A real profile page, and sign-in slides inside the one-prompt-a-visit budget
+
+**Decision.** `/account` signed in is now a profile (`components/account/ProfileHub.tsx`): who, Free or Premium, four tiles (the
+collection's value today from this browser's list and `/prices.json`, the price alerts, the giveaway points, Premium), the
+giveaway's check-in and invite link in place, a "get the most from your account" checklist, and the Premium card for a free
+account. Signed out, `/account` puts the sign-in slides (`SignInSlides`, "panel") beside the form. The slides sell only the FREE
+account, one true benefit each (the giveaway while open, alerts, the collection, one account for every card site): no price, no
+Premium, nothing `copy-rules.ts` bans. The home page's one promo banner is the slides for a signed-out visitor (the giveaway is its
+first slide) and the plain giveaway banner for everyone else, so the page still carries one. `SignInCorner` (new here; this site had no
+corner card): a signed-out visitor is asked for a free account, never money; never on a visit's first page, after a scroll, closed
+for 7 days, never on the account pages, on product pages only from 1024px. It is the visit's ONE self-opening prompt
+(`lib/prompt-slot.ts`): it stands down when the rating card or the return nudge had the visit, and the
+rating card stands down after it. It never shows on a page that already carries the slides (the home banner).
+Every sign-in prompt links `/account?src=<surface>`; the sign-in sends it on, and RiftCompare stamps a new account
+`sister:mtg:<surface>` (TCGEmpire `sisterSignupSource`). Events: `signin_prompt` {surface, step}, `signin_prompt_click`,
+`signin_complete` {src, method}, `profile_view`.
+
+**Why.** Owner, 2026-11-22: "Can we significantly uplift the profile pages and the sign in and login incentive ... especially
+dexcompare and mtgcompare". In the week to 22 Nov, 118 of 125 new reachable people were RiftCompare accounts and Dex and MTG, with most of the Google traffic, added 6. Owner, 2026-11-23: "keep user experience high and not flooding them with ads and
+information" (ops/product-ux/page-budget.md): hence one prompt a visit and nothing on the first page.
