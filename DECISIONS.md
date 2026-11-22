@@ -2754,3 +2754,17 @@ pocetnike") prints. Never "Karten": German stores list English packs as "(14 Kar
 the export: 83 offers change, 74 join an existing page, 9 are refused, no offer lands on a new key and no two different products
 merge; 46 one- and two-store pages empty and 301 through culled.json. Left alone on purpose: "Reality Reforged" (not sure it is
 Multiverse Reforged), "Take Home"/"At Home" prerelease kits (some add boosters), "ITA\ENG" starter kits.
+
+## 2026-11-23: "Share this deal with your group chat" under the best price
+
+A text button under the product page's best price (ported from DexCompare, `components/DropShare.tsx`, `dropText` in `lib/share-link.ts`) copies, or hands
+the phone's share sheet, one line with the cheapest store's real price and name ("Pre-order: " when the set is not out yet) and our
+page's canonical link tagged `utm_source=share&utm_medium=drop`. Shown only when the best price is a store row (never eBay). It is
+a separate component so the share-for-a-deal A/B test on `ShareButton` is untouched; it sends `share { kind: "drop" }` and its
+visits arrive as `share_visit` with medium `drop`.
+
+**Why.** On 22 Nov Cardboard Hero took ten referral orders in 41 minutes for its Delta Reign wave-2 ETB pre-order (CA$89.99, the
+cheapest in Canada here), but only about three came through a click we tracked: the store link had been pasted into a restock
+chat. People share drops anyway; this makes the link they paste ours, so every store is compared and the clicks are counted.
+Owner, 2026-11-23: "how can we capture these restock chats or posts so we can get even more clicks". Read `share` kind `drop`
+and `share_visit` on 25 Nov and 30 Nov; remove it if fewer than 5 shares in a week and buy clicks on product pages fall.

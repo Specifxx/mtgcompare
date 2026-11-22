@@ -35,7 +35,8 @@ import { Section } from "@/components/Section";
 import { BestPriceCard } from "@/components/BestPriceCard";
 import { StockPill } from "@/components/StockPill";
 import { stockHeadline } from "@/lib/stock";
-import { priceGap, shareText } from "@/lib/share-link";
+import { dropText, priceGap, shareText } from "@/lib/share-link";
+import { DropShare } from "@/components/DropShare";
 import { ShareButton } from "@/components/ShareButton";
 import { VaultAddButton } from "@/components/vault/VaultAddButton";
 import { StickyBuyBar } from "@/components/StickyBuyBar";
@@ -640,6 +641,14 @@ export default async function ProductPage({ params }: { params: { region: string
                   : `None of the ${r.adjective} stores we track list it right now.`}
               </p>
             </div>
+          )}
+          {best && !best.marketplace && (
+            <DropShare
+              path={`/${r.region}/p/${p.slug}`}
+              title={heading}
+              text={dropText(heading, { cents: best.priceCents, store: best.storeName, inName: r.inName, preorder: pre }, (c) => money(c, r.market))}
+              className="mt-2"
+            />
           )}
           {bf && <BlackFridayStrip {...bf} />}
           {/* The price alert, under the best price where people look (2026-11-12: it was a text link under the whole table and the
