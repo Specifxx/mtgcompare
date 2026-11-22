@@ -23,12 +23,13 @@ test("a declared bot goes to TCGplayer untagged", () => {
 });
 
 test("owner, 2026-11-22: a real person is never untagged, whatever headers their browser leaves out", () => {
-  for (const h of [
+  const people: Record<string, string>[] = [
     { ...human, "sec-fetch-site": "cross-site" },
     { ...human, "sec-fetch-site": "none" },
     { "user-agent": human["user-agent"] },
     { "user-agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6.6 Mobile/15E148 Safari/604.1", "accept-language": "en-AU" },
-  ]) {
+  ];
+  for (const h of people) {
     assert.equal(looksLikeBot(new Headers(h)), false);
     assert.match(call(h).headers.get("location")!, /^https:\/\/partner\.tcgplayer\.com\/.*sharedid=rc-us-card/);
   }
