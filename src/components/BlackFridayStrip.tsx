@@ -1,6 +1,4 @@
 import { Ago } from "@/components/Ago";
-import { OutboundLink } from "@/components/OutboundLink";
-import { REL_SPONSORED, TCGPLAYER_RETAILER } from "@/lib/affiliate";
 
 // The Black Friday strip on a product page (lib/bf-strip.ts; DECISIONS.md, "Black Friday strip on sealed pages", 2026-11-19): one
 // short card of facts the page already holds, under the best price. Server HTML, no script of its own beyond the "checked" time,
@@ -21,11 +19,11 @@ export interface BlackFridayStripProps {
   preorder: string | null;
   /** The history cue (lowCueText), or null. */
   cue: { text: string; lowest: boolean } | null;
-  /** The tagged TCGplayer search for this product (tcgplayerSearchUrl, placement "tcgplayer-bf-strip"), or null. */
+  /** Not drawn since 2026-11-22 (page budget rule 3: no ad above the price table); kept so the data stays typed. The tagged TCGplayer search for this product (tcgplayerSearchUrl, placement "tcgplayer-bf-strip"), or null. */
   tcgplayerHref?: string | null;
 }
 
-export function BlackFridayStrip({ label, cheapest, shipping, checked, checkedInitial, preorder, cue, tcgplayerHref }: BlackFridayStripProps) {
+export function BlackFridayStrip({ label, cheapest, shipping, checked, checkedInitial, preorder, cue }: BlackFridayStripProps) {
   if (!cheapest && !preorder && !cue) return null;
   return (
     <section aria-label={`${label} price check`} data-bf-strip="" className="card mt-3 px-4 py-3 text-sm leading-6">
@@ -59,14 +57,6 @@ export function BlackFridayStrip({ label, cheapest, shipping, checked, checkedIn
           </>
         )}
       </p>
-      {tcgplayerHref && (
-        <p className="mt-2 flex flex-wrap items-center gap-x-2 border-t border-line pt-2 text-sm">
-          <span className="rounded border border-line px-1.5 text-[11px] font-semibold uppercase leading-5 text-muted">Ad</span>
-          <OutboundLink href={tcgplayerHref} rel={REL_SPONSORED} retailer={TCGPLAYER_RETAILER} placement="tcgplayer-bf-strip" className="font-semibold underline decoration-line underline-offset-2 hover:decoration-ink">
-            See {label} prices on TCGplayer →
-          </OutboundLink>
-        </p>
-      )}
     </section>
   );
 }
