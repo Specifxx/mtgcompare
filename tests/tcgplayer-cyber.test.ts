@@ -5,9 +5,9 @@ import { CYBER_BANNER, cyberBannerState, cyberBannerText, pickCreatives, type Cy
 
 const t = (iso: string) => Date.parse(iso);
 
-test("the banner shows from 24 Nov until the sale ends at 11PM New York time on 1 Dec", () => {
-  assert.equal(cyberBannerState(t("2026-11-23T23:59:59Z")), "off");
-  assert.equal(cyberBannerState(t("2026-11-24T00:00:00Z")), "soon");
+test("the banner shows from 22 Nov until the sale ends at 11PM New York time on 1 Dec", () => {
+  assert.equal(cyberBannerState(t("2026-11-21T23:59:59Z")), "off");
+  assert.equal(cyberBannerState(t("2026-11-22T00:00:00Z")), "soon");
   assert.equal(cyberBannerState(t("2026-11-28T13:59:59Z")), "soon");
   assert.equal(cyberBannerState(t("2026-11-28T14:00:00Z")), "on");
   assert.equal(cyberBannerState(CYBER_BANNER.end - 1), "on");
