@@ -75,7 +75,7 @@ export async function generateMetadata({ params }: { params: { region: string } 
  */
 export default async function RegionHome({ params }: { params: { region: string } }) {
   const r = regionOrNotFound(params.region);
-  const [{ boxes, etbs, packs, preorders, latestSets: bySet }, overview, allDeals, report, setCounts, listedTypes, tcgTiles] = await Promise.all([
+  const [{ boxes, etbs, packs, decks, secretLairs, preorders, latestSets: bySet }, overview, allDeals, report, setCounts, listedTypes, tcgTiles] = await Promise.all([
     homeRails(r.market),
     getOverview(r.market),
     dealsInMarket(r.market, { take: 24 }),
@@ -96,8 +96,15 @@ export default async function RegionHome({ params }: { params: { region: string 
   const deals = rankCards(priciestFirst(allDeals.filter((p) => featureWorthy(p.lowestPriceCents, r.market)), r.market, (p) => (p.medianOpenCents ?? 0) - (p.lowestPriceCents ?? 0))).slice(0, 8);
   // MOST POPULAR FIRST (owner, 2026-11-20: "just have the most popular as the first … what shows on the homepage, and this should be
   // across all sites"): the shelf's first tab is every in-stock box, ETB/collector box and pack, ordered by what visitors here
-  // viewed and clicked (lib/home-rank.ts, data/demand.json), eight of them. The type tabs stay behind it.
-  const popular = rankCards([...boxes, ...etbs, ...packs].filter((p, i, all) => all.findIndex((q) => q.slug === p.slug) === i)).slice(0, 8);
+  // viewed and clicked (lib/home-rank.ts, data/demand.json), eight of them. The type tabs stay behind it. In-stock Commander decks
+  // and Secret Lair drops join the pool (merch, 2026-11-23: 8 of the top 20 US product pages in 7 days were decks or drops, and none
+  // could reach this tab); they only enter on demand, after boxes, ETBs and packs among equals, and take at most three of the eight
+  // so the boxes that earn most keep the rest.
+  const extras = new Set([...decks, ...secretLairs].map((p) => p.slug));
+  let extraSlots = 3;
+  const popular = rankCards([...boxes, ...etbs, ...packs, ...decks, ...secretLairs].filter((p, i, all) => all.findIndex((q) => q.slug === p.slug) === i))
+    .filter((p) => !extras.has(p.slug) || extraSlots-- > 0)
+    .slice(0, 8);
   const preorderShelf = (() => {
     const top = featuredByPrice(preorders, r.market, (p) => p.lowestPriceCents, 8);
     return rankCards(top.length ? top : preorders, { preorder: true });
