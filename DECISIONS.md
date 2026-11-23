@@ -2815,3 +2815,24 @@ export: 26 offers change, 25 join an existing page, 1 is refused, no offer lands
 Left alone on purpose: the Reality Fracture "Foundations (Starter) Commander Deck" listings, which stores file both as Commander
 Decks (77 offers under Foundations) and as Starter Commander Decks, under two sets; that needs TCGplayer's own naming first. Also the
 two-box Scene Box sets ("Divergent Timeline / Enterprise-Q", "Coppia (2 Scene Box)") and "Star Trek- Scene Box Limit 2 PP".
+
+
+## Black Friday page: one deal list, deals above the fold (owner's review, 2026-11-24)
+
+The owner reviewed DexCompare's /us/black-friday and asked for it "urgently" on every site, ported here from DexCompare: deals above the fold, one list with a toggle, a discount badge on
+every row, filters and sort, sticky section chips, per-row freshness, delivered price, a sparkline, plain labels, footnotes as info
+tips, one affiliate disclosure, aligned rows, a primary store button with eBay as a text link, bigger thumbnails, one slim alerts bar,
+phone rows with 44px targets, and click and scroll tracking per section.
+
+- The two lists ("furthest under their own 30-day price", "furthest under the median") are ONE list (`lib/sale-deals.ts`,
+  `lib/sale-deals-data.ts`, `components/SaleDeals.tsx`). Each row carries one offer, the cheapest a shopper can order now, and both
+  discounts are measured against that same price; the toggle ("Biggest price drops" / "Under other stores today") picks the basis
+  that badges and ranks. The badge is the % under; the struck price is that basis's reference (30-day typical or store median),
+  labelled for screen readers, never "was".
+- "Price drops" joins HISTORY_PHRASES (owner's label): allowed only on pages built from the recorded history, like this list.
+- A row read more than 12 hours ago says so in amber. Shipping is the store's measured checkout (`shippingCell`), shown as
+  "≈ $X delivered", else "Shipping at checkout".
+- Clicks: the list keeps `bf-drops` (the 3 Dec read); the price watch rows are now `bf-moves`, `bf-dearest`, `bf-older`,
+  `bf-graded`. `bf_section` counts each section's first view (scroll depth), `bf_filter` each filter used.
+- The email box and the Discord box are one slim bar after the fifth row (email, Discord, Telegram).
+- MTG Compare lists English product only, so the language filter hides itself when no row is Japanese.

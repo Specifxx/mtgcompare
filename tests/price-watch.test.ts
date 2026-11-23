@@ -52,7 +52,7 @@ test("the Cyber Monday page renders from real data with the price watch, no bann
   for (const region of ["us", "au"] as const) {
     const html = renderToStaticMarkup(await Page({ params: { region } }));
     const text = html.replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<[^>]+>/g, " ").replace(/&#x27;/g, "'");
-    assert.equal(findBannedCopy(text), null, `${region}: "${findBannedCopy(text)}"`);
+    assert.equal(findBannedCopy(text, { history: true }), null, `${region}: "${findBannedCopy(text, { history: true })}"`);
     assert.match(html, /id="price-watch"/);
     assert.match(text, /Cyber Monday/);
     assert.match(html, /placement=price-watch|price-watch/);

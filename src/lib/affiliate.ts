@@ -86,6 +86,10 @@ export const PLACEMENTS = [
   "listings-dock", // every page with the rails, narrow screens only: the phone dock's eBay half (components/AdDock.tsx, owner, 2026-11-06)
   "listings-inline", // the in-page ad block (components/InlineAds.tsx, owner 2026-11-13): its eBay tiles and links
   "price-watch", // the Black Friday / Cyber Monday price watch: the eBay search beside each row and the graded chase strip
+  "bf-moves", // /[region]/black-friday and /cyber-monday: "Price moves this week", each row's eBay search
+  "bf-dearest", // the same pages: "Most expensive sealed in stock", each row's eBay search
+  "bf-older", // the same pages: "Older sets still in stock", each row's eBay search
+  "bf-graded", // the same pages: "Graded chase cards on eBay", the graded searches
   "bf-drops", // the Black Friday / Cyber Monday "furthest under their own price" list: each line's store buy button and its eBay search
   // The highlighted eBay button of a POPULAR product or set (lib/popular.ts HOT_SETS: 30th Celebration first): eBay's blue
   // search button inside a strip's own top line (EbayStrip `highlight`), and the compact CTA that strip becomes. One placement

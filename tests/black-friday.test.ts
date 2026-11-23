@@ -62,7 +62,7 @@ test("the page renders from real data: parseable JSON-LD, no banned copy, the re
   for (const region of ["au", "us"] as const) {
     const html = renderToStaticMarkup(await Page({ params: { region } }));
     const text = html.replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<[^>]+>/g, " ").replace(/&#x27;/g, "'");
-    assert.equal(findBannedCopy(text), null, `${region}: "${findBannedCopy(text)}"`);
+    assert.equal(findBannedCopy(text, { history: true }), null, `${region}: "${findBannedCopy(text, { history: true })}"`);
     assert.match(text, /Black Friday is 27 November 2026|Black Friday weekend|Black Friday 2026 was/);
     for (const m of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) assert.doesNotThrow(() => JSON.parse(m[1]));
     if (region === "au") assert.match(text, /A\$/);
