@@ -496,7 +496,7 @@ function signatureTokens(title: string, set: MtgSet | null, type: TypeKey): stri
     .replace(/\buniverse\s*beyond\b/g, "universes beyond")
     .replace(/\bsmuag\b/g, "smaug")
     .replace(/\bsmaugtm\b/g, "smaug")
-    .replace(/\btreasure\s*of\s*smaug\b/g, "treasures of smaug")
+    .replace(/\btreasure'?s?\s*of\s*smaug\b/g, "treasures of smaug")
     .replace(/\bcrack\s*the\s*plate\b/g, "crack the plates")
     .replace(/\bmulti\s*-?\s*verses?\s*reforged\b/g, "multiverse reforged")
     .replace(/\btales\s*from\s*middle\b/g, "tales of middle");
@@ -509,6 +509,24 @@ function signatureTokens(title: string, set: MtgSet | null, type: TypeKey): stri
       /\b(?:choose|pick)\s*(?:your\s*)?(?:style|scene|deck|variant|one)s?\b|\bvarious(?:\s*styles?)?\b|\bsee\s*variants?\b|\b\d+\s*options?\b|\bau\s*choix\b|\bindividual\b|\bsee\s*in\s*-?\s*store\s*for\s*availability\b|\bstandard\s*edition\b|\b\d*\s*varieties\b/g,
       " ",
     );
+  }
+  if (type === "scene-box") {
+    // 2026-11-23 audit of one-store twins: what a Scene Box holds is not which one it is (side7's "Star Trek Scene Box: Enterprise-Q
+    // (incl. 3 play boosters)"); store spellings of Marvel Super Heroes' villains box ("Villians Unleashed", 8 stores, and "Villains
+    // United", 2 stores, on the set's only villains box beside Heroes United).
+    t = t
+      .replace(/[(\[]\s*incl(?:\.|uding|udes)?\s*\d+\s*(?:play\s*|collector\s*)?boosters?\s*[)\]]/g, " ")
+      .replace(/\bvillians\b/g, "villains");
+    if (set?.code === "msh") t = t.replace(/\bvillains\s*united\b/g, "villains unleashed");
+  }
+  if (type === "prerelease-pack") {
+    // 2026-11-23 audit: a Prerelease Pack sold outside the event is the same box. "Take Home Prerelease Kit", "Prerelease Pack Take
+    // Home", "At-Home Prerelease Kit", "Prerelease at Home Pack Kit (No Additional Packs)" and cardknights' German "6 Play-Booster &
+    // exklusive Foil-Promokarte" (the pack's own contents) each made a one-store page beside the set's Prerelease Pack. A kit with
+    // EXTRA boosters added is a store's bundle and is refused in identify().
+    t = t
+      .replace(/\b(?:take|at)\s*-?\s*home\b|[(\[]\s*no\s*additional\s*(?:packs?|boosters?)\s*[)\]]/g, " ")
+      .replace(/\bexklusive?\s*foil\s*-?\s*promo\s*-?\s*karte\b/g, " ");
   }
   if (type === "commander-deck") {
     // 2026-11-19 audit of one-store twins: a Commander deck's colour identity ("(Federation Fleet Blue-Red-White)"), a store note
@@ -793,6 +811,9 @@ export function identify(title: string, opts: { strict?: boolean } = {}): Sealed
     const rest = signatureTokens(t.replace(/\bfat\s*packs?\b/gi, " "), set, "bundle").filter((w) => w !== "fat" && !BUNDLE_SELLER_WORDS.has(w) && w !== set!.code);
     if (rest.length) type = "special-bundle";
   }
+  // A Prerelease kit with boosters added by the store is the store's bundle, not the Prerelease Pack (2026-11-23: dungeoncomicsandcards'
+  // "Star Trek - Take-Home Prerelease Kit (Includes TWO Additional Star Trek Play Boosters)").
+  if (type === "prerelease-pack" && /\b(?:includes?|including|with|plus)\s*(?:\d+|two|three|four|five|six)\s*(?:additional|extra|bonus)\b/i.test(t)) return "multiple";
   const info = TYPE_BY_KEY.get(type)!;
 
   if (info.kind === "set") {
