@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-22T16:53:59.049Z",
+ "generatedAt": "2026-11-23T01:26:03.347Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -78,9 +78,9 @@
    "currency": "AUD",
    "store": "Pro Gamers",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/657849_in_1000x1000.jpg",
-   "refCents": 23999,
+   "refCents": 23450,
    "refLabel": "median store price",
-   "savingPct": 44
+   "savingPct": 42
   },
   {
    "kind": "deal",
@@ -366,20 +366,6 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "CA",
-   "title": "Phyrexia: All Will Be One Set Booster Pack",
-   "url": "https://mtgcompare.app/ca/p/phyrexia-all-will-be-one-set-booster-pack",
-   "cents": 699,
-   "currency": "CAD",
-   "store": "Play N Trade Winnipeg",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/451871_in_1000x1000.jpg",
-   "refCents": 1499,
-   "refLabel": "median store price",
-   "savingPct": 53
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "CA",
    "title": "Secret Lair Drop: Fallout Beyond Vault 33",
    "url": "https://mtgcompare.app/ca/p/secret-lair-drop-fallout-beyond-vault-33",
    "cents": 3343,
@@ -400,6 +386,20 @@
    "currency": "CAD",
    "store": "Collect-Edition",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/255912_in_1000x1000.jpg",
+   "refCents": 1549,
+   "refLabel": "median store price",
+   "savingPct": 48
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "CA",
+   "title": "Phyrexia: All Will Be One Set Booster Pack",
+   "url": "https://mtgcompare.app/ca/p/phyrexia-all-will-be-one-set-booster-pack",
+   "cents": 795,
+   "currency": "CAD",
+   "store": "Cartes Leo",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/451871_in_1000x1000.jpg",
    "refCents": 1499,
    "refLabel": "median store price",
    "savingPct": 47
