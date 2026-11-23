@@ -2800,3 +2800,18 @@ No new tab, section or URL; quick view and price rows untouched.
 **Why.** The 23 Nov demand feed: 8 of the top 20 US product pages in 7 days were Commander decks or Secret Lair drops (Star Trek
 Borg deck 95 views, Klingon Fury 78, Landing Party 74, Federation Fleet 73; Secret Lair Masters of the Universe 111, Hulk SMASH 58),
 and none could reach the tab. Read 30 Nov: buy clicks per home visitor on MTG against 16-22 Nov.
+
+## 2026-11-23: One-store twins, fifth pass (take-home Prerelease kits, Scene Box contents, "Villians")
+
+The rest of the 22 Nov audit list. `identify()` now reads a Prerelease Pack sold outside the event as the set's Prerelease Pack:
+"Take Home Prerelease Kit", "Prerelease Pack Take Home", "At-Home Prerelease Kit", "Prerelease at Home Pack Kit (No Additional
+Packs)" and cardknights' German "6 Play-Booster & exklusive Foil-Promokarte" (the pack's own contents). Their prices sit inside the
+set pack's own range in the same market (Aetherdrift take-home C$34-45 against the pack's C$25-50; TMNT C$40-48 against C$38-70).
+A kit the store added boosters to ("Includes TWO Additional Star Trek Play Boosters") is the store's bundle and is refused
+("multiple"). A faction pack keeps its faction. Scene Boxes: "(incl. 3 play boosters)" is what the box holds, not which one;
+"Villians Unleashed" (8 stores) and Marvel Super Heroes' "Villains United" (2 stores; the set has one villains box, beside Heroes
+United) are the Villains Unleashed box; "Treasure's Of Smaug" is Treasures of Smaug. Replayed on every offer title of the 23 Nov
+export: 26 offers change, 25 join an existing page, 1 is refused, no offer lands on a new key and no two different products merge.
+Left alone on purpose: the Reality Fracture "Foundations (Starter) Commander Deck" listings, which stores file both as Commander
+Decks (77 offers under Foundations) and as Starter Commander Decks, under two sets; that needs TCGplayer's own naming first. Also the
+two-box Scene Box sets ("Divergent Timeline / Enterprise-Q", "Coppia (2 Scene Box)") and "Star Trek- Scene Box Limit 2 PP".

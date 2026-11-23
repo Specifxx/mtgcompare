@@ -648,3 +648,31 @@ test("One-store twins of 22 Nov: [Prerelease] tags, starter-kit wording, Scene B
   // German stores' English packs ("14 Karten", "Englisch") stay English.
   assert.ok(!key("Magic: The Gathering – Star Trek Play Booster (14 Karten)").startsWith("REJECT"));
 });
+
+test("2026-11-23 audit: take-home Prerelease kits, Scene Box contents and villains spellings join their product", () => {
+  const same: [string, string][] = [
+    // A Prerelease Pack sold outside the event is the set's Prerelease Pack.
+    ["Magic the Gathering - Aetherdrift - Prerelease Take Home Kit", "Aetherdrift Prerelease Pack"],
+    ["MTG AETHERDRIFT PRERELEASE PACK TAKE HOME", "Aetherdrift Prerelease Pack"],
+    ["Take Home Prerelease Kit | Universes Beyond: Teenage Mutant Ninja Turtles | Magic the Gathering TCG", "Teenage Mutant Ninja Turtles Prerelease Pack"],
+    ["Take Home Pre-Release Kit | Star Trek | Magic the Gathering TCG", "Star Trek Prerelease Pack"],
+    ["Magic: The Gathering – Reality Fracture At-Home Prerelease Kit", "Reality Fracture Prerelease Pack"],
+    ["MTG The Hobbit Prerelease at Home Pack Kit (No Additional Packs)", "The Hobbit Prerelease Pack"],
+    ["Magic: The Gathering – Reality Fracture Prerelease-Pack | 6 Play-Booster & exklusive Foil-Promokarte | ENG", "Reality Fracture Prerelease Pack"],
+    // What a Scene Box holds is not which one it is; store spellings of one box.
+    ["Magic: The Gathering - Star Trek Scene Box: Enterprise-Q (incl. 3 play boosters)", "Star Trek Scene Box - Enterprise-Q"],
+    ["Magic: The Gathering - Star Trek Scene Box: Divergent Timeline (incl. 3 play boosters)", "Star Trek Scene Box - Divergent Timeline"],
+    ["Marvel Super Heroes Villians Unleashed Scene Box", "Marvel Super Heroes Scene Box - Villains Unleashed"],
+    ["MTG Marvel Super Heroes Scene Box - Villains United", "Marvel Super Heroes Scene Box - Villains Unleashed"],
+    ["MTG - The Hobbit - Scene Box - Treasure's Of Smaug", "The Hobbit Scene Box - Treasures of Smaug"],
+  ];
+  for (const [a, b] of same) {
+    assert.ok(!key(a).startsWith("REJECT"), a);
+    assert.equal(key(a), key(b), a);
+  }
+  // The two Marvel Super Heroes Scene Boxes stay apart, and a faction Prerelease Pack keeps its faction.
+  assert.notEqual(key("Marvel Super Heroes Scene Box - Heroes United"), key("MTG Marvel Super Heroes Scene Box - Villains United"));
+  assert.notEqual(key("Tarkir: Dragonstorm Jeskai Prerelease Pack Take Home"), key("Tarkir: Dragonstorm Prerelease Pack"));
+  // A kit with boosters the store added is the store's bundle.
+  assert.equal(identify("Star Trek - Take-Home Prerelease Kit (Includes TWO Additional Star Trek Play Boosters)"), "multiple");
+});
