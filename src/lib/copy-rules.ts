@@ -32,7 +32,9 @@ const PHRASES = [
 // Backed by the daily price history (lib/price-history.ts, data/public/price-history.json) since 2026-10-25, and ONLY where a page
 // is built from it: /<region>/back-in-stock lists products whose snapshots went from nothing open to open, and the links to that
 // page carry its name. Everywhere else (a product card, a title, a product page) the phrase is still banned: the card does not know.
-const HISTORY_PHRASES = [String.raw`\bback\s+in\s+stock\b`];
+// "Biggest price drops" (owner, 2026-11-24): the Black Friday / Cyber Monday deal list's tab for products under their own recorded
+// 30-day price, built from the same history.
+const HISTORY_PHRASES = [String.raw`\bback\s+in\s+stock\b`, String.raw`\bprice[-\s]+(?:drops?|cuts?)\b`];
 
 /**
  * Case-insensitive, and NOT global (a /g regex keeps lastIndex between .test() calls and would skip matches): history,

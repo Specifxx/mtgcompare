@@ -6,13 +6,15 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { NoPreFooter } from "@/components/Ebay";
 import { EbayStrip } from "@/components/EbayStrip";
 import { Icon } from "@/components/Icon";
-import { RealDrops } from "@/components/RealDrops";
-import { KeepUpStrip } from "@/components/KeepUpStrip";
+import { InfoTip } from "@/components/InfoTip";
+import { SaleDeals } from "@/components/SaleDeals";
+import { SaleNav } from "@/components/SaleNav";
 import { ALERT_SITE_KEY } from "@/lib/alert-feed";
-import { SITE_NAME } from "@/lib/site";
 import { TcgplayerSaleBlock } from "@/components/TcgplayerSaleBlock";
 import { TcgplayerCyberBanner } from "@/components/TcgplayerCyberBanner";
-import { realDropRows } from "@/lib/real-drops-data";
+import { saleDealRows } from "@/lib/sale-deals-data";
+import type { SaleDealRow } from "@/lib/sale-deals";
+import { DISCORD_INVITE } from "@/lib/site";
 import { PreorderBanner } from "@/components/PreorderBanner";
 import { ProductGrid } from "@/components/ProductGrid";
 import { Empty, Section } from "@/components/Section";
@@ -21,7 +23,7 @@ import { blackFriday, cyberMonday, eventCopy, EVENT_NAMES, seasonYear, type Sale
 import { dearestInStock, GRADED_SEARCHES, olderShelf } from "@/lib/price-watch";
 import { olderInStockData, priceMovesData } from "@/lib/stock-data";
 import { OutboundLink } from "@/components/OutboundLink";
-import { ebayCardSearchUrl, ebayLabel, ebayRetailer, ebaySearchUrl, REL_SPONSORED, tcgplayerSearchUrl } from "@/lib/affiliate";
+import { ebayCardSearchUrl, ebayLabel, ebayRetailer, ebaySearchUrl, REL_SPONSORED, tcgplayerSearchUrl, type Placement } from "@/lib/affiliate";
 import { SET_BY_CODE } from "@/lib/sets";
 import { lastCheckedAt, type ProductCardData } from "@/lib/data";
 import { belowMsrpUS, dealPct, dealsInMarket, fitTitle } from "@/lib/deals";
@@ -72,181 +74,182 @@ export async function HolidaySalePage({ event, params }: { event: SaleEvent } & 
   const bf = blackFriday(year);
   const cm = cyberMonday(year);
   const us = r.market === "US";
-  const [deals, checked, msrp, dearest, moves, older, drops] = await Promise.all([
+  const [deals, checked, msrp, dearest, moves, older, saleRows] = await Promise.all([
     getDeals(r.market),
     lastCheckedAt(r.market),
     us ? belowMsrpUS(8) : Promise.resolve([] as ProductCardData[]),
     dearestInStock(r.market).catch(() => [] as ProductCardData[]),
     priceMovesData(r.market).catch(() => null),
     olderInStockData(r.market).catch(() => []),
-    realDropRows(r.market, today).catch(() => []),
+    saleDealRows(r, today).catch(() => [] as SaleDealRow[]),
   ]);
   const down = moves?.down.slice(0, 8) ?? [];
   const shelf = olderShelf(older);
   const ebaySite = ebayLabel(r.region);
-  const ebayLink = (label: string, href: string, key: string) => (
-    <OutboundLink href={href} rel={REL_SPONSORED} retailer={ebayRetailer(r.region)} placement="price-watch" className="btn-ad shrink-0 px-3 py-1.5 text-xs" aria-label={`${label} on ${ebaySite} (paid link)`} key={key}>
+  const ebayLink = (label: string, href: string, key: string, placement: Placement) => (
+    <OutboundLink href={href} rel={REL_SPONSORED} retailer={ebayRetailer(r.region)} placement={placement} className="btn-ad min-h-11 w-full px-3 text-center text-xs sm:w-auto" aria-label={`${label} on ${ebaySite} (paid link)`} key={key}>
       eBay
     </OutboundLink>
   );
-  const best = deals.length ? Math.max(...deals.map(dealPct)) : null;
+  const pcts = saleRows.map((x) => Math.max(x.typical?.pct ?? 0, x.median?.pct ?? 0));
+  const best = pcts.length ? Math.max(...pcts) : null;
   const when =
     today < bf
-      ? `Black Friday is ${formatRelease(bf)} (${relativeDay(bf, today)}) and Cyber Monday ${formatRelease(cm)} (${relativeDay(cm, today)}).`
+      ? `Black Friday is ${formatRelease(bf)} (${relativeDay(bf, today)}).`
       : today <= cm
         ? `It's Black Friday weekend: Cyber Monday is ${formatRelease(cm)}.`
         : `${name} ${year} was ${formatRelease(event === "black-friday" ? bf : cm)}.`;
   const strip = <EbayStrip region={r.region} context="sealed" placement="listings-deals" search={{ kind: "sealed", query: "" }} />;
-  const ld = deals.length ? itemListJsonLd({ name: copy.h1(r), path, items: deals.map((p) => ({ path: `/${r.region}/p/${p.slug}`, name: p.name, image: p.imageUrl })) }) : null;
+  const ld = saleRows.length
+    ? itemListJsonLd({ name: copy.h1(r), path, items: saleRows.slice(0, 36).map((p) => ({ path: `/${r.region}/p/${p.slug}`, name: p.name, image: p.imageUrl })) })
+    : deals.length
+      ? itemListJsonLd({ name: copy.h1(r), path, items: deals.map((p) => ({ path: `/${r.region}/p/${p.slug}`, name: p.name, image: p.imageUrl })) })
+      : null;
+  const row = "card grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_11rem_6rem]";
 
   return (
     <div className="page py-8">
-      {deals.length < 12 && <NoPreFooter />}
+      {saleRows.length < 12 && <NoPreFooter />}
       <Breadcrumbs items={[{ href: `/${r.region}`, label: r.name }, { href: `/${r.region}/deals`, label: "Deals" }, { label: name }]} />
       <header className="max-w-3xl">
         <div className="eyebrow flex items-center gap-1.5">
           <Icon name="tag" size={14} /> {name} {year} · {r.name}
         </div>
         <h1 className="mt-2 page-title">{copy.h1(r)}</h1>
-        <p className="page-lead mt-3">
-          {when} Stores set their own prices, so this page doesn’t guess at sales: it ranks the Magic sealed products whose cheapest in-stock price sits furthest under the median of the{" "}
-          {r.adjective} stores that have them, from the prices we checked{" "}
-          {checked ? <Ago iso={checked.toISOString()} initial={timeAgo(checked)} /> : "twice a day"}. Every listing is read about twice a day through the season. Under the deals, the{" "}
-          <a href="#price-watch" className="font-semibold text-brand hover:underline">price watch</a>: the dearest sealed in stock, the week&rsquo;s moves, older sets still in stock and graded chase cards, each with eBay listings.
+        <p className="mt-2 text-[15px] leading-6 text-muted">
+          {saleRows.length > 0 ? (
+            <>
+              <b className="text-ink">{plural(saleRows.length, "deal")}</b> today{best != null ? <>, up to <b className="text-ink">{best}% off</b></> : ""}, checked{" "}
+              {checked ? <Ago iso={checked.toISOString()} initial={timeAgo(checked)} /> : "twice a day"}.
+            </>
+          ) : (
+            <>Prices checked {checked ? <Ago iso={checked.toISOString()} initial={timeAgo(checked)} /> : "twice a day"}.</>
+          )}{" "}
+          {when}{" "}
+          <a href="#how-we-calculate" className="font-semibold text-brand hover:underline">How we calculate</a>
         </p>
-        {deals.length > 0 && (
-          <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-open-soft px-3 py-1 text-sm font-semibold text-open">
-            <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
-            {plural(deals.length, "product")} under the median today{best != null ? `, up to ${best}% under` : ""}
-          </p>
-        )}
+        <p className="mt-1 text-xs text-faint">Store, eBay and TCGplayer links may be paid links: we may earn a commission, at no cost to you. It never changes the order.</p>
       </header>
 
-      <RealDrops r={r} rows={drops} />
+      <SaleNav
+        page={event}
+        items={[
+          { id: "deals", label: "Deals" },
+          ...(us && msrp.length ? [{ id: "below-msrp", label: "Under MSRP" }] : []),
+          { id: "down-this-week", label: "Price moves" },
+          { id: "dearest-sealed", label: "Most expensive" },
+          { id: "older-sets", label: "Older sets" },
+          { id: "graded-cards", label: "Graded" },
+          { id: "preorders", label: "Pre-orders" },
+        ]}
+      />
 
-      {/* Cyber Weekend capture (owned audience, 2026-11-21): the weekly drops email has Black Friday and Cyber Monday editions; email
-          only here, because the Discord box sits lower on this page (components/KeepUpStrip.tsx). */}
-      <KeepUpStrip site={ALERT_SITE_KEY} region={r.market} siteName={SITE_NAME} placement="black-friday" what="the Black Friday and Cyber Monday deals" className="mt-5 sm:max-w-2xl" buttonClassName="btn-primary min-h-10" />
-
-      <Section id="biggest-gaps" title="Furthest under the median today" kicker="Every product type, biggest gap first">
-        {deals.length ? (
-          <ProductGrid products={deals} region={r.region} eager={4} strip={strip} />
+      <section id="deals" aria-labelledby="deals-h" className="mt-5">
+        <h2 id="deals-h" className="sr-only">Today&rsquo;s deals</h2>
+        {saleRows.length ? (
+          <SaleDeals rows={saleRows} market={r.market} regionCode={r.region} regionName={r.inName.replace(/^in /, "")} siteKey={ALERT_SITE_KEY} discordHref={DISCORD_INVITE} ebayLabel={ebaySite} ebayRetailer={ebayRetailer(r.region)} />
         ) : (
-          <>
-            <Empty
-              actions={[
-                { href: `/${r.region}/cheapest-packs`, label: "Cheapest per pack" },
-                { href: `/${r.region}/deals`, label: "All deals" },
-              ]}
-            >
-              No product is at least 10% under the median of three or more {r.adjective} stores right now. The page fills in as soon as one is.
-            </Empty>
-            <div className="mt-6">{strip}</div>
-          </>
+          <Empty
+            actions={[
+              { href: `/${r.region}/cheapest-packs`, label: "Cheapest per pack" },
+              { href: `/${r.region}/deals`, label: "All deals" },
+            ]}
+          >
+            No product is at least 10% under its own 30-day price or under the median of three or more {r.adjective} stores right now. The page fills in as soon as one is.
+          </Empty>
         )}
-        <p className="mt-4 text-sm leading-6 text-muted">
-          “Under the median” compares a product’s cheapest in-stock price with the middle price of the {r.adjective} stores that have it in stock today (three or more
-          stores, at least 10% under, never under half: that is a misfiled listing). Prices exclude shipping; check the store’s delivery cost and returns policy
-          before you buy.
-        </p>
-      </Section>
+        <div className="mt-8">{strip}</div>
+      </section>
 
       {us && msrp.length > 0 && (
-        <Section id="below-msrp" title="Under US MSRP today" kicker="Wizards of the Coast's announced US list price">
+        <Section id="below-msrp" title="Under US MSRP today" kicker="Wizards of the Coast's announced US list price" className="mt-14">
           <ProductGrid products={msrp} region={r.region} />
-          <p className="mt-3 text-xs text-muted">{RRP_NOTE}</p>
+          <InfoTip>{RRP_NOTE}</InfoTip>
         </Section>
       )}
 
       {/* THE PRICE WATCH (lib/price-watch.ts, DECISIONS.md 2026-11-06): the high-value end of the market, an eBay search beside every row. */}
-      <div id="price-watch" className="mt-14 max-w-3xl">
-        <div className="eyebrow">Price watch · {r.name}</div>
-        <h2 className="mt-1 font-display text-2xl font-bold tracking-tight sm:text-[28px]">Sealed, older sets and graded cards to watch</h2>
-        <p className="mt-2 text-sm leading-6 text-muted">
-          The high-value end of the {r.adjective} market from today&rsquo;s prices, each row with a tagged eBay search beside the store price. eBay sellers set their own
-          prices and are never counted as a store or ranked into a comparison; the strips show live listings.
-        </p>
-      </div>
+      <div id="price-watch" aria-hidden="true" />
+      {down.length > 0 && (
+        <Section id="down-this-week" title="Price moves this week" kicker="The week's biggest moves down" href={`/${r.region}/price-moves`} linkLabel="All price moves" className="mt-14">
+          <ol className="grid gap-2">
+            {down.map(({ card, move }) => (
+              <li key={card.slug} className={row}>
+                <Link href={`/${r.region}/p/${card.slug}`} prefetch={false} className="min-w-0 font-semibold hover:text-brand">
+                  {card.name}
+                  <span className="block text-xs font-normal text-muted">{card.productType}</span>
+                </Link>
+                <span className="tabular text-right text-sm">
+                  <span className="mr-1 inline-block rounded-md bg-open px-1.5 py-0.5 text-xs font-bold text-white">{move.pct}%</span>
+                  <b className="font-display text-base">{money(move.after, r.market)}</b>
+                  <span className="block text-xs text-muted">{money(move.before, r.market)} a week ago</span>
+                </span>
+                <span className="col-span-2 sm:col-span-1">{ebayLink(card.name, ebaySearchUrl(card.name, r.region, "bf-moves"), `m-${card.slug}`, "bf-moves")}</span>
+              </li>
+            ))}
+          </ol>
+          <InfoTip>The cheapest in-stock price today against the same product&rsquo;s a week back, for popular sets&rsquo; headline products: what stores asked on those two days.</InfoTip>
+        </Section>
+      )}
 
       {dearest.length > 0 && (
-        <Section id="dearest-sealed" title="Dearest sealed in stock today" kicker="Store price beside an eBay search">
+        <Section id="dearest-sealed" title="Most expensive sealed in stock" kicker={`The cheapest ${r.adjective} store for each, beside an eBay search`} className="mt-14">
           <ol className="grid gap-2">
             {dearest.map((p) => (
-              <li key={p.slug} className="card flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3">
-                <Link href={`/${r.region}/p/${p.slug}`} prefetch={false} className="min-w-0 flex-1 font-semibold hover:text-brand">
+              <li key={p.slug} className={row}>
+                <Link href={`/${r.region}/p/${p.slug}`} prefetch={false} className="min-w-0 font-semibold hover:text-brand">
                   {p.name}
-                  <span className="block text-xs font-normal text-faint">
+                  <span className="block text-xs font-normal text-muted">
                     {p.productType}
                     {p.setCode && SET_BY_CODE.get(p.setCode) ? ` · ${SET_BY_CODE.get(p.setCode)!.name}` : ""} · {plural(p.inStockStores, "store")} in stock
                   </span>
                 </Link>
-                <span className="tabular text-sm">
-                  <b className="font-display text-base">{money(p.lowestPriceCents, r.market)}</b> <span className="text-muted">cheapest store</span>
+                <span className="tabular text-right text-sm">
+                  <b className="font-display text-base">{money(p.lowestPriceCents, r.market)}</b>
+                  <span className="block text-xs text-muted">cheapest store</span>
                 </span>
-                {ebayLink(p.name, ebaySearchUrl(p.name, r.region, "price-watch"), `d-${p.slug}`)}
+                <span className="col-span-2 sm:col-span-1">{ebayLink(p.name, ebaySearchUrl(p.name, r.region, "bf-dearest"), `d-${p.slug}`, "bf-dearest")}</span>
               </li>
             ))}
           </ol>
-          <p className="mt-3 text-sm leading-6 text-muted">The cheapest in-stock {r.adjective} store price of the dearest products stores have today, before shipping. A big box is where a wrong store costs the most.</p>
-        </Section>
-      )}
-
-      {down.length > 0 && (
-        <Section id="down-this-week" title="Down this week" kicker="The week's biggest moves down, from our daily price snapshots" href={`/${r.region}/price-moves`} linkLabel="All price moves">
-          <ol className="grid gap-2">
-            {down.map(({ card, move }) => (
-              <li key={card.slug} className="card flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3">
-                <Link href={`/${r.region}/p/${card.slug}`} prefetch={false} className="min-w-0 flex-1 font-semibold hover:text-brand">
-                  {card.name}
-                  <span className="block text-xs font-normal text-faint">{card.productType}</span>
-                </Link>
-                <span className="tabular text-sm">
-                  <b className="font-display text-base">{money(move.after, r.market)}</b> <span className="text-muted">vs {money(move.before, r.market)} a week ago</span>{" "}
-                  <span className="font-semibold text-open">{move.pct}%</span>
-                </span>
-                {ebayLink(card.name, ebaySearchUrl(card.name, r.region, "price-watch"), `m-${card.slug}`)}
-              </li>
-            ))}
-          </ol>
-          <p className="mt-3 text-sm leading-6 text-muted">The cheapest in-stock price today against the same product&rsquo;s a week back, for popular sets&rsquo; headline products; what stores asked on those two days, not a sale.</p>
+          <InfoTip>The cheapest in-stock {r.adjective} store price of the dearest products stores have today, before shipping. eBay sellers set their own prices and are never counted as a store.</InfoTip>
         </Section>
       )}
 
       {shelf.length > 0 && (
-        <Section id="older-sets" title="Older sets still in stock" kicker="One product per set, the sets most stores carry first" href={`/${r.region}/out-of-print`} linkLabel="All older sets">
+        <Section id="older-sets" title="Older sets still in stock" kicker="One product per set, the sets most stores carry first" href={`/${r.region}/out-of-print`} linkLabel="All older sets" className="mt-14">
           <ol className="grid gap-2">
             {shelf.map(({ set, item }) => (
-              <li key={item.slug} className="card flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3">
-                <Link href={`/${r.region}/p/${item.slug}`} prefetch={false} className="min-w-0 flex-1 font-semibold hover:text-brand">
+              <li key={item.slug} className={row}>
+                <Link href={`/${r.region}/p/${item.slug}`} prefetch={false} className="min-w-0 font-semibold hover:text-brand">
                   {item.name}
-                  <span className="block text-xs font-normal text-faint">
+                  <span className="block text-xs font-normal text-muted">
                     {set.name} · released {formatRelease(set.releaseDate)} · {plural(item.inStockStores, "store")} in stock
                   </span>
                 </Link>
-                <span className="tabular text-sm">
-                  <b className="font-display text-base">{money(item.lowestPriceCents, r.market)}</b> <span className="text-muted">cheapest store</span>
+                <span className="tabular text-right text-sm">
+                  <b className="font-display text-base">{money(item.lowestPriceCents, r.market)}</b>
+                  <span className="block text-xs text-muted">cheapest store</span>
                 </span>
-                {ebayLink(item.name, ebaySearchUrl(item.name, r.region, "price-watch"), `o-${item.slug}`)}
+                <span className="col-span-2 sm:col-span-1">{ebayLink(item.name, ebaySearchUrl(item.name, r.region, "bf-older"), `o-${item.slug}`, "bf-older")}</span>
               </li>
             ))}
           </ol>
-          <p className="mt-3 text-sm leading-6 text-muted">Sets released 18 months or more ago that an independent {r.adjective} store still has in stock today. A fact of the calendar, not a claim about printing.</p>
+          <InfoTip>Sets released 18 months or more ago that an independent {r.adjective} store still has in stock today. A fact of the calendar, not a claim about printing.</InfoTip>
         </Section>
       )}
 
-      <Section id="graded-cards" title="Graded chase cards on eBay" kicker={`Tagged Buy It Now searches on ${ebaySite}`}>
+      <Section id="graded-cards" title="Graded chase cards on eBay" kicker={`Buy It Now searches on ${ebaySite}`} className="mt-14">
         <ul className="flex flex-wrap gap-2">
           {GRADED_SEARCHES.map((g) => (
             <li key={g.query}>
-              <OutboundLink href={ebayCardSearchUrl(g.query, r.region, "price-watch")} rel={REL_SPONSORED} retailer={ebayRetailer(r.region)} placement="price-watch" className="btn-ad px-3 py-1.5 text-xs">
+              <OutboundLink href={ebayCardSearchUrl(g.query, r.region, "bf-graded")} rel={REL_SPONSORED} retailer={ebayRetailer(r.region)} placement="bf-graded" className="btn-ad inline-flex min-h-11 items-center px-3 text-xs">
                 {g.label}
               </OutboundLink>
             </li>
           ))}
         </ul>
-        <p className="mt-3 text-sm leading-6 text-muted">
-          MTG Compare compares sealed product, not single cards, so these are searches of live graded listings, not prices we checked. Paid links: we may earn a commission, at no cost to you.
-        </p>
+        <InfoTip>MTG Compare compares sealed product, not single cards, so these are searches of live graded listings, not prices we checked.</InfoTip>
         <div className="mt-6">
           <EbayStrip region={r.region} context="chase" placement="price-watch" search={{ kind: "card", query: "" }} />
         </div>
@@ -255,10 +258,17 @@ export async function HolidaySalePage({ event, params }: { event: SaleEvent } & 
       <TcgplayerCyberBanner href={tcgplayerSearchUrl("", r.region, "tcgplayer-cyber-banner")} at={Date.now()} className="mt-14 max-w-3xl" />
       <TcgplayerSaleBlock region={r.region} name={name} />
 
+      <section id="preorders" aria-labelledby="preorders-h" className="mt-14 max-w-3xl">
+        <h2 id="preorders-h" className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Pre-orders</h2>
+        <div className="mt-4">
+          <PreorderBanner region={r.region} today={today} />
+        </div>
+      </section>
+
       <FamilyCluster kind="deal" region={r.region} />
 
       <section aria-labelledby="season-more" className="mt-14 max-w-3xl">
-        <h2 id="season-more" className="font-display text-2xl font-bold tracking-tight">
+        <h2 id="season-more" className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
           More ways to save this season
         </h2>
         <ul className="mt-4 grid gap-2 text-[15px] leading-6 text-muted">
@@ -287,21 +297,27 @@ export async function HolidaySalePage({ event, params }: { event: SaleEvent } & 
             — the same rule as this page, split into booster boxes, Collector boxes, bundles and more.
           </li>
           <li>
-            <Link href={`/${r.region}/this-week`} prefetch={false} className="font-semibold text-brand hover:underline">
-              This week
-            </Link>{" "}
-            — sets releasing soon and just out, with their cheapest boxes and bundles.
-          </li>
-          <li>
             <Link href={`/${r.region}/tools/value-checker`} prefetch={false} className="font-semibold text-brand hover:underline">
               Value checker
             </Link>{" "}
             — see where a price you were offered sits against today’s stores.
           </li>
         </ul>
-        <div className="mt-6">
-          <PreorderBanner region={r.region} today={today} />
-        </div>
+      </section>
+
+      <section id="how-we-calculate" aria-labelledby="how-h" className="mt-14 max-w-3xl text-sm leading-6 text-muted">
+        <h2 id="how-h" className="font-display text-2xl font-bold tracking-tight sm:text-3xl text-ink">How we calculate</h2>
+        <p className="mt-3">
+          Stores set their own prices, so this page doesn&rsquo;t guess at sales. Each deal row uses the cheapest in-stock offer a shopper can order now from the {r.adjective} stores we
+          check about twice a day, and measures it two ways. <b>Biggest price drops</b> compares it with the product&rsquo;s own typical price: the median of its cheapest in-stock price on
+          each of the last 30 days we recorded (two weeks of records at least; a day far under the rest is left out as a wrong listing, and a product whose records swing more than
+          twofold is not listed). <b>Under other stores today</b> compares it with the middle price of the {r.adjective} stores that have it in stock (three or more stores, at least 10%
+          under, never under half).
+        </p>
+        <p className="mt-2">
+          Both say what stores asked, not what they will charge next. Shipping is each store&rsquo;s own checkout as we measured it for one item; the store&rsquo;s checkout is final.
+          A row checked more than 12 hours ago is flagged. eBay sellers set their own prices and are never counted as a store or ranked into a comparison.
+        </p>
       </section>
       {ld && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld) }} />}
     </div>
