@@ -148,12 +148,12 @@ export async function homeRails(market: Market, today = new Date().toISOString()
   const recentCodes = SETS.slice(0, 12).map((s) => s.code);
   const newestFirst = (a: ProductCardData, b: ProductCardData) =>
     (b.releaseDate ?? "").localeCompare(a.releaseDate ?? "") || (a.lowestPriceCents ?? 0) - (b.lowestPriceCents ?? 0);
-  const inStockOfType = async (type: string) =>
+  const inStockOfType = async (type: string, take = 150) =>
     rankCards(
       (
         await prisma.productStat.findMany({
           where: { market, ...OPEN, product: { productType: type, OR: [{ setCode: null }, { setCode: { notIn: upcoming } }] } },
-        take: 150,
+        take,
           select: cardSelect,
         })
       )
@@ -162,13 +162,17 @@ export async function homeRails(market: Market, today = new Date().toISOString()
       // Most likely to earn first (owner, 2026-11-18; lib/home-rank.ts): demand × value, newest first among equals.
       { today },
     ).slice(0, 8);
-  const [boxes, etbs, playPacks, collectorPacks, setPacks, draftPacks, preorders, latest] = await Promise.all([
+  const [boxes, etbs, playPacks, collectorPacks, setPacks, draftPacks, decks, secretLairs, preorders, latest] = await Promise.all([
     inStockOfType("Play Booster Box"),
     inStockOfType("Collector Booster Box"),
     inStockOfType("Play Booster Pack"),
     inStockOfType("Collector Booster Pack"),
     inStockOfType("Set Booster Pack"),
     inStockOfType("Draft Booster Pack"),
+    // Commander decks and Secret Lair drops (merch, 2026-11-23): only for the "Most popular" pool, never a tab of their own. Secret
+    // Lair has ~770 products, so it reads a wider window before the demand ranking picks its eight.
+    inStockOfType("Commander Deck"),
+    inStockOfType("Secret Lair Drop", 400),
     upcoming.length
       ? prisma.productStat.findMany({ where: { market, ...OPEN, product: { setCode: { in: upcoming } } }, take: 60, select: cardSelect })
       : Promise.resolve([]),
@@ -184,7 +188,7 @@ export async function homeRails(market: Market, today = new Date().toISOString()
   const packs: ProductCardData[] = [];
   const lists = [playPacks, collectorPacks, setPacks, draftPacks];
   for (let i = 0; packs.length < 8 && lists.some((l) => i < l.length); i++) for (const l of lists) if (i < l.length && packs.length < 8) packs.push(l[i]);
-  return { boxes, etbs, packs, preorders: rankCards(sortCards(preorders.map(toCard)), { preorder: true, today }).slice(0, 8), latestSets: bySet };
+  return { boxes, etbs, packs, decks, secretLairs, preorders: rankCards(sortCards(preorders.map(toCard)), { preorder: true, today }).slice(0, 8), latestSets: bySet };
 }
 
 export interface RegionOverview {

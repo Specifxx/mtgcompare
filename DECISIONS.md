@@ -2789,3 +2789,14 @@ Every sign-in prompt links `/account?src=<surface>`; the sign-in sends it on, an
 **Why.** Owner, 2026-11-22: "Can we significantly uplift the profile pages and the sign in and login incentive ... especially
 dexcompare and mtgcompare". In the week to 22 Nov, 118 of 125 new reachable people were RiftCompare accounts and Dex and MTG, with most of the Google traffic, added 6. Owner, 2026-11-23: "keep user experience high and not flooding them with ads and
 information" (ops/product-ux/page-budget.md): hence one prompt a visit and nothing on the first page.
+
+## 2026-11-23: Commander decks and Secret Lair drops can reach the home "Most popular" tab (merch)
+
+**What.** The region home's "Most popular" pool (`src/app/[region]/page.tsx`) was in-stock boxes, ETB/collector boxes and packs only.
+`homeRails` now also returns the eight best-ranked in-stock Commander decks and Secret Lair drops (Secret Lair reads a 400-row window,
+it has ~770 products), and they join the pool on demand (`lib/home-rank.ts`), at most three of the eight so the boxes keep the rest.
+No new tab, section or URL; quick view and price rows untouched.
+
+**Why.** The 23 Nov demand feed: 8 of the top 20 US product pages in 7 days were Commander decks or Secret Lair drops (Star Trek
+Borg deck 95 views, Klingon Fury 78, Landing Party 74, Federation Fleet 73; Secret Lair Masters of the Universe 111, Hulk SMASH 58),
+and none could reach the tab. Read 30 Nov: buy clicks per home visitor on MTG against 16-22 Nov.
