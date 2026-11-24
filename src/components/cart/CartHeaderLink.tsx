@@ -38,9 +38,9 @@ export function CartHeaderLink({ className = "", href = "/cart" }: { className?:
       <a
         href={href}
         className={`ce-cart-link ${className}`}
-        aria-label={count ? `Cart, ${count} item${count === 1 ? "" : "s"}` : "Cart"}
+        aria-label={count ? `Shortlist, ${count} item${count === 1 ? "" : "s"}` : "Shortlist"}
         aria-haspopup="dialog"
-        title="Your cart"
+        title="Your shortlist: prices you saved"
         onClick={(e) => {
           if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
           e.preventDefault();

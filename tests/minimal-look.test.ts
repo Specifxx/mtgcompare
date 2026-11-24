@@ -188,10 +188,11 @@ test("pre-orders without the Coming soon block: a tile of the landing page's her
   assert.match(hero, /<a class="way flex-1" href="\/us\/releases"><span class="way-icon" aria-hidden="true"><svg [^>]*>.*?<\/svg><\/span><span class="min-w-0">Pre-orders<\/span><\/a>/, "the hero's sixth tile");
   assert.equal((hero.match(/class="way flex-1"/g) ?? []).length, 6, "six ways in");
   assert.doesNotMatch(hero, /href="\/us\/p\/|pc-link|data-ad/, "no product and no ad in the landing page's hero");
-  // The header's Deals menu, on every page: each open pre-order hub, then the release calendar.
+  // The header's Sets menu (the Deals menu's until the owner's 2026-11-23 UX review), on every page: each open pre-order hub,
+  // then the release calendar.
   const open = openPreorderGuides();
-  const coming = headerNavItems("us").find((n) => n.label === "Deals")?.menu?.find((c) => c.title === "Coming soon");
-  assert.ok(coming, "the Deals menu's Coming soon column");
+  const coming = headerNavItems("us").find((n) => n.label === "Sets")?.menu?.find((c) => c.title === "Coming soon");
+  assert.ok(coming, "the Sets menu's Coming soon column");
   assert.deepEqual(
     coming!.links.map((l) => l.href),
     [...open.map(({ set }) => `/us/preorders/${set.slug}`), "/us/releases"],

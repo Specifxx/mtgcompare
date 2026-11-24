@@ -158,22 +158,28 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
   return createPortal(
     <div className={`cd-root${open ? " is-open" : ""}`} aria-hidden={!open} {...(open ? {} : { inert: true })}>
       <div className="cd-backdrop" onClick={onClose} />
-      <div ref={panel} className="cd-panel" role="dialog" aria-modal="true" aria-label="Your cart">
+      <div ref={panel} className="cd-panel" role="dialog" aria-modal="true" aria-label="Your shortlist">
         <header className="cd-head">
           <h2>
-            Your cart{units > 0 && <span className="cd-count"> · {units} item{units === 1 ? "" : "s"}</span>}
+            Your shortlist{units > 0 && <span className="cd-count"> · {units} item{units === 1 ? "" : "s"}</span>}
           </h2>
-          <button ref={closeBtn} type="button" className="cd-x" onClick={onClose} aria-label="Close cart">
+          <button ref={closeBtn} type="button" className="cd-x" onClick={onClose} aria-label="Close shortlist">
             ×
           </button>
         </header>
+        {/* What this is, said every time it opens (owner, 2026-11-23 UX review, P1 12: a cart on a comparison site suggests we sell). */}
+        <p className="px-4 pb-2 text-xs text-muted">Prices you saved. MTG Compare sells nothing: you buy at each store on its own site.</p>
 
         {!lines.length ? (
           <div className="cd-empty">
             <CartIcon size={34} />
-            <p className="cd-strong">Your cart is empty</p>
-            <p>Tap Add to cart beside any store&apos;s price (you pay each store on its own site, never us). Add from as many stores as you like and check out all of them in one go.</p>
-            <button type="button" className="cd-btn" onClick={onClose}>
+            <p className="cd-strong">Your shortlist is empty</p>
+            <p>Tap + Shortlist beside any store&apos;s price to keep it here, from as many stores as you like, then open them all in one go.</p>
+            {/* A way on, not a dead end (owner's UX review, P2 18): today's deals for the region the visitor is in. */}
+            <a className="cd-btn" href={dealsHref()}>
+              See today&apos;s deals
+            </a>
+            <button type="button" className="mt-2 text-sm font-semibold text-muted hover:text-ink" onClick={onClose}>
               Keep browsing
             </button>
           </div>
@@ -293,10 +299,10 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                 <button
                   type="button"
                   onClick={() => {
-                    if (confirm("Empty your cart?")) writeCart([]);
+                    if (confirm("Clear your shortlist?")) writeCart([]);
                   }}
                 >
-                  Empty cart
+                  Clear shortlist
                 </button>
               </div>
             </footer>
@@ -306,4 +312,10 @@ export function CartDrawer({ open, onClose }: { open: boolean; onClose: () => vo
     </div>,
     document.body,
   );
+}
+
+/** Today's deals in the region the page is under (the US for a page with none). */
+function dealsHref(): string {
+  const first = typeof window === "undefined" ? "" : window.location.pathname.split("/").filter(Boolean)[0] ?? "";
+  return /^(au|us|uk|ca|nz|eu|sg)$/.test(first) ? `/${first}/deals` : "/us/deals";
 }

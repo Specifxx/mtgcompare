@@ -59,8 +59,7 @@ test("the focus ring keeps a button's own shape", () => {
 
 test("a chip answers a press, not under reduced motion, and the buttons paid rows share are as they were", () => {
   assert.match(css, /\.chip \{\s*@apply [^;]*\bactive:scale-\[0\.97\]/);
-  const reduce = css.slice(css.lastIndexOf("@media (prefers-reduced-motion: reduce)"));
-  assert.match(reduce, /\.chip:active \{\s*transform: none;/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\) \{[^@]*\.chip:active \{\s*transform: none;/);
   // Every .btn-* is a paid row's button somewhere (eBay's, TCGplayer's, Amazon's): their rule is the one on main, to the letter.
   assert.match(css, /\.btn \{\s*@apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-50;\s*\}/);
 });

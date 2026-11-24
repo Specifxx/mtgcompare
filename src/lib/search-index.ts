@@ -187,7 +187,71 @@ export function matchesQuery(p: ProductCardData, ws: readonly string[]): boolean
  * cheaper first; then name.
  */
 export function searchCards(cards: readonly ProductCardData[], q: string): ProductCardData[] {
+  const exact = searchWith(cards, queryWords(q));
+  if (exact.length) return exact;
+  // Typo tolerance (owner, 2026-11-23 UX review, P0 5: "charizrd" returned nothing): no exact match, so each misspelt word is
+  // replaced by the nearest word the catalogue knows (suggestQuery) and the search runs again.
+  const fixed = suggestQuery(cards, q);
+  return fixed ? searchWith(cards, queryWords(fixed)) : [];
+}
+
+/** One edit apart for a 4-6 letter word, two for a longer one (insert, delete, change or swap two letters). Pure. */
+export function editDistance(a: string, b: string, max: number): number {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  const d: number[][] = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    let best = Infinity;
+    for (let j = 1; j <= b.length; j++) {
+      const c = a[i - 1] === b[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + c);
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+      best = Math.min(best, d[i][j]);
+    }
+    if (best > max) return max + 1;
+  }
+  return d[a.length][b.length];
+}
+
+const allowed = (w: string) => (w.length >= 7 ? 2 : w.length >= 4 ? 1 : 0);
+
+/**
+ * "Did you mean": the query with each word that matches nothing swapped for the closest catalogue word (fewest edits, then the
+ * word on the most products), or null when every word already matches or a word has no close match. Pure.
+ */
+export function suggestQuery(cards: readonly ProductCardData[], q: string): string | null {
   const ws = queryWords(q);
+  if (!ws.length) return null;
+  const freq = new Map<string, number>();
+  for (const p of cards) for (const t of entry(p).tokens) freq.set(t, (freq.get(t) ?? 0) + 1);
+  const vocab = [...freq.keys()];
+  let changed = false;
+  const out: string[] = [];
+  for (const w of ws) {
+    if (cards.some((p) => wordMatches(w, entry(p).tokens, entry(p).hay))) {
+      out.push(w);
+      continue;
+    }
+    const max = allowed(w);
+    if (!max) return null;
+    let pick: string | null = null;
+    let pickD = max + 1;
+    for (const t of vocab) {
+      // A whole word, or the start of a longer one the visitor had not finished typing.
+      const d = Math.min(editDistance(w, t, max), t.length > w.length ? editDistance(w, t.slice(0, w.length), max) : max + 1);
+      if (d < pickD || (d === pickD && pick && (freq.get(t) ?? 0) > (freq.get(pick) ?? 0))) {
+        pick = t;
+        pickD = d;
+      }
+    }
+    if (!pick || pickD > max) return null;
+    out.push(pick);
+    changed = true;
+  }
+  return changed ? out.join(" ") : null;
+}
+
+function searchWith(cards: readonly ProductCardData[], ws: string[]): ProductCardData[] {
   if (!ws.length) return [];
   const hits: { p: ProductCardData; setHits: number }[] = [];
   for (const p of cards) {

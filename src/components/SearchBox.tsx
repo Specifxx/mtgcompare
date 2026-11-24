@@ -160,8 +160,34 @@ export function SearchBox({ region, size = "sm", autoFocus = false }: { region: 
   }, [open, term]);
   const cards = useMemo(() => (cardHits.q === term ? cardHits.hits : []), [cardHits, term]);
   const productRoom = cards.length ? Math.max(MIN_FIT, fit - cards.length) : fit;
-  const options = useMemo(() => searchOptions(region, term, { products: ranked.products.slice(0, productRoom), total: ranked.total }, cards), [region, term, ranked, productRoom, cards]);
+  // No match: the most widely stocked products instead of a dead end (owner's UX review, 2026-11-23, P0 5 and P2 18).
+  const popular = useMemo(
+    () => (ix && term && ranked.total === 0 ? [...ix.cards].filter((c) => c.inStockStores > 0).sort((a, b) => b.inStockStores - a.inStockStores).slice(0, 4) : []),
+    [ix, term, ranked.total],
+  );
+  const options = useMemo(
+    () => searchOptions(region, term, { products: (ranked.total ? ranked.products : popular).slice(0, productRoom), total: ranked.total }, cards),
+    [region, term, ranked, popular, productRoom, cards],
+  );
+  // "Did you mean" (P0 5): the typo-tolerant search already ranked the corrected words; say so.
+  const fixed = useMemo(() => (engine && ix && term ? engine.suggestQuery(ix.cards, term) : null), [engine, ix, term]);
   const visible = mounted && open && !!term;
+  // The funnel (item 24), to GA4 (free; Vercel's custom events stay buy clicks only): once the words have stood for 1.5 s, a query
+  // nothing matched, or one only the typo fallback matched, once per query, with the template it was typed on.
+  const reported = useRef("");
+  useEffect(() => {
+    if (!ix || !term || term.length < 3) return;
+    const miss = ranked.total === 0 && cards.length === 0;
+    if (!miss && !fixed) return;
+    const t = window.setTimeout(() => {
+      const key = `${term}|${miss}`;
+      if (reported.current === key) return;
+      reported.current = key;
+      const page = window.location.pathname.split("/").filter(Boolean)[1] ?? "home";
+      gaEvent(miss ? "search_zero" : "search_fixed", { q: term.toLowerCase().replace(/[^\p{L}\p{N} ]+/gu, " ").replace(/\s+/g, " ").trim().slice(0, 40), page });
+    }, 1500);
+    return () => window.clearTimeout(t);
+  }, [ix, term, ranked.total, cards.length, fixed]);
   const act = active < options.length ? active : -1;
 
   const close = useCallback(() => {
@@ -340,9 +366,14 @@ export function SearchBox({ region, size = "sm", autoFocus = false }: { region: 
           </p>
         )}
         {load === "error" && <p className="px-4 pt-3 text-xs text-muted">Suggestions aren&rsquo;t available right now. Press Enter to search.</p>}
+        {load === "ready" && ranked.total > 0 && fixed && (
+          <p className="px-4 pt-3 text-sm text-muted">
+            Showing results for &ldquo;<b className="text-ink">{fixed}</b>&rdquo;
+          </p>
+        )}
         {load === "ready" && ranked.total === 0 && cards.length === 0 && (
           <p className="px-4 pt-3 text-sm text-muted">
-            No product names match &ldquo;{term}&rdquo; in {REGIONS[region].inName}. Try a set name, or a type like &ldquo;bundle&rdquo;.
+            No product names match &ldquo;{term}&rdquo; in {REGIONS[region].inName}. Try a set name, or a type like &ldquo;bundle&rdquo;, or one of the popular products below.
           </p>
         )}
         <div role="listbox" id={listId} aria-label="Search suggestions" className="py-1.5">

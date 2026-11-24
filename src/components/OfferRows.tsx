@@ -232,7 +232,7 @@ export function StoreRow({ d, preorder, top, hint }: { d: StoreRowData; preorder
         {plain && hint && <BestHint text={hint} open={tip.open} onToggle={tip.toggle} />}
       </div>
       <div className="or-host" title={d.title || undefined}>
-        {(!d.search || d.kind === "amazon") && d.host && <StoreVote url={d.host} name={d.name} className="-ml-1 mr-1 text-muted" />}
+        {(!d.search || d.kind === "amazon") && d.host && <StoreVote url={d.host} name={d.name} className="-ml-1 mr-1 hidden text-muted sm:inline-flex" />}
         {d.host}
         {!d.search && (
           <>

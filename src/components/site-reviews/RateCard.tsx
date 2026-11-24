@@ -1,6 +1,7 @@
 "use client";
 
 import { promptSlotHolder } from "@/lib/prompt-slot";
+import { visitorBusy, watchTyping } from "@/lib/visitor-busy";
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -58,8 +59,8 @@ function askedThisVisit(): boolean {
 /** Another dialog is open, or they are typing: not the moment. */
 function busy(): boolean {
   if (document.querySelector('[aria-modal="true"]')) return true;
-  const a = document.activeElement;
-  return !!a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.tagName === "SELECT");
+  // Never over a visitor who is typing (owner, 2026-11-23 UX review): a focused field or a key in the last few seconds.
+  return visitorBusy();
 }
 
 export function RateCard() {
@@ -72,6 +73,7 @@ export function RateCard() {
 
   // Count every page view.
   useEffect(() => {
+    watchTyping();
     saveState(countPage(loadState(), Date.now()));
   }, [path]);
 

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { ACCOUNT_SITE as S } from "@/lib/account-site";
 import { readStored } from "@/lib/premium-member";
 import { claimPromptSlot, promptSlotHolder, PROMPT_SILENCE_DAYS } from "@/lib/prompt-slot";
+import { visitorBusy, watchTyping } from "@/lib/visitor-busy";
 import { SignInSlides, signInPromptEvent } from "./SignInSlides";
 
 // THE SIGN-IN SLIDE IN THE CORNER (owner, 2026-11-22), in place of the Premium corner card: a signed-out visitor is asked for a FREE
@@ -60,13 +61,15 @@ export function SignInCorner() {
     const holder = promptSlotHolder();
     if (holder && holder !== SLOT) return;
     if (holder === SLOT) return; // shown already this visit
+    watchTyping();
     const check = () => {
       const scrolled = window.scrollY / Math.max(1, window.innerHeight) >= SCROLL_ARM;
       // Another unit on screen goes first. A closed drawer can stay in the page hidden and inert: only a visible one counts.
       const busy = [...document.querySelectorAll<HTMLElement>("[data-rate-card], [data-heavy-popup], [data-heavy-slide], dialog[open], [aria-modal='true']")].some(
         (el) => !el.closest("[inert], [hidden], [aria-hidden='true']") && el.getClientRects().length > 0,
       );
-      if (!scrolled || busy) return;
+      // Never over a visitor who is typing (owner, 2026-11-23 UX review); the next scroll asks again.
+      if (!scrolled || busy || visitorBusy()) return;
       window.removeEventListener("scroll", check);
       if (promptSlotHolder() || !claimPromptSlot(SLOT)) return;
       setOpen(true);

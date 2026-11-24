@@ -398,7 +398,7 @@ const card = (o: Partial<ProductCardData> = {}): ProductCardData => ({
 test("ProductCard: a photo on its plate, the name, one stock line and the price; one badge at most; no pill, cue or second line", () => {
   // The minimal card (owner, 2026-11-13: "cull … all the display aesthetics"). Short classes (globals.css .pc-*); the CSS is pinned below.
   const html = render(React.createElement(ProductCard, { p: card(), region: "us" }));
-  assert.match(html, /^<div class="flex flex-col"><a [^>]*class="group pc-link" href="\/us\/p\/edge-of-eternities-collector-booster-box">/, "the whole card is one link to the product page");
+  assert.match(html, /^<div class="flex flex-col"[^>]*><a [^>]*class="group pc-link" href="\/us\/p\/edge-of-eternities-collector-booster-box">/, "the whole card is one link to the product page");
   // A plain click opens the quick view: every attribute it reads is still on the link.
   assert.match(html, /<a data-qv="edge-of-eternities-collector-booster-box" data-qv-region="us" data-qv-name="Edge of Eternities Collector Booster Box" data-qv-sub="Collector Booster Box" data-qv-img="[^"]+"/);
   assert.match(html, /class="plate pc-plate"/);
@@ -419,7 +419,7 @@ test("ProductCard: a photo on its plate, the name, one stock line and the price;
   assert.equal((html.match(/pc-badge/g) ?? []).length, 0, "no badge without a real signal");
   // The saving against the median of the stores that have it (10% or more, three stores or more).
   const deal = render(React.createElement(ProductCard, { p: card({ medianOpenCents: 7000 }), region: "us" }));
-  assert.match(deal, /<span class="pc-badge" title="18% below the median of 12 stores">−18%<\/span>/);
+  assert.match(deal, /<span class="pc-badge" title="18% below the median of 12 stores\. The median is the middle in-stock store price today, across 12 stores\.">18% under median<\/span>/);
   assert.equal((deal.match(/pc-badge/g) ?? []).length, 1);
   // US only: under Wizards' published MSRP (lib/rrp.ts: a Star Trek Bundle is $69.99). Elsewhere, and at or over MSRP, none.
   const bundle = { slug: "star-trek-bundle", name: "Star Trek Bundle", productType: "Bundle", setCode: "trk" };
@@ -428,7 +428,7 @@ test("ProductCard: a photo on its plate, the name, one stock line and the price;
   assert.equal((render(React.createElement(ProductCard, { p: card({ ...bundle, lowestPriceCents: 7999 }), region: "us" })).match(/pc-badge/g) ?? []).length, 0, "over MSRP is not a badge");
   // The median saving comes before the MSRP badge: still one badge.
   const both = render(React.createElement(ProductCard, { p: card({ ...bundle, medianOpenCents: 7000 }), region: "us" }));
-  assert.match(both, /<span class="pc-badge" title="18% below the median of 12 stores">−18%<\/span>/);
+  assert.match(both, /<span class="pc-badge" title="18% below the median of 12 stores\. The median is the middle in-stock store price today, across 12 stores\.">18% under median<\/span>/);
   assert.equal((both.match(/pc-badge/g) ?? []).length, 1);
   const css = src("app/globals.css");
   assert.match(css, /\.pc-plate \{\s*@apply relative aspect-square rounded-2xl /, "a square plate, no frame around the card");

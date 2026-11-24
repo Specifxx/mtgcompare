@@ -243,7 +243,8 @@ test("deals, cheapest-packs, this-week and home copy: never a history, urgency o
     }
     assert.match(dealsCopy.title(r), /^MTG booster box & bundle deals in /);
     assert.match(dealsCopy.h1(r), new RegExp(`cheaper than most ${r.adjective} stores today$`));
-    assert.equal(lede.tail.includes("TCGplayer"), r.region === "us", "the TCGplayer note is the US's alone");
+    // One line since 2026-11-23 (owner's UX review, P1 14): no TCGplayer note in the lede.
+    assert.equal(lede.tail, ".");
     assert.match(digestCopy.description(r), /.{60,160}/);
     assert.ok(homeCopy.description(r, 68, 1591).length <= 175, homeCopy.description(r, 68, 1591));
   }

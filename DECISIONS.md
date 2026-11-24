@@ -2836,3 +2836,21 @@ phone rows with 44px targets, and click and scroll tracking per section.
   `bf-graded`. `bf_section` counts each section's first view (scroll depth), `bf_filter` each filter used.
 - The email box and the Discord box are one slim bar after the fifth row (email, Discord, Telegram).
 - MTG Compare lists English product only, so the language filter hides itself when no row is Japanese.
+
+## 2026-11-24 — The owner's UX review (DexCompare, 2026-11-23), ported
+
+The owner reviewed DexCompare and asked for the same everywhere ("these requirements are site-wide"). Ported from
+`Specifxx/CompareEmpire` #351, #352 and #353 (apps/dexcompare-sealed, DECISIONS.md "Owner's UX review" P0, P1 and P2):
+
+- **Listings sort and filter** (P0 3, 4): eight or more products get the sort bar (price, price per pack, % under median, newest)
+  and set, era and price-band filters (`GridControls.tsx`, `lib/grid-sort.ts`), one continuous order, no feed tiles in the grid,
+  the eBay strip under it. No language filter: MTG Compare lists English product only.
+- **Typo-tolerant search** (P0 5): one or two edits by word length (`suggestQuery`), "Showing results for", the most stocked
+  products instead of a dead end. `search_zero` / `search_fixed` go to GA4 only (`gaEvent`), never Vercel's billed events.
+- **Nothing opens while typing** (P0 1, `lib/visitor-busy.ts`); the sale strip has a close button for 7 days (P0 6).
+- **P1**: delivered price by default (`ship-mode.ts`); the stores first and the marketplaces (eBay, TCGplayer, Amazon) in a
+  labelled block under them on the product page; "Shortlist" for the cart; price history beside the best price and sticky
+  Prices / History / Facts / FAQ links; "N% under median" labelled badges with the definition on hover; one-line deals lede;
+  a failed image retried once, then the site mark; store thumbs votes hidden on phones.
+- **P2**: Deals menu of five entries (one starred sale page; pre-orders and the release calendar in the Sets menu's "Coming
+  soon"), a filter box on the sets index, an empty shortlist that offers today's deals, reduced motion for every animation.
