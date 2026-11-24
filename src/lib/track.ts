@@ -25,9 +25,40 @@ const SENT: ReadonlySet<string> = new Set([
   ...["ab_seen", "ab_paid", "ab_tcg", "ab_ebay", "ab_amazon", "ab_store", "ab_mini_tcg", "ab_mini_ebay"],
 ]);
 
+// Impressions are sampled 1 in 10 VISITORS (coordinator's Vercel cost check, 2026-11-24: per-view "seen"/"shown" events took Web
+// Analytics from about $0.05 to $0.31 a day). A sampled visitor sends every impression with `w: 10`, so a read multiplies by `w`;
+// an unsampled visitor sends none. Per visitor, not per event, so an A/B arm's seen and its clicks come from the same people and
+// the arms stay comparable (both sampled alike). Clicks, sign-ups and buy clicks are never sampled.
+export const IMPRESSION_SAMPLE = 10;
+const IMPRESSION_EVENTS: ReadonlySet<string> = new Set(["ab_seen", "nudge_eligible", "nudge_shown"]);
+export function isImpression(name: string, props?: Record<string, unknown>): boolean {
+  if (IMPRESSION_EVENTS.has(name)) return true;
+  const k = typeof props?.k === "string" ? props.k : "";
+  return (name === "hot_nudge" || name === "ebay_pop") && /:(seen|shown)$/.test(k);
+}
+let sampled: boolean | null = null;
+function inSample(): boolean {
+  if (sampled != null) return sampled;
+  try {
+    let v = window.localStorage.getItem("mtg-imp-sample");
+    if (v !== "1" && v !== "0") {
+      v = Math.random() < 1 / IMPRESSION_SAMPLE ? "1" : "0";
+      window.localStorage.setItem("mtg-imp-sample", v);
+    }
+    sampled = v === "1";
+  } catch {
+    sampled = Math.random() < 1 / IMPRESSION_SAMPLE;
+  }
+  return sampled;
+}
+
 export function track(name: string, props?: Record<string, string | number | boolean | null>): void {
   if (!SENT.has(name)) return;
   try {
+    if (isImpression(name, props)) {
+      if (!inSample()) return;
+      props = { ...props, w: IMPRESSION_SAMPLE };
+    }
     vercelTrack(name, props);
   } catch {
     /* analytics must never get in the way of the page */
