@@ -57,7 +57,11 @@ test("menus skip a set no store lists yet: its set page is a 404, so the link wa
 });
 
 test("sets menu: one column per series (the era), newest sets under it, heading and footer to the series' block on /sets; unlisted sets skipped", () => {
-  const cols = setsMenuColumns("us", "2026-11-03");
+  const all = setsMenuColumns("us", "2026-11-03");
+  // The last column is "Coming soon" (the pre-order guides and the release calendar, out of the Deals menu: UX review, 2026-11-23).
+  assert.equal(all.at(-1)!.title, "Coming soon");
+  assert.equal(all.at(-1)!.links.at(-1)!.href, "/us/releases");
+  const cols = all.slice(0, -1);
   assert.ok(cols.length >= 3 && cols.length <= 4);
   for (const c of cols) {
     assert.match(c.href!, /^\/us\/sets#[a-z0-9-]+$/, c.title);
@@ -83,7 +87,10 @@ test("the header's menus link everything the phone menu lists: no set or section
     // Every other group of the phone menu (the sidebar drew the same list): product types, the series, deals and stock, the rest.
     // By page: a series is a block of the sets page ("/us/sets#standard"), and the menus link that page.
     const pages = new Set([...inMenus].map((h) => h.split("#")[0]));
-    for (const g of navGroups(region, today)) for (const l of g.links) assert.ok(pages.has(l.href.split("#")[0]), `${g.title}: ${l.href} is in a header menu`);
+    // The season's other sale page is the one exception (owner's UX review, 2026-11-23, P2 16: one seasonal entry in the Deals
+    // menu): the strip under the header and the footer link it on every region page.
+    for (const g of navGroups(region, today))
+      for (const l of g.links) if (!/\/(black-friday|cyber-monday)$/.test(l.href)) assert.ok(pages.has(l.href.split("#")[0]), `${g.title}: ${l.href} is in a header menu`);
   }
 });
 
@@ -96,7 +103,7 @@ test("Deals and Guides open mega menus of real links in the HTML (owner, 2026-11
   assert.match(nav, /data-menu="deals"/);
   assert.match(nav, /data-menu="guides"/);
   assert.equal((nav.match(/data-nav-trigger/g) ?? []).length, 4, "Deals, All sealed, Sets and Guides carry a menu");
-  assert.ok(dealsMenuColumns("au", "2026-11-09").length === 3 && guidesMenuColumns("au").length === 2);
+  assert.ok(dealsMenuColumns("au", "2026-11-09").length === 1 && dealsMenuColumns("au", "2026-11-09")[0].links.length <= 5 && guidesMenuColumns("au").length === 2);
   assert.deepEqual(guidesMenuColumns("au").map((c) => c.title), ["Learn & play", "The data"]);
 });
 

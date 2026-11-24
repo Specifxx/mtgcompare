@@ -9,9 +9,10 @@ const EVENT = "ship-mode";
 
 function read(): ShipMode {
   try {
-    return window.localStorage.getItem(KEY) === "total" ? "total" : "price";
+    // Delivered price by default (owner, 2026-11-23 UX review, P1 9): "price" only for a visitor who picked it.
+    return window.localStorage.getItem(KEY) === "price" ? "price" : "total";
   } catch {
-    return "price";
+    return "total";
   }
 }
 

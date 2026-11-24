@@ -1402,3 +1402,14 @@ html[data-ebaypop="pop"] li:not([role="dialog"] li):has(a.btn-ad[href*="ebay."])
   to { transform: translate(-50%, 0); opacity: 1; }
 }
 @media (prefers-reduced-motion: no-preference) { .premium-slide-in { animation: premium-slide-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; } }
+
+/* Reduced motion, everywhere (owner's UX review P2 21, 2026-11-24): a safety net under every rule above, so no light, drift or
+   slide added later moves for a visitor who asked the system for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -452,9 +452,8 @@ export const dealsCopy = {
   h1: (r: R) => `Magic sealed cheaper than most ${r.adjective} stores today`,
   /** The lede, around the live "checked <Ago>": `${lead} <Ago/>${tail}`. */
   lede: (r: R) => ({
-    lead: `Products where the cheapest in-stock price is at least 10% under the median of 3 or more ${r.adjective} stores that have it, checked`,
-    tail:
-      `. The median is today’s, across stores; a product page shows its own daily price chart once it has a week of snapshots.` + (tcg(r) ? ` In the US the cheapest can be a TCGplayer seller’s.` : ""),
+    lead: `Sealed at least 10% under the ${r.adjective} store median, checked`,
+    tail: ".",
   }),
   description: (r: R, deals: number, bestPct: number | null) =>
     deals > 0

@@ -230,7 +230,7 @@ function SaleRow({
           ) : null}
         </div>
         <div className="col-span-2 flex flex-wrap items-baseline gap-x-2 sm:col-span-1 sm:block sm:text-right">
-          {pct != null && <span className="mr-1 inline-block rounded-md bg-open px-1.5 py-0.5 text-sm font-bold text-white sm:mb-1">−{pct}%</span>}
+          {pct != null && <span className="mr-1 inline-block rounded-md bg-open px-1.5 py-0.5 text-sm font-bold text-white sm:mb-1" title={BASIS_LABEL[basis].tip}>{pct}% under {basis === "median" ? "median" : "30-day typical"}</span>}
           <b className="tabular font-display text-xl">{fmt(row.priceCents)}</b>
           {ref != null && (
             <s className="tabular ml-1 text-sm text-muted" title={BASIS_LABEL[basis].ref}>

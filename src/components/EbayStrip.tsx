@@ -743,8 +743,12 @@ export function OfferRowsWithEbay({
   allowBest: allowGiven = true,
   preorder = false,
   maxRows,
+  marketplacesBelow = false,
 }: {
   rows: StoreRowData[];
+  /** The product page (owner's UX review, 2026-11-23, P1 10: "Lead with the best-price store and move marketplaces to a labelled block
+   *  below"): the stores first, cheapest first, then eBay, TCGplayer and Amazon under a "Marketplaces" label. Never the quick view. */
+  marketplacesBelow?: boolean;
   /** The TCGplayer row, pinned third, under eBay and Amazon (owner, 2026-11-06; OfferTable builds it); null = none. */
   tcg?: StoreRowData | null;
   /** The Amazon row, pinned second, right under eBay (owner, 2026-11-06; OfferTable builds it where the region has an Amazon tag); null = none. Never the best price. */
@@ -808,6 +812,24 @@ export function OfferRowsWithEbay({
       <ul className="-mx-4 -mb-1 mt-1 divide-y divide-line border-t border-line sm:-mx-5">{list(part)}</ul>
     </details>
   );
+  if (marketplacesBelow) {
+    // Every store row in the server HTML (no folded group), then the marketplaces.
+    const storeSlots = slots.slice(pinSlots.length);
+    return (
+      <div ref={ref}>
+        <div className="group/offers divide-y divide-line" data-best={top ?? undefined}>
+          <ul className="divide-y divide-line">{list(storeSlots)}</ul>
+        </div>
+        <div className="border-t border-line bg-raised" data-marketplaces="">
+          <p className="flex items-center gap-2 px-4 pb-1 pt-3 text-xs font-bold uppercase tracking-wide text-muted sm:px-5">
+            Marketplaces <span className="ad-pill">Ad</span>
+            <span className="font-normal normal-case tracking-normal">many sellers, paid links</span>
+          </p>
+          <ul className="divide-y divide-line">{list(pinSlots)}</ul>
+        </div>
+      </div>
+    );
+  }
   return (
     <div ref={ref}>
       {/* Keyed lists: when the store rows re-rank, React moves their nodes instead of rebuilding them (focus kept) */}

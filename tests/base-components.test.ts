@@ -41,31 +41,18 @@ test("ProductGrid moved to its own file; ProductCard.tsx re-exports it", () => {
   assert.doesNotMatch(browse, /listingsTile/);
 });
 
-test("ProductGrid tiles: every surface gets a tile after products 16 and 32, never within the last eight (24 from md up); no surface, no tile", () => {
+test("ProductGrid on a listing: one continuous list, the sort and filter bar, no ad cell inside, the strip under it (owner, 2026-11-23)", () => {
   const html = (n: number, tiles?: "browse" | "set" | "type" | "deals") => renderToStaticMarkup(React.createElement(ProductGrid, { products: cards(n), region: "au", tiles }));
   for (const t of ["browse", "set", "type", "deals"] as const) {
     const full = html(48, t);
-    assert.equal(full.match(FEED_CELL)?.length, 2, `${t}: 48 products, two tiles`);
+    assert.equal(full.match(FEED_CELL), null, `${t}: no sponsored cell among the products`);
     assert.equal(full.match(/href="\/au\/p\/p-\d+"/g)?.length, 48, "every product, once");
-    const cells = [...full.matchAll(FEED_CELL)].map((m) => m.index!);
-    assert.ok(full.indexOf('href="/au/p/p-15"') < cells[0] && cells[0] < full.indexOf('href="/au/p/p-16"'), `${t}: the first after the 16th`);
-    assert.ok(full.indexOf('href="/au/p/p-31"') < cells[1] && cells[1] < full.indexOf('href="/au/p/p-32"'), `${t}: the second after the 32nd`);
-    assert.equal(full.match(PHONE_ONLY)?.length, 1, `${t}: 48 products, the second tile is phone-only (16 products after it, not 24)`);
-    assert.ok(full.search(PHONE_ONLY) === cells[1], "…and it is the second");
-    assert.equal(html(24, t).match(FEED_CELL)?.length, 1, `${t}: 24 products, one`);
-    assert.equal(html(24, t).match(PHONE_ONLY)?.length, 1, `${t}: 24 products, phone only`);
-    assert.equal(html(56, t).match(FEED_CELL)?.length, 2, `${t}: 56 products, two`);
-    assert.equal(html(56, t).match(PHONE_ONLY), null, `${t}: 56 products, both on every screen`);
-    assert.equal(html(20, t).match(FEED_CELL), null, `${t}: 20 products, none (never within the last eight)`);
-    assert.doesNotMatch(full, /data-ad|ebayimg|\/itm\//, "the server HTML holds no listing and no unit, only the reserved cells");
+    assert.match(full, /aria-label="Sort and filter"/, `${t}: the sort and filter bar`);
+    assert.match(full, /data-gp=/, "each card carries its facts for the bar");
   }
-  assert.equal(html(48).match(FEED_CELL), null, "no surface: no tile");
-  // with a strip after product 4, the first tile is still after product 16: 12 products below the strip
+  assert.doesNotMatch(html(48), /aria-label="Sort and filter"/, "no surface (a shelf): no bar");
   const withStrip = renderToStaticMarkup(React.createElement(ProductGrid, { products: cards(48), region: "au", tiles: "set", strip: React.createElement("p", null, "STRIP") }));
-  const strip = withStrip.indexOf("STRIP");
-  assert.ok(withStrip.indexOf('href="/au/p/p-3"') < strip && strip < withStrip.indexOf('href="/au/p/p-4"'), "the strip after the 4th product");
-  assert.ok(strip < withStrip.search(FEED_CELL));
-  assert.equal(withStrip.match(FEED_CELL)?.length, 2);
+  assert.ok(withStrip.indexOf("STRIP") > withStrip.indexOf('href="/au/p/p-47"'), "the strip under the last product");
 });
 
 test("ProductRail: one scrolling row on a phone, a grid from sm, every card a link, and never an ad unit", () => {

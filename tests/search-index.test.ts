@@ -394,7 +394,8 @@ test("BrowseGrid's server HTML: the page's rows in order, the strip, real page l
   const html = renderToStaticMarkup(React.createElement(BrowseGrid, { rows, total: 2230, region: "us", base: "/us/sealed", page: 1, strip }));
   const hrefs = [...html.matchAll(/href="\/us\/p\/([^"]+)"/g)].map((m) => m[1]);
   assert.deepEqual(hrefs, rows.map((r) => r[0]), "the server rows, in the server's order");
-  assert.ok(html.indexOf("STRIP") > html.indexOf(`/us/p/${rows[3][0]}`) && html.indexOf("STRIP") < html.indexOf(`/us/p/${rows[4][0]}`), "the strip after the 4th");
+  // Since 2026-11-23 (owner's UX review, P0 4) the strip sits under the whole grid: one continuous list.
+  assert.ok(html.indexOf("STRIP") > html.indexOf(`/us/p/${rows[rows.length - 1][0]}`), "the strip after the last product");
   assert.match(html, /<b class="text-ink">2,230<\/b> products · page 1 of 47/);
   assert.match(html, /href="\/us\/sealed\/page\/2"/);
   assert.match(html, /href="\/us\/sealed\/page\/47"/);

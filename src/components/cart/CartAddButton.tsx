@@ -52,14 +52,14 @@ export function CartAddButton({
     }
   };
 
-  const text0 = inList ? `Remove ${line.title} at ${line.storeName} from your cart` : `Add ${line.title} at ${line.storeName} to your cart`;
+  const text0 = inList ? `Remove ${line.title} at ${line.storeName} from your shortlist` : `Save ${line.title} at ${line.storeName} to your shortlist`;
   const text = text0;
   // `inline`: a small text button for a row's detail line, where a phone has no width
   // to spare beside the price and the buy button.
   if (inline)
     return (
       <button type="button" onClick={toggle} aria-pressed={inList} aria-label={text} className={`ce-cart-inline${inList ? " is-in" : ""} ${className}`}>
-        {inList ? "✓ In cart" : "+ Add to cart"}
+        {inList ? "✓ Shortlisted" : "+ Shortlist"}
       </button>
     );
   return (
@@ -68,7 +68,7 @@ export function CartAddButton({
       onClick={toggle}
       aria-pressed={inList}
       aria-label={text}
-      title={inList ? "In your cart (tap to remove)" : "Add to cart. You pay at the store, not here."}
+      title={inList ? "On your shortlist (tap to remove)" : "Save to your shortlist. We sell nothing: you buy at each store."}
       className={`ce-cart-add${inList ? " is-in" : ""}${label ? " has-label" : ""} ${className}`}
     >
       {inList ? (
@@ -78,7 +78,7 @@ export function CartAddButton({
       ) : (
         <CartIcon plus />
       )}
-      {label && <span className="ce-cart-label">{inList ? "In cart" : <>Add<span className="ce-cart-more"> to cart</span></>}</span>}
+      {label && <span className="ce-cart-label">{inList ? "Saved" : <>Save<span className="ce-cart-more"> to shortlist</span></>}</span>}
     </button>
   );
 }

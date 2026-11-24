@@ -8,7 +8,7 @@ import { pctOf } from "@/lib/format";
 import { loadIndex, peekIndex } from "@/lib/index-client";
 import { packsForLabel, perPackCents } from "@/lib/packs";
 import type { Region } from "@/lib/regions";
-import { BROWSE_QUERY_EVENT, queryWords, relevanceCompare, searchCards } from "@/lib/search-index";
+import { BROWSE_QUERY_EVENT, queryWords, relevanceCompare, searchCards, suggestQuery } from "@/lib/search-index";
 import { PRODUCT_TYPES, TYPE_BY_SLUG, typeRank } from "@/lib/sealed-title";
 import { SET_BY_SLUG, SETS } from "@/lib/sets";
 import { NoPreFooter } from "./Ebay";
@@ -207,6 +207,9 @@ export function BrowseGrid({ rows, total, region, base, page = 1, strip }: { row
     else if (!qOn) list.sort(relevanceCompare);
     return list;
   }, [any, pageCards, pool, q, qOn, typeLabel, setInfo, inStock, sort]);
+
+  // "Did you mean" (owner, 2026-11-23 UX review, P0 5): searchCards already ranked the corrected words when the typed ones matched nothing.
+  const fixedQ = useMemo(() => (qOn ? suggestQuery(pool, q) : null), [qOn, pool, q]);
 
   // The sets and types the region has, once the index says so; until then every set (no option list ever shrinks under a
   // visitor who has it open) and every type (a type the region lacks is shown disabled, not removed, so the chips never move).
@@ -431,7 +434,8 @@ export function BrowseGrid({ rows, total, region, base, page = 1, strip }: { row
             <>
               <b className="text-ink">{count.toLocaleString("en")}</b> {count === 1 ? "product" : "products"}
               {inStock ? " in stock" : ""}
-              {qOn && <> for &ldquo;{q.trim()}&rdquo;</>}
+              {qOn && <> for &ldquo;{fixedQ ?? q.trim()}&rdquo;</>}
+              {qOn && fixedQ && <> (you typed &ldquo;{q.trim()}&rdquo;)</>}
               {index.status === "error" && (
                 <>
                   {" "}

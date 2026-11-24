@@ -30,10 +30,11 @@ test("in season the two sale pages lead the Deals menu; the header's row stays f
   // sale pages were in the sidebar, which is gone, so the menu carries both: every page, the region-less ones included, still
   // links them. The strip under the header (HolidayStrip) and the footer link them on every region page too.
   const first = (today: string) => dealsMenuColumns("us", today)[0].links.map((l) => l.label);
-  assert.deepEqual(first("2026-11-10").slice(0, 3), ["Black Friday", "Cyber Monday", "Today's deals"]);
+  // One seasonal entry, starred (owner's UX review, 2026-11-23, P2 16); the strip and the footer still link both sale pages.
+  assert.deepEqual(first("2026-11-10").slice(0, 2), ["★ Black Friday", "Today's deals"]);
   assert.equal(dealsMenuColumns("us", "2026-11-10")[0].links[0].href, "/us/black-friday");
-  assert.equal(dealsMenuColumns("us", "2026-11-10")[0].links[1].href, "/us/cyber-monday");
-  assert.deepEqual(first("2026-11-29").slice(0, 3), ["Cyber Monday", "Black Friday", "Today's deals"], "Cyber Monday's leads from the Sunday after Black Friday");
+  assert.ok(dealsMenuColumns("us", "2026-11-10")[0].links.length <= 5);
+  assert.deepEqual(first("2026-11-29").slice(0, 2), ["★ Cyber Monday", "Today's deals"], "Cyber Monday's leads from the Sunday after Black Friday");
   assert.equal(dealsMenuColumns("au", "2026-11-29")[0].links[0].href, "/au/cyber-monday");
   assert.equal(first("2026-07-01")[0], "Today's deals", "out of season: no sale link");
   assert.equal(first("2026-10-22")[0], "Today's deals", "the season starts on 1 November");

@@ -72,7 +72,7 @@ test("the table: every row of the ranked list (eBay's at its rank) in the server
   const rows = [...html.matchAll(/<li data-offer-row=""[^>]*>/g)].map((m) => m[0]);
   assert.equal(rows.length, 24, "every row is visible in the HTML");
   assert.ok(html.slice(0, html.indexOf("<details")).match(/<li data-offer-row=""/g)!.length === 24, "all of them before 'How these prices work'");
-  assert.equal(rows.findIndex((r) => r.includes('data-ad="listings-offer-row"')), 0, "the eBay row is pinned first");
+  assert.equal(rows.findIndex((r) => r.includes('data-ad="listings-offer-row"')), 23, "the eBay row leads the marketplaces, under the 23 stores (owner, 2026-11-23)");
   // one red button, on the cheapest open row; the other open rows btn-soft, the closed ones btn-ghost
   assert.equal([...html.matchAll(/class="btn-primary/g)].length, 1, "only the cheapest store wears the filled orange button; the eBay ad's is the ink one (Fiverr review F7, 2026-11-17)");
   const a = links(html);

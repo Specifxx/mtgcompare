@@ -8,6 +8,7 @@ import { isPreorderSet } from "@/lib/release";
 import { REGIONS, type Region } from "@/lib/regions";
 import { usMsrpForCard } from "@/lib/rrp";
 import { StockPill } from "./StockPill";
+import { SET_BY_CODE } from "@/lib/sets";
 
 // The grid lives in ProductGrid.tsx (its in-feed tiles are the ads code's, the card is the shell's); re-exported here so
 // existing `import { ProductGrid } from "./ProductCard"` lines keep working.
@@ -60,8 +61,19 @@ export function ProductCard({ p, region, priority = false }: { p: ProductCardDat
   const [full, fullUnit] = cardStockLabel(p, pre);
   const [stock, unit] = cardStockShort(p, pre);
   // Short classes from globals.css (.pc-*): grids repeat the card dozens of times, in the HTML and the payload.
+  // The card's facts for the listing's sort and filter bar (GridControls, lib/grid-sort.ts; owner, 2026-11-23).
+  const en = p.setCode ? SET_BY_CODE.get(p.setCode) : undefined;
   return (
-    <div className="flex flex-col">
+    <div
+      className="flex flex-col"
+      data-gp={open && p.lowestPriceCents != null ? p.lowestPriceCents : ""}
+      data-gk={perPack ?? ""}
+      data-gu={savingPct != null && savingPct < 0 ? -savingPct : ""}
+      data-gn={p.releaseDate ?? ""}
+      data-gs={en?.name ?? ""}
+      data-ge={en?.series ?? ""}
+      data-gl=""
+    >
       <Link
         href={`/${region}/p/${p.slug}`}
         prefetch={false}
@@ -93,8 +105,9 @@ export function ProductCard({ p, region, priority = false }: { p: ProductCardDat
             <div className="pc-noimg">{p.productType}</div>
           )}
           {savingPct != null && savingPct < 0 ? (
-            <span className="pc-badge" title={saving ?? undefined}>
-              −{-savingPct}%
+            // One discount definition everywhere (owner, 2026-11-23 UX review, P1 8): "% under median", labelled, explained on hover.
+            <span className="pc-badge" title={`${saving ? `${saving}. ` : ""}The median is the middle in-stock store price today, across ${n} stores.`}>
+              {-savingPct}% under median
             </span>
           ) : belowMsrp ? (
             <span className="pc-badge">Below MSRP</span>

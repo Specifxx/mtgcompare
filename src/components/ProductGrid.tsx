@@ -4,6 +4,14 @@ import { FEED_PLACEMENTS, withFeed, type FeedSurface } from "@/lib/ebay-ads";
 import type { Region } from "@/lib/regions";
 import { EbayFeedTile } from "./EbayStrip";
 import { ProductCard } from "./ProductCard";
+import { GridControls } from "./GridControls";
+import { PRICE_BANDS } from "@/lib/grid-sort";
+import { money } from "@/lib/format";
+import { REGIONS } from "@/lib/regions";
+import { SET_BY_CODE } from "@/lib/sets";
+
+/** Listings this long or longer get the sort and filter bar (owner, 2026-11-23 UX review, P0 3). */
+export const CONTROLS_MIN = 8;
 
 /**
  * A product grid. With `tiles` (the surface the grid is on: browse, set, type or deals), real eBay listings sit among the products as
@@ -35,6 +43,27 @@ export function ProductGrid({
   strip?: ReactNode;
   stripAfter?: number;
 }) {
+  const controls = !!tiles && products.length >= CONTROLS_MIN;
+  if (controls) {
+    const market = REGIONS[region].market;
+    const id = `grid-${tiles}-${products[0]?.slug ?? "x"}-${products.length}`;
+    const uniq = (xs: (string | null | undefined)[]) => [...new Set(xs.filter((x): x is string => !!x))];
+    const sets = uniq(products.map((p) => p.setCode ? SET_BY_CODE.get(p.setCode)?.name : null)).sort();
+    const eras = uniq(products.map((p) => p.setCode ? SET_BY_CODE.get(p.setCode)?.series : null));
+    const langs: string[] = []; // English only: MTG Compare lists no other language
+    const bandLabels = PRICE_BANDS.map(([lo, hi]) => (lo === 0 ? `Under ${money(hi!, market)}` : hi == null ? `${money(lo, market)} and up` : `${money(lo, market)} to ${money(hi, market)}`));
+    return (
+      <>
+        <GridControls gridId={id} sets={sets} eras={eras} langs={langs} bandLabels={bandLabels} />
+        <div id={id} className="grid grid-cols-2 gap-x-3 gap-y-7 sm:gap-x-5 sm:gap-y-10 md:grid-cols-3 lg:grid-cols-4">
+          {products.map((p, i) => (
+            <ProductCard key={p.slug} p={p} region={region} priority={i < eager} />
+          ))}
+        </div>
+        {strip && <div className="mt-8">{strip}</div>}
+      </>
+    );
+  }
   const entries = withFeed(products, tiles);
   const at = strip ? Math.min(stripAfter, entries.length) : -1;
   return (

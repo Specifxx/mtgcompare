@@ -94,11 +94,14 @@ test("the server table: the eBay row FIRST as a search (labelled Ad, sponsored, 
   const html = render(React.createElement(OfferTable, { offers, region: "us", preorder: false, ebay: { slug: "x-pbb", query: "Bloomburrow Play Booster Box", floor: null, packs: null } }));
   const rows = [...html.matchAll(/<li data-offer-row=""([^>]*)>/g)].map((m) => m[1]);
   assert.equal(rows.length, 4, "three stores and eBay");
-  assert.match(rows[0], /data-ad="listings-offer-row"/, "pinned first (owner, 2026-10-26)");
-  assert.match(rows[0], /data-state="search"/);
-  assert.doesNotMatch(rows[0], /bg-ad|shadow-/, "no sponsored tint: it blends in with the store rows");
-  assert.equal(/class="([^"]*)"/.exec(rows[0])![1].replace(PIN_OUTLINE.ebay, "").trim(), /class="([^"]*)"/.exec(rows[2])![1].trim(), "the same grid as a store row");
-  assert.ok(rows[0].includes(PIN_OUTLINE.ebay), "its green outline (owner, 2026-11-06)");
+  // The stores first, then the marketplaces under their own label (owner's UX review, 2026-11-23, P1 10).
+  const e = rows.length - 1;
+  assert.match(rows[e], /data-ad="listings-offer-row"/, "eBay leads the marketplaces block, under the stores");
+  assert.ok(html.indexOf("data-marketplaces") < html.indexOf('data-ad="listings-offer-row"'), "under the Marketplaces label");
+  assert.match(rows[e], /data-state="search"/);
+  assert.doesNotMatch(rows[e], /bg-ad|shadow-/, "no sponsored tint: it blends in with the store rows");
+  assert.equal(/class="([^"]*)"/.exec(rows[e])![1].replace(PIN_OUTLINE.ebay, "").trim(), /class="([^"]*)"/.exec(rows[1])![1].trim(), "the same grid as a store row");
+  assert.ok(rows[e].includes(PIN_OUTLINE.ebay), "its green outline (owner, 2026-11-06)");
   const ebay = html.slice(html.indexOf('data-ad="listings-offer-row"'));
   const a = /<a ([^>]*)>([\s\S]*?)<\/a>/.exec(ebay)!;
   const href = /href="([^"]*)"/.exec(a[1])![1].replace(/&amp;/g, "&");
@@ -113,7 +116,7 @@ test("the server table: the eBay row FIRST as a search (labelled Ad, sponsored, 
   assert.match(html, /Search Bloomburrow Play Booster Box on ebay\.com/);
   // no listing yet: the cheapest store is the best price (tint, badge, the one red button)
   // a plain store: the small neutral chip, not the marked row (owner, 2026-11-18, tests/best-tag.test.ts)
-  assert.doesNotMatch(rows[1], /or-hl/, "alpha, the cheapest open store, second: no marked row");
+  assert.doesNotMatch(rows[0], /or-hl/, "alpha, the cheapest open store, first: no marked row");
   assert.match(html, />Best price</);
   assert.match(html, /<span class="or-tag">Best price<\/span>/);
   assert.match(html, /aria-label="Prices and stock change: also check eBay"/, "eBay's row is in the list, TCGplayer's is not");
@@ -130,11 +133,11 @@ test("pinned TCGplayer: third, under eBay and Amazon (owner, 2026-11-06), its ow
   const us = render(React.createElement(OfferTable, { offers, region: "us", preorder: false, ebay: { slug: "x", query: "X", floor: null, packs: null }, pinned: { productName: "X", tcgplayer: null } }));
   const rows = [...us.matchAll(/<li data-offer-row=""([^>]*)>/g)].map((m) => m[1]);
   assert.equal(rows.length, 5, "eBay, Check on Amazon, TCGplayer and two stores");
-  // Owner, 2026-11-17 (final): eBay, then TCGplayer, then Amazon (the unpriced Check row), then the stores.
-  assert.match(rows[0], /data-ad="listings-offer-row"/);
-  assert.match(rows[1], /data-row="tcgplayer"/, "TCGplayer right under eBay");
-  assert.match(rows[2], /data-row="amazon"/, "Amazon right under TCGplayer");
-  assert.match(rows[1], /or-hl/, "cheapest of the whole table: highlighted");
+  // Since 2026-11-23 (owner's UX review, P1 10): the two stores first, then the marketplaces: eBay, TCGplayer, Amazon.
+  assert.match(rows[2], /data-ad="listings-offer-row"/);
+  assert.match(rows[3], /data-row="tcgplayer"/, "TCGplayer right under eBay");
+  assert.match(rows[4], /data-row="amazon"/, "Amazon right under TCGplayer");
+  assert.match(rows[3], /or-hl/, "cheapest of the whole table: highlighted");
   assert.match(us, /data-best="tcg"/);
   assert.doesNotMatch(us, /Best store price/, "no store badge when eBay or TCGplayer is cheaper (owner, 2026-11-13)");
   assert.equal([...us.matchAll(/class="btn-primary/g)].length, 1, "the cheapest store wears the filled button; eBay wears the ink ad button (Fiverr review F7, 2026-11-17)");

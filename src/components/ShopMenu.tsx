@@ -37,7 +37,19 @@ export function setsMenuColumns(region: Region, today: string = new Date().toISO
         .map((c) => SET_BY_CODE.get(c)!)
         .map((set) => ({ href: `/${region}/sets/${set.slug}`, label: set.releaseDate > today ? `${set.name} (pre-order)` : set.name }));
       return { title: series, href: seriesHref(region, series), links: [...links, { href: seriesHref(region, series), label: `All ${series} sets →` }] };
-    });
+    })
+    .concat([
+      // Coming soon: the open pre-order guides and the release calendar, here with the sets since the Deals menu went down to five
+      // entries (owner, 2026-11-23 UX review, P2 16).
+      {
+        title: "Coming soon",
+        href: sectionHref(region, "releases"),
+        links: [
+          ...openPreorderGuides(today).map(({ set }) => ({ href: `/${region}/preorders/${set.slug}`, label: `${set.name} pre-orders` })),
+          { href: sectionHref(region, "releases"), label: "Release calendar" },
+        ],
+      },
+    ]);
 }
 
 /**
@@ -88,14 +100,12 @@ export function dealsMenuColumns(region: Region, today: string = new Date().toIS
   const s = (key: SectionKey, label: string): MenuLink => ({ href: sectionHref(region, key), label });
   const bf = s("blackFriday", "Black Friday");
   const cm = s("cyberMonday", "Cyber Monday");
-  const sale = !inSeason(today) ? [] : saleStrip(today)?.key === "cyberMonday" ? [cm, bf] : [bf, cm];
+  // Five entries at most (owner, 2026-11-23 UX review, P2 16: "nine near-overlapping entries … reduce to four or five, with
+  // seasonal pages as one highlighted item"). The season's ONE sale page leads, starred; the pre-order guides and the release
+  // calendar moved to the Sets menu's "Coming soon"; the weekly digest and older sets are one click away on the deals page.
+  const sale = !inSeason(today) ? [] : [{ ...(saleStrip(today)?.key === "cyberMonday" ? cm : bf), label: `★ ${saleStrip(today)?.key === "cyberMonday" ? "Cyber Monday" : "Black Friday"}` }];
   return [
-    { title: "Best prices", href: sectionHref(region, "deals"), links: [...sale, s("deals", "Today's deals"), s("perPack", "Cheapest per pack"), s("thisWeek", "This week")] },
-    { title: "Stock & moves", links: [s("backInStock", "Back in stock"), s("priceMoves", "Price moves"), s("outOfPrint", "Older sets in stock")] },
-    {
-      title: "Coming soon",
-      links: [...openPreorderGuides(today).map(({ set }) => ({ href: `/${region}/preorders/${set.slug}`, label: `${set.name} pre-orders` })), s("releases", "Release calendar")],
-    },
+    { title: "Deals", href: sectionHref(region, "deals"), links: [...sale, s("deals", "Today's deals"), s("perPack", "Cheapest per pack"), s("backInStock", "Back in stock"), s("priceMoves", "Price moves")] },
   ];
 }
 
@@ -106,6 +116,6 @@ export function guidesMenuColumns(region: Region): MenuColumn[] {
     { title: "Learn & play", links: [s("guides", "Buying guides"), s("tools", "Tools"), s("daily", "Price Duel game"), { href: "/blog", label: "Blog" }, { href: "/creators", label: "Creators" }, { href: "/forum", label: "Community forum" }, { href: "/giveaway", label: "Giveaway" }] },
     // Stores had an entry of its own in the header's row until 2026-11-13 (four sections now, each with its menu); the booster box
     // guide was the sidebar's first link on every desktop page.
-    { title: "The data", links: [s("stores", "Stores we compare"), { href: `/${region}/guides/mtg-booster-box-prices`, label: "Booster box prices" }, s("releases", "Release calendar")] },
+    { title: "The data", links: [s("stores", "Stores we compare"), { href: `/${region}/guides/mtg-booster-box-prices`, label: "Booster box prices" }, s("thisWeek", "This week's digest"), s("releases", "Release calendar")] },
   ];
 }

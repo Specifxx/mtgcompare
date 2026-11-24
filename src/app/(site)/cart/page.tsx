@@ -7,7 +7,7 @@ import { CartListView } from "@/components/cart/CartListView";
 export const dynamic = "force-static";
 
 export const metadata: Metadata = {
-  title: "Your cart",
+  title: "Your shortlist",
   description: "The store prices you saved, grouped by store, with one checkout button per store.",
   // Personal page: never indexed, never in the sitemap. Not disallowed in robots.txt,
   // so Google can see the noindex.
@@ -18,9 +18,9 @@ export const metadata: Metadata = {
 export default function CartPage() {
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:py-10">
-      <h1 className="page-title">Your cart</h1>
+      <h1 className="page-title">Your shortlist</h1>
       <p className="mt-2 text-sm text-muted">
-        Add store prices from any product page, then check out store by store. Your cart stays in this browser.
+        Save store prices from any product page, then open each store to buy. MTG Compare sells nothing. Your shortlist stays in this browser.
       </p>
       <CartListView />
     </div>
