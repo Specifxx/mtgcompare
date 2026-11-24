@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-23T20:49:37.592Z",
+ "generatedAt": "2026-11-24T05:13:22.327Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -128,6 +128,20 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "NZ",
+   "title": "Marvel's Spider-Man Bundle",
+   "url": "https://mtgcompare.app/nz/p/marvels-spider-man-bundle",
+   "cents": 9000,
+   "currency": "NZD",
+   "store": "Collectors Guild",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/621115_in_1000x1000.jpg",
+   "refCents": 14999,
+   "refLabel": "median store price",
+   "savingPct": 40
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "NZ",
    "title": "Teenage Mutant Ninja Turtles Draft Night",
    "url": "https://mtgcompare.app/nz/p/teenage-mutant-ninja-turtles-draft-night",
    "cents": 14000,
@@ -183,20 +197,6 @@
   {
    "kind": "deal",
    "cluster": "cards",
-   "region": "NZ",
-   "title": "Reality Fracture Bundle",
-   "url": "https://mtgcompare.app/nz/p/reality-fracture-bundle",
-   "cents": 7499,
-   "currency": "NZD",
-   "store": "TCG Collector NZ",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/692985_in_1000x1000.jpg",
-   "refCents": 10500,
-   "refLabel": "median store price",
-   "savingPct": 29
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
    "region": "US",
    "title": "Star Trek Play Booster Pack",
    "url": "https://mtgcompare.app/us/p/star-trek-play-booster-pack",
@@ -204,7 +204,7 @@
    "currency": "USD",
    "store": "Josh's Cards",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/706136_in_1000x1000.jpg",
-   "refCents": 697,
+   "refCents": 699,
    "refLabel": "median store price",
    "savingPct": 50
   },
@@ -254,6 +254,20 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
+   "title": "Star Trek Commander Deck - Klingon Fury",
+   "url": "https://mtgcompare.app/us/p/star-trek-commander-deck-klingon-fury",
+   "cents": 3199,
+   "currency": "USD",
+   "store": "Common Lands",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/706169_in_1000x1000.jpg",
+   "refCents": 5999,
+   "refLabel": "median store price",
+   "savingPct": 47
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "US",
    "title": "Marvel Super Heroes Commander Deck - Avengers Assemble (Collector's Edition)",
    "url": "https://mtgcompare.app/us/p/marvel-super-heroes-commander-deck-avengers-assemble-collectors-edition",
    "cents": 9000,
@@ -263,20 +277,6 @@
    "refCents": 15999,
    "refLabel": "median store price",
    "savingPct": 44
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "US",
-   "title": "Teenage Mutant Ninja Turtles - Prerelease Pack",
-   "url": "https://mtgcompare.app/us/p/teenage-mutant-ninja-turtles-prerelease-pack",
-   "cents": 2200,
-   "currency": "USD",
-   "store": "Deals N Dragons",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/657862_in_1000x1000.jpg",
-   "refCents": 3500,
-   "refLabel": "median store price",
-   "savingPct": 37
   },
   {
    "kind": "deal",
@@ -408,20 +408,6 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "CA",
-   "title": "60 Card Theme Deck",
-   "url": "https://mtgcompare.app/ca/p/60-card-theme-deck",
-   "cents": 2695,
-   "currency": "CAD",
-   "store": "DéJouer",
-   "image": "https://cdn.shopify.com/s/files/1/0263/8866/0275/files/MTGECL_EN_OtrBx_Theme_01_01.png?v=1767558269",
-   "refCents": 4999,
-   "refLabel": "median store price",
-   "savingPct": 46
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "CA",
    "title": "Avatar: The Last Airbender - Beginner Box",
    "url": "https://mtgcompare.app/ca/p/avatar-the-last-airbender-beginner-box",
    "cents": 2212,
@@ -445,6 +431,20 @@
    "refCents": 6447,
    "refLabel": "median store price",
    "savingPct": 45
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "CA",
+   "title": "FINAL FANTASY Commander Deck - FINAL FANTASY VI Revival Trance",
+   "url": "https://mtgcompare.app/ca/p/final-fantasy-commander-deck-final-fantasy-vi-revival-trance",
+   "cents": 4508,
+   "currency": "CAD",
+   "store": "L'Atelier TCG",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/618903_in_1000x1000.jpg",
+   "refCents": 7999,
+   "refLabel": "median store price",
+   "savingPct": 44
   },
   {
    "kind": "deal",
