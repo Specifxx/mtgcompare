@@ -458,6 +458,26 @@ export function guideRegions(g: Guide): Region[] {
   return REGION_LIST.map((r) => r.region).filter((r) => g.regions === "all" || g.regions.includes(r));
 }
 
+/**
+ * Regional copies of a guide kept live for visitors but `noindex`, out of the sitemap and out of hreflang (Job D, the page scorecard
+ * of 2026-11-23: 28 days of Search Console to 20 Nov). Each copy here ranked past Google's page 3 (position 32 to 46), had no clicks
+ * and no visits, while the US copy of the same text is the one that can rank: seven near-identical copies split the signal. The
+ * region's guide index still lists them and they keep their own canonical. Take a copy off this list once its region has outside
+ * links or the US copy ranks on page 1. NZ, SG and EU guides are already noindex (lib/index-tiers.ts INDEXED_DETAIL_REGIONS).
+ */
+export const GUIDE_NOINDEX_IN: Readonly<Partial<Record<GuideSlug, readonly Region[]>>> = {
+  "mtg-booster-box-prices": ["uk"],
+  "mtg-bundle-prices": ["uk"],
+  "is-a-collector-booster-box-worth-it": ["ca", "au"],
+  "magic-sealed-products-explained": ["uk"],
+  "secret-lair-drops-explained": ["uk"],
+};
+
+/** False when the guide's copy in this region is on GUIDE_NOINDEX_IN. Callers also need the region to be detail-indexed. */
+export function guideCopyIndexable(g: Guide, region: Region): boolean {
+  return !(GUIDE_NOINDEX_IN[g.slug] ?? []).includes(region);
+}
+
 /** The guides offered in a region, in registry order. */
 export function guidesFor(region: Region): Guide[] {
   return GUIDES.filter((g) => guideRegions(g).includes(region));

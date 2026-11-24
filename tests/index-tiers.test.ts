@@ -167,6 +167,10 @@ test("detail pages are indexed in the US, AU, UK and CA only (2026-11-08): NZ, S
   const page = src("app/[region]/p/[slug]/page.tsx");
   assert.match(page, /const noindex = !detailIndexed\(r\.region\) \|\| productNoindex/);
   assert.match(page, /return detailIndexed\(x\.region\) && !productNoindex/);
-  for (const f of ["app/[region]/guides/[slug]/page.tsx", "app/[region]/tools/[tool]/page.tsx"]) assert.match(src(f), /noindex: !detailIndexed\(r\.region\)/, f);
+  assert.match(src("app/[region]/tools/[tool]/page.tsx"), /noindex: !detailIndexed\(r\.region\)/);
+  // Guides: the same, and a copy on GUIDE_NOINDEX_IN (page scorecard, 2026-11-23) is noindex too.
+  const guide = src("app/[region]/guides/[slug]/page.tsx");
+  assert.match(guide, /const indexable = detailIndexed\(r\.region\) && guideCopyIndexable\(g, r\.region\)/);
+  assert.match(guide, /noindex: !indexable/);
   assert.match(src("app/sitemap.ts"), /detailIndexed\(r\.region\) \? strongSlugs\(r\.market\)/);
 });

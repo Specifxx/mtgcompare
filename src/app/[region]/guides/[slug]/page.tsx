@@ -11,7 +11,7 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { NoPreFooter } from "@/components/Ebay";
 import { Icon } from "@/components/Icon";
 import { loadGuideData } from "@/content/guides/data";
-import { guideFor, guideMetaTitle, guideRegions, guidesFor, guideTitleIn } from "@/content/guides";
+import { guideCopyIndexable, guideFor, guideMetaTitle, guideRegions, guidesFor, guideTitleIn } from "@/content/guides";
 import { GuideCard, Toc, TocDisclosure, typeHref } from "@/content/guides/kit";
 import { GUIDE_MODULES } from "@/content/guides/modules";
 import { timeAgo } from "@/lib/format";
@@ -31,14 +31,16 @@ export function generateMetadata({ params }: { params: { region: string; slug: s
   const g = guideFor(params.slug, r.region);
   if (!g) return {};
   const title = guideTitleIn(g, r);
+  const indexable = detailIndexed(r.region) && guideCopyIndexable(g, r.region);
   const meta = pageMeta({
     title,
     description: g.description,
     path: `/${r.region}/guides/${g.slug}`,
     // hreflang lists only the regions the guide is offered in (the MSRP guide: the US alone).
     // Indexed in INDEXED_DETAIL_REGIONS only (2026-11-08): elsewhere noindex, its own canonical and no hreflang.
-    alternates: detailIndexed(r.region) ? regionAlternates(r.region, `/guides/${g.slug}`, guideRegions(g).filter(detailIndexed)) : undefined,
-    noindex: !detailIndexed(r.region),
+    // A copy on GUIDE_NOINDEX_IN (the 2026-11-23 page scorecard) is noindex too, and left out of every other copy's hreflang.
+    alternates: indexable ? regionAlternates(r.region, `/guides/${g.slug}`, guideRegions(g).filter((x) => detailIndexed(x) && guideCopyIndexable(g, x))) : undefined,
+    noindex: !indexable,
   });
   return {
     ...meta,
