@@ -2854,3 +2854,11 @@ The owner reviewed DexCompare and asked for the same everywhere ("these requirem
   a failed image retried once, then the site mark; store thumbs votes hidden on phones.
 - **P2**: Deals menu of five entries (one starred sale page; pre-orders and the release calendar in the Sets menu's "Coming
   soon"), a filter box on the sets index, an empty shortlist that offers today's deals, reduced motion for every animation.
+
+## 2026-11-24 — Impression events sampled 1 in 10 visitors
+
+The coordinator's Vercel cost check: since 19 Nov MTG Compare's Web Analytics events went from about $0.05 to $0.31 a day, mostly
+per-view "seen"/"shown" events (hot_nudge, ebay_pop, ab_seen, nudge_eligible, nudge_shown). `lib/track.ts` now sends them for
+one visitor in ten only (sticky in localStorage `mtg-imp-sample`), each with `w: 10`; clicks, sign-ups and buy clicks are never
+sampled. Per visitor, so each A/B arm's impressions and clicks come from the same people: the 3 December reads compare arms as
+before, and an absolute count (seen, shown) is the sum of `w`, or the event count × 10.
