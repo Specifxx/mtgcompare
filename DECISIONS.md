@@ -2862,3 +2862,16 @@ per-view "seen"/"shown" events (hot_nudge, ebay_pop, ab_seen, nudge_eligible, nu
 one visitor in ten only (sticky in localStorage `mtg-imp-sample`), each with `w: 10`; clicks, sign-ups and buy clicks are never
 sampled. Per visitor, so each A/B arm's impressions and clicks come from the same people: the 3 December reads compare arms as
 before, and an absolute count (seen, shown) is the sum of `w`, or the event count × 10.
+
+## 2026-11-24: six regional guide copies noindex (Job D, the page scorecard)
+
+The coordinator's page scorecard of 2026-11-23 (`/strategy/page-scorecard-2026-11-23.json`: 28 settled days of Search Console to
+20 Nov, visits to 23 Nov) put these guide copies in MTG Compare's bottom 20%, each past Google's page 3 with no click and no visit:
+`/uk/guides/mtg-booster-box-prices` (149 impressions, position 46), `/uk/guides/mtg-bundle-prices` (102, 46),
+`/ca/guides/is-a-collector-booster-box-worth-it` (82, 32), `/au/guides/is-a-collector-booster-box-worth-it` (60, 33),
+`/uk/guides/magic-sealed-products-explained` (52, 39) and `/uk/guides/secret-lair-drops-explained` (24, 45). Seven near-identical
+copies of one guide split what little signal a new site has; the US copy is the one to rank (US-first, 22 Nov). They are now
+`noindex`, out of the sitemap and out of every copy's hreflang (`GUIDE_NOINDEX_IN`, `guideCopyIndexable` in
+`src/content/guides/index.ts`), and stay live, linked and in the region's guide index for visitors. The UK copies that rank on
+page 1 or 2 (collector-booster-box-prices at 8, how-to-avoid-resealed at 12, how-to-preorder at 16) are untouched. Take a copy off
+the list once its region has outside links or the US copy ranks on page 1. Pinned by `tests/sitemap.test.ts`.

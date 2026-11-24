@@ -6,7 +6,7 @@
 // is the static pages and every store page; /sitemap/1.xml … /sitemap/7.xml
 // is one region each — its types, sets and comparable products.
 import type { MetadataRoute } from "next";
-import { guidesFor } from "../content/guides";
+import { guideCopyIndexable, guidesFor } from "../content/guides";
 import { COUNTRY_GUIDE } from "../content/guides/country-prices";
 import { TOOLS, toolRegions } from "../content/tools";
 import { POSTS, postPath } from "./blog";
@@ -157,7 +157,7 @@ export function staticSitemap(
   // Every guide, in each region it is offered in (the registry is pure: no database read). No lastmod: a guide's live blocks
   // change with each import, but its text only when it is edited.
   // lastmod is the guide's own editorial `updated` date (its text), never the import time.
-  for (const r of REGION_LIST) for (const g of detailIndexed(r.region) ? guidesFor(r.region) : []) out.push(url(`/${r.region}/guides/${g.slug}`, new Date(`${g.updated}T00:00:00Z`), "weekly", 0.6));
+  for (const r of REGION_LIST) for (const g of detailIndexed(r.region) ? guidesFor(r.region).filter((g) => guideCopyIndexable(g, r.region)) : []) out.push(url(`/${r.region}/guides/${g.slug}`, new Date(`${g.updated}T00:00:00Z`), "weekly", 0.6));
   // The tools (src/content/tools): the index and every tool, in every region it is offered in. No lastmod: copy changes only when edited.
   for (const r of REGION_LIST) {
     out.push(url(`/${r.region}/tools`, null, "monthly", 0.5));

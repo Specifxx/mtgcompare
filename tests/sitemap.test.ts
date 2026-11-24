@@ -4,7 +4,7 @@ import { REGION_LIST, REGIONS } from "../src/lib/regions";
 import { regionOfSitemapId, regionSitemap, SITEMAP_IDS, SITEMAP_STORE_PAGES, sitemapIdOf, STATIC_SITEMAP_ID, staticSitemap } from "../src/lib/sitemap";
 import { SITE_URL } from "../src/lib/site";
 import { STORES } from "../src/lib/stores";
-import { GUIDE_BY_SLUG, GUIDES, guideRegions } from "../src/content/guides";
+import { GUIDE_BY_SLUG, GUIDE_NOINDEX_IN, GUIDES, guideCopyIndexable, guideRegions } from "../src/content/guides";
 import { COUNTRY_GUIDE } from "../src/content/guides/country-prices";
 
 const onSite = (entries: { url: string }[]) => {
@@ -91,7 +91,8 @@ test("static sitemap: every guide in each indexed region it is offered in, and n
   for (const g of GUIDES) {
     for (const r of REGION_LIST) {
       const u = `${SITE_URL}/${r.region}/guides/${g.slug}`;
-      assert.equal(urls.has(u), guideRegions(g).includes(r.region) && ["us", "au", "uk", "ca"].includes(r.region), u);
+      const listed = guideRegions(g).includes(r.region) && ["us", "au", "uk", "ca"].includes(r.region) && guideCopyIndexable(g, r.region);
+      assert.equal(urls.has(u), listed, u);
     }
   }
   assert.ok(urls.has(`${SITE_URL}/us/guides/magic-msrp`));
@@ -118,4 +119,21 @@ test("the creators hub is in the sitemap and no longer redirected to /about (off
   const rules = await cfg.redirects();
   assert.ok(!rules.some((r) => r.destination === "/about" && /creators/.test(r.source)), "/creators is a page, not a redirect");
   assert.ok(rules.some((r) => r.source === "/creators/:rest+" && r.destination === "/creators"));
+});
+
+test("static sitemap: guide copies on GUIDE_NOINDEX_IN are left out, their US copy stays (page scorecard, 2026-11-23)", () => {
+  const urls = new Set(staticSitemap({}).map((e) => e.url));
+  const pairs = Object.entries(GUIDE_NOINDEX_IN);
+  assert.ok(pairs.length > 0);
+  for (const [slug, regions] of pairs) {
+    const g = GUIDE_BY_SLUG.get(slug)!;
+    assert.ok(g, `${slug} is a guide`);
+    assert.ok(!regions!.includes("us"), `${slug}: the US copy is never noindexed here (US-first)`);
+    assert.ok(guideCopyIndexable(g, "us"));
+    assert.ok([...urls].some((u) => u.endsWith(`/us/guides/${slug}`)), `${slug}: US copy listed`);
+    for (const r of regions!) {
+      assert.equal(guideCopyIndexable(g, r), false);
+      assert.ok(![...urls].some((u) => u.endsWith(`/${r}/guides/${slug}`)), `${slug}: ${r} copy not listed`);
+    }
+  }
 });
