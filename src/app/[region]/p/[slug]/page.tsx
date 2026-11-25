@@ -725,6 +725,12 @@ export default async function ProductPage({ params }: { params: { region: string
             None of the {r.adjective} stores we track list {p.name} right now.
           </div>
         )}
+        {/* Fiverr usability review, 2026-11-25: "is this looking at all the pricing, or only the sites you get a commission from?" */}
+        {p.offers.length > 0 && (
+          <p className="mt-2 text-xs text-muted">
+            Every store we track is listed, whether it pays us or not, in price order. <Link href="/methodology" className="underline decoration-line underline-offset-2 hover:text-ink">How we compare</Link>
+          </p>
+        )}
         <ReportPrice
           product={p.name}
           region={r.short}
