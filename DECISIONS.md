@@ -2882,3 +2882,18 @@ A paid tester's think-aloud on TCG Prices (tcgcompare DECISIONS.md, 2026-11-25) 
 ones that pay us. Under the price table the product page now says "Every store we track is listed, whether it pays us or not, in
 price order" with a link to /methodology, and the group-chat share button reads "Share deal" (its full wording stays as the
 button's accessible name): the tester found the page's buttons too wordy. Cart and watch wording wait for their A/B verdicts.
+
+## 2026-11-25: A TCGplayer column in the empty right side of a wide window (owner)
+
+The owner, 2026-11-25, on a desktop: "Why are the display ads at the very bottom of the site? … there's so much space on the left and the
+right side of the website." (YGO Compare #267, DexCompare #367.) MTG Compare is a LIGHT site (the ad-intensity test's control, read
+10 Dec), so it takes one column, not two: `components/GutterAds.tsx` with `sides="right"`, from 1440px wide, the newest sets'
+TCGplayer products in the right-hand gutter. The region home already places its banner pair under the in-stock shelf, and product
+and set pages under their own content, so no banner moves here.
+
+The column is sized to the gutter beside the page's 1152px content (about 110px at 1440, 180px at most) and stays 14px clear of it
+and of the window; it sits absolutely inside `<main>` with a sticky card, so it starts under the header line, ends where the content
+ends and never takes width from the page. Browser only (CLS 0, no SEO change), labelled Ad, rel sponsored under `gutter-tcg`, never
+Amazon, never for ad-free members or in the app. Its tiles start after the banner's six. This reverses "never a rail" (2026-11-13) on
+the owner's word. Read: gutter clicks per 100 desktop visitors; if desktop store buy clicks per visitor fall 10%, it goes. For the
+10 Dec heavy/light read, compare MTG's desktop before and after this release separately.

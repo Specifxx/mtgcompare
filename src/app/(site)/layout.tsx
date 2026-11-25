@@ -9,7 +9,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
   return (
     <>
       <Header region={null} />
-      <main id="main" className="min-w-0 flex-1">
+      <main id="main" className="relative min-w-0 flex-1">
         {children}
       </main>
       <Footer region={null} />

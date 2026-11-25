@@ -205,7 +205,7 @@ test("the menu's groups: product types, sets, deals and the rest, every link a r
   assert.ok(!existsSync(new URL("../src/components/SideNav.tsx", import.meta.url)), "no sidebar component");
   for (const f of ["app/[region]/layout.tsx", "app/(site)/layout.tsx"]) {
     assert.doesNotMatch(src(f), /<SideNav|<SoftSideNav|<aside/, `${f}: no sidebar`);
-    assert.match(src(f), /<main id="main" className="min-w-0 flex-1">/, `${f}: the page is the whole row`);
+    assert.match(src(f), /<main id="main" className="(?:relative )?min-w-0 flex-1">/, `${f}: the page is the whole row`);
   }
   assert.match(src("components/Header.tsx"), /<MobileMenu region=\{region\} groups=\{groups\} built=\{built\} className="lg:hidden" \/>/, "the menu button's sheet, below lg");
   // What only the sidebar linked on a desktop is in the header's menus now.

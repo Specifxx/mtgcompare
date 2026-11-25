@@ -4,6 +4,7 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { HolidayStrip } from "@/components/HolidayStrip";
 import { SideAds } from "@/components/SideAds";
+import { GutterAds } from "@/components/GutterAds";
 import { regionOrNotFound } from "@/lib/regions";
 
 // Nothing here is prerendered at build: every region page is force-dynamic and kept by Vercel's CDN
@@ -25,7 +26,7 @@ export default async function RegionLayout({ children, params }: { children: Rea
       <HolidayStrip region={r.region} />
       {/* ONE navigation since 2026-11-13 (owner: "we're making things too complicated"): the header. The sidebar that repeated its
           menus down the left of every desktop page is gone; the page is one centred column. */}
-      <main id="main" className="min-w-0 flex-1">
+      <main id="main" className="relative min-w-0 flex-1">
         {children}
         {/* The two ad banners sit BELOW the content of every region page without a spot of its own (owner, 2026-11-19: "all the ads
             that can negatively impact our indexing let's remove and have more strategically placed ads"). The server HTML holds the
@@ -33,6 +34,8 @@ export default async function RegionLayout({ children, params }: { children: Rea
         <div className="page">
           <LayoutInlineAds region={r.region} tiles={tcg} />
         </div>
+        {/* The gutter ads (owner, 2026-11-25): a labelled TCGplayer column in the empty right side of a wide window, from 1440px (light site: one column). */}
+        <GutterAds region={r.region} tiles={tcg} sides="right" />
       </main>
       <Footer region={r.region} listed={listed} />
       {/* Narrow screens only, drawn in the browser after a scroll: the phone dock (components/SideAds.tsx, AdDock.tsx). The side rails are gone

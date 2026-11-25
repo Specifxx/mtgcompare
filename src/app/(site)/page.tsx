@@ -3,6 +3,7 @@ import { SignInSlides } from "@/components/account/SignInSlides";
 import { GiveawayHomeBanner } from "@/components/giveaway/GiveawayHomeBanner";
 import { Icon } from "@/components/Icon";
 import { SoftSideAds } from "@/components/SideAds";
+import { SoftGutterAds } from "@/components/GutterAds";
 import { HomeRegionGrid } from "@/components/HomeRegionGrid";
 import { RegionChips } from "@/components/RegionChips";
 import { regionPicks } from "@/lib/picks";
@@ -115,6 +116,8 @@ export default async function Landing() {
       {/* The phone dock (below 1280px, after a scroll), browser-only, in the visitor's region (components/SideAds.tsx; the side rails
           that shared the file were removed 2026-11-13; owner 2026-11-06: "the home page must have this as well"). */}
       <SoftSideAds tiles={railTiles} />
+      {/* The gutter ads (owner, 2026-11-25): a labelled TCGplayer column in the empty right side of a wide window, from 1440px. */}
+      <SoftGutterAds tiles={railTiles} sides="right" />
     </div>
   );
 }
