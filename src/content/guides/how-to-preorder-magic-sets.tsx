@@ -4,13 +4,19 @@ import Link from "@/components/Link";
 import type { RegionInfo } from "@/lib/regions";
 import { longDate, STAR_TREK_DATES, starTrekLine, WIZARDS_COLLECTING_STAR_TREK } from "../star-trek";
 import type { GuideData } from "./data";
-import { GUIDE_BY_SLUG } from "./index";
-import { Checklist, GuideBody, Lede, LiveBlock, NoneYet, PriceTable, Prose, storesPhrase, whereToBuy, type BodyProps, type GuideOutline } from "./kit";
+import { SET_BY_CODE } from "@/lib/sets";
+import { GUIDE_BY_SLUG, SET_BUYING_GUIDES } from "./index";
+import { Checklist, guideHref, GuideBody, Lede, LiveBlock, NoneYet, PriceTable, Prose, storesPhrase, whereToBuy, type BodyProps, type GuideOutline } from "./kit";
 
 const GUIDE = GUIDE_BY_SLUG.get("how-to-preorder-magic-sets")!;
 
 export function outline(r: RegionInfo, data: GuideData): GuideOutline {
   const out = data.today >= STAR_TREK_DATES.release;
+  // Once Star Trek is out, the next set with a buying guide (SET_BUYING_GUIDES, its date from lib/sets.ts), soonest first.
+  const next = Object.entries(SET_BUYING_GUIDES)
+    .map(([code, slug]) => ({ set: SET_BY_CODE.get(code), slug }))
+    .filter((x): x is { set: NonNullable<typeof x.set>; slug: typeof x.slug } => Boolean(x.set && x.set.releaseDate > data.today))
+    .sort((a, b) => a.set.releaseDate.localeCompare(b.set.releaseDate))[0];
   const named = (data.rows.named ?? []).filter((p) => starTrekLine(p.name) || /booster|bundle|commander/i.test(p.name)).slice(0, 12);
   return {
     intro: (
@@ -58,6 +64,18 @@ export function outline(r: RegionInfo, data: GuideData): GuideOutline {
                 <NoneYet>No store we compare in {r.inName} lists Star Trek product right now.</NoneYet>
               )}
             </LiveBlock>
+            {out && next && (
+              <Prose>
+                <p>
+                  The next set to pre-order is <strong>{next.set.name}</strong>, dated {longDate(next.set.releaseDate)}. Which of its products to buy, and what stores ask for
+                  each today, is in{" "}
+                  <Link href={guideHref(r, next.slug)} prefetch={false} className="font-semibold text-brand hover:underline">
+                    our {next.set.name} buying guide
+                  </Link>
+                  .
+                </p>
+              </Prose>
+            )}
             <p className="text-sm">
               <Link href={`/${r.region}/releases`} prefetch={false} className="font-semibold text-brand hover:underline">
                 Every upcoming release →
