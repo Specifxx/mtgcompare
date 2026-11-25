@@ -37,12 +37,14 @@ export function generateMetadata({ params, searchParams }: Props): Metadata {
   const page = pageOf(searchParams, x.cards.length) ?? 1;
   const ranked = [...x.cards].sort((a, b) => (cardValue(b.p) ?? 0) - (cardValue(a.p) ?? 0));
   const top = ranked[0];
-  const full = `${withMtg(x.set.name)} Card Prices`;
+  // "Price list" is how these pages are searched ("mtg foundations price list", 64 impressions in 28 days to
+  // 25 Nov sent to a sealed product page instead, pos ~20). The longest form that fits wins.
+  const titles = [`${withMtg(x.set.name)} Price List & Card Prices`, `${x.set.name} Price List & Card Prices`, `${withMtg(x.set.name)} Price List`, `${x.set.name} Price List`, `${x.set.name} Card Prices`];
   const topV = top ? cardValue(top.p) : null;
-  const d = `${withMtg(x.set.name)} card prices: all ${x.cards.length} cards at TCGplayer's market price, normal and foil${top && topV ? `, led by ${top.n} at ${usd(topV)}` : ""}.`;
+  const d = `${withMtg(x.set.name)} price list: all ${x.cards.length} cards at TCGplayer's market price, normal and foil${top && topV ? `, led by ${top.n} at ${usd(topV)}` : ""}.`;
   return pageMeta({
-    title: full.length <= 46 ? full : `${x.set.name} Card Prices`.length <= 46 ? `${x.set.name} Card Prices` : x.set.name,
-    description: d.length <= 160 ? d : `${withMtg(x.set.name)} card prices: all ${x.cards.length} cards at TCGplayer's market price, normal and foil.`.slice(0, 160),
+    title: titles.find((t) => t.length <= 46) ?? x.set.name,
+    description: d.length <= 160 ? d : `${withMtg(x.set.name)} price list: all ${x.cards.length} cards at TCGplayer's market price, normal and foil.`.slice(0, 160),
     path: `${CARDS_HUB}/${x.set.slug}${page > 1 ? `?page=${page}` : ""}`,
     noindex: page > 1 || !x.cards.some(cardIndexable),
   });
