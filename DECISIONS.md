@@ -2883,6 +2883,11 @@ ones that pay us. Under the price table the product page now says "Every store w
 price order" with a link to /methodology, and the group-chat share button reads "Share deal" (its full wording stays as the
 button's accessible name): the tester found the page's buttons too wordy. Cart and watch wording wait for their A/B verdicts.
 
+## 2026-11-26: The header's string of Christmas lights is removed (owner)
+
+Owner, 2026-11-26: "I don't really like the Christmas lights on the very top." The string of lights hanging under the header
+(2026-11-20) is removed on every Compare site: the `.xmas-garland::after` rule is gone from the `xmas-logo` block in `globals.css`
+and the class is off the header. The Santa hat on the logo stays, and nothing else of the Christmas layer changes.
 ## 2026-11-25: A TCGplayer column in the empty right side of a wide window (owner)
 
 The owner, 2026-11-25, on a desktop: "Why are the display ads at the very bottom of the site? … there's so much space on the left and the
