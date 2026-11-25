@@ -85,6 +85,8 @@ export const PLACEMENTS = [
   "listings-notfound", // the 404 page
   "listings-dock", // every page with the rails, narrow screens only: the phone dock's eBay half (components/AdDock.tsx, owner, 2026-11-06)
   "listings-inline", // the in-page ad block (components/InlineAds.tsx, owner 2026-11-13): its eBay tiles and links
+  "gutter-ebay", // the gutter columns (components/GutterAds.tsx, owner 2026-11-25): the eBay column, left side of a 1440px+ window (heavy sites only)
+  "gutter-tcg", // the gutter columns: the TCGplayer column, right side of a 1440px+ window
   "price-watch", // the Black Friday / Cyber Monday price watch: the eBay search beside each row and the graded chase strip
   "bf-moves", // /[region]/black-friday and /cyber-monday: "Price moves this week", each row's eBay search
   "bf-dearest", // the same pages: "Most expensive sealed in stock", each row's eBay search
