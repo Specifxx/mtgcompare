@@ -2875,3 +2875,10 @@ copies of one guide split what little signal a new site has; the US copy is the 
 `src/content/guides/index.ts`), and stay live, linked and in the region's guide index for visitors. The UK copies that rank on
 page 1 or 2 (collector-booster-box-prices at 8, how-to-avoid-resealed at 12, how-to-preorder at 16) are untouched. Take a copy off
 the list once its region has outside links or the US copy ranks on page 1. Pinned by `tests/sitemap.test.ts`.
+
+## 2026-11-25 — Fiverr usability review, ported from TCG Prices
+
+A paid tester's think-aloud on TCG Prices (tcgcompare DECISIONS.md, 2026-11-25) asked whether we compare every store or only the
+ones that pay us. Under the price table the product page now says "Every store we track is listed, whether it pays us or not, in
+price order" with a link to /methodology, and the group-chat share button reads "Share deal" (its full wording stays as the
+button's accessible name): the tester found the page's buttons too wordy. Cart and watch wording wait for their A/B verdicts.
