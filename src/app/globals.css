@@ -1401,3 +1401,37 @@ html[data-ebaypop="pop"] li:not([role="dialog"] li):has(a.btn-ad[href*="ebay."])
     scroll-behavior: auto !important;
   }
 }
+
+/* The gutter ads (components/GutterAds.tsx, owner 2026-11-25): one slim labelled column in each empty side of a wide window. Each
+   sits absolutely inside <main> (position: relative), so it starts under the header line and ends where the content ends; its card is
+   sticky under the header. Sized to the gutter beside the page's 1152px content (about 110px at 1440, at most 180px), always at least
+   14px clear of the content and of the window. Mounted only from 1440px (GUTTER_MIN), so the page column never gives up any width. */
+.gutter-ads {
+  --g: calc((100% - 1152px) / 2);
+  --gw: min(180px, calc(var(--g) - 28px));
+  position: absolute;
+  top: 24px;
+  bottom: 24px;
+  width: var(--gw);
+  z-index: 10;
+}
+.gutter-ads-left { left: calc((var(--g) - var(--gw)) / 2); }
+.gutter-ads-right { right: calc((var(--g) - var(--gw)) / 2); }
+.gutter-card {
+  position: sticky;
+  top: calc(var(--hdr) + 16px);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - var(--hdr) - 80px);
+  padding: 10px;
+}
+.gutter-list {
+  display: grid;
+  gap: 12px;
+  min-height: 0;
+  flex: 1 1 auto;
+  margin-top: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
