@@ -2923,3 +2923,37 @@ shipping, with RiftCompare's solver ported as is (the same files as DexCompare's
   the line's quantity, and a store whose lines are all permalinks gets one checkout link (`checkoutUrl`).
 - **Placement:** the only entry is a link on `/cart` once the list holds two or more products from one region. There is no
   pop-up, and the page is noindex.
+
+## 2026-11-26: the phone's home pages, tidied (one path: the headline, the search, one row of ways in, the products)
+
+**Owner, 2026-11-26:** "we should still tidy up the landing page for our sites a little bit, because I think there's just too
+much going on, especially for mobile phone."
+
+**Measured at 390px before:** the region home (`/us`) was 7,286px tall and its first product began at about 1,470px, on the
+second screen. Above it: the sale strip, the breadcrumb, the pre-order pill, the headline, two lines of sub-text, the search,
+seven region chips in two rows, six tiles in three rows, two lines of counts, the giveaway card, the card-prices line, the
+shelf's title, tabs and note. The landing page (`/`) was 4,451px and its first product began at about 1,190px.
+
+**Now, below 640px only:** the headline, the search, the six ways in as ONE sideways row of chips, then the products; the
+giveaway and the card-prices line sit under the products by `order`. `/us` is 6,828px and its first product begins at about
+685px; `/` is 4,189px and its first product at about 600px: both on the first screen. Hidden on a phone: the sub-line, the
+line of counts, the shelf's one-line note, and on a region home the hero's region row (the header's flag chooser is on the
+same screen and the footer lists every region). On the landing page, where a region is chosen, the region row stays as one
+sideways row instead of two (owner, 2026-11-02: the switcher prominent in the hero, with flags).
+
+**Deliberately not done (this is a top earner):** no product, price, stock line or buy link is hidden. The shelf keeps its
+eight products and the landing page its ten rows (the sister sites show six), the four latest sets stay, the pre-order pill
+stays (it is a way to a set's stores, not a second promo; the Christmas line already waits for the sale strip). If the page
+should be shorter still, the shelf's seventh and eighth product are the next 350px.
+
+**Unchanged:** the HTML is the same at every width, so a crawler, find-in-page and a desktop see every block; no URL, title,
+heading or JSON-LD changes; from 640px up the pages are pixel-identical (compared at 700px and 1280px). No ad moves: the
+banner pair is still the first block after the products, the giveaway and the card-prices line, as it was. On the region home
+the giveaway's markup moved inside the page's one column (`home-flow`) so a phone can reorder it; it draws the same on a
+desktop. CSS only, in one block of `globals.css` ("The phone's home page, tidied"), placed before the eBay stand-out block
+because `tests/ebay-pop.test.ts` reads everything after that heading. The hooks are `home-flow`, `home-give`, `home-new`,
+`home-shelf`, `hero-regions` (landing) and `hero-markets` (region home). Reverts by deleting the block.
+
+**Read:** phone bounce (non-Reddit) and store buy clickers per 100 phone visitors on `/` and the region homes, the week after
+release against the week before. If phone region switches from the hero were doing work (GA `region_select`, placement
+`hero`), the region row comes back as one row on the region homes too.

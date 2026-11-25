@@ -237,7 +237,7 @@ export default async function RegionHome({ params }: { params: { region: string 
         <div className="hero-search rise" style={riseAt(2)}>
           <SearchBox region={r.region} size="lg" />
         </div>
-        <RegionChips region={r.region} className="rise mt-6 justify-center" style={riseAt(3)} />
+        <RegionChips region={r.region} className="hero-markets rise mt-6 justify-center" style={riseAt(3)} />
         <WaysIn links={ways} label={`Popular pages in ${r.inName}`} />
         {/* One quiet line of facts (it was three chips). A live <time>: the page is cached for a day, so a fixed "3 hours ago" would freeze. */}
         <p className="hero-meta rise" style={riseAt(5)}>
@@ -255,21 +255,22 @@ export default async function RegionHome({ params }: { params: { region: string 
           <span className="max-[479px]:basis-full">checked {overview.lastChecked ? <Ago iso={overview.lastChecked.toISOString()} initial={timeAgo(overview.lastChecked)} /> : "twice a day"}</span>
         </p>
       </Hero>
-      {/* The giveaway, while it is open (owner, 2026-11-22: "feature it on our homepage"). */}
-      <div className="page">
-        <SignInSlides surface="home" variant="banner" fallback={<GiveawayHomeBanner />} />
-      </div>
-
       {/* The page places its own ad block (below): none above the footer. */}
       <NoPreFooter />
-      <div className="page">
-        <NewCardsStrip className="mt-6" />
+      {/* One column (home-flow), so a phone can show the products before the giveaway and the card-prices line (globals.css, "The
+          phone's home page, tidied", 2026-11-26): the same blocks in the same order in the HTML, the phone's order only. */}
+      <div className="home-flow page">
+        {/* The giveaway, while it is open (owner, 2026-11-22: "feature it on our homepage"). */}
+        <div className="home-give">
+          <SignInSlides surface="home" variant="banner" fallback={<GiveawayHomeBanner />} />
+        </div>
+        <NewCardsStrip className="home-new mt-6" />
         {overview.products === 0 ? (
-          <div className="mt-10">
+          <div className="home-shelf mt-10">
             <Empty actions={[{ href: `/${other.region}`, label: `MTG Compare ${other.name}` }]}>We&rsquo;re still reading {r.adjective} stores for the first time. Check back shortly.</Empty>
           </div>
         ) : (
-          <Section title="In stock today" className="reveal mt-8 sm:mt-12">
+          <Section title="In stock today" className="home-shelf reveal mt-8 sm:mt-12">
             <Tabs tabs={shelf} label={`In stock in ${r.inName} today`} />
           </Section>
         )}
