@@ -161,7 +161,7 @@ export const GUIDES: readonly Guide[] = [
     description: "What a Magic pre-order means, how to compare pre-order prices across stores, what to check before you pay, and the next set's dates.",
     kicker: "Pre-orders",
     published: D,
-    updated: D,
+    updated: "2026-11-25", // freshness sweep: Star Trek is out; the next set's buying guide is linked
     regions: "all",
     topic: { types: ["play-booster-box", "collector-booster-box", "bundle"] },
     ebay: SEALED_EBAY,
