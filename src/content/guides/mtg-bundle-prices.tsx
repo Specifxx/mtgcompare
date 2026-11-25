@@ -21,6 +21,13 @@ export function outline(r: RegionInfo, data: GuideData): GuideOutline {
   const bySet = cheapestBySet(bundles, 12);
   const m = (c: number) => money(c, r.market);
   const href = typeHref(r, "bundle");
+  const newest = bySet[0] ?? null;
+  /** A set's cheapest Bundle as a share of its cheapest Play Booster box, both open today: a plain ratio of two prices, no value claim. */
+  const shareOfBox = (code: string, bundle: number): number | null => {
+    const b = box.get(code)?.lowestPriceCents;
+    return b && b > 0 ? Math.round((bundle / b) * 100) : null;
+  };
+  const shares = bySet.map((x) => shareOfBox(x.code, x.p.lowestPriceCents!)).filter((x): x is number => x != null);
   return {
     intro: (
       <Lede>
@@ -32,6 +39,17 @@ export function outline(r: RegionInfo, data: GuideData): GuideOutline {
               {low.name}
             </Link>{" "}
             at <strong>{m(low.lowestPriceCents!)}</strong>; the middle of the {spread.n} we read is {m(spread.median)}.
+            {newest && (
+              <>
+                {" "}
+                The newest set’s Bundle,{" "}
+                <Link href={productHref(r, newest.p)} prefetch={false} className="font-semibold text-brand underline-offset-2 hover:underline">
+                  {newest.name}
+                </Link>
+                , is <strong>{m(newest.p.lowestPriceCents!)}</strong> today
+                {newest.p.inStockStores > 0 ? <> and in stock at {plural(newest.p.inStockStores, "store")}</> : null}.
+              </>
+            )}
           </>
         ) : (
           <>A Magic Bundle is a set’s gift box: booster packs, basic lands and accessories in one box. None is in stock at {storesPhrase(r)} right now.</>
@@ -67,9 +85,10 @@ export function outline(r: RegionInfo, data: GuideData): GuideOutline {
               {bySet.length ? (
                 <StackTable
                   caption={`The cheapest Bundle of each set in ${r.inName} today, with the set's cheapest Play Booster box`}
-                  head={["Set", "Cheapest Bundle", "Play Booster box"]}
+                  head={["Set", "Cheapest Bundle", "Play Booster box", "Bundle vs box"]}
                   rows={bySet.map((x) => {
                     const b = box.get(x.code);
+                    const share = shareOfBox(x.code, x.p.lowestPriceCents!);
                     return {
                       key: x.code,
                       th: <SetLink r={r} slug={x.slug}>{x.name}</SetLink>,
@@ -84,6 +103,7 @@ export function outline(r: RegionInfo, data: GuideData): GuideOutline {
                         ) : (
                           <span key="b" className="text-muted">none open</span>
                         ),
+                        share != null ? <span key="s">{share}% of the box</span> : <span key="s" className="text-muted">—</span>,
                       ],
                     };
                   })}
@@ -92,6 +112,14 @@ export function outline(r: RegionInfo, data: GuideData): GuideOutline {
                 <NoneYet />
               )}
             </LiveBlock>
+            {shares.length >= 2 && (
+              <Prose>
+                <p>
+                  Across the {shares.length} sets with both open in {r.inName} today, the cheapest Bundle costs between {Math.min(...shares)}% and {Math.max(...shares)}% of the
+                  same set’s cheapest Play Booster box.
+                </p>
+              </Prose>
+            )}
           </>
         ),
       },
