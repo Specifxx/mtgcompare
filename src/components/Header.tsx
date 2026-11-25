@@ -66,7 +66,7 @@ export function Header({ region, listed }: { region: Region | null; listed?: Rea
   const items = headerNavItems(built, undefined, listed);
   const groups = navGroups(built, undefined, listed);
   return (
-    <header className="hdr sticky top-0 z-40 h-[var(--hdr)] border-b border-line bg-bg/80 backdrop-blur-xl xmas-garland">
+    <header className="hdr sticky top-0 z-40 h-[var(--hdr)] border-b border-line bg-bg/80 backdrop-blur-xl">
       <div className="page flex h-full items-center gap-2 sm:gap-3 xl:gap-4">
         <Link href={home} className="flex h-11 shrink-0 items-center rounded-lg" aria-label={`MTG Compare${region ? ` ${REGIONS[region].name}` : ""} home`}>
           <Logo wordmark="hidden sm:inline" />

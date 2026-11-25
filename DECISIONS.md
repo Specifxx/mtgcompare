@@ -2882,3 +2882,9 @@ A paid tester's think-aloud on TCG Prices (tcgcompare DECISIONS.md, 2026-11-25) 
 ones that pay us. Under the price table the product page now says "Every store we track is listed, whether it pays us or not, in
 price order" with a link to /methodology, and the group-chat share button reads "Share deal" (its full wording stays as the
 button's accessible name): the tester found the page's buttons too wordy. Cart and watch wording wait for their A/B verdicts.
+
+## 2026-11-26: The header's string of Christmas lights is removed (owner)
+
+Owner, 2026-11-26: "I don't really like the Christmas lights on the very top." The string of lights hanging under the header
+(2026-11-20) is removed on every Compare site: the `.xmas-garland::after` rule is gone from the `xmas-logo` block in `globals.css`
+and the class is off the header. The Santa hat on the logo stays, and nothing else of the Christmas layer changes.
