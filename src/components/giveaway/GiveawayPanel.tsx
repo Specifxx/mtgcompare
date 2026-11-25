@@ -207,7 +207,7 @@ export function GiveawayPanel({
       </ul>
 
       {open && (
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-[repeat(2,minmax(0,1fr))]">
           {/* Daily check-in */}
           <div className="rounded-xl border border-line p-3">
             <p className="font-semibold">Daily check-in · +5</p>

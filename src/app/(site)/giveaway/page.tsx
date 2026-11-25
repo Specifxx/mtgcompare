@@ -40,10 +40,10 @@ export default function GiveawayPage() {
   return (
     <main className="mx-auto max-w-4xl px-4 py-8">
       <section className="gw-hero relative overflow-hidden rounded-3xl border border-line p-5 sm:p-8">
-        <div className="grid items-start gap-6 sm:grid-cols-[200px_1fr]">
+        <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-6 sm:grid-cols-[200px_minmax(0,1fr)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={G.imageUrl} alt={G.prize} width={200} height={200} className="gw-prize mx-auto rounded-xl bg-white object-contain p-2 shadow-lift" loading="eager" />
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-strong">Giveaway · free to enter · worldwide</p>
             <h1 className="mt-1 font-display text-3xl font-extrabold leading-tight sm:text-4xl">{G.title}</h1>
             <p className="mt-2 text-muted">{G.prize}. Posted anywhere, on us. Every point you earn is one ticket in the draw.</p>
