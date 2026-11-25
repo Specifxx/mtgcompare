@@ -90,6 +90,7 @@ export const PLACEMENTS = [
   "bf-dearest", // the same pages: "Most expensive sealed in stock", each row's eBay search
   "bf-older", // the same pages: "Older sets still in stock", each row's eBay search
   "bf-graded", // the same pages: "Graded chase cards on eBay", the graded searches
+  "best-basket", // /[region]/best-basket (lib/basket-server.ts, 2026-11-25): a Premium member's store-by-store plan, each line's buy link
   "bf-drops", // the Black Friday / Cyber Monday "furthest under their own price" list: each line's store buy button and its eBay search
   // The highlighted eBay button of a POPULAR product or set (lib/popular.ts HOT_SETS: 30th Celebration first): eBay's blue
   // search button inside a strip's own top line (EbayStrip `highlight`), and the compact CTA that strip becomes. One placement

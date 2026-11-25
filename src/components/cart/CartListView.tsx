@@ -115,6 +115,13 @@ export function CartListView() {
   const totals = new Map<string, number>();
   for (const l of lines) if (!soldOutId(l)) totals.set(l.currency, (totals.get(l.currency) ?? 0) + (checks[l.id]?.priceCents ?? l.priceCents) * l.qty);
   const items = lines.reduce((s, l) => s + l.qty, 0);
+  // Best Basket (2026-11-25): offered once the list holds two or more products from one region's product pages.
+  const byRegion = new Map<string, Set<string>>();
+  for (const l of lines) {
+    const m = /^\/(au|nz|us|uk|ca|eu|sg)\/p\/([a-z0-9-]+)/.exec(l.page ?? "");
+    if (m) byRegion.set(m[1], (byRegion.get(m[1]) ?? new Set()).add(m[2]));
+  }
+  const basketRegion = [...byRegion].filter(([, v]) => v.size >= 2).sort((a, b) => b[1].size - a[1].size)[0]?.[0] ?? null;
 
   return (
     <div className="ce-cart-page">
@@ -133,6 +140,14 @@ export function CartListView() {
             : "Prices are as they were when you added them."}{" "}
         Each store is its own checkout, paid on the store&apos;s own site (we never take payment). The store charges its live price and postage, and opening a store&apos;s cart replaces anything already in your cart there.
       </p>
+
+      {basketRegion && (
+        <p className="ce-cart-note">
+          <a className="ce-cart-btn" href={`/${basketRegion}/best-basket`}>
+            Find the cheapest way to buy all of these
+          </a>
+        </p>
+      )}
 
       {groups.map((g) => {
         const live = (l: CartLine) => checks[l.id];
