@@ -64,8 +64,8 @@ export default async function Landing() {
   // newest sets' sealed products, from the same files); its eBay half is fetched in the browser.
   const [initialPicks, tcgTiles] = await Promise.all([regionPicks(X_DEFAULT_REGION).catch(() => []), landingTcgTiles().catch(() => [])]);
   return (
-    <div>
-      <div className="page pt-4">
+    <div className="home-flow">
+      <div className="home-new page pt-4">
         <NewCardsStrip />
       </div>
       {/* The hero (owner, 2026-11-13: "get rid of the products on the hero"; it reverses the 2026-11-08 featured cards): the words,
@@ -90,11 +90,11 @@ export default async function Landing() {
           </form>
         </div>
         {/* The region row, with flags (owner, 2026-11-02): picks in place, like the header's switcher. */}
-        <RegionChips className="rise mt-6 justify-center" style={riseAt(3)} />
+        <RegionChips className="hero-regions rise mt-6 justify-center" style={riseAt(3)} />
         <SoftWaysIn formId="landing-search" links={HERO_LINKS} />
       </Hero>
       {/* The giveaway, while it is open (owner, 2026-11-22: "feature it on our homepage"). */}
-      <div className="page">
+      <div className="home-give page">
         <SignInSlides surface="home" variant="banner" fallback={<GiveawayHomeBanner />} />
       </div>
 
@@ -102,7 +102,7 @@ export default async function Landing() {
           stocked. The paragraph on how stores are ranked and the "Coming soon" block that sat above them are gone: the footer says
           how the ranking works and links /about; pre-orders are the hero's sixth tile, and the next set's hub is in the Deals menu on
           every page and is the region home's pill and tab. Everything here is server-rendered. */}
-      <div className="reveal mt-6 sm:mt-10">
+      <div className="home-shelf reveal mt-6 sm:mt-10">
         <HomeRegionGrid initial={initialPicks} />
       </div>
 
