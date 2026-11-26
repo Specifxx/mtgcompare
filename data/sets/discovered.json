@@ -10,7 +10,10 @@
       "collector"
     ],
     "scryfallType": "expansion",
-    "firstSeen": "2026-11-03"
+    "firstSeen": "2026-11-03",
+    "shortNames": [
+      "Darkhold Destiny"
+    ]
   },
   {
     "code": "nau",
@@ -23,6 +26,10 @@
       "collector"
     ],
     "scryfallType": "expansion",
-    "firstSeen": "2026-11-03"
+    "firstSeen": "2026-11-03",
+    "shortNames": [
+      "Nauctis",
+      "The Sunken Realm"
+    ]
   }
 ]

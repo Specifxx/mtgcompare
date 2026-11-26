@@ -9,7 +9,7 @@
 // (refresh the live pages).
 process.env.MTGCOMPARE_SCRIPT = "1";
 
-import { appendFileSync } from "node:fs";
+import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { runImport } from "../src/lib/importer";
 import { prisma } from "../src/lib/db";
 import { purgeCutoff } from "../src/lib/ebay-context";
@@ -101,11 +101,31 @@ async function purgeEbayListings(): Promise<string> {
   }
 }
 
+/** The job summary's section for pre-orders that named no known set: the titles, grouped by store count, at most 40. */
+function unknownPreorderLines(list: { store: string; market: string; title: string }[]): string[] {
+  if (!list.length) return [];
+  const stores = new Set(list.map((u) => u.store)).size;
+  return [
+    `### Pre-orders naming no set we know (${list.length} titles, ${stores} stores)`,
+    `A new set Scryfall has not listed yet, or a spelling our set names miss. data/sets/unknown-preorders.json; set discovery reads it.`,
+    ``,
+    ...list.slice(0, 40).map((u) => `- ${u.market} \`${u.store}\`: ${u.title}`),
+    ``,
+  ];
+}
+
 async function main() {
   const only = opt("only")?.split(",").map((s) => (s.length === 2 ? s.toUpperCase() : s));
   const summary = await runImport({ only, concurrency: Number(opt("concurrency") ?? 3) });
   const purged = await purgeEbayListings();
   console.log(purged);
+  // Pre-orders naming no known set (lib/importer.ts noteUnknownPreorder): the next set discovery reads them as the stores' evidence
+  // (lib/set-discovery.ts candidates()). Written on a full run only, so a partial run never erases another store's evidence; it
+  // rides the data commit (scripts/publish-public-data.sh commits data/sets/).
+  if (!only?.length) {
+    mkdirSync("data/sets", { recursive: true });
+    writeFileSync("data/sets/unknown-preorders.json", JSON.stringify(summary.unknownPreorders, null, 2) + "\n");
+  }
   const reval = await revalidate();
   const sitemapProblem = (reval === "ok" || reval === FILES_RELEASE) && !only ? await checkLiveSitemap() : null;
 
@@ -137,6 +157,7 @@ async function main() {
     `eBay listings: ${purged}`,
     `Page refresh: ${reval}`,
     ``,
+    ...unknownPreorderLines(summary.unknownPreorders),
     summary.failed.length ? `### Not read this run (${summary.failed.length}) — their previous rows were kept` : ``,
     ...summary.failed.map((f) => `- ${f.market} \`${f.key}\`: ${f.error}`),
   ];
