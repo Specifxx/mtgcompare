@@ -1,0 +1,42 @@
+# Stray paths: a pull request may not add or change files that are a thread's or a workflow's leftovers rather than the app
+# (DECISIONS.md 2026-11-26 "Stray files stay out of pull requests"). Threads share claude/* branches, and probes, research
+# sweeps and evals commit their output to the branch they ran on, so that output rode into unrelated pull requests.
+# The same file is in every repository; only STRAY_EXTRA differs. Deleting a stray file is always allowed.
+# A pull request that really means to change one of these paths gets the label `paths-ok` (and says why in its body).
+name: Stray paths
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  stray-paths:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Refuse research, probe, eval and run output
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'paths-ok') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          # Repository-specific additions (extended regex, one alternative per |), empty when none.
+          STRAY_EXTRA: "^data/public/" # data/public/ is written by this repository's workflows only
+        run: |
+          deny='^(research|probe|assets-candidates)/|^scripts/scan-eval/results[^/]*/|(^|/)qa-(state|report)\.json$|\.bundle$|(^|/)\.env(\.[^/]*)?$|^\.claude/settings\.local\.json$|(^|/)(node_modules|\.next)/'
+          [ -n "$STRAY_EXTRA" ] && deny="$deny|$STRAY_EXTRA"
+          gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/files" --jq '.[] | select(.status != "removed") | .filename' > files.txt
+          hits=$(grep -E "$deny" files.txt | grep -vE '\.env\.example$' || true)
+          if [ -n "$hits" ]; then
+            {
+              echo "### This pull request carries files that do not belong in it"
+              echo
+              echo "$hits" | sed 's/^/- `/; s/$/`/'
+              echo
+              echo "They are usually a probe's, sweep's or eval's output committed to a shared claude/* branch. Drop them"
+              echo "(git rm --cached, or rebuild the branch from main), or add the label \`paths-ok\` if the change is meant."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::Stray files in this pull request:"; echo "$hits"
+            exit 1
+          fi
+          echo "$(wc -l < files.txt) files checked, none stray."
