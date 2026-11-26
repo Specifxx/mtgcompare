@@ -8,6 +8,7 @@
 // only to a visitor who already answered that one. If RiftCompare can't be reached the box is simply not drawn.
 import { useEffect, useState, type CSSProperties } from "react";
 import { track } from "@/lib/track";
+import { readStored } from "@/lib/premium-member";
 import { TOOL_INTEREST_KEY } from "./ToolInterest";
 
 export const PULSE_API = "https://riftcompare.com/api/sentiment";
@@ -90,7 +91,8 @@ export function CollectorPulse({ productId, productName, className }: { productI
       const r = await fetch(PULSE_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product: productId, choice: next }),
+        // A signed-in member's answer also earns a community point (RiftCompare lib/contributions.ts); the answer stays anonymous.
+        body: JSON.stringify({ product: productId, choice: next, ...(readStored()?.t ? { token: readStored()!.t } : {}) }),
       });
       const d = (await r.json().catch(() => ({}))) as { pulse?: Pulse; mine?: Choice | null; error?: string };
       if (!r.ok) throw new Error(d.error ?? "Couldn't save your answer.");

@@ -34,6 +34,7 @@ const WAYS = [
   { pts: `+${BONUS_POINTS}`, title: "Free bonus", text: "One tap for every account. Premium members get it automatically." },
   { pts: `+${CHECKIN_POINTS}`, title: "Check in daily", text: "One tap a day while the giveaway is open. It adds up fast." },
   { pts: `+${REFERRAL_POINTS}`, title: "Invite friends", text: `Each friend who joins with your link and confirms their email, up to ${MAX_REFERRALS}. ${STAR_REFERRAL_POINTS} for a friend who takes Premium or checks in on ${STAR_FRIEND_CHECKINS} days.` },
+  { pts: "+1", title: "Help the community", text: "Each deal you vote hot or cold or flag as gone, and each collector pulse answer, signed in on any of our card sites. Up to 5 a day." },
 ];
 
 export default function GiveawayPage() {
@@ -62,7 +63,7 @@ export default function GiveawayPage() {
 
       <section className="mt-10">
         <h2 className="text-xl font-semibold">How to earn points</h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {WAYS.map((w) => (
             <div key={w.title} className="card rounded-2xl border border-line bg-surface p-4">
               <p className="text-2xl font-extrabold text-brand-strong">{w.pts}</p>
@@ -122,7 +123,7 @@ export default function GiveawayPage() {
             address and press &quot;Enter the giveaway&quot; on this page. One account per person. Each account earns {ENTRY_POINTS} points for
             entering, a {BONUS_POINTS}-point bonus (rule 2), {CHECKIN_POINTS} points for each day it checks in on this page while the giveaway is open
             (one a day, by Sydney date), and {REFERRAL_POINTS} points for each friend who creates a new account with its invite link during the
-            giveaway and confirms their email, up to {MAX_REFERRALS} friends. A friend counts {STAR_REFERRAL_POINTS} points instead of {REFERRAL_POINTS} once they also have Premium or have checked in on {STAR_FRIEND_CHECKINS} days of this giveaway, so a friend&apos;s free activity counts exactly as much as a friend&apos;s purchase. Points made with more than one account by the same person, invites to your
+            giveaway and confirms their email, up to {MAX_REFERRALS} friends. A friend counts {STAR_REFERRAL_POINTS} points instead of {REFERRAL_POINTS} once they also have Premium or have checked in on {STAR_FRIEND_CHECKINS} days of this giveaway, so a friend&apos;s free activity counts exactly as much as a friend&apos;s purchase. While the giveaway is open, an account signed in on any of our card sites also earns community points: 1 for each deal it votes hot or cold or flags as gone, 1 for each collector pulse answer and 3 for each pull log, each counted once, at most 5 a day (Sydney date). Points made with more than one account by the same person, invites to your
             own or fake accounts, and points made by automated means are void, and we may remove them.
           </li>
           <li>
