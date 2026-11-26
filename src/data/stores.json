@@ -4083,6 +4083,17 @@
     ]
   },
   {
+    "key": "nerdbank",
+    "name": "Spielewelt",
+    "base": "https://nerdbank.de",
+    "market": "EU",
+    "platform": "shopify",
+    "country": "DE",
+    "collections": [
+      "magic-the-gathering"
+    ]
+  },
+  {
     "key": "nextgentcg",
     "name": "NextGen TCG",
     "base": "https://nextgen-tcg.de",
