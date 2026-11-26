@@ -51,6 +51,7 @@ export function PriceAlertForm({
   buttonClassName,
   summary = "Email me when the price drops",
   prominent = false,
+  onCreated,
 }: {
   /** this site's key in the alert service ("mtg", "gundam", …) */
   site: string;
@@ -64,6 +65,8 @@ export function PriceAlertForm({
   summary?: string;
   /** a real button (the site's `buttonClassName`) with a bell, for the spot beside the best price; the quiet link otherwise */
   prominent?: boolean;
+  /** called once an alert is saved (the after-buy offer counts it) */
+  onCreated?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<State>({ status: "idle" });
@@ -85,7 +88,10 @@ export function PriceAlertForm({
         body: JSON.stringify({ site, productId, region, email: String(f.get("email") ?? ""), weekly, targetCents }),
       });
       const j = (await r.json().catch(() => ({}))) as { ok?: boolean; status?: string; error?: string };
-      if (r.ok && j.ok) track("alert_created", { region, weekly, prominent });
+      if (r.ok && j.ok) {
+        track("alert_created", { region, weekly, prominent });
+        onCreated?.();
+      }
       setState(r.ok && j.ok ? { status: "done", confirm: j.status !== "active", weekly } : { status: "error", message: j.error || "Couldn't save your alert. Please try again." });
     } catch {
       setState({ status: "error", message: "Couldn't save your alert. Check your connection and try again." });

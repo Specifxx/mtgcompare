@@ -2967,6 +2967,16 @@ runner because the container cannot reach store hosts) kept the ones with 3+ sea
 was left out: same stock as spielewelt.de (one stock, two domains counts once). No existing store changed. Prices stay
 in EUR, never converted.
 
+## After a buy click, one price alert offer (2026-11-26, COO: compounding plan move 3)
+
+Someone who clicks through to a store and comes back to this tab has not necessarily bought. `AfterBuyAlert` (product page only)
+asks once: "Not buying today? We can email you if it gets cheaper", with the ordinary price alert (one tap when signed in). It
+keeps the page budget: it shows only after the visitor's own buy click (OutboundLink dispatches `buyclick`) and only once they
+are back on this tab, never on load; it is the visit's one prompt (`claimPromptSlot`); ✕ silences it for 7 days and a created
+alert for 30; it is never a modal: an inline card under the price table on phones, a corner card from 1024px. Products with no
+price today get none. Counted as `after_buy_alert` {k: shown|created|close}; the number is alerts created per 100 buy clickers on
+product pages, reported in Owned Audience's Monday self-review. `tests/after-buy-alert.test.ts`.
+
 ## 2026-11-26 — The old rarities post goes to the rarity guide; the pack-count guide names its products
 
 **Why (Search Recovery, Dex and MTG half-share to 21 Dec):** Search Console, 90 days to 23 Nov. The old singles site's
