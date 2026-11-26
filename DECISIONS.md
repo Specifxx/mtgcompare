@@ -3050,3 +3050,14 @@ before every import, and Nauctis (498 offers) and Darkhold Destiny (459) were li
   now makes the morning run's data commit a release too. The 12-hour build gate is unchanged and still decides; inside it the
   commit rides the next release. This happens a handful of times a year, and on that day the evening release may fall inside the
   gate and ride the next morning's (no extra builds; one set of prices a few hours later).
+## 2026-11-26: The giveaway strip on the home and product pages
+
+The owner asked to surface the Star Trek giveaway (closes 14 Dec) and the daily check-in on the home page and product pages, with
+a clear referral invite link and no display ads. `components/giveaway/GiveawayStrip.tsx` is one inline card, never a pop-up or a
+second prompt. While the giveaway is open it is the home page's one promo banner, for visitors signed in or out, and the sign-in
+slides return when it closes; the old `GiveawayHomeBanner` is gone. On the product page it sits under the price table, after the
+collector pulse, and draws nothing once the giveaway closes. Signed out, it shows the rules' own numbers from `lib/giveaway.ts`
+(sign in 50 = entry 10 + free bonus 40, check-in +5, each friend +25), a sign-in button and "Get your invite link" (sign in, then
+`/giveaway#invite`). Signed in, it shows the account's points, the check-in button, the free bonus if unclaimed, and the invite link
+with Copy, through the same `giveawayCall` as `/giveaway`. It reads RiftCompare at most once every 10 minutes per tab
+(sessionStorage), so browsing product pages costs no call per page. The rules are unchanged. `tests/giveaway-strip.test.ts`.

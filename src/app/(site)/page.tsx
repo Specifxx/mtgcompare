@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { SignInSlides } from "@/components/account/SignInSlides";
-import { GiveawayHomeBanner } from "@/components/giveaway/GiveawayHomeBanner";
+import { GiveawayStrip } from "@/components/giveaway/GiveawayStrip";
 import { Icon } from "@/components/Icon";
 import { SoftSideAds } from "@/components/SideAds";
 import { SoftGutterAds } from "@/components/GutterAds";
@@ -95,7 +95,9 @@ export default async function Landing() {
       </Hero>
       {/* The giveaway, while it is open (owner, 2026-11-22: "feature it on our homepage"). */}
       <div className="home-give page">
-        <SignInSlides surface="home" variant="banner" fallback={<GiveawayHomeBanner />} />
+        {/* While it is open (owner, 2026-11-26) the giveaway strip is the home page's one promo banner, signed in or out, with the
+            check-in and the invite link; the sign-in slides come back once it closes. */}
+        <GiveawayStrip surface="home" fallback={<SignInSlides surface="home" variant="banner" />} />
       </div>
 
       {/* The products, straight under the hero (owner, 2026-11-13: "the product's very easy to access"): ten of the region's most

@@ -6,7 +6,7 @@ import Link from "@/components/Link";
 import { cache } from "react";
 import type { Metadata } from "next";
 import { SignInSlides } from "@/components/account/SignInSlides";
-import { GiveawayHomeBanner } from "@/components/giveaway/GiveawayHomeBanner";
+import { GiveawayStrip } from "@/components/giveaway/GiveawayStrip";
 import { Ago } from "@/components/Ago";
 import { RecentlyViewed } from "@/components/Recent";
 import { NoPreFooter } from "@/components/Ebay";
@@ -262,7 +262,9 @@ export default async function RegionHome({ params }: { params: { region: string 
       <div className="home-flow page">
         {/* The giveaway, while it is open (owner, 2026-11-22: "feature it on our homepage"). */}
         <div className="home-give">
-          <SignInSlides surface="home" variant="banner" fallback={<GiveawayHomeBanner />} />
+          {/* While it is open (owner, 2026-11-26) the giveaway strip is the home page's one promo banner, signed in or out, with the
+            check-in and the invite link; the sign-in slides come back once it closes. */}
+        <GiveawayStrip surface="home" fallback={<SignInSlides surface="home" variant="banner" />} />
         </div>
         <NewCardsStrip className="home-new mt-6" />
         {overview.products === 0 ? (

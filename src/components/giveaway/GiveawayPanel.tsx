@@ -102,6 +102,11 @@ export function GiveawayPanel({
     }
   }
 
+  // A strip's "Get your invite link" lands on /giveaway#invite: the block exists only once the account has loaded.
+  useEffect(() => {
+    if (me?.entered && location.hash === "#invite") document.getElementById("invite")?.scrollIntoView({ block: "center" });
+  }, [me?.entered]);
+
   useEffect(() => {
     if (!flash) return;
     const t = setTimeout(() => setFlash(null), 2400);
@@ -244,8 +249,8 @@ export function GiveawayPanel({
             )}
           </div>
 
-          {/* Invite friends */}
-          <div className="rounded-xl border border-line p-3 sm:col-span-2">
+          {/* Invite friends (#invite: the home and product pages' strip links here) */}
+          <div id="invite" className="scroll-mt-24 rounded-xl border border-line p-3 sm:col-span-2">
             <p className="font-semibold">
               Invite friends · +{me.referralPoints ?? 25} each, <span className="text-brand-strong">+{me.starReferralPoints ?? 100}</span> for a star friend
             </p>
