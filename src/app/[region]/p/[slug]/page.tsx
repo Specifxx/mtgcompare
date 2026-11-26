@@ -27,6 +27,7 @@ import { amazonCarries } from "@/lib/amazon";
 import { ReportPrice } from "@/components/ReportForms";
 import { PriceAlert } from "@/components/premium/PriceAlert";
 import { AfterBuyAlert } from "@/components/AfterBuyAlert";
+import { CollectorPulse } from "@/components/CollectorPulse";
 import { ToolInterest } from "@/components/ToolInterest";
 import { RestockAlert } from "@/components/premium/RestockAlert";
 import { ALERT_SITE_KEY } from "@/lib/alert-feed";
@@ -747,6 +748,9 @@ export default async function ProductPage({ params }: { params: { region: string
         />
         {/* Which RiftCompare tool to build here next: a one-tap demand test under the table, never by a price or in the quick view (2026-11-18). */}
         <ToolInterest page="product" className="mt-6" />
+        {/* Collector pulse (2026-11-26, community plan): buying / holding / skipping, the split shown from 10 answers. Shows only once
+            ToolInterest is answered until 5 Dec, so a visit meets one question at most. */}
+        <CollectorPulse productId={p.id} productName={p.name} className="mt-6" />
         {riftHref && (
           // The owner's other Pokémon site keeps what this one does not: TCGplayer's market price over time (lib/riftcompare.ts).
           <p className="mt-4 text-sm text-muted">

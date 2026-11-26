@@ -10,7 +10,7 @@ test("only the listed events reach Vercel Analytics; every other event name is d
   const list = /new Set\(\[([^\]]*\[[^\]]*\][^\]]*)\]\)/.exec(src)?.[1] ?? "";
   assert.deepEqual(
     [...list.matchAll(/"([a-z_]+)"/g)].map((m) => m[1]),
-    ["return_visit", "buy_click", "ebay_pop", "share", "share_visit", "share_unlock", "tool_interest", "alert_open", "alert_created", "weekly_signup", "after_buy_alert", "restock_signup", "nudge_eligible", "nudge_shown", "nudge_click", "hot_nudge", "ab_seen", "ab_paid", "ab_tcg", "ab_ebay", "ab_amazon", "ab_store", "ab_mini_tcg", "ab_mini_ebay"],
+    ["return_visit", "buy_click", "ebay_pop", "share", "share_visit", "share_unlock", "tool_interest", "pulse", "alert_open", "alert_created", "weekly_signup", "after_buy_alert", "restock_signup", "nudge_eligible", "nudge_shown", "nudge_click", "hot_nudge", "ab_seen", "ab_paid", "ab_tcg", "ab_ebay", "ab_amazon", "ab_store", "ab_mini_tcg", "ab_mini_ebay"],
   );
   assert.match(src, /if \(!SENT\.has\(name\)\) return;/);
 });
