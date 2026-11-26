@@ -45,6 +45,7 @@ import { hostOf, loadDenylist } from "./denylist";
 import { SOURCES, STORE_BY_KEY, isMarketplace, storeCurrency, type StoreConfig } from "./stores";
 import { isTcgImage, readTcgplayerCatalogue, tcgFeedProducts, tcgImageExists } from "./tcgplayer";
 import { writeTcgMarket } from "./tcg-market";
+import { PREORDER_WORDS, type PreorderTitle } from "./set-discovery";
 
 export interface ImportRow {
   identity: SealedIdentity;
@@ -188,6 +189,24 @@ function better(a: ImportRow, b: ImportRow): boolean {
   return a.priceCents < b.priceCents;
 }
 
+// Pre-orders that name no set we know (2026-11-26, owner: "new Magic sets go live the day pre-orders open"). A title refused as
+// "no-set" that says it is a pre-order is a set Scryfall's list has not given us yet, or a spelling of a new set our name does not
+// catch. The run collects them (capped), scripts/import.ts writes them to data/sets/unknown-preorders.json and the job summary, and
+// the next set discovery (lib/set-discovery.ts) reads them as stores' evidence. Never a product: they only report.
+const UNKNOWN_PREORDER_CAP = 500;
+let UNKNOWN_PREORDERS: PreorderTitle[] = [];
+
+/** The pre-order titles this process refused as naming no known set, deduplicated by store and title. */
+export function unknownPreorders(): PreorderTitle[] {
+  return UNKNOWN_PREORDERS;
+}
+
+function noteUnknownPreorder(store: StoreConfig, title: string): void {
+  if (UNKNOWN_PREORDERS.length >= UNKNOWN_PREORDER_CAP || !PREORDER_WORDS.test(title)) return;
+  if (UNKNOWN_PREORDERS.some((u) => u.store === store.key && u.title === title)) return;
+  UNKNOWN_PREORDERS.push({ store: store.key, market: store.market, title: title.slice(0, 200) });
+}
+
 export function rowsFromReads(store: StoreConfig, reads: CollectionRead[]): ImportRow[] {
   const best = new Map<string, ImportRow>();
   const seen = new Set<string>();
@@ -197,6 +216,7 @@ export function rowsFromReads(store: StoreConfig, reads: CollectionRead[]): Impo
       if (seen.has(p.id)) continue;
       seen.add(p.id);
       const id = identify(p.title, { strict });
+      if (id === "no-set") noteUnknownPreorder(store, p.title);
       if (!isIdentity(id)) continue;
       const price = priceOf(p, floorCents(id.type, store.market));
       if (!price) continue;
@@ -1035,6 +1055,8 @@ export interface ImportSummary {
   stats: number;
   // Per market for the stores; a marketplace gets its own row ("US · TCGplayer").
   byMarket: Record<string, { stores: number; ok: number; offers: number; inStock: number }>;
+  /** Pre-order titles that named no known set (noteUnknownPreorder). */
+  unknownPreorders: PreorderTitle[];
   minutes: number;
 }
 
@@ -1057,6 +1079,7 @@ export function sourcesFor(only?: string[]): StoreConfig[] {
 export async function runImport(opts: { only?: string[]; concurrency?: number } = {}): Promise<ImportSummary> {
   const t0 = Date.now();
   const now = new Date();
+  UNKNOWN_PREORDERS = [];
   const deny = await loadDenylist();
   DENIED = new Set(SOURCES.filter((s) => deny.has(hostOf(s.base))).map((s) => s.key));
   if (DENIED.size) console.log(`shared scam denylist: skipping ${[...DENIED].join(", ")}`);
@@ -1133,6 +1156,7 @@ export async function runImport(opts: { only?: string[]; concurrency?: number } 
     renamed,
     stats,
     byMarket,
+    unknownPreorders: [...UNKNOWN_PREORDERS],
     minutes: (Date.now() - t0) / 60000,
   };
 }

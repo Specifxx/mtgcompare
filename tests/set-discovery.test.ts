@@ -10,10 +10,14 @@ import {
   isUniversesBeyond,
   mergeDiscovered,
   nameInside,
+  PREORDER_WORDS,
   seriesOf,
   setSlug,
+  shortNames,
+  storesNaming,
   ubByFranchise,
   type DiscoveredSet,
+  type PreorderTitle,
   type ScryfallSet,
 } from "../src/lib/set-discovery";
 import { HAND_SETS, SETS } from "../src/lib/sets";
@@ -139,4 +143,62 @@ test("before previews, a set is Universes Beyond only when it opens with a known
   assert.equal(ubByFranchise("Marvel: Darkhold Destiny", HAND_SETS), true);
   assert.equal(ubByFranchise("Nauctis: The Sunken Realm", HAND_SETS), null);
   assert.equal(ubByFranchise("Secrets of Ravnica", HAND_SETS), null);
+});
+
+// ── Pre-orders the day they open (owner, 2026-11-26) ─────────────────────────────────────────────────────────────────────────
+
+test("a two-part name gives the short names stores use, unless another Magic set's name contains one", () => {
+  const all = [
+    sf("nau", "Nauctis: The Sunken Realm", "2027-02-05"),
+    sf("nac", "Nauctis: The Sunken Realm Commander", "2027-02-05", "commander", { parent_set_code: "nau" }),
+    sf("anau", "Nauctis: The Sunken Realm Art Series", "2027-02-05", "memorabilia"),
+    sf("mdd", "Marvel: Darkhold Destiny", "2027-04-09"),
+    sf("msh", "Marvel Super Heroes", "2026-06-26"),
+    sf("tdm", "Tarkir: Dragonstorm", "2025-04-11"),
+    sf("ktk", "Khans of Tarkir", "2014-09-26"),
+    sf("xyz", "Magic: Origins Remastered", "2027-03-01"),
+  ];
+  assert.deepEqual(shortNames("Nauctis: The Sunken Realm", "nau", all, KNOWN), ["Nauctis", "The Sunken Realm"]);
+  // "Marvel" is inside "Marvel Super Heroes": a bare "Marvel Play Booster Box" must not become Darkhold Destiny's.
+  assert.deepEqual(shortNames("Marvel: Darkhold Destiny", "mdd", all, KNOWN), ["Darkhold Destiny"]);
+  // "Tarkir" is inside "Khans of Tarkir", which no longer has a row of its own here but stores still sell.
+  assert.deepEqual(shortNames("Tarkir: Dragonstorm", "tdm", all, []), ["Dragonstorm"]);
+  // Generic words alone never name a set; a one-part name has no short name.
+  assert.deepEqual(shortNames("Magic: Origins Remastered", "xyz", all, []), []);
+  assert.deepEqual(shortNames("Lorwyn Eclipsed", "ecl", all, []), []);
+});
+
+test("candidates and the merge carry the short names into discovered.json", () => {
+  const all = [sf("nau", "Nauctis: The Sunken Realm", "2027-02-05")];
+  const { take } = candidates(all, KNOWN, TODAY);
+  assert.deepEqual(take[0].shortNames, ["Nauctis", "The Sunken Realm"]);
+  const next = mergeDiscovered([], take, new Map([["nau", false]]), new Set(["nau"]), new Set(), TODAY);
+  assert.deepEqual(next[0].shortNames, ["Nauctis", "The Sunken Realm"]);
+});
+
+test("a set beyond the window is taken only when two stores already sell its pre-orders", () => {
+  const all = [sf("far", "Dawn of Zephyr", "2027-09-01")];
+  assert.equal(candidates(all, KNOWN, TODAY).take.length, 0);
+  const one: PreorderTitle[] = [{ store: "a", market: "US", title: "Dawn of Zephyr Play Booster Box (Pre-Order)" }];
+  assert.equal(candidates(all, KNOWN, TODAY, one).take.length, 0);
+  const two: PreorderTitle[] = [...one, { store: "b", market: "UK", title: "MTG - Dawn Of Zephyr - Collector Booster Box [PREORDER]" }];
+  assert.deepEqual(candidates(all, KNOWN, TODAY, two).take.map((c) => c.set.code), ["far"]);
+  assert.equal(storesNaming("Dawn of Zephyr", two), 2);
+  // Over a year out: never, whatever the stores say.
+  assert.equal(candidates([sf("way", "Dawn of Zephyr", "2028-01-01")], KNOWN, TODAY, two).take.length, 0);
+});
+
+test("pre-order words: English and the languages our stores write, never an ordinary title", () => {
+  for (const t of ["Nauctis Play Booster Box (Pre-Order)", "[PREORDER] Bundle", "Vorbestellung: MTG - Nauctis", "(PRÉCOMMANDE) Deck", "Booster (Preventa)", "Box - Ships Feb 6", "Play Booster Box - Release Date 5/2/27"]) {
+    assert.ok(PREORDER_WORDS.test(t), t);
+  }
+  for (const t of ["Bloomburrow Play Booster Box", "Foundations Bundle", "Commander Deck - Presence of Mind"]) assert.ok(!PREORDER_WORDS.test(t), t);
+});
+
+test("every discovered set's short names are its own: no hand-written set's name contains one", () => {
+  for (const s of SETS.filter((x) => x.shortNames?.length)) {
+    for (const n of s.shortNames!) {
+      for (const k of SETS) if (k.code !== s.code) assert.ok(!nameInside(n, k.name), `${s.code} "${n}" is inside ${k.name}`);
+    }
+  }
 });

@@ -39,6 +39,11 @@ export interface DiscoveredSet {
   scryfallType: string;
   /** First day an import saw it (YYYY-MM-DD). */
   firstSeen: string;
+  /**
+   * Shorter names stores title the set by, taken from its own name (shortNames()): "Nauctis" for "Nauctis: The Sunken Realm",
+   * "Darkhold Destiny" for "Marvel: Darkhold Destiny". Only ones no other Magic set's name contains.
+   */
+  shortNames?: string[];
 }
 
 /** How far ahead a set is taken: stores open pre-orders two to three months out; further ahead a page would have no prices. */
@@ -119,6 +124,7 @@ export function boostersOf(s: Pick<ScryfallSet, "set_type" | "name">): BoosterLi
 export interface Candidate {
   set: ScryfallSet;
   name: string;
+  shortNames?: string[];
 }
 
 export interface Skip {
@@ -135,20 +141,24 @@ export function candidates(
   all: readonly ScryfallSet[],
   known: readonly { code: string; name: string; slug: string }[],
   today: string,
+  preorderTitles: readonly PreorderTitle[] = [],
 ): { take: Candidate[]; skipped: Skip[] } {
   const from = addDays(today, -DISCOVER_BEHIND_DAYS);
-  const to = addDays(today, DISCOVER_AHEAD_DAYS);
+  const near = addDays(today, DISCOVER_AHEAD_DAYS);
+  const far = addDays(today, PREORDER_AHEAD_DAYS);
   const codes = new Set(known.map((k) => k.code));
   const slugs = new Set(known.map((k) => k.slug));
   const take: Candidate[] = [];
   const skipped: Skip[] = [];
   for (const s of all) {
     const date = s.released_at ?? "";
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date < from || date > to) continue;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date < from || date > far) continue;
     if (s.digital || s.parent_set_code) continue;
     const code = s.code.toLowerCase();
     if (codes.has(code)) continue;
     const name = cleanSetName(s.name);
+    // Beyond DISCOVER_AHEAD_DAYS only when stores already sell its pre-orders (titles the last import could file under no set).
+    if (date > near && storesNaming(name, preorderTitles) < PREORDER_MIN_STORES) continue;
     if (!SEALED_TYPES.has(s.set_type)) {
       if (s.set_type === "draft_innovation" && KNOWN_INNOVATION.test(name)) {
         // taken below
@@ -170,9 +180,71 @@ export function candidates(
       skipped.push({ code, name, why: `its name is part of ${inside.name}'s: add it to lib/sets.ts by hand, with a pattern` });
       continue;
     }
-    take.push({ set: { ...s, code }, name });
+    const short = shortNames(name, code, all, known);
+    take.push({ set: { ...s, code }, name, ...(short.length ? { shortNames: short } : {}) });
   }
   return { take, skipped };
+}
+
+// ── Pre-orders that name no set we know (the importer's report, data/sets/unknown-preorders.json) ──────────────────────────
+
+/** A store title the last import refused as naming no known set although it says it is a pre-order. */
+export interface PreorderTitle {
+  store: string;
+  market: string;
+  title: string;
+}
+
+/** Stores open pre-orders two to three months out, rarely more; a set further ahead is taken only on the stores' evidence. */
+export const PREORDER_AHEAD_DAYS = 365;
+/** Distinct stores that must title a pre-order with a set's name before it counts as evidence. */
+export const PREORDER_MIN_STORES = 2;
+
+/** A title that says it is a pre-order (or a future ship or release date), in the languages our stores write. */
+export const PREORDER_WORDS =
+  /\bpre\s*-?\s*orders?\b|\bpre\s*-?\s*sale\b|\bpresale\b|\bvorbestell|\bpr[eé]\s*-?\s*commande\b|\bpreventa\b|\bprevendita\b|\bvoorverkoop\b|\bships?\s+(?:on\s+|in\s+)?(?:\d|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)|\brelease\s*(?:date|day)\b|\breleases?\s+(?:on\s+)?(?:\d|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)|\bcoming\s*soon\b/i;
+
+/** How many distinct stores title one of `titles` with `name` (its words, in order, together). */
+export function storesNaming(name: string, titles: readonly PreorderTitle[]): number {
+  const stores = new Set<string>();
+  for (const t of titles) if (nameInside(name, t.title)) stores.add(t.store);
+  return stores.size;
+}
+
+// Words that never name one set on their own: a short name made only of these is refused.
+const GENERIC = new Set(
+  "magic gathering mtg commander commanders masters master remastered horizons modern edition editions collection collections jumpstart universes beyond core set sets booster boosters bundle deck decks legends legend duel battle game games edition origins return returns rise war age dawn new".split(
+    " ",
+  ),
+);
+
+/**
+ * The shorter names stores title a set by: the parts of a two-part name ("Nauctis: The Sunken Realm" → "Nauctis", "The Sunken
+ * Realm"; "Marvel: Darkhold Destiny" → "Darkhold Destiny"). Refuse rather than guess: a part is kept only when it has five letters
+ * or more, is not only generic words, no other Magic set's name (Scryfall's whole list, released or not, and every hand-written
+ * set) contains it, and it contains no other set's name. "Marvel" is inside "Marvel Super Heroes", "Tarkir" inside "Khans of
+ * Tarkir": both refused, since a bare "Marvel Play Booster Box" or "Tarkir Booster Box" would then be filed under the wrong set.
+ */
+export function shortNames(
+  name: string,
+  code: string,
+  all: readonly ScryfallSet[],
+  known: readonly { code: string; name: string }[] = [],
+): string[] {
+  const parts = name.split(/\s*:\s*/).map((p) => p.trim()).filter(Boolean);
+  if (parts.length !== 2) return [];
+  const others = [
+    ...all.filter((s) => s.code.toLowerCase() !== code && s.parent_set_code?.toLowerCase() !== code).map((s) => cleanSetName(s.name)),
+    ...known.filter((k) => k.code !== code).map((k) => k.name),
+  ].filter((o) => !nameInside(name, o)); // "Nauctis: The Sunken Realm Art Series" and the like are this set's own side products
+  const out: string[] = [];
+  for (const part of parts) {
+    const w = words(part);
+    if (!w.length || w.join("").length < 5 || w.every((x) => GENERIC.has(x))) continue;
+    if (others.some((o) => nameInside(part, o) || nameInside(o, part))) continue;
+    out.push(part);
+  }
+  return out;
 }
 
 /**
@@ -190,7 +262,7 @@ export function mergeDiscovered(
 ): DiscoveredSet[] {
   const prev = new Map(previous.map((d) => [d.code, d]));
   const out = new Map<string, DiscoveredSet>();
-  for (const { set, name } of take) {
+  for (const { set, name, shortNames: short } of take) {
     const before = prev.get(set.code);
     const ub = universesBeyond.get(set.code);
     // Unknown (no previewed cards yet, or the lookup failed): keep what an earlier read found.
@@ -205,6 +277,7 @@ export function mergeDiscovered(
       ...(boosters ? { boosters } : {}),
       scryfallType: set.set_type,
       firstSeen: before?.firstSeen ?? today,
+      ...(short?.length ? { shortNames: short } : {}),
     });
   }
   // Out of the window (it released over DISCOVER_BEHIND_DAYS ago) but still listed by Scryfall: keep it, the set page stays.

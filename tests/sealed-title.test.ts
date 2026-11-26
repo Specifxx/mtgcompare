@@ -676,3 +676,14 @@ test("2026-11-23 audit: take-home Prerelease kits, Scene Box contents and villai
   // A kit with boosters the store added is the store's bundle.
   assert.equal(identify("Star Trek - Take-Home Prerelease Kit (Includes TWO Additional Star Trek Play Boosters)"), "multiple");
 });
+
+test("a discovered set's short names file the titles stores shorten it to, and never another set's (2026-11-26)", () => {
+  assert.equal(key("MTG Nauctis Play Booster Box (Pre-Order)"), "nau|play-booster-box");
+  assert.equal(key("Nauctis: The Sunken Realm Play Booster Box"), "nau|play-booster-box");
+  assert.equal(key("Darkhold Destiny Collector Booster Box - Preorder"), "mdd|collector-booster-box");
+  assert.equal(key("Nauctis Commander Deck - Merfolk Regiment"), key("Nauctis: The Sunken Realm Commander Deck: Merfolk Regiment"));
+  assert.equal(key("Darkhold Destiny Commander Deck - Lords of Hel"), key("Marvel: Darkhold Destiny Commander Deck - Lords of Hel"));
+  // "Marvel" alone is no set: Marvel Super Heroes and Marvel's Spider-Man keep theirs.
+  assert.equal(key("Marvel Play Booster Box"), "REJECT:no-set");
+  assert.equal(key("Magic the Gathering Marvel Super Heroes Play Booster Box"), "msh|play-booster-box");
+});
