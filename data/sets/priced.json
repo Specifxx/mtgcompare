@@ -9,7 +9,7 @@
   "blb": ["AU","CA","EU","NZ","SG","UK","US"],
   "bro": ["AU","CA","EU","NZ","UK","US"],
   "c18": ["CA","UK","US"],
-  "c19": ["AU","CA","SG","US"],
+  "c19": ["AU","CA","EU","SG","US"],
   "clb": ["AU","CA","EU","SG","UK","US"],
   "cmm": ["AU","CA","EU","SG","UK","US"],
   "cmr": ["AU","CA","EU","SG","UK","US"],
