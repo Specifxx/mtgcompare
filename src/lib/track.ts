@@ -14,6 +14,7 @@ const SENT: ReadonlySet<string> = new Set([
   "share_visit",
   "share_unlock", // the share-for-a-deal test (2026-11-18)
   "tool_interest", // which RiftCompare tool to build here next (components/ToolInterest.tsx, 2026-11-18)
+  "pulse", // collector pulse answers (components/CollectorPulse.tsx, 2026-11-26): {k: buy|hold|skip}, one per answer
   "alert_open",
   "alert_created",
   "weekly_signup",

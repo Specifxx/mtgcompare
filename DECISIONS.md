@@ -3017,3 +3017,14 @@ Booster Box (`#collector` picks the second, so the page never reads the URL's qu
   the box product page's "Is this box worth opening?" chip); no prompt.
 
 First sets: Edge of Eternities, Lorwyn Eclipsed, Star Trek. More follow as their treatments are mapped to collector numbers.
+
+## 2026-11-26 — Collector pulse under the price table
+
+The owner (26 Nov) wants a community that talks about us. Move 1 of the community plan: one inline question under the
+product page's price table, "what are you doing with this today?" (Buying, Holding, Skipping), stored by RiftCompare's
+`/api/sentiment` (no sign-in, no address kept; RiftCompare DECISIONS.md "Collector pulse"). The split shows from 10
+answers, and the weekly market posts quote it ("62% of collectors are holding Foundations boxes"), data nobody else has.
+It never orders a price, never sits by a buy button or in the quick view. One question a visit: until ToolInterest's
+test is read (4 Dec) the pulse shows only to visitors who already answered that one; from 5 Dec to everyone
+(`components/CollectorPulse.tsx`). If RiftCompare is unreachable nothing is drawn. Read 9 Dec with the growth tests:
+keep if 2%+ of product viewers answer.
