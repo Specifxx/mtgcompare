@@ -10,15 +10,11 @@ on:
         description: "Candidate list"
         type: string
         default: research/eu-candidates-2026-11-26.json
-  push:
-    branches: ["claude/**"]
-    paths:
-      - "research/eu-candidates-*.json"
 permissions:
   contents: write
 jobs:
   probe:
-    if: startsWith(github.ref_name, 'claude/')
+    if: github.event_name == 'workflow_dispatch' && startsWith(github.ref_name, 'claude/')
     runs-on: ubuntu-latest
     timeout-minutes: 150
     defaults:
