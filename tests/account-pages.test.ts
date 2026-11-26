@@ -74,11 +74,12 @@ test("the slides sell the free account: no price, no Premium, nothing the copy r
     assert.doesNotMatch(c, /premium|\$|€|£|\d+%/i, c);
   }
   assert.match(src, /prefers-reduced-motion/);
-  // The home banner takes the giveaway banner's place, it doesn't add one.
+  // One promo banner on the home page: the giveaway strip while the giveaway is open, the slides after it (2026-11-26).
   for (const f of ["src/app/(site)/page.tsx", "src/app/[region]/page.tsx"]) {
     const page = read(f);
-    assert.match(page, /<SignInSlides surface="home" variant="banner" fallback=\{<GiveawayHomeBanner \/>\} \/>/, f);
-    assert.equal((page.match(/<GiveawayHomeBanner/g) ?? []).length, 1, f);
+    assert.match(page, /<GiveawayStrip surface="home" fallback=\{<SignInSlides surface="home" variant="banner" \/>\} \/>/, f);
+    assert.equal((page.match(/<SignInSlides/g) ?? []).length, 1, f);
+    assert.equal((page.match(/<GiveawayStrip/g) ?? []).length, 1, f);
   }
 });
 

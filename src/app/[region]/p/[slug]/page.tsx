@@ -28,6 +28,7 @@ import { ReportPrice } from "@/components/ReportForms";
 import { PriceAlert } from "@/components/premium/PriceAlert";
 import { AfterBuyAlert } from "@/components/AfterBuyAlert";
 import { CollectorPulse } from "@/components/CollectorPulse";
+import { GiveawayStrip } from "@/components/giveaway/GiveawayStrip";
 import { ToolInterest } from "@/components/ToolInterest";
 import { RestockAlert } from "@/components/premium/RestockAlert";
 import { ALERT_SITE_KEY } from "@/lib/alert-feed";
@@ -751,6 +752,8 @@ export default async function ProductPage({ params }: { params: { region: string
         {/* Collector pulse (2026-11-26, community plan): buying / holding / skipping, the split shown from 10 answers. Shows only once
             ToolInterest is answered until 5 Dec, so a visit meets one question at most. */}
         <CollectorPulse productId={p.id} productName={p.name} className="mt-6" />
+        {/* The giveaway (owner, 2026-11-26): inline under the table, never beside a buy button or above a price; nothing at all once it closes. */}
+        <GiveawayStrip surface="product" className="mt-6" />
         {riftHref && (
           // The owner's other Pokémon site keeps what this one does not: TCGplayer's market price over time (lib/riftcompare.ts).
           <p className="mt-4 text-sm text-muted">
