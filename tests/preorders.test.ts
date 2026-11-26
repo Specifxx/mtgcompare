@@ -37,6 +37,7 @@ import { TYPE_BY_KEY } from "../src/lib/sealed-title";
 import { SETS, SET_BY_CODE } from "../src/lib/sets";
 import { SITE_URL } from "../src/lib/site";
 import { staticSitemap } from "../src/lib/sitemap";
+import { PRICED_SETS } from "../src/lib/priced-sets";
 
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 
@@ -94,7 +95,7 @@ test("the pre-order page says PreOrder, never InStock, and uses its own placemen
 test("set page, release calendar and region home link the pre-order page", () => {
   assert.match(src("src/app/[region]/sets/[set]/page.tsx"), /preorderPath\(r\.region, s\.code\)/);
   assert.match(src("src/app/[region]/releases/page.tsx"), /preorderPath\(r\.region, s\.code\)/);
-  assert.match(src("src/app/[region]/page.tsx"), /openPreorderGuides\(\)/);
+  assert.match(src("src/app/[region]/page.tsx"), /openPreorderGuides\(undefined, r\.region\)/);
 });
 
 // ─── The release-date content merged into the page ─────────────────────────────────────────────────────────────────────────
@@ -418,6 +419,11 @@ test("automatic pages (2026-11-02): every set in sets.ts gets one, from a blank 
   const bySlug = new Map(SETS.map((s) => [s.slug, s]));
   try {
     assert.ok(!bySlug.has("nope"));
+    // No store prices it yet: no page and no link anywhere (lib/priced-sets.ts, owner 2026-11-26).
+    assert.equal(openPreorderGuides("2031-01-01").some((g) => g.set.code === "zzz"), false, "an unpriced set has no page");
+    assert.equal(preorderPath("au", "zzz", "2031-01-01"), null);
+    PRICED_SETS.zzz = ["AU"];
+    assert.equal(preorderPath("us", "zzz", "2031-01-01"), null, "nor in a market no store there prices it");
     const open = openPreorderGuides("2031-01-01");
     assert.ok(open.some((g) => g.set.code === "zzz"), "an upcoming set with no guide is open");
     assert.deepEqual(open.find((g) => g.set.code === "zzz")?.guide, blankGuide(fake));
@@ -430,6 +436,7 @@ test("automatic pages (2026-11-02): every set in sets.ts gets one, from a blank 
   } finally {
     SETS.pop();
     SET_BY_CODE.delete("zzz");
+    delete PRICED_SETS.zzz;
   }
   const page = readFileSync("src/app/[region]/preorders/[set]/page.tsx", "utf8");
   assert.match(page, /guide\.products\.length > 0 &&/, "no contents section without announced contents");

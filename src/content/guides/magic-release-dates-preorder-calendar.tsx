@@ -16,7 +16,7 @@ export function outline(r: RegionInfo, data: GuideData, now: Date = new Date()):
   const upcoming = sets.filter((s) => isPreorderSet(s.code, now)).reverse();
   const out = sets.filter((s) => !isPreorderSet(s.code, now));
   const counts = data.sets ?? {};
-  const pre = new Set(openPreorderGuides(data.today).map((g) => g.set.code));
+  const pre = new Set(openPreorderGuides(data.today, r.region).map((g) => g.set.code));
   const row = (s: (typeof sets)[number]) => ({
     key: s.code,
     th: <SetLink r={r} slug={s.slug}>{s.name}</SetLink>,

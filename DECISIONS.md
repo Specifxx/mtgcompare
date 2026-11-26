@@ -3050,3 +3050,13 @@ before every import, and Nauctis (498 offers) and Darkhold Destiny (459) were li
   now makes the morning run's data commit a release too. The 12-hour build gate is unchanged and still decides; inside it the
   commit rides the next release. This happens a handful of times a year, and on that day the evening release may fall inside the
   gate and ride the next morning's (no extra builds; one set of prices a few hours later).
+
+## 2026-11-26 — No pre-order page in a market no store prices the set in
+
+The owner (26 Nov): "Do not publish a set page with no prices." The set page already 404s with no listed product, but the automatic
+pre-order page (2026-11-02) and every link to it (menus, the home pill and banner, the release calendar, the set and product pages,
+the sitemap, hreflang) appeared for every upcoming set in every region, so a set Scryfall announced showed "No store we track lists it
+yet" until a store did, and Darkhold Destiny's Singapore page had no price at all. Now the export writes `data/sets/priced.json` (set
+code → the markets where at least one STORE prices it; TCGplayer is a marketplace and does not count) beside the snapshot, and
+`lib/priced-sets.ts` `setPricedIn` gates the page (a 404 until then, never a redirect: the URL comes back once priced) and every link.
+A set therefore goes live in a market on the first release after the first store there opens pre-orders, with that store's price.

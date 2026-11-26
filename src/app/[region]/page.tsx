@@ -86,7 +86,7 @@ export default async function RegionHome({ params }: { params: { region: string 
     tcgplayerTiles({ take: 12, minCents: FEATURE_MIN_USD_CENTS }).catch(() => []),
   ]);
   // The soonest upcoming set with a pre-order page: the hero's pill and the pre-order tab's "see all" go there.
-  const preorderGuide = openPreorderGuides()[0] ?? null;
+  const preorderGuide = openPreorderGuides(undefined, r.region)[0] ?? null;
   const storeCount = storesInMarket(r.market).length;
   // The newest released set leads, the set on pre-order second (release.ts featureOrder): a pre-order is never the first tile.
   const latestSets = featureOrder(SETS.filter((s) => bySet.has(s.code)).slice(0, 4).map((s) => s.code)).map((c) => SET_BY_CODE.get(c)!);
