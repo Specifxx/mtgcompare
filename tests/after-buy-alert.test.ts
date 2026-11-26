@@ -23,6 +23,10 @@ test("never a modal: inline on phones, a corner card from 1024px", () => {
   assert.match(src, /className="card relative mt-4 p-4 lg:fixed lg:bottom-4 lg:right-4/);
 });
 
+test("on phones it never shows above where the visitor is reading (no layout shift on return)", () => {
+  assert.match(src, /if \(!corner && \(spot\.current\?\.getBoundingClientRect\(\)\.top \?\? -1\) < 0\) return;/);
+});
+
 test("its events reach Vercel", () => {
   assert.match(fs.readFileSync("src/lib/track.ts", "utf8"), /"after_buy_alert",/);
 });

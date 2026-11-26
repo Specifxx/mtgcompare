@@ -46,6 +46,7 @@ export function AfterBuyAlert(props: {
   const [open, setOpen] = useState(false);
   const [done, setDone] = useState(false);
   const clicked = useRef(false);
+  const spot = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (props.priceCents == null) return; // nothing to drop from
@@ -54,6 +55,10 @@ export function AfterBuyAlert(props: {
       clicked.current = false;
       if (silentUntil() > Date.now()) return;
       if (document.querySelector("dialog[open]")) return;
+      // Phones and tablets draw it inline: never above where the visitor is reading, or it would push the page down on their
+      // return (Noor, 2026-11-26). From 1024px it is a corner card and moves nothing.
+      const corner = window.matchMedia("(min-width: 1024px)").matches;
+      if (!corner && (spot.current?.getBoundingClientRect().top ?? -1) < 0) return;
       if (!claimPromptSlot(SLOT)) return;
       setOpen(true);
       track("after_buy_alert", { k: "shown" });
@@ -86,7 +91,7 @@ export function AfterBuyAlert(props: {
     }
   }
 
-  if (!open) return null;
+  if (!open) return <div ref={spot} aria-hidden="true" />;
   return (
     <aside
       aria-label="Price alert"
