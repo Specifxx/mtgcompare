@@ -2957,3 +2957,12 @@ because `tests/ebay-pop.test.ts` reads everything after that heading. The hooks 
 **Read:** phone bounce (non-Reddit) and store buy clickers per 100 phone visitors on `/` and the region homes, the week after
 release against the week before. If phone region switches from the hero were doing work (GA `region_select`, placement
 `hero`), the region row comes back as one row on the region homes too.
+
+## 2026-11-26 — EU store sweep: 39 eurozone shops for Magic sealed
+
+Owner, 2026-11-26: "we need a much bigger European scene … we need all those stores in". The candidates were every
+eurozone shop the sister sites' registries list (and the Riftbound retailer directory) that this site did not list.
+`scripts/probe-stores.ts --in research/eu-candidates-2026-11-26.json --write` (`probe-stores-eu.yml`, run on a GitHub
+runner because the container cannot reach store hosts) kept the ones with 3+ sealed Magic products in EUR. nerdbank.de
+was left out: same stock as spielewelt.de (one stock, two domains counts once). No existing store changed. Prices stay
+in EUR, never converted.
