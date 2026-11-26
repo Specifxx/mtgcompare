@@ -54,6 +54,7 @@ import { cheapestPerPackByType } from "@/lib/per-pack";
 import { openWhere, productDescription, productIntro, quickFacts, releaseChip, valueCheck } from "@/lib/product-copy";
 import { guidesFor } from "@/content/guides";
 import { toolHref } from "@/content/tools";
+import { BOX_TYPE, boxValueHref, hasBoxValue } from "@/lib/box-ev/page-data";
 import { prevNextSet } from "@/lib/hub-copy";
 import { setCountsGrouped } from "@/lib/hub-data";
 import { TYPE_ABOUT } from "@/lib/type-about";
@@ -424,7 +425,10 @@ export default async function ProductPage({ params }: { params: { region: string
     .filter((g) => type && g.topic.types?.includes(type.key))
     .slice(0, 3);
   const hub = pre && set ? preorderPath(r.region, set.code) : null;
+  // Box worth (lib/box-ev): a Play or Collector Booster Box of a set with Wizards' published odds links to what it opens to.
+  const boxKind = set && hasBoxValue(set.code) ? (p.productType === BOX_TYPE.play ? "play" : p.productType === BOX_TYPE.collector ? "collector" : null) : null;
   const explore = [
+    ...(boxKind && set ? [{ href: boxValueHref(r.region, set.slug, boxKind), label: `Is this box worth opening?` }] : []),
     ...(hub && set ? [{ href: hub, label: `${set.name} pre-orders, store by store` }] : []),
     ...(set ? [{ href: `/${r.region}/sets/${set.slug}`, label: `All ${set.name} sealed` }] : []),
     ...(prevSet ? [{ href: `/${r.region}/sets/${prevSet.slug}`, label: prevSet.name }] : []),

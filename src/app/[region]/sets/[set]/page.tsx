@@ -38,6 +38,7 @@ import { SITE_URL } from "@/lib/site";
 import { CardTiles } from "@/components/CardTiles";
 import { NewCardsStrip } from "@/components/NewCardsStrip";
 import { CARDS_HUB, readTop } from "@/lib/cards";
+import { boxValueHref, hasBoxValue } from "@/lib/box-ev/page-data";
 import { toolHref } from "@/content/tools";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js, CDN_PAGES), never ISR: an ISR write
@@ -200,6 +201,15 @@ export default async function SetPage({ params }: { params: { region: string; se
             <span className="block text-sm text-muted">Every {r.adjective} store taking pre-orders, cheapest first, with what is in each box and the key dates.</span>
           </span>
           <span className="shrink-0 text-sm font-semibold text-brand">Compare pre-orders →</span>
+        </Link>
+      )}
+      {hasBoxValue(s.code) && (
+        <Link href={boxValueHref(r.region, s.slug, "play")} prefetch={false} className="card lift mt-4 flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+          <span>
+            <span className="font-semibold">Is a {s.name} box worth opening?</span>
+            <span className="block text-sm text-muted">What the cards in an average box are worth against the box price, from Wizards&rsquo; own pull rates.</span>
+          </span>
+          <span className="shrink-0 text-sm font-semibold text-brand">See the box worth →</span>
         </Link>
       )}
       <Section id="products" title={`${s.name} sealed products`} kicker={products.length ? `${products.length} listed in ${r.inName}` : undefined} className="mt-10 sm:mt-12">

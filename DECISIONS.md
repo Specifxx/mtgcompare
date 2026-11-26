@@ -2991,3 +2991,29 @@ product?".
 booster box, Collector box or Bundle?". No URL is removed.
 
 **Read:** clicks on the rarity guide and the pack-count guide, 7 to 13 Dec against 16 to 22 Nov.
+
+## 2026-11-26 — Box worth: published odds only
+
+**Why (owner, OzBargain report move 2):** "Is a box worth opening?" is a question buyers search before they buy a box, and
+the honest answer needs two things we already hold: Wizards' own pull rates and TCGplayer's card prices.
+
+**Now:** `/<region>/box-value` ranks every box we can value; `/<region>/box-value/<set>` gives one set's Play and Collector
+Booster Box (`#collector` picks the second, so the page never reads the URL's query and stays one CDN copy).
+- **Only published odds.** Every percentage is copied from the set's "Collecting <set>" article on magic.wizards.com
+  (`src/content/box-odds/<code>.ts`, source URL and read date on each). A "less than 1%" line counts as zero, so the
+  average is a floor and says so. A slot whose cards Wizards names but prints no per-card odds for (commons, most
+  uncommons) treats each card in the pool as equally likely. A line we cannot single out in TCGplayer's list (Special
+  Guests, Scene Box rares, some basics) has `pick: null`, counts as zero and is listed in the page's fine print. Nothing is
+  guessed: a set without its article is not on the page.
+- **The maths** (`src/lib/box-ev/model.ts`, pure, shared by server and browser): the average is the sum over slots of count
+  × each line's chance × the mean market price of that line's priced cards. Cards under a floor the visitor picks ($0, $1,
+  $2, $5; $1 by default) count as nothing, because bulk does not sell at market. 2,000 boxes are opened one card at a time
+  with a fixed seed, so the server's HTML and the browser draw the same chart.
+- **The verdict** is against the cheapest in-stock US box (US$, the currency the card prices are in). Other regions show
+  their own cheapest box in their own currency beside it, never converted, and no verdict against it.
+- **Tests** (`tests/box-ev.test.ts`): the maths on a toy set, and for every odds file that each slot sums to 100 within
+  Wizards' rounding, that every line finds cards in the numbers Wizards prints, and that the lines are mostly priced.
+- Indexed in us/au/uk/ca like other detail pages, in the sitemap there. Entry points are plain links (the set page's card,
+  the box product page's "Is this box worth opening?" chip); no prompt.
+
+First sets: Edge of Eternities, Lorwyn Eclipsed, Star Trek. More follow as their treatments are mapped to collector numbers.
