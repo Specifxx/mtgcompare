@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { ACCOUNT_SITE as S } from "@/lib/account-site";
 import { CommunityNameCard } from "@/components/account/CommunityNameCard";
+import { MemberRewards } from "@/components/account/MemberRewards";
 import { loadWatches, readStored, untilLine, writeStored, PREMIUM_PRICE_LINE, trackPremium, type StoredPremium, type Watch } from "@/lib/premium-member";
 import { formatMoney, readVault, totalsByMarket, valueItems, type PriceFile, type VaultItem } from "@/lib/vault";
 import { giveawayCall } from "@/components/giveaway/GiveawayEnter";
@@ -213,6 +214,7 @@ export function ProfileHub({ info }: { info: StoredPremium }) {
       )}
 
       <CommunityNameCard token={info.t} />
+      <MemberRewards token={info.t} helps />
 
       {left > 0 && (
         <section className="card mt-4 p-5 sm:p-6" aria-labelledby="steps-h">
