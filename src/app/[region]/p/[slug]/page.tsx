@@ -26,6 +26,7 @@ import { amazonLiveFor } from "@/lib/amazon-live";
 import { amazonCarries } from "@/lib/amazon";
 import { ReportPrice } from "@/components/ReportForms";
 import { PriceAlert } from "@/components/premium/PriceAlert";
+import { AfterBuyAlert } from "@/components/AfterBuyAlert";
 import { ToolInterest } from "@/components/ToolInterest";
 import { RestockAlert } from "@/components/premium/RestockAlert";
 import { ALERT_SITE_KEY } from "@/lib/alert-feed";
@@ -725,6 +726,9 @@ export default async function ProductPage({ params }: { params: { region: string
             None of the {r.adjective} stores we track list {p.name} right now.
           </div>
         )}
+        {/* After a buy click, once a visit: "Not buying today?" and the price alert (COO 2026-11-26; components/AfterBuyAlert.tsx).
+            Nothing in the server HTML; inline here on phones, in the corner from 1024px. */}
+        <AfterBuyAlert site={ALERT_SITE_KEY} productId={p.id} region={r.market} priceCents={here?.lowestPriceCents ?? null} productName={p.name} />
         {/* Fiverr usability review, 2026-11-25: "is this looking at all the pricing, or only the sites you get a commission from?" */}
         {p.offers.length > 0 && (
           <p className="mt-2 text-xs text-muted">
