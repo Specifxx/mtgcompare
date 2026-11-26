@@ -9137,5 +9137,16 @@
       "magic-the-gathering",
       "pre-order"
     ]
+  },
+  {
+    "key": "iconictcg",
+    "name": "Iconic Trading Cards",
+    "base": "https://iconic-tcg.com",
+    "market": "UK",
+    "platform": "shopify",
+    "country": "GB",
+    "collections": [
+      "magic-the-gathering"
+    ]
   }
 ]
