@@ -21,6 +21,7 @@ import { starTrekLine, STAR_TREK_PRODUCTS } from "../src/content/star-trek";
 import { DROPPED_POSTS, OLD_GUIDE_POSTS, POST_BY_SLUG, POSTS, REHOMED_POSTS, postMetaTitle } from "../src/lib/blog";
 import { emptyPostData, type PostData } from "../src/lib/blog/data";
 import { POST_MODULES } from "../src/lib/blog/modules";
+import { premiumDeckPairs } from "../src/content/guides/set-sealed-prices";
 
 (globalThis as unknown as { React: typeof React }).React = React;
 
@@ -373,4 +374,25 @@ test("the sealed price guides link every product and set they price, and give no
   const box = renderGuide("mtg-booster-box-prices", "au", newFixture());
   assert.match(text(box), /The cheapest is Bloomburrow Play Booster Box at A\$144\b/);
   assert.match(box, /href="\/au\/type\/play-booster-boxes"/);
+});
+
+test("the Nauctis guide pairs each Commander deck's regular and Premium Edition by name, and shows the gap", () => {
+  const decks = [
+    typed("Nauctis: The Sunken Realm Commander Deck: Seal the Deal", "Commander Deck", 4997, "nau"),
+    typed("Nauctis: The Sunken Realm Premium Edition Commander Deck: Seal the Deal", "Commander Deck", 7997, "nau"),
+    typed("Nauctis: The Sunken Realm Commander Deck: Merfolk Regiment", "Commander Deck", 4299, "nau"),
+    typed("Nauctis: The Sunken Realm Premium Edition Commander Deck: Merfolk Regiment", "Commander Deck", 7997, "nau"),
+    // a Premium deck with no regular twin open, and the Deck Set, are left out
+    typed("Nauctis: The Sunken Realm Premium Edition Commander Deck: Blood in the Water", "Commander Deck", 7997, "nau"),
+    typed("Nauctis: The Sunken Realm Commander Deck Set", "Commander Deck Set", 16499, "nau"),
+  ].sort((a, b) => a.lowestPriceCents! - b.lowestPriceCents!);
+  const pairs = premiumDeckPairs(decks);
+  assert.deepEqual(pairs.map((p) => [p.deck, p.regular.lowestPriceCents, p.premium.lowestPriceCents]), [
+    ["Merfolk Regiment", 4299, 7997],
+    ["Seal the Deal", 4997, 7997],
+  ]);
+  const html = renderGuide("nauctis-mtg-which-product-to-buy", "us", { ...emptyGuideData("2026-11-26"), byType: { set: decks } });
+  assert.match(text(html), /Regular or Premium Edition Nauctis Commander deck\?/);
+  assert.match(text(html), /costs \$30\.00 to \$36\.98 more/);
+  assert.equal(premiumDeckPairs([decks[0]]).length, 0);
 });

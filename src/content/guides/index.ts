@@ -304,7 +304,7 @@ export const GUIDES: readonly Guide[] = [
   {
     slug: "collector-booster-box-prices",
     title: "Collector Booster box prices, set by set",
-    titleIn: "MTG Collector Booster box prices in {in}",
+    titleIn: "Cheapest MTG Collector Booster box prices in {in}",
     description: "What a Magic Collector Booster box costs today: the cheapest and dearest in stock, and each recent set's cheapest box with its price per pack.",
     kicker: "Collector boxes",
     published: D3,
@@ -411,14 +411,14 @@ export const GUIDES: readonly Guide[] = [
   },
   {
     slug: "nauctis-mtg-which-product-to-buy",
-    title: "Nauctis MTG: which product should you buy?",
+    title: "Nauctis: The Sunken Realm, which product to buy?",
     titleIn: "Nauctis MTG: which product to buy in {in}",
-    description: "Nauctis: The Sunken Realm pre-orders: Play Booster box, Collector Booster box or Bundle? What each is for, with today's cheapest store price for each.",
+    description: "Nauctis: The Sunken Realm pre-orders: Play Booster box, Collector box, Bundle, or a regular or Premium Commander deck? Today's cheapest store price for each.",
     kicker: "Nauctis",
     published: D6,
-    updated: D6,
+    updated: "2026-11-26",
     regions: "all",
-    topic: { types: ["play-booster-box", "collector-booster-box", "bundle"] },
+    topic: { types: ["play-booster-box", "collector-booster-box", "bundle", "commander-deck"] },
     ebay: { heading: "Nauctis MTG sealed on eBay", query: "MTG Nauctis sealed" },
   },
   {
