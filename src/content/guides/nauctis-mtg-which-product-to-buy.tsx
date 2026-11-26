@@ -8,13 +8,15 @@ const SPEC: SetGuideSpec = {
   code: "nau",
   short: "Nauctis",
   tcgQuery: "Magic Nauctis Sunken Realm sealed",
-  focus: [],
+  focus: ["Commander Deck", "Prerelease Pack"],
   which: true,
+  premiumDecks: true,
   about: () => (
     <>
       <p>
-        Nauctis: The Sunken Realm is a Standard Magic set. So far stores list it as Play Boosters, Collector Boosters and a Bundle; the tables above fill in as
-        stores add more kinds.
+        Nauctis: The Sunken Realm is a Standard Magic set. Stores list it as Play Boosters and Collector Boosters (by the pack, the box and the case), a
+        Bundle, four Commander decks in a regular and a Premium Edition, Prerelease packs, a Draft Night box and Secret Lair bundles; the tables above show
+        what each costs today.
       </p>
     </>
   ),

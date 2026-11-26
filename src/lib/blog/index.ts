@@ -148,7 +148,7 @@ export const POSTS: readonly Post[] = [
   },
   {
     slug: "are-magic-cards-cheaper-abroad",
-    title: "Is Magic sealed cheaper abroad? Box prices by market",
+    title: "Are Magic cards cheaper abroad? One box in 7 markets",
     description:
       "The same Magic booster box in seven markets, each at its own store price and currency, and what importing one adds once postage and tax are counted.",
     kicker: "Across markets",

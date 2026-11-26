@@ -29,6 +29,12 @@ export interface SetGuideSpec {
   focus: readonly string[];
   /** Adds "Which <set> product should you buy?" (MTG-2, 2026-11-10): the buying guides for upcoming sets. */
   which?: boolean;
+  /**
+   * Adds "Regular or Premium Edition Commander deck?" (2026-11-26): each deck stores list in both editions, side by side with
+   * today's cheapest price of each and the gap. Pairs only by the same name with "Premium Edition" taken out; a deck with one
+   * edition open is left out. Says nothing about what the Premium Edition holds.
+   */
+  premiumDecks?: boolean;
 }
 
 
@@ -145,6 +151,7 @@ export function setGuideOutline(spec: SetGuideSpec, r: RegionInfo, data: GuideDa
         ),
       },
       ...(spec.which ? [whichSection(spec, r, data, cheapestOf, m)] : []),
+      ...(spec.premiumDecks ? premiumDeckSection(spec, r, data, all, m) : []),
       {
         id: "cheapest",
         title: `The cheapest ${spec.short} sealed products in ${r.inName}`,
@@ -264,6 +271,65 @@ function whichSection(spec: SetGuideSpec, r: RegionInfo, data: GuideData, cheape
       </>
     ),
   };
+}
+
+/** Regular and Premium Edition of the same Commander deck, both open, by the deck's name: [deck, regular, premium]. */
+export function premiumDeckPairs(products: readonly ProductCardData[]): { deck: string; regular: ProductCardData; premium: ProductCardData }[] {
+  const decks = products.filter((p) => p.productType === "Commander Deck" && p.lowestPriceCents != null);
+  const key = (name: string) => name.replace(/\s*premium edition\s*/i, " ").replace(/\s+/g, " ").trim().toLowerCase();
+  const regular = new Map<string, ProductCardData>();
+  for (const p of decks) if (!/premium edition/i.test(p.name)) regular.set(key(p.name), p);
+  const out: { deck: string; regular: ProductCardData; premium: ProductCardData }[] = [];
+  for (const p of decks) {
+    if (!/premium edition/i.test(p.name)) continue;
+    const reg = regular.get(key(p.name));
+    if (!reg) continue;
+    const deck = p.name.includes(":") ? p.name.slice(p.name.lastIndexOf(":") + 1).trim() : p.name;
+    out.push({ deck, regular: reg, premium: p });
+  }
+  return out.sort((a, b) => a.deck.localeCompare(b.deck));
+}
+
+function premiumDeckSection(spec: SetGuideSpec, r: RegionInfo, data: GuideData, all: readonly ProductCardData[], m: (c: number) => string) {
+  const pairs = premiumDeckPairs(all);
+  if (!pairs.length) return [];
+  const gaps = pairs.map((x) => x.premium.lowestPriceCents! - x.regular.lowestPriceCents!);
+  const lo = Math.min(...gaps);
+  const hi = Math.max(...gaps);
+  const link = (p: ProductCardData) => (
+    <Link href={productHref(r, p)} prefetch={false} className="font-semibold text-brand underline-offset-2 hover:underline">
+      {m(p.lowestPriceCents!)} <span className="sr-only">for {p.name}</span>
+    </Link>
+  );
+  return [
+    {
+      id: "premium-decks",
+      title: `Regular or Premium Edition ${spec.short} Commander deck?`,
+      live: true,
+      body: (
+        <>
+          <Prose>
+            <p>
+              Stores in {r.inName} list {plural(pairs.length, `${spec.short} Commander deck`)} in both editions. Today the Premium Edition costs{" "}
+              <strong>{lo === hi ? m(lo) : <>{m(lo)} to {m(hi)}</>}</strong> more than the regular deck of the same name, each at its cheapest open listing
+              before shipping.
+            </p>
+          </Prose>
+          <LiveBlock r={r} checked={data.checked}>
+            <StackTable
+              caption={`${spec.short} Commander decks, regular and Premium Edition, in ${r.inName} today`}
+              head={["Deck", "Regular", "Premium Edition", "Difference"]}
+              rows={pairs.map((x, i) => ({
+                key: x.deck,
+                th: <span className="font-semibold">{x.deck}</span>,
+                cells: [<span key="r">{link(x.regular)}</span>, <span key="p">{link(x.premium)}</span>, <span key="d">+{m(gaps[i])}</span>],
+              }))}
+            />
+          </LiveBlock>
+        </>
+      ),
+    },
+  ];
 }
 
 export function setGuideBody(spec: SetGuideSpec) {
