@@ -3081,3 +3081,13 @@ posting the member's token as every other account call does. A daily check-in is
 a row, up to 10 a day; points buy 7 days of Premium (300 points, once a month, never for paying subscribers). It loads after render,
 opens nothing by itself and shows on no other page (one prompt a visit at most). Points have no cash value and never change giveaway
 entries.
+
+## 2026-11-27: The Empire design system takes the generated-template effects off
+
+A visitor wrote to Compare Empire asking us to "hire a graphic designer so it wasn't giving claudeslop", and the owner asked for
+a design agent to lift every site. The `empire-ds` block at the end of `globals.css` (the same block on TCG Prices, Dex and MTG;
+rules and the list of tells in the project's `design-system/README.md`) takes off the gradient words and wordmark, the hero's
+glows, glass and the pill above the headline, the ring round the search and the gradient button, and sets a price guide's type
+and rules instead: the brand colour solid, a left-aligned masthead hero from 640px (centred on phones), a hairline between
+sections, 10px radius on cards, inputs and buttons and 6px on badges. CSS only: no markup, words, order, URL or heading changes.
+`tests/ebay-pop.test.ts` now reads the A/B block up to the design block, not to the end of the file.

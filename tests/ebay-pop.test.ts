@@ -7,7 +7,9 @@ const read = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), "u
 
 test("arm pop restyles eBay buttons and their rows, shape and colour only, never inside the quick view", () => {
   const css = read("src/app/globals.css");
-  const rules = css.slice(css.indexOf("The eBay stand-out A/B"));
+  const from = css.indexOf("The eBay stand-out A/B");
+  const to = css.indexOf("empire-ds:start", from);
+  const rules = css.slice(from, to === -1 ? undefined : to);
   assert.match(rules, /html\[data-ebaypop="pop"\] a\.btn-ad\[href\*="ebay\."\]:not\(\[role="dialog"\] a\) \{[^}]*font-weight: 800/);
   assert.match(rules, /html\[data-ebaypop="pop"\] li:not\(\[role="dialog"\] li\):has\(/);
   assert.doesNotMatch(rules, /content:/, "the arm adds no words");
