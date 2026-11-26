@@ -34,6 +34,7 @@ export function PriceAlert(props: Props) {
     const r = await setPriceWatch(cur.t, props.productId, props.region, cents);
     if (r.ok) {
       track("alert_created", { region: props.region, oneTap: true, weekly: false, prominent: !!props.prominent });
+      props.onCreated?.();
       setS({ t: "done", cents, active: r.active });
     } else {
       if (r.signIn) writeStored(null);

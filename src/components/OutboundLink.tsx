@@ -86,6 +86,12 @@ export function OutboundLink({
   // Inside the quick view during an A/B test (lib/ab.ts): the click also counts for the visitor's arms. Null everywhere else.
   const ab = useAb();
   function record(el: Element | null) {
+    // The after-buy price alert offer listens for this (components/AfterBuyAlert.tsx); nothing else does.
+    try {
+      window.dispatchEvent(new Event("buyclick"));
+    } catch {
+      /* never in the link's way */
+    }
     abClick(ab, retailer, placement, rel);
     if (/^ebay/i.test(retailer)) ebayPopClick(el);
     try {
