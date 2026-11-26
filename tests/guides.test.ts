@@ -18,7 +18,7 @@ import { GUIDE_MODULES } from "../src/content/guides/modules";
 import { stripIndex } from "../src/content/guides/kit";
 import { familyOf, packsOf, perPackOf, type MarketCard } from "../src/content/live";
 import { starTrekLine, STAR_TREK_PRODUCTS } from "../src/content/star-trek";
-import { DROPPED_POSTS, OLD_GUIDE_POSTS, POST_BY_SLUG, POSTS, postMetaTitle } from "../src/lib/blog";
+import { DROPPED_POSTS, OLD_GUIDE_POSTS, POST_BY_SLUG, POSTS, REHOMED_POSTS, postMetaTitle } from "../src/lib/blog";
 import { emptyPostData, type PostData } from "../src/lib/blog/data";
 import { POST_MODULES } from "../src/lib/blog/modules";
 
@@ -243,6 +243,13 @@ test("old MTG Compare blog and guide URLs: kept posts are served, dropped ones 3
     assert.ok(rules.find((r) => to([r], `/blog/${s}`))?.permanent, s);
   }
   for (const s of OLD_GUIDE_POSTS) assert.equal(to(rules, `/guides/${s}`), POST_BY_SLUG.has(s) ? `/blog/${s}` : "/blog", `/guides/${s}`);
+  for (const [s, dest] of Object.entries(REHOMED_POSTS)) {
+    for (const dir of ["blog", "guides"]) {
+      assert.equal(to(rules, `/${dir}/${s}`), dest, `/${dir}/${s}`);
+      assert.ok(rules.find((r) => to([r], `/${dir}/${s}`))?.permanent, `${dir}/${s} is permanent`);
+    }
+    assert.ok(!DROPPED_POSTS.includes(s) && !POST_BY_SLUG.has(s), s);
+  }
   assert.equal(to(rules, "/blog"), undefined, "the blog index is served");
   assert.equal(to(rules, "/guides/magic-booster-box-prices-by-country"), undefined, "the by-country guide is served");
   assert.equal(to(rules, "/guides/some-old-guide"), "/us/guides");

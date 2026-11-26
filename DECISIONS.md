@@ -2976,3 +2976,18 @@ are back on this tab, never on load; it is the visit's one prompt (`claimPromptS
 alert for 30; it is never a modal: an inline card under the price table on phones, a corner card from 1024px. Products with no
 price today get none. Counted as `after_buy_alert` {k: shown|created|close}; the number is alerts created per 100 buy clickers on
 product pages, reported in Owned Audience's Monday self-review. `tests/after-buy-alert.test.ts`.
+
+## 2026-11-26 — The old rarities post goes to the rarity guide; the pack-count guide names its products
+
+**Why (Search Recovery, Dex and MTG half-share to 21 Dec):** Search Console, 90 days to 23 Nov. The old singles site's
+`/guides/magic-card-rarities-explained` still ranked 7.2 for "how to identify rare magic the gathering cards" (176
+impressions, 21 a day by the last week, 0 clicks), but it 308'd to the blog index. The 20 Nov guide
+`/us/guides/how-to-identify-rare-magic-cards` answers that query. "how many packs in a collector booster box" and "how
+many packs in a mtg booster box" sat at about 9.5 with 0 clicks under the title "How many packs are in each Magic sealed
+product?".
+
+**Now:** `/guides/` and `/blog/magic-card-rarities-explained` 308 to the rarity guide (`REHOMED_POSTS` in
+`src/lib/blog/index.ts`, pinned in `tests/guides.test.ts`). The pack-count guide is titled "How many packs in a Magic
+booster box, Collector box or Bundle?". No URL is removed.
+
+**Read:** clicks on the rarity guide and the pack-count guide, 7 to 13 Dec against 16 to 22 Nov.

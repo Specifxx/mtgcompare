@@ -95,9 +95,10 @@ const nextConfig = {
       // The old site's singles-only posts (src/lib/blog/index.ts DROPPED_POSTS) go to the blog; its /guides/<slug> posts to their
       // /blog/<slug>, or the blog when dropped (OLD_GUIDE_POSTS). tests/guides.test.ts checks both lists against these rules. The
       // last rule sends every other /guides/<slug> to the US guides, except the one region-less guide that lives there.
-      { source: "/blog/:slug(magic-star-trek-spoilers|magic-card-price-movers|commander-staples-prices|cheapest-magic-mythic-rares-by-colour|most-expensive-magic-cards|magic-set-value-concentration|newest-magic-set-chase-cards|magic-card-rarities-explained)", destination: "/blog", permanent: true },
+      { source: "/blog/:slug(magic-star-trek-spoilers|magic-card-price-movers|commander-staples-prices|cheapest-magic-mythic-rares-by-colour|most-expensive-magic-cards|magic-set-value-concentration|newest-magic-set-chase-cards)", destination: "/blog", permanent: true },
       { source: "/guides/:slug(where-to-buy-magic-cards|are-magic-cards-cheaper-abroad)", destination: "/blog/:slug", permanent: true },
-      { source: "/guides/magic-card-rarities-explained", destination: "/blog", permanent: true },
+      // REHOMED_POSTS: an old post whose subject has its own guide again goes to that guide.
+      { source: "/:dir(blog|guides)/magic-card-rarities-explained", destination: "/us/guides/how-to-identify-rare-magic-cards", permanent: true },
       { source: "/guides", destination: "/us/guides", permanent: true },
       { source: "/guides/:path((?!magic-booster-box-prices-by-country$).*)", destination: "/us/guides", permanent: true },
     ];

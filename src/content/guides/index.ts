@@ -113,7 +113,9 @@ export const GUIDES: readonly Guide[] = [
   },
   {
     slug: "how-many-packs-in-magic-products",
-    title: "How many packs are in each Magic sealed product?",
+    // Search Recovery, 2026-11-26: its searches name the products ("how many packs in a collector booster box", "how many packs
+    // in a mtg booster box", both ~9.5 with 0 clicks), so the title names them too.
+    title: "How many packs in a Magic booster box, Collector box or Bundle?",
     description: "Pack counts for Magic: The Gathering booster boxes, Collector Booster boxes, Bundles and more, with what a pack costs in your region today.",
     kicker: "Pack counts",
     published: D,
