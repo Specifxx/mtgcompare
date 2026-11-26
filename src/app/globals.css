@@ -1526,3 +1526,172 @@ html[data-ebaypop="pop"] li:not([role="dialog"] li):has(a.btn-ad[href*="ebay."])
   overscroll-behavior: contain;
   scrollbar-width: thin;
 }
+
+/* empire-ds:start ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+   The Empire design system, v1 (design agent, 2026-11-27; the canonical copy is /mnt/project-files/design-system/empire-ds.css,
+   the same block in every engine site, only the tokens at the top of globals.css differ). Why: visitors wrote in that the sites
+   read as "Claude slop", and they did: every site wore the same generated template (glow behind a centred hero, a pill above the
+   headline, gradient words, a glowing search, a row of glass icon tiles, a pulsing dot, a breathing gradient button). This block
+   takes those tells off and puts a price guide's type and rules in their place. It changes no markup, no words, no order and no
+   size that holds the layout, so it is safe on any page; every site keeps its own brand colour (Rift stays green) and its
+   seasonal hat. One accent per site, used for actions; prices in ink; green only for a real saving.
+   ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── */
+:root {
+  --ds-radius: 10px; /* cards, plates, inputs, buttons */
+  --ds-radius-sm: 6px; /* badges, tags */
+  --ds-rule: rgb(var(--ink) / 0.14);
+  --ds-kicker: 0.6875rem; /* 11px small-caps labels */
+}
+
+/* 1. One flat ground. No sky wash, no light bar, no glass header with a rainbow edge. */
+body::after { content: none !important; }
+.neo-progress { display: none !important; }
+.hdr { -webkit-backdrop-filter: none; backdrop-filter: none; background-color: rgb(var(--bg)); }
+.hdr::after { background: rgb(var(--line)); opacity: 1; }
+
+/* 2. The hero: a masthead, not a landing-page template. Left-aligned words on a quiet ground, a hairline under it. */
+.hero-bg::before,
+.hero-bg::after,
+.hero-orb,
+.hero-floor { display: none !important; }
+.hero-bg { background-image: none; }
+.hero { border-bottom: 1px solid rgb(var(--line)); }
+@media (min-width: 640px) {
+  .hero-in { align-items: flex-start; text-align: left; }
+  .hero-meta, .hero .xmas-pill-row { justify-content: flex-start; }
+  .hero-search { max-width: 40rem; }
+  .ways { max-width: none; }
+}
+.hero-h1 {
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  line-height: 0.98;
+  text-shadow: none !important;
+}
+/* The coloured word is the brand colour, solid. Never a gradient, never a moving sheen. */
+.hero-h1 .text-brand,
+:root[data-theme="light"] .hero-h1 .text-brand {
+  background: none !important;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  color: rgb(var(--brand)) !important;
+  animation: none !important;
+}
+.hero-sub { color: rgb(var(--muted)); }
+/* The line above the headline is a kicker in small capitals, not a pill. */
+.hero-pill {
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  padding: 0;
+  font-size: var(--ds-kicker);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(var(--muted));
+}
+a.hero-pill:hover { color: rgb(var(--ink)); text-decoration: underline; text-underline-offset: 3px; }
+.hero-pill-dot { border-radius: 1px; }
+/* The search: a solid field with a firm edge, the brand colour only when it has focus. No ring of light. */
+.hero-search::before { content: none !important; }
+.hero-search input {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background-color: rgb(var(--surface));
+  border-width: 1.5px;
+  border-color: rgb(var(--ink) / 0.28);
+  border-radius: var(--ds-radius);
+  box-shadow: 0 1px 0 rgb(var(--ink) / 0.04);
+}
+.hero-search input:focus {
+  border-color: rgb(var(--brand));
+  box-shadow: 0 0 0 3px rgb(var(--brand) / 0.18);
+}
+.hero-search button { border-radius: calc(var(--ds-radius) - 3px); }
+/* Where the field is a bordered form holding the input and a button (Dex, MTG), the form is the field. */
+.hero-search form.border {
+  border-width: 1.5px;
+  border-color: rgb(var(--ink) / 0.28);
+  border-radius: var(--ds-radius);
+  background-color: rgb(var(--surface));
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+.hero-search form.border:focus-within { border-color: rgb(var(--brand)); box-shadow: 0 0 0 3px rgb(var(--brand) / 0.18); }
+.hero-search form.border input,
+.hero-search form.border input:focus { border: 0; box-shadow: none; background: transparent; }
+/* The ways in: flat tiles with a firm edge. No glass, no pointer spotlight, no glow. */
+.way {
+  border-radius: var(--ds-radius);
+  background-color: rgb(var(--surface));
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+.way::before { content: none !important; }
+.way:hover {
+  transform: none;
+  border-color: rgb(var(--ink) / 0.45);
+  box-shadow: none;
+  background-color: rgb(var(--raised));
+}
+.way-icon { border-radius: var(--ds-radius-sm); }
+.hero-meta { font-size: 0.8125rem; }
+.hero-meta .live { animation: none !important; box-shadow: none !important; border-radius: 1px; }
+
+/* 3. Section headings: a full-width hairline over the section, the heading set tight. No short line of coloured light. */
+.page h2.font-display,
+.page section > h2 {
+  background-image: none !important;
+  padding-bottom: 0;
+  letter-spacing: -0.025em;
+}
+.page section:has(> h2.font-display),
+.page section:has(> h2) { border-top: 1px solid rgb(var(--line)); padding-top: 1.25rem; }
+.hero + section, .hero + * section:first-child { border-top: 0; }
+
+/* 4. Surfaces: one radius, a hairline, no glow on hover. */
+.card,
+.card-surface { border-radius: var(--ds-radius); }
+:root:not([data-theme="light"]) .card,
+:root:not([data-theme="light"]) .card-surface { box-shadow: none; }
+.set-tile:hover,
+a.card:hover { border-color: rgb(var(--ink) / 0.4); box-shadow: none; transform: none; }
+.pc-plate { border-radius: var(--ds-radius); }
+.pc-plate::after { content: none !important; }
+.group:hover .pc-plate { box-shadow: 0 0 0 1px rgb(var(--ink) / 0.35); }
+.faq[open] { border-color: rgb(var(--ink) / 0.3); }
+
+/* 5. Buttons: solid brand, square-ish, still. No gradient, no sheen, no glow. */
+.btn { border-radius: var(--ds-radius); }
+.btn-primary {
+  background-image: none !important;
+  background-color: rgb(var(--brand));
+  color: rgb(var(--brand-ink));
+  box-shadow: none;
+}
+.btn-primary::after { content: none !important; }
+.btn-primary:hover { filter: brightness(1.08); }
+
+/* 6. Small marks: badges and tags are squared labels, not candy. */
+.pc-badge,
+.tag { border-radius: var(--ds-radius-sm); }
+.chip { border-radius: var(--ds-radius-sm); }
+.neo-chip { border-radius: var(--ds-radius-sm); background: rgb(var(--surface)); }
+.neo-chip i { box-shadow: none; border-radius: 2px; }
+.neo-chip:hover { box-shadow: none; transform: none; border-color: rgb(var(--ink) / 0.45); }
+
+/* 7. Numbers: every price lines up. */
+.pc-price, .price, [class*="price"] .tabular, td.tabular { font-variant-numeric: tabular-nums; }
+/* 8. The wordmark is the brand colour, solid: a gradient name is the loudest tell of all. */
+.wordmark {
+  background: none !important;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  color: rgb(var(--brand)) !important;
+}
+/* empire-ds:end */
