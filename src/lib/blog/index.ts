@@ -166,14 +166,21 @@ export const DROPPED_POSTS: readonly string[] = [
   "most-expensive-magic-cards",
   "magic-set-value-concentration",
   "newest-magic-set-chase-cards",
-  "magic-card-rarities-explained",
 ];
+
+/**
+ * Old posts whose subject has a page again (Search Recovery, 2026-11-26): a 308 to that page, not to /blog. The old
+ * /guides/magic-card-rarities-explained still ranked about 7 for "how to identify rare magic the gathering cards"
+ * (176 impressions in 90 days, rising to 21 a day by 23 Nov) while landing on the blog index; the 20 Nov guide answers it.
+ */
+export const REHOMED_POSTS: Readonly<Record<string, string>> = {
+  "magic-card-rarities-explained": "/us/guides/how-to-identify-rare-magic-cards",
+};
 
 /** The old site served these posts at /guides/<slug>: next.config.js sends each to its /blog/<slug>, or to /blog when dropped. */
 export const OLD_GUIDE_POSTS: readonly string[] = [
   "where-to-buy-magic-cards",
   "are-magic-cards-cheaper-abroad",
-  "magic-card-rarities-explained",
 ];
 
 export const POST_BY_SLUG: ReadonlyMap<string, Post> = new Map(
