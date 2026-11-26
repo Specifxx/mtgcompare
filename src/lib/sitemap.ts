@@ -13,10 +13,11 @@ import { POSTS, postPath } from "./blog";
 import { openPreorderGuides } from "./preorder-guides";
 import { REGION_LIST, REGIONS, regionOfMarket, type Region, type RegionInfo } from "./regions";
 import { PRODUCT_TYPES } from "./sealed-title";
-import { SETS } from "./sets";
+import { SET_BY_CODE, SETS } from "./sets";
 import { SITE_URL } from "./site";
 import { STORES } from "./stores";
 import { detailIndexed } from "./index-tiers";
+import { BOX_ODDS } from "../content/box-odds";
 import { withoutOffSeasonSales } from "@/lib/sale-seasons";
 
 export const STATIC_SITEMAP_ID = 0;
@@ -162,6 +163,16 @@ export function staticSitemap(
   for (const r of REGION_LIST) {
     out.push(url(`/${r.region}/tools`, null, "monthly", 0.5));
     for (const t of TOOLS) if (detailIndexed(r.region) && toolRegions(t).includes(r.region)) out.push(url(`/${r.region}/tools/${t.slug}`, null, "monthly", 0.6));
+  }
+  // Box worth (lib/box-ev): the ranking and each set with Wizards' published odds, in the indexed regions. lastmod is the day the
+  // odds were read; the prices under them move daily, the page's substance only with a release.
+  for (const r of REGION_LIST) {
+    if (!detailIndexed(r.region)) continue;
+    out.push(url(`/${r.region}/box-value`, null, "weekly", 0.6));
+    for (const o of BOX_ODDS) {
+      const set = SET_BY_CODE.get(o.code);
+      if (set) out.push(url(`/${r.region}/box-value/${set.slug}`, new Date(`${o.read}T00:00:00Z`), "weekly", 0.6));
+    }
   }
   // The one guide that compares every market, at its single region-less URL.
   out.push(url(COUNTRY_GUIDE.path, new Date(`${COUNTRY_GUIDE.updated}T00:00:00Z`), "weekly", 0.6));
