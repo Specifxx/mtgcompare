@@ -3071,3 +3071,13 @@ yet" until a store did, and Darkhold Destiny's Singapore page had no price at al
 code → the markets where at least one STORE prices it; TCGplayer is a marketplace and does not count) beside the snapshot, and
 `lib/priced-sets.ts` `setPricedIn` gates the page (a 404 until then, never a redirect: the URL comes back once priced) and every link.
 A set therefore goes live in a market on the first release after the first store there opens pre-orders, with that store's price.
+
+## 2026-11-26 — Member rewards on the account page
+
+Owner (26 Nov): "we really, really need a loyalty system ... on all of our Empire websites", one that never runs at a loss. The
+shared account service keeps one points balance (RiftCompare `lib/loyalty.ts`, `/api/loyalty`, DECISIONS there, "Compounding daily
+streaks, and member rewards"); this site draws it in its own name on the account page (`components/account/MemberRewards.tsx`),
+posting the member's token as every other account call does. A daily check-in is 1 point on day 1 of a streak, one more each day in
+a row, up to 10 a day; points buy 7 days of Premium (300 points, once a month, never for paying subscribers). It loads after render,
+opens nothing by itself and shows on no other page (one prompt a visit at most). Points have no cash value and never change giveaway
+entries.
