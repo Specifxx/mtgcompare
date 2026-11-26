@@ -3061,3 +3061,13 @@ collector pulse, and draws nothing once the giveaway closes. Signed out, it show
 `/giveaway#invite`). Signed in, it shows the account's points, the check-in button, the free bonus if unclaimed, and the invite link
 with Copy, through the same `giveawayCall` as `/giveaway`. It reads RiftCompare at most once every 10 minutes per tab
 (sessionStorage), so browsing product pages costs no call per page. The rules are unchanged. `tests/giveaway-strip.test.ts`.
+
+## 2026-11-26 — No pre-order page in a market no store prices the set in
+
+The owner (26 Nov): "Do not publish a set page with no prices." The set page already 404s with no listed product, but the automatic
+pre-order page (2026-11-02) and every link to it (menus, the home pill and banner, the release calendar, the set and product pages,
+the sitemap, hreflang) appeared for every upcoming set in every region, so a set Scryfall announced showed "No store we track lists it
+yet" until a store did, and Darkhold Destiny's Singapore page had no price at all. Now the export writes `data/sets/priced.json` (set
+code → the markets where at least one STORE prices it; TCGplayer is a marketplace and does not count) beside the snapshot, and
+`lib/priced-sets.ts` `setPricedIn` gates the page (a 404 until then, never a redirect: the URL comes back once priced) and every link.
+A set therefore goes live in a market on the first release after the first store there opens pre-orders, with that store's price.

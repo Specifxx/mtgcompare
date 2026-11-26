@@ -34,8 +34,9 @@ import {
 } from "@/lib/preorder-copy";
 import { preorderOgPath } from "@/lib/preorder-og";
 import { guideShowsMsrp, preorderGuideBySlug, type PreorderGuide } from "@/lib/preorder-guides";
+import { setPricedIn } from "@/lib/priced-sets";
 import { formatRelease, isPreorderSet } from "@/lib/release";
-import { regionOrNotFound, type RegionInfo } from "@/lib/regions";
+import { REGION_LIST, regionOrNotFound, type RegionInfo } from "@/lib/regions";
 import { RRP_NOTE, usMsrpCents } from "@/lib/rrp";
 import { offerStock } from "@/lib/sealed-offers";
 import { storesInMarket } from "@/lib/stores";
@@ -72,6 +73,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const r = regionOrNotFound(params.region);
   const found = preorderGuideBySlug(params.set);
   if (!found) return {};
+  if (!setPricedIn(found.set.code, r.market)) notFound();
   const { guide, set } = found;
   const pre = isPreorderSet(set.code);
   // The title and description lead with the release date as well as the pre-order prices: "delta reign release date" is the
@@ -83,8 +85,8 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       description: preorderDescription(set, guide, r, pre),
       path: `/${r.region}/preorders/${set.slug}`,
       // Every region's copy carries the facts, the dates and that market's price
-      // lists, so all seven are advertised while the set is upcoming.
-      alternates: pre ? regionAlternates(r.region, `/preorders/${set.slug}`) : undefined,
+      // lists, so every region a store prices the set in is advertised while the set is upcoming (the others 404).
+      alternates: pre ? regionAlternates(r.region, `/preorders/${set.slug}`, REGION_LIST.filter((x) => setPricedIn(set.code, x.region))) : undefined,
       // Its own share card (app/og/preorders/[set]): the date, the set and its products, the same image in every region.
       image: `${SITE_URL}${preorderOgPath(set.slug)}`,
       noindex: !pre,
@@ -101,6 +103,9 @@ export default async function PreorderPage({ params }: Params) {
     if (SET_BY_SLUG.has(params.set)) permanentRedirect(`/${r.region}/sets/${params.set}`);
     notFound();
   }
+  // No store here prices the set yet: no page (owner, 2026-11-26: never a set page with no prices; lib/priced-sets.ts). It goes live
+  // on the release after the first store here lists it. A 404, never a redirect: the set page would 404 too, and the URL comes back.
+  if (!setPricedIn(found.set.code, r.market)) notFound();
   const { guide, set } = found;
   const pre = isPreorderSet(set.code);
   const us = r.market === "US";

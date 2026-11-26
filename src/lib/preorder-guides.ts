@@ -14,6 +14,7 @@
 // be deleted at leisure; nothing else depends on it.
 import { SETS, SET_BY_CODE, SET_BY_SLUG, type MtgSet } from "./sets";
 import type { TypeKey } from "./sealed-title";
+import { setPricedIn } from "./priced-sets";
 
 export interface PreorderProduct {
   /** The product type the importer files it under (lib/sealed-title.ts). */
@@ -171,15 +172,19 @@ export function preorderGuideBySlug(slug: string, today = todayIso()): { guide: 
   return { guide: BY_CODE.get(set.code) ?? blankGuide(set), set };
 }
 
-/** The path under a region: /<region>/preorders/<set slug>, for a set whose page is live. */
+/** The path under a region: /<region>/preorders/<set slug>, for a set whose page is live there (a store there prices it). */
 export function preorderPath(region: string, setCode: string, today = todayIso()): string | null {
   const set = SET_BY_CODE.get(setCode);
-  return set && pageLive(set, today) ? `/${region}/preorders/${set.slug}` : null;
+  return set && pageLive(set, today) && setPricedIn(set.code, region) ? `/${region}/preorders/${set.slug}` : null;
 }
 
-/** Every set that has not released yet (by lib/sets.ts), with its guide (written, else blank), soonest release first. */
-export function openPreorderGuides(today = todayIso()): { guide: PreorderGuide; set: MtgSet }[] {
-  return SETS.filter((set) => set.releaseDate > today)
+/**
+ * Every set that has not released yet (by lib/sets.ts) and that a store prices (in `where`, a region or market; anywhere when left
+ * out: lib/priced-sets.ts), with its guide (written, else blank), soonest release first. A set no store lists yet has no page and
+ * no link: it appears on the release after the first store opens pre-orders.
+ */
+export function openPreorderGuides(today = todayIso(), where?: string | null): { guide: PreorderGuide; set: MtgSet }[] {
+  return SETS.filter((set) => set.releaseDate > today && setPricedIn(set.code, where))
     .map((set) => ({ guide: BY_CODE.get(set.code) ?? blankGuide(set), set }))
     .sort((a, b) => a.set.releaseDate.localeCompare(b.set.releaseDate));
 }

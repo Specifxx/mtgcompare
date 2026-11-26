@@ -1,5 +1,6 @@
 import Link from "@/components/Link";
 import { openPreorderGuides } from "@/lib/preorder-guides";
+import { setPricedIn } from "@/lib/priced-sets";
 import { relativeDay } from "@/lib/format";
 import { formatRelease } from "@/lib/release";
 import { REGION_LIST, type Region } from "@/lib/regions";
@@ -13,7 +14,7 @@ import { Flag } from "@/components/Flag";
 
 /** On a region page: the hub in this region. */
 export function PreorderBanner({ region, today = new Date().toISOString().slice(0, 10), limit = 1 }: { region: Region; today?: string; limit?: number }) {
-  const open = openPreorderGuides(today).slice(0, limit);
+  const open = openPreorderGuides(today, region).slice(0, limit);
   if (!open.length) return null;
   return (
     <ul className="grid gap-3" aria-label="Sets on pre-order">
@@ -52,7 +53,7 @@ export function PreorderRegionLinks({ today = new Date().toISOString().slice(0, 
         {withMtg(set.name)} releases {relativeDay(set.releaseDate, today)}: compare pre-order prices
       </p>
       <ul className="mt-3 flex flex-wrap gap-2" aria-label={`${set.name} pre-orders by region`}>
-        {REGION_LIST.map((r) => (
+        {REGION_LIST.filter((r) => setPricedIn(set.code, r.region)).map((r) => (
           <li key={r.region}>
             <Link href={`/${r.region}/preorders/${set.slug}`} prefetch={false} className="chip min-h-11">
               <Flag code={r.short} /> {r.name}

@@ -40,7 +40,7 @@ export function navGroups(region: Region, today: string = new Date().toISOString
       ],
     },
     // An open pre-order hub leads the sets (lib/preorder-guides.ts; gone on release day).
-    { title: "Sets", links: [...openPreorderGuides(today).map(({ set }) => ({ href: `/${region}/preorders/${set.slug}`, label: `${set.name} pre-orders` })), ...sets, s("sets", "Every set")] },
+    { title: "Sets", links: [...openPreorderGuides(today, region).map(({ set }) => ({ href: `/${region}/preorders/${set.slug}`, label: `${set.name} pre-orders` })), ...sets, s("sets", "Every set")] },
     // By series (era): the other way a collector browses sets. Each goes to its block on the sets page, only for a series with a set listed here.
     {
       title: "Sets by series",

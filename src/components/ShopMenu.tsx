@@ -45,7 +45,7 @@ export function setsMenuColumns(region: Region, today: string = new Date().toISO
         title: "Coming soon",
         href: sectionHref(region, "releases"),
         links: [
-          ...openPreorderGuides(today).map(({ set }) => ({ href: `/${region}/preorders/${set.slug}`, label: `${set.name} pre-orders` })),
+          ...openPreorderGuides(today, region).map(({ set }) => ({ href: `/${region}/preorders/${set.slug}`, label: `${set.name} pre-orders` })),
           { href: sectionHref(region, "releases"), label: "Release calendar" },
         ],
       },
