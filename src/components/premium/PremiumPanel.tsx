@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { openBilling, trackPremium, readStored, refreshPremium, startCheckout, untilLine, writeStored } from "@/lib/premium-member";
 import { usePremium } from "./usePremium";
+import { PassOffers } from "./PassOffers";
 
 type Plan = "monthly" | "annual";
 const PLANS: Record<Plan, { price: string; per: string; note: string }> = {
@@ -143,6 +144,7 @@ export function PremiumPanel() {
         <p className="mt-2 text-center text-xs text-muted">Card needed for the trial · secure checkout by Stripe · no charge for 14 days</p>
         {note && <p className="mt-3 text-sm text-red-600" aria-live="polite">{note}</p>}
       </div>
+      {v.status === "free" && <PassOffers />}
       <div className="border-t border-line bg-bg px-6 py-3 text-sm">
         {v.status === "free" ? (
           <span className="text-muted">
