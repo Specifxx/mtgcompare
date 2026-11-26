@@ -3029,6 +3029,27 @@ test is read (4 Dec) the pulse shows only to visitors who already answered that 
 (`components/CollectorPulse.tsx`). If RiftCompare is unreachable nothing is drawn. Read 9 Dec with the growth tests:
 keep if 2%+ of product viewers answer.
 
+## 2026-11-26 — A new set's pre-orders go live the day they open
+
+The owner (26 Nov): "make sure new Magic sets and pre-orders go live on MTG Compare the day pre-orders open, with real prices from
+the first store that lists them, starting with the newest sets." Set discovery (2026-11-03) already files Scryfall's announced sets
+before every import, and Nauctis (498 offers) and Darkhold Destiny (459) were listed weeks ahead. Three gaps remained:
+
+- **Shortened titles.** A discovered set matched only on its whole name, so "MTG Nauctis Play Booster Box (Pre-Order)" and
+  "Darkhold Destiny Collector Booster Box" were refused as naming no set. Discovery now keeps the parts of a two-part name as
+  `shortNames` ("Nauctis", "The Sunken Realm", "Darkhold Destiny"), matched like the name itself. Refuse rather than guess: a part
+  is kept only with five letters or more, not only generic words, and when no other Magic set's name in Scryfall's whole list (or
+  any hand-written set) contains it or is contained by it. "Marvel" (inside Marvel Super Heroes) and "Tarkir" (inside Khans of
+  Tarkir, still sold) are refused. Hand-written sets keep their hand-written aliases.
+- **Pre-orders for a set we do not know.** Every import now collects the titles it refused as naming no set that say they are a
+  pre-order (`PREORDER_WORDS`, in the languages our stores write), writes them to `data/sets/unknown-preorders.json` (full runs
+  only) and lists them in the job summary. The next discovery reads them: a set due between 180 and 365 days out is taken when two
+  stores already sell its pre-orders. They never become products themselves.
+- **Half a day's wait.** Only the evening import releases; a set whose first pre-order the morning run read waited up to a day.
+  `scripts/new-set-release.ts` compares the export with main: an upcoming set (out today or later) with no offer before and one
+  now makes the morning run's data commit a release too. The 12-hour build gate is unchanged and still decides; inside it the
+  commit rides the next release. This happens a handful of times a year, and on that day the evening release may fall inside the
+  gate and ride the next morning's (no extra builds; one set of prices a few hours later).
 ## 2026-11-26: The giveaway strip on the home and product pages
 
 The owner asked to surface the Star Trek giveaway (closes 14 Dec) and the daily check-in on the home page and product pages, with

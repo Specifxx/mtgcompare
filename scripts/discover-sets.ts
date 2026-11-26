@@ -4,10 +4,22 @@
 // for 50-100 ms). Never fails the import: on any error it keeps the file as it is and says why in the job summary.
 import fs from "node:fs";
 import path from "node:path";
-import { candidates, isUniversesBeyond, ubByFranchise, mergeDiscovered, type DiscoveredSet, type ScryfallSet } from "../src/lib/set-discovery";
+import { candidates, isUniversesBeyond, ubByFranchise, mergeDiscovered, storesNaming, type DiscoveredSet, type PreorderTitle, type ScryfallSet } from "../src/lib/set-discovery";
 import { HAND_SETS } from "../src/lib/sets";
 
 const FILE = path.join(process.cwd(), "data/sets/discovered.json");
+// The last import's pre-orders that named no known set (scripts/import.ts): a set further ahead than DISCOVER_AHEAD_DAYS is taken
+// when two stores already sell it.
+const PREORDERS = path.join(process.cwd(), "data/sets/unknown-preorders.json");
+
+function readPreorders(): PreorderTitle[] {
+  try {
+    const list = JSON.parse(fs.readFileSync(PREORDERS, "utf8"));
+    return Array.isArray(list) ? list.filter((x) => x && typeof x.title === "string" && typeof x.store === "string") : [];
+  } catch {
+    return [];
+  }
+}
 const API = "https://api.scryfall.com";
 const HEADERS = { "User-Agent": "MTGCompare/1.0 (+https://mtgcompare.app)", Accept: "application/json" };
 
@@ -46,7 +58,8 @@ async function main(): Promise<void> {
     return;
   }
 
-  const { take, skipped } = candidates(all, HAND_SETS, today);
+  const preorders = readPreorders();
+  const { take, skipped } = candidates(all, HAND_SETS, today, preorders);
   const ub = new Map<string, boolean | null>();
   for (const { set } of take) {
     if (set.set_type !== "expansion" && set.set_type !== "core") continue;
@@ -70,8 +83,14 @@ async function main(): Promise<void> {
   const added = next.filter((d) => !previous.some((p) => p.code === d.code));
   summary([
     `${next.length} discovered set(s) beside the ${HAND_SETS.length} in lib/sets.ts.`,
-    ...next.map((d) => `- ${added.includes(d) ? "**new** " : ""}${d.code} ${d.name}: ${d.releaseDate}, ${d.series} (/sets/${d.slug})`),
-    ...skipped.map((s) => `- skipped ${s.code} ${s.name}: ${s.why}`),
+    ...next.map(
+      (d) =>
+        `- ${added.includes(d) ? "**new** " : ""}${d.code} ${d.name}: ${d.releaseDate}, ${d.series} (/sets/${d.slug})` +
+        (d.shortNames?.length ? `, also titled ${d.shortNames.map((n) => `"${n}"`).join(", ")}` : "") +
+        (storesNaming(d.name, preorders) ? `, ${storesNaming(d.name, preorders)} store(s) had unmatched pre-orders naming it` : ""),
+    ),
+    ...skipped.map((s) => `- skipped ${s.code} ${s.name}: ${s.why}${storesNaming(s.name, preorders) ? ` (${storesNaming(s.name, preorders)} store(s) already sell pre-orders naming it)` : ""}`),
+    ...(preorders.length ? [`- ${preorders.length} pre-order title(s) from ${new Set(preorders.map((p) => p.store)).size} store(s) named no known set in the last import (data/sets/unknown-preorders.json)`] : []),
   ]);
 }
 

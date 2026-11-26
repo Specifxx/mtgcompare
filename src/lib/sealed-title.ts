@@ -256,7 +256,7 @@ function matchers(): SetMatcher[] {
   if (MATCHERS) return MATCHERS;
   const out: SetMatcher[] = [];
   for (const set of SETS) {
-    const sources = [set.pattern ?? nameRe(set.name), ...(set.aliases ?? [])];
+    const sources = [set.pattern ?? nameRe(set.name), ...(set.aliases ?? []), ...(set.shortNames ?? []).map(nameRe)];
     out.push({ set, re: new RegExp(sources.map((s) => `(?:${s})`).join("|"), "i"), len: set.name.length });
   }
   // Longest name first, so "Secrets of Strixhaven" beats "Strixhaven" and "Modern Horizons 3" beats "Modern Horizons".

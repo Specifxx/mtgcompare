@@ -36,6 +36,11 @@ export interface MtgSet {
   noBoosterBox?: boolean;
   /** Overrides the set's name pattern (for names that are a prefix of another set's, like "Jumpstart"). */
   pattern?: string;
+  /**
+   * Shorter names a DISCOVERED set is also titled by ("Nauctis", "Darkhold Destiny"), plain words matched like the name itself
+   * (lib/set-discovery.ts shortNames(), which refuses any part another Magic set's name contains). Hand-written sets use aliases.
+   */
+  shortNames?: string[];
 }
 
 const PLAY: BoosterLine[] = ["play", "collector"];
@@ -141,7 +146,7 @@ const HAND_CODES = new Set(HAND_SETS.map((s) => s.code));
 const HAND_SLUGS = new Set(HAND_SETS.map((s) => s.slug));
 const FOUND: MtgSet[] = (discovered as DiscoveredSet[])
   .filter((d) => !HAND_CODES.has(d.code) && !HAND_SLUGS.has(d.slug))
-  .map((d) => ({ code: d.code, name: d.name, slug: d.slug, series: d.series, releaseDate: d.releaseDate, logo: null, ...(d.boosters ? { boosters: d.boosters } : {}) }));
+  .map((d) => ({ code: d.code, name: d.name, slug: d.slug, series: d.series, releaseDate: d.releaseDate, logo: null, ...(d.boosters ? { boosters: d.boosters } : {}), ...(d.shortNames?.length ? { shortNames: d.shortNames } : {}) }));
 
 /** Every set, newest first: the hand-written ones and the discovered ones. */
 export const SETS: MtgSet[] = [...HAND_SETS, ...FOUND].sort((a, b) => b.releaseDate.localeCompare(a.releaseDate));

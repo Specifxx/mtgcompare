@@ -178,12 +178,21 @@ jobs:
         if: ${{ !cancelled() }}
         continue-on-error: true
         run: bash scripts/pull-demand.sh mtg data/demand.json
+      # A new set's first pre-orders go live the day they open (owner, 2026-11-26; lib/new-set-release.ts): when this export lists an
+      # upcoming set that had no offer on main before, the data commit below is a release even on the morning run. The 12-hour
+      # build gate (scripts/vercel-ignore-build.sh) still decides; inside it the commit rides the next release. Never fails the run.
+      - name: New set pre-orders
+        id: newset
+        if: steps.db.outputs.found == 'true'
+        continue-on-error: true
+        run: npx tsx scripts/new-set-release.ts
       - name: Publish it to main
         if: steps.db.outputs.found == 'true'
         # ONE RELEASE A DAY (owner, 2026-10-17: "reduce the cost"). The 20:47 UTC run (early morning in Australia,
         # afternoon in the Americas), a manual run and the schema sync release ("release": the commit subject carries
         # [deploy]); the 08:47 run commits its snapshot without the marker and it rides the next release, which carries a
         # newer whole-database snapshot anyway. Every release empties Vercel's CDN; the 08:47 read still feeds the alerts.
+        # The morning run also releases when it read a new set's first pre-orders (the step above).
         env:
-          RELEASE: ${{ (github.event_name != 'schedule' || github.event.schedule == '47 20 * * *') && 'release' || '' }}
+          RELEASE: ${{ (github.event_name != 'schedule' || github.event.schedule == '47 20 * * *' || steps.newset.outputs.release == 'release') && 'release' || '' }}
         run: bash scripts/publish-public-data.sh "sealed-import.yml run ${{ github.run_id }}" $RELEASE
