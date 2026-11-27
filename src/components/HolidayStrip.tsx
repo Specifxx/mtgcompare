@@ -1,5 +1,6 @@
 import Link from "@/components/Link";
 import { BfModeBar } from "@/components/BfModeBar";
+import { TcgSalePopup } from "@/components/TcgSalePopup";
 import { OutboundLink } from "@/components/OutboundLink";
 import { REL_SPONSORED, TCGPLAYER_RETAILER, tcgplayerSearchUrl } from "@/lib/affiliate";
 import { bfModeOn, bfPhase } from "@/lib/bf-mode";
@@ -28,6 +29,7 @@ export function HolidayStrip({ region, today = new Date().toISOString().slice(0,
   const on = bfModeOn(Date.now());
   if (!on) return strip;
   return (
+    <>
     <BfModeBar
       on={on} phase={bfPhase(Date.now())}
       href={sectionHref(region, "blackFriday")}
@@ -47,5 +49,12 @@ export function HolidayStrip({ region, today = new Date().toISOString().slice(0,
     >
       {strip}
     </BfModeBar>
+    {/* TCGplayer's sale card (owner, 2026-11-27): once a visit, never while typing, closes for good (TcgSalePopup.tsx). */}
+    <TcgSalePopup slotKey="ce_prompt_slot" dealsHref={sectionHref(region, "blackFriday")}>
+      <OutboundLink href={tcgplayerSearchUrl("booster box", region, "tcgplayer-sale-popup")} rel={REL_SPONSORED} retailer={TCGPLAYER_RETAILER} placement="tcgplayer-sale-popup">Booster boxes</OutboundLink>
+      <OutboundLink href={tcgplayerSearchUrl("bundle", region, "tcgplayer-sale-popup")} rel={REL_SPONSORED} retailer={TCGPLAYER_RETAILER} placement="tcgplayer-sale-popup">Bundles</OutboundLink>
+      <OutboundLink href={tcgplayerSearchUrl("", region, "tcgplayer-sale-popup")} rel={REL_SPONSORED} retailer={TCGPLAYER_RETAILER} placement="tcgplayer-sale-popup">All sealed</OutboundLink>
+    </TcgSalePopup>
+    </>
   );
 }
