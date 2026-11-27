@@ -3121,3 +3121,5 @@ example searches for this game. A tap types the example into the search box and 
 - Inline in the hero, server-rendered, no layout shift. Never a pop-up, an overlay or a second prompt (one prompt per visit).
 - One short wave on load and on hover, none under reduced motion. Neutral bubble that reads on dark and light.
 - The h1, title, meta, URLs and order of the page are unchanged; the hero gains one line of text and three buttons.
+
+Released at 11:35 UTC on 27 Nov, once the 8-hour gate opened (the first [deploy] [urgent] merge came within 8 hours of the 03:30 data build).
