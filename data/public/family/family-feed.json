@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-26T18:56:08.705Z",
+ "generatedAt": "2026-11-27T03:30:29.794Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -128,6 +128,20 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "NZ",
+   "title": "Marvel's Spider-Man Gift Bundle",
+   "url": "https://mtgcompare.app/nz/p/marvels-spider-man-gift-bundle",
+   "cents": 10800,
+   "currency": "NZD",
+   "store": "Card Merchant Hamilton",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/648457_in_1000x1000.jpg",
+   "refCents": 17500,
+   "refLabel": "median store price",
+   "savingPct": 38
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "NZ",
    "title": "Teenage Mutant Ninja Turtles Play Booster Box",
    "url": "https://mtgcompare.app/nz/p/teenage-mutant-ninja-turtles-play-booster-box",
    "cents": 22000,
@@ -165,20 +179,6 @@
    "refCents": 22000,
    "refLabel": "median store price",
    "savingPct": 36
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "NZ",
-   "title": "Marvel's Spider-Man Gift Bundle",
-   "url": "https://mtgcompare.app/nz/p/marvels-spider-man-gift-bundle",
-   "cents": 10800,
-   "currency": "NZD",
-   "store": "Card Merchant Hamilton",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/648457_in_1000x1000.jpg",
-   "refCents": 16213,
-   "refLabel": "median store price",
-   "savingPct": 33
   },
   {
    "kind": "deal",
@@ -254,6 +254,20 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
+   "title": "Lorwyn Eclipsed 60-Card Theme Deck - Pirates",
+   "url": "https://mtgcompare.app/us/p/lorwyn-eclipsed-60-card-theme-deck-pirates",
+   "cents": 1263,
+   "currency": "USD",
+   "store": "Gamelandia",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/656330_in_1000x1000.jpg",
+   "refCents": 2399,
+   "refLabel": "median store price",
+   "savingPct": 47
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "US",
    "title": "Marvel Super Heroes Commander Deck - Avengers Assemble (Collector's Edition)",
    "url": "https://mtgcompare.app/us/p/marvel-super-heroes-commander-deck-avengers-assemble-collectors-edition",
    "cents": 9000,
@@ -263,20 +277,6 @@
    "refCents": 15999,
    "refLabel": "median store price",
    "savingPct": 44
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "US",
-   "title": "Teenage Mutant Ninja Turtles - Prerelease Pack",
-   "url": "https://mtgcompare.app/us/p/teenage-mutant-ninja-turtles-prerelease-pack",
-   "cents": 2146,
-   "currency": "USD",
-   "store": "Gamelandia",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/657862_in_1000x1000.jpg",
-   "refCents": 3500,
-   "refLabel": "median store price",
-   "savingPct": 39
   },
   {
    "kind": "deal",
@@ -512,7 +512,7 @@
    "currency": "EUR",
    "store": "Fire & Dice",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/657860_in_1000x1000.jpg",
-   "refCents": 11000,
+   "refCents": 10999,
    "refLabel": "median store price",
    "savingPct": 46
   },
