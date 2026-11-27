@@ -10,6 +10,7 @@ import { useEbayPick } from "./EbayStrip";
 import { EbayMark } from "./EbayMark";
 import { Icon } from "./Icon";
 import { OutboundLink } from "./OutboundLink";
+import { barTestSeen, paidChoice, type BarArm } from "@/lib/bar-test";
 
 // The phone buy bar (the owner-approved exception to "no sticky", README "Always"; placement product-sticky). On a phone a product page
 // runs 4–10k px and the buy action scrolls away; this keeps the page's OWN top action within reach, and nothing else:
@@ -50,22 +51,60 @@ export interface StickyBuyBarProps {
   /** Sold out: the callout's eBay search, and the line the bar says above it ("Sold out at UK stores"). */
   search?: { href: string; line: string } | null;
   preorder?: boolean;
+  /** TCGplayer's in-stock offer in this region's own currency (the US), for the "paid" arm of the bar test (lib/bar-test.ts); else null. */
+  tcg?: { cents: number; href: string; rel: string; retailer: string } | null;
 }
 
 const placement: Placement = "product-sticky";
 const DISMISS_KEY = "mtg-buybar-off";
 
 export function StickyBuyBar(props: StickyBuyBarProps) {
-  return props.pick ? <WithPick {...props} pick={props.pick} /> : <Bar {...props} content={staticContent(props)} />;
+  // The bar test (lib/bar-test.ts): counted once a visit on a phone product page, from 3 Dec; null (today's bar) before then.
+  const [arm, setArm] = useState<BarArm | null>(null);
+  useEffect(() => setArm(barTestSeen()), []);
+  return props.pick ? <WithPick {...props} pick={props.pick} arm={arm} /> : <NoPick {...props} arm={arm} />;
 }
 
-function WithPick(props: StickyBuyBarProps & { pick: BarPick }) {
-  const { region, pick, store } = props;
+/** The "paid" arm swaps an unpaid store for a paid link; a TCGplayer best price, a sold-out page or today's arm keep today's bar. */
+const swapsStore = (props: StickyBuyBarProps, arm: BarArm | null): boolean => arm === "paid" && !!props.store && !props.store.marketplace && !/\bsponsored\b/.test(props.store.rel);
+
+function NoPick(props: StickyBuyBarProps & { arm: BarArm | null }) {
+  const content = swapsStore(props, props.arm) && props.tcg ? tcgContent(props.region, props.tcg) : staticContent(props);
+  return <Bar {...props} content={content} />;
+}
+
+function WithPick(props: StickyBuyBarProps & { pick: BarPick; arm: BarArm | null }) {
+  const { region, pick, store, arm, tcg } = props;
   const { item, cents, bestable, age } = useEbayPick({ region, slug: pick.slug, floor: pick.floor, packs: pick.packs, placement });
+  const listing = bestable && item != null && cents != null;
+  if (swapsStore(props, arm)) {
+    const choice = paidChoice(listing ? cents : null, tcg?.cents ?? null);
+    const content =
+      choice === "ebay" && item && cents != null ? listingContent(region, item, cents, age, false) : choice === "tcg" && tcg ? tcgContent(region, tcg) : staticContent(props);
+    return <Bar {...props} content={content} />;
+  }
   // In stock: BestPriceCard's rule to the letter (the bar repeats the card). Sold out: the callout's (any new listing of its own).
-  const show = store ? EBAY_CAN_BE_BEST && bestable && item != null && cents != null && cents < store.cents : bestable && item != null && cents != null;
+  const show = store ? EBAY_CAN_BE_BEST && listing && cents! < store.cents : listing;
   const content = show && item && cents != null ? listingContent(region, item, cents, age, !store) : staticContent(props);
   return <Bar {...props} content={content} />;
+}
+
+function tcgContent(region: Region, tcg: NonNullable<StickyBuyBarProps["tcg"]>): Content {
+  return {
+    ad: true,
+    top: (
+      <>
+        <b className="tabular font-display text-lg font-extrabold leading-6">{money(tcg.cents, REGIONS[region].market)}</b>
+        <span className="truncate text-sm font-semibold"> · TCGplayer</span>
+      </>
+    ),
+    bottom: (
+      <>
+        <span className="ad-pill">Ad</span> <span className="truncate">Marketplace · affiliate link</span>
+      </>
+    ),
+    link: { href: tcg.href, rel: tcg.rel, retailer: tcg.retailer, label: "View offer", className: "btn-primary" },
+  };
 }
 
 interface Content {
