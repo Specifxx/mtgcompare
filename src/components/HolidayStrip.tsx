@@ -2,7 +2,7 @@ import Link from "@/components/Link";
 import { BfModeBar } from "@/components/BfModeBar";
 import { OutboundLink } from "@/components/OutboundLink";
 import { REL_SPONSORED, TCGPLAYER_RETAILER, tcgplayerSearchUrl } from "@/lib/affiliate";
-import { bfModeOn } from "@/lib/bf-mode";
+import { bfModeOn, bfPhase } from "@/lib/bf-mode";
 import { saleStrip } from "@/lib/black-friday";
 import { REGIONS, type Region } from "@/lib/regions";
 import { sectionHref } from "@/lib/site";
@@ -29,7 +29,7 @@ export function HolidayStrip({ region, today = new Date().toISOString().slice(0,
   if (!on) return strip;
   return (
     <BfModeBar
-      on={on}
+      on={on} phase={bfPhase(Date.now())}
       href={sectionHref(region, "blackFriday")}
       title={`MTG sealed deals in ${r.inName}`}
       line="booster boxes and bundles under the median store price today"
