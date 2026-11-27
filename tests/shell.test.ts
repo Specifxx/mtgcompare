@@ -259,9 +259,9 @@ test("the phone menu: every group of lib/nav.ts under the region, then the regio
 
 test("root layout: both faces use display 'optional' (no font-swap layout shift), and the Impact meta block is unchanged", () => {
   const layout = src("app/layout.tsx");
-  assert.equal(layout.match(/display: "optional"/g)?.length, 2);
-  assert.match(layout, /Inter\(\{[^}]*display: "optional"/);
-  assert.match(layout, /Bricolage_Grotesque\(\{[^}]*display: "optional"/);
+  assert.equal(layout.match(/display: "optional"/g)?.length, 3);
+  assert.match(layout, /Geist-Variable\.woff2[^}]*display: "optional"/);
+  assert.match(layout, /GeistMono-Variable\.woff2[^}]*display: "optional"/);
   assert.doesNotMatch(layout, /display: "swap"/);
   // The same pins as tests/affiliate.test.ts.
   assert.match(layout, /IMPACT_SITE_VERIFICATIONS\.map\(\(value\) =>[\s\S]*name: "impact-site-verification", value/);

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Inter } from "next/font/google";
+import localFont from "next/font/local";
 import { SiteAnalytics } from "@/components/SiteAnalytics";
 import { PaidVisitTagger } from "@/components/PaidVisitTagger";
 import { ShareArrival } from "@/components/ShareArrival";
@@ -30,8 +30,10 @@ import { EbayPopArm } from "@/components/EbayPopArm";
 // Font display is optional, not swap: both faces are preloaded, so a warm visit renders in them from the first paint, and a slow
 // first visit keeps the size-adjusted fallback for that page instead of re-wrapping every line when the font lands (that swap
 // measured CLS 0.209 on /us/type/booster-boxes; 0 with "optional").
-const sans = Inter({ subsets: ["latin"], variable: "--font-sans", display: "optional" });
-const display = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-display", display: "optional", weight: ["600", "700", "800"] });
+// Empire design v2 "Ledger" (2026-11-27): Geist for words and headings, Geist Mono for figures, bundled (OFL, fonts/Geist-OFL.txt).
+const sans = localFont({ src: "./fonts/Geist-Variable.woff2", weight: "100 900", variable: "--font-sans", display: "optional" });
+const display = localFont({ src: "./fonts/Geist-Variable.woff2", weight: "100 900", variable: "--font-display", display: "optional" });
+const mono = localFont({ src: "./fonts/GeistMono-Variable.woff2", weight: "100 900", variable: "--font-mono", display: "optional" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -53,7 +55,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     // The season and theme boot scripts below stamp data-season and data-theme on this element before React hydrates; React must not report that.
-    <html lang="en" className={`${sans.variable} ${display.variable}`} data-festive={CHRISTMAS_FESTIVE_LAYER ? "on" : undefined} suppressHydrationWarning>
+    <html lang="en" className={`${sans.variable} ${display.variable} ${mono.variable}`} data-festive={CHRISTMAS_FESTIVE_LAYER ? "on" : undefined} suppressHydrationWarning>
       <head>
         <link rel="alternate" type="application/rss+xml" title={`${SITE_NAME} guides`} href="/feed.xml" />
         {/* Seasonal theme (Halloween, 16-31 October): data-season on <html> from the visitor's own date, before first paint, so the
