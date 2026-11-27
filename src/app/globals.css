@@ -3,13 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --bg: 246 246 243;
+  --bg: 247 246 242;
   --surface: 255 255 255;
-  --raised: 250 250 248;
-  --line: 228 227 222;
-  --ink: 21 23 28;
-  --muted: 92 96 108;
-  --faint: 100 104 115; /* 5.2:1 on --bg, 5.6:1 on --surface (WCAG AA for small text) */
+  --raised: 242 241 236;
+  --line: 226 224 217;
+  --ink: 17 18 22;
+  --muted: 88 91 101;
+  --faint: 104 107 117; /* 5.2:1 on --bg, 5.6:1 on --surface (WCAG AA for small text) */
   --brand: 122 46 196; /* MTG Compare amethyst (Arcane Ink); white on it is 7.2:1, and it reads at 6.6:1 on --bg */
   --brand-ink: 255 255 255;
   --brand-soft: 240 232 252;
@@ -40,13 +40,13 @@
 /* Dark is the default (owner, 2026-10-24): a visitor who has not chosen light gets it, decided before first paint by
    THEME_BOOT_SCRIPT (lib/theme.ts) from their own saved choice; no server read, so one CDN copy serves everyone. */
 :root:not([data-theme="light"]) {
-    --bg: 15 16 19;
-    --surface: 23 24 29;
-    --raised: 29 31 37;
-    --line: 45 47 55;
-    --ink: 238 238 241;
-    --muted: 166 170 181;
-    --faint: 140 144 156; /* 6.0:1 on --bg, 5.6:1 on --surface */
+    --bg: 9 10 12;
+    --surface: 17 18 21;
+    --raised: 24 26 30;
+    --line: 38 40 46;
+    --ink: 237 237 239;
+    --muted: 156 159 168;
+    --faint: 128 131 141; /* 6.0:1 on --bg, 5.6:1 on --surface */
     --brand: 195 148 244;
     --brand-ink: 18 10 32;
     --brand-soft: 44 30 72;
@@ -1695,3 +1695,213 @@ a.card:hover { border-color: rgb(var(--ink) / 0.4); box-shadow: none; transform:
   color: rgb(var(--brand)) !important;
 }
 /* empire-ds:end */
+
+/* empire-v2:start — "Ledger", the Empire design language v2 (2026-11-27; the project's design-system/README.md).
+   Bill (2026-11-27): rework the sites so they look state of the art and expert-designed, not vibe-coded. v1 took the
+   template tells off; v2 gives the site a point of view: a price ledger. One typeface family with a true monospace for
+   every number, a near-black page with hairlines instead of boxes, one brand colour used only where you act, product
+   photos on a consistent paper plate, prices as the loudest thing on every card and row. CSS and fonts only: no word,
+   order, URL, heading or ranking changes, and no row is marked as the cheapest (owner, 2026-11-14). */
+
+/* 1. Tokens: the colours are set in place at the top of this file (near-black with neutral greys; warm paper in light). */
+:root {
+  --v2-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --v2-mono: var(--font-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --v2-paper: #f3f2ee;
+  --v2-r: 12px;
+  --v2-r-sm: 8px;
+  --v2-r-xs: 6px;
+}
+
+/* 2. Type. Geist for words, Geist Mono for every figure. Tight display tracking, generous body. */
+body, .font-sans {
+  font-family: var(--v2-sans) !important;
+  font-feature-settings: "ss01", "cv11";
+  letter-spacing: -0.006em;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, .font-display, .hero-h1 {
+  font-family: var(--v2-sans) !important;
+}
+h1 { letter-spacing: -0.035em; }
+h2 { letter-spacing: -0.025em; font-weight: 600 !important; }
+.hero-h1 {
+  font-weight: 600 !important;
+  font-size: clamp(2.5rem, 6vw, 4.25rem) !important;
+  line-height: 0.98 !important;
+  letter-spacing: -0.05em !important;
+}
+.hero-h1 .text-brand { color: rgb(var(--brand)) !important; }
+.tabular-nums.font-display, .tabular.font-display, .num, .pc-price, .pc-per, [data-price], .price {
+  font-family: var(--v2-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.k, .kicker, .eyebrow, .hero-pill, .pc-game, th {
+  font-family: var(--v2-mono);
+}
+
+/* 3. The header: one quiet row. No gradient Premium pill, no filled sign-in: ghost controls, one hairline. */
+header {
+  background: rgb(var(--bg) / 0.96) !important;
+  border-bottom: 1px solid rgb(var(--line)) !important;
+  box-shadow: none !important;
+}
+header a[href="/premium"] {
+  background: transparent !important;
+  color: rgb(var(--ink)) !important;
+  border: 1px solid rgb(var(--line)) !important;
+  box-shadow: none !important;
+  border-radius: var(--v2-r-sm) !important;
+  font-weight: 600 !important;
+}
+header a[href="/premium"]::first-letter { color: #e7b341; }
+header a[href="/account"] {
+  background: rgb(var(--ink)) !important;
+  color: rgb(var(--bg)) !important;
+  box-shadow: none !important;
+  border-radius: var(--v2-r-sm) !important;
+}
+header .chip, header button, header a.rounded-full {
+  border-radius: var(--v2-r-sm) !important;
+}
+
+/* 4. The hero: a masthead set in type. No photo or wash behind it; the kicker is a mono ledger line. */
+.hero-bg, .hero-bg::before, .hero-bg::after, .hero-orb, .hero-floor { background: none !important; display: none !important; }
+.hero { background: rgb(var(--bg)) !important; }
+.hero-pill {
+  font-size: 11px !important;
+  letter-spacing: 0.08em !important;
+  color: rgb(var(--muted)) !important;
+}
+.hero-sub, .hero p { color: rgb(var(--muted)); }
+.hero-search input, .hero-search form.border {
+  height: 56px;
+  background: rgb(var(--surface)) !important;
+  border: 1px solid rgb(var(--line)) !important;
+  border-radius: var(--v2-r) !important;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 12px 32px -18px rgb(0 0 0 / 0.6) !important;
+  font-size: 16px;
+}
+.hero-search form.border input { border: 0 !important; box-shadow: none !important; background: transparent !important; height: auto; }
+.hero-search input:focus, .hero-search form.border:focus-within {
+  border-color: rgb(var(--brand)) !important;
+  box-shadow: 0 0 0 4px rgb(var(--brand) / 0.16) !important;
+}
+/* The market picker reads as one segmented control. */
+.hero .chip, [data-region-control] .chip {
+  border-radius: var(--v2-r-xs) !important;
+  background: transparent !important;
+  border-color: rgb(var(--line)) !important;
+  font-weight: 500 !important;
+}
+.hero .chip[aria-pressed="true"], .hero .chip[aria-current], .hero .chip.is-on {
+  background: rgb(var(--ink)) !important;
+  color: rgb(var(--bg)) !important;
+  border-color: rgb(var(--ink)) !important;
+}
+/* The ways in: flat tiles with the game's mark on the paper plate. */
+.way {
+  background: rgb(var(--surface)) !important;
+  border: 1px solid rgb(var(--line)) !important;
+  border-radius: var(--v2-r) !important;
+  box-shadow: none !important;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+.way:hover { border-color: rgb(var(--muted) / 0.6) !important; background: rgb(var(--raised)) !important; }
+
+/* 5. The figures under the search are a ledger line; the game strip is a ticker, not a row of coloured candy. */
+.hero-meta {
+  font-family: var(--v2-mono);
+  font-size: 12.5px;
+  color: rgb(var(--faint));
+  letter-spacing: -0.01em;
+  gap: 0.75rem 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(var(--line));
+  max-width: 760px;
+}
+.hero-meta b { color: rgb(var(--ink)); font-weight: 600; font-size: 14px; }
+.way { flex-direction: row !important; justify-content: flex-start !important; gap: 12px !important; padding: 12px 14px !important; min-height: 0 !important; text-align: left !important; font-weight: 550; }
+.way-logo { background-color: var(--v2-paper) !important; border: 0 !important; border-radius: var(--v2-r-xs) !important; box-shadow: none !important; flex: none; }
+.way:hover { box-shadow: inset 0 -2px 0 var(--game, rgb(var(--brand))) !important; }
+.hero .chip { height: 34px; }
+.neo-chip {
+  background: none !important;
+  border: 0 !important;
+  border-right: 1px solid rgb(var(--line)) !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  font-family: var(--v2-mono) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgb(var(--muted)) !important;
+  padding: 6px 16px !important;
+}
+.neo-chip i { background: var(--game) !important; width: 6px !important; height: 6px !important; border-radius: 1px !important; box-shadow: none !important; }
+.neo-chip:hover { color: rgb(var(--ink)) !important; }
+/* Content is simply there: no card blurring or rising into view as it scrolls, no heading rule drawing itself. */
+.pc-link, .set-tile, .faq, .hero-in, .page h2.font-display, .page section > h2 { animation: none !important; }
+
+/* 6. Product cards: the photo on one paper plate, the price as the loudest thing. */
+.hg-link,
+.pc-link {
+  background: rgb(var(--surface));
+  border: 1px solid rgb(var(--line));
+  border-radius: var(--v2-r);
+  padding: 8px;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+.hg-link:hover, .pc-link:hover { border-color: rgb(var(--muted) / 0.55); background: rgb(var(--raised)); }
+.pc-plate, .plate {
+  background: var(--v2-paper) !important;
+  border: 0 !important;
+  border-radius: var(--v2-r-sm) !important;
+  box-shadow: none !important;
+}
+.pc-img { padding: 10%; mix-blend-mode: multiply; }
+.group:hover .pc-img, .group:hover .pc-plate { transform: none !important; }
+.pc-badge {
+  font-family: var(--v2-mono);
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em;
+  background: rgb(10 30 18) !important;
+  color: rgb(120 230 160) !important;
+  border-radius: var(--v2-r-xs) !important;
+  padding: 3px 7px !important;
+  box-shadow: none !important;
+}
+.pc-body, .hg-text { padding: 12px 6px 4px !important; }
+.pc-name { font-weight: 550 !important; letter-spacing: -0.012em; line-height: 1.3 !important; }
+.pc-price { font-size: 1.2rem !important; font-weight: 600 !important; color: rgb(var(--ink)) !important; }
+.pc-stock { font-size: 12px !important; color: rgb(var(--muted)) !important; }
+
+/* 7. Price tables: a ledger. Mono figures right-aligned, hairline rows, a hover tint. */
+table thead th {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(var(--faint)) !important;
+}
+table tbody tr { transition: background-color 120ms ease; }
+table tbody tr:hover { background: rgb(var(--raised) / 0.7); }
+table td.tabular-nums { font-size: 15px; font-weight: 600; }
+table td .btn, table td a, table td button { font-family: var(--v2-sans); }
+table .btn-primary, table .btn-tcg {
+  box-shadow: none !important;
+  background-image: none !important;
+  border-radius: var(--v2-r-sm) !important;
+  font-weight: 600 !important;
+}
+/* The buy buttons stay solid (Cyber Weekend and the frozen A/B reads, 2026-11-27): v2 changes their shape, never their weight. */
+
+/* 8. Shape and surface everywhere else: 12 / 8 / 6, no shadows on cards, no glows. */
+.card, .card-surface { border-radius: var(--v2-r) !important; box-shadow: none !important; border-color: rgb(var(--line)) !important; }
+.btn { border-radius: var(--v2-r-sm) !important; }
+.chip, .tag, .ad-pill { border-radius: var(--v2-r-xs) !important; }
+.btn-primary { box-shadow: none !important; background-image: none !important; }
+/* empire-v2:end */

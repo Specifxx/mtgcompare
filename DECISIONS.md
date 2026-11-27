@@ -3091,3 +3091,13 @@ glows, glass and the pill above the headline, the ring round the search and the 
 and rules instead: the brand colour solid, a left-aligned masthead hero from 640px (centred on phones), a hairline between
 sections, 10px radius on cards, inputs and buttons and 6px on badges. CSS only: no markup, words, order, URL or heading changes.
 `tests/ebay-pop.test.ts` now reads the A/B block up to the design block, not to the end of the file.
+
+## 2026-11-27 — Empire design language v2, "Ledger"
+
+Bill (2026-11-27): rework the sites so they look state of the art and expert-designed, not vibe-coded. v1 (empire-ds) took
+the template tells off; v2 (`empire-v2`, last in `globals.css`; the project's design-system/README.md) gives the look a point
+of view, a price ledger: Geist for words and Geist Mono for the big prices (bundled, replacing Google-served Inter and Bricolage;
+the Bricolage TTFs stay for share images), near-black neutral greys in dark and warm paper in light with MTG amethyst kept as the one
+accent, product photos on one paper plate inside a bordered card, mono uppercase table heads, and nothing that blurs or
+rises in on scroll. The offer table's buttons, order and the eBay A/B arms are untouched (A/B reads frozen to 2 Dec). CSS,
+fonts and the shell test's font names only: no word, order, URL, heading or ranking changed.
