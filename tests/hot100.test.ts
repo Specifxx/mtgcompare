@@ -86,3 +86,11 @@ test("the biggest drops: the same week and rules mirrored, biggest fall first (o
   assert.deepEqual(d.map((r) => [r.slug, r.rank, r.pct]), [["down30", 1, -30], ["down10", 2, -10]]);
   assert.deepEqual(hotDrops({ v: 1, since: D - 3, through: D, series: {} }, "US"), []);
 });
+
+test("the region home's Most popular shelf links the region's Hot 100 as words at its foot (merch, 2026-11-27), never from the hero", () => {
+  const page = fs.readFileSync(new URL("../src/app/[region]/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /more=\{\{ href: `\/\$\{r\.region\}\/hot-100`/, "Most popular links /<region>/hot-100");
+  assert.match(page, /label: "This week's Hot 100"/);
+  const hero = fs.readFileSync(new URL("../src/components/home/Hero.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(hero, /hot-100/, "the hero stays words, search and ways in");
+});
