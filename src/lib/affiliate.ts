@@ -110,6 +110,7 @@ export const PLACEMENTS = [
   "amazon-set", // set page: the same line
   "amazon-deals", // /[region]/deals: the same line
   "amazon-guide", // a guide: a product row's "Check price on Amazon AU" link
+  "tcgplayer-bf-mode", // the one-day Black Friday bar under the header (lib/bf-mode.ts, owner 2026-11-27)
 ] as const;
 export type Placement = (typeof PLACEMENTS)[number];
 

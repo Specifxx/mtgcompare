@@ -3092,6 +3092,14 @@ and rules instead: the brand colour solid, a left-aligned masthead hero from 640
 sections, 10px radius on cards, inputs and buttons and 6px on badges. CSS only: no markup, words, order, URL or heading changes.
 `tests/ebay-pop.test.ts` now reads the A/B block up to the design block, not to the end of the file.
 
+## 2026-11-27 — Black Friday mode for one day (owner)
+
+Owner, 27 Nov: "for one day, have the site turn into Black Friday mode … advertising way more about products and links". For
+Black Friday in every time zone (00:00 UTC 27 Nov to 10:00 UTC 28 Nov, `lib/bf-mode.ts`) the promo line under the header becomes
+one bold Black Friday bar: the region's Black Friday deals page, and a labelled TCGplayer sale link (`tcgplayer-bf-mode`). Same
+place as the line, in the server HTML, never a pop-up, fixed or floating; ✕ hides it for the visit. The browser re-reads the
+clock, so a cached page reverts on time with no build; the files can go after Cyber Monday.
+
 ## 2026-11-27 — Empire design language v2, "Ledger"
 
 Bill (2026-11-27): rework the sites so they look state of the art and expert-designed, not vibe-coded. v1 (empire-ds) took
