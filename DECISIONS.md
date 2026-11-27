@@ -3166,3 +3166,5 @@ is off by itself when the sale ends. Not on Compare Empire, KaeYoung or ScentCom
 Owner, 27 Nov: "make sure that users have a good experience … not too many pop-ups … the feedback pop-up on Rift Compare
 can be taken down a little because we already have enough feedback". The rate-us corner card never opens by itself any
 more (`AUTO_ASK = false`); a "Rate us" link still opens it. During Cyber Weekend the visit's one prompt goes to the sale card.
+
+Released at 22:40 UTC: TCGplayer's sale card, owner asked for urgent releases.
