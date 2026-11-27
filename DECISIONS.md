@@ -3131,3 +3131,11 @@ opportunity with TCG Player", so the bar (`lib/bf-mode.ts`, `BfModeBar`) no long
 until 04:00 UTC on 1 Dec, when TCGplayer's sale ends (11PM 30 Nov New York). Its label follows the weekend (Black Friday,
 Cyber Weekend from 28 Nov 10:00 UTC, Cyber Monday from 30 Nov 05:00 UTC), and on Cyber Monday it links the Cyber Monday page.
 Same place, same ✕, no pop-up; it still switches itself off with no build. Delete the files after the sale.
+
+## 2026-11-27 — "Sale: 10% store credit" on the TCGplayer row while its sale runs (owner)
+
+The first hourly read of Black Friday (27 Nov, 00:00 to 12:00 UTC) had buy clickers up 48% across the card sites, but TCGplayer
+was only 9 to 20% of them, and the owner asked to "capture this opportunity with TCG Player". So TCGplayer's own row in every
+product price table carries a small chip saying what its sale is (`TcgSaleChip`, 9AM 27 Nov to 11PM 30 Nov New York time,
+`lib/bf-mode.ts`). It is drawn only in the browser after the clock is read, so cached HTML never shows it outside the sale. It
+ranks nothing and marks no row the cheapest. Delete it with the bar after the sale.
