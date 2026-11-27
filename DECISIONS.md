@@ -3149,3 +3149,4 @@ the Star Trek set hub and deck pages answer the post's query with live prices. T
 the sitemap and (the calendars) out of every copy's hreflang: `RELEASES_NOINDEX_IN` in `lib/index-tiers.ts`, `Post.noindex` in
 `lib/blog/index.ts`. The US calendar is never on the list. /release-dates already 301s to /us/releases. Take a copy off once it
 has outside links or the US copy ranks on page 1.
+Released at 19:37 UTC on 27 Nov once the 8-hour gate opened: the bar through Cyber Monday and the TCGplayer sale chip.
