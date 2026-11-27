@@ -16,7 +16,7 @@ import { PRODUCT_TYPES } from "./sealed-title";
 import { SET_BY_CODE, SETS } from "./sets";
 import { SITE_URL } from "./site";
 import { STORES } from "./stores";
-import { detailIndexed } from "./index-tiers";
+import { detailIndexed, releasesIndexed } from "./index-tiers";
 import { BOX_ODDS } from "../content/box-odds";
 import { withoutOffSeasonSales } from "@/lib/sale-seasons";
 
@@ -122,7 +122,7 @@ export function staticSitemap(
     const m = lastmod[r.market];
     out.push(url(`/${r.region}`, m, "daily", 0.9));
     out.push(url(`/${r.region}/sealed`, m, "daily", 0.8));
-    out.push(url(`/${r.region}/releases`, m, "weekly", 0.6));
+    if (releasesIndexed(r.region)) out.push(url(`/${r.region}/releases`, m, "weekly", 0.6));
     out.push(url(`/${r.region}/sets`, m, "weekly", 0.6));
     out.push(url(`/${r.region}/stores`, m, "weekly", 0.5));
     // The pages built from each import's current state (deals, price per pack, the week's digest) change with it. The guides index
@@ -178,7 +178,7 @@ export function staticSitemap(
   out.push(url(COUNTRY_GUIDE.path, new Date(`${COUNTRY_GUIDE.updated}T00:00:00Z`), "weekly", 0.6));
   // The blog: its index and every post (the registry is pure). No lastmod, as the guides.
   out.push(url("/blog", null, "weekly", 0.5));
-  for (const p of POSTS) out.push(url(postPath(p.slug), new Date(`${p.updated}T00:00:00Z`), "weekly", 0.6));
+  for (const p of POSTS) if (!p.noindex) out.push(url(postPath(p.slug), new Date(`${p.updated}T00:00:00Z`), "weekly", 0.6));
   return out;
 }
 

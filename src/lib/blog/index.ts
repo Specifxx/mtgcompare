@@ -32,6 +32,11 @@ export interface Post {
   /** First published (the old site's date, kept), and last substantively edited (the sealed rewrite). */
   published: string;
   updated: string;
+  /**
+   * Live for readers but noindex and out of the sitemap (Job D, the page scorecard of 2026-11-23): set only on a post that ranked
+   * past Google's page 3 with no clicks and no visits, while a stronger page covers the same query. The blog index still lists it.
+   */
+  noindex?: true;
 }
 
 const SEALED = "2026-10-21";
@@ -100,6 +105,9 @@ export const POSTS: readonly Post[] = [
     kicker: "Star Trek",
     published: "2026-10-16",
     updated: SEALED,
+    // Position 35, 39 impressions, 0 clicks and 0 visits in the 28 days to 20 Nov; the Star Trek set hub and its four deck pages
+    // carry the same query with live prices.
+    noindex: true,
   },
   {
     slug: "magic-star-trek-mechanics-explained",
