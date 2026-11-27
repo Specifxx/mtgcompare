@@ -6,6 +6,8 @@ import { SITE_URL } from "../src/lib/site";
 import { STORES } from "../src/lib/stores";
 import { GUIDE_BY_SLUG, GUIDE_NOINDEX_IN, GUIDES, guideCopyIndexable, guideRegions } from "../src/content/guides";
 import { COUNTRY_GUIDE } from "../src/content/guides/country-prices";
+import { RELEASES_NOINDEX_IN, releasesIndexed } from "../src/lib/index-tiers";
+import { POSTS, postPath } from "../src/lib/blog";
 
 const onSite = (entries: { url: string }[]) => {
   for (const e of entries) {
@@ -40,7 +42,7 @@ test("static sitemap: root, trust pages, every region's landing pages, the store
   onSite(entries);
   const urls = new Set(entries.map((e) => e.url));
   for (const p of ["", "/about", "/terms", "/privacy", "/contact"]) assert.ok(urls.has(`${SITE_URL}${p}`), p);
-  for (const r of REGION_LIST) for (const p of ["", "/sealed", "/sets", "/stores", "/releases", "/deals", "/cheapest-packs", "/this-week", "/guides"]) assert.ok(urls.has(`${SITE_URL}/${r.region}${p}`), `${r.region}${p}`);
+  for (const r of REGION_LIST) for (const p of ["", "/sealed", "/sets", "/stores", ...(releasesIndexed(r.region) ? ["/releases"] : []), "/deals", "/cheapest-packs", "/this-week", "/guides"]) assert.ok(urls.has(`${SITE_URL}/${r.region}${p}`), `${r.region}${p}`);
   const at = (p: string) => entries.find((e) => e.url === `${SITE_URL}${p}`)!;
   assert.deepEqual([at("/au/deals").changeFrequency, at("/au/deals").priority, at("/au/deals").lastModified], ["daily", 0.7, when]);
   assert.deepEqual([at("/au/cheapest-packs").changeFrequency, at("/au/cheapest-packs").priority], ["daily", 0.6]);
@@ -136,4 +138,18 @@ test("static sitemap: guide copies on GUIDE_NOINDEX_IN are left out, their US co
       assert.ok(![...urls].some((u) => u.endsWith(`/${r}/guides/${slug}`)), `${slug}: ${r} copy not listed`);
     }
   }
+});
+
+test("static sitemap: release calendar copies on RELEASES_NOINDEX_IN and noindex blog posts are left out (page scorecard, 2026-11-23)", () => {
+  const urls = new Set(staticSitemap({}).map((e) => e.url));
+  assert.ok(RELEASES_NOINDEX_IN.length > 0);
+  assert.ok(!RELEASES_NOINDEX_IN.includes("us"), "the US release calendar is never noindexed here (US-first)");
+  assert.ok([...urls].some((u) => u.endsWith("/us/releases")), "US calendar listed");
+  for (const r of RELEASES_NOINDEX_IN) {
+    assert.equal(releasesIndexed(r), false);
+    assert.ok(![...urls].some((u) => u.endsWith(`/${r}/releases`)), `${r} calendar not listed`);
+  }
+  const hidden = POSTS.filter((p) => p.noindex);
+  assert.deepEqual(hidden.map((p) => p.slug), ["magic-star-trek-commander-decks"]);
+  for (const p of POSTS) assert.equal(urls.has(`${SITE_URL}${postPath(p.slug)}`), !p.noindex, p.slug);
 });

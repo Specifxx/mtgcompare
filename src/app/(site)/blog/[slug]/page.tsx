@@ -21,7 +21,7 @@ type Params = { params: { slug: string } };
 export function generateMetadata({ params }: Params): Metadata {
   const p = POST_BY_SLUG.get(params.slug);
   if (!p) return {};
-  const meta = pageMeta({ title: p.title, description: p.description, path: postPath(p.slug) });
+  const meta = pageMeta({ title: p.title, description: p.description, path: postPath(p.slug), noindex: p.noindex });
   return {
     ...meta,
     title: postMetaTitle(p.title),

@@ -3139,3 +3139,13 @@ was only 9 to 20% of them, and the owner asked to "capture this opportunity with
 product price table carries a small chip saying what its sale is (`TcgSaleChip`, 9AM 27 Nov to 11PM 30 Nov New York time,
 `lib/bf-mode.ts`). It is drawn only in the browser after the clock is read, so cached HTML never shows it outside the sale. It
 ranks nothing and marks no row the cheapest. Delete it with the bar after the sale.
+
+## 2026-11-27 — UK and NZ release calendars and the Star Trek Commander post are noindex (page scorecard, Job D)
+
+The 2026-11-23 page scorecard (28 days of Search Console to 20 Nov) put /uk/releases (position 58, 42 impressions) and
+/nz/releases (position 51, 83 impressions) past Google's page 3 with no clicks and no visits, and the same for
+/blog/magic-star-trek-commander-decks (position 35). Seven near-identical calendars split the signal the US copy can rank on, and
+the Star Trek set hub and deck pages answer the post's query with live prices. They stay live for visitors, but are noindex, out of
+the sitemap and (the calendars) out of every copy's hreflang: `RELEASES_NOINDEX_IN` in `lib/index-tiers.ts`, `Post.noindex` in
+`lib/blog/index.ts`. The US calendar is never on the list. /release-dates already 301s to /us/releases. Take a copy off once it
+has outside links or the US copy ranks on page 1.

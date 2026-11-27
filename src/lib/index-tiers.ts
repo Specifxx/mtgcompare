@@ -62,6 +62,15 @@ export function productTier(s: TierStat, productType: string): IndexTier {
 export const INDEXED_DETAIL_REGIONS: readonly string[] = ["us", "au", "uk", "ca"];
 export const detailIndexed = (region: string): boolean => INDEXED_DETAIL_REGIONS.includes(region);
 
+/**
+ * Regional copies of the release calendar (/<region>/releases) kept live for visitors but noindex, out of the sitemap and out of
+ * hreflang (Job D, the page scorecard of 2026-11-23: 28 days of Search Console to 20 Nov). The UK copy ranked at position 58 and the
+ * NZ copy at 51, with no clicks and no visits: near-identical copies of one calendar split the signal the US copy can rank on. The
+ * US copy is never on this list (US-first). Take a region off once its copy has outside links or the US copy ranks on page 1.
+ */
+export const RELEASES_NOINDEX_IN: readonly string[] = ["uk", "nz"];
+export const releasesIndexed = (region: string): boolean => !RELEASES_NOINDEX_IN.includes(region);
+
 /** Noindex: no stats row in this market, or a thin one. */
 export const productNoindex = (s: TierStat | null | undefined, productType: string): boolean => !s || productTier(s, productType) === "thin";
 

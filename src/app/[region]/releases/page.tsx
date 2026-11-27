@@ -3,7 +3,8 @@ import { weeklyBoxLive } from "@/lib/weekly-box";
 import { ALERT_SITE_KEY } from "@/lib/alert-feed";
 import Link from "@/components/Link";
 import type { Metadata } from "next";
-import { regionOrNotFound, type RegionInfo } from "@/lib/regions";
+import { REGION_LIST, regionOrNotFound, type RegionInfo } from "@/lib/regions";
+import { releasesIndexed } from "@/lib/index-tiers";
 import { AddToCalendar } from "@/components/AddToCalendar";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { NoPreFooter } from "@/components/Ebay";
@@ -46,7 +47,9 @@ export function generateMetadata({ params }: { params: { region: string } }): Me
         `Magic: The Gathering ${year} release dates, and what ${r.adjective} stores have in stock or on pre-order today.`,
       ),
       path: `/${r.region}/releases`,
-      alternates: regionAlternates(r.region, "/releases"),
+      // The UK and NZ copies are noindex (RELEASES_NOINDEX_IN, the 2026-11-23 page scorecard) and left out of every copy's hreflang.
+      alternates: regionAlternates(r.region, "/releases", REGION_LIST.filter((x) => releasesIndexed(x.region))),
+      noindex: !releasesIndexed(r.region),
     }),
     title,
   };
