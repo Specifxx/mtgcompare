@@ -37,6 +37,7 @@ import { MarketReport } from "@/components/home/MarketReport";
 import { SetIndex } from "@/components/SetIndex";
 import { setCountsGrouped, typeLabelsInMarket } from "@/lib/hub-data";
 import { rankCards } from "@/lib/home-demand";
+import { MascotGuide } from "@/components/MascotGuide";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js, CDN_PAGES), never ISR: an ISR write
 // costs about twenty renders, and the data only changes with a release, which empties the CDN anyway.
@@ -240,6 +241,8 @@ export default async function RegionHome({ params }: { params: { region: string 
         <div className="hero-search rise" style={riseAt(2)}>
           <SearchBox region={r.region} size="lg" />
         </div>
+        {/* Penny suggests a first search (owner, 2026-11-27: "a little mascot saying, hey, search this term here"). */}
+        <MascotGuide examples={["Final Fantasy", "Collector Booster", "Commander Deck"]} />
         <RegionChips region={r.region} className="hero-markets rise mt-6 justify-center" style={riseAt(3)} />
         <WaysIn links={ways} label={`Popular pages in ${r.inName}`} />
         {/* One quiet line of facts (it was three chips). A live <time>: the page is cached for a day, so a fixed "3 hours ago" would freeze. */}

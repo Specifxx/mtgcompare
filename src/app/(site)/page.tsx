@@ -17,6 +17,7 @@ import { SoftWaysIn } from "@/components/home/SoftWaysIn";
 import { LandingAds } from "@/components/home/LandingAds";
 import { NewCardsStrip } from "@/components/NewCardsStrip";
 import { landingRailTiles, landingTcgTiles } from "@/lib/landing-ads";
+import { MascotGuide } from "@/components/MascotGuide";
 
 // Rendered per request and kept by Vercel's CDN for a day (next.config.js CDN_PAGES, "/"), like the region pages, never ISR and never
 // prerendered at build (a build reads no data: tests/vercel-ignore-build.test.ts). The region block's default (US) picks come from the
@@ -89,6 +90,8 @@ export default async function Landing() {
             </button>
           </form>
         </div>
+        {/* Penny suggests a first search (owner, 2026-11-27: "a little mascot saying, hey, search this term here"). */}
+        <MascotGuide examples={["Final Fantasy", "Collector Booster", "Commander Deck"]} submit />
         {/* The region row, with flags (owner, 2026-11-02): picks in place, like the header's switcher. */}
         <RegionChips className="hero-regions rise mt-6 justify-center" style={riseAt(3)} />
         <SoftWaysIn formId="landing-search" links={HERO_LINKS} />
