@@ -3150,3 +3150,9 @@ the sitemap and (the calendars) out of every copy's hreflang: `RELEASES_NOINDEX_
 `lib/blog/index.ts`. The US calendar is never on the list. /release-dates already 301s to /us/releases. Take a copy off once it
 has outside links or the US copy ranks on page 1.
 Released at 19:37 UTC on 27 Nov once the 8-hour gate opened: the bar through Cyber Monday and the TCGplayer sale chip.
+
+## 2026-11-27 — The rating card no longer asks on its own
+
+Owner, 27 Nov: "make sure that users have a good experience … not too many pop-ups … the feedback pop-up on Rift Compare
+can be taken down a little because we already have enough feedback". The rate-us corner card never opens by itself any
+more (`AUTO_ASK = false`); a "Rate us" link still opens it. During Cyber Weekend the visit's one prompt goes to the sale card.
