@@ -300,6 +300,11 @@ export default async function ProductPage({ params }: { params: { region: string
   const msrp = r.market === "US" && type ? usMsrpCents(type.key, p.setCode) : null;
   // The table's eBay pick, for every other place that may show the same listing (the panel, the sold-out box, the buy bar): the same
   // arguments, so the same single request.
+  // TCGplayer's in-stock offer here (the US: one of the offers, in US$), tagged, for the buy bar test's "paid" arm (lib/bar-test.ts).
+  const tcgOpenOffer = open.find((o) => o.marketplace) ?? null;
+  const tcgBarLink = tcgOpenOffer ? offerLink(tcgOpenOffer.store, tcgOpenOffer.url, r.region, "product-sticky") : null;
+  const barTcg =
+    tcgOpenOffer && tcgBarLink?.sponsored ? { cents: tcgOpenOffer.priceCents, href: tcgBarLink.href, rel: tcgBarLink.rel, retailer: offerRetailer(tcgOpenOffer.store, tcgOpenOffer.storeName, r.market) } : null;
   const ebayPick = ebayBest ? { slug: p.slug, floor: ebayFloor, packs: rowPacks(type?.key, packs) } : null;
   // A product of one of the owner's hot sets (lib/popular.ts: 30th Celebration first), once the set is out: the strip carries the
   // highlighted "Shop <product> on eBay" button. Where the strip goes is the plan's call as for any product.
@@ -894,6 +899,7 @@ export default async function ProductPage({ params }: { params: { region: string
           preorder={pre}
           store={{ cents: best.priceCents, storeName: best.storeName, href: bestLink.href, rel: bestLink.rel, retailer: offerRetailer(best.store, best.storeName, r.market), marketplace: best.marketplace }}
           pick={ebayPick}
+          tcg={barTcg}
         />
       ) : (
         <StickyBuyBar region={r.region} anchor="soldout" pick={ebayPick} search={{ href: ebaySearchUrl(ebayQ, r.region, "product-sticky"), line: `Sold out at ${r.adjective} stores` }} />

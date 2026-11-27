@@ -23,6 +23,7 @@ const SENT: ReadonlySet<string> = new Set([
   "nudge_eligible",
   "nudge_shown",
   "nudge_click",
+  "bar_test", // the phone buy bar test (lib/bar-test.ts, from 3 Dec): {k: "<arm>:seen|paid|store"}
   "hot_nudge", // the Hot 100 buy prompt A/B (lib/hot-nudge.ts, 2026-11-20): {k: "<arm>:seen|shown|buy"}
   ...["ab_seen", "ab_paid", "ab_tcg", "ab_ebay", "ab_amazon", "ab_store", "ab_mini_tcg", "ab_mini_ebay"],
 ]);
@@ -36,7 +37,7 @@ const IMPRESSION_EVENTS: ReadonlySet<string> = new Set(["ab_seen", "nudge_eligib
 export function isImpression(name: string, props?: Record<string, unknown>): boolean {
   if (IMPRESSION_EVENTS.has(name)) return true;
   const k = typeof props?.k === "string" ? props.k : "";
-  return (name === "hot_nudge" || name === "ebay_pop") && /:(seen|shown)$/.test(k);
+  return (name === "hot_nudge" || name === "ebay_pop" || name === "bar_test") && /:(seen|shown)$/.test(k);
 }
 let sampled: boolean | null = null;
 function inSample(): boolean {

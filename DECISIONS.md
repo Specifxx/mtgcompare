@@ -3168,3 +3168,16 @@ can be taken down a little because we already have enough feedback". The rate-us
 more (`AUTO_ASK = false`); a "Rate us" link still opens it. During Cyber Weekend the visit's one prompt goes to the sale card.
 
 Released at 22:40 UTC: TCGplayer's sale card, owner asked for urgent releases.
+
+## 2026-11-27 — The phone buy bar test: the paid link in the bar, from 3 Dec (Head of Conversion)
+
+The phone buy bar repeats the page's best price, and that is usually a store that pays nothing: about two of every three buy clicks
+go to unpaid stores, while eBay earns about A$0.35 a click and TCGplayer about A$0.42 (30 days to 23 Nov,
+strategy/marketplace-placement-2026-11-24.html). So, 50/50 in the browser from 3 Dec (`lib/bar-test.ts`, localStorage `bar-test`),
+phones only, product pages only, never the quick view: "store" keeps today's bar; "paid", where today's bar would show an unpaid
+store, shows the cheaper of the page's own eBay listing and TCGplayer's in-stock tagged offer in this region's currency, with its
+real price and link and an "Ad" label. Neither there (a pre-order, NZ or SG without TCGplayer): the store, as today. The best-price
+card and the table are unchanged, and the bar never calls the paid link the cheapest. One event, `bar_test` {k}: "<arm>:seen" once a
+visit (sampled 1 in 10 visitors like every impression, w:10), "<arm>:paid" / "<arm>:store" on the visit's first click of each kind
+on a product page. Read 16 Dec: paid clickers per 100 phone product-page visitors per arm, and that store clicks do not fall by more
+than the paid ones rise. MTG's only new test; it rides the normal release.
