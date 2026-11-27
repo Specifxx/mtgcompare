@@ -23,6 +23,9 @@ import { RatingForm } from "./RatingForm";
 // A small card, not a modal: the page stays usable under it, and ✕, Escape
 // and "Not now" all close it.
 
+/** Off (owner, 2026-11-27: "the feedback pop-up … can be taken down … we already have enough feedback"): the card never asks on its
+    own any more; "Rate us" links still open it. */
+const AUTO_ASK = false;
 const SHOW_DELAY_MS = 8_000;
 /** Owner, 2026-11-03: "we don't run ads right now so the least you could do is leave us a review". Shown only while no ad script is on the page, so it is never untrue. */
 export const NO_ADS_LINE = "We don't run banner ads, so if this helped, please leave us a review.";
@@ -79,6 +82,7 @@ export function RateCard() {
 
   // Ask on its own after real use.
   useEffect(() => {
+    if (!AUTO_ASK) return;
     if (openRef.current) return;
     const pages = sessionPages(path);
     const ask = () => !askedThisVisit() && shouldAsk(loadState(), Date.now(), window.location.pathname, { pages });
@@ -91,6 +95,7 @@ export function RateCard() {
 
   // The moment it has earned: back from a store tab opened here.
   useEffect(() => {
+    if (!AUTO_ASK) return;
     let armed = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const onClick = (e: MouseEvent) => {
