@@ -3181,3 +3181,7 @@ card and the table are unchanged, and the bar never calls the paid link the chea
 visit (sampled 1 in 10 visitors like every impression, w:10), "<arm>:paid" / "<arm>:store" on the visit's first click of each kind
 on a product page. Read 16 Dec: paid clickers per 100 phone product-page visitors per arm, and that store clicks do not fall by more
 than the paid ones rise. MTG's only new test; it rides the normal release.
+
+## 2026-11-28 — Owner override of the deploy floor
+
+The owner (28 Nov, 00:38 UTC): "Ignore the deploy limit. Just deploy them urgently." `scripts/vercel-ignore-build.sh` now builds a `[deploy]` commit whose subject also carries `[owner-now]` whatever the gap since the last production build. Only for a release the owner has asked for in those words; every other release keeps the 12-hour gap and the 8-hour `[urgent]` floor. Released at 00:38 UTC for the Cyber Weekend TCGplayer bar and pop-up.
