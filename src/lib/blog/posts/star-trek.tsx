@@ -1,5 +1,12 @@
 // The four Star Trek posts. Every fact is src/content/star-trek.ts's, with its source; every price is a store's live listing.
-import type { MarketCard } from "@/content/families";
+import Link from "@/components/Link";
+import {
+  cheapestPerMarket,
+  FAMILY,
+  whereText,
+  type FamilyKey,
+  type MarketCard,
+} from "@/content/families";
 import {
   longDate,
   PLAYGROUP_STAR_TREK,
@@ -15,6 +22,7 @@ import {
   WIZARDS_STAR_TREK,
 } from "@/content/star-trek";
 import { money } from "@/lib/format";
+import { regionOfMarket } from "@/lib/regions";
 import type { PostData } from "../data";
 import {
   ByMarket,
@@ -291,18 +299,77 @@ export const mechanics = {
   },
 };
 
+/** What a buyer of the set picks between, in the order the post lists them. */
+const BUY_FIRST: readonly FamilyKey[] = [
+  "play-box",
+  "collector-box",
+  "bundle",
+  "commander",
+  "prerelease",
+  "play-pack",
+];
+
+/**
+ * The cheapest in-stock product of each kind in the US today, each linked to its page: the buy rows above the fold of the
+ * where-to-buy post (Job D, the page scorecard of 2026-11-23: position 10, 26 impressions, 0 clicks). Nothing when no kind is
+ * in stock; the market tables below say so.
+ */
+function usCheapest(d: PostData) {
+  const us = regionOfMarket("US")!;
+  const rows = BUY_FIRST.flatMap((key) => {
+    const p = cheapestPerMarket(d.named, key).find((x) => x.market === "US")?.p;
+    return p ? [{ key, p }] : [];
+  });
+  if (!rows.length) return null;
+  return (
+    <MarketsBlock checked={d.checked} title="Cheapest in the US today">
+      <StackTable
+        caption="The cheapest Star Trek product of each kind in the US today"
+        head={["Product", "From", "In stock at"]}
+        rows={rows.map(({ key, p }) => ({
+          key,
+          th: (
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <span className="font-semibold text-ink">{FAMILY[key].label}</span>
+              <Link
+                href={`/${us.region}/p/${p.slug}`}
+                prefetch={false}
+                className="truncate text-xs font-medium text-brand underline-offset-2 hover:underline"
+              >
+                {p.name}
+              </Link>
+            </span>
+          ),
+          cells: [
+            <span key="p" className="font-semibold">
+              {money(p.lowestPriceCents, "US")}
+            </span>,
+            <span key="w" className="text-muted">
+              {whereText(p)}
+            </span>,
+          ],
+        }))}
+      />
+    </MarketsBlock>
+  );
+}
+
 export const whereToBuyStarTrek = {
   outline(d: PostData): PostOutline {
     return {
       intro: (
-        <Lede>
-          {out(d)
-            ? "Star Trek is out"
-            : `Star Trek releases on ${longDate(STAR_TREK_DATES.release)}`}
-          , and stores in all seven markets we compare list it. Here is what
-          each market’s stores ask today, in their own currency, with the US
-          MSRP Wizards set.
-        </Lede>
+        <>
+          <Lede>
+            {out(d)
+              ? "Star Trek is out"
+              : `Star Trek releases on ${longDate(STAR_TREK_DATES.release)}`}
+            , and stores in all seven markets we compare list it. Here is the
+            cheapest of each product in the US today, then what each
+            market’s stores ask, in their own currency, with the US MSRP
+            Wizards set.
+          </Lede>
+          {usCheapest(d)}
+        </>
       ),
       sections: [
         prices(
@@ -318,10 +385,12 @@ export const whereToBuyStarTrek = {
           body: (
             <Prose>
               <ul>
-                <li>
-                  A pre-order ships when the store receives stock: check its
-                  ship date.
-                </li>
+                {!out(d) && (
+                  <li>
+                    A pre-order ships when the store receives stock: check its
+                    ship date.
+                  </li>
+                )}
                 <li>
                   Check whether a box is a Play Booster or a Collector Booster
                   box: they differ a lot in price.

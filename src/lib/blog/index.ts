@@ -120,12 +120,14 @@ export const POSTS: readonly Post[] = [
   },
   {
     slug: "where-to-buy-magic-star-trek",
-    title: "Where to buy MTG Star Trek: pre-order prices by market",
+    // Job D (page scorecard 2026-11-23): position 10.4, 26 impressions, 0 clicks under the pre-order title. The set has been
+    // out since 13 Nov, so the title names what a buyer looks for now, and the post opens with the US's cheapest of each kind.
+    title: "Where to buy MTG Star Trek: cheapest box, Bundle and decks",
     description:
-      "Star Trek booster boxes, Bundles and Commander decks at the stores we compare in seven markets, each in its own currency, with the US MSRP.",
+      "The cheapest Star Trek Play Booster box, Collector Booster box, Bundle and Commander deck in the US today, then every market we compare in its own currency.",
     kicker: "Star Trek",
     published: "2026-10-14",
-    updated: SEALED,
+    updated: "2026-11-28",
   },
   {
     slug: "cheapest-magic-booster-boxes",
