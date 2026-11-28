@@ -7,14 +7,19 @@
 // wait. It takes the visit's one prompt slot (`slotKey`, each site's own) and stands down when another prompt already has it.
 // The links are drawn by the site with its own tagged helpers (`children`). It never calls window.open and never navigates by
 // itself.
+// After the sale (owner, 2026-11-28: "keep the banners going and the pop-ups going"), the same card keeps its slot all year with
+// the offer calendar's words (lib/offer-calendar.ts): the season and TCGplayer's own standing offer, never an invented discount.
+// It is still once a visit, never while typing, and its ✕ keeps it away for OFFER_CLOSE_DAYS.
 import { useEffect, useState, type ReactNode } from "react";
 import { BF_PHASE_LABEL, bfHref, bfPhase, type BfPhase } from "@/lib/bf-mode";
+import { OFFER_CLOSE_DAYS, OFFER_PHASE_SHORT, TCG_OFFER_COPY, offerCalendarOn, offerPhase, type OfferPhase } from "@/lib/offer-calendar";
 import { tcgSaleOn } from "@/components/TcgSaleChip";
 
 export const OPEN_AFTER_MS = 9000;
 export const QUIET_MS = 5000;
 const SHOWN_KEY = "tcg-sale-popup";
 const CLOSED_KEY = "tcg-sale-popup-closed";
+const OFFER_CLOSED_KEY = "tcg-offer-popup-closed-at";
 const NAME = "tcg-sale-popup";
 
 function typingTarget(el: Element | null): boolean {
@@ -27,9 +32,14 @@ function typingTarget(el: Element | null): boolean {
 }
 
 /** Takes the visit's one prompt slot; false when another prompt has it, or storage is refused. */
-function claimSlot(slotKey: string): boolean {
+function claimSlot(slotKey: string, sale: boolean): boolean {
   try {
-    if (localStorage.getItem(CLOSED_KEY) === "1" || sessionStorage.getItem(SHOWN_KEY) === "1") return false;
+    if (sessionStorage.getItem(SHOWN_KEY) === "1") return false;
+    if (sale && localStorage.getItem(CLOSED_KEY) === "1") return false;
+    if (!sale) {
+      const at = Number(localStorage.getItem(OFFER_CLOSED_KEY) || 0);
+      if (at && Date.now() - at < OFFER_CLOSE_DAYS * 24 * 3600 * 1000) return false;
+    }
     const cur = sessionStorage.getItem(slotKey);
     if (cur && cur !== NAME) return false;
     sessionStorage.setItem(slotKey, NAME);
@@ -43,19 +53,24 @@ function claimSlot(slotKey: string): boolean {
 export function TcgSalePopup({
   slotKey,
   dealsHref,
+  offerHref,
   children,
 }: {
   /** The site's own one-prompt-a-visit sessionStorage key. */
   slotKey: string;
   /** Our own Black Friday deals page (bfHref turns it into the Cyber Monday page on Monday). */
   dealsHref: string;
+  /** Our own deals page once the sale is over (defaults to `dealsHref`). */
+  offerHref?: string;
   /** Two or three tagged TCGplayer links, drawn by the site. */
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [phase, setPhase] = useState<BfPhase>("cyberWeekend");
+  const [offer, setOffer] = useState<OfferPhase | null>(null);
   useEffect(() => {
-    if (!tcgSaleOn(Date.now())) return;
+    const live = (t: number) => tcgSaleOn(t) || offerCalendarOn(t);
+    if (!live(Date.now())) return;
     let lastKey = 0;
     const onKey = () => (lastKey = Date.now());
     window.addEventListener("keydown", onKey, { capture: true, passive: true });
@@ -63,12 +78,14 @@ export function TcgSalePopup({
     let timer = 0;
     const tryOpen = () => {
       const now = Date.now();
-      if (!tcgSaleOn(now)) return;
+      if (!live(now)) return;
       if (typingTarget(document.activeElement) || now - lastKey < QUIET_MS || document.querySelector("dialog[open]")) {
         timer = window.setTimeout(tryOpen, 2000);
         return;
       }
-      if (!claimSlot(slotKey)) return;
+      const sale = tcgSaleOn(now);
+      if (!claimSlot(slotKey, sale)) return;
+      setOffer(sale ? null : offerPhase(now));
       setPhase(bfPhase(now));
       setOpen(true);
     };
@@ -87,19 +104,23 @@ export function TcgSalePopup({
   }, [open]);
   function close() {
     try {
-      localStorage.setItem(CLOSED_KEY, "1");
+      if (offer) localStorage.setItem(OFFER_CLOSED_KEY, String(Date.now()));
+      else localStorage.setItem(CLOSED_KEY, "1");
     } catch {
       /* storage refused: it closes for this page */
     }
     setOpen(false);
   }
   if (!open) return null;
+  const label = offer ? OFFER_PHASE_SHORT[offer] : BF_PHASE_LABEL[phase];
+  const copy = offer ? TCG_OFFER_COPY[offer] : null;
   return (
     <aside
       data-tcg-sale-popup=""
       role="dialog"
       aria-modal="false"
-      aria-label={`TCGplayer ${BF_PHASE_LABEL[phase]} sale`}
+      data-tcg-offer={offer ?? undefined}
+      aria-label={offer ? `TCGplayer: ${copy!.head}` : `TCGplayer ${BF_PHASE_LABEL[phase]} sale`}
       className="tcg-sale-popup"
       style={{
         position: "fixed",
@@ -121,7 +142,7 @@ export function TcgSalePopup({
     >
       <button
         type="button"
-        aria-label="Close the TCGplayer sale card"
+        aria-label={offer ? "Close the TCGplayer card" : "Close the TCGplayer sale card"}
         onClick={close}
         style={{ position: "absolute", top: 6, right: 6, width: 32, height: 32, borderRadius: 999, color: "#a1a1aa", background: "transparent" }}
       >
@@ -129,18 +150,18 @@ export function TcgSalePopup({
       </button>
       <p style={{ display: "flex", alignItems: "center", gap: 8, margin: 0, paddingRight: 28 }}>
         <span style={{ background: "#ffd400", color: "#0b0b0c", borderRadius: 4, padding: "1px 6px", fontSize: 11, fontWeight: 800, letterSpacing: ".05em", textTransform: "uppercase" }}>
-          {BF_PHASE_LABEL[phase]}
+          {label}
         </span>
         <span style={{ color: "#a1a1aa", fontSize: 12 }}>Ad · TCGplayer</span>
       </p>
-      <p style={{ margin: "8px 0 2px", fontSize: 17, fontWeight: 800 }}>10% back in TCGplayer store credit</p>
+      <p style={{ margin: "8px 0 2px", fontSize: 17, fontWeight: 800 }}>{copy ? copy.head : "10% back in TCGplayer store credit"}</p>
       <p style={{ margin: 0, color: "#d4d4d8", fontSize: 13 }}>
-        On TCGplayer orders until 11PM Monday 30 Nov, New York time. Some places to start:
+        {copy ? copy.line : "On TCGplayer orders until 11PM Monday 30 Nov, New York time. Some places to start:"}
       </p>
       <div className="tcg-sale-popup-links" style={{ display: "flex", flexWrap: "wrap", gap: 6, margin: "10px 0 8px" }}>
         {children}
       </div>
-      <a href={bfHref(dealsHref, phase)} style={{ color: "#ffd400", fontSize: 13, fontWeight: 700 }}>
+      <a href={offer ? offerHref ?? dealsHref : bfHref(dealsHref, phase)} style={{ color: "#ffd400", fontSize: 13, fontWeight: 700 }}>
         Or compare store prices first →
       </a>
       <style>{`.tcg-sale-popup-links a{display:inline-block;background:#ffd400;color:#0b0b0c;border-radius:999px;padding:5px 11px;font-weight:700;font-size:13px;text-decoration:none}.tcg-sale-popup-links a:hover{background:#ffe34d}`}</style>

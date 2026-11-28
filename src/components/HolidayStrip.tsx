@@ -4,6 +4,7 @@ import { TcgSalePopup } from "@/components/TcgSalePopup";
 import { OutboundLink } from "@/components/OutboundLink";
 import { REL_SPONSORED, TCGPLAYER_RETAILER, tcgplayerSearchUrl } from "@/lib/affiliate";
 import { bfModeOn, bfPhase } from "@/lib/bf-mode";
+import { TCGPLAYER_STANDING } from "@/lib/offer-calendar";
 import { saleStrip } from "@/lib/black-friday";
 import { REGIONS, type Region } from "@/lib/regions";
 import { sectionHref } from "@/lib/site";
@@ -26,13 +27,31 @@ export function HolidayStrip({ region, today = new Date().toISOString().slice(0,
       <StripClose id={s.key} />
     </div>
   ) : null;
-  const on = bfModeOn(Date.now());
-  if (!on) return strip;
+  const now = Date.now();
+  const on = bfModeOn(now);
+  // After the sale the bar and the card keep running with the offer calendar (lib/offer-calendar.ts, owner 2026-11-28).
   return (
     <>
     <BfModeBar
-      on={on} phase={bfPhase(Date.now())}
+      on={on} phase={bfPhase(now)} now={now}
       href={sectionHref(region, "blackFriday")}
+      evergreen={{
+        title: `MTG sealed deals in ${r.inName}`,
+        line: "booster boxes and bundles under the median store price today",
+        href: sectionHref(region, "deals"),
+        hrefs: { afterChristmas: sectionHref(region, "boxingDay"), newYear: sectionHref(region, "januarySales") },
+        ad: (
+        <OutboundLink
+          href={tcgplayerSearchUrl("", region, "tcgplayer-offer-bar")}
+          rel={REL_SPONSORED}
+          retailer={TCGPLAYER_RETAILER}
+          placement="tcgplayer-offer-bar"
+          className="underline underline-offset-2"
+        >
+          <span style={{ color: "#fff" }}>{TCGPLAYER_STANDING.short}</span> · Ad
+        </OutboundLink>
+        ),
+      }}
       title={`MTG sealed deals in ${r.inName}`}
       line="booster boxes and bundles under the median store price today"
       ad={
@@ -50,7 +69,7 @@ export function HolidayStrip({ region, today = new Date().toISOString().slice(0,
       {strip}
     </BfModeBar>
     {/* TCGplayer's sale card (owner, 2026-11-27): once a visit, never while typing, closes for good (TcgSalePopup.tsx). */}
-    <TcgSalePopup slotKey="ce_prompt_slot" dealsHref={sectionHref(region, "blackFriday")}>
+    <TcgSalePopup slotKey="ce_prompt_slot" dealsHref={sectionHref(region, "blackFriday")} offerHref={sectionHref(region, "deals")}>
       <OutboundLink href={tcgplayerSearchUrl("booster box", region, "tcgplayer-sale-popup")} rel={REL_SPONSORED} retailer={TCGPLAYER_RETAILER} placement="tcgplayer-sale-popup">Booster boxes</OutboundLink>
       <OutboundLink href={tcgplayerSearchUrl("bundle", region, "tcgplayer-sale-popup")} rel={REL_SPONSORED} retailer={TCGPLAYER_RETAILER} placement="tcgplayer-sale-popup">Bundles</OutboundLink>
       <OutboundLink href={tcgplayerSearchUrl("", region, "tcgplayer-sale-popup")} rel={REL_SPONSORED} retailer={TCGPLAYER_RETAILER} placement="tcgplayer-sale-popup">All sealed</OutboundLink>
