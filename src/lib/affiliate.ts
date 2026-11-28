@@ -112,6 +112,7 @@ export const PLACEMENTS = [
   "amazon-guide", // a guide: a product row's "Check price on Amazon AU" link
   "tcgplayer-bf-mode", // the one-day Black Friday bar under the header (lib/bf-mode.ts, owner 2026-11-27)
   "tcgplayer-sale-popup", // TCGplayer's sale card, once a visit while its sale runs (components/TcgSalePopup.tsx, owner 2026-11-27)
+  "tcgplayer-offer-bar", // the offer calendar bar's TCGplayer link, after the sale (components/BfModeBar.tsx, lib/offer-calendar.ts, owner 2026-11-28)
 ] as const;
 export type Placement = (typeof PLACEMENTS)[number];
 
