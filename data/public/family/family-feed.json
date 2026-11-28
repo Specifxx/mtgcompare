@@ -1,7 +1,7 @@
 {
  "v": 1,
  "site": "mtg",
- "generatedAt": "2026-11-27T18:43:40.876Z",
+ "generatedAt": "2026-11-28T03:14:35.736Z",
  "links": {
   "AU": {
    "deals": "https://mtgcompare.app/au/deals"
@@ -268,29 +268,15 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "US",
-   "title": "Secret Lair Drop: Cosmic Chill by Robin Eisenberg - Traditional Foil Edition",
-   "url": "https://mtgcompare.app/us/p/secret-lair-drop-cosmic-chill-by-robin-eisenberg-traditional-foil-edition",
-   "cents": 4500,
+   "title": "Core Set 2019 Draft Booster Pack",
+   "url": "https://mtgcompare.app/us/p/core-set-2019-draft-booster-pack",
+   "cents": 799,
    "currency": "USD",
-   "store": "Black Vault Gaming",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/713515_in_1000x1000.jpg",
-   "refCents": 5700,
+   "store": "Sweets and Geeks",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/166551_in_1000x1000.jpg",
+   "refCents": 1000,
    "refLabel": "median store price",
-   "savingPct": 21
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "UK",
-   "title": "Secrets of Strixhaven 60-Card Theme Deck - Eerie",
-   "url": "https://mtgcompare.app/uk/p/secrets-of-strixhaven-60-card-theme-deck-eerie",
-   "cents": 995,
-   "currency": "GBP",
-   "store": "Axion Now",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675579_in_1000x1000.jpg",
-   "refCents": 1957,
-   "refLabel": "median store price",
-   "savingPct": 49
+   "savingPct": 20
   },
   {
    "kind": "deal",
@@ -365,16 +351,16 @@
   {
    "kind": "deal",
    "cluster": "cards",
-   "region": "CA",
-   "title": "Secrets of Strixhaven 60-Card Theme Deck - Lifegain",
-   "url": "https://mtgcompare.app/ca/p/secrets-of-strixhaven-60-card-theme-deck-lifegain",
-   "cents": 1499,
-   "currency": "CAD",
-   "store": "The Side Deck",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675580_in_1000x1000.jpg",
-   "refCents": 2987,
+   "region": "UK",
+   "title": "Marvel Super Heroes Bundle",
+   "url": "https://mtgcompare.app/uk/p/marvel-super-heroes-bundle",
+   "cents": 3500,
+   "currency": "GBP",
+   "store": "Mox in the Hole",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675615_in_1000x1000.jpg",
+   "refCents": 5995,
    "refLabel": "median store price",
-   "savingPct": 50
+   "savingPct": 42
   },
   {
    "kind": "deal",
@@ -386,9 +372,23 @@
    "currency": "CAD",
    "store": "Collect-Edition",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/255912_in_1000x1000.jpg",
-   "refCents": 1564,
+   "refCents": 1599,
    "refLabel": "median store price",
-   "savingPct": 49
+   "savingPct": 50
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "CA",
+   "title": "Secrets of Strixhaven 60-Card Theme Deck - Lifegain",
+   "url": "https://mtgcompare.app/ca/p/secrets-of-strixhaven-60-card-theme-deck-lifegain",
+   "cents": 1499,
+   "currency": "CAD",
+   "store": "The Side Deck",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675580_in_1000x1000.jpg",
+   "refCents": 2987,
+   "refLabel": "median store price",
+   "savingPct": 50
   },
   {
    "kind": "deal",
@@ -464,6 +464,20 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "EU",
+   "title": "Marvel Super Heroes Bundle",
+   "url": "https://mtgcompare.app/eu/p/marvel-super-heroes-bundle",
+   "cents": 3038,
+   "currency": "EUR",
+   "store": "Mana Market EU",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675615_in_1000x1000.jpg",
+   "refCents": 5999,
+   "refLabel": "median store price",
+   "savingPct": 49
+  },
+  {
+   "kind": "deal",
+   "cluster": "cards",
+   "region": "EU",
    "title": "Marvel Super Heroes Commander Deck - Avengers Assemble (Collector's Edition)",
    "url": "https://mtgcompare.app/eu/p/marvel-super-heroes-commander-deck-avengers-assemble-collectors-edition",
    "cents": 8499,
@@ -492,15 +506,15 @@
    "kind": "deal",
    "cluster": "cards",
    "region": "EU",
-   "title": "Marvel Super Heroes Bundle",
-   "url": "https://mtgcompare.app/eu/p/marvel-super-heroes-bundle",
-   "cents": 3198,
+   "title": "Teenage Mutant Ninja Turtles Bundle",
+   "url": "https://mtgcompare.app/eu/p/teenage-mutant-ninja-turtles-bundle",
+   "cents": 2999,
    "currency": "EUR",
-   "store": "Mana Market EU",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675615_in_1000x1000.jpg",
-   "refCents": 5999,
+   "store": "The Dragoncard",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/657856_in_1000x1000.jpg",
+   "refCents": 5595,
    "refLabel": "median store price",
-   "savingPct": 47
+   "savingPct": 46
   },
   {
    "kind": "deal",
@@ -513,20 +527,6 @@
    "store": "Fire & Dice",
    "image": "https://tcgplayer-cdn.tcgplayer.com/product/657860_in_1000x1000.jpg",
    "refCents": 10999,
-   "refLabel": "median store price",
-   "savingPct": 46
-  },
-  {
-   "kind": "deal",
-   "cluster": "cards",
-   "region": "EU",
-   "title": "Marvel Super Heroes Commander Deck - The Fantastic Four (Collector's Edition)",
-   "url": "https://mtgcompare.app/eu/p/marvel-super-heroes-commander-deck-the-fantastic-four-collectors-edition",
-   "cents": 8499,
-   "currency": "EUR",
-   "store": "Gamers Academy",
-   "image": "https://tcgplayer-cdn.tcgplayer.com/product/675629_in_1000x1000.jpg",
-   "refCents": 15790,
    "refLabel": "median store price",
    "savingPct": 46
   },
