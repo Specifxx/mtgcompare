@@ -96,6 +96,9 @@ MIN_GAP_HOURS="${MIN_GAP_HOURS:-12}"
 URGENT_MIN_GAP_HOURS="${URGENT_MIN_GAP_HOURS:-8}"
 recent_production_build() {
   local gap_hours="$MIN_GAP_HOURS"
+  # [owner-now] (owner, 2026-11-28: "Ignore the deploy limit. Just deploy them urgently."): the owner's own
+  # override for one release that cannot wait for the 8-hour floor. Only when the owner says so.
+  printf '%s' "$subject" | grep -qiF -- '[owner-now]' && return 1
   printf '%s' "$subject" | grep -qiF -- '[urgent]' && gap_hours="$URGENT_MIN_GAP_HOURS"
   local prev="${VERCEL_GIT_PREVIOUS_SHA:-}" prev_ts now
   [ -z "$prev" ] && return 1
