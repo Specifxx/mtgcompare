@@ -14,8 +14,8 @@ import { SITE_REVIEWS } from "./site-reviews-config";
 //
 // WHEN THE CARD ASKS (RiftCompare's corner card, owner 2026-10-28; never its
 // rating-drive pop-up): never on arrival; after 4 pages and 3 minutes of use,
-// or just after the visitor comes back from a store tab they opened here; at
-// most three times, 14 days apart; never again once they rated or said "Don't
+// or just after the visitor comes back from a store tab they opened here; once only (owner, 2026-11-28: "go
+// lighter on the feedback pop-ups"; it was three times, 14 days apart); never again once they rated or said "Don't
 // ask again". Always closable (✕, Escape, "Not now"). The footer's "Rate us"
 // opens the same card at any time.
 
@@ -30,8 +30,8 @@ export const ASK_AFTER_MS = 3 * 60_000;
 /** After a store tab: enough pages to have used the site at all. */
 export const ASK_INTENT_PAGES = 2;
 export const VISIT_GAP_MS = 30 * 60_000;
-export const SNOOZE_MS = 14 * 86_400_000;
-export const MAX_ASKS = 3;
+export const SNOOZE_MS = 60 * 86_400_000;
+export const MAX_ASKS = 1;
 export const STORAGE_KEY = "srv_rate";
 export const SESSION_KEY = "srv_rate_seen";
 export const SESSION_PAGES_KEY = "srv_rate_pages";
